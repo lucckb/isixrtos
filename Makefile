@@ -29,7 +29,7 @@ CXXFLAGS += -Wall
 
 
 #Port szeregowy programatora ISP
-ISPPORT = com1
+ISPPORT = /dev/ttyS0
 
 #Predkosc portu szeregowego programatora
 ISPBAUD = 19200
