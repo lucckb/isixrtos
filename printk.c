@@ -103,7 +103,8 @@ void printk(char const *format, ...)
 
   va_start (ap, format);
   for (;;){
-    while ((format_flag = *(format++)) != '%'){      // Until '%' or '\0' 
+    while ((format_flag = *(format++)) != '%')
+    {      // Until '%' or '\0' 
       if (!format_flag){va_end (ap); return;}
       myputchar(format_flag);
     }
