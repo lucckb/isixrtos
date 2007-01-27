@@ -21,10 +21,10 @@ SCRIPTLINK = lpc2142-rom
 
 #Opcje kompilatora C
 CFLAGS += -Wall
-CFLAGS += -std=gnu99
+CFLAGS += -std=gnu99 -fomit-frame-pointer
 
 #Opcje kompilatora C++
-CXXFLAGS += -Wall
+CXXFLAGS += -Wall -fomit-frame-pointer
 
 
 

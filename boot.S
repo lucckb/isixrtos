@@ -7,9 +7,9 @@
 #define UND_Stack_Size 		0x00000004
 #define SVC_Stack_Size 		0x00000004
 #define ABT_Stack_Size 		0x00000004
-#define FIQ_Stack_Size		0x00000004
+#define FIQ_Stack_Size		0x00000100
 #define IRQ_Stack_Size		0x00000100
-#define USR_Stack_Size		0x00000200
+#define USR_Stack_Size		0x00000100
 
 /* Konfiguracja VPBDIV 	*/
 #define VPBDIV_SETUP		
@@ -125,7 +125,7 @@ Vectors:        LDR     PC, Reset_Addr
 
 Reset_Addr:     .word   Reset_Handler
 Undef_Addr:     .word   Undef_Handler
-SWI_Addr:       .word   SWI_Handler
+SWI_Addr:       .word   cpu_swi_yield
 PAbt_Addr:      .word   PAbt_Handler
 DAbt_Addr:      .word   DAbt_Handler
                 .word   0                      /* Reserved Address */
@@ -270,6 +270,8 @@ PLL_Loop:       LDR     R3, [R0, #PLLSTAT_OFS]
 //  Setup a default Stack Limit (when compiled with "-mapcs-stack-check")
                 SUB     SL, SP, #USR_Stack_Size
 
+//Testowo przejdz to trybu svc
+                MSR CPSR_c, #Mode_SVC|I_Bit|F_Bit
 
 // Wyczysc sekcje .bss (Inicjalizacja 0)
                 MOV     R0, #0
