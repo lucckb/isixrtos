@@ -1,10 +1,9 @@
 #include <asm/lpc214x.h>
 #include <isix/printk.h>
-#include <asm/types.h>
+#include <isix/types.h>
 #include <asm/context.h>
 
 
-#define NULL (0)
 
 typedef struct task_field
 {

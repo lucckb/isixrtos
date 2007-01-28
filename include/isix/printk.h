@@ -1,5 +1,5 @@
-#ifndef __PRINTK_H
-#define __PRINTK_H
+#ifndef __ISIX_PRINTK_H
+#define __ISIX_PRINTK_H
 
 void printk_init(unsigned short baud_rate);
 
