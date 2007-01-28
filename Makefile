@@ -1,7 +1,7 @@
 # Automatic makefile for GNUARM (C/C++)
 
 #tutaj wpisz nazwe pliku hex
-TARGET	   = ledtst
+TARGET	   = isix
 
 #Format wyjsciowy (moze byc srec,ihex,binary)
 FORMAT	= ihex
@@ -22,6 +22,9 @@ SCRIPTLINK = lpc2142-rom
 #Opcje kompilatora C
 CFLAGS += -Wall
 CFLAGS += -std=gnu99 -fomit-frame-pointer
+
+CFLAGS += -Iinclude
+
 
 #Opcje kompilatora C++
 CXXFLAGS += -Wall -fomit-frame-pointer

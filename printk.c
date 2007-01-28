@@ -1,5 +1,5 @@
 #include <stdarg.h>
-#include "lpc214x.h"
+#include <asm/lpc214x.h>
 
 //Ustawienia kontrolera VIC
 #define TXD0_P00_SEL (1<<0) 

@@ -308,7 +308,13 @@ ctor_end:
                 LDR R2, =main
                 MOV LR, PC
                 MOV PC, R2
-
+                CMP R0,#0
+                BNE main_fail
+//Zainicjalizuj system
+                LDR R2, =init_os
+                MOV LR,PC
+                MOV PC, R2
+main_fail:
 //Wywolaj destruktory
 			   	LDR R0, =__dtors_start__
 			  	LDR R1, =__dtors_end__

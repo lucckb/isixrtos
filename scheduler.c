@@ -1,6 +1,6 @@
-#include "lpc214x.h"
-#include "printk.h"
-#include "types.h"
+#include <asm/lpc214x.h>
+#include <isix/printk.h>
+#include <asm/types.h>
 
 
 #define NULL (0)
@@ -82,17 +82,18 @@ void cpu_swi_yield(void)
     asm volatile("ADD LR,LR,#4 \t\n");
     cpu_save_context();
     scheduler();
-    printk("SWI CURR_SP=%08x\n",current_task->top_stack);
+    //printk("SWI CURR_SP=%08x\n",current_task->top_stack);
     cpu_restore_context();
 }
 
 
 #define sched_yield() asm volatile("swi #1\t\n")
 
-void fun1(void) __attribute__((noreturn));
-void fun1(void) 
+void fun1(void *n) __attribute__((noreturn));
+void fun1(void *n) 
 {
     const register reg_t tmp asm("r13");
+    printk("func1(%08x)\n",(u32)n);
     while(1)
     {
     for(volatile int i=0;i<1000000;i++);
@@ -101,11 +102,13 @@ void fun1(void)
     }
 }
 
-void fun2(void) __attribute__((noreturn));
-void fun2(void) 
+void fun2(void *n) __attribute__((noreturn));
+void fun2(void *n) 
 {
    const register reg_t tmp asm("r13");
-    while(1)
+   printk("func2(%08x)\n",(u32)n);
+
+   while(1)
     {
     for(volatile int i=0;i<1000000;i++);
     printk("Hello from fun2 SP=%08x\n",tmp);
@@ -115,10 +118,10 @@ void fun2(void)
 
 
 
-reg_t* init_stack(reg_t *sp,u32 pfun)
+reg_t* init_stack(reg_t *sp,void (*pfun)(void*),void *param)
 {
      reg_t *orig_sp = sp;
-    *sp-- = pfun + 4;
+    *sp-- = (u32)pfun + 4;
     *sp-- = 14; //R14
     *sp-- = (u32)orig_sp; //R13
     *sp-- = 12;  //R12
@@ -133,16 +136,14 @@ reg_t* init_stack(reg_t *sp,u32 pfun)
     *sp-- = 3;  //R3
     *sp-- = 2;  //R2
     *sp-- = 1;  //R1
-    *sp-- = 0;  //R0
+    *sp-- = (u32)param;  //R0
     *sp = 0x0000001f;   //SPSR
     return sp;
 }
 
-void main(void) __attribute__((noreturn));
+void init_os(void) __attribute__((noreturn));
 
-
-
-void main(void)
+void init_os(void)
 {
 	printk_init(UART_BAUD(115200));
 	printk("Hello from OS\n");
@@ -150,10 +151,15 @@ void main(void)
     task2.top_stack = (reg_t*)&stk2[200-4];
     task1.init_stack = (reg_t*)stk1;
     task2.init_stack = (reg_t*)stk2;
-    task1.top_stack = init_stack(task1.top_stack,(u32)fun1);
-    task2.top_stack = init_stack(task2.top_stack,(u32)fun2);
+    task1.top_stack = init_stack(task1.top_stack,fun1,(void*)0x10203040);
+    task2.top_stack = init_stack(task2.top_stack,fun2,(void*)0xaabbccdd);
     printk("sp1=%08x sp2=%08x\n",(u32)task1.top_stack,(u32)task2.top_stack);
     current_task = &task1;
     cpu_restore_context();
 }
+
+int main(void)
+{
+    return 0;
+}   
 
