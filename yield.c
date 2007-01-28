@@ -3,71 +3,75 @@
 #include "types.h"
 
 
-#define cpu_save_context()  \
-{   \
-    extern volatile reg_t current_sp; \
-    \
-    asm volatile (  \
-        /* Save used register R0 */ \
-        "STMDB SP!, {R0} \t\n"  \
-        /* Save user stack on top of supervisor stack */    \
-        "STMDB SP,{SP}^ \t\n"   \
-        "NOP \t\n"  \
-        "SUB SP,SP,#4 \t\n" \
-        /* Restore user stack pointer to R0 */  \
-        "LDMIA SP!,{R0} \t\n"   \
-        /* Push return adress into R0 */    \
-        "STMDB R0!,{LR} \t\n"   \
-        /* Use LR as user SP */ \
-        "MOV LR,R0 \t\n"    \
-        /* Now pop true R0 */   \
-        "LDMIA SP!,{R0} \t\n"   \
-        /* Push all system register */  \
-        "STMDB LR,{R0-LR}^ \t\n"    \
-        "NOP \t\n"  \
-        "SUB LR,LR,#60 \t\n"    \
-        /* Push SPSR on stack*/ \
-        "MRS R0,SPSR \t\n"  \
-        "STMDB LR!,{R0} \t\n"   \
-        "LDR R0, =current_sp \t\n" \
-        "STR LR,[R0] \t\n" \
-        ); \
-}
+#define NULL (0)
 
-#define cpu_restore_context(void)   \
-{   \
-    extern volatile reg_t current_sp; \
-    \
-    asm volatile  ( \
-        "LDR R0, =current_sp \t\n" \
-        "LDR LR,[R0]\t\n" \
-        /* Restore SPSR */  \
-        "LDMIA LR!,{R0} \t\n"   \
-        "MSR SPSR,R0 \t\n"  \
-        "LDMIA LR,{R0-LR}^\t\n" \
-        "NOP \t\n"  \
-        /* Load valid return address */ \
-        "LDR LR,[LR,#+60] \t\n"  \
-        /* Return from SWI */   \
-        "SUBS PC,LR,#4 \t\n"    \
-    );   \
-}
+typedef struct task_field
+{
+    volatile reg_t *top_stack;
+    volatile reg_t *init_stack;
+} task_s;
 
-volatile reg_t current_sp;
 
-unsigned char buf1[200];
-unsigned char buf2[200];
+task_s * volatile current_task = NULL;
 
-volatile u32 *sp1,*sp2;
 
-reg_t getsp(void)
+#define cpu_save_context()                                      \
+    asm volatile (                                              \
+        /* Save used register R0 */                             \
+        "STMDB SP!, {R0} \t\n"                                  \
+        /* Save user stack on top of supervisor stack */        \
+        "STMDB SP,{SP}^ \t\n"                                   \
+        "NOP \t\n"                                              \
+        "SUB SP,SP,#4 \t\n"                                     \
+        /* Restore user stack pointer to R0 */                  \
+        "LDMIA SP!,{R0} \t\n"                                   \
+        /* Push return adress into R0 */                        \
+        "STMDB R0!,{LR} \t\n"                                   \
+        /* Use LR as user SP */                                 \
+        "MOV LR,R0 \t\n"                                        \
+        /* Now pop true R0 */                                   \
+        "LDMIA SP!,{R0} \t\n"                                   \
+        /* Push all system register */                          \
+        "STMDB LR,{R0-LR}^ \t\n"                                \
+        "NOP \t\n"                                              \
+        "SUB LR,LR,#60 \t\n"                                    \
+        /* Push SPSR on stack*/                                 \
+        "MRS R0,SPSR \t\n"                                      \
+        "STMDB LR!,{R0} \t\n"                                   \
+        "LDR R0,=current_task \t\n"                             \
+        "LDR R0,[R0] \t\n"                                      \
+        "STR LR,[R0] \t\n" )    
+
+#define cpu_restore_context()                                   \
+    asm volatile  (                                             \
+        "LDR R0,=current_task\t\n"                              \
+        "LDR R0,[R0] \t\n"                                      \
+        "LDR LR,[R0] \t\n"                                      \
+        /* Restore SPSR */                                      \
+        "LDMIA LR!,{R0} \t\n"                                   \
+        "MSR SPSR,R0 \t\n"                                      \
+        "LDMIA LR,{R0-LR}^\t\n"                                 \
+        "NOP \t\n"                                              \
+        /* Load valid return address */                         \
+        "LDR LR,[LR,#+60] \t\n"                                 \
+        /* Return from SWI */                                   \
+        "SUBS PC,LR,#4 \t\n" )
+
+
+
+unsigned char stk1[200];
+unsigned char stk2[200];
+
+task_s task1,task2;
+
+
+
+void scheduler(void)
 {
     static u8 n=0;
-    reg_t ret;
-    if(n) ret = (reg_t)sp1;
-    else ret = (reg_t)sp2;
+    if(n) current_task = &task1;
+    else current_task = &task2;
     n = !n;
-    return ret;
 }
 
 void cpu_swi_yield(void) __attribute__((interrupt("SWI"),naked));
@@ -77,7 +81,8 @@ void cpu_swi_yield(void)
     //Add offset to LR according to SWI
     asm volatile("ADD LR,LR,#4 \t\n");
     cpu_save_context();
-    current_sp = getsp();
+    scheduler();
+    printk("SWI CURR_SP=%08x\n",current_task->top_stack);
     cpu_restore_context();
 }
 
@@ -87,10 +92,11 @@ void cpu_swi_yield(void)
 void fun1(void) __attribute__((noreturn));
 void fun1(void) 
 {
+    const register reg_t tmp asm("r13");
     while(1)
     {
     for(volatile int i=0;i<1000000;i++);
-    printk("Hello from fun1\n");
+    printk("Hello from fun1 SP=%08x\n",tmp);
     sched_yield();
     }
 }
@@ -98,27 +104,23 @@ void fun1(void)
 void fun2(void) __attribute__((noreturn));
 void fun2(void) 
 {
+   const register reg_t tmp asm("r13");
     while(1)
     {
     for(volatile int i=0;i<1000000;i++);
-    printk("Hello from fun2\n");
+    printk("Hello from fun2 SP=%08x\n",tmp);
     sched_yield();
     }
 }
 
 
 
-//void cpu_swi_yield(void) __attribute__((interrupt("SWI")));
-
-//void cpu_swi_yield(void) { printk("In native SWI\n"); }
-
-
-u32* init_stack(volatile u32 *sp,u32 pfun)
+reg_t* init_stack(reg_t *sp,u32 pfun)
 {
+     reg_t *orig_sp = sp;
     *sp-- = pfun + 4;
-    printk("init fun=%08x b=%08x\n",pfun,*(sp+1));
     *sp-- = 14; //R14
-    *sp-- = 13; //R13
+    *sp-- = (u32)orig_sp; //R13
     *sp-- = 12;  //R12
     *sp-- = 11; //R11
     *sp-- = 10; //R10
@@ -136,16 +138,22 @@ u32* init_stack(volatile u32 *sp,u32 pfun)
     return sp;
 }
 
-int main(void)
+void main(void) __attribute__((noreturn));
+
+
+
+void main(void)
 {
 	printk_init(UART_BAUD(115200));
 	printk("Hello from OS\n");
-    sp1 = init_stack((u32*)&buf1[200-4],(u32)fun1);
-    sp2 = init_stack((u32*)&buf2[200-4],(u32)fun2);
-    current_sp = (reg_t)sp1;
-    u32 n = *(u32*)(current_sp+64);
-    printk("fun1=%08x current_sp=%08x\n",(u32)fun1,n);
+    task1.top_stack = (reg_t*)&stk1[200-4];
+    task2.top_stack = (reg_t*)&stk2[200-4];
+    task1.init_stack = (reg_t*)stk1;
+    task2.init_stack = (reg_t*)stk2;
+    task1.top_stack = init_stack(task1.top_stack,(u32)fun1);
+    task2.top_stack = init_stack(task2.top_stack,(u32)fun2);
+    printk("sp1=%08x sp2=%08x\n",(u32)task1.top_stack,(u32)task2.top_stack);
+    current_task = &task1;
     cpu_restore_context();
-	return 0;
 }
 
