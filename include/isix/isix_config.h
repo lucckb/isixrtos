@@ -1,0 +1,8 @@
+#define CONFIG_LPC2000 1
+
+#define CONFIG_PCLK 60000000
+
+#define CONFIG_MCLK 60000000
+
+
+

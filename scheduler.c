@@ -1,4 +1,5 @@
 #include <asm/lpc214x.h>
+#include <isix/config.h>
 #include <isix/printk.h>
 #include <isix/types.h>
 #include <asm/context.h>
