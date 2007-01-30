@@ -19,7 +19,7 @@ DEBUG 	= stabs
 MCU	= arm7tdmi
 
 #Skrypt linkera
-SCRIPTLINK = arch/arm7/boot/lpc2142-rom
+SCRIPTLINK = arch/arm7lpc2000/boot/lpc2142-rom
 
 #Opcje kompilatora C
 CFLAGS += -Wall
@@ -78,11 +78,11 @@ target: $(TARGET).elf $(TARGET).hex $(TARGET).lss
      
 build:	
 	$(MAKE) -C kernel
-	$(MAKE) -C arch/arm7 	
+	$(MAKE) -C arch/arm7lpc2000
 
 
 
-LINKFILES =  kernel/kernel.o arch/arm7/kernel_arch.o
+LINKFILES =  kernel/kernel.o arch/arm7lpc2000/kernel_arch.o
 
 #wszystkie zaleznosci
 $(TARGET).elf: $(LINKFILES) $(SCRIPTLINK).ld

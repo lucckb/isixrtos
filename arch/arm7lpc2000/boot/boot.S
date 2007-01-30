@@ -5,9 +5,9 @@
 /*Ustawienia stosu*/ 
 #define Top_Stack      		0x40004000
 #define UND_Stack_Size 		0x00000004
-#define SVC_Stack_Size 		0x00000004
+#define SVC_Stack_Size 		0x00000100
 #define ABT_Stack_Size 		0x00000004
-#define FIQ_Stack_Size		0x00000100
+#define FIQ_Stack_Size		0x00000004
 #define IRQ_Stack_Size		0x00000100
 #define USR_Stack_Size		0x00000100
 
