@@ -1,4 +1,6 @@
-# Automatic makefile for GNUARM (C/C++)
+# Isix os Makefile 
+#Katalog glowny
+TOP_DIR= $(shell pwd)
 
 #tutaj wpisz nazwe pliku hex
 TARGET	   = isix
@@ -17,17 +19,15 @@ DEBUG 	= stabs
 MCU	= arm7tdmi
 
 #Skrypt linkera
-SCRIPTLINK = lpc2142-rom
+SCRIPTLINK = arch/arm7/boot/lpc2142-rom
 
 #Opcje kompilatora C
 CFLAGS += -Wall
 CFLAGS += -std=gnu99 -fomit-frame-pointer
 
-CFLAGS += -Iinclude
+CFLAGS += -I$(TOP_DIR)/include
 
 
-#Opcje kompilatora C++
-CXXFLAGS += -Wall -fomit-frame-pointer
 
 
 
@@ -43,9 +43,9 @@ ISPXTAL = 12000
 
 #Definicje programow
 CC      = arm-elf-gcc
-CXX	= arm-elf-c++
 AR      = arm-elf-ar
 CP      = arm-elf-objcopy
+LD      = arm-elf-ld
 OBJDUMP = arm-elf-objdump 
 ISPPROG  = lpc21isp
 
@@ -55,51 +55,48 @@ ISPPROG  = lpc21isp
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -g$(DEBUG)
 LDFLAGS +=  -nostartfiles -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref
 CFLAGS  += -O$(OPT) -mcpu=$(MCU) -g$(DEBUG) 
-CXXFLAGS += -O$(OPT) -mcpu=$(MCU) -g$(DEBUG) 
 CPFLAGS =  -O $(FORMAT) -S
-ASLST = -Wa,-adhlns=$(<:.S=.lst)
-CLST = -Wa,-adhlns=$(<:.c=.lst)
-CPPLST = -Wa,-adhlns=$(<:.cpp=.lst)
+ARFLAGS = rcs
 
-all:	build
+#eksportujemy potrzebne dane
+export ASFLAGS LDFLAGS CFLAGS ARFLAGS TOP_DIR CC AR LD
 
-install: build program
+all:	build target
+
+install: build target program
 
 clean:
-	rm -f $(TARGET).hex
-	rm -f $(TARGET).elf
-	rm -f $(TARGET).map
-	rm -f $(TARGET).lss
-	rm -f $(OBJ)
-	rm -f $(ASRC:.S=.lst) $(SRC:.c=.lst) $(CPPSRC:.cpp=.lst)
-	rm -f $(SRC:.c=.dep) $(CPPSRC:.cpp=.dep) $(ASRC:.S=.dep)
+	rm -rf kernel/*.o kernel/*.dep
+	find arch -name '*.o' | xargs rm -f
+	find arch -name '*.dep' | xargs rm -f
+	rm -rf *.hex *.elf *.lss *.map
 
 program:
 	$(ISPPROG) -control $(TARGET).hex $(ISPPORT) $(ISPBAUD) $(ISPXTAL)
 
+target: $(TARGET).elf $(TARGET).hex $(TARGET).lss
      
-build:	$(TARGET).elf $(TARGET).hex $(TARGET).lss
+build:	
+	$(MAKE) -C kernel
+	$(MAKE) -C arch/arm7 	
 
 
 
-#pliki zrodlowe C
-SRC = $(wildcard *.c)
-#pliki zrodlowe C++
-CPPSRC = $(wildcard *.cpp)
-#pliki assemblerowe
-ASRC = $(wildcard *.S) 
-
+LINKFILES =  kernel/kernel.o arch/arm7/kernel_arch.o
 
 #wszystkie zaleznosci
-$(TARGET).elf: $(OBJ) $(SCRIPTLINK).ld
--include $(SRC:.c=.dep)
--include $(CPPSRC:.cpp=.dep)
--include $(ASRC:.S=.dep)
+$(TARGET).elf: $(LINKFILES) $(SCRIPTLINK).ld
+	@echo "Linking..."
+	$(CC) $(CFLAGS) $(LINKFILES) -o $@ $(LDFLAGS)
 
- 
-#Objects files
-OBJ = $(SRC:.c=.o) $(CPPSRC:.cpp=.o) $(ASRC:.S=.o)
-# Define all listing files.
-LST = $(SRC:.c=.lst) $(CPPSRC:.cpp=.lst) $(ASRC:.S=.lst)
 
 include Makefile.inc
+
+%.lss: %.elf
+	@echo "Create extended listing..."
+	$(OBJDUMP) -h -S $< > $@
+
+%.hex: %.elf
+	@echo "Converting to hex..."
+	$(CP) $(CPFLAGS) $< $@ 
+

@@ -1,10 +1,23 @@
+subdirs = $(sort $(patsubst %,_isix_subdir_%, $(SUBDIR-y)))
+
+objs = $(sort $(patsubst %,_isix_obj_%, $(OBJ-y)))
+objs_all: objs_ok subdirs_ok
+
+subdirs_ok: $(subdirs)
+	$(LD) -r -o $(OBJ_TARGET) $(OBJ_LINK)
+
+objs_ok: $(objs)
+
+$(objs) :
+	$(MAKE) $(patsubst _isix_obj_%,%,$@)
+
+$(subdirs) : 
+	$(MAKE) -C $(patsubst _isix_subdir_%,%,$@)
+
+
+
 %.dep: %.c
 	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-
-%.dep: %.cpp 
-	$(CXX) -M $(CXXFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
@@ -13,29 +26,13 @@
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-%.lss: %.elf
-	@echo "Create extended listing..."
-	$(OBJDUMP) -h -S $< > $@
-
-%.hex: %.elf
-	@echo "Converting to hex..."
-	$(CP) $(CPFLAGS) $< $@ 
-
-
-%.elf: $(OBJ)
-	@echo "Linking..."
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $@ $(LDFLAGS)
-
 %.o : %.S
 	@echo "Assembling..."
-	$(CC) -c $(ASFLAGS) $(ASLST) $< -o $@ 
+	$(CC) -c $(ASFLAGS)  $< -o $@ 
 
 
 %.o : %.c	
 	@echo "Compiling C..."
-	$(CC) -c $(CFLAGS) $(CLST) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
-%.o : %.cpp
-	@echo "Compiling C++..."
-	$(CXX) -c $(CXXFLAGS) $(CPPLST) $< -o $@
-
+-include $(OBJ-y:.o=.dep)

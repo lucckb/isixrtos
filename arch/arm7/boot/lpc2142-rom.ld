@@ -21,7 +21,7 @@ SECTIONS
   . = 0;	
   .text :
   {
-    *boot.o (.text)         /* Startup code */
+    *(.init)         /* Startup code */
     *(.text)                   /* remaining code */
     *(.text.*)
     *(.glue_7t) 

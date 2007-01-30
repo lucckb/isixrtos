@@ -102,9 +102,8 @@
 #define	PINSEL2		0xE002C014  /* PINSEL2 Address */
 
 
-
 // Kod startowy musi byc zlinkowany na poczatku
-        .text
+        .section .init,"ax"
         .arm	
         .global _startup
         .func   _startup
