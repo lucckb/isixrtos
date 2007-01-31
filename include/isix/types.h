@@ -7,5 +7,6 @@
 #define NULL ((void*)0)
 #endif /* NULL */
 
+typedef u32 size_t;
 
 #endif /* __ISIX_TYPES_H */

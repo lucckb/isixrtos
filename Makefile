@@ -18,6 +18,9 @@ DEBUG 	= stabs
 #Typ procesora
 MCU	= arm7tdmi
 
+#Malloc heap end (END MEM - TOP STACK)
+HEAP_END = 0x40003CF4
+
 #Skrypt linkera
 SCRIPTLINK = arch/arm7lpc2000/boot/lpc2142-rom
 
@@ -53,7 +56,7 @@ ISPPROG  = lpc21isp
 #Pozostale ustawienia kompilatora
 
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -g$(DEBUG)
-LDFLAGS +=  -nostartfiles -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref
+LDFLAGS +=  -nostartfiles -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref,--defsym=__heap_end=$(HEAP_END)
 CFLAGS  += -O$(OPT) -mcpu=$(MCU) -g$(DEBUG) 
 CPFLAGS =  -O $(FORMAT) -S
 ARFLAGS = rcs

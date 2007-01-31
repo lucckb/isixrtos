@@ -101,7 +101,7 @@ SECTIONS
 
   _end = .;
   PROVIDE (end = .);
-
+  PROVIDE (__heap_start = .);
   /* Stabs zawiera sekcje debugera  */
   .stab          0 : { *(.stab) }
   .stabstr       0 : { *(.stabstr) }
