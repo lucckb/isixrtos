@@ -99,7 +99,7 @@ void* kmalloc(size_t size)
 void kfree(void *mem)
 {
     //Check memory management pool...
-    if( ((u8*)mem) < &__heap_start || ((u8*)mem) > &__heap_end || free_list==NULL )
+    if( ((u8*)mem) < &__heap_start || ((u8*)mem) > &__heap_end )
     {
         printk("kfree: ADR=%08x not in dynamic memory management\n",mem);
         return;
