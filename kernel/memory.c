@@ -67,7 +67,7 @@ void* kmalloc(size_t size)
         //if( (c->size-size)<sizeof(freelist_t) ) continue;
         if( (c->size<size) || (c->size>(size+sizeof(freelist_t))) ) continue;
         //Znaleziono wolny blok o tym samym lub nie duzo wiekszym rozmiarze
-        if(c->prev) c->prev->next = c->next;
+        if(c->prev) c->prev->next = c->next; else free_list = c->next;
         if(c->next) c->next->prev = c->prev;
         printk("kmalloc: Allocate equal region ADR=%08x size=%d\n",&c->next,c->size);
         sched_unlock();
@@ -78,14 +78,16 @@ void* kmalloc(size_t size)
      /* Teraz jestesmy pewni ze mamy jeden blok ktory jest
       * wiekszy niz rozmiar zadanego bloku wiec mozemy go
       * odpowiednio rozparcelowac i przydzielic         */
-     printk("kmalloc: Found region ADR=%08x len=%d\n",&grt->next,grt->size);
-     grt->size -= size + sizeof(size_t);
-     printk("kmalloc: New region size len=%d\n",grt->size);
-     u8 *ptr = ((u8*)grt) + grt->size;
-     ((freelist_t*)ptr)->size = size;
-     printk("kmalloc: New region ADR=%08x\n",&((freelist_t*)ptr)->next);
+     freelist_t *new_mem = (freelist_t*)(((u8*)grt)+size+sizeof(size_t));
+     *new_mem = *grt;
+     new_mem->size -= size + sizeof(size_t);
+     grt->size = size;
+     if(new_mem->prev) new_mem->prev->next = new_mem;
+     else free_list = new_mem;
+     printk("kmalloc: Return region ADR=%08x len=%d\n",&grt->next,grt->size);
+     printk("kmalloc: Free region ADR=%08x len=%d\n",&new_mem->next,new_mem->size);
      sched_unlock();
-     return &((freelist_t*)ptr)->next;
+     return &grt->next;
 }
 
 /*------------------------------------------------------*/
@@ -103,41 +105,33 @@ void kfree(void *mem)
     freelist_t *rlist = (freelist_t*) (((u8*)mem)-sizeof(size_t));
     rlist->next = rlist->prev = NULL;
     printk("kfree: Region to free ADR=%08x size=%d\n",&rlist->next,rlist->size);
+    if(free_list==NULL) { free_list = rlist; return; }
     for(freelist_t *c=free_list; c ; c=c->next)
     {
         if(c<rlist && c->next) continue;
         //Found valid region range
-        if( ((u8*)&c->next)+c->size == ((u8*)&rlist->next))
+        if( ((u8*)&rlist->next)+rlist->size == ((u8*)c))
         {
-            //Concate to one area
-            c->size += rlist->size + sizeof(size_t);
-            printk("kfree: Concate1 region ADR=%08x len=%d\n",&c->next,c->size);
+            //Concate to one area    
+	    rlist->size += c->size + sizeof(size_t);
+	    rlist->next = c->next;
+	    rlist->prev = c->prev;
+	    if(c->prev) c->prev->next = rlist;
+	    else free_list = rlist;
+	    printk("kfree: Concate1 region ADR=%08x len=%d\n",&c->next,c->size);
             sched_unlock();
             return;
         }
         else
         {
-            if(c<rlist)
-            {
-                //Jezeli adres jest mniejszy to dodaj na koncu
-                rlist->next = c->next;
-                rlist->prev = c;
-                c->next = rlist;
-                printk("kfree: New FIRST free region ADR=%08x len=%d\n",&rlist->next,rlist->size);
-                sched_unlock();
-                return;
-            }
-            else
-            {
-                //Jezeli adres jest wiekszy to dodaj to wszystko w srodek
-                rlist->next = c;
-                rlist->prev = c->prev;
-                if(c->prev) c->prev->next = rlist;
-                c->prev = rlist;
-                printk("kfree: New LAST free region ADR=%08x len=%d\n",&rlist->next,rlist->size);
-                sched_unlock();
-                return;
-            }
+            rlist->next = c;
+	    rlist->prev = c->prev;
+	    if(c->prev) c->prev->next=rlist; 
+	    else free_list = rlist;
+	    c->prev = rlist;
+    	    printk("kfree: New FIRST free region ADR=%08x len=%d\n",&rlist->next,rlist->size);
+            sched_unlock();
+            return;
         }
     }
 }
@@ -153,6 +147,9 @@ void printelem(void)
         z = i;
     }
     j = 0;
-    for(freelist_t *i = z; i ; i=i->prev) j++;
+    for(freelist_t *i = z; i ; i=i->prev)
+    {
+	printk("Rev Elem %d Adr %08x Size %d\n",j++,&i->next,i->size);
+    }
     printk("Reverse count = %d\n",j);
 }
