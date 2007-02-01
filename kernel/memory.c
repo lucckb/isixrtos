@@ -5,7 +5,7 @@
 #ifdef DEBUG
 #include <isix/printk.h>
 #else
-#define printk
+#define printk(...)
 #endif
 /*------------------------------------------------------*/
 
