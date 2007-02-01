@@ -33,23 +33,6 @@ TASK_FUNC(fun1,n)
 {
     const register reg_t tmp asm("r13");
     printk("func1(%08x)\n",(u32)n);
-    x[0] = kmalloc(135);
-    kfree(x[0]);
-    x[0] = kmalloc(300);
-    x[1] = kmalloc(1000);
-    x[2] = kmalloc(500);
-   // x[3] = kmalloc(700);
-    kfree(x[2]);
-    kfree(x[1]);
-    kfree(x[0]);
-    printelem();
-    x[0] = kmalloc(1000);
-    printelem();
-    kfree(x[0]);
-    printelem();
-    x[5] = kmalloc(5000);
-    kfree(x[5]);
-    printelem();
     while(1)
     {
     for(volatile int i=0;i<1000000;i++);

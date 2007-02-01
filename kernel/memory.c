@@ -1,8 +1,12 @@
 #include <isix/memory.h>
 #include <isix/types.h>
-#include <isix/printk.h>
 #include <isix/task.h>
 
+#ifdef DEBUG
+#include <isix/printk.h>
+#else
+#define printk
+#endif
 /*------------------------------------------------------*/
 
 //Align Mask
@@ -112,31 +116,31 @@ void kfree(void *mem)
         //Found valid region range
         if( ((u8*)&rlist->next)+rlist->size == ((u8*)c))
         {
-            //Concate to one area    
-	    rlist->size += c->size + sizeof(size_t);
-	    rlist->next = c->next;
-	    rlist->prev = c->prev;
-	    if(c->prev) c->prev->next = rlist;
-	    else free_list = rlist;
-	    printk("kfree: Concate1 region ADR=%08x len=%d\n",&c->next,c->size);
+            //Concate to one area
+	        rlist->size += c->size + sizeof(size_t);
+	        rlist->next = c->next;
+	        rlist->prev = c->prev;
+	        if(c->prev) c->prev->next = rlist;
+	        else free_list = rlist;
+	        printk("kfree: Concate1 region ADR=%08x len=%d\n",&c->next,c->size);
             sched_unlock();
             return;
         }
         else
         {
             rlist->next = c;
-	    rlist->prev = c->prev;
-	    if(c->prev) c->prev->next=rlist; 
-	    else free_list = rlist;
-	    c->prev = rlist;
-    	    printk("kfree: New FIRST free region ADR=%08x len=%d\n",&rlist->next,rlist->size);
+	        rlist->prev = c->prev;
+	        if(c->prev) c->prev->next=rlist;
+	        else free_list = rlist;
+	        c->prev = rlist;
+	        printk("kfree: New FIRST free region ADR=%08x len=%d\n",&rlist->next,rlist->size);
             sched_unlock();
             return;
         }
     }
 }
 
-
+#ifdef DEBUG
 void printelem(void)
 {
     int j = 0;
@@ -153,3 +157,5 @@ void printelem(void)
     }
     printk("Reverse count = %d\n",j);
 }
+
+#endif /* DEBUG */
