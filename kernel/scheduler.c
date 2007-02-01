@@ -27,7 +27,6 @@ void scheduler(void)
 }
 
 
-void *x[10];
 
 TASK_FUNC(fun1,n)
 {
