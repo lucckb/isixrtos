@@ -1,22 +1,54 @@
 #ifndef __ISIX_SCHEDULER_H
 #define __ISIX_SCHEDULER_H
 
+#include <isix/list.h>
+#include <isix/task.h>
+#include <asm/scheduler.h>
 
+/*-----------------------------------------------------------------------*/
+//Define idle priority value
+#define SCHED_IDLE_PRIORITY 255
+
+/*-----------------------------------------------------------------------*/
 //Definition of task operations
-typedef struct task_field
+typedef struct task_struct
 {
-    volatile reg_t *top_stack;
+    reg_t *top_stack;  	//Task stack ptr
+    prio_t prio;			    //Priority of task
+    list_t inode;               //List of tasks
 } task_t;
 
+/*-----------------------------------------------------------------------*/
+//Definition of task ready list
+typedef struct task_ready_struct
+{
+    prio_t prio;               //Tasks group priority
+    list_entry_t task_list;    //List of task with some priority
+    list_t inode;              //List inode
+} task_ready_t;
 
+/*-----------------------------------------------------------------------*/
+//Current executed task
+extern task_t *volatile current_task;
 
-extern task_t * volatile current_task;
-
+/*-----------------------------------------------------------------------*/
+//Scheduler function called on context switch in IRQ and Yield
 void scheduler(void);
 
+/*-----------------------------------------------------------------------*/
+//Lock scheduler
+int sched_lock(void);
 
-reg_t* task_init_stack(reg_t *sp,void (*pfun)(void*),void *param);
+/*-----------------------------------------------------------------------*/
+//Lock scheduler
+int sched_unlock(void);
 
+/*-----------------------------------------------------------------------*/
+
+//Add assigned task to ready list 
+int add_task_to_ready_list(task_t *task);
+/*-----------------------------------------------------------------------*/
 
 
 #endif
+

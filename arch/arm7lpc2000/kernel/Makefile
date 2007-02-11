@@ -1,4 +1,4 @@
-OBJ-y = scheduler.o
+OBJ-y = scheduler.o interrupt.o
 OBJ_LINK = $(OBJ-y)
 OBJ_TARGET = kernel_arch.o
 

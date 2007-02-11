@@ -10,7 +10,7 @@
 
 
 /*-----------------------------------------------------------------------*/
-
+//Yield processor
 void cpu_swi_yield(void) __attribute__((interrupt("SWI"),naked));
 
 void cpu_swi_yield(void)
@@ -23,13 +23,13 @@ void cpu_swi_yield(void)
 }
 
 /*-----------------------------------------------------------------------*/
-
-reg_t* task_init_stack(reg_t *sp,void (*pfun)(void*),void *param)
+//Create of stack context 
+reg_t* task_init_stack(reg_t *sp,task_func_ptr_t pfun,void *param)
 {
      reg_t *orig_sp = sp;
-    *sp-- = (u32)pfun + 4;
+    *sp-- = (reg_t)pfun + 4;
     *sp-- = 14; //R14
-    *sp-- = (u32)orig_sp; //R13
+    *sp-- = (reg_t)orig_sp; //R13
     *sp-- = 12;  //R12
     *sp-- = 11; //R11
     *sp-- = 10; //R10
@@ -42,7 +42,7 @@ reg_t* task_init_stack(reg_t *sp,void (*pfun)(void*),void *param)
     *sp-- = 3;  //R3
     *sp-- = 2;  //R2
     *sp-- = 1;  //R1
-    *sp-- = (u32)param;  //R0
+    *sp-- = (reg_t)param;  //R0
     *sp = INITIAL_SPSR;   //SPSR
     return sp;
 }

@@ -1,6 +1,6 @@
 #include <isix/memory.h>
 #include <isix/types.h>
-#include <isix/task.h>
+#include <isix/scheduler.h>
 
 #ifdef DEBUG
 #include <isix/printk.h>

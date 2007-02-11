@@ -1,5 +1,5 @@
-#ifndef __CONTEXT_H
-#define __CONTEXT_H
+#ifndef __ASM_CONTEXT_H
+#define __ASM_CONTEXT_H
 
 /* 
     Switch and restore CPU context for ARM7TDMI 

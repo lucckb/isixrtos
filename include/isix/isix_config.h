@@ -4,5 +4,5 @@
 
 #define CONFIG_MCLK 60000000
 
-
+#define CONFIG_STACK_GROWTH 1
 

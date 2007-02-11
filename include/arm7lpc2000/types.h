@@ -1,5 +1,5 @@
-#ifndef __TYPES_H
-#define __TYPES_H
+#ifndef __ASM_TYPES_H
+#define __ASM_TYPES_H
 
 /* Fixed size vars */
 
