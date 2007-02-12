@@ -23,6 +23,10 @@
 task_t * volatile current_task = NULL;
 
 /*-----------------------------------------------------------------------*/
+//Current prio list pointer
+static task_ready_t * volatile current_prio = NULL;
+
+/*-----------------------------------------------------------------------*/
 //Sched lock counter
 static volatile int sched_lock_counter = 0;
 
@@ -49,9 +53,12 @@ int sched_unlock(void)
 }
 /*-----------------------------------------------------------------------*/
 
-task_t *task1,*task2;
+//task_t *task1,*task2;
 
 /*-----------------------------------------------------------------------*/
+//Scheduler is called in switch context
+
+/* Old first release only function
 void scheduler(void)
 {
     //If scheduler is locked switch context is disable
@@ -62,7 +69,15 @@ void scheduler(void)
     else current_task = task2;
     n = !n;
 }
+*/
+void scheduler(void)
+{
+   //If scheduler is locked switch context is disable
+    if(sched_lock_counter) return;
+    //TODO: Scheduler STUFF
+    //ready_task
 
+}
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list 
 int add_task_to_ready_list(task_t *task)
@@ -94,6 +109,7 @@ int add_task_to_ready_list(task_t *task)
     list_init(&prio_i->task_list);
     list_insert_end(&prio_i->task_list,&task->inode);
     list_insert_end(&ready_task,&prio_i->inode);
+    if(current_prio==NULL) current_prio = prio_i;
     printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_i,prio_i->prio);
     sched_unlock();
     return 0;
@@ -149,8 +165,8 @@ void init_os(void)
     //task2.top_stack = task_init_stack(task2.top_stack,fun2,(void*)0xaabbccdd);
     //printk("sp1=%08x sp2=%08x\n",(u32)task1.top_stack,(u32)task2.top_stack);
     
-    task1 = task_create(fun1,(void*)0x50607080,200,10);
-    task2 = task_create(fun2,(void*)0x10203040,200,10);
+    task_t *task1 = task_create(fun1,(void*)0x50607080,200,10);
+    task_t *task2 = task_create(fun2,(void*)0x10203040,200,10);
     current_task = task1;
     cpu_restore_context();
     while(1);    //Prevent compile warning

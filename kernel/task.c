@@ -40,13 +40,37 @@ task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_dept
 #ifdef CONFIG_STACK_GROWTH
      task->top_stack = (reg_t*)((char*)task->top_stack + stack_depth - 4);
 #endif
+    printk("TaskCreate: Top stack SP=%08x\n",task->top_stack);
     //Assign task priority
     task->prio = priority;
     //Create initial task stack context
     task->top_stack = task_init_stack(task->top_stack,task_func,func_param);
-    
-    //TODO: Other SCHEDULER STUFF
-    add_task_to_ready_list(task); 
+    //Lock scheduler
+    sched_lock();
+    //Add task to ready list
+    if(add_task_to_ready_list(task)<0)
+    {
+        //Free allocated innode
+        printk("TaskCreate: Add task to ready list failed\n");
+        kfree(task->top_stack);
+        kfree(task);
+	    sched_unlock();
+	    return NULL;
+    }
+    if(current_task==NULL)
+    {
+        //Scheduler not running assign task
+        current_task = task;
+        sched_unlock();
+	    printk("TaskCreate: Scheduler not running new task %08x\n",task);
+    }
+    else if(current_task->prio<task->prio)
+    {
+        //New task have higer priority then current task
+        sched_unlock();
+	    printk("TaskCreate: Call scheduler new prio %d > old prio %d\n",task->prio,current_task->prio);
+        sched_yield();
+    }
     //Return task ID for other operation
     return task;
 }

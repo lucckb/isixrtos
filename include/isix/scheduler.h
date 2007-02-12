@@ -2,18 +2,25 @@
 #define __ISIX_SCHEDULER_H
 
 #include <isix/list.h>
-#include <isix/task.h>
-#include <asm/scheduler.h>
+
 
 /*-----------------------------------------------------------------------*/
 //Define idle priority value
 #define SCHED_IDLE_PRIORITY 255
 
 /*-----------------------------------------------------------------------*/
+//Pointer to task function
+typedef void (*task_func_ptr_t)(void*);
+
+/*-----------------------------------------------------------------------*/
+//Priority type
+typedef u8 prio_t;
+
+/*-----------------------------------------------------------------------*/
 //Definition of task operations
 typedef struct task_struct
 {
-    reg_t *top_stack;  	//Task stack ptr
+    reg_t *top_stack;	        //Task stack ptr
     prio_t prio;			    //Priority of task
     list_t inode;               //List of tasks
 } task_t;
@@ -26,6 +33,10 @@ typedef struct task_ready_struct
     list_entry_t task_list;    //List of task with some priority
     list_t inode;              //List inode
 } task_ready_t;
+
+/*-----------------------------------------------------------------------*/
+
+#include <asm/scheduler.h>
 
 /*-----------------------------------------------------------------------*/
 //Current executed task
@@ -49,6 +60,9 @@ int sched_unlock(void);
 int add_task_to_ready_list(task_t *task);
 /*-----------------------------------------------------------------------*/
 
+#define sched_yield() cpu_yield()
+
+/*-----------------------------------------------------------------------*/
 
 #endif
 
