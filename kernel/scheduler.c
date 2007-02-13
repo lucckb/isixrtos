@@ -20,6 +20,10 @@
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
+volatile bool scheduler_running;
+
+/*-----------------------------------------------------------------------*/
+//Current task pointer
 task_t * volatile current_task = NULL;
 
 /*-----------------------------------------------------------------------*/
@@ -39,6 +43,7 @@ static list_entry_t ready_task;
 int sched_lock(void)
 {
     sched_lock_counter++;
+   // printk("SchedLock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 
@@ -49,6 +54,7 @@ int sched_unlock(void)
     reg_t irq_state = irq_disable();
     if(sched_lock_counter>0) sched_lock_counter--;
     irq_restore(irq_state);
+    //printk("SchedUnlock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 /*-----------------------------------------------------------------------*/
@@ -56,29 +62,26 @@ int sched_unlock(void)
 //task_t *task1,*task2;
 
 /*-----------------------------------------------------------------------*/
-//Scheduler is called in switch context
 
-/* Old first release only function
-void scheduler(void)
-{
-    //If scheduler is locked switch context is disable
-    if(sched_lock_counter) return;
-    //Dummy task switch example
-    static u8 n=0;
-    if(n) current_task = task1;
-    else current_task = task2;
-    n = !n;
-}
-*/
+//Scheduler is called in switch context
 void scheduler(void)
 {
    //If scheduler is locked switch context is disable
     if(sched_lock_counter) return;
-    //TODO: Scheduler STUFF
-    //ready_task
-
+    //Remove executed task and add at end
+    list_delete(&current_task->inode);
+    list_insert_end(&current_prio->task_list,&current_task->inode);
+    //Get first ready prio
+    printk("Scheduler: prev prio %d prio list %08x\n",current_prio->prio,current_prio);
+    current_prio = list_get_first(&ready_task,inode,task_ready_t);
+    printk("Scheduler: new prio %d prio list %08x\n",current_prio->prio,current_prio);
+    //Get first ready task
+    printk("Scheduler: prev task %08x\n",current_task);
+    current_task = list_get_first(&current_prio->task_list,inode,task_t);
+    printk("Scheduler: new task %08x\n",current_task);
 }
 /*-----------------------------------------------------------------------*/
+
 //Add assigned task to ready list 
 int add_task_to_ready_list(task_t *task)
 {
@@ -98,60 +101,64 @@ int add_task_to_ready_list(task_t *task)
             sched_unlock();
             return 0;
         }
+        else if(prio_i->prio<task->prio)
+        {
+           printk("AddTaskToReadyList: Insert %d node %08x\n",prio_i->prio,prio_i);
+           break;
+        }
     }
     //Priority not found allocate priority node
-    prio_i = (task_ready_t*)kmalloc(sizeof(task_ready_t));
+    task_ready_t *prio_n = (task_ready_t*)kmalloc(sizeof(task_ready_t));
     //If malloc return NULL then failed
-    if(prio_i==NULL) return -1;
+    if(prio_n==NULL) return -1;
     //Assign priority
-    prio_i->prio = task->prio;
+    prio_n->prio = task->prio;
     //Initialize and add at end of list
-    list_init(&prio_i->task_list);
-    list_insert_end(&prio_i->task_list,&task->inode);
-    list_insert_end(&ready_task,&prio_i->inode);
-    if(current_prio==NULL) current_prio = prio_i;
-    printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_i,prio_i->prio);
+    list_init(&prio_n->task_list);
+    list_insert_end(&prio_n->task_list,&task->inode);
+    list_insert_after(&prio_i->inode,&prio_n->inode);
+    if(scheduler_running==false)
+    {
+        if(current_prio==NULL) current_prio = prio_n;
+        else if(current_prio->prio>prio_n->prio) current_prio = prio_n;
+    }
+    printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_n,prio_n->prio);
     sched_unlock();
     return 0;
 }
 /*-----------------------------------------------------------------------*/
-//TODO: REMOVE IT AFTER TEST
-
-//TODO: REMOVE IT AFTER TEST
-//static unsigned char stk1[200];
-//static unsigned char stk2[200];
-
-//static task_t task1,task2;
-
 
 TASK_FUNC(fun1,n)
 {
-    const register reg_t tmp asm("r13");
     printk("func1(%08x)\n",(u32)n);
     while(1)
     {
-    for(volatile int i=0;i<1000000;i++);
-    printk("Hello from fun1 SP=%08x\n",tmp);
-    cpu_yield();
+        for(volatile int i=0;i<1000000;i++);
+       printk("**func1(%08x)**\n",(u32)n);
+        sched_yield();
     }
 }
 
 TASK_FUNC(fun2,n) 
 {
-   const register reg_t tmp asm("r13");
-   printk("func2(%08x)\n",(u32)n);
+   printk("Print list task(%08x)\n",(u32)n);
    
    while(1)
-    {
-    for(volatile int i=0;i<1000000;i++);
-    printk("Hello from fun2 SP=%08x\n",tmp);
-    cpu_yield();
-    }
+   {
+        for(volatile int i=0;i<1000000;i++);
+        task_ready_t *i;
+        list_for_each_entry(&ready_task,i,inode)
+        {
+            printk("List inode %08x prio %d\n",(unsigned int)i,i->prio);
+        }
+        sched_yield();
+   }
 }
 
-void init_os(void) __attribute__((noreturn));
 
 
+
+/* Initialize base OS structure before call main */
 void init_os(void)
 {
 	//Initialize ready task list
@@ -159,21 +166,23 @@ void init_os(void)
     //Other stuff
     printk_init(UART_BAUD(115200));
 	printk("Hello from OSn\n");
-    //task1.top_stack = (reg_t*)&stk1[200-4];
-    //task2.top_stack = (reg_t*)&stk2[200-4];
-    //task1.top_stack = task_init_stack(task1.top_stack,fun1,(void*)0x10203040);
-    //task2.top_stack = task_init_stack(task2.top_stack,fun2,(void*)0xaabbccdd);
-    //printk("sp1=%08x sp2=%08x\n",(u32)task1.top_stack,(u32)task2.top_stack);
-    
-    task_t *task1 = task_create(fun1,(void*)0x50607080,200,10);
-    task_t *task2 = task_create(fun2,(void*)0x10203040,200,10);
-    current_task = task1;
-    cpu_restore_context();
-    while(1);    //Prevent compile warning
+}
+
+/* This function start scheduler after main function */
+void start_scheduler(void) __attribute__((noreturn));
+void start_scheduler(void)
+{
+   scheduler_running = true;
+   cpu_restore_context();
+   while(1);    //Prevent compiler warning
 }
 
 int main(void)
 {
+    task_create(fun1,(void*)0x01010101,200,10);
+    task_create(fun1,(void*)0x02020202,200,20);
+    task_create(fun1,(void*)0x03030303,200,15);
+    task_create(fun2,(void*)0x04040404,400,5);
     return 0;
 }   
 

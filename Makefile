@@ -75,7 +75,8 @@ clean:
 	rm -rf *.hex *.elf *.lss *.map
 
 program:
-	$(ISPPROG) -control $(TARGET).hex $(ISPPORT) $(ISPBAUD) $(ISPXTAL)
+	$(ISPPROG) -control $(TARGET).hex $(ISPPORT) $(ISPBAUD) $(ISPXTAL) || true
+	@ echo " "
 
 target: $(TARGET).elf $(TARGET).hex $(TARGET).lss
      

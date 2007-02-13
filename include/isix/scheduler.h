@@ -43,6 +43,10 @@ typedef struct task_ready_struct
 extern task_t *volatile current_task;
 
 /*-----------------------------------------------------------------------*/
+//Current task pointer
+extern volatile bool scheduler_running;
+
+/*-----------------------------------------------------------------------*/
 //Scheduler function called on context switch in IRQ and Yield
 void scheduler(void);
 

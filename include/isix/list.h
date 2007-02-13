@@ -34,6 +34,12 @@ static inline void list_insert_between(list_t *a,list_t *b,list_t *elem)
    elem->next = b;
 }
 
+//Insert element before
+static inline void list_insert_before(list_t *before,list_t *elem)
+{
+    list_insert_between(before->prev,before,elem);
+}
+
 
 //Insert element after
 static inline void list_insert_after(list_t *after,list_t *elem)

@@ -57,21 +57,19 @@ task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_dept
 	    sched_unlock();
 	    return NULL;
     }
-    if(current_task==NULL)
+    if(scheduler_running==false)
     {
         //Scheduler not running assign task
-        current_task = task;
-        sched_unlock();
-	    printk("TaskCreate: Scheduler not running new task %08x\n",task);
+        if(current_task==NULL) current_task = task;
+        else if(current_task->prio>task->prio) current_task = task;
     }
-    else if(current_task->prio<task->prio)
+    sched_unlock();
+    if(current_task->prio>task->prio && scheduler_running==true)
     {
         //New task have higer priority then current task
-        sched_unlock();
 	    printk("TaskCreate: Call scheduler new prio %d > old prio %d\n",task->prio,current_task->prio);
         sched_yield();
     }
-    //Return task ID for other operation
     return task;
 }
 /*-----------------------------------------------------------------------*/

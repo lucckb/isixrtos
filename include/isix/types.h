@@ -8,4 +8,10 @@
 #define NULL ((void*)0)
 #endif /* NULL */
 
+typedef u8 bool;
+
+#define true 1
+#define false 0
+
+
 #endif /* __ISIX_TYPES_H */

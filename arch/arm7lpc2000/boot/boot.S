@@ -303,17 +303,23 @@ ctor_loop:
 			  	B ctor_loop
 ctor_end:
 
+//Zainicjalizuj system
+                LDR R2, =init_os
+                MOV LR,PC
+                MOV PC, R2
+
 //Uruchom funkcje main
                 LDR R2, =main
                 MOV LR, PC
                 MOV PC, R2
                 CMP R0,#0
                 BNE main_fail
+
 //Zainicjalizuj system
-                LDR R2, =init_os
+                LDR R2, =start_scheduler
                 MOV LR,PC
                 MOV PC, R2
-main_fail:
+main_fail:               
 //Wywolaj destruktory
 			   	LDR R0, =__dtors_start__
 			  	LDR R1, =__dtors_end__
