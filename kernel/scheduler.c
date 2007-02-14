@@ -39,6 +39,10 @@ static volatile int sched_lock_counter = 0;
 static list_entry_t ready_task;
 
 /*-----------------------------------------------------------------------*/
+//Task waiting for event
+static list_entry_t waiting_task;
+
+/*-----------------------------------------------------------------------*/
 //Lock scheduler
 int sched_lock(void)
 {
@@ -152,13 +156,13 @@ TASK_FUNC(fun2,n)
 }
 
 
-
-
 /* Initialize base OS structure before call main */
 void init_os(void)
 {
 	//Initialize ready task list
     list_init(&ready_task);
+    //Initialize waiting list
+    list_init(&waiting_task);
     //Other stuff
     printk_init(UART_BAUD(115200));
 	printk("Hello from OSn\n");
@@ -178,7 +182,7 @@ int main(void)
     task_create(fun1,(void*)0x01010101,200,10);
     task_create(fun1,(void*)0x02020202,200,20);
     task_create(fun1,(void*)0x03030303,200,15);
-    task_create(fun2,(void*)0x04040404,400,5);
+    task_create(fun2,(void*)0x04040404,400,10);
     return 0;
 }   
 
