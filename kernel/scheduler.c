@@ -139,7 +139,7 @@ TASK_FUNC(fun1,n)
     }
 }
 
-TASK_FUNC(fun2,n) 
+TASK_FUNC(fun2,n)
 {
    printk("Print list task(%08x)\n",(u32)n);
    
@@ -173,10 +173,14 @@ void start_scheduler(void) __attribute__((noreturn));
 void start_scheduler(void)
 {
    scheduler_running = true;
+   //System time
+   sys_time_init();
+   //Restore context and run OS
    cpu_restore_context();
    while(1);    //Prevent compiler warning
 }
 
+// TODO: Main function temp only for tests
 int main(void)
 {
     task_create(fun1,(void*)0x01010101,200,10);
@@ -184,5 +188,5 @@ int main(void)
     task_create(fun1,(void*)0x03030303,200,15);
     task_create(fun2,(void*)0x04040404,400,10);
     return 0;
-}   
+}
 

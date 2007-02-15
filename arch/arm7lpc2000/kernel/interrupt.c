@@ -1,11 +1,18 @@
 #include <isix/types.h>
 #include <asm/interrupt.h>
-
+#include <asm/lpc214x.h>
+#include <asm/lpc214x_vic.h>
 
 #define IRQ_MASK 0x00000080
 #define FIQ_MASK 0x00000040
 #define INT_MASK (IRQ_MASK|FIQ_MASK)
 
+//Default slot is used
+#define DEFAULT_SLOT_MASK (1<<31)
+
+/*-----------------------------------------------------------------------*/
+//Variable holds used vectorized slots
+static volatile u32 used_irq_slots = 0;
 
 /*-----------------------------------------------------------------------*/
 //Get Current program status register
@@ -83,5 +90,82 @@ reg_t fiq_restore(reg_t old_cpsr)
 	return cpsr;
 }
 
+/*-----------------------------------------------------------------------*/
+//Register irq interrupt
+int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
+{
+    //If priority is invalid then exit
+    if( (prio<INTERRUPT_PRIO_FIRST && prio>INTERRUPT_PRIO_LAST)
+         && prio!=INTERRUPT_PRIO_DEFAULT ) return -1;
+    //Slot is used??
+    if(prio==INTERRUPT_PRIO_DEFAULT) 
+    {
+        if((used_irq_slots & DEFAULT_SLOT_MASK) ) return -2;
+    }
+    else
+    {
+        if( used_irq_slots & (1<<prio) ) return -2;
+    }
+    //Disable interrupt in CPU
+    reg_t irq_s;
+    irq_s = irq_disable();
+    //Setup vector addres according to priority
+    volatile reg_t *vectaddr = prio!=INTERRUPT_PRIO_DEFAULT?(&VICVectAddr0):(&VICDefVectAddr);
+    //Cntl Register
+    volatile reg_t *cntl = &VICVectCntl0;
+    //Setup interrupt vector
+    vectaddr[prio] = (u32)interrupt_proc;
+    //If reg is default
+    if(prio!=INTERRUPT_PRIO_DEFAULT)
+    {
+        //Enable vect slot
+        cntl[prio] = (int_num & VIC_CNTLREG_MASK) | VIC_CNTLREG_SLOTEN;
+        used_irq_slots |= 1<<prio;
+    }
+    else
+    {
+        //Mark default is used
+        used_irq_slots |= DEFAULT_SLOT_MASK;
+    }
+    //Enable interrupt
+    VICIntEnable = 1<<int_num;
+    //Enable interrupt in cpu
+    irq_restore(irq_s);
+    return 0;
+}
+
+/*-----------------------------------------------------------------------*/
+/* Unregister specified interrupt */
+int interrupt_unregister(u8 int_num)
+{
+//TODO: Add support for this function 
+    volatile reg_t *cntl = &VICVectCntl0;
+   //Try find interrupt in selected slots
+}
+/*-----------------------------------------------------------------------*/
+//Register fiq interrupt (arm specific issue)
+int interrupt_register_fiq(u8 int_num)
+{
+   reg_t fiq_s = fiq_disable();
+   //Enable fiq interrupt
+   VICIntSelect |= 1<<int_num;
+   VICIntEnable = 1<<int_num;
+   fiq_restore(fiq_s);
+   return 0;
+}
+
+/*-----------------------------------------------------------------------*/
+//Mask or unmask selected interrupt
+int interrupt_mask(u8 int_num,bool set_clr)
+{
+    reg_t fiq_s,irq_s;
+    fiq_s = fiq_disable();
+    irq_s = irq_disable();
+    if(set_clr==true)  VICIntEnable = 1<<int_num;
+    else VICIntEnClr = 1<<int_num;
+    fiq_restore(fiq_s);
+    irq_restore(irq_s);
+    return 0;
+}
 /*-----------------------------------------------------------------------*/
 

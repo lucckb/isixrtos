@@ -2,7 +2,7 @@
 #define __ISIX_SCHEDULER_H
 
 #include <isix/list.h>
-
+#include <isix/config.h>
 
 /*-----------------------------------------------------------------------*/
 //Define idle priority value
@@ -67,6 +67,8 @@ int add_task_to_ready_list(task_t *task);
 #define sched_yield() cpu_yield()
 
 /*-----------------------------------------------------------------------*/
-
+//HZ value used as system ticks
+#define HZ CONFIG_HZ
+/*-----------------------------------------------------------------------*/
 #endif
 

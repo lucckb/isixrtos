@@ -2,12 +2,23 @@
 #include <isix/printk.h>
 #include <isix/types.h>
 #include <asm/context.h>
+#include <asm/interrupt.h>
 #include <isix/scheduler.h>
-
+#include <asm/lpc214x.h>
 
 //System Mode enable IRQ and FIQ
 #define INITIAL_SPSR 0x0000001f
 
+//Timer 0 issue
+#define T0MCR_INTERRUPT_ON_MR0 0x1U
+#define T0MCR_RESET_ON_MR0 0x2U
+#define T0TCR_COUNTER_RESET 0x2U
+#define T0TCR_COUNTER_ENABLE 0x1U
+#define T0IR_MR0 0x1U
+//Timer ticks rate
+#define T0_TICKS 1000000
+//Reload value
+#define MR0_ADDVAL (T0_TICKS/HZ)
 
 /*-----------------------------------------------------------------------*/
 //Yield processor
@@ -48,4 +59,29 @@ reg_t* task_init_stack(reg_t *sp,task_func_ptr_t pfun,void *param)
 }
 
 /*-----------------------------------------------------------------------*/
+//Sys timer interrupt using timer 0 to provide timer tick
+INTERRUPT_PROC(sys_timer_isr)
+{
+    //Add const var to match register
+    T0MR0 += MR0_ADDVAL;
+    //TODO: Support system ticks
+}
+
+/*-----------------------------------------------------------------------*/
+/* Initialize system timer */
+void sys_time_init(void)
+{
+    //Timer increment ticks after 1us
+    T0PR = CONFIG_PCLK/T0_TICKS -1;
+    //If compare match then interrupt
+    T0MCR |= T0MCR_INTERRUPT_ON_MR0;
+    //Set MR to req ticks
+    T0MR0 = MR0_ADDVAL;
+    //Reset Counter and prescaler
+    T0TCR = T0TCR_COUNTER_RESET;
+    //Register interrupt with lower priority
+    interrupt_register(INTERRUPT_NUM_TIMER0,INTERRUPT_PRIO(15),sys_timer_isr);
+    //Enable timer
+    T0TCR = T0TCR_COUNTER_ENABLE;
+}
 
