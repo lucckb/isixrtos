@@ -43,6 +43,10 @@ static list_entry_t ready_task;
 static list_entry_t waiting_task;
 
 /*-----------------------------------------------------------------------*/
+//Global scheler time
+volatile u64 sched_time;
+
+/*-----------------------------------------------------------------------*/
 //Lock scheduler
 int sched_lock(void)
 {

@@ -47,6 +47,10 @@ extern task_t *volatile current_task;
 extern volatile bool scheduler_running;
 
 /*-----------------------------------------------------------------------*/
+//Global scheler time
+extern volatile u64 sched_time;
+
+/*-----------------------------------------------------------------------*/
 //Scheduler function called on context switch in IRQ and Yield
 void scheduler(void);
 

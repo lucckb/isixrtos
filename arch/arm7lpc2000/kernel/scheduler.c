@@ -60,11 +60,35 @@ reg_t* task_init_stack(reg_t *sp,task_func_ptr_t pfun,void *param)
 
 /*-----------------------------------------------------------------------*/
 //Sys timer interrupt using timer 0 to provide timer tick
+#ifdef CONFIG_USE_PREEMPTION
+
 INTERRUPT_PROC(sys_timer_isr)
+
+#else
+
+void sys_timer_isr(void) __attribute__((interrupt("IRQ"),naked));
+void sys_timer_isr(void)
+
+#endif
 {
+#ifdef  CONFIG_USE_PREEMPTION
+        cpu_save_context();
+#endif
     //Add const var to match register
     T0MR0 += MR0_ADDVAL;
-    //TODO: Support system ticks
+    //Increment system ticks
+    sched_time++;
+    //End of interrupt
+#ifdef  CONFIG_USE_PREEMPTION
+    scheduler();
+    T0IR = T0IR_MR0;
+    interrupt_isr_exit();
+    cpu_restore_context();
+#else
+    //Controller end of intterrupt
+    T0IR = T0IR_MR0;
+    interrupt_isr_exit();
+#endif
 }
 
 /*-----------------------------------------------------------------------*/

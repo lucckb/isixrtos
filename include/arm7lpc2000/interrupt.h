@@ -3,6 +3,7 @@
 
 #include <isix/types.h>
 #include <asm/lpc214x_vic.h>
+#include <asm/lpc214x.h>
 
 /*-----------------------------------------------------------------------*/
 //Pointer to task function
@@ -54,6 +55,7 @@ int interrupt_register_fiq(u8 int_num);
 //Mask or unmask selected interrupt
 int interrupt_mask(u8 int_num,bool set_clr);
 /*-----------------------------------------------------------------------*/
+
 /* Unregister specified interrupt */
 int interrupt_unregister(u8 int_num);
 
@@ -68,6 +70,10 @@ int interrupt_unregister(u8 int_num);
 #define INTERRUPT_FIQ_PROC(FUNC)						\
 	void FUNC(void) __attribute__ ((interrupt("FIQ")));	\
 	void FUNC(void)
+
+/*-----------------------------------------------------------------------*/
+//Interrupt controler info end of isr
+static inline void interrupt_isr_exit(void) { VICVectAddr = 0; }
 
 /*-----------------------------------------------------------------------*/
 #endif

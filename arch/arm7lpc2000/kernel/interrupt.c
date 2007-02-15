@@ -7,12 +7,10 @@
 #define FIQ_MASK 0x00000040
 #define INT_MASK (IRQ_MASK|FIQ_MASK)
 
-//Default slot is used
-#define DEFAULT_SLOT_MASK (1<<31)
 
 /*-----------------------------------------------------------------------*/
 //Variable holds used vectorized slots
-static volatile u32 used_irq_slots = 0;
+static volatile u16 used_irq_slots = 0;
 
 /*-----------------------------------------------------------------------*/
 //Get Current program status register
@@ -98,11 +96,7 @@ int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
     if( (prio<INTERRUPT_PRIO_FIRST && prio>INTERRUPT_PRIO_LAST)
          && prio!=INTERRUPT_PRIO_DEFAULT ) return -1;
     //Slot is used??
-    if(prio==INTERRUPT_PRIO_DEFAULT) 
-    {
-        if((used_irq_slots & DEFAULT_SLOT_MASK) ) return -2;
-    }
-    else
+    if(prio!=INTERRUPT_PRIO_DEFAULT)
     {
         if( used_irq_slots & (1<<prio) ) return -2;
     }
@@ -122,11 +116,6 @@ int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
         cntl[prio] = (int_num & VIC_CNTLREG_MASK) | VIC_CNTLREG_SLOTEN;
         used_irq_slots |= 1<<prio;
     }
-    else
-    {
-        //Mark default is used
-        used_irq_slots |= DEFAULT_SLOT_MASK;
-    }
     //Enable interrupt
     VICIntEnable = 1<<int_num;
     //Enable interrupt in cpu
@@ -138,9 +127,21 @@ int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
 /* Unregister specified interrupt */
 int interrupt_unregister(u8 int_num)
 {
-//TODO: Add support for this function 
     volatile reg_t *cntl = &VICVectCntl0;
    //Try find interrupt in selected slots
+   reg_t irq_s = irq_disable();
+    for(int i=0;i<16;i++)
+   {
+     if( (cntl[i]&VIC_CNTLREG_MASK)==int_num && (cntl[i]&VIC_CNTLREG_SLOTEN) )
+     {
+        //Znaleziono slot posiadajacy przerwanie o tym numerze
+        used_irq_slots &= (~0x1)<<i;
+        cntl[i] = 0;
+     }
+   }
+   VICIntEnClr = (1<<int_num);
+   irq_restore(irq_s);
+   return 0;
 }
 /*-----------------------------------------------------------------------*/
 //Register fiq interrupt (arm specific issue)
