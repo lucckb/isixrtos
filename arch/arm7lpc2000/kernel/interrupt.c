@@ -3,6 +3,14 @@
 #include <asm/lpc214x.h>
 #include <asm/lpc214x_vic.h>
 
+#define DEBUG
+
+#ifdef DEBUG
+#include <isix/printk.h>
+#else
+#define printk(...)
+#endif
+
 #define IRQ_MASK 0x00000080
 #define FIQ_MASK 0x00000040
 #define INT_MASK (IRQ_MASK|FIQ_MASK)
@@ -94,11 +102,19 @@ int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
 {
     //If priority is invalid then exit
     if( (prio<INTERRUPT_PRIO_FIRST && prio>INTERRUPT_PRIO_LAST)
-         && prio!=INTERRUPT_PRIO_DEFAULT ) return -1;
+         && prio!=INTERRUPT_PRIO_DEFAULT )
+    {
+        printk("InterruptRegister: Priority %d is invalid\n",prio);
+        return -1;
+    }
     //Slot is used??
     if(prio!=INTERRUPT_PRIO_DEFAULT)
     {
-        if( used_irq_slots & (1<<prio) ) return -2;
+        if( used_irq_slots & (1<<prio) )
+        {
+            printk("InterruptRegister: Slot %d is used\n",prio);
+            return -2;
+        }
     }
     //Disable interrupt in CPU
     reg_t irq_s;
@@ -107,6 +123,7 @@ int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
     volatile reg_t *vectaddr = prio!=INTERRUPT_PRIO_DEFAULT?(&VICVectAddr0):(&VICDefVectAddr);
     //Cntl Register
     volatile reg_t *cntl = &VICVectCntl0;
+    printk("InterruptRegister: VectAddr %08x CntlAddr %08x\n",vectaddr,cntl);
     //Setup interrupt vector
     vectaddr[prio] = (u32)interrupt_proc;
     //If reg is default

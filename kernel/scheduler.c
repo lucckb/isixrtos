@@ -9,7 +9,7 @@
 #include <isix/list.h>
 
 //TODO: Remove at end debug of module
-#define DEBUG
+//#define DEBUG
 
 
 #ifdef DEBUG
@@ -50,8 +50,10 @@ volatile u64 sched_time;
 //Lock scheduler
 int sched_lock(void)
 {
+    reg_t irq_s = irq_disable();
     sched_lock_counter++;
-   // printk("SchedLock: %d\n",sched_lock_counter);
+    irq_restore(irq_s);
+    // printk("SchedLock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 
@@ -59,9 +61,9 @@ int sched_lock(void)
 //Unlock scheduler
 int sched_unlock(void)
 {
-    reg_t irq_state = irq_disable();
+    reg_t irq_s = irq_disable();
     if(sched_lock_counter>0) sched_lock_counter--;
-    irq_restore(irq_state);
+    irq_restore(irq_s);
     //printk("SchedUnlock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
@@ -131,21 +133,28 @@ int add_task_to_ready_list(task_t *task)
     return 0;
 }
 /*-----------------------------------------------------------------------*/
+#undef printk
+#include <isix/printk.h>
 
 TASK_FUNC(fun1,n)
 {
-    printk("func1(%08x)\n",(u32)n);
+    char *p = (char*)n;
+    //printk("func1(%08x)\n",(u32)n);
     while(1)
     {
         for(volatile int i=0;i<1000000;i++);
-       printk("**func1(%08x)**\n",(u32)n);
-        sched_yield();
+       // sched_lock();
+    //    printk("**func1 %d time %d**\n",*p,sched_time);
+    printk("%c",*p);
+       // sched_unlock();
+//        *p = *p + 1;
+        //sched_yield();
     }
 }
 
 TASK_FUNC(fun2,n)
 {
-   printk("Print list task(%08x)\n",(u32)n);
+   //printk("Print list task(%08x)\n",(u32)n);
    
    while(1)
    {
@@ -184,13 +193,14 @@ void start_scheduler(void)
    while(1);    //Prevent compiler warning
 }
 
+char cnt1='c',cnt2='z';
 // TODO: Main function temp only for tests
 int main(void)
 {
-    task_create(fun1,(void*)0x01010101,200,10);
+    task_create(fun1,&cnt1,200,10);
     task_create(fun1,(void*)0x02020202,200,20);
     task_create(fun1,(void*)0x03030303,200,15);
-    task_create(fun2,(void*)0x04040404,400,10);
+    task_create(fun1,&cnt2,400,10);
     return 0;
 }
 

@@ -60,7 +60,7 @@ reg_t* task_init_stack(reg_t *sp,task_func_ptr_t pfun,void *param)
 
 /*-----------------------------------------------------------------------*/
 //Sys timer interrupt using timer 0 to provide timer tick
-#ifdef CONFIG_USE_PREEMPTION
+#ifndef CONFIG_USE_PREEMPTION
 
 INTERRUPT_PROC(sys_timer_isr)
 
@@ -72,10 +72,10 @@ void sys_timer_isr(void)
 #endif
 {
 #ifdef  CONFIG_USE_PREEMPTION
-        cpu_save_context();
+     cpu_save_context();
 #endif
     //Add const var to match register
-    T0MR0 += MR0_ADDVAL;
+    T0MR0 = T0TC + MR0_ADDVAL;
     //Increment system ticks
     sched_time++;
     //End of interrupt
@@ -98,11 +98,13 @@ void sys_time_init(void)
     //Timer increment ticks after 1us
     T0PR = CONFIG_PCLK/T0_TICKS -1;
     //If compare match then interrupt
-    T0MCR |= T0MCR_INTERRUPT_ON_MR0;
+    T0MCR |= T0MCR_INTERRUPT_ON_MR0;// |T0MCR_RESET_ON_MR0;
     //Set MR to req ticks
     T0MR0 = MR0_ADDVAL;
     //Reset Counter and prescaler
     T0TCR = T0TCR_COUNTER_RESET;
+    //Kasuj flage przerwania
+    T0IR = T0IR_MR0;
     //Register interrupt with lower priority
     interrupt_register(INTERRUPT_NUM_TIMER0,INTERRUPT_PRIO(15),sys_timer_isr);
     //Enable timer
