@@ -97,4 +97,8 @@ static inline void list_delete(list_t *elem)
 }
 
 
+ //List is empty check
+#define list_isempty(list_entryp) ((list_entryp)->head.next==&(list_entryp)->head)
+
+
 #endif

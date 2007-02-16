@@ -44,7 +44,7 @@ static list_entry_t waiting_task;
 
 /*-----------------------------------------------------------------------*/
 //Global scheler time
-volatile u64 sched_time;
+volatile time_t sched_time;
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler
@@ -101,6 +101,8 @@ int add_task_to_ready_list(task_t *task)
         if(prio_i->prio==task->prio)
         {
             printk("AddTaskToReadyList: found prio %d equal node %08x\n",prio_i->prio,prio_i);
+            //Set pointer to priority struct
+            task->prio_elem = prio_i;
             //Add task at end of ready list
             list_insert_end(&prio_i->task_list,&task->inode);
             //Unlock scheduler
@@ -119,6 +121,8 @@ int add_task_to_ready_list(task_t *task)
     if(prio_n==NULL) return -1;
     //Assign priority
     prio_n->prio = task->prio;
+    //Set pointer to priority struct
+    task->prio_elem = prio_n;
     //Initialize and add at end of list
     list_init(&prio_n->task_list);
     list_insert_end(&prio_n->task_list,&task->inode);
@@ -132,6 +136,34 @@ int add_task_to_ready_list(task_t *task)
     sched_unlock();
     return 0;
 }
+/*-----------------------------------------------------------------------*/
+//Move selected task to waiting list
+//TODO: Not free prio element vut move it to free task list struct
+void move_task_to_waiting_list(task_t *task)
+{
+    //Scheduler lock
+    sched_lock();
+    //Remove task from ready list
+    list_delete(&task->inode);
+    //Check for task on priority structure
+    if(list_isempty(&task->prio_elem->task_list)==true)
+    {
+        //Task list is empty remove element
+        printk("MoveTaskToWaiting: Remove prio list elem\n");
+        kfree(task->prio_elem);
+    }
+   //Insert on waiting list in time order
+    task_t *waitl;
+    list_for_each_entry(&waiting_task,waitl,inode)
+    {
+        if(waitl->time<task->time) break;
+    }
+    printk("MoveTaskToWaiting: insert in time list at %08x\n",waitl);
+    list_insert_after(&waitl->inode,&task->inode);
+    //Scheduler unlock
+    sched_unlock();
+}
+
 /*-----------------------------------------------------------------------*/
 #undef printk
 #include <isix/printk.h>

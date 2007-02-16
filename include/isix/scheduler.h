@@ -16,16 +16,7 @@ typedef void (*task_func_ptr_t)(void*);
 //Priority type
 typedef u8 prio_t;
 
-/*-----------------------------------------------------------------------*/
-//Definition of task operations
-typedef struct task_struct
-{
-    reg_t *top_stack;	        //Task stack ptr
-    prio_t prio;			    //Priority of task
-    list_t inode;               //List of tasks
-} task_t;
-
-/*-----------------------------------------------------------------------*/
+//*-----------------------------------------------------------------------*/
 //Definition of task ready list
 typedef struct task_ready_struct
 {
@@ -33,6 +24,18 @@ typedef struct task_ready_struct
     list_entry_t task_list;    //List of task with some priority
     list_t inode;              //List inode
 } task_ready_t;
+
+/*-----------------------------------------------------------------------*/
+
+//Definition of task operations
+typedef struct task_struct
+{
+    reg_t *top_stack;	        //Task stack ptr
+    prio_t prio;			    //Priority of task
+    time_t time;                //Ticks when task wake up
+    task_ready_t *prio_elem;    //Pointer to own prio list
+    list_t inode;               //List of tasks
+} task_t;
 
 /*-----------------------------------------------------------------------*/
 
@@ -48,7 +51,7 @@ extern volatile bool scheduler_running;
 
 /*-----------------------------------------------------------------------*/
 //Global scheler time
-extern volatile u64 sched_time;
+extern volatile time_t sched_time;
 
 /*-----------------------------------------------------------------------*/
 //Scheduler function called on context switch in IRQ and Yield
