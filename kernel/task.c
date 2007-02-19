@@ -43,6 +43,10 @@ task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_dept
     printk("TaskCreate: Top stack SP=%08x\n",task->top_stack);
     //Assign task priority
     task->prio = priority;
+    //Asign waiting semaphore to null
+    task->sem = NULL;
+    //Set time to 0
+    task->time = 0;
     //Create initial task stack context
     task->top_stack = task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler

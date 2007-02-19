@@ -77,7 +77,7 @@ void sys_timer_isr(void)
     //Add const var to match register
     T0MR0 = T0TC + MR0_ADDVAL;
     //Increment system ticks
-    sched_time++;
+    scheduler_time();
     //End of interrupt
 #ifdef  CONFIG_USE_PREEMPTION
     scheduler();

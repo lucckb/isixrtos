@@ -86,8 +86,22 @@ void scheduler(void)
     current_task = list_get_first(&current_prio->task_list,inode,task_t);
     printk("Scheduler: new task %08x\n",current_task);
 }
-/*-----------------------------------------------------------------------*/
 
+/*-----------------------------------------------------------------------*/
+//Time call from isr
+void scheduler_time(void)
+{
+    sched_time++;
+    task_t *task_c = list_get_first(&waiting_task,inode,task_t);
+    if(sched_time>=task_c->time)
+    {
+        add_task_to_ready_list(task_c);
+        if(task_c->sem) task_c->sem = NULL;
+        list_delete(&task_c->inode);
+    }
+}
+
+/*-----------------------------------------------------------------------*/
 //Add assigned task to ready list 
 int add_task_to_ready_list(task_t *task)
 {
@@ -136,15 +150,15 @@ int add_task_to_ready_list(task_t *task)
     sched_unlock();
     return 0;
 }
+
 /*-----------------------------------------------------------------------*/
 //Move selected task to waiting list
-//TODO: Not free prio element vut move it to free task list struct
-void move_task_to_waiting_list(task_t *task)
+void add_task_to_list(list_entry_t *list,task_t *task)
 {
+    bool sort_time = false;
+    if(list==NULL) { list = &waiting_task; sort_time = true; }
     //Scheduler lock
     sched_lock();
-    //Remove task from ready list
-    list_delete(&task->inode);
     //Check for task on priority structure
     if(list_isempty(&task->prio_elem->task_list)==true)
     {
@@ -154,9 +168,19 @@ void move_task_to_waiting_list(task_t *task)
     }
    //Insert on waiting list in time order
     task_t *waitl;
-    list_for_each_entry(&waiting_task,waitl,inode)
+    if(sort_time)
     {
-        if(waitl->time<task->time) break;
+        list_for_each_entry(list,waitl,inode)
+        {
+            if(waitl->time<task->time) break;
+        }
+    }
+    else
+    {
+       list_for_each_entry(list,waitl,inode)
+        {
+            if(waitl->prio<task->prio) break;
+        }
     }
     printk("MoveTaskToWaiting: insert in time list at %08x\n",waitl);
     list_insert_after(&waitl->inode,&task->inode);

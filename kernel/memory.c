@@ -95,7 +95,7 @@ void* kmalloc(size_t size)
 }
 
 /*------------------------------------------------------*/
-
+//Memory free from dynamic range
 void kfree(void *mem)
 {
     //Check memory management pool...
@@ -140,6 +140,20 @@ void kfree(void *mem)
     }
 }
 
+
+/*------------------------------------------------------*/
+//Zero of selected memory region
+void bzero(void *s, size_t n)
+{
+    u32 *ptr32 = (u32*)s;
+    size_t elem32 = n/4;
+    u8 elem8 = n%4;
+    for(int i=0;i<elem32;i++) *ptr32++ = 0;
+    u8 *ptr8 = (u8*)ptr32;
+    for(int i=0;i<elem8;i++) *ptr8++ = 0;
+}
+
+/*------------------------------------------------------*/
 #ifdef DEBUG
 void printelem(void)
 {

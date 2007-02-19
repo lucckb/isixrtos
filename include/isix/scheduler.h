@@ -3,7 +3,7 @@
 
 #include <isix/list.h>
 #include <isix/config.h>
-
+#include <isix/semaphore.h>
 /*-----------------------------------------------------------------------*/
 //Define idle priority value
 #define SCHED_IDLE_PRIORITY 255
@@ -34,6 +34,8 @@ typedef struct task_struct
     prio_t prio;			    //Priority of task
     time_t time;                //Ticks when task wake up
     task_ready_t *prio_elem;    //Pointer to own prio list
+    sem_t *sem;                 //Task waiting semaphore
+    list_t inode_sem;           //Inode of semaphore
     list_t inode;               //List of tasks
 } task_t;
 
@@ -66,11 +68,15 @@ int sched_lock(void);
 int sched_unlock(void);
 
 /*-----------------------------------------------------------------------*/
+//Add assigned task to ready list 
+void add_task_to_list(list_entry_t *list,task_t *task);
 
+/*-----------------------------------------------------------------------*/
 //Add assigned task to ready list 
 int add_task_to_ready_list(task_t *task);
-/*-----------------------------------------------------------------------*/
 
+/*-----------------------------------------------------------------------*/
+//Yield processor 
 #define sched_yield() cpu_yield()
 
 /*-----------------------------------------------------------------------*/

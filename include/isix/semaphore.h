@@ -4,22 +4,26 @@
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/scheduler.h>
+#include <isix/list.h>
 
 /*--------------------------------------------------------------*/
-//TODO: Fill structure
 //Structure of semaphore
 typedef struct sem_struct
 {
-    //TMP hack
-    int tst;
+    //Semaphore val
+    int value;
+    //Task val waiting for semaphore
+    list_entry_t sem_task;
 } sem_t;
+
 /*--------------------------------------------------------------*/
 //Create semaphore
 sem_t* sem_create(sem_t *sem,int val);
 
+
 /*--------------------------------------------------------------*/
 //Wait for semaphore P()
-int sem_wait(sem_t *sem,u32 timeout);
+int sem_wait(sem_t *sem,time_t timeout);
 
 /*--------------------------------------------------------------*/
 //Get semaphore from isr
