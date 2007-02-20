@@ -60,6 +60,10 @@ extern volatile time_t sched_time;
 void scheduler(void);
 
 /*-----------------------------------------------------------------------*/
+//Sched timer cyclic call
+void scheduler_time(void);
+
+/*-----------------------------------------------------------------------*/
 //Lock scheduler
 int sched_lock(void);
 
@@ -68,8 +72,8 @@ int sched_lock(void);
 int sched_unlock(void);
 
 /*-----------------------------------------------------------------------*/
-//Add assigned task to ready list 
-void add_task_to_list(list_entry_t *list,task_t *task);
+//Add selected task to waiting list
+void add_task_to_waiting_list(task_t *task);
 
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list 

@@ -91,12 +91,19 @@ void scheduler(void)
 //Time call from isr
 void scheduler_time(void)
 {
+    //Increment sys tick
     sched_time++;
+    //If scheduler is locked switch context is disable
+    if(sched_lock_counter) return;
     task_t *task_c = list_get_first(&waiting_task,inode,task_t);
     if(sched_time>=task_c->time)
     {
-        add_task_to_ready_list(task_c);
+        if(add_task_to_ready_list(task_c)<0)
+        {
+            printk("SchedulerTime: Error in add task to ready list\n");
+        }
         if(task_c->sem) task_c->sem = NULL;
+        task_c->time = 0;
         list_delete(&task_c->inode);
     }
 }
@@ -153,10 +160,8 @@ int add_task_to_ready_list(task_t *task)
 
 /*-----------------------------------------------------------------------*/
 //Move selected task to waiting list
-void add_task_to_list(list_entry_t *list,task_t *task)
+void add_task_to_waiting_list(task_t *task)
 {
-    bool sort_time = false;
-    if(list==NULL) { list = &waiting_task; sort_time = true; }
     //Scheduler lock
     sched_lock();
     //Check for task on priority structure
@@ -168,19 +173,9 @@ void add_task_to_list(list_entry_t *list,task_t *task)
     }
    //Insert on waiting list in time order
     task_t *waitl;
-    if(sort_time)
+    list_for_each_entry(&waiting_task,waitl,inode)
     {
-        list_for_each_entry(list,waitl,inode)
-        {
-            if(waitl->time<task->time) break;
-        }
-    }
-    else
-    {
-       list_for_each_entry(list,waitl,inode)
-        {
-            if(waitl->prio<task->prio) break;
-        }
+       if(waitl->time<task->time) break;
     }
     printk("MoveTaskToWaiting: insert in time list at %08x\n",waitl);
     list_insert_after(&waitl->inode,&task->inode);
