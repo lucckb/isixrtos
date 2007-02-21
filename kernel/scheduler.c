@@ -102,7 +102,6 @@ void scheduler_time(void)
         {
             printk("SchedulerTime: Error in add task to ready list\n");
         }
-        if(task_c->sem) task_c->sem = NULL;
         task_c->time = 0;
         list_delete(&task_c->inode);
     }

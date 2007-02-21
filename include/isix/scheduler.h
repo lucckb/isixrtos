@@ -34,7 +34,6 @@ typedef struct task_struct
     prio_t prio;			    //Priority of task
     time_t time;                //Ticks when task wake up
     task_ready_t *prio_elem;    //Pointer to own prio list
-    sem_t *sem;                 //Task waiting semaphore
     list_t inode_sem;           //Inode of semaphore
     list_t inode;               //List of tasks
 } task_t;

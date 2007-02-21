@@ -31,11 +31,13 @@ int sem_get_isr(sem_t *sem);
 
 /*--------------------------------------------------------------*/
 //Sem signal V()
-int sem_signal(sem_t *sem);
+int __sem_signal(sem_t *sem,bool isr);
 
 /*--------------------------------------------------------------*/
-//Signal from interrupt
-int sem_signal_isr(sem_t *sem);
+//Definition of sem and sem ISR
+#define sem_signal(sem) __sem_signal(sem,false)
+
+#define sem_signal_isr(sem) __sem_signal(sem,true)
 
 /*--------------------------------------------------------------*/
 //Sem value of semaphore
