@@ -11,9 +11,9 @@
 #define CONFIG_STACK_GROWTH 1
 
 /* Use preemtion */
-#define CONFIG_USE_PREEMPTION 1
+//#define CONFIG_USE_PREEMPTION 1
 
 /* Ticks per sec */
-#define CONFIG_HZ 1000
+#define CONFIG_HZ 10
 
 

@@ -26,12 +26,18 @@ typedef struct task_ready_struct
 } task_ready_t;
 
 /*-----------------------------------------------------------------------*/
+//Task state
+#define TASK_READY (1<<0)          //Task is ready
+#define TASK_SLEEPING (1<<1)       //Task is sleeping
+#define TASK_WAITING (1<<2)        //Task is waiting
+/*-----------------------------------------------------------------------*/
 
 //Definition of task operations
 typedef struct task_struct
 {
     reg_t *top_stack;	        //Task stack ptr
     prio_t prio;			    //Priority of task
+    u8 state;                   //stan watku
     time_t time;                //Ticks when task wake up
     task_ready_t *prio_elem;    //Pointer to own prio list
     list_t inode_sem;           //Inode of semaphore

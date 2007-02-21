@@ -19,8 +19,7 @@
 /* Create task function */
 task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_depth, prio_t priority)
 {
-    //If priority is then error ocurred
-    if(priority>=SCHED_IDLE_PRIORITY) return NULL;
+    printk("TaskCreate: Create task with prio %d\n",priority);
     //If stack length is small error
     if(stack_depth<SCHED_MIN_STACK_DEPTH) return NULL;
     //Allocate task_t structure
@@ -45,6 +44,8 @@ task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_dept
     task->prio = priority;
     //Set time to 0
     task->time = 0;
+    //Task is ready
+    task->state = TASK_READY;
     //Create initial task stack context
     task->top_stack = task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler

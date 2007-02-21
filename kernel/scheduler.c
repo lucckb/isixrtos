@@ -53,7 +53,7 @@ int sched_lock(void)
     reg_t irq_s = irq_disable();
     sched_lock_counter++;
     irq_restore(irq_s);
-    // printk("SchedLock: %d\n",sched_lock_counter);
+    printk("SchedLock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 
@@ -64,7 +64,7 @@ int sched_unlock(void)
     reg_t irq_s = irq_disable();
     if(sched_lock_counter>0) sched_lock_counter--;
     irq_restore(irq_s);
-    //printk("SchedUnlock: %d\n",sched_lock_counter);
+    printk("SchedUnlock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 /*-----------------------------------------------------------------------*/
@@ -75,8 +75,11 @@ void scheduler(void)
    //If scheduler is locked switch context is disable
     if(sched_lock_counter) return;
     //Remove executed task and add at end
-    list_delete(&current_task->inode);
-    list_insert_end(&current_prio->task_list,&current_task->inode);
+    if(current_task->state & TASK_READY)
+    {
+        list_delete(&current_task->inode);
+        list_insert_end(&current_prio->task_list,&current_task->inode);
+    }
     //Get first ready prio
     printk("Scheduler: prev prio %d prio list %08x\n",current_prio->prio,current_prio);
     current_prio = list_get_first(&ready_task,inode,task_ready_t);
@@ -93,17 +96,21 @@ void scheduler_time(void)
 {
     //Increment sys tick
     sched_time++;
+    printk(".");
     //If scheduler is locked switch context is disable
     if(sched_lock_counter) return;
+    if(list_isempty(&waiting_task)) return;
     task_t *task_c = list_get_first(&waiting_task,inode,task_t);
     if(sched_time>=task_c->time)
     {
+        printk("SchedulerTime: sched_time %d task_time %d\n",sched_time,task_c->time);
+        task_c->state &= ~TASK_SLEEPING;
+        task_c->state |= TASK_READY;
+        list_delete(&task_c->inode);
         if(add_task_to_ready_list(task_c)<0)
         {
             printk("SchedulerTime: Error in add task to ready list\n");
         }
-        task_c->time = 0;
-        list_delete(&task_c->inode);
     }
 }
 
@@ -168,6 +175,7 @@ void add_task_to_waiting_list(task_t *task)
     {
         //Task list is empty remove element
         printk("MoveTaskToWaiting: Remove prio list elem\n");
+        list_delete(&task->prio_elem->inode);
         kfree(task->prio_elem);
     }
    //Insert on waiting list in time order
@@ -176,24 +184,37 @@ void add_task_to_waiting_list(task_t *task)
     {
        if(waitl->time<task->time) break;
     }
-    printk("MoveTaskToWaiting: insert in time list at %08x\n",waitl);
+    printk("MoveTaskToWaiting: insert in time list at %08x\n",&waitl->inode);
     list_insert_after(&waitl->inode,&task->inode);
     //Scheduler unlock
     sched_unlock();
 }
 
-/*-----------------------------------------------------------------------*/
 #undef printk
 #include <isix/printk.h>
 
+/*-----------------------------------------------------------------------*/
+//Idle task function do nothing and lower priority
+TASK_FUNC(idle_task,p)
+{
+    while(1)
+    {
+#ifndef  CONFIG_USE_PREEMPTION
+        sched_yield();
+#endif
+    }
+}
+/*-----------------------------------------------------------------------*/
 TASK_FUNC(fun1,n)
 {
     char *p = (char*)n;
     //printk("func1(%08x)\n",(u32)n);
     while(1)
     {
-        for(volatile int i=0;i<1000000;i++);
-       // sched_lock();
+    //     for(volatile int i=0;i<1000000;i++);
+        sem_wait(NULL,HZ*2);
+    //    printk("***********************************\n");
+                // sched_lock();
     //    printk("**func1 %d time %d**\n",*p,sched_time);
     printk("%c",*p);
        // sched_unlock();
@@ -202,23 +223,26 @@ TASK_FUNC(fun1,n)
     }
 }
 
-TASK_FUNC(fun2,n)
+#if 0
+void print_rdy(void)
 {
-   //printk("Print list task(%08x)\n",(u32)n);
-   
-   while(1)
-   {
-        for(volatile int i=0;i<1000000;i++);
         task_ready_t *i;
         list_for_each_entry(&ready_task,i,inode)
         {
             printk("List inode %08x prio %d\n",(unsigned int)i,i->prio);
         }
-        sched_yield();
-   }
 }
 
+void print_bsy(void)
+{
+        task_t *i;
+        list_for_each_entry(&waiting_task,i,inode)
+        {
+            printk("List inode %08x prio %d\n",(unsigned int)i,i->time);
+        }
+}
 
+#endif
 /* Initialize base OS structure before call main */
 void init_os(void)
 {
@@ -229,6 +253,8 @@ void init_os(void)
     //Other stuff
     printk_init(UART_BAUD(115200));
 	printk("Hello from OSn\n");
+    //Create idle task
+    task_create(idle_task,NULL,SCHED_MIN_STACK_DEPTH,SCHED_IDLE_PRIORITY);
 }
 
 /* This function start scheduler after main function */
@@ -247,9 +273,9 @@ char cnt1='c',cnt2='z';
 // TODO: Main function temp only for tests
 int main(void)
 {
-    task_create(fun1,&cnt1,200,10);
-    task_create(fun1,(void*)0x02020202,200,20);
-    task_create(fun1,(void*)0x03030303,200,15);
+    task_create(fun1,&cnt1,300,10);
+//     task_create(fun1,(void*)0x02020202,200,20);
+    //task_create(fun1,(void*)0x03030303,200,15);
     task_create(fun1,&cnt2,400,10);
     return 0;
 }

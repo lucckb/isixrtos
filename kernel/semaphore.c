@@ -63,6 +63,7 @@ int sem_wait(sem_t *sem,time_t timeout)
     //If any task remove task from ready list
     if(timeout || sem)
     {
+        current_task->state &= ~TASK_READY;
         list_delete(&current_task->inode);
     }
     //Sleep in semaphore
@@ -74,18 +75,20 @@ int sem_wait(sem_t *sem,time_t timeout)
         current_task->time += timeout;
         //Move task from ready list to waiting list
         add_task_to_waiting_list(current_task);
+        current_task->state |= TASK_SLEEPING;
         printk("SemWait: Wait after %d ticks\n",current_task->time);
     }
     if(sem)
     {
         add_task_to_sem_list(&sem->sem_task,current_task);
+        current_task->state |= TASK_WAITING;
         printk("SemWait: Add task %08x to sem\n",current_task);
     }
     sched_unlock();
     sched_yield();
     //After yield not waiting for sem
     sched_lock();
-    if(current_task->time==0 && timeout) res = -1;
+    if(!(current_task->state&TASK_SLEEPING) && timeout) res = -1;
     sched_unlock();
     return res;
 }
@@ -110,6 +113,8 @@ int __sem_signal(sem_t *sem,bool isr)
     if(task_wake->time) list_delete(&task_wake->inode);
     //Reschedule is needed wakeup task have higer prio then current prio
     list_delete(&task_wake->inode_sem);
+    task_wake->state &= ~TASK_WAITING;
+    task_wake->state |= TASK_READY;
     add_task_to_ready_list(task_wake);
     sched_unlock();
     if(task_wake->prio<current_task->prio && !isr)
