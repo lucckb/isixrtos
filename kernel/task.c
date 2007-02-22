@@ -44,6 +44,8 @@ task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_dept
     task->prio = priority;
     //Set time to 0
     task->time = 0;
+    //Task semaphore null
+    task->sem = NULL;
     //Task is ready
     task->state = TASK_READY;
     //Create initial task stack context
@@ -75,5 +77,96 @@ task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_dept
     }
     return task;
 }
+
 /*-----------------------------------------------------------------------*/
-//TODO: Add other task function task_delete,task_change prio , etc.
+/*Change task priority function
+ * task - task pointer structure if NULL current prio change
+ * new_prio - new priority                                  */
+int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
+{
+    sched_lock();
+    task_t *taskc = task?task:current_task;
+    //Save task prio
+    prio_t prio = taskc->prio;
+    if(prio==new_prio)
+    {
+        sched_unlock();
+        return 0;
+    }
+    //Assign new prio
+    taskc->prio = new_prio;
+    bool yield_req = false;
+    if(taskc->state & TASK_READY)
+    {
+        printk("ChangePrio: change prio of ready task\n");
+        list_delete(&taskc->inode);
+        //Check for task on priority structure
+        if(list_isempty(&taskc->prio_elem->task_list)==true)
+        {
+             //Task list is empty remove element
+             printk("ChangePrio: Remove prio list elem\n");
+             list_delete(&task->prio_elem->inode);
+             kfree(task->prio_elem);
+        }
+        //Add task to ready list
+        if(add_task_to_ready_list(taskc)<0)
+        {
+            sched_unlock();
+            return -1;
+        }
+        if(new_prio<current_task->prio && !(current_task->state&TASK_RUNNING) ) yield_req = true;
+    }
+    else if(taskc->state & TASK_WAITING)
+    {
+        printk("ChangePrio: change prio of task waiting on sem\n");
+        list_delete(&taskc->inode_sem);
+        add_task_to_sem_list(&taskc->sem->sem_task,taskc);
+    }
+    sched_unlock();
+    //Yield processor
+    if(yield_req && yield) sched_yield();
+    return 0;
+}
+
+/*-----------------------------------------------------------------------*/
+//Delete task pointed by struct task
+int task_delete(task_t *task)
+{
+    sched_lock();
+    task_t *taskd = task?task:current_task;
+    if(taskd->state & TASK_READY)
+    {
+       //Task is ready remove from read
+        delete_task_from_ready_list(task);
+        printk("TaskDel: Remove from ready list\n");
+    }
+    else if(taskd->state & TASK_SLEEPING)
+    {
+        //Task sleeping remove from sleeping
+        list_delete(&taskd->inode);
+        printk("TaskDel: Remove from sleeping list\n");
+    }
+    //Task waiting for sem remove from waiting list
+    if(taskd->state & TASK_WAITING)
+    {
+       list_delete(&taskd->inode_sem);
+       taskd->sem = NULL;
+       printk("TaskDel: Remove from sem list\n");
+    }
+    //Add task to delete list
+    taskd->state = TASK_DEAD;
+    add_task_to_delete_list(taskd);
+    if(task==NULL)
+    {
+        sched_unlock();
+        printk("TaskDel: Current task yield req\n");
+        sched_yield();
+        return 0;
+    }
+    else
+    {
+        sched_unlock();
+        return 0;
+    }
+}
+

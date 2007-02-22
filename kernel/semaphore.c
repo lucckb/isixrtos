@@ -28,27 +28,9 @@ sem_t* sem_create(sem_t *sem,int val)
 }
 
 /*--------------------------------------------------------------*/
-//Add task to semaphore list
-static void add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
-{
-   //Scheduler lock
-    sched_lock();
-   //Insert on waiting list in time order
-    task_t *taskl;
-    list_for_each_entry(sem_list,taskl,inode)
-    {
-       if(taskl->prio<task->prio) break;
-    }
-    printk("MoveTaskToWaiting: insert in time list at %08x\n",taskl);
-    list_insert_after(&taskl->inode_sem,&task->inode_sem);
-    //Scheduler unlock
-    sched_unlock();
-
-}
-/*--------------------------------------------------------------*/
 //TODO: current task sem jest niezbedy
 //Wait for semaphore P()
-//TODO: priority inheritance detect reason of exit Add state
+//TODO: priority inheritance
 int sem_wait(sem_t *sem,time_t timeout)
 {
     int res = 0;
@@ -64,7 +46,12 @@ int sem_wait(sem_t *sem,time_t timeout)
     if(timeout || sem)
     {
         current_task->state &= ~TASK_READY;
-        list_delete(&current_task->inode);
+        delete_task_from_ready_list(current_task);
+    }
+    else
+    {
+        sched_unlock();
+        return -1;
     }
     //Sleep in semaphore
     if(timeout)
@@ -82,13 +69,24 @@ int sem_wait(sem_t *sem,time_t timeout)
     {
         add_task_to_sem_list(&sem->sem_task,current_task);
         current_task->state |= TASK_WAITING;
+        current_task->sem = sem;
         printk("SemWait: Add task %08x to sem\n",current_task);
     }
     sched_unlock();
     sched_yield();
     //After yield not waiting for sem
     sched_lock();
-    if(!(current_task->state&TASK_SLEEPING) && timeout) res = -1;
+    if(!(current_task->state & TASK_SLEEPING) && timeout)
+    {
+        res = -1;
+        if(current_task->state & TASK_WAITING)
+        {
+            printk("SemWait: Timeout delete from sem list\n");
+            list_delete(&current_task->inode_sem);
+            current_task->state &= ~TASK_WAITING;
+            current_task->sem = NULL;
+        }
+    }
     sched_unlock();
     return res;
 }
@@ -110,19 +108,32 @@ int __sem_signal(sem_t *sem,bool isr)
     task_t *task_wake = list_get_first(&sem->sem_task,inode_sem,task_t);
     printk("SemSignal: Task to wakeup %08x\n",task_wake);
     //Remove from time list
-    if(task_wake->time) list_delete(&task_wake->inode);
+    if(task_wake->state & TASK_SLEEPING)
+    {
+        list_delete(&task_wake->inode);
+        task_wake->state &= ~TASK_SLEEPING;
+    }
     //Reschedule is needed wakeup task have higer prio then current prio
     list_delete(&task_wake->inode_sem);
     task_wake->state &= ~TASK_WAITING;
     task_wake->state |= TASK_READY;
-    add_task_to_ready_list(task_wake);
-    sched_unlock();
+    current_task->sem = NULL;
+    if(add_task_to_ready_list(task_wake)<0)
+    {
+        sched_unlock();
+        return -1;
+    }
     if(task_wake->prio<current_task->prio && !isr)
     {
         printk("SemSignal: Yield current process\n");
+        sched_unlock();
         sched_yield();
+        return 0;
     }
-    return 0;
+    else
+    {
+         return 0;
+    }
 }
 /*--------------------------------------------------------------*/
 //Get semaphore from isr
@@ -156,7 +167,6 @@ int sem_setval(sem_t *sem,int val)
     sched_unlock();
     return 0;
 }
-
 
 /*--------------------------------------------------------------*/
 //Sem destroy

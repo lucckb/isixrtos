@@ -30,6 +30,8 @@ typedef struct task_ready_struct
 #define TASK_READY (1<<0)          //Task is ready
 #define TASK_SLEEPING (1<<1)       //Task is sleeping
 #define TASK_WAITING (1<<2)        //Task is waiting
+#define TASK_RUNNING (1<<3)        //Task is running
+#define TASK_DEAD    (1<<4)        //Task is dead
 /*-----------------------------------------------------------------------*/
 
 //Definition of task operations
@@ -41,6 +43,7 @@ typedef struct task_struct
     time_t time;                //Ticks when task wake up
     task_ready_t *prio_elem;    //Pointer to own prio list
     list_t inode_sem;           //Inode of semaphore
+    sem_t   *sem;               //Pointer to waiting sem
     list_t inode;               //List of tasks
 } task_t;
 
@@ -83,6 +86,18 @@ void add_task_to_waiting_list(task_t *task);
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list 
 int add_task_to_ready_list(task_t *task);
+
+/*--------------------------------------------------------------*/
+//Private add task to semaphore list
+void add_task_to_sem_list(list_entry_t *sem_list,task_t *task);
+
+/*-----------------------------------------------------------------------*/
+//Delete task from ready list
+void delete_task_from_ready_list(task_t *task);
+
+/*-----------------------------------------------------------------------*/
+//Add task list to delete 
+void add_task_to_delete_list(task_t *task);
 
 /*-----------------------------------------------------------------------*/
 //Yield processor 
