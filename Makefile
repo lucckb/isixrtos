@@ -71,7 +71,7 @@ install: build target program
 clean:
 	rm -rf kernel/*.o kernel/*.dep
 	find arch -name '*.o' | xargs rm -f
-	find arch -name '*.dep' | xargs rm -f
+	find apps -name '*.dep' | xargs rm -f
 	rm -rf *.hex *.elf *.lss *.map
 
 program:
