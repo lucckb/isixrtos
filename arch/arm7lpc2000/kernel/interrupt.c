@@ -3,7 +3,7 @@
 #include <asm/lpc214x.h>
 #include <asm/lpc214x_vic.h>
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #include <isix/printk.h>

@@ -1,0 +1,11 @@
+test.o test.dep : test.c /home/lucck/projects/isix/include/isix/task.h \
+  /home/lucck/projects/isix/include/isix/types.h \
+  /home/lucck/projects/isix/include/asm/types.h \
+  /usr/local/arm-elf-gcc/lib/gcc/arm-elf/4.1.1/include/stddef.h \
+  /home/lucck/projects/isix/include/isix/scheduler.h \
+  /home/lucck/projects/isix/include/isix/list.h \
+  /home/lucck/projects/isix/include/isix/config.h \
+  /home/lucck/projects/isix/include/isix/isix_config.h \
+  /home/lucck/projects/isix/include/isix/semaphore.h \
+  /home/lucck/projects/isix/include/asm/scheduler.h \
+  /home/lucck/projects/isix/include/isix/printk.h

@@ -31,7 +31,7 @@ CFLAGS += -std=gnu99 -fomit-frame-pointer
 CFLAGS += -I$(TOP_DIR)/include
 
 
-
+ARCH ?= arm-elf
 
 
 #Port szeregowy programatora ISP
@@ -45,11 +45,11 @@ ISPXTAL = 12000
 
 
 #Definicje programow
-CC      = arm-elf-gcc
-AR      = arm-elf-ar
-CP      = arm-elf-objcopy
-LD      = arm-elf-ld
-OBJDUMP = arm-elf-objdump 
+CC      = $(ARCH)-gcc
+AR      = $(ARCH)-ar
+CP      = $(ARCH)-objcopy
+LD      = $(ARCH)-ld
+OBJDUMP = $(ARCH)-objdump 
 ISPPROG  = lpc21isp
 
 
@@ -75,18 +75,18 @@ clean:
 	rm -rf *.hex *.elf *.lss *.map
 
 program:
-	$(ISPPROG) $(TARGET).hex $(ISPPORT) $(ISPBAUD) $(ISPXTAL) || true
+	$(ISPPROG) -control $(TARGET).hex $(ISPPORT) $(ISPBAUD) $(ISPXTAL) || true
 	@ echo " "
 
 target: $(TARGET).elf $(TARGET).hex $(TARGET).lss
-     
+
 build:	
 	$(MAKE) -C kernel
 	$(MAKE) -C arch/arm7lpc2000
+	$(MAKE) -C apps/isixtest
 
 
-
-LINKFILES =  kernel/kernel.o arch/arm7lpc2000/kernel_arch.o
+LINKFILES =  kernel/kernel.o arch/arm7lpc2000/kernel_arch.o apps/isixtest/isixtest.o
 
 #wszystkie zaleznosci
 $(TARGET).elf: $(LINKFILES) $(SCRIPTLINK).ld

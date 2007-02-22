@@ -24,6 +24,7 @@ sem_t* sem_create(sem_t *sem,int val)
     bzero(sem,sizeof(sem_t));
     sem->value = val;
     list_init(&sem->sem_task);
+    printk("SemCreate: Create sem %08x val %d\n",sem,sem->value);
     return sem;
 }
 
@@ -36,17 +37,23 @@ int sem_wait(sem_t *sem,time_t timeout)
     int res = 0;
     //Lock scheduler
     sched_lock();
+    printk("SemWait: Operate on task %08x state %02x\n",current_task,current_task->state);
     if(sem && sem->value>0)
     {
         sem->value--;
+        printk("SemWait: Decrement value %d\n",sem->value);
         sched_unlock();
         return res;
     }
     //If any task remove task from ready list
     if(timeout || sem)
     {
-        current_task->state &= ~TASK_READY;
-        delete_task_from_ready_list(current_task);
+        if(current_task->state & TASK_READY)
+        {
+            current_task->state &= ~TASK_READY;
+            delete_task_from_ready_list(current_task);
+            printk("SemWait: Delete task from ready list\n");
+        }
     }
     else
     {
@@ -96,11 +103,16 @@ int sem_wait(sem_t *sem,time_t timeout)
 int __sem_signal(sem_t *sem,bool isr)
 {
     //If not sem not release it
-    if(!sem) return -1;
+    if(!sem)
+    {
+        printk("SemSignal: No sem\n");
+        return -1;
+    }
     sched_lock();
     if(list_isempty(&sem->sem_task)==true)
     {
         sem->value++;
+        printk("SemSignal: Waiting list is empty incval to %d\n",sem->value);
         sched_unlock();
         return 0;
     }
@@ -123,9 +135,11 @@ int __sem_signal(sem_t *sem,bool isr)
         sched_unlock();
         return -1;
     }
-    if(task_wake->prio<current_task->prio && !isr)
+    //TODO: FixIT not work OK..
+    if(task_wake->prio<=current_task->prio && !isr)
+    //if(!isr)
     {
-        printk("SemSignal: Yield current process\n");
+        printk("SemSignal: Yield processor higer prio\n");
         sched_unlock();
         sched_yield();
         return 0;

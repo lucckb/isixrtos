@@ -9,7 +9,7 @@
 #include <isix/list.h>
 
 //TODO: Remove at end debug of module
-//#define DEBUG
+#define DEBUG
 
 
 #ifdef DEBUG
@@ -102,7 +102,6 @@ void scheduler_time(void)
 {
     //Increment sys tick
     sched_time++;
-    printk(".");
     //If scheduler is locked switch context is disable
     if(sched_lock_counter) return;
     if(list_isempty(&waiting_task)) return;
@@ -215,7 +214,7 @@ void add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 //    sched_lock();
    //Insert on waiting list in time order
     task_t *taskl;
-    list_for_each_entry(sem_list,taskl,inode)
+    list_for_each_entry(sem_list,taskl,inode_sem)
     {
        if(taskl->prio<task->prio) break;
     }
@@ -248,26 +247,7 @@ TASK_FUNC(idle_task,p)
     }
 }
 /*-----------------------------------------------------------------------*/
-#undef printk
-#include <isix/printk.h>
 
-TASK_FUNC(fun1,n)
-{
-    char *p = (char*)n;
-    //printk("func1(%08x)\n",(u32)n);
-    while(1)
-    {
-    //     for(volatile int i=0;i<1000000;i++);
-        sem_wait(NULL,HZ*2);
-    //    printk("***********************************\n");
-                // sched_lock();
-    //    printk("**func1 %d time %d**\n",*p,sched_time);
-    printk("%c",*p);
-       // sched_unlock();
-//        *p = *p + 1;
-        //sched_yield();
-    }
-}
 
 #if 0
 void print_rdy(void)
@@ -302,7 +282,6 @@ void init_os(void)
     list_init(&dead_task);
     //Other stuff
     printk_init(UART_BAUD(115200));
-	printk("Hello from OSn\n");
     //Create idle task
     task_create(idle_task,NULL,SCHED_MIN_STACK_DEPTH,SCHED_IDLE_PRIORITY);
 }
@@ -321,14 +300,3 @@ void start_scheduler(void)
 }
 
 /*-----------------------------------------------------------------------*/
-// TODO: Main function temp only for tests
-char cnt1='c',cnt2='z';
-int main(void)
-{
-    task_create(fun1,&cnt1,300,10);
-//     task_create(fun1,(void*)0x02020202,200,20);
-    //task_create(fun1,(void*)0x03030303,200,15);
-    task_create(fun1,&cnt2,400,10);
-    return 0;
-}
-
