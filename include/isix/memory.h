@@ -12,7 +12,7 @@ void kfree(void *mem);
 
 /*------------------------------------------------------*/
 //Zero of selected memory region
-void bzero(void *s, size_t n);
+void zero_memory(void *s, size_t n);
 
 /*------------------------------------------------------*/
 #endif

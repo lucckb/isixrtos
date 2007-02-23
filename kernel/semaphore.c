@@ -21,7 +21,7 @@ sem_t* sem_create(sem_t *sem,int val)
     {
         sem = (sem_t*)kmalloc(sizeof(sem_t));
     }
-    bzero(sem,sizeof(sem_t));
+    zero_memory(sem,sizeof(sem_t));
     sem->value = val;
     list_init(&sem->sem_task);
     printk("SemCreate: Create sem %08x val %d\n",sem,sem->value);

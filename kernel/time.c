@@ -8,9 +8,9 @@
 //Return current time
 time_t time(time_t *time)
 { 
-    reg_t irq_s = irq_disable();
+//    reg_t irq_s = irq_disable();
     time_t t = sched_time;
-    irq_restore(irq_s);
+//    irq_restore(irq_s);
     if(time!=NULL)  *time = t;
     return t;
 }

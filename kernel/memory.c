@@ -143,7 +143,7 @@ void kfree(void *mem)
 
 /*------------------------------------------------------*/
 //Zero of selected memory region
-void bzero(void *s, size_t n)
+void zero_memory(void *s, size_t n)
 {
     u32 *ptr32 = (u32*)s;
     size_t elem32 = n/4;

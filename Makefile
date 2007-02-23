@@ -56,7 +56,7 @@ ISPPROG  = lpc21isp
 #Pozostale ustawienia kompilatora
 
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -g$(DEBUG)
-LDFLAGS +=  -nostartfiles -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref,--defsym=__heap_end=$(HEAP_END)
+LDFLAGS +=  -nostartfiles -nostdlib -lgcc -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref,--defsym=__heap_end=$(HEAP_END)
 CFLAGS  += -O$(OPT) -mcpu=$(MCU) -g$(DEBUG) 
 CPFLAGS =  -O $(FORMAT) -S
 ARFLAGS = rcs
