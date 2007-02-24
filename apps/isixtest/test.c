@@ -16,7 +16,6 @@ TASK_FUNC(wake_task,n)
     schedule_timeout(HZ/10);
     if(kb_prev && !(IO0PIN & (1<<4)) )
     {
-        printk("++++++++++\n");
         sem_signal(sem);
     }
     kb_prev = IO0PIN & (1<<4);
@@ -26,25 +25,34 @@ TASK_FUNC(wake_task,n)
 
 TASK_FUNC(fun_task,n)
 {
+    IO1DIR |= 0xFF<<16;
+    u8 state = 0;
     while(1)
     {
-        printk("Go to sleep\n");
-        sem_wait(sem,0);
-        printk("***********\n");
-        if(t3) { task_delete(t3); t3=NULL;}
+        if(sem_wait(sem,HZ*2)>=0)
+        {
+            if(!state)
+            {
+                state = 1;
+                IO1SET = 1<<16;
+                IO1CLR = 2<<16;
+            }
+            else
+            {
+                state = 0;
+                IO1SET = 2<<16;
+                IO1CLR = 1<<16;
+                state = 0;
+            }
+        }
+        else
+        {
+            IO1PIN ^= 1<<23;
+        }
+        for(volatile int i=0;i<40000;i++);
     }
 }
 /*-----------------------------------------------------------------------*/
-
-
-TASK_FUNC(dupa_task,n)
-{
-    while(1) {
-         schedule_timeout(HZ);
-        //for(volatile int i=0;i<1000000;i++);
-        printk("$\n");
-    }
-}
 
 //Main test function
 int main(void)
@@ -53,6 +61,5 @@ int main(void)
    sem = sem_create(NULL,0);
    t1 = task_create(fun_task,NULL,400,10);
    t2 = task_create(wake_task,NULL,400,8);
-   t3 = task_create(dupa_task,NULL,128+32,22);
    return 0;
 }
