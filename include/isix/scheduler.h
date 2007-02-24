@@ -38,9 +38,10 @@ typedef struct task_ready_struct
 typedef struct task_struct
 {
     reg_t *top_stack;	        //Task stack ptr
+    reg_t *init_stack;          //Initial value of stack for kfree
     prio_t prio;			    //Priority of task
     u8 state;                   //stan watku
-    time_t time;                //Ticks when task wake up
+    u64 jiffies;                //Ticks when task wake up
     task_ready_t *prio_elem;    //Pointer to own prio list
     list_t inode_sem;           //Inode of semaphore
     sem_t   *sem;               //Pointer to waiting sem
@@ -60,16 +61,16 @@ extern task_t *volatile current_task;
 extern volatile bool scheduler_running;
 
 /*-----------------------------------------------------------------------*/
-//Global scheler time
-extern volatile time_t sched_time;
+//Global jiffies
+extern volatile u64 jiffies;
 
 /*-----------------------------------------------------------------------*/
 //Scheduler function called on context switch in IRQ and Yield
-void scheduler(void);
+void schedule(void);
 
 /*-----------------------------------------------------------------------*/
 //Sched timer cyclic call
-void scheduler_time(void);
+void schedule_time(void);
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler

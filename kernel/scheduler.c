@@ -9,7 +9,7 @@
 #include <isix/list.h>
 
 //TODO: Remove at end debug of module
-#define DEBUG
+//#define DEBUG
 
 
 #ifdef DEBUG
@@ -48,8 +48,8 @@ static list_entry_t dead_task;
 
 
 /*-----------------------------------------------------------------------*/
-//Global scheler time
-volatile time_t sched_time;
+//Global jiffies
+volatile u64 jiffies;
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler
@@ -74,16 +74,17 @@ int sched_unlock(void)
 }
 /*-----------------------------------------------------------------------*/
 //Scheduler is called in switch context
-void scheduler(void)
+void schedule(void)
 {
    //If scheduler is locked switch context is disable
     if(sched_lock_counter) return;
+    sched_lock();
     //Remove executed task and add at end
     if(current_task->state & TASK_READY)
     {
+        current_task->state &= ~TASK_RUNNING;
         list_delete(&current_task->inode);
         list_insert_end(&current_prio->task_list,&current_task->inode);
-        current_task->state &= ~TASK_RUNNING;
     }
     //Get first ready prio
     printk("Scheduler: prev prio %d prio list %08x\n",current_prio->prio,current_prio);
@@ -94,21 +95,22 @@ void scheduler(void)
     current_task = list_get_first(&current_prio->task_list,inode,task_t);
     current_task->state |= TASK_RUNNING;
     printk("Scheduler: new task %08x\n",current_task);
+    sched_unlock();
 }
 
 /*-----------------------------------------------------------------------*/
 //Time call from isr
-void scheduler_time(void)
+void schedule_time(void)
 {
     //Increment sys tick
-    sched_time++;
+    jiffies++;
     //If scheduler is locked switch context is disable
     if(sched_lock_counter) return;
     if(list_isempty(&waiting_task)) return;
     task_t *task_c = list_get_first(&waiting_task,inode,task_t);
-    if(sched_time>=task_c->time)
+    if(jiffies>=task_c->jiffies)
     {
-        printk("SchedulerTime: sched_time %d task_time %d\n",sched_time,task_c->time);
+        printk("SchedulerTime: sched_time %d task_time %d\n",jiffies,task_c->jiffies);
         task_c->state &= ~TASK_SLEEPING;
         task_c->state |= TASK_READY;
         list_delete(&task_c->inode);
@@ -124,7 +126,7 @@ void scheduler_time(void)
 int add_task_to_ready_list(task_t *task)
 {
     //Scheduler lock
-    //sched_lock();
+    sched_lock();
     //Find task equal entry
     task_ready_t *prio_i;
     list_for_each_entry(&ready_task,prio_i,inode)
@@ -138,7 +140,7 @@ int add_task_to_ready_list(task_t *task)
             //Add task at end of ready list
             list_insert_end(&prio_i->task_list,&task->inode);
             //Unlock scheduler
-      //      sched_unlock();
+            sched_unlock();
             return 0;
         }
         else if(prio_i->prio<task->prio)
@@ -165,7 +167,7 @@ int add_task_to_ready_list(task_t *task)
         else if(current_prio->prio>prio_n->prio) current_prio = prio_n;
     }
     printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_n,prio_n->prio);
-    //sched_unlock();
+    sched_unlock();
     return 0;
 }
 
@@ -174,7 +176,7 @@ int add_task_to_ready_list(task_t *task)
 void delete_task_from_ready_list(task_t *task)
 {
     //Scheduler lock
-//   sched_lock();
+   sched_lock();
    list_delete(&task->inode);
    //Check for task on priority structure
    if(list_isempty(&task->prio_elem->task_list)==true)
@@ -185,7 +187,7 @@ void delete_task_from_ready_list(task_t *task)
         kfree(task->prio_elem);
    }
    //Scheduler unlock
-//   sched_unlock();
+   sched_unlock();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -193,17 +195,17 @@ void delete_task_from_ready_list(task_t *task)
 void add_task_to_waiting_list(task_t *task)
 {
     //Scheduler lock
-//    sched_lock();
+    sched_lock();
     //Insert on waiting list in time order
     task_t *waitl;
     list_for_each_entry(&waiting_task,waitl,inode)
     {
-       if(waitl->time<task->time) break;
+       if(waitl->jiffies<task->jiffies) break;
     }
     printk("MoveTaskToWaiting: insert in time list at %08x\n",&waitl->inode);
     list_insert_after(&waitl->inode,&task->inode);
     //Scheduler unlock
-//    sched_unlock();
+    sched_unlock();
 }
 
 /*--------------------------------------------------------------*/
@@ -211,7 +213,7 @@ void add_task_to_waiting_list(task_t *task)
 void add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 {
    //Scheduler lock
-//    sched_lock();
+    sched_lock();
    //Insert on waiting list in time order
     task_t *taskl;
     list_for_each_entry(sem_list,taskl,inode_sem)
@@ -221,26 +223,45 @@ void add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
     printk("MoveTaskToWaiting: insert in time list at %08x\n",taskl);
     list_insert_after(&taskl->inode_sem,&task->inode_sem);
     //Scheduler unlock
-//    sched_unlock();
+    sched_unlock();
 
 }
 /*-----------------------------------------------------------------------*/
-//Add task list to delete 
+//Add task list to delete
 void add_task_to_delete_list(task_t *task)
 {
     //lock scheduler
-//    sched_lock();
+    sched_lock();
     list_insert_end(&dead_task,&task->inode);
-//    sched_unlock();
+    sched_unlock();
+}
+
+/*-----------------------------------------------------------------------*/
+//Dead task are clean by this procedure called from idle task
+//One idle call clean one dead tasks
+static inline void cleanup_tasks(void)
+{
+    if(list_isempty(&dead_task)) return;
+    sched_lock();
+    task_t *task_del = list_get_first(&dead_task,inode,task_t);
+    list_delete(&task_del->inode);
+    if(task_del->state & TASK_DEAD)
+    {
+        printk("CleanupTasks: Task to delete is %08x stack SP %08x\n",task_del,task_del->init_stack);
+        kfree(task_del->init_stack);
+        kfree(task_del);
+    }
+    sched_unlock();
 }
 
 /*-----------------------------------------------------------------------*/
 //Idle task function do nothing and lower priority
-//TODO: Add task to delete :)
 TASK_FUNC(idle_task,p)
 {
     while(1)
     {
+        //Cleanup free tasks
+        cleanup_tasks();
 #ifndef  CONFIG_USE_PREEMPTION
         sched_yield();
 #endif
@@ -248,25 +269,31 @@ TASK_FUNC(idle_task,p)
 }
 /*-----------------------------------------------------------------------*/
 
-
 #if 0
+#undef printk
+#include <isix/printk.h>
 void print_rdy(void)
 {
         task_ready_t *i;
+        task_t *j;
+        sched_lock();
+        printk("-------Ready tasks -------------\n");
         list_for_each_entry(&ready_task,i,inode)
         {
             printk("List inode %08x prio %d\n",(unsigned int)i,i->prio);
+            list_for_each_entry(&i->task_list,j,inode)
+            {
+                printk("\t task %08x prio %d state %d\n",j,j->prio,j->state);
+            }
         }
+        printk("------ Sleeping tasks -------------\n");
+        list_for_each_entry(&waiting_task,j,inode)
+        {
+            printk("Task: %08x prio: %d state %d jiffies %d\n",j,j->prio,j->state,j->jiffies);
+        }
+        sched_unlock();
 }
 
-void print_bsy(void)
-{
-        task_t *i;
-        list_for_each_entry(&waiting_task,i,inode)
-        {
-            printk("List inode %08x prio %d\n",(unsigned int)i,i->time);
-        }
-}
 
 #endif
 

@@ -1,11 +1,10 @@
 #include <isix/config.h>
 #include <isix/memory.h>
 #include <isix/scheduler.h>
-#include <isix/semaphore.h>
 #include <isix/time.h>
+#include <isix/semaphore.h>
 
-
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #include <isix/printk.h>
@@ -29,10 +28,9 @@ sem_t* sem_create(sem_t *sem,int val)
 }
 
 /*--------------------------------------------------------------*/
-//TODO: current task sem jest niezbedy
 //Wait for semaphore P()
 //TODO: priority inheritance
-int sem_wait(sem_t *sem,time_t timeout)
+int sem_wait(sem_t *sem,unsigned long timeout)
 {
     int res = 0;
     //Lock scheduler
@@ -63,14 +61,14 @@ int sem_wait(sem_t *sem,time_t timeout)
     //Sleep in semaphore
     if(timeout)
     {
-        //get current time
-        time(&current_task->time);
+        //get current jiffies
+        current_task->jiffies = get_jiffies();
         //add wakeup timeout
-        current_task->time += timeout;
+        current_task->jiffies += timeout;
         //Move task from ready list to waiting list
         add_task_to_waiting_list(current_task);
         current_task->state |= TASK_SLEEPING;
-        printk("SemWait: Wait after %d ticks\n",current_task->time);
+        printk("SemWait: Wait after %d ticks\n",current_task->jiffies);
     }
     if(sem)
     {
@@ -83,9 +81,11 @@ int sem_wait(sem_t *sem,time_t timeout)
     sched_yield();
     //After yield not waiting for sem
     sched_lock();
+    printk("SemWait: task %08x after wakeup\n",current_task);
     if(!(current_task->state & TASK_SLEEPING) && timeout)
     {
         res = -1;
+        current_task->state &= ~TASK_SLEEPING;
         if(current_task->state & TASK_WAITING)
         {
             printk("SemWait: Timeout delete from sem list\n");
@@ -123,8 +123,8 @@ int __sem_signal(sem_t *sem,bool isr)
     if(task_wake->state & TASK_SLEEPING)
     {
         list_delete(&task_wake->inode);
-        task_wake->state &= ~TASK_SLEEPING;
     }
+    //Task in waiting list is always in waking state
     //Reschedule is needed wakeup task have higer prio then current prio
     list_delete(&task_wake->inode_sem);
     task_wake->state &= ~TASK_WAITING;
@@ -135,9 +135,7 @@ int __sem_signal(sem_t *sem,bool isr)
         sched_unlock();
         return -1;
     }
-    //TODO: FixIT not work OK..
-    if(task_wake->prio<=current_task->prio && !isr)
-    //if(!isr)
+    if(task_wake->prio<current_task->prio && !isr)
     {
         printk("SemSignal: Yield processor higer prio\n");
         sched_unlock();
@@ -146,7 +144,8 @@ int __sem_signal(sem_t *sem,bool isr)
     }
     else
     {
-         return 0;
+        sched_unlock();
+        return 0;
     }
 }
 /*--------------------------------------------------------------*/

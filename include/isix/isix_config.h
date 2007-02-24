@@ -13,7 +13,8 @@
 /* Use preemtion */
 //#define CONFIG_USE_PREEMPTION 1
 
+
 /* Ticks per sec */
-#define CONFIG_HZ 10
+#define CONFIG_HZ 100
 
 

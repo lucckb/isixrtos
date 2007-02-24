@@ -21,6 +21,7 @@
 #define MR0_ADDVAL (T0_TICKS/HZ)
 
 /*-----------------------------------------------------------------------*/
+//TODO: Check that SWI disable interrupt and eventually create mutex in tasks
 //Yield processor
 void cpu_swi_yield(void) __attribute__((interrupt("SWI"),naked));
 
@@ -29,7 +30,7 @@ void cpu_swi_yield(void)
     //Add offset to LR according to SWI
     asm volatile("ADD LR,LR,#4 \t\n");
     cpu_save_context();
-    scheduler();
+    schedule();
     cpu_restore_context();
 }
 
@@ -77,10 +78,10 @@ void sys_timer_isr(void)
     //Add const var to match register
     T0MR0 = T0TC + MR0_ADDVAL;
     //Increment system ticks
-    scheduler_time();
+    schedule_time();
     //End of interrupt
 #ifdef  CONFIG_USE_PREEMPTION
-    scheduler();
+    schedule();
     T0IR = T0IR_MR0;
     interrupt_isr_exit();
     cpu_restore_context();

@@ -23,7 +23,7 @@ sem_t* sem_create(sem_t *sem,int val);
 
 /*--------------------------------------------------------------*/
 //Wait for semaphore P()
-int sem_wait(sem_t *sem,time_t timeout);
+int sem_wait(sem_t *sem,unsigned long timeout);
 
 /*--------------------------------------------------------------*/
 //Get semaphore from isr

@@ -14,7 +14,11 @@
 #define printk(...)
 #endif
 
-
+/*-----------------------------------------------------------------------*/
+//Align Mask
+#define ALIGN_MASK 0x03
+//Align Bytes
+#define ALIGN_BYTES 4
 /*-----------------------------------------------------------------------*/
 /* Create task function */
 task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_depth, prio_t priority)
@@ -22,30 +26,35 @@ task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_dept
     printk("TaskCreate: Create task with prio %d\n",priority);
     //If stack length is small error
     if(stack_depth<SCHED_MIN_STACK_DEPTH) return NULL;
+    //Alignement
+    if(stack_depth & ALIGN_MASK)
+    {
+        stack_depth += ALIGN_BYTES - (stack_depth & ALIGN_MASK);
+    }
     //Allocate task_t structure
     task_t *task = (task_t*)kmalloc(sizeof(task_t));
     printk("TaskCreate: Alloc task struct %08x\n",task);
     //No free memory
     if(task==NULL) return NULL;
+    //Zero task structure
+    zero_memory(task,sizeof(task_t));
     //Try Allocate stack for task
-    task->top_stack = (reg_t*)kmalloc(stack_depth);
-    printk("TaskCreate: Alloc stack mem %08x\n",task->top_stack);
-    if(task->top_stack==NULL)
+    task->init_stack = (reg_t*)kmalloc(stack_depth);
+    printk("TaskCreate: Alloc stack mem %08x\n",task->init_stack);
+    if(task->init_stack==NULL)
     {
         //Free allocated stack memory
         kfree(task);
         return NULL;
     }
 #ifdef CONFIG_STACK_GROWTH
-     task->top_stack = (reg_t*)((char*)task->top_stack + stack_depth - 4);
+     task->top_stack = (reg_t*)((char*)task->init_stack + stack_depth - 4);
+#else
+     task->top_stack = task->init_stack;
 #endif
     printk("TaskCreate: Top stack SP=%08x\n",task->top_stack);
     //Assign task priority
     task->prio = priority;
-    //Set time to 0
-    task->time = 0;
-    //Task semaphore null
-    task->sem = NULL;
     //Task is ready
     task->state = TASK_READY;
     //Create initial task stack context
@@ -99,15 +108,7 @@ int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
     if(taskc->state & TASK_READY)
     {
         printk("ChangePrio: change prio of ready task\n");
-        list_delete(&taskc->inode);
-        //Check for task on priority structure
-        if(list_isempty(&taskc->prio_elem->task_list)==true)
-        {
-             //Task list is empty remove element
-             printk("ChangePrio: Remove prio list elem\n");
-             list_delete(&task->prio_elem->inode);
-             kfree(task->prio_elem);
-        }
+        delete_task_from_ready_list(taskc);
         //Add task to ready list
         if(add_task_to_ready_list(taskc)<0)
         {
@@ -124,7 +125,12 @@ int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
     }
     sched_unlock();
     //Yield processor
-    if(yield_req && yield) sched_yield();
+    if(yield_req && yield)
+    {
+        printk("ChangePrio: CPUYield request\n");
+        sched_yield();
+    }
+    printk("ChangePrio: New prio %d\n",new_prio);
     return 0;
 }
 
