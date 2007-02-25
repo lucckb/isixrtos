@@ -154,6 +154,20 @@ void zero_memory(void *s, size_t n)
 }
 
 /*------------------------------------------------------*/
+//Copy memory from region src to dest
+void copy_memory(void *dest,const void *src,int size)
+{
+    u32 *ptr32d = (u32*)dest;
+    u32 *ptr32s = (u32*)src;
+    size_t elem32 = size/4;
+    u8 elem8 = size%4;
+    for(int i=0;i<elem32;i++) *ptr32d++ = *ptr32s++;
+    u8 *ptr8d = (u8*)ptr32d;
+    u8 *ptr8s = (u8*)ptr32s;
+    for(int i=0;i<elem8;i++) *ptr8d++ = *ptr8s++;
+}
+
+/*------------------------------------------------------*/
 #ifdef DEBUG
 void printelem(void)
 {

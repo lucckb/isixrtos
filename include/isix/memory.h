@@ -15,4 +15,8 @@ void kfree(void *mem);
 void zero_memory(void *s, size_t n);
 
 /*------------------------------------------------------*/
+//Copy memory from region src to dest
+void copy_memory(void *dest,const void *src,int size);
+/*------------------------------------------------------*/
+
 #endif
