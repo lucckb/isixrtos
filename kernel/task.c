@@ -6,7 +6,7 @@
 
 
 //TODO: Disable at create end of module
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #include <isix/printk.h>

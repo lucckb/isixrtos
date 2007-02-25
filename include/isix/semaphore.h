@@ -3,7 +3,6 @@
 
 #include <isix/config.h>
 #include <isix/types.h>
-#include <isix/scheduler.h>
 #include <isix/list.h>
 
 /*--------------------------------------------------------------*/
@@ -16,6 +15,7 @@ typedef struct sem_struct
     list_entry_t sem_task;
 } sem_t;
 
+#include <isix/scheduler.h>
 /*--------------------------------------------------------------*/
 //Create semaphore
 sem_t* sem_create(sem_t *sem,int val);

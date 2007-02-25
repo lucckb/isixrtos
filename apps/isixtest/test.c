@@ -3,6 +3,7 @@
 #include <isix/time.h>
 #include <isix/printk.h>
 #include <asm/lpc214x.h>
+#include <asm/interrupt.h>
 
 //Semaphore signalization
 sem_t *sem;
@@ -53,6 +54,16 @@ TASK_FUNC(fun_task,n)
     }
 }
 /*-----------------------------------------------------------------------*/
+INTERRUPT_PROC(extint_isr)
+{
+   sem_signal_isr(sem);
+   EXTINT = 0x02;
+   interrupt_isr_exit();
+}
+
+#define EINT1_SEL (2<<28)
+#define P014_SEL_MASK (3<<28)
+
 
 //Main test function
 int main(void)
@@ -60,6 +71,15 @@ int main(void)
    printk("****** Hello from OS ******\n");
    sem = sem_create(NULL,0);
    t1 = task_create(fun_task,NULL,400,10);
-   t2 = task_create(wake_task,NULL,400,8);
-   return 0;
+   interrupt_register(INTERRUPT_NUM_EINT1,INTERRUPT_PRIO(14),extint_isr);
+   //Przerwanie zboczem
+	EXTMODE |= 0x02;
+	//Zbocze opadajace
+	EXTPOLAR &= ~0x02;
+	//Kasuj wystapienie przerwania (1 kasuje)
+	EXTINT = 0x02;
+    PINSEL0 &= ~P014_SEL_MASK;
+	PINSEL0 |= EINT1_SEL;
+    t2 = task_create(wake_task,NULL,400,8);
+    return 0;
 }
