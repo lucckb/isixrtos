@@ -85,8 +85,6 @@ void sys_timer_isr(void)
 #endif
     //Add const var to match register
     T0MR0 = T0TC + MR0_ADDVAL;
-    //System timer ticks
-    sys_timer_tick();
     //Increment system ticks
     schedule_time();
     //End of interrupt

@@ -34,7 +34,7 @@ TASK_FUNC(fun_task,n)
     u8 ch;
     while(1)
     {
-        if(IO0PIN & (1<<14)) {schedule_timeout(HZ/10); continue; }
+        if(IO0PIN & (1<<5)) {schedule_timeout(HZ/10); continue; }
         if(fifo_read(fifo,&ch,HZ*2)>=0)
         {
             IO1SET = (u32)ch << 16;
@@ -48,11 +48,33 @@ TASK_FUNC(fun_task,n)
     }
 }
 /*-----------------------------------------------------------------------*/
+INTERRUPT_PROC(extint_isr)
+{
+   char c = 0x55;
+   fifo_write_isr(fifo,&c);
+   EXTINT = 0x02;
+   interrupt_isr_exit();
+}
 
+#define EINT1_SEL (2<<28)
+#define P014_SEL_MASK (3<<28)
+
+/*-----------------------------------------------------------------------*/
 //Main test function
 int main(void)
 {
    printk("****** Hello from OS ******\n");
+
+   interrupt_register(INTERRUPT_NUM_EINT1,INTERRUPT_PRIO(14),extint_isr);
+   //Przerwanie zboczem
+   EXTMODE |= 0x02;
+   //Zbocze opadajace
+   EXTPOLAR &= ~0x02;
+   //Kasuj wystapienie przerwania (1 kasuje)
+   EXTINT = 0x02;
+   PINSEL0 &= ~P014_SEL_MASK;
+   PINSEL0 |= EINT1_SEL;
+
    t1 = task_create(fun_task,NULL,400,10);
    t2 = task_create(wake_task,NULL,400,8);
    fifo = fifo_create(10,1);

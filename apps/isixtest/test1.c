@@ -73,13 +73,13 @@ int main(void)
    t1 = task_create(fun_task,NULL,400,10);
    interrupt_register(INTERRUPT_NUM_EINT1,INTERRUPT_PRIO(14),extint_isr);
    //Przerwanie zboczem
-	EXTMODE |= 0x02;
-	//Zbocze opadajace
-	EXTPOLAR &= ~0x02;
-	//Kasuj wystapienie przerwania (1 kasuje)
-	EXTINT = 0x02;
-    PINSEL0 &= ~P014_SEL_MASK;
-	PINSEL0 |= EINT1_SEL;
-    t2 = task_create(wake_task,NULL,400,8);
-    return 0;
+   EXTMODE |= 0x02;
+   //Zbocze opadajace
+   EXTPOLAR &= ~0x02;
+   //Kasuj wystapienie przerwania (1 kasuje)
+   EXTINT = 0x02;
+   PINSEL0 &= ~P014_SEL_MASK;
+   PINSEL0 |= EINT1_SEL;
+   t2 = task_create(wake_task,NULL,400,8);
+   return 0;
 }

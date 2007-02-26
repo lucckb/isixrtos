@@ -17,9 +17,6 @@ u64 get_jiffies(void);
 #define schedule_timeout(timeout) sem_wait(NULL,timeout);
 
 /*-----------------------------------------*/
-//This function is called after all timer ticks (kernel private func)
-void sys_timer_tick(void);
 
-/*-----------------------------------------*/
 
 #endif

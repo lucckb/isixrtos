@@ -24,9 +24,4 @@ u64 get_jiffies(void)
 }
 
 /*------------------------------------------------------------*/
-//System timer ticks
-void sys_timer_tick(void)
-{
-    
-}
 
