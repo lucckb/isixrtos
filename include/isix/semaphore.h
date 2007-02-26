@@ -47,6 +47,13 @@ int sem_setval(sem_t *sem,int val);
 //Sem destroy
 int sem_destroy(sem_t *sem);
 
+/*--------------------------------------------------------------*/
+//Semaphore can by destroyed
+static inline bool __sem_can_destroy(sem_t *sem)
+{
+   return list_isempty(&sem->sem_task);
+}
 
+/*--------------------------------------------------------------*/
 #endif
 

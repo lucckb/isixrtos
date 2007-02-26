@@ -32,7 +32,7 @@ int fifo_write_isr(fifo_t *queue,const void *item);
 
 /*--------------------------------------------------*/
 /* Delete created queue */
-void fifo_delete(fifo_t *fifo);
+int fifo_destroy(fifo_t *fifo);
 
 
 /*--------------------------------------------------*/

@@ -82,7 +82,27 @@ int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout)
     if(sem_signal(fifo->rx_sem)<0) return -1;
     else return 0;
 }
-
+/*----------------------------------------------------------------*/
+//Fifo send to other task
+int fifo_write_isr(fifo_t *fifo,const void *item)
+{
+    if(!fifo) return -1;
+    if(sem_get_isr(fifo->tx_sem)<0)
+    {
+        printk("FifoWriteISR: No space in TX queue\n");
+        return -1;
+    }
+    sched_lock();
+    copy_memory(fifo->tx_p,item,fifo->elem_size);
+    printk("FifoWriteISR: Data write at TXp %08x\n",fifo->tx_p);
+    fifo->tx_p+= fifo->elem_size;
+    if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
+    sched_unlock();
+    printk("FifoWriteISR: New TXp %08x\n",fifo->tx_p);
+    //Signaling RX thread with new data
+    if(sem_signal_isr(fifo->rx_sem)<0) return -1;
+    else return 0;
+}
 /*----------------------------------------------------------------*/
 //Fifo receive from other task
 int fifo_read(fifo_t *fifo,void *item,unsigned long timeout)
@@ -104,5 +124,57 @@ int fifo_read(fifo_t *fifo,void *item,unsigned long timeout)
     if(sem_signal(fifo->tx_sem)<0) return -1;
     else return 0;
 }
+
 /*----------------------------------------------------------------*/
-//TODO: Delete Queue and ISR stuff
+//Fifo receive from other task
+int fifo_read_isr(fifo_t *fifo,void *item)
+{
+    if(!fifo) return -1;
+    if(sem_get_isr(fifo->rx_sem)<0)
+    {
+       printk("FifoReadISR: No space in RX queue\n");
+       return -1;
+    }
+    sched_lock();
+    copy_memory(item,fifo->rx_p,fifo->elem_size);
+    printk("FifoReadISR: Data write at RXp %08x\n",fifo->rx_p);
+    fifo->rx_p+= fifo->elem_size;
+    if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;
+    sched_unlock();
+    printk("FifoReadISR: New Rxp %08x\n",fifo->rx_p);
+    //Signaling TX for space avail
+    if(sem_signal_isr(fifo->tx_sem)<0) return -1;
+    else return 0;
+}
+
+/*----------------------------------------------------------------*/
+/* Delete created queue */
+int fifo_destroy(fifo_t *fifo)
+{
+    sched_lock();
+    //Check for TXSEM ban be destroyed
+    if(__sem_can_destroy(fifo->tx_sem)==false)
+    {
+        printk("FifoDestroy: Error TXSem busy\n");
+        sched_unlock();
+        return -1;
+    }
+    //Check for RXSEM can be destroyed
+    if(__sem_can_destroy(fifo->rx_sem)==false)
+    {
+        printk("FifoDestroy: Error RXSem busy\n");
+        sched_unlock();
+        return -1;
+    }
+    //Destroy RXSEM and TXSEM
+    sem_destroy(fifo->rx_sem);
+    sem_destroy(fifo->tx_sem);
+    //Free queue used memory
+    kfree(fifo->mem_p);
+    kfree(fifo);
+    sched_unlock();
+    return 0;
+}
+
+/*----------------------------------------------------------------*/
+
