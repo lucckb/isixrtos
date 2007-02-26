@@ -10,18 +10,26 @@
 #define INITIAL_SPSR 0x0000001f
 
 //Timer 0 issue
-#define T0MCR_INTERRUPT_ON_MR0 0x1U
+#define T0MCR_INTERRUPT_ON_MR0 (1<<0)
+#define T0MCR_INTERRUPT_ON_MR1 (1<<3)
+#define T0MCR_INTERRUPT_ON_MR2 (1<<6)
+#define T0MCR_INTERRUPT_ON_MR3 (1<<9)
+
 #define T0MCR_RESET_ON_MR0 0x2U
 #define T0TCR_COUNTER_RESET 0x2U
 #define T0TCR_COUNTER_ENABLE 0x1U
 #define T0IR_MR0 0x1U
+#define T0IR_MR1 0x2U
+#define T0IR_MR2 0x4U
+#define T0IR_MR3 0x8U
+
 //Timer ticks rate
 #define T0_TICKS 1000000
 //Reload value
 #define MR0_ADDVAL (T0_TICKS/HZ)
 
+
 /*-----------------------------------------------------------------------*/
-//TODO: Check that SWI disable interrupt and eventually create mutex in tasks
 //Yield processor
 void cpu_swi_yield(void) __attribute__((interrupt("SWI"),naked));
 
@@ -73,22 +81,22 @@ void sys_timer_isr(void)
 #endif
 {
 #ifdef  CONFIG_USE_PREEMPTION
-     cpu_save_context();
+    cpu_save_context();
 #endif
     //Add const var to match register
     T0MR0 = T0TC + MR0_ADDVAL;
+    //System timer ticks
+    sys_timer_tick();
     //Increment system ticks
     schedule_time();
     //End of interrupt
 #ifdef  CONFIG_USE_PREEMPTION
     schedule();
+#endif
     T0IR = T0IR_MR0;
     interrupt_isr_exit();
+#ifdef CONFIG_USE_PREEMPTION
     cpu_restore_context();
-#else
-    //Controller end of intterrupt
-    T0IR = T0IR_MR0;
-    interrupt_isr_exit();
 #endif
 }
 
@@ -99,7 +107,7 @@ void sys_time_init(void)
     //Timer increment ticks after 1us
     T0PR = CONFIG_PCLK/T0_TICKS -1;
     //If compare match then interrupt
-    T0MCR |= T0MCR_INTERRUPT_ON_MR0;// |T0MCR_RESET_ON_MR0;
+    T0MCR = T0MCR_INTERRUPT_ON_MR0;
     //Set MR to req ticks
     T0MR0 = MR0_ADDVAL;
     //Reset Counter and prescaler
@@ -111,4 +119,6 @@ void sys_time_init(void)
     //Enable timer
     T0TCR = T0TCR_COUNTER_ENABLE;
 }
+
+/*-----------------------------------------------------------------------*/
 
