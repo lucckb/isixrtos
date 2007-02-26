@@ -21,6 +21,7 @@ TASK_FUNC(wake_task,n)
     {
         fifo_write(fifo,&cnt,0);
         if(cnt++>=0x80) cnt = 0;
+        printk("Microseconds %d\n",get_usec());
     }
     kb_prev = IO0PIN & (1<<4);
    }

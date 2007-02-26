@@ -4,10 +4,6 @@
 #include <isix/list.h>
 #include <isix/time.h>
 
-/*------------------------------------------------------------*/
-
-//All timer lists
-static list_entry_t timers_list;
 
 /*------------------------------------------------------------*/
 //Get currrent jiffies
