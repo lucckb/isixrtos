@@ -4,6 +4,7 @@
 #include <asm/context.h>
 #include <asm/interrupt.h>
 #include <isix/scheduler.h>
+#include <isix/time.h>
 #include <asm/lpc214x.h>
 
 //System Mode enable IRQ and FIQ
@@ -116,6 +117,8 @@ void sys_time_init(void)
     interrupt_register(INTERRUPT_NUM_TIMER0,INTERRUPT_PRIO(15),sys_timer_isr);
     //Enable timer
     T0TCR = T0TCR_COUNTER_ENABLE;
+    //Initialize RTC
+    rtc_clock_init();
 }
 
 /*-----------------------------------------------------------------------*/
