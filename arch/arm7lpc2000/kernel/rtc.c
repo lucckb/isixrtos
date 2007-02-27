@@ -20,9 +20,9 @@ void get_tmtime(struct tm *tmtime)
    register u32 a,b,c;
    do
    {
-        a = CTIME1;
-        b = CTIME2;
-        c = CTIME1;
+        a = CTIME0;
+        b = CTIME1;
+        c = CTIME0;
    }
    while(a!=c);
    tmtime->tm_sec = a & 0x3f;
@@ -67,13 +67,14 @@ void rtc_clock_init(void)
 	CCR = CCR_CTCRST;
     CCR = 0;
     //Setup 1 January 2000
+    /*
     SEC = MIN = HOUR = 0;
     DOM = MONTH = 1;
     YEAR = 2000;
     DOW = 6;
-    DOY = 1;
+    DOY = 1; */
     //Enable RTC
-	CCR = CCR_CLKEN;
+	CCR = CCR_CLKEN|CCR_EXTOSC;
 }
 
 
