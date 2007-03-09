@@ -82,10 +82,12 @@ target: $(TARGET).elf $(TARGET).hex $(TARGET).lss
 build:	
 	$(MAKE) -C kernel
 	$(MAKE) -C arch/arm7lpc2000
+	$(MAKE) -C devices
 	$(MAKE) -C apps/isixtest
 
 
 LINKFILES =  kernel/kernel.o arch/arm7lpc2000/kernel_arch.o apps/isixtest/isixtest.o
+LINKFILES += devices/devices.o
 
 #wszystkie zaleznosci
 $(TARGET).elf: $(LINKFILES) $(SCRIPTLINK).ld
