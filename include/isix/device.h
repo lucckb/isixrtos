@@ -9,8 +9,9 @@
 
 
 //Lenght of device name
-#define DEVICE_NAME_LENGTH 4
+#define DEVICE_NAME_LENGTH 6
 
+/*--------------------------------------------------------------*/
 //Device data structure
 typedef struct dev_data_struct
 {
@@ -20,6 +21,7 @@ typedef struct dev_data_struct
 file_t;
 
 
+/*--------------------------------------------------------------*/
 //Device operation structure
 typedef struct device_struct
 {
@@ -28,23 +30,25 @@ typedef struct device_struct
     //Device type
     char devtype;
     //Initializing device
-    int (*init)(void);
+    int (*init)(struct device_struct *fd);
+    //Device destroy
+    int (*destroy)(struct device_struct *fd);
     //Open device
-    void* (*open)(const char *path,int flags);
+    file_t* (*open)(const char *path,int flags);
     //Close device
-    int (*close)(void *fd);
+    int (*close)(file_t *fd);
     //Read device
-    int (*read)(void *fd,void *buf,size_t count);
+    int (*read)(file_t *fd,void *buf,size_t count);
     //Write device
-    int (*write)(void *fd,void *buf,size_t count);
+    int (*write)(file_t *fd,void *buf,size_t count);
     //IOCTL specific Device fun
-    int (*ioctl)(void *fd,int request,...);
+    int (*ioctl)(file_t *fd,int request,...);
     //Flush device
-    int (*flush)(void *fd);
-    //IOCTL device specific function
-    int (*ioctl)(void *fd,int request,...);
+    int (*flush)(file_t *fd);
     //Specific file operations
     void *fileop;
+    //Private data
+    void *devprv;
     //Used count
     int used;
     //Inode of device
@@ -52,43 +56,55 @@ typedef struct device_struct
 }
 device_t;
 
+/*--------------------------------------------------------------*/
+//Create default structure
+void fill_struct_device(device_t *dev);
 
+/*--------------------------------------------------------------*/
 //Register device in system
-int register_device(device_t *device);
+int register_device(device_t *dev);
 
+/*--------------------------------------------------------------*/
 //Unregister device
-int unregister_device(device_t *device);
+int unregister_device(device_t *dev);
 
+/*--------------------------------------------------------------*/
 //Open device
-file_t* open(const char *path,int flags);
+void* open(const char *path,int flags);
 
+/*--------------------------------------------------------------*/
 //Close device
-static inline int close(file_t *fd)
+static inline int close(void *fd)
 {
-    return ((file_t*)fd)->dev->close(((file_t*)fd)->prv_data);
+    return ((file_t*)fd)->dev->close((file_t*)fd);
 }
 
+/*--------------------------------------------------------------*/
 //Read device
-static inline int read(file_t *fd,void *buf,size_t count)
+static inline int read(void *fd,void *buf,size_t count)
 {
-   return ((file_t*)fd)->dev->read(((file_t*)fd)->prv_data,buf,count);
+   return ((file_t*)fd)->dev->read((file_t*)fd,buf,count);
 }
 
+/*--------------------------------------------------------------*/
 //Write device
-static inline int write(file_t *fd,void *buf,size_t count)
+static inline int write(void *fd,void *buf,size_t count)
 {
-   return ((file_t*)fd)->dev->write(((file_t*)fd)->prv_data,buf,count);
+   return ((file_t*)fd)->dev->write((file_t*)fd,buf,count);
 }
 
-
+/*--------------------------------------------------------------*/
 //IOCTL specific Device fun
-#define ioctl(a,b,...)((file_t*)a)->dev->ioctl(((file_t*)a)->prv_data,,b,__VA_ARGS__)
+#define ioctl(a,b,...)((file_t*)a)->dev->ioctl((file_t*)a, b, __VA_ARGS__)
 
+
+/*--------------------------------------------------------------*/
 //Flush device
-static inline int flush(file_t *fd)
+static inline int flush(void *fd)
 {
-   return ((file_t*)fd)->dev->flush(((file_t*)fd)->prv_data);
+   return ((file_t*)fd)->dev->flush((file_t*)fd);
 }
 
-
+/*--------------------------------------------------------------*/
 #endif
+
