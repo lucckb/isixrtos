@@ -29,10 +29,8 @@ typedef struct device_struct
     char name[DEVICE_NAME_LENGTH];
     //Device type
     char devtype;
-    //Initializing device
-    int (*init)(struct device_struct *fd);
-    //Device destroy
-    int (*destroy)(struct device_struct *fd);
+    //Used count
+    unsigned short used;
     //Open device
     file_t* (*open)(const char *path,int flags);
     //Close device
@@ -50,15 +48,13 @@ typedef struct device_struct
     //Private data
     void *devprv;
     //Used count
-    int used;
-    //Inode of device
     list_t inode;
 }
 device_t;
 
 /*--------------------------------------------------------------*/
 //Create default structure
-void fill_struct_device(device_t *dev);
+device_t* alloc_struct_device(void);
 
 /*--------------------------------------------------------------*/
 //Register device in system
@@ -76,6 +72,7 @@ void* open(const char *path,int flags);
 //Close device
 static inline int close(void *fd)
 {
+   ((file_t*)fd)->dev->used--;
     return ((file_t*)fd)->dev->close((file_t*)fd);
 }
 

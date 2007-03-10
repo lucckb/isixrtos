@@ -27,16 +27,30 @@ static int dummy_func(void)
 }
 
 /*------------------------------------------------------*/
+//Uart open function
+static file_t* dummy_open(const char *path,int flags)
+{
+    printk("DummyOpen: Warning !!! called\n");
+    file_t *file = (file_t*)kmalloc(sizeof(file_t));
+    if(file) zero_memory(file,sizeof(file_t));
+    return file;
+}
+/*------------------------------------------------------*/
+static int dummy_close(file_t *file)
+{
+    printk("DummyOpen: Warning !!! called\n");
+    kfree(file);
+    return 0;
+}
+/*------------------------------------------------------*/
 //Create default structure
 device_t* alloc_struct_device(void)
 {
     device_t *dev = (device_t*)kmalloc(sizeof(device_t));
     if(!dev) return NULL;
     zero_memory(dev,sizeof(device_t));
-    dev->init =    (void*)dummy_func;
-    dev->destroy = (void*)dummy_func;
-    dev->open =    (void*)dummy_func;
-    dev->close =   (void*)dummy_func;
+    dev->open =    dummy_open;
+    dev->close =   dummy_close;
     dev->read =    (void*)dummy_func;
     dev->write =   (void*)dummy_func;
     dev->ioctl =   (void*)dummy_func;
@@ -48,7 +62,7 @@ device_t* alloc_struct_device(void)
 static int string_cmp(const char *s1,const char *s2)
 {
     while(*s1 && *s2)
-    {
+   {
         if(*s1++ != *s2++) return *s1;
     }
     return 0;
@@ -58,12 +72,13 @@ static int string_cmp(const char *s1,const char *s2)
 //Register device in system
 int register_device(device_t *dev)
 {
+    if(!dev) return -1;
     sched_lock();
     device_t *d;
     if(devices.head.next == NULL) list_init(&devices);
     list_for_each_entry(&devices,d,inode)
     {
-        if(string_cmp(dev->name,d->name))
+        if(!string_cmp(dev->name,d->name))
         {
             printk("RegisterDevice: Device %s already registered\n",dev->name);
             sched_unlock();
@@ -71,10 +86,9 @@ int register_device(device_t *dev)
         }
     }
     list_insert_end(&devices,&dev->inode);
-    int res = dev->init(dev);
     sched_unlock();
-    printk("RegisterDevice: Device %s initialized with result %d\n",dev->name,res);
-    return res;
+    printk("RegisterDevice: Device %s initialized\n",dev->name);
+    return 0;
 }
 
 /*-------------------------------------------------------*/
@@ -88,11 +102,10 @@ int unregister_device(device_t *dev)
         printk("UnregisterDevice: Can`t unregister device dev %s is used\n",dev->name);
         return -1;
     }
-    int res = dev->destroy(dev);
     list_delete(&dev->inode);
-    printk("UnregisterDevice: Unregister dev %s with result %d\n",dev->name,res);
+    printk("UnregisterDevice: Unregister dev %s\n",dev->name);
     sched_unlock();
-    return res;
+    return 0;
 }
 
 /*-------------------------------------------------------*/
@@ -122,6 +135,8 @@ void* open(const char *path,int flags)
             printk("open: Open device with result %d\n",ret);
             if(!ret) {sched_unlock(); return NULL;}
             ret->dev = dev;
+            ret->dev->used++;
+            printk("open: Open count %d\n",ret->dev->used);
             sched_unlock();
             return ret;
         }
