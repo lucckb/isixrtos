@@ -4,7 +4,7 @@
 #include <isix/semaphore.h>
 #include <isix/fifo.h>
 
-#define DEBUG
+//#define DEBUG
 
 #ifndef DEBUG
 #define printk(...)
