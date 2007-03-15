@@ -1,6 +1,8 @@
 #ifndef __ISIX_LIST_H
 #define __ISIX_LIST_H
 
+/* L. Bryndza list version 1.0  */
+
 #include <stddef.h>
 
 //List linkage structure
