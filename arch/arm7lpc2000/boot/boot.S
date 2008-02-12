@@ -3,7 +3,7 @@
 /****************** KONFIGURACJA *********************/
 
 /*Ustawienia stosu*/ 
-#define Top_Stack      		0x40004000
+#define Top_Stack      		0x40008000
 #define UND_Stack_Size 		0x00000004
 #define SVC_Stack_Size 		0x00000100
 #define ABT_Stack_Size 		0x00000080
@@ -220,6 +220,9 @@ FIQ_Handler:
 .globl reset_cpu
 reset_cpu:
         mov pc,#0
+//Testowo 
+.globl __heap_end
+__heap_end:	.word Top_Stack-UND_Stack_Size-SVC_Stack_Size-ABT_Stack_Size-FIQ_Stack_Size-IRQ_Stack_Size-USR_Stack_Size-8
 
 // Wektor reset
 

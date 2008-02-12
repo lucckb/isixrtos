@@ -21,13 +21,9 @@ ISP = y
 #Typ procesora
 MCU	= arm7tdmi
 
-#Malloc heap end (END MEM - TOP STACK)
-HEAP_END = 0x40003CF4
-
-
 
 #Skrypt linkera
-SCRIPTLINK = arch/arm7lpc2000/boot/lpc2142-rom
+SCRIPTLINK = arch/arm7lpc2000/boot/lpc2148-rom
 
 #Opcje kompilatora C
 CFLAGS += -Wall
@@ -67,7 +63,7 @@ JTAGPROG = openocd
 #Pozostale ustawienia kompilatora
 
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -O$(OPT)
-LDFLAGS +=  -nostartfiles -nostdlib -lgcc -lg -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref,--defsym=__heap_end=$(HEAP_END) -O$(OPT)
+LDFLAGS +=  -nostartfiles -nostdlib -lgcc -lg -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref -O$(OPT)
 CFLAGS  += -mcpu=$(MCU) -O$(OPT)
 CPFLAGS =  -O $(FORMAT) -S
 ARFLAGS = rcs

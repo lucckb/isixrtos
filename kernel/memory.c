@@ -2,6 +2,7 @@
 #include <isix/types.h>
 #include <isix/scheduler.h>
 
+
 #ifdef DEBUG
 #include <isix/printk.h>
 #else
@@ -29,7 +30,8 @@ typedef struct freelist
 static freelist_t *free_list = NULL;
 
 //Definition begin and end heap
-extern u8 __heap_start,__heap_end;
+extern u8 __heap_start;
+extern u8 *__heap_end;
 
 
 /*------------------------------------------------------*/
@@ -55,7 +57,7 @@ void* kmalloc(size_t size)
      if(free_list==NULL)
      {
         free_list = (freelist_t*)&__heap_start;
-        free_list->size = ((&__heap_end) - (&__heap_start)) - sizeof(size_t);
+        free_list->size = ((__heap_end) - (&__heap_start)) - sizeof(size_t);
         free_list->next = NULL;
         free_list->prev = NULL;
         printk("kmalloc: Initialize Heap ADR_START=%08x size=%d\n",&free_list->next,free_list->size);
@@ -99,7 +101,7 @@ void* kmalloc(size_t size)
 void kfree(void *mem)
 {
     //Check memory management pool...
-    if( ((u8*)mem) < &__heap_start || ((u8*)mem) > &__heap_end )
+    if( ((u8*)mem) < &__heap_start || ((u8*)mem) > __heap_end )
     {
         printk("kfree: ADR=%08x not in dynamic memory management\n",mem);
         return;
