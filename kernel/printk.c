@@ -1,5 +1,7 @@
 #include <stdarg.h>
+#include <isix/config.h>
 #include <asm/lpc214x.h>
+#include <isix/scheduler.h>
 
 //Ustawienia kontrolera VIC
 #define TXD0_P00_SEL (1<<0) 
@@ -101,11 +103,14 @@ void printk(char const *format, ...)
   unsigned char fill;
   unsigned char width;
 
+  //Lock scheduler
+  sched_lock();
+  
   va_start (ap, format);
   for (;;){
     while ((format_flag = *(format++)) != '%')
     {      // Until '%' or '\0' 
-      if (!format_flag){va_end (ap); return;}
+      if (!format_flag){ va_end (ap); sched_unlock(); return;}
       myputchar(format_flag);
     }
 
@@ -263,5 +268,7 @@ void printk(char const *format, ...)
       while(*ptr) { myputchar(*ptr); ptr++; }
     }
   }
+  //Unlock scheduler
+   sched_unlock(); 
 }
 

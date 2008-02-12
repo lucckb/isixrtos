@@ -13,7 +13,7 @@ FORMAT	= ihex
 OPT 	= s
 
 #Debug format 
-DEBUG 	= y
+DEBUG 	= n
 
 #Czy programowanie isp czy nie
 ISP = y
