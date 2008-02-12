@@ -13,7 +13,7 @@ FORMAT	= ihex
 OPT 	= s
 
 #Debug format 
-DEBUG 	= stabs
+DEBUG 	= y
 
 #Czy programowanie isp czy nie
 ISP = y
@@ -31,12 +31,12 @@ SCRIPTLINK = arch/arm7lpc2000/boot/lpc2142-rom
 
 #Opcje kompilatora C
 CFLAGS += -Wall
-CFLAGS += -std=gnu99 -fomit-frame-pointer
+CFLAGS += -std=gnu99
 
 CFLAGS += -I$(TOP_DIR)/include
 
 
-ARCH ?= arm-elf
+CROSS_COMPILE ?= arm-elf
 
 
 #Port szeregowy programatora ISP
@@ -52,24 +52,36 @@ ISPXTAL = 12000
 TMPSCRIPT = /tmp/pgm.script
 
 #Definicje programow
-CC      = $(ARCH)-gcc
-AR      = $(ARCH)-ar
-CP      = $(ARCH)-objcopy
-LD      = $(ARCH)-ld
-OBJDUMP = $(ARCH)-objdump 
+CC      = $(CROSS_COMPILE)-gcc
+AR      = $(CROSS_COMPILE)-ar
+CP      = $(CROSS_COMPILE)-objcopy
+LD      = $(CROSS_COMPILE)-ld
+OBJDUMP = $(CROSS_COMPILE)-objdump 
 
 
 ISPPROG  = lpc21isp
 JTAGPROG = openocd
 
 
+
 #Pozostale ustawienia kompilatora
 
-ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -g$(DEBUG)
-LDFLAGS +=  -nostartfiles -nostdlib -lgcc -lg -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref,--defsym=__heap_end=$(HEAP_END)
-CFLAGS  += -O$(OPT) -mcpu=$(MCU) -g$(DEBUG) 
+ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -O$(OPT)
+LDFLAGS +=  -nostartfiles -nostdlib -lgcc -lg -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref,--defsym=__heap_end=$(HEAP_END) -O$(OPT)
+CFLAGS  += -mcpu=$(MCU) -O$(OPT)
 CPFLAGS =  -O $(FORMAT) -S
 ARFLAGS = rcs
+
+ifeq ($(DEBUG),y)
+CFLAGS += -g
+LDFLAGS += -g
+ASFLAGS += -gstabs
+else
+CFLAGS += -fomit-frame-pointer 
+LDFLAGS += -fomit-frame-pointer
+ASFLAGS += -fomit-frame-pointer
+endif
+
 
 #eksportujemy potrzebne dane
 export ASFLAGS LDFLAGS CFLAGS ARFLAGS TOP_DIR CC AR LD
