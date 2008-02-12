@@ -6,7 +6,7 @@
 #define Top_Stack      		0x40004000
 #define UND_Stack_Size 		0x00000004
 #define SVC_Stack_Size 		0x00000100
-#define ABT_Stack_Size 		0x00000004
+#define ABT_Stack_Size 		0x00000080
 #define FIQ_Stack_Size		0x00000004
 #define IRQ_Stack_Size		0x00000100
 #define USR_Stack_Size		0x00000100
@@ -102,7 +102,71 @@
 #define	PINSEL2		0xE002C014  /* PINSEL2 Address */
 
 
+
+//*************** Useful macros ***********************
+#define S_FRAME_SIZE	72
+
+#define S_OLD_R0	68
+#define S_PSR		64
+#define S_PC		60
+#define S_LR		56
+#define S_SP		52
+
+#define S_IP		48
+#define S_FP		44
+#define S_R10		40
+#define S_R9		36
+#define S_R8		32
+#define S_R7		28
+#define S_R6		24
+#define S_R5		20
+#define S_R4		16
+#define S_R3		12
+#define S_R2		8
+#define S_R1		4
+#define S_R0		0
+
+
+.macro	bad_save_user_regs
+	sub	sp, sp, #S_FRAME_SIZE
+	stmia	sp, {r0 - r12}			@ Calling r0-r12
+	//ldr	r2, _armboot_start
+	ldr r2,=Top_Stack
+    //sub	r2, r2, #(CONFIG_STACKSIZE+CFG_MALLOC_LEN)
+	//sub	r2, r2, #(CFG_GBL_DATA_SIZE+8)  @ set base 2 words into abort stack
+    sub     r2, r2, #UND_Stack_Size
+    sub     r2, r2, #(ABT_Stack_Size+8)
+
+    ldmia	r2, {r2 - r3}			@ get pc, cpsr
+	add	r0, sp, #S_FRAME_SIZE		@ restore sp_SVC
+
+	add	r5, sp, #S_SP
+	mov	r1, lr
+	stmia	r5, {r0 - r3}			@ save sp_SVC, lr_SVC, pc, cpsr
+	mov	r0, sp
+	.endm
+
+.macro get_bad_stack
+	//ldr	r13, _armboot_start		@ setup our mode stack
+	ldr r13,=Top_Stack
+    //sub	r13, r13, #(CONFIG_STACKSIZE+CFG_MALLOC_LEN)
+	//sub	r13, r13, #(CFG_GBL_DATA_SIZE+8) @ reserved a couple spots in abort stack
+    sub     r13, r13, #UND_Stack_Size
+    sub     r13, r13, #(ABT_Stack_Size+8)
+	str	lr, [r13]			@ save caller lr / spsr
+	mrs	lr, spsr
+	str     lr, [r13, #4]
+
+	mov	r13, #Mode_SVC			@ prepare SVC-Mode
+	@ msr	spsr_c, r13
+	msr	spsr, r13
+	mov	lr, pc
+	movs	pc, lr
+	.endm
+
+
 // Kod startowy musi byc zlinkowany na poczatku
+
         .section .init,"ax"
         .arm	
         .global _startup
@@ -128,16 +192,34 @@ SWI_Addr:       .word   cpu_swi_yield
 PAbt_Addr:      .word   PAbt_Handler
 DAbt_Addr:      .word   DAbt_Handler
                 .word   0                      /* Reserved Address */
-IRQ_Addr:       .word   IRQ_Handler
 FIQ_Addr:       .word   FIQ_Handler
 
-Undef_Handler:  B       Undef_Handler
-SWI_Handler:    B       SWI_Handler
-PAbt_Handler:   B       PAbt_Handler
-DAbt_Handler:   B       DAbt_Handler
-IRQ_Handler:    B       IRQ_Handler
-FIQ_Handler:    B       FIQ_Handler
+//Undefined instruction
+Undef_Handler:
+               get_bad_stack
+               bad_save_user_regs
+               BL undefined_exception
 
+PAbt_Handler:
+              get_bad_stack
+              bad_save_user_regs
+              BL prefetch_abort_exception
+  
+
+DAbt_Handler:
+             get_bad_stack
+             bad_save_user_regs
+             BL data_abort_exception
+             
+FIQ_Handler: 
+             get_bad_stack
+             bad_save_user_regs
+             bl fiq_exception
+
+//Reset CPU function
+.globl reset_cpu
+reset_cpu:
+        mov pc,#0
 
 // Wektor reset
 

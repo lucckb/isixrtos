@@ -1,3 +1,4 @@
+#include <isix/config.h>
 #include <isix/types.h>
 #include <asm/interrupt.h>
 #include <asm/lpc214x.h>
