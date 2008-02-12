@@ -15,11 +15,16 @@ OPT 	= s
 #Debug format 
 DEBUG 	= stabs
 
+#Czy programowanie isp czy nie
+ISP = y
+
 #Typ procesora
 MCU	= arm7tdmi
 
 #Malloc heap end (END MEM - TOP STACK)
 HEAP_END = 0x40003CF4
+
+
 
 #Skrypt linkera
 SCRIPTLINK = arch/arm7lpc2000/boot/lpc2142-rom
@@ -43,6 +48,8 @@ ISPBAUD = 19200
 #Czestotliwosc rezonatora kwarcowego mikrokontrolera (kHz)
 ISPXTAL = 12000
 
+#tymczasowy katalog dla skryptow
+TMPSCRIPT = /tmp/pgm.script
 
 #Definicje programow
 CC      = $(ARCH)-gcc
@@ -50,7 +57,10 @@ AR      = $(ARCH)-ar
 CP      = $(ARCH)-objcopy
 LD      = $(ARCH)-ld
 OBJDUMP = $(ARCH)-objdump 
+
+
 ISPPROG  = lpc21isp
+JTAGPROG = openocd
 
 
 #Pozostale ustawienia kompilatora
@@ -74,8 +84,22 @@ clean:
 	rm -rf *.hex *.elf *.lss *.map
 
 program:
+    ifeq ( $(ISP) ,y )
 	$(ISPPROG) -control $(TARGET).hex $(ISPPORT) $(ISPBAUD) $(ISPXTAL) || true
 	@ echo " "
+    else
+	echo "arm7_9 dcc_downloads enable" > $(TMPSCRIPT)
+	echo "wait_halt" >> $(TMPSCRIPT)
+	echo "sleep 10" >> $(TMPSCRIPT)
+	echo "poll" >> $(TMPSCRIPT)
+	echo "flash probe 0" >> $(TMPSCRIPT)
+	echo "flash erase 0 0 6" >> $(TMPSCRIPT)
+	echo "flash write_image "$(TOP_DIR)"/"$(TARGET)".hex ihex" >> $(TMPSCRIPT)
+	echo "reset run" >> $(TMPSCRIPT)
+	echo "sleep 10"  >> $(TMPSCRIPT)
+	echo "shutdown" >> $(TMPSCRIPT)
+	$(JTAGPROG) -f lpc2148.cfg
+    endif
 
 target: $(TARGET).elf $(TARGET).hex $(TARGET).lss
 
