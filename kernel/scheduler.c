@@ -76,7 +76,7 @@ int sched_unlock(void)
 //Scheduler is called in switch context
 void schedule(void)
 {
-   //If scheduler is locked switch context is disable
+    //If scheduler is locked switch context is disable
     if(sched_lock_counter) return;
     sched_lock();
     //Remove executed task and add at end
@@ -108,7 +108,7 @@ void schedule_time(void)
     if(sched_lock_counter) return;
     if(list_isempty(&waiting_task)) return;
     task_t *task_c = list_get_first(&waiting_task,inode,task_t);
-    if(jiffies>=task_c->jiffies)
+    while(jiffies>=task_c->jiffies)
     {
         printk("SchedulerTime: sched_time %d task_time %d\n",jiffies,task_c->jiffies);
         task_c->state &= ~TASK_SLEEPING;
@@ -118,6 +118,7 @@ void schedule_time(void)
         {
             printk("SchedulerTime: Error in add task to ready list\n");
         }
+        task_c = list_get_first(&waiting_task,inode,task_t);
     }
 }
 
@@ -270,9 +271,9 @@ TASK_FUNC(idle_task,p)
 }
 /*-----------------------------------------------------------------------*/
 
-#if 0
-#undef printk
-#include <isix/printk.h>
+#ifdef DEBUG
+//#undef printk
+//#include <isix/printk.h>
 void print_rdy(void)
 {
         task_ready_t *i;

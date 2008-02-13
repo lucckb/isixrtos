@@ -220,6 +220,6 @@ void printk(char const *format, ...)
     }
   }
   //Unlock scheduler
-   sched_unlock(); 
+   sched_unlock();
 }
 

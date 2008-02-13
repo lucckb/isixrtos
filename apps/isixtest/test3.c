@@ -8,26 +8,47 @@
 
 //Semaphore signalization
 task_t *t1,*t2,*t3,*t4,*t5,*t6;
+
+typedef struct dupa
+{
+    bool on;
+    u32 mask;
+    u32 sec;
+} dupa;
+
+dupa kupa[6] =
+{
+    {true,1<<16,HZ},
+    {true,1<<17,2*HZ},
+    {true,1<<18,3*HZ},
+    {true,1<<19,4*HZ}
+};
+
 /*-----------------------------------------------------------------------*/
 TASK_FUNC(simple_task,n)
 {
+   dupa *z = (dupa*)n;
    while(1)
    {
-      printk("Hello from task %d\n",n);
-      schedule_timeout(HZ);
+      printk("Hello from task %d\n",z->sec);
+      schedule_timeout(z->sec);
+      //schedule_timeout(HZ*2);
+      if(z->on) IO1SET = z->mask;
+      else      IO1CLR = z->mask;
+      z->on = !z->on;
    }
-
 }
 /*-----------------------------------------------------------------------*/
 //Main test function
 int main(void)
 {
    printk("****** Hello from OS ******\n");
-   t1 = task_create(simple_task,(void*)10,400,10);
-   t2 = task_create(simple_task,(void*)20,400,10);
-   t3 = task_create(simple_task,(void*)30,400,10);
-   t4 = task_create(simple_task,(void*)40,400,10);
-   t5 = task_create(simple_task,(void*)50,400,10);
-   t6 = task_create(simple_task,(void*)60,400,10);
+   t1 = task_create(simple_task,(void*)&kupa[0],400,10);
+   t2 = task_create(simple_task,(void*)&kupa[1],400,10);
+   t3 = task_create(simple_task,(void*)&kupa[2],400,10);
+   t4 = task_create(simple_task,(void*)&kupa[3],400,10);
+   //t5 = task_create(simple_task,(void*)50,400,10);
+   //t6 = task_create(simple_task,(void*)60,400,10);
+    IO1DIR |= 0xFF<<16;
    return 0;
 }
