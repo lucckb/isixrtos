@@ -63,7 +63,7 @@ JTAGPROG = openocd
 #Pozostale ustawienia kompilatora
 
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -O$(OPT)
-LDFLAGS +=  -nostartfiles -nostdlib -lgcc -lg -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref -O$(OPT)
+LDFLAGS +=  -nostartfiles -nostdlib -lgcc -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref -O$(OPT)
 CFLAGS  += -mcpu=$(MCU) -O$(OPT)
 CPFLAGS =  -O $(FORMAT) -S
 ARFLAGS = rcs

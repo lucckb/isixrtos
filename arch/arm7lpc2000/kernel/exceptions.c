@@ -11,7 +11,7 @@ extern void reset_cpu(void);
 
 /*------------------------------------------------*/
 
-void bad_mode (void)
+static void bad_mode (void)
 {
 	printf ("Halting CPU ... - Please RESET board\n");
 	while(1);
@@ -20,7 +20,7 @@ void bad_mode (void)
 /*------------------------------------------------*/
 
 
-void show_regs (struct pt_regs *regs)
+static void show_regs (struct pt_regs *regs)
 {
 	unsigned long flags;
 	const char *processor_modes[] = {

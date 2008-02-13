@@ -72,7 +72,7 @@ int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout)
         return -1;
     }
     sched_lock();
-    copy_memory(fifo->tx_p,item,fifo->elem_size);
+    memcpy(fifo->tx_p,item,fifo->elem_size);
     printk("FifoWrite: Data write at TXp %08x\n",fifo->tx_p);
     fifo->tx_p+= fifo->elem_size;
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
@@ -93,7 +93,7 @@ int fifo_write_isr(fifo_t *fifo,const void *item)
         return -1;
     }
     sched_lock();
-    copy_memory(fifo->tx_p,item,fifo->elem_size);
+    memcpy(fifo->tx_p,item,fifo->elem_size);
     printk("FifoWriteISR: Data write at TXp %08x\n",fifo->tx_p);
     fifo->tx_p+= fifo->elem_size;
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
@@ -114,7 +114,7 @@ int fifo_read(fifo_t *fifo,void *item,unsigned long timeout)
        return -1;
     }
     sched_lock();
-    copy_memory(item,fifo->rx_p,fifo->elem_size);
+    memcpy(item,fifo->rx_p,fifo->elem_size);
     printk("FifoRead: Data write at RXp %08x\n",fifo->rx_p);
     fifo->rx_p+= fifo->elem_size;
     if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;
@@ -136,7 +136,7 @@ int fifo_read_isr(fifo_t *fifo,void *item)
        return -1;
     }
     sched_lock();
-    copy_memory(item,fifo->rx_p,fifo->elem_size);
+    memcpy(item,fifo->rx_p,fifo->elem_size);
     printk("FifoReadISR: Data write at RXp %08x\n",fifo->rx_p);
     fifo->rx_p+= fifo->elem_size;
     if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;

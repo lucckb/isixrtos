@@ -157,7 +157,7 @@ void zero_memory(void *s, size_t n)
 
 /*------------------------------------------------------*/
 //Copy memory from region src to dest
-void copy_memory(void *dest,const void *src,int size)
+void memcpy(void *dest,const void *src,int size)
 {
     u32 *ptr32d = (u32*)dest;
     u32 *ptr32s = (u32*)src;

@@ -44,13 +44,19 @@ void uart_early_init(void)
 }
 
 
-//Nadawanie znak
+//Nadawanie znaku
 void uart_early_putchar(char c)
 {
-	if(c=='\n') putc('\r');
+	if(c=='\n') uart_early_putchar('\r');
 	//Czekaj az bedzie mozna zapisac do bufora nadajnika
 	while(!(U0LSR & U0LSR_THRE));
 	//Wyslij znak i przejdz do nst znaku
 	U0THR = c;
 }
 
+
+//Pobierz znak (tylko debuging)
+int uart_early_getchar(void)
+{
+        
+}

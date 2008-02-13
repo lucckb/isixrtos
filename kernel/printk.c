@@ -8,7 +8,7 @@
 //Printf buf
 #define SCRATCH 80
 
-#define kputchar putc
+#define kputchar uart_early_putchar
 
 
 #define SCRATCH 80	//32Bits go up to 4GB + 1 Byte for \0
