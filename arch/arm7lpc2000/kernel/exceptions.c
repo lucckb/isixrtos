@@ -62,7 +62,7 @@ void show_regs (struct pt_regs *regs)
 //Undefined instruction exception
 void undefined_exception(struct pt_regs *pt_regs)
 {
-    printk_init(UART_BAUD(115200));
+    uart_early_init();
     printf ("undefined instruction\n");
     show_regs (pt_regs);
     bad_mode ();
@@ -73,7 +73,7 @@ void undefined_exception(struct pt_regs *pt_regs)
 //Data abort exception
 void data_abort_exception(struct pt_regs *pt_regs)
 {
-    printk_init(UART_BAUD(115200));
+    uart_early_init();
     printf ("data abort\n");
     show_regs (pt_regs);
     bad_mode ();
@@ -84,7 +84,7 @@ void data_abort_exception(struct pt_regs *pt_regs)
 //Prefetch abort exception
 void prefetch_abort_exception(struct pt_regs *pt_regs)
 {
-    printk_init(UART_BAUD(115200));
+    uart_early_init();
     printf ("prefetch abort\n");
     show_regs (pt_regs);
     bad_mode ();
@@ -94,7 +94,7 @@ void prefetch_abort_exception(struct pt_regs *pt_regs)
 //Not supported fiq exception
 void fiq_exception(struct pt_regs *pt_regs)
 {
-    printk_init(UART_BAUD(115200));
+    uart_early_init();
     printf ("fiq interrupt\n");
     show_regs (pt_regs);
     bad_mode ();

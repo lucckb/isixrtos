@@ -122,7 +122,7 @@ void schedule_time(void)
 }
 
 /*-----------------------------------------------------------------------*/
-//Add assigned task to ready list 
+//Add assigned task to ready list
 int add_task_to_ready_list(task_t *task)
 {
     //Scheduler lock
@@ -308,7 +308,7 @@ void init_os(void)
     //Initialize dead task
     list_init(&dead_task);
     //Other stuff
-    printk_init(UART_BAUD(115200));
+    uart_early_init();
     //Create idle task
     task_create(idle_task,NULL,SCHED_MIN_STACK_DEPTH,SCHED_IDLE_PRIORITY);
 }

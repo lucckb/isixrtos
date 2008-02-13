@@ -1,12 +1,10 @@
 #ifndef __ISIX_PRINTK_H
 #define __ISIX_PRINTK_H
 
-void printk_init(unsigned short baud_rate);
+#include <asm/uart_early.h>
 
 void printk(const char *text,...);
 
-//Wyznaczenie predkosci
-#define UART_BAUD(baud) (unsigned short)(CONFIG_PCLK/(baud*16.0) + 0.5)
 
 #endif
 
