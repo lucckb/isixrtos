@@ -54,9 +54,3 @@ void uart_early_putchar(char c)
 	U0THR = c;
 }
 
-
-//Pobierz znak (tylko debuging)
-int uart_early_getchar(void)
-{
-        
-}

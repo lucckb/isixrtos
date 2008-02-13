@@ -198,6 +198,7 @@ void add_task_to_waiting_list(task_t *task)
     sched_lock();
     //Insert on waiting list in time order
     task_t *waitl;
+    //FIXME: potencjalny problem
     list_for_each_entry(&waiting_task,waitl,inode)
     {
        if(waitl->jiffies<task->jiffies) break;
