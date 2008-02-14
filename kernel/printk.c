@@ -55,13 +55,13 @@ void printk(char const *format, ...)
   unsigned char width;
 
   //Lock scheduler
-  sched_lock();
+  /*sched_lock();*/
   
   va_start (ap, format);
   for (;;){
     while ((format_flag = *(format++)) != '%')
     {      // Until '%' or '\0' 
-      if (!format_flag){ va_end (ap); sched_unlock(); return;}
+      if (!format_flag){ va_end (ap); /*sched_unlock();*/ return;}
       myputchar(format_flag);
     }
 
@@ -213,13 +213,13 @@ void printk(char const *format, ...)
       } while (u_val);
 
 #ifdef PADDING
-     while(width--) *--ptr = fill; //insert padding chars		      
+     while(width--) *--ptr = fill; //insert padding chaar
 #endif
 
       while(*ptr) { myputchar(*ptr); ptr++; }
     }
   }
   //Unlock scheduler
-   sched_unlock();
+   /*sched_unlock();*/
 }
 
