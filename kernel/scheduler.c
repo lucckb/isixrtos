@@ -46,8 +46,12 @@ static list_entry_t waiting_task;
 //Task waiting for event
 static list_entry_t dead_task;
 
+/*-----------------------------------------------------------------------*/
+//Free priority innodes
+static list_entry_t free_prio_elem;
 
 /*-----------------------------------------------------------------------*/
+
 //Global jiffies
 volatile u64 jiffies;
 
@@ -121,6 +125,31 @@ void schedule_time(void)
         task_c = list_get_first(&waiting_task,inode,task_t);
     }
 }
+/*-----------------------------------------------------------------------*/
+//Try get task ready from free list if is not exist allocate memory
+static task_ready_t *alloc_task_ready_t(void)
+{
+   task_ready_t *prio = NULL;
+   if(list_isempty(&free_prio_elem)==true)
+   {
+        //If no free elem allocate it
+        prio = (task_ready_t*)kmalloc(sizeof(task_ready_t));
+   }
+   else
+   {
+        //Get element from list
+        task_ready_t *prio = list_get_first(&free_prio_elem,inode,task_ready_t);
+        list_delete(&prio->inode);
+   }
+   return prio;
+}
+
+/*-----------------------------------------------------------------------*/
+//Try get task ready from free list if is not exist allocate memory
+static inline void free_task_ready_t(task_ready_t *prio)
+{
+    list_insert_end(&free_prio_elem,&prio->inode);
+}
 
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list
@@ -151,7 +180,7 @@ int add_task_to_ready_list(task_t *task)
         }
     }
     //Priority not found allocate priority node
-    task_ready_t *prio_n = (task_ready_t*)kmalloc(sizeof(task_ready_t));
+    task_ready_t *prio_n = alloc_task_ready_t();
     //If malloc return NULL then failed
     if(prio_n==NULL) return -1;
     //Assign priority
@@ -185,7 +214,7 @@ void delete_task_from_ready_list(task_t *task)
         //Task list is empty remove element
         printk("DeleteTskFromRdyLst: Remove prio list elem\n");
         list_delete(&task->prio_elem->inode);
-        kfree(task->prio_elem);
+        free_task_ready_t(task->prio_elem);
    }
    //Scheduler unlock
    sched_unlock();
@@ -255,6 +284,13 @@ static inline void cleanup_tasks(void)
         kfree(task_del->init_stack);
         kfree(task_del);
     }
+    //FIXME: Testowo kasowanie jednego wolnego priorytetu
+    if(list_isempty(&free_prio_elem)==false)
+    {
+        task_ready_t *prio = list_get_first(&free_prio_elem,inode,task_ready_t);
+        list_delete(&prio->inode);
+        kfree(prio);
+    }
     sched_unlock();
 }
 
@@ -310,6 +346,8 @@ void init_os(void)
     list_init(&waiting_task);
     //Initialize dead task
     list_init(&dead_task);
+    //Initialize free prio elem list
+    list_init(&free_prio_elem);
     //Other stuff
     uart_early_init();
     //Create idle task
