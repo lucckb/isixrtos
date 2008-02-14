@@ -4,9 +4,12 @@
 #include <isix/time.h>
 #include <isix/semaphore.h>
 
-//#define DEBUG
+#ifndef DEBUG_SEMAPHORE
+#define DEBUG_SEMAPHORE DBG_OFF
+#endif
 
-#ifdef DEBUG
+
+#if DEBUG_SEMAPHORE == DBG_ON
 #include <isix/printk.h>
 #else
 #define printk(...)

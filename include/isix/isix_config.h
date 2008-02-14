@@ -13,8 +13,14 @@
 /* Use preemtion */
 #define CONFIG_USE_PREEMPTION 1
 
-
 /* Ticks per sec */
 #define CONFIG_HZ 100
+
+/* Enable debug scheduler */
+#define DEBUG_SCHEDULER DBG_OFF
+#define DEBUG_FIFO DBG_OFF
+#define DEBUG_MEMORY DBG_OFF
+#define DEBUG_SEMAPHORE DBG_OFF
+#define DEBUG_TASK DBG_OFF
 
 

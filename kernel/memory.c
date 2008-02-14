@@ -2,8 +2,12 @@
 #include <isix/types.h>
 #include <isix/scheduler.h>
 
+#ifndef DEBUG_MEMORY
+#define DEBUG_MEMORY DBG_OFF
+#endif
 
-#ifdef DEBUG
+
+#if DEBUG_MEMORY == DBG_ON
 #include <isix/printk.h>
 #else
 #define printk(...)
@@ -157,7 +161,7 @@ void zero_memory(void *s, size_t n)
 
 /*------------------------------------------------------*/
 //Copy memory from region src to dest
-void memcpy(void *dest,const void *src,int size)
+void* memcpy(void *dest,const void *src,size_t size)
 {
     u32 *ptr32d = (u32*)dest;
     u32 *ptr32s = (u32*)src;
@@ -167,6 +171,7 @@ void memcpy(void *dest,const void *src,int size)
     u8 *ptr8d = (u8*)ptr32d;
     u8 *ptr8s = (u8*)ptr32s;
     for(int i=0;i<elem8;i++) *ptr8d++ = *ptr8s++;
+    return dest;
 }
 
 /*------------------------------------------------------*/

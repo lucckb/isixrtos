@@ -4,11 +4,12 @@
 #include <isix/task.h>
 #include <isix/memory.h>
 
+#ifndef DEBUG_TASK
+#define DEBUG_TASK DBG_OFF
+#endif
 
-//TODO: Disable at create end of module
-//#define DEBUG
 
-#ifdef DEBUG
+#if DEBUG_TASK == DBG_ON
 #include <isix/printk.h>
 #else
 #define printk(...)

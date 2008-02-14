@@ -29,6 +29,9 @@
 //Reload value
 #define MR0_ADDVAL (T0_TICKS/HZ)
 
+#ifndef DEBUG_SCHEDULER
+#define DEBUG_SCHEDULER DBG_OFF
+#endif
 
 /*-----------------------------------------------------------------------*/
 //Yield processor

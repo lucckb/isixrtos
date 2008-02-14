@@ -8,11 +8,11 @@
 #include <asm/interrupt.h>
 #include <isix/list.h>
 
-//TODO: Remove at end debug of module
-//#define DEBUG
+#ifndef DEBUG_SCHEDULER
+#define DEBUG_SCHEDULER DBG_ON
+#endif
 
-
-#ifdef DEBUG
+#if DEBUG_SCHEDULER == DBG_ON
 #include <isix/printk.h>
 #else
 #define printk(...)
@@ -273,9 +273,8 @@ TASK_FUNC(idle_task,p)
 }
 /*-----------------------------------------------------------------------*/
 
-#ifdef DEBUG
-//#undef printk
-//#include <isix/printk.h>
+#if DEBUG_SCHEDULER == DBG_ON
+
 void print_rdy(void)
 {
         task_ready_t *i;

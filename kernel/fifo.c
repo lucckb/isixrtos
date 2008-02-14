@@ -4,9 +4,12 @@
 #include <isix/semaphore.h>
 #include <isix/fifo.h>
 
-//#define DEBUG
+#ifndef DEBUG_FIFO
+#define DEBUG_FIFO DBG_OFF
+#endif
 
-#ifndef DEBUG
+
+#if DEBUG_FIFO == DBG_ON
 #define printk(...)
 #else
 #include <isix/printk.h>
