@@ -163,7 +163,7 @@ int task_delete(task_t *task)
     //Add task to delete list
     taskd->state = TASK_DEAD;
     add_task_to_delete_list(taskd);
-    if(task==NULL)
+    if(task==NULL || task==current_task)
     {
         sched_unlock();
         printk("TaskDel: Current task yield req\n");
