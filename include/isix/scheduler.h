@@ -85,7 +85,7 @@ int sched_unlock(void);
 void add_task_to_waiting_list(task_t *task);
 
 /*-----------------------------------------------------------------------*/
-//Add assigned task to ready list 
+//Add assigned task to ready list
 int add_task_to_ready_list(task_t *task);
 
 /*--------------------------------------------------------------*/
@@ -97,11 +97,11 @@ void add_task_to_sem_list(list_entry_t *sem_list,task_t *task);
 void delete_task_from_ready_list(task_t *task);
 
 /*-----------------------------------------------------------------------*/
-//Add task list to delete 
+//Add task list to delete
 void add_task_to_delete_list(task_t *task);
 
 /*-----------------------------------------------------------------------*/
-//Yield processor 
+//Yield processor
 #define sched_yield() cpu_yield()
 
 /*-----------------------------------------------------------------------*/
