@@ -62,7 +62,7 @@ int sched_lock(void)
     reg_t irq_s = irq_disable();
     sched_lock_counter++;
     irq_restore(irq_s);
-    printk("SchedLock: %d\n",sched_lock_counter);
+    //printk("SchedLock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 
@@ -73,7 +73,7 @@ int sched_unlock(void)
     reg_t irq_s = irq_disable();
     if(sched_lock_counter>0) sched_lock_counter--;
     irq_restore(irq_s);
-    printk("SchedUnlock: %d\n",sched_lock_counter);
+    //printk("SchedUnlock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 /*-----------------------------------------------------------------------*/
@@ -139,7 +139,7 @@ static task_ready_t *alloc_task_ready_t(void)
    else
    {
         //Get element from list
-        task_ready_t *prio = list_get_first(&free_prio_elem,inode,task_ready_t);
+        prio = list_get_first(&free_prio_elem,inode,task_ready_t);
         list_delete(&prio->inode);
         printk("alloc_task_ready_t: get from list node 0x%08x\n",prio);
    }
