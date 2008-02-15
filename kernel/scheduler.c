@@ -134,12 +134,14 @@ static task_ready_t *alloc_task_ready_t(void)
    {
         //If no free elem allocate it
         prio = (task_ready_t*)kmalloc(sizeof(task_ready_t));
+        printk("alloc_task_ready_t: kmalloc() node %08x\n",prio);
    }
    else
    {
         //Get element from list
         task_ready_t *prio = list_get_first(&free_prio_elem,inode,task_ready_t);
         list_delete(&prio->inode);
+        printk("alloc_task_ready_t: get from list node 0x%08x\n",prio);
    }
    return prio;
 }
@@ -149,6 +151,7 @@ static task_ready_t *alloc_task_ready_t(void)
 static inline void free_task_ready_t(task_ready_t *prio)
 {
     list_insert_end(&free_prio_elem,&prio->inode);
+    printk("free_task_ready_t move 0x%08x to unused list\n",prio);
 }
 
 /*-----------------------------------------------------------------------*/
@@ -287,6 +290,7 @@ static inline void cleanup_tasks(void)
         task_ready_t *prio = list_get_first(&free_prio_elem,inode,task_ready_t);
         list_delete(&prio->inode);
         kfree(prio);
+        printk("CleanupTasks: Free innode prio 0x%08x\n",prio);
     }
     sched_unlock();
 }
