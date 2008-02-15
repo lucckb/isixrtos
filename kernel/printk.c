@@ -2,6 +2,7 @@
 #include <isix/config.h>
 #include <asm/uart_early.h>
 #include <isix/scheduler.h>
+#include <isix/semaphore.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -33,7 +34,10 @@
 #define myputchar uart_early_putchar
 
 
-void printk(char const *format, ...)
+//Semaphore for userspace printf
+static sem_t *print_sem;
+
+void console_output(bool use_sem,char const *format, ...)
 {
   unsigned char scratch[SCRATCH];
   unsigned char format_flag;
@@ -55,13 +59,24 @@ void printk(char const *format, ...)
   unsigned char width;
 
   //Lock scheduler
-  /*sched_lock();*/
-  
+  if(use_sem==true)
+  {
+        if(print_sem==NULL)
+        {
+            print_sem = sem_create(NULL,1);
+        }
+        sem_wait(print_sem,0);
+  }
   va_start (ap, format);
   for (;;){
     while ((format_flag = *(format++)) != '%')
-    {      // Until '%' or '\0' 
-      if (!format_flag){ va_end (ap); /*sched_unlock();*/ return;}
+    {      // Until '%' or '\0'
+      if (!format_flag)
+      {
+          va_end (ap);
+          if(use_sem) sem_signal(print_sem);
+          return;
+      }
       myputchar(format_flag);
     }
 
@@ -220,6 +235,6 @@ void printk(char const *format, ...)
     }
   }
   //Unlock scheduler
-   /*sched_unlock();*/
+   if(use_sem) sem_signal(print_sem);
 }
 

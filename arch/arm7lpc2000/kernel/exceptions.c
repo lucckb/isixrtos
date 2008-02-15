@@ -3,7 +3,6 @@
 #include <isix/printk.h>
 #include <asm/ptrace.h>
 
-#define printf printk
 
 /*------------------------------------------------*/
 
@@ -13,7 +12,7 @@ extern void reset_cpu(void);
 
 static void bad_mode (void)
 {
-	printf ("Halting CPU ... - Please RESET board\n");
+	printk ("Halting CPU ... - Please RESET board\n");
 	while(1);
 }
 
@@ -36,21 +35,21 @@ static void show_regs (struct pt_regs *regs)
 
 	flags = condition_codes (regs);
 
-	printf ("pc : [<%08x>]    lr : [<%08x>]\n"
+	printk ("pc : [<%08x>]    lr : [<%08x>]\n"
 			"sp : %08x  ip : %08x  fp : %08x\n",
 			instruction_pointer (regs),
 			regs->ARM_lr, regs->ARM_sp, regs->ARM_ip, regs->ARM_fp);
-	printf ("r10: %08x  r9 : %08x  r8 : %08x\n",
+	printk ("r10: %08x  r9 : %08x  r8 : %08x\n",
 			regs->ARM_r10, regs->ARM_r9, regs->ARM_r8);
-	printf ("r7 : %08x  r6 : %08x  r5 : %08x  r4 : %08x\n",
+	printk ("r7 : %08x  r6 : %08x  r5 : %08x  r4 : %08x\n",
 			regs->ARM_r7, regs->ARM_r6, regs->ARM_r5, regs->ARM_r4);
-	printf ("r3 : %08x  r2 : %08x  r1 : %08x  r0 : %08x\n",
+	printk ("r3 : %08x  r2 : %08x  r1 : %08x  r0 : %08x\n",
 			regs->ARM_r3, regs->ARM_r2, regs->ARM_r1, regs->ARM_r0);
-	printf ("Flags: %c%c%c%c",
+	printk ("Flags: %c%c%c%c",
 			flags & CC_N_BIT ? 'N' : 'n',
 			flags & CC_Z_BIT ? 'Z' : 'z',
 			flags & CC_C_BIT ? 'C' : 'c', flags & CC_V_BIT ? 'V' : 'v');
-	printf ("  IRQs %s  FIQs %s  Mode %s%s\n",
+	printk ("  IRQs %s  FIQs %s  Mode %s%s\n",
 			interrupts_enabled (regs) ? "on" : "off",
 			fast_interrupts_enabled (regs) ? "on" : "off",
 			processor_modes[processor_mode (regs)],
@@ -63,7 +62,7 @@ static void show_regs (struct pt_regs *regs)
 void undefined_exception(struct pt_regs *pt_regs)
 {
     uart_early_init();
-    printf ("undefined instruction\n");
+    printk ("undefined instruction\n");
     show_regs (pt_regs);
     bad_mode ();
 }
@@ -74,7 +73,7 @@ void undefined_exception(struct pt_regs *pt_regs)
 void data_abort_exception(struct pt_regs *pt_regs)
 {
     uart_early_init();
-    printf ("data abort\n");
+    printk ("data abort\n");
     show_regs (pt_regs);
     bad_mode ();
 }
@@ -85,7 +84,7 @@ void data_abort_exception(struct pt_regs *pt_regs)
 void prefetch_abort_exception(struct pt_regs *pt_regs)
 {
     uart_early_init();
-    printf ("prefetch abort\n");
+    printk ("prefetch abort\n");
     show_regs (pt_regs);
     bad_mode ();
 }
@@ -95,7 +94,7 @@ void prefetch_abort_exception(struct pt_regs *pt_regs)
 void fiq_exception(struct pt_regs *pt_regs)
 {
     uart_early_init();
-    printf ("fiq interrupt\n");
+    printk ("fiq interrupt\n");
     show_regs (pt_regs);
     bad_mode ();
 
