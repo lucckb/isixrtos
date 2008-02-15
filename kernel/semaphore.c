@@ -36,6 +36,8 @@ sem_t* sem_create(sem_t *sem,int val)
 int sem_wait(sem_t *sem,unsigned long timeout)
 {
     int res = 0;
+    //If nothing to to - exit
+    if(sem==NULL && timeout==0) return -1;
     //Lock scheduler
     sched_lock();
     printk("SemWait: Operate on task %08x state %02x\n",current_task,current_task->state);
