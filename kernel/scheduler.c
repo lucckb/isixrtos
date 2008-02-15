@@ -228,14 +228,11 @@ void add_task_to_waiting_list(task_t *task)
     sched_lock();
     //Insert on waiting list in time order
     task_t *waitl;
-    //FIXME: potencjalny problem
     list_for_each_entry(&waiting_task,waitl,inode)
     {
-       //if(waitl->jiffies<task->jiffies) break;
-       if(task->jiffies>=waitl->jiffies) break;
+       if(task->jiffies<waitl->jiffies) break;
     }
     printk("MoveTaskToWaiting: insert in time list at %08x\n",&waitl->inode);
-    //list_insert_after(&waitl->inode,&task->inode);
     list_insert_before(&waitl->inode,&task->inode);
     //Scheduler unlock
     sched_unlock();

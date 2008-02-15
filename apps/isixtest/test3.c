@@ -18,10 +18,10 @@ typedef struct dupa
 
 dupa kupa[6] =
 {
-    {true,1<<16,HZ},
-    {true,1<<17,2*HZ},
-    {true,1<<18,3*HZ},
-    {true,1<<19,4*HZ}
+    {true,1<<16,HZ/8},
+    {true,1<<17,HZ/4},
+    {true,1<<18,HZ/2},
+    {true,1<<19,HZ }
 };
 
 /*-----------------------------------------------------------------------*/
@@ -30,7 +30,7 @@ TASK_FUNC(simple_task,n)
    dupa *z = (dupa*)n;
    while(1)
    {
-      printk("Hello from task %d\n",z->sec);
+      //printk("Hello from task %08x\n",z->mask);
       schedule_timeout(z->sec);
       //schedule_timeout(HZ*2);
       if(z->on) IO1SET = z->mask;
