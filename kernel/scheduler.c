@@ -15,6 +15,7 @@
 #if DEBUG_SCHEDULER == DBG_ON
 #include <isix/printk.h>
 #else
+#undef printk
 #define printk(...)
 #endif
 
