@@ -18,10 +18,10 @@ typedef struct dupa
 
 dupa kupa[6] =
 {
-    {true,1<<16,HZ},
-    {true,1<<17,HZ},
-    {true,1<<18,HZ},
-    {true,1<<19,HZ }
+    {true,1<<16,HZ*5},
+    {true,1<<17,HZ*5},
+    {true,1<<18,HZ*5},
+    {true,1<<19,HZ*5}
 };
 
 /*-----------------------------------------------------------------------*/
@@ -31,10 +31,11 @@ TASK_FUNC(simple_task,n)
    while(1)
    {
       printf("Hello from task %08x\n",z->mask);
-      schedule_timeout(z->sec);
+      //schedule_timeout(z->sec);
       if(z->on) IO1SET = z->mask;
       else      IO1CLR = z->mask;
       z->on = !z->on;
+      for(volatile int i=0;i<100000;i++);
    }
 }
 /*-----------------------------------------------------------------------*/
@@ -51,3 +52,4 @@ int main(void)
     IO1DIR |= 0xFF<<16;
    return 0;
 }
+

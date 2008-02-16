@@ -91,6 +91,11 @@ static inline void list_insert_end(list_entry_t *list,list_t *elem)
 #define list_get_first(list_entryp,field,type) \
     (type*)((char*)(list_entryp)->head.next - offsetof(type,field))
 
+
+//Get first element of list
+#define list_get_last(list_entryp,field,type) \
+    (type*)((char*)(list_entryp)->head.prev - offsetof(type,field))
+
 //Delete from list
 static inline void list_delete(list_t *elem)
 {

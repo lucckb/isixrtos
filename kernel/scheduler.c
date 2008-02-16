@@ -17,6 +17,7 @@
 #else
 #undef printk
 #define printk(...)
+#define print_tasks(v)
 #endif
 
 /*-----------------------------------------------------------------------*/
@@ -63,7 +64,7 @@ int sched_lock(void)
     reg_t irq_s = irq_disable();
     sched_lock_counter++;
     irq_restore(irq_s);
-    //printk("SchedLock: %d\n",sched_lock_counter);
+    printk("SchedLock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 
@@ -74,7 +75,7 @@ int sched_unlock(void)
     reg_t irq_s = irq_disable();
     if(sched_lock_counter>0) sched_lock_counter--;
     irq_restore(irq_s);
-    //printk("SchedUnlock: %d\n",sched_lock_counter);
+    printk("SchedUnlock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 /*-----------------------------------------------------------------------*/
@@ -83,6 +84,7 @@ void schedule(void)
 {
     //If scheduler is locked switch context is disable
     if(sched_lock_counter) return;
+    print_tasks(NULL);
     sched_lock();
     //Remove executed task and add at end
     if(current_task->state & TASK_READY)
@@ -246,16 +248,17 @@ void add_task_to_waiting_list(task_t *task)
 //Add task to semaphore list
 void add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 {
-   //Scheduler lock
+    //Scheduler lock
     sched_lock();
-   //Insert on waiting list in time order
+    //Insert on waiting list in time order
     task_t *taskl;
-    list_for_each_entry(sem_list,taskl,inode_sem)
+    list_for_each_entry_reverse(sem_list,taskl,inode_sem)
     {
-       if(taskl->prio<task->prio) break;
+       if(task->prio<=taskl->prio) break;
     }
-    printk("MoveTaskToWaiting: insert in time list at %08x\n",taskl);
+    printk("MoveTaskToSem: insert in time list at %08x\n",taskl);
     list_insert_after(&taskl->inode_sem,&task->inode_sem);
+    print_tasks(sem_list);
     //Scheduler unlock
     sched_unlock();
 
@@ -313,8 +316,10 @@ TASK_FUNC(idle_task,p)
 
 #if DEBUG_SCHEDULER == DBG_ON
 
-void print_rdy(void)
+void print_tasks(list_entry_t *sem_list)
 {
+   if(sem_list==NULL)
+   {
         task_ready_t *i;
         task_t *j;
         sched_lock();
@@ -333,6 +338,16 @@ void print_rdy(void)
             printk("Task: %08x prio: %d state %d jiffies %d\n",j,j->prio,j->state,j->jiffies);
         }
         sched_unlock();
+    }
+    else
+    {
+       printk("------ Semaphore tasks -------------\n");
+       task_t *i;
+       list_for_each_entry(sem_list,i,inode_sem)
+       {
+         printk("Task: %08x prio: %d state %d\n",i,i->prio,i->state);
+       }
+    }
 }
 
 

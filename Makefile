@@ -16,7 +16,7 @@ OPT 	= s
 DEBUG 	= y
 
 #Czy programowanie isp czy nie
-ISP = y
+ISP = n
 
 #Typ procesora
 MCU	= arm7tdmi
@@ -36,7 +36,7 @@ CROSS_COMPILE ?= arm-elf
 
 
 #Port szeregowy programatora ISP
-ISPPORT = /dev/ttyS0
+ISPPORT = /dev/ttyUSB0
 
 #Predkosc portu szeregowego programatora
 ISPBAUD = 19200
@@ -92,8 +92,8 @@ clean:
 	rm -rf *.hex *.elf *.lss *.map
 
 program:
-    ifeq ( $(ISP) ,y )
-	$(ISPPROG) -control $(TARGET).hex $(ISPPORT) $(ISPBAUD) $(ISPXTAL) || true
+    ifeq ($(ISP),y)
+	$(ISPPROG)  $(TARGET).hex $(ISPPORT) $(ISPBAUD) $(ISPXTAL) || true
 	@ echo " "
     else
 	echo "arm7_9 dcc_downloads enable" > $(TMPSCRIPT)
