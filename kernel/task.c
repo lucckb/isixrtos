@@ -144,7 +144,7 @@ int task_delete(task_t *task)
     if(taskd->state & TASK_READY)
     {
        //Task is ready remove from read
-        delete_task_from_ready_list(task);
+        delete_task_from_ready_list(taskd);
         printk("TaskDel: Remove from ready list\n");
     }
     else if(taskd->state & TASK_SLEEPING)

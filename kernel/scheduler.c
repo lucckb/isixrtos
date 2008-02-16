@@ -276,18 +276,16 @@ void add_task_to_delete_list(task_t *task)
 /*-----------------------------------------------------------------------*/
 //Dead task are clean by this procedure called from idle task
 //One idle call clean one dead tasks
-static inline void cleanup_tasks(void)
+void cleanup_tasks(void)
+//static inline void cleanup_tasks(void)
 {
-    if(list_isempty(&dead_task)) return;
+    if(list_isempty(&dead_task)==true) return;
     sched_lock();
     task_t *task_del = list_get_first(&dead_task,inode,task_t);
     list_delete(&task_del->inode);
-    if(task_del->state & TASK_DEAD)
-    {
-        printk("CleanupTasks: Task to delete is %08x stack SP %08x\n",task_del,task_del->init_stack);
-        kfree(task_del->init_stack);
-        kfree(task_del);
-    }
+    printk("CleanupTasks: Task to delete is %08x stack SP %08x\n",task_del,task_del->init_stack);
+    kfree(task_del->init_stack);
+    kfree(task_del);
     //FIXME: Testowo kasowanie jednego wolnego priorytetu
     if(list_isempty(&free_prio_elem)==false)
     {
@@ -306,7 +304,7 @@ TASK_FUNC(idle_task,p)
     while(1)
     {
         //Cleanup free tasks
-        cleanup_tasks();
+         cleanup_tasks();
 #ifndef  CONFIG_USE_PREEMPTION
         sched_yield();
 #endif
