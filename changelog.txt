@@ -6,6 +6,12 @@ Revision 30 (1.0) Initial Version
 - Basic interrupt create function
 - Queues
 
+Revision 81 (1.1)
+
+- Many bugfixes in scheduler
+- Printk and printf support
+
+
 TODO:
 - Prevent Priority Inversion (Priority Inheritance)
 - Add support for device drivers
