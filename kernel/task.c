@@ -103,25 +103,27 @@ int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
         sched_unlock();
         return 0;
     }
-    //Assign new prio
-    taskc->prio = new_prio;
     bool yield_req = false;
     if(taskc->state & TASK_READY)
     {
         printk("ChangePrio: change prio of ready task\n");
         delete_task_from_ready_list(taskc);
+        //Assign new prio
+        taskc->prio = new_prio;
         //Add task to ready list
         if(add_task_to_ready_list(taskc)<0)
         {
             sched_unlock();
             return -1;
         }
-        if(new_prio<current_task->prio && !(current_task->state&TASK_RUNNING) ) yield_req = true;
+        if(new_prio<prio && !(current_task->state&TASK_RUNNING) ) yield_req = true;
     }
     else if(taskc->state & TASK_WAITING)
     {
         printk("ChangePrio: change prio of task waiting on sem\n");
         list_delete(&taskc->inode_sem);
+        //Assign new prio
+        taskc->prio = new_prio;
         add_task_to_sem_list(&taskc->sem->sem_task,taskc);
     }
     sched_unlock();

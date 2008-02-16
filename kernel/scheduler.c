@@ -30,10 +30,6 @@ volatile bool scheduler_running;
 task_t * volatile current_task = NULL;
 
 /*-----------------------------------------------------------------------*/
-//Current prio list pointer
-static task_ready_t * volatile current_prio = NULL;
-
-/*-----------------------------------------------------------------------*/
 //Sched lock counter
 static volatile int sched_lock_counter = 0;
 
@@ -65,7 +61,7 @@ int sched_lock(void)
     reg_t irq_s = irq_disable();
     sched_lock_counter++;
     irq_restore(irq_s);
-    printk("SchedLock: %d\n",sched_lock_counter);
+    //printk("SchedLock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 
@@ -76,7 +72,7 @@ int sched_unlock(void)
     reg_t irq_s = irq_disable();
     if(sched_lock_counter>0) sched_lock_counter--;
     irq_restore(irq_s);
-    printk("SchedUnlock: %d\n",sched_lock_counter);
+    //printk("SchedUnlock: %d\n",sched_lock_counter);
     return sched_lock_counter;
 }
 /*-----------------------------------------------------------------------*/
@@ -87,13 +83,15 @@ void schedule(void)
     if(sched_lock_counter) return;
     print_tasks(NULL);
     sched_lock();
+
     //Remove executed task and add at end
     if(current_task->state & TASK_READY)
     {
         current_task->state &= ~TASK_RUNNING;
         list_delete(&current_task->inode);
-        list_insert_end(&current_prio->task_list,&current_task->inode);
+        list_insert_end(&current_task->prio_elem->task_list,&current_task->inode);
     }
+    task_ready_t * current_prio;
     //Get first ready prio
     printk("Scheduler: prev prio %d prio list %08x\n",current_prio->prio,current_prio);
     current_prio = list_get_first(&ready_task,inode,task_ready_t);
@@ -198,11 +196,6 @@ int add_task_to_ready_list(task_t *task)
     list_init(&prio_n->task_list);
     list_insert_end(&prio_n->task_list,&task->inode);
     list_insert_after(&prio_i->inode,&prio_n->inode);
-    if(scheduler_running==false)
-    {
-        if(current_prio==NULL) current_prio = prio_n;
-        else if(current_prio->prio>prio_n->prio) current_prio = prio_n;
-    }
     printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_n,prio_n->prio);
     sched_unlock();
     return 0;

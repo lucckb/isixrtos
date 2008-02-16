@@ -19,10 +19,10 @@ typedef struct dupa
 
 dupa kupa[6] =
 {
-    {true,1<<16,HZ*5},
-    {true,1<<17,HZ*5},
-    {true,1<<18,HZ*5},
-    {true,1<<19,HZ*5}
+    {true,1<<16,HZ/8,0},
+    {true,1<<17,HZ/4,0},
+    {true,1<<18,HZ/2,0},
+    {true,1<<19,HZ,0}
 };
 
 /*-----------------------------------------------------------------------*/
@@ -36,11 +36,16 @@ TASK_FUNC(simple_task,n)
       if(z->on) IO1SET = z->mask;
       else      IO1CLR = z->mask;
       z->on = !z->on;
-      for(volatile int i=0;i<100000;i++);
+      for(int i=0;i<1000000;i++) asm volatile("nop");
       if(z->mask == (1<<19))
       {
         z->i++;
-        if(z->i==50) task_change_prio(t1,4);
+        if(z->i==20)
+        {
+            task_change_prio(t1,4);
+            task_change_prio(t2,4);
+            //task_change_prio(t3,4);
+        }
       }
    }
 }
@@ -49,10 +54,10 @@ TASK_FUNC(simple_task,n)
 int main(void)
 {
    printk("****** Hello from OS ******\n");
-   t1 = task_create(simple_task,(void*)&kupa[0],400,10);
-   t2 = task_create(simple_task,(void*)&kupa[1],400,10);
-   t3 = task_create(simple_task,(void*)&kupa[2],400,10);
-   t4 = task_create(simple_task,(void*)&kupa[3],400,10);
+   t1 = task_create(simple_task,(void*)&kupa[0],512,10);
+   t2 = task_create(simple_task,(void*)&kupa[1],512,10);
+   t3 = task_create(simple_task,(void*)&kupa[2],512,10);
+   t4 = task_create(simple_task,(void*)&kupa[3],512,10);
    //t5 = task_create(simple_task,(void*)50,400,10);
    //t6 = task_create(simple_task,(void*)60,400,10);
     IO1DIR |= 0xFF<<16;
