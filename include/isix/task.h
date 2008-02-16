@@ -4,6 +4,9 @@
 #include <isix/types.h>
 #include <isix/scheduler.h>
 
+
+#define TASK_CURRENT NULL
+
 /*-----------------------------------------------------------------------*/
 //Definition of task function
 #define TASK_FUNC(FUNC, ARG)							\
@@ -23,6 +26,7 @@ int __task_change_prio(task_t *task,prio_t new_prio,bool yield);
 
 #define task_change_prio(task,new_prio) __task_change_prio(task,new_prio,true)
 /*-----------------------------------------------------------------------*/
+
 //Delete task pointed by struct task
 int task_delete(task_t *task);
 
