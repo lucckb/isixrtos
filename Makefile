@@ -16,7 +16,7 @@ OPT 	= s
 DEBUG 	= y
 
 #Czy programowanie isp czy nie
-ISP = n
+ISP = y
 
 #Typ procesora
 MCU	= arm7tdmi

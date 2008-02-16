@@ -14,6 +14,7 @@
 
 #if DEBUG_SCHEDULER == DBG_ON
 #include <isix/printk.h>
+static void print_tasks(list_entry_t *sem_list);
 #else
 #undef printk
 #define printk(...)
@@ -276,25 +277,26 @@ void add_task_to_delete_list(task_t *task)
 /*-----------------------------------------------------------------------*/
 //Dead task are clean by this procedure called from idle task
 //One idle call clean one dead tasks
-void cleanup_tasks(void)
-//static inline void cleanup_tasks(void)
+static inline void cleanup_tasks(void)
 {
-    if(list_isempty(&dead_task)==true) return;
-    sched_lock();
-    task_t *task_del = list_get_first(&dead_task,inode,task_t);
-    list_delete(&task_del->inode);
-    printk("CleanupTasks: Task to delete is %08x stack SP %08x\n",task_del,task_del->init_stack);
-    kfree(task_del->init_stack);
-    kfree(task_del);
-    //FIXME: Testowo kasowanie jednego wolnego priorytetu
-    if(list_isempty(&free_prio_elem)==false)
+    if(list_isempty(&dead_task)==false)
     {
-        task_ready_t *prio = list_get_first(&free_prio_elem,inode,task_ready_t);
-        list_delete(&prio->inode);
-        kfree(prio);
-        printk("CleanupTasks: Free innode prio 0x%08x\n",prio);
+        sched_lock();
+        task_t *task_del = list_get_first(&dead_task,inode,task_t);
+        list_delete(&task_del->inode);
+        printk("CleanupTasks: Task to delete is %08x stack SP %08x\n",task_del,task_del->init_stack);
+        kfree(task_del->init_stack);
+        kfree(task_del);
+        //Remove one priority from free priority innodes
+        if(list_isempty(&free_prio_elem)==false)
+        {
+            task_ready_t *free_prio = list_get_first(&free_prio_elem,inode,task_ready_t);
+            list_delete(&free_prio->inode);
+            kfree(free_prio);
+            printk("CleanupTasks: Free innode prio 0x%08x\n",free_prio);
+        }
+        sched_unlock();
     }
-    sched_unlock();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -314,7 +316,7 @@ TASK_FUNC(idle_task,p)
 
 #if DEBUG_SCHEDULER == DBG_ON
 
-void print_tasks(list_entry_t *sem_list)
+static void print_tasks(list_entry_t *sem_list)
 {
    if(sem_list==NULL)
    {
