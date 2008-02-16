@@ -10,12 +10,14 @@ Revision 81 (1.1)
 
 - Many bugfixes in scheduler
 - Printk and printf support
-
+- Slab allocator reduces kmalloc/kfree in scheduler code
 
 TODO:
 - Prevent Priority Inversion (Priority Inheritance)
 - Add support for device drivers
 - Add basic documentation
+- Add grabbage colection on kfree/kmalloc node or change scheduler algorithm 
+  to assign constant priority innode
 
 
 
