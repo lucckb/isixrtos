@@ -14,12 +14,14 @@ TASK_FUNC(wake_task,n)
    u32 kb_prev = 1<<4;
    while(1)
    {
-    schedule_timeout(HZ/10);
-    if(kb_prev && !(IO0PIN & (1<<4)) )
-    {
+     schedule_timeout(HZ/10);
+     if(kb_prev && !(IO0PIN & (1<<4)) )
+     {
         sem_signal(sem);
-    }
-    kb_prev = IO0PIN & (1<<4);
+        //sem_signal(sem);
+        //sem_signal(sem);
+     }
+     kb_prev = IO0PIN & (1<<4);
    }
 }
 /*-----------------------------------------------------------------------*/

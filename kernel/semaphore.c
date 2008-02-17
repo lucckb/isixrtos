@@ -84,23 +84,8 @@ int sem_wait(sem_t *sem,unsigned long timeout)
     }
     sched_unlock();
     sched_yield();
-    //After yield not waiting for sem
-    sched_lock();
-    printk("SemWait: task %08x after wakeup\n",current_task);
-    if(!(current_task->state & TASK_SLEEPING) && timeout)
-    {
-        res = -1;
-        current_task->state &= ~TASK_SLEEPING;
-        if(current_task->state & TASK_WAITING)
-        {
-            printk("SemWait: Timeout delete from sem list\n");
-            list_delete(&current_task->inode_sem);
-            current_task->state &= ~TASK_WAITING;
-            current_task->sem = NULL;
-        }
-    }
-    sched_unlock();
-    return res;
+    printk("SemWait: task %08x after wakeup reason %d\n",current_task,sem->sem_ret);
+    return sem->sem_ret;
 }
 
 /*--------------------------------------------------------------*/
@@ -134,6 +119,7 @@ int __sem_signal(sem_t *sem,bool isr)
     list_delete(&task_wake->inode_sem);
     task_wake->state &= ~TASK_WAITING;
     task_wake->state |= TASK_READY;
+    sem->sem_ret = 0;
     current_task->sem = NULL;
     if(add_task_to_ready_list(task_wake)<0)
     {

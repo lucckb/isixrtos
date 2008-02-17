@@ -93,9 +93,8 @@ void schedule(void)
     }
     task_ready_t * current_prio;
     //Get first ready prio
-    printk("Scheduler: prev prio %d prio list %08x\n",current_prio->prio,current_prio);
     current_prio = list_get_first(&ready_task,inode,task_ready_t);
-    printk("Scheduler: new prio %d prio list %08x\n",current_prio->prio,current_prio);
+    printk("Scheduler: actual prio %d prio list %08x\n",current_prio->prio,current_prio);
     //Get first ready task
     printk("Scheduler: prev task %08x\n",current_task);
     current_task = list_get_first(&current_prio->task_list,inode,task_t);
@@ -120,10 +119,19 @@ void schedule_time(void)
         task_c->state &= ~TASK_SLEEPING;
         task_c->state |= TASK_READY;
         list_delete(&task_c->inode);
+        if(task_c->state & TASK_WAITING)
+        {
+            task_c->state &= ~TASK_WAITING;
+            list_delete(&task_c->inode_sem);
+            task_c->sem->sem_ret = -1;
+            task_c->sem = NULL;
+            printk("SchedulerTime: Timeout delete from sem list\n");
+        }
         if(add_task_to_ready_list(task_c)<0)
         {
             printk("SchedulerTime: Error in add task to ready list\n");
         }
+        if(list_isempty(&waiting_task)) return;
         task_c = list_get_first(&waiting_task,inode,task_t);
     }
 }

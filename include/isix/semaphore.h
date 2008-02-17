@@ -13,7 +13,8 @@ typedef struct sem_struct
     int value;
     //Task val waiting for semaphore
     list_entry_t sem_task;
-
+    //Return reason
+    s8 sem_ret;
 } sem_t;
 
 #include <isix/scheduler.h>
