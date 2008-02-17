@@ -30,7 +30,7 @@ TASK_FUNC(simple_task,n)
    dupa *z = (dupa*)n;
    while(1)
    {
-      //printk("Hello from task %08x\n",z->mask);
+      //printf("Hello from task %08x\n",z->mask);
       schedule_timeout(z->sec);
       //schedule_timeout(HZ*2);
       if(z->on) IO1SET = z->mask;
