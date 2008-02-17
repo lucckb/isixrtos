@@ -123,7 +123,7 @@ void schedule_time(void)
         {
             task_c->state &= ~TASK_WAITING;
             list_delete(&task_c->inode_sem);
-            task_c->sem->sem_ret = -1;
+            task_c->sem->sem_ret = ETIMEOUT;
             task_c->sem = NULL;
             printk("SchedulerTime: Timeout delete from sem list\n");
         }

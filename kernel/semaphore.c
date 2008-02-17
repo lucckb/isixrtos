@@ -22,6 +22,7 @@ sem_t* sem_create(sem_t *sem,int val)
     if(sem==NULL)
     {
         sem = (sem_t*)kmalloc(sizeof(sem_t));
+        if(sem==NULL) return NULL;
     }
     zero_memory(sem,sizeof(sem_t));
     sem->value = val;
@@ -35,9 +36,8 @@ sem_t* sem_create(sem_t *sem,int val)
 //TODO: priority inheritance
 int sem_wait(sem_t *sem,unsigned long timeout)
 {
-    int res = 0;
     //If nothing to to - exit
-    if(sem==NULL && timeout==0) return -1;
+    if(sem==NULL && timeout==0) return EINVARG;
     //Lock scheduler
     sched_lock();
     printk("SemWait: Operate on task %08x state %02x\n",current_task,current_task->state);
@@ -46,7 +46,7 @@ int sem_wait(sem_t *sem,unsigned long timeout)
         sem->value--;
         printk("SemWait: Decrement value %d\n",sem->value);
         sched_unlock();
-        return res;
+        return EOK;
     }
     //If any task remove task from ready list
     if(timeout || sem)
@@ -61,7 +61,7 @@ int sem_wait(sem_t *sem,unsigned long timeout)
     else
     {
         sched_unlock();
-        return -1;
+        return EINVARG;
     }
     //Sleep in semaphore
     if(timeout)
@@ -96,7 +96,7 @@ int __sem_signal(sem_t *sem,bool isr)
     if(!sem)
     {
         printk("SemSignal: No sem\n");
-        return -1;
+        return EINVARG;
     }
     sched_lock();
     if(list_isempty(&sem->sem_task)==true)
@@ -104,7 +104,7 @@ int __sem_signal(sem_t *sem,bool isr)
         sem->value++;
         printk("SemSignal: Waiting list is empty incval to %d\n",sem->value);
         sched_unlock();
-        return 0;
+        return EOK;
     }
     //List is not empty wakeup high priority task
     task_t *task_wake = list_get_first(&sem->sem_task,inode_sem,task_t);
@@ -124,32 +124,32 @@ int __sem_signal(sem_t *sem,bool isr)
     if(add_task_to_ready_list(task_wake)<0)
     {
         sched_unlock();
-        return -1;
+        return ENOMEM;
     }
     if(task_wake->prio<current_task->prio && !isr)
     {
         printk("SemSignal: Yield processor higer prio\n");
         sched_unlock();
         sched_yield();
-        return 0;
+        return EOK;
     }
     else
     {
         sched_unlock();
-        return 0;
+        return EOK;
     }
 }
 /*--------------------------------------------------------------*/
 //Get semaphore from isr
 int sem_get_isr(sem_t *sem)
 {
-    if(!sem) return -1;
-    int res = -1;
+    if(!sem) return EINVARG;
+    int res = EBUSY;
     sched_lock();
     if(sem && sem->value>0)
     {
         sem->value--;
-        res = 0;
+        res = EOK;
     }
     sched_unlock();
     return res;
@@ -159,34 +159,34 @@ int sem_get_isr(sem_t *sem)
 //Sem value of semaphore
 int sem_setval(sem_t *sem,int val)
 {
-    if(!sem) return -1;
+    if(!sem) return EINVARG;
     //Semaphore is used
     sched_lock();
     if(list_isempty(&sem->sem_task)==false)
     {
         sched_unlock();
-        return -1;
+        return EBUSY;
     }
     sem->value = val;
     sched_unlock();
-    return 0;
+    return EOK;
 }
 
 /*--------------------------------------------------------------*/
 //Sem destroy
 int sem_destroy(sem_t *sem)
 {
-   if(!sem) return -1;
+   if(!sem) return EINVARG;
     //Semaphore is used
    sched_lock();
    if(list_isempty(&sem->sem_task)==false)
    {
        sched_unlock();
-       return -1;
+       return EBUSY;
    }
    kfree(sem);
    sched_unlock();
-   return 0;
+   return EOK;
 }
 
 

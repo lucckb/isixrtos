@@ -3,6 +3,7 @@
 
 #include <asm/types.h>
 #include <stddef.h>
+#include <isix/error.h>
 
 /*-----------------------------------------------------*/
 //Null defs
