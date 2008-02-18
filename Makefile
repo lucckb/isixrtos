@@ -5,6 +5,9 @@ TOP_DIR= $(shell pwd)
 #tutaj wpisz nazwe pliku hex
 TARGET	   = isix
 
+#Czy tworzymy biblioteke
+LIBRARY = n
+
 #Format wyjsciowy (moze byc srec,ihex,binary)
 FORMAT	= ihex
 
@@ -20,6 +23,7 @@ ISP = y
 
 #Typ procesora
 MCU	= arm7tdmi
+
 
 
 #Skrypt linkera
@@ -84,12 +88,16 @@ export ASFLAGS LDFLAGS CFLAGS ARFLAGS TOP_DIR CC AR LD
 
 all:	build target
 
+ifeq ($(LIBRARY),y)
+install: build target 
+else
 install: build target program
+endif
 
 clean:
 	find $(TOP_DIR) -name '*.o' | xargs rm -f
 	find $(TOP_DIR) -name '*.dep' | xargs rm -f
-	rm -rf *.hex *.elf *.lss *.map
+	rm -f *.hex *.elf *.lss *.map *.a
 
 program:
     ifeq ($(ISP),y)
@@ -109,7 +117,11 @@ program:
 	$(JTAGPROG) -f lpc2148.cfg
     endif
 
+ifeq ($(LIBRARY),y)
+target:	lib$(TARGET).a
+else
 target: $(TARGET).elf $(TARGET).hex $(TARGET).lss
+endif
 
 build:	
 	$(MAKE) -C kernel
@@ -117,18 +129,24 @@ build:
 	$(MAKE) -C apps/isixtest
 
 
-LINKFILES =  kernel/kernel.o arch/arm7lpc2000/kernel_arch.o apps/isixtest/isixtest.o
+LINKFILES =  kernel/kernel.o arch/arm7lpc2000/kernel_arch.o 
+ifeq ($(LIBRARY),n)
+LINKFILES += apps/isixtest/isixtest.o
+endif
 
 #wszystkie zaleznosci
 $(TARGET).elf: $(LINKFILES) $(SCRIPTLINK).ld
 	@echo "Linking..."
 	$(CC) $(CFLAGS) $(LINKFILES) -o $@ $(LDFLAGS)
 
+lib$(TARGET).a: $(LINKFILES)
+	@echo "Creating static lib.."
+	$(AR) $(ARFLAGS) $@ $(LINKFILES)
 
 include Makefile.inc
 
 %.lss: %.elf
-	@echo "Create extended listing..."
+	@echo "Create extended listing...."
 	$(OBJDUMP) -h -S $< > $@
 
 %.hex: %.elf
