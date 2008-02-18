@@ -4,12 +4,12 @@
 #include <isix/task.h>
 #include <isix/memory.h>
 
-#ifndef DEBUG_TASK
-#define DEBUG_TASK DBG_OFF
+#ifndef ISIX_DEBUG_TASK
+#define ISIX_DEBUG_TASK ISIX_DBG_OFF
 #endif
 
 
-#if DEBUG_TASK == DBG_ON
+#if ISIX_DEBUG_TASK == ISIX_DBG_ON
 #include <isix/printk.h>
 #else
 #define printk(...)
@@ -101,7 +101,7 @@ int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
     if(prio==new_prio)
     {
         sched_unlock();
-        return EOK;
+        return ISIX_EOK;
     }
     bool yield_req = false;
     if(taskc->state & TASK_READY)
@@ -114,7 +114,7 @@ int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
         if(add_task_to_ready_list(taskc)<0)
         {
             sched_unlock();
-            return ENOMEM;
+            return ISIX_ENOMEM;
         }
         if(new_prio<prio && !(current_task->state&TASK_RUNNING) ) yield_req = true;
     }
@@ -134,7 +134,7 @@ int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
         sched_yield();
     }
     printk("ChangePrio: New prio %d\n",new_prio);
-    return EOK;
+    return ISIX_EOK;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -170,12 +170,12 @@ int task_delete(task_t *task)
         sched_unlock();
         printk("TaskDel: Current task yield req\n");
         sched_yield();
-        return EOK;
+        return ISIX_EOK;
     }
     else
     {
         sched_unlock();
-        return EOK;
+        return ISIX_EOK;
     }
 }
 

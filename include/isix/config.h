@@ -5,8 +5,8 @@
 #ifndef __ISIX_CONFIG__
 #define __ISIX_CONFIG__
 
-#define DBG_ON 1
-#define DBG_OFF 0
+#define ISIX_DBG_ON 1
+#define ISIX_DBG_OFF 0
 
 #include <isix/isix_config.h>
 

@@ -2,12 +2,12 @@
 #include <isix/types.h>
 #include <isix/scheduler.h>
 
-#ifndef DEBUG_MEMORY
-#define DEBUG_MEMORY DBG_OFF
+#ifndef ISIX_DEBUG_MEMORY
+#define ISIX_DEBUG_MEMORY ISIX_DBG_OFF
 #endif
 
 
-#if DEBUG_MEMORY == DBG_ON
+#if ISIX_DEBUG_MEMORY == ISIX_DBG_ON
 #include <isix/printk.h>
 #else
 #define printk(...)

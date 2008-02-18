@@ -4,12 +4,12 @@
 #include <isix/semaphore.h>
 #include <isix/fifo.h>
 
-#ifndef DEBUG_FIFO
-#define DEBUG_FIFO DBG_OFF
+#ifndef ISIX_DEBUG_FIFO
+#define DEBUG_FIFO ISIX_DBG_OFF
 #endif
 
 
-#if DEBUG_FIFO == DBG_ON
+#if ISIX_DEBUG_FIFO == ISIX_DBG_ON
 #define printk(...)
 #else
 #include <isix/printk.h>
@@ -68,11 +68,11 @@ fifo_t* fifo_create(int n_elem, int elem_size)
 //Fifo send to other task
 int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout)
 {
-    if(!fifo) return EINVARG;
+    if(!fifo) return ISIX_EINVARG;
     if(sem_wait(fifo->tx_sem,timeout)<0)
     {
         printk("FifoWrite: Timeout on TX queue\n");
-        return ETIMEOUT;
+        return ISIX_ETIMEOUT;
     }
     sched_lock();
     memcpy(fifo->tx_p,item,fifo->elem_size);
@@ -88,11 +88,11 @@ int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout)
 //Fifo send to other task
 int fifo_write_isr(fifo_t *fifo,const void *item)
 {
-    if(!fifo) return EINVARG;
+    if(!fifo) return ISIX_EINVARG;
     if(sem_get_isr(fifo->tx_sem)<0)
     {
         printk("FifoWriteISR: No space in TX queue\n");
-        return EFIFOFULL;
+        return ISIX_EFIFOFULL;
     }
     sched_lock();
     memcpy(fifo->tx_p,item,fifo->elem_size);
@@ -108,11 +108,11 @@ int fifo_write_isr(fifo_t *fifo,const void *item)
 //Fifo receive from other task
 int fifo_read(fifo_t *fifo,void *item,unsigned long timeout)
 {
-    if(!fifo) return EINVARG;
+    if(!fifo) return ISIX_EINVARG;
     if(sem_wait(fifo->rx_sem,timeout)<0)
     {
        printk("FifoRead: Timeout on RX queue\n");
-       return ETIMEOUT;
+       return ISIX_ETIMEOUT;
     }
     sched_lock();
     memcpy(item,fifo->rx_p,fifo->elem_size);
@@ -129,11 +129,11 @@ int fifo_read(fifo_t *fifo,void *item,unsigned long timeout)
 //Fifo receive from other task
 int fifo_read_isr(fifo_t *fifo,void *item)
 {
-    if(!fifo) return EINVARG;
+    if(!fifo) return ISIX_EINVARG;
     if(sem_get_isr(fifo->rx_sem)<0)
     {
        printk("FifoReadISR: No space in RX queue\n");
-       return EFIFOFULL;
+       return ISIX_EFIFOFULL;
     }
     sched_lock();
     memcpy(item,fifo->rx_p,fifo->elem_size);
@@ -156,14 +156,14 @@ int fifo_destroy(fifo_t *fifo)
     {
         printk("FifoDestroy: Error TXSem busy\n");
         sched_unlock();
-        return EBUSY;
+        return ISIX_EBUSY;
     }
     //Check for RXSEM can be destroyed
     if(__sem_can_destroy(fifo->rx_sem)==false)
     {
         printk("FifoDestroy: Error RXSem busy\n");
         sched_unlock();
-        return EBUSY;
+        return ISIX_EBUSY;
     }
     //Destroy RXSEM and TXSEM
     sem_destroy(fifo->rx_sem);
@@ -172,7 +172,7 @@ int fifo_destroy(fifo_t *fifo)
     kfree(fifo->mem_p);
     kfree(fifo);
     sched_unlock();
-    return EOK;
+    return ISIX_EOK;
 }
 
 /*----------------------------------------------------------------*/

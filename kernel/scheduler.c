@@ -8,11 +8,11 @@
 #include <asm/interrupt.h>
 #include <isix/list.h>
 
-#ifndef DEBUG_SCHEDULER
-#define DEBUG_SCHEDULER DBG_ON
+#ifndef ISIX_DEBUG_SCHEDULER
+#define ISIX_DEBUG_SCHEDULER ISIX_DBG_ON
 #endif
 
-#if DEBUG_SCHEDULER == DBG_ON
+#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
 #include <isix/printk.h>
 static void print_tasks(list_entry_t *sem_list);
 #else
@@ -123,7 +123,7 @@ void schedule_time(void)
         {
             task_c->state &= ~TASK_WAITING;
             list_delete(&task_c->inode_sem);
-            task_c->sem->sem_ret = ETIMEOUT;
+            task_c->sem->sem_ret = ISIX_ETIMEOUT;
             task_c->sem = NULL;
             printk("SchedulerTime: Timeout delete from sem list\n");
         }
@@ -315,7 +315,7 @@ TASK_FUNC(idle_task,p)
 }
 /*-----------------------------------------------------------------------*/
 
-#if DEBUG_SCHEDULER == DBG_ON
+#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
 
 static void print_tasks(list_entry_t *sem_list)
 {
