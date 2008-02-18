@@ -5,7 +5,7 @@
 #include <isix/fifo.h>
 
 #ifndef ISIX_DEBUG_FIFO
-#define DEBUG_FIFO ISIX_DBG_OFF
+#define ISIX_DEBUG_FIFO ISIX_DBG_OFF
 #endif
 
 
