@@ -6,7 +6,7 @@ TOP_DIR= $(shell pwd)
 TARGET	   = isix
 
 #Czy tworzymy biblioteke
-LIBRARY = n
+LIBRARY = y
 
 #Format wyjsciowy (moze byc srec,ihex,binary)
 FORMAT	= ihex
