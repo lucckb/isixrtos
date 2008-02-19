@@ -33,7 +33,7 @@ int task_delete(task_t *task);
 /*-----------------------------------------------------------------------*/
 
 //Get current thread handler
-task_t * get_current_task(void);
+task_t * task_self(void);
 
 /*-----------------------------------------------------------------------*/
 
