@@ -10,9 +10,9 @@
 
 
 #if ISIX_DEBUG_FIFO == ISIX_DBG_ON
-#define printk(...)
-#else
 #include <isix/printk.h>
+#else
+#define printk(...)
 #endif
 
 
