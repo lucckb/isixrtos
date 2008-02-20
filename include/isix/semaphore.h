@@ -46,6 +46,10 @@ int __sem_signal(sem_t *sem,bool isr);
 int sem_setval(sem_t *sem,int val);
 
 /*--------------------------------------------------------------*/
+//Get value of semaphore
+int sem_getval(sem_t *sem);
+
+/*--------------------------------------------------------------*/
 //Sem destroy
 int sem_destroy(sem_t *sem);
 

@@ -34,6 +34,9 @@ int fifo_write_isr(fifo_t *queue,const void *item);
 /* Delete created queue */
 int fifo_destroy(fifo_t *fifo);
 
+/*--------------------------------------------------*/
+/* How many elements is in fifo */
+int fifo_count(fifo_t *fifo);
 
 /*--------------------------------------------------*/
 /* Get element from queue *

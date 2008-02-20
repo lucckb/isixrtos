@@ -173,6 +173,14 @@ int sem_setval(sem_t *sem,int val)
 }
 
 /*--------------------------------------------------------------*/
+//Get value of semaphore
+int sem_getval(sem_t *sem)
+{
+    if(!sem) return ISIX_EINVARG;
+    return sem->value;
+}
+
+/*--------------------------------------------------------------*/
 //Sem destroy
 int sem_destroy(sem_t *sem)
 {

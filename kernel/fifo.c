@@ -176,4 +176,12 @@ int fifo_destroy(fifo_t *fifo)
 }
 
 /*----------------------------------------------------------------*/
+//How many element is in fifo
+int fifo_count(fifo_t *fifo)
+{
+    if(!fifo) return ISIX_EINVARG;
+    return sem_getval(fifo->rx_sem);
+}
+
+/*----------------------------------------------------------------*/
 
