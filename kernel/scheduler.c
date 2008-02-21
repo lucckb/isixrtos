@@ -1,12 +1,13 @@
 #include <isix/config.h>
 #include <isix/printk.h>
 #include <isix/types.h>
-#include <isix/scheduler.h>
-#include <asm/context.h>
+#include <prv/scheduler.h>
+#include <prv/asm/context.h>
 #include <isix/task.h>
 #include <isix/memory.h>
 #include <asm/interrupt.h>
-#include <isix/list.h>
+#include <prv/list.h>
+#include <prv/semaphore.h>
 
 #ifndef ISIX_DEBUG_SCHEDULER
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_ON

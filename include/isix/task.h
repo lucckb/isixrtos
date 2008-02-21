@@ -4,8 +4,8 @@
 #include <isix/types.h>
 #include <isix/scheduler.h>
 
-
 #define TASK_CURRENT NULL
+
 
 /*-----------------------------------------------------------------------*/
 //Definition of task function

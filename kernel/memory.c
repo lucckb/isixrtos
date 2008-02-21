@@ -1,6 +1,6 @@
 #include <isix/memory.h>
 #include <isix/types.h>
-#include <isix/scheduler.h>
+#include <prv/scheduler.h>
 
 #ifndef ISIX_DEBUG_MEMORY
 #define ISIX_DEBUG_MEMORY ISIX_DBG_OFF

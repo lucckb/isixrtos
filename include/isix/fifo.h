@@ -3,18 +3,9 @@
 #define __ISIX_FIFO_H
 
 /*--------------------------------------------------*/
-/* Queue structure */
-typedef struct fifo_struct
-{
-    char *rx_p;     //Pointer to rx
-    char *tx_p;     //Pointer to tx
-    char *mem_p;    //Pointer to allocated memory
-    int size;       //Total fifo size
-    int elem_size; //Element count
-    sem_t *rx_sem;  //Semaphore rx
-    sem_t *tx_sem;  //Semaphore for tx
-} fifo_t;
 
+struct fifo_struct;
+typedef struct fifo_struct fifo_t;
 
 /*--------------------------------------------------*/
 /* Create queue for n elements

@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <isix/config.h>
 #include <asm/uart_early.h>
-#include <isix/scheduler.h>
+#include <prv/scheduler.h>
 #include <isix/semaphore.h>
 #include <stdarg.h>
 #include <string.h>
