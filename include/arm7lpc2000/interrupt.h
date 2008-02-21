@@ -52,8 +52,19 @@ int interrupt_register_fiq(u8 int_num);
 
 
 /*-----------------------------------------------------------------------*/
-//Mask or unmask selected interrupt
-int interrupt_mask(u8 int_num,bool set_clr);
+//Mask selected interrupt
+static inline void interrupt_mask(unsigned long mask)
+{
+    VICIntEnable = mask;
+}
+
+/*-----------------------------------------------------------------------*/
+// Unmask selected interrupt
+static inline void interrupt_umask(unsigned long mask)
+{
+   VICIntEnClr = mask;
+}
+
 /*-----------------------------------------------------------------------*/
 
 /* Unregister specified interrupt */

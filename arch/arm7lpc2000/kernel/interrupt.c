@@ -173,18 +173,4 @@ int interrupt_register_fiq(u8 int_num)
    return 0;
 }
 
-/*-----------------------------------------------------------------------*/
-//Mask or unmask selected interrupt
-int interrupt_mask(u8 int_num,bool set_clr)
-{
-    reg_t fiq_s,irq_s;
-    fiq_s = fiq_disable();
-    irq_s = irq_disable();
-    if(set_clr==true)  VICIntEnable = 1<<int_num;
-    else VICIntEnClr = 1<<int_num;
-    fiq_restore(fiq_s);
-    irq_restore(irq_s);
-    return 0;
-}
-/*-----------------------------------------------------------------------*/
 

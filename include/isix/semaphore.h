@@ -13,6 +13,8 @@ typedef struct sem_struct
     int value;
     //Task val waiting for semaphore
     list_entry_t sem_task;
+    //Number of interrupt to mask
+    unsigned long intmask;
     //Return reason
     s8 sem_ret;
 } sem_t;
@@ -20,8 +22,9 @@ typedef struct sem_struct
 #include <isix/scheduler.h>
 /*--------------------------------------------------------------*/
 //Create semaphore
-sem_t* sem_create(sem_t *sem,int val);
+sem_t* sem_create_isr(sem_t *sem,int val,s8 interrupt);
 
+#define sem_create(sem,val) sem_create_isr(sem,val,-1)
 
 /*--------------------------------------------------------------*/
 //Wait for semaphore P()

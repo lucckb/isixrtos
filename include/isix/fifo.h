@@ -13,13 +13,16 @@ typedef struct fifo_struct
     int elem_size; //Element count
     sem_t *rx_sem;  //Semaphore rx
     sem_t *tx_sem;  //Semaphore for tx
+    unsigned long intmask;  //Interrupt mask
 } fifo_t;
 
 
 /*--------------------------------------------------*/
 /* Create queue for n elements
  * if succes return queue pointer else return null   */
-fifo_t* fifo_create(int n_elem, int elem_size);
+fifo_t* fifo_create_isr(int n_elem, int elem_size,s8 interrupt);
+
+#define fifo_create(n_elem,elem_size) fifo_create_isr(n_elem,elem_size,-1)
 
 /* Send element to queue
  * queue - Pointer to queue

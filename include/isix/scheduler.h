@@ -49,7 +49,7 @@ typedef struct task_struct
 } task_t;
 
 /*-----------------------------------------------------------------------*/
-
+#include <isix/types.h>
 #include <asm/scheduler.h>
 
 /*-----------------------------------------------------------------------*/
@@ -73,13 +73,13 @@ void schedule(void);
 void schedule_time(void);
 
 /*-----------------------------------------------------------------------*/
-//Lock scheduler
-int sched_lock(void);
-
+//Lock scheduler and disable selected interrupt
+int sched_lock_interrupt(unsigned long mask);
+#define sched_lock() sched_lock_interrupt(0)
 /*-----------------------------------------------------------------------*/
-//Lock scheduler
-int sched_unlock(void);
-
+//Lock scheduler and reenable selected interrupt;
+int sched_unlock_interrupt(unsigned long mask);
+#define sched_unlock() sched_unlock_interrupt(0)
 /*-----------------------------------------------------------------------*/
 //Add selected task to waiting list
 void add_task_to_waiting_list(task_t *task);
