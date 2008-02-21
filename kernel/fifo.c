@@ -60,8 +60,6 @@ fifo_t* fifo_create_isr(int n_elem, int elem_size,s8 interrupt)
       kfree(fifo);
       return NULL;
    }
-   if(interrupt>=0) fifo->intmask = _BV(interrupt);
-   else fifo->intmask = 0;
    printk("FifoCreate New fifo handler %08x\n",fifo);
    return fifo;
 }
@@ -76,12 +74,12 @@ int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout)
         printk("FifoWrite: Timeout on TX queue\n");
         return ISIX_ETIMEOUT;
     }
-    sched_lock_interrupt(fifo->intmask);
+    sched_lock_interrupt(fifo->tx_sem->intmask);
     memcpy(fifo->tx_p,item,fifo->elem_size);
     printk("FifoWrite: Data write at TXp %08x\n",fifo->tx_p);
     fifo->tx_p+= fifo->elem_size;
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
-    sched_unlock_interrupt(fifo->intmask);
+    sched_unlock_interrupt(fifo->tx_sem->intmask);
     printk("FifoWrite: New TXp %08x\n",fifo->tx_p);
     //Signaling RX thread with new data
     return sem_signal(fifo->rx_sem);
@@ -116,12 +114,12 @@ int fifo_read(fifo_t *fifo,void *item,unsigned long timeout)
        printk("FifoRead: Timeout on RX queue\n");
        return ISIX_ETIMEOUT;
     }
-    sched_lock_interrupt(fifo->intmask);
+    sched_lock_interrupt(fifo->rx_sem->intmask);
     memcpy(item,fifo->rx_p,fifo->elem_size);
     printk("FifoRead: Data write at RXp %08x\n",fifo->rx_p);
     fifo->rx_p+= fifo->elem_size;
     if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;
-    sched_unlock_interrupt(fifo->intmask);
+    sched_unlock_interrupt(fifo->rx_sem->intmask);
     printk("FifoRead: New Rxp %08x\n",fifo->rx_p);
     //Signaling TX for space avail
     return sem_signal(fifo->tx_sem);

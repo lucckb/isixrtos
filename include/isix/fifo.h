@@ -13,7 +13,6 @@ typedef struct fifo_struct
     int elem_size; //Element count
     sem_t *rx_sem;  //Semaphore rx
     sem_t *tx_sem;  //Semaphore for tx
-    unsigned long intmask;  //Interrupt mask
 } fifo_t;
 
 
