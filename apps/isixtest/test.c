@@ -77,6 +77,6 @@ int main(void)
 
    t1 = task_create(fun_task,NULL,400,10);
    t2 = task_create(wake_task,NULL,400,8);
-   fifo = fifo_create(10,1);
+   fifo = fifo_create_isr(10,1,INTERRUPT_NUM_EINT1);
    return 0;
 }

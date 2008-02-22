@@ -5,6 +5,7 @@
 #include <isix/time.h>
 #include <isix/semaphore.h>
 #include <prv/semaphore.h>
+#include <asm/interrupt.h>
 
 #ifndef ISIX_DEBUG_SEMAPHORE
 #define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
@@ -89,7 +90,7 @@ int sem_wait(sem_t *sem,unsigned long timeout)
         current_task->sem = sem;
         printk("SemWait: Add task %08x to sem\n",current_task);
     }
-    if(sem & sem->intmask) interrupt_umask(sem->intmask);
+    if(sem && sem->intmask) interrupt_umask(sem->intmask);
     sched_unlock();
     sched_yield();
     printk("SemWait: task %08x after wakeup reason %d\n",current_task,sem->sem_ret);

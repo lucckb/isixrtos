@@ -68,7 +68,7 @@ int interrupt_register_fiq(u8 int_num);
 static inline void interrupt_mask(unsigned long mask)
 {
     reg_t cpsr = fiqirq_disable();
-    VICIntEnable = mask;
+    VICIntEnClr = mask;
     fiqirq_restore(cpsr);
 }
 
@@ -77,7 +77,7 @@ static inline void interrupt_mask(unsigned long mask)
 static inline void interrupt_umask(unsigned long mask)
 {
     reg_t cpsr = fiqirq_disable();
-    VICIntEnClr = mask;
+    VICIntEnable = mask;
     fiqirq_restore(cpsr);
 }
 

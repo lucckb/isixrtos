@@ -5,6 +5,7 @@
 #include <isix/fifo.h>
 #include <prv/semaphore.h>
 #include <prv/scheduler.h>
+#include <asm/interrupt.h>
 
 #ifndef ISIX_DEBUG_FIFO
 #define ISIX_DEBUG_FIFO ISIX_DBG_OFF
