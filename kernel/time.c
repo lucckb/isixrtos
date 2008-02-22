@@ -1,7 +1,7 @@
 #include <isix/config.h>
 #include <isix/types.h>
-#include <isix/scheduler.h>
-#include <isix/list.h>
+#include <prv/scheduler.h>
+#include <prv/list.h>
 #include <isix/time.h>
 
 

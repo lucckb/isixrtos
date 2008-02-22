@@ -1,9 +1,9 @@
 #include <isix/config.h>
 #include <isix/printk.h>
 #include <isix/types.h>
-#include <asm/context.h>
+#include <prv/asm/context.h>
 #include <asm/interrupt.h>
-#include <isix/scheduler.h>
+#include <prv/scheduler.h>
 #include <isix/time.h>
 #include <asm/lpc214x.h>
 

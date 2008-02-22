@@ -1,7 +1,7 @@
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/printk.h>
-#include <asm/ptrace.h>
+#include <prv/asm/ptrace.h>
 
 
 /*------------------------------------------------*/

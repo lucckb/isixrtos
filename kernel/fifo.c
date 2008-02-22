@@ -3,6 +3,8 @@
 #include <isix/memory.h>
 #include <isix/semaphore.h>
 #include <isix/fifo.h>
+#include <prv/semaphore.h>
+#include <prv/scheduler.h>
 
 #ifndef ISIX_DEBUG_FIFO
 #define ISIX_DEBUG_FIFO ISIX_DBG_OFF
@@ -17,6 +19,20 @@
 
 
 /*-------------------------------------------------------*/
+/* Queue structure */
+struct fifo_struct
+{
+    char *rx_p;     //Pointer to rx
+    char *tx_p;     //Pointer to tx
+    char *mem_p;    //Pointer to allocated memory
+    int size;       //Total fifo size
+    int elem_size; //Element count
+    sem_t *rx_sem;  //Semaphore rx
+    sem_t *tx_sem;  //Semaphore for tx
+};
+
+/*-------------------------------------------------------*/
+
 /* Create queue for n elements
  * if succes return queue pointer else return null   */
 fifo_t* fifo_create_isr(int n_elem, int elem_size,s8 interrupt)

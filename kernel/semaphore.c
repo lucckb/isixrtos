@@ -1,9 +1,10 @@
 #include <isix/types.h>
 #include <isix/config.h>
 #include <isix/memory.h>
-#include <isix/scheduler.h>
+#include <prv/scheduler.h>
 #include <isix/time.h>
 #include <isix/semaphore.h>
+#include <prv/semaphore.h>
 
 #ifndef ISIX_DEBUG_SEMAPHORE
 #define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
@@ -15,6 +16,7 @@
 #else
 #define printk(...)
 #endif
+
 
 /*--------------------------------------------------------------*/
 //Create semaphore

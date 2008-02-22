@@ -6,7 +6,7 @@ TOP_DIR= $(shell pwd)
 TARGET	   = isix
 
 #Czy tworzymy biblioteke
-LIBRARY = y
+LIBRARY = n
 
 #Format wyjsciowy (moze byc srec,ihex,binary)
 FORMAT	= ihex
@@ -19,7 +19,7 @@ OPT 	= s
 DEBUG 	= y
 
 #Czy programowanie isp czy nie
-ISP = y
+ISP = n
 
 #Typ procesora
 MCU	= arm7tdmi

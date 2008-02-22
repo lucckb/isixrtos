@@ -1,8 +1,9 @@
 #include <isix/config.h>
 #include <isix/types.h>
-#include <isix/scheduler.h>
+#include <prv/scheduler.h>
 #include <isix/task.h>
 #include <isix/memory.h>
+#include <prv/semaphore.h>
 
 #ifndef ISIX_DEBUG_TASK
 #define ISIX_DEBUG_TASK ISIX_DBG_OFF
