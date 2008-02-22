@@ -43,13 +43,15 @@ int sem_wait(sem_t *sem,unsigned long timeout)
     //If nothing to to - exit
     if(sem==NULL && timeout==0) return ISIX_EINVARG;
     //Lock scheduler
-    sched_lock_interrupt(sem->intmask);
+    sched_lock();
+    if(sem && sem->intmask) interrupt_mask(sem->intmask);
     printk("SemWait: Operate on task %08x state %02x\n",current_task,current_task->state);
     if(sem && sem->value>0)
     {
         sem->value--;
         printk("SemWait: Decrement value %d\n",sem->value);
-        sched_unlock_interrupt(sem->intmask);
+        if(sem->intmask) interrupt_umask(sem->intmask);
+        sched_unlock();
         return ISIX_EOK;
     }
     //If any task remove task from ready list
@@ -64,7 +66,8 @@ int sem_wait(sem_t *sem,unsigned long timeout)
     }
     else
     {
-        sched_unlock_interrupt(sem->intmask);
+        if(sem && sem->intmask) interrupt_umask(sem->intmask);
+        sched_unlock();
         return ISIX_EINVARG;
     }
     //Sleep in semaphore
@@ -86,7 +89,8 @@ int sem_wait(sem_t *sem,unsigned long timeout)
         current_task->sem = sem;
         printk("SemWait: Add task %08x to sem\n",current_task);
     }
-    sched_unlock_interrupt(sem->intmask);
+    if(sem & sem->intmask) interrupt_umask(sem->intmask);
+    sched_unlock();
     sched_yield();
     printk("SemWait: task %08x after wakeup reason %d\n",current_task,sem->sem_ret);
     return sem->sem_ret;
@@ -102,14 +106,14 @@ int __sem_signal(sem_t *sem,bool isr)
         printk("SemSignal: No sem\n");
         return ISIX_EINVARG;
     }
-    if(isr==true) sched_lock();
-    else sched_lock_interrupt(sem->intmask);
+    sched_lock();
+    if(isr==false && sem->intmask) interrupt_mask(sem->intmask);
     if(list_isempty(&sem->sem_task)==true)
     {
         sem->value++;
         printk("SemSignal: Waiting list is empty incval to %d\n",sem->value);
-        if(isr==true) sched_unlock();
-        else sched_unlock_interrupt(sem->intmask);
+        if(isr==false && sem->intmask) interrupt_umask(sem->intmask);
+        sched_unlock();
         return ISIX_EOK;
     }
     //List is not empty wakeup high priority task
@@ -129,25 +133,26 @@ int __sem_signal(sem_t *sem,bool isr)
     current_task->sem = NULL;
     if(add_task_to_ready_list(task_wake)<0)
     {
-        if(isr==true) sched_unlock();
-        else sched_unlock_interrupt(sem->intmask);
+        if(isr==false && sem->intmask) interrupt_umask(sem->intmask);
+        sched_unlock();
         return ISIX_ENOMEM;
     }
     if(task_wake->prio<current_task->prio && !isr)
     {
         printk("SemSignal: Yield processor higer prio\n");
-        if(isr==true) sched_unlock();
-        else sched_unlock_interrupt(sem->intmask);
+        if(isr==false && sem->intmask) interrupt_umask(sem->intmask);
+        sched_unlock();
         sched_yield();
         return ISIX_EOK;
     }
     else
     {
-        if(isr==true) sched_unlock();
-        else sched_unlock_interrupt(sem->intmask);
+        if(isr==false && sem->intmask) interrupt_umask(sem->intmask);
+        sched_unlock();
         return ISIX_EOK;
     }
 }
+
 /*--------------------------------------------------------------*/
 //Get semaphore from isr
 int sem_get_isr(sem_t *sem)
@@ -170,14 +175,17 @@ int sem_setval(sem_t *sem,int val)
 {
     if(!sem) return ISIX_EINVARG;
     //Semaphore is used
-    sched_lock_interrupt(sem->intmask);
+    sched_lock();
+    if(sem->intmask) interrupt_mask(sem->intmask);
     if(list_isempty(&sem->sem_task)==false)
     {
-        sched_unlock_interrupt(sem->intmask);
+        if(sem->intmask) interrupt_umask(sem->intmask);
+        sched_unlock();
         return ISIX_EBUSY;
     }
     sem->value = val;
-    sched_unlock_interrupt(sem->intmask);
+    if(sem->intmask) interrupt_umask(sem->intmask);
+    sched_unlock();
     return ISIX_EOK;
 }
 

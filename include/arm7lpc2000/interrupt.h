@@ -39,6 +39,18 @@ reg_t fiq_enable(void);
 reg_t fiq_restore(reg_t old_cpsr);
 
 /*-----------------------------------------------------------------------*/
+//Disable all interrupts
+reg_t fiqirq_disable(void);
+
+/*-----------------------------------------------------------------------*/
+//Enable all interrupts
+reg_t fiqirq_enable(void);
+
+/*-----------------------------------------------------------------------*/
+//Restore all interrupts
+reg_t fiqirq_restore(reg_t old_cpsr);
+
+/*-----------------------------------------------------------------------*/
 /* Register irq interrupt
  * int_num - Interrupt number
  * prio - Interrupt priority 
@@ -55,14 +67,18 @@ int interrupt_register_fiq(u8 int_num);
 //Mask selected interrupt
 static inline void interrupt_mask(unsigned long mask)
 {
+    reg_t cpsr = fiqirq_disable();
     VICIntEnable = mask;
+    fiqirq_restore(cpsr);
 }
 
 /*-----------------------------------------------------------------------*/
 // Unmask selected interrupt
 static inline void interrupt_umask(unsigned long mask)
 {
-   VICIntEnClr = mask;
+    reg_t cpsr = fiqirq_disable();
+    VICIntEnClr = mask;
+    fiqirq_restore(cpsr);
 }
 
 /*-----------------------------------------------------------------------*/

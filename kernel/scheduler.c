@@ -57,27 +57,24 @@ volatile u64 jiffies;
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler
-int sched_lock_interrupt(unsigned long mask)
+void sched_lock(void)
 {
     reg_t irq_s = irq_disable();
-    if(mask) interrupt_mask(mask);
     sched_lock_counter++;
     irq_restore(irq_s);
     //printk("SchedLock: %d\n",sched_lock_counter);
-    return sched_lock_counter;
 }
 
 /*-----------------------------------------------------------------------*/
 //Unlock scheduler
-int sched_unlock_interrupt(unsigned long mask)
+void sched_unlock(void)
 {
     reg_t irq_s = irq_disable();
-    if(mask) interrupt_umask(mask);
     if(sched_lock_counter>0) sched_lock_counter--;
     irq_restore(irq_s);
     //printk("SchedUnlock: %d\n",sched_lock_counter);
-    return sched_lock_counter;
 }
+
 /*-----------------------------------------------------------------------*/
 //Scheduler is called in switch context
 void schedule(void)

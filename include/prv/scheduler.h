@@ -65,12 +65,12 @@ void schedule_time(void);
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler and disable selected interrupt
-int sched_lock_interrupt(unsigned long mask);
-#define sched_lock() sched_lock_interrupt(0)
+void sched_lock(void);
+
 /*-----------------------------------------------------------------------*/
 //Lock scheduler and reenable selected interrupt;
-int sched_unlock_interrupt(unsigned long mask);
-#define sched_unlock() sched_unlock_interrupt(0)
+void sched_unlock(void);
+
 /*-----------------------------------------------------------------------*/
 //Add selected task to waiting list
 void add_task_to_waiting_list(struct task_struct *task);

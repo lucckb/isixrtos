@@ -98,6 +98,34 @@ reg_t fiq_restore(reg_t old_cpsr)
 }
 
 /*-----------------------------------------------------------------------*/
+//Disable all interrupts
+reg_t fiqirq_disable(void)
+{
+    reg_t cpsr;
+	cpsr = get_cpsr();
+	set_cpsr(cpsr | FIQ_MASK | IRQ_MASK);
+	return cpsr;
+}
+/*-----------------------------------------------------------------------*/
+//Enable all interrupts
+reg_t fiqirq_enable(void)
+{
+    reg_t cpsr;
+	cpsr = get_cpsr();
+	set_cpsr(cpsr & ~(FIQ_MASK|IRQ_MASK));
+	return cpsr;
+}
+/*-----------------------------------------------------------------------*/
+//Restore all interrupts
+reg_t fiqirq_restore(reg_t old_cpsr)
+{
+    reg_t cpsr;
+	cpsr = get_cpsr();
+	set_cpsr( (cpsr & ~(FIQ_MASK|IRQ_MASK)) | (old_cpsr & (FIQ_MASK|IRQ_MASK)) );
+	return cpsr;
+}
+
+/*-----------------------------------------------------------------------*/
 //Register irq interrupt
 int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
 {
