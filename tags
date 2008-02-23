@@ -1,0 +1,1480 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.7	//
+ABT_MODE	include/prv/arm7lpc2000/ptrace.h	14;"	d
+ABT_MODE	include/prv/asm/ptrace.h	14;"	d
+ABT_Stack_Size	arch/arm7lpc2000/boot/boot.S	/^#define ABT_Stack_Size 		0x00000080$/;"	d
+AD0CR	include/arm7lpc2000/lpc214x.h	284;"	d
+AD0CR	include/asm/lpc214x.h	284;"	d
+AD0DR0	include/arm7lpc2000/lpc214x.h	288;"	d
+AD0DR0	include/asm/lpc214x.h	288;"	d
+AD0DR1	include/arm7lpc2000/lpc214x.h	289;"	d
+AD0DR1	include/asm/lpc214x.h	289;"	d
+AD0DR2	include/arm7lpc2000/lpc214x.h	290;"	d
+AD0DR2	include/asm/lpc214x.h	290;"	d
+AD0DR3	include/arm7lpc2000/lpc214x.h	291;"	d
+AD0DR3	include/asm/lpc214x.h	291;"	d
+AD0DR4	include/arm7lpc2000/lpc214x.h	292;"	d
+AD0DR4	include/asm/lpc214x.h	292;"	d
+AD0DR5	include/arm7lpc2000/lpc214x.h	293;"	d
+AD0DR5	include/asm/lpc214x.h	293;"	d
+AD0DR6	include/arm7lpc2000/lpc214x.h	294;"	d
+AD0DR6	include/asm/lpc214x.h	294;"	d
+AD0DR7	include/arm7lpc2000/lpc214x.h	295;"	d
+AD0DR7	include/asm/lpc214x.h	295;"	d
+AD0GDR	include/arm7lpc2000/lpc214x.h	285;"	d
+AD0GDR	include/asm/lpc214x.h	285;"	d
+AD0INTEN	include/arm7lpc2000/lpc214x.h	287;"	d
+AD0INTEN	include/asm/lpc214x.h	287;"	d
+AD0STAT	include/arm7lpc2000/lpc214x.h	286;"	d
+AD0STAT	include/asm/lpc214x.h	286;"	d
+AD1CR	include/arm7lpc2000/lpc214x.h	298;"	d
+AD1CR	include/asm/lpc214x.h	298;"	d
+AD1DR0	include/arm7lpc2000/lpc214x.h	302;"	d
+AD1DR0	include/asm/lpc214x.h	302;"	d
+AD1DR1	include/arm7lpc2000/lpc214x.h	303;"	d
+AD1DR1	include/asm/lpc214x.h	303;"	d
+AD1DR2	include/arm7lpc2000/lpc214x.h	304;"	d
+AD1DR2	include/asm/lpc214x.h	304;"	d
+AD1DR3	include/arm7lpc2000/lpc214x.h	305;"	d
+AD1DR3	include/asm/lpc214x.h	305;"	d
+AD1DR4	include/arm7lpc2000/lpc214x.h	306;"	d
+AD1DR4	include/asm/lpc214x.h	306;"	d
+AD1DR5	include/arm7lpc2000/lpc214x.h	307;"	d
+AD1DR5	include/asm/lpc214x.h	307;"	d
+AD1DR6	include/arm7lpc2000/lpc214x.h	308;"	d
+AD1DR6	include/asm/lpc214x.h	308;"	d
+AD1DR7	include/arm7lpc2000/lpc214x.h	309;"	d
+AD1DR7	include/asm/lpc214x.h	309;"	d
+AD1GDR	include/arm7lpc2000/lpc214x.h	299;"	d
+AD1GDR	include/asm/lpc214x.h	299;"	d
+AD1INTEN	include/arm7lpc2000/lpc214x.h	301;"	d
+AD1INTEN	include/asm/lpc214x.h	301;"	d
+AD1STAT	include/arm7lpc2000/lpc214x.h	300;"	d
+AD1STAT	include/asm/lpc214x.h	300;"	d
+ADGSR	include/arm7lpc2000/lpc214x.h	312;"	d
+ADGSR	include/asm/lpc214x.h	312;"	d
+ALDOM	include/arm7lpc2000/lpc214x.h	275;"	d
+ALDOM	include/asm/lpc214x.h	275;"	d
+ALDOW	include/arm7lpc2000/lpc214x.h	276;"	d
+ALDOW	include/asm/lpc214x.h	276;"	d
+ALDOY	include/arm7lpc2000/lpc214x.h	277;"	d
+ALDOY	include/asm/lpc214x.h	277;"	d
+ALHOUR	include/arm7lpc2000/lpc214x.h	274;"	d
+ALHOUR	include/asm/lpc214x.h	274;"	d
+ALIGN_BYTES	kernel/memory.c	20;"	d	file:
+ALIGN_BYTES	kernel/task.c	23;"	d	file:
+ALIGN_MASK	kernel/memory.c	18;"	d	file:
+ALIGN_MASK	kernel/task.c	21;"	d	file:
+ALMIN	include/arm7lpc2000/lpc214x.h	273;"	d
+ALMIN	include/asm/lpc214x.h	273;"	d
+ALMON	include/arm7lpc2000/lpc214x.h	278;"	d
+ALMON	include/asm/lpc214x.h	278;"	d
+ALSEC	include/arm7lpc2000/lpc214x.h	272;"	d
+ALSEC	include/asm/lpc214x.h	272;"	d
+ALYEAR	include/arm7lpc2000/lpc214x.h	279;"	d
+ALYEAR	include/asm/lpc214x.h	279;"	d
+AMR	include/arm7lpc2000/lpc214x.h	260;"	d
+AMR	include/asm/lpc214x.h	260;"	d
+AR	Makefile	/^AR      = $(CROSS_COMPILE)-ar$/;"	m
+AR	apps/from_lib/lpc2148.mk	/^AR      = arm-elf-ar$/;"	m
+ARFLAGS	Makefile	/^ARFLAGS = rcs$/;"	m
+ARM_ORIG_r0	include/prv/arm7lpc2000/ptrace.h	52;"	d
+ARM_ORIG_r0	include/prv/asm/ptrace.h	52;"	d
+ARM_cpsr	include/prv/arm7lpc2000/ptrace.h	35;"	d
+ARM_cpsr	include/prv/asm/ptrace.h	35;"	d
+ARM_fp	include/prv/arm7lpc2000/ptrace.h	40;"	d
+ARM_fp	include/prv/asm/ptrace.h	40;"	d
+ARM_ip	include/prv/arm7lpc2000/ptrace.h	39;"	d
+ARM_ip	include/prv/asm/ptrace.h	39;"	d
+ARM_lr	include/prv/arm7lpc2000/ptrace.h	37;"	d
+ARM_lr	include/prv/asm/ptrace.h	37;"	d
+ARM_pc	include/prv/arm7lpc2000/ptrace.h	36;"	d
+ARM_pc	include/prv/asm/ptrace.h	36;"	d
+ARM_r0	include/prv/arm7lpc2000/ptrace.h	51;"	d
+ARM_r0	include/prv/asm/ptrace.h	51;"	d
+ARM_r1	include/prv/arm7lpc2000/ptrace.h	50;"	d
+ARM_r1	include/prv/asm/ptrace.h	50;"	d
+ARM_r10	include/prv/arm7lpc2000/ptrace.h	41;"	d
+ARM_r10	include/prv/asm/ptrace.h	41;"	d
+ARM_r2	include/prv/arm7lpc2000/ptrace.h	49;"	d
+ARM_r2	include/prv/asm/ptrace.h	49;"	d
+ARM_r3	include/prv/arm7lpc2000/ptrace.h	48;"	d
+ARM_r3	include/prv/asm/ptrace.h	48;"	d
+ARM_r4	include/prv/arm7lpc2000/ptrace.h	47;"	d
+ARM_r4	include/prv/asm/ptrace.h	47;"	d
+ARM_r5	include/prv/arm7lpc2000/ptrace.h	46;"	d
+ARM_r5	include/prv/asm/ptrace.h	46;"	d
+ARM_r6	include/prv/arm7lpc2000/ptrace.h	45;"	d
+ARM_r6	include/prv/asm/ptrace.h	45;"	d
+ARM_r7	include/prv/arm7lpc2000/ptrace.h	44;"	d
+ARM_r7	include/prv/asm/ptrace.h	44;"	d
+ARM_r8	include/prv/arm7lpc2000/ptrace.h	43;"	d
+ARM_r8	include/prv/asm/ptrace.h	43;"	d
+ARM_r9	include/prv/arm7lpc2000/ptrace.h	42;"	d
+ARM_r9	include/prv/asm/ptrace.h	42;"	d
+ARM_sp	include/prv/arm7lpc2000/ptrace.h	38;"	d
+ARM_sp	include/prv/asm/ptrace.h	38;"	d
+ASLST	apps/from_lib/lpc2148.mk	/^ASLST = -Wa,-adhlns=$(<:.S=.lst)$/;"	m
+ASRC	apps/from_lib/lpc2148.mk	/^ASRC = $(wildcard *.S)$/;"	m
+BCFG0_OFS	arch/arm7lpc2000/boot/boot.S	/^#define BCFG0_OFS		0x00        \/* BCFG0 Offset *\/$/;"	d
+BCFG0_SETUP	arch/arm7lpc2000/boot/boot.S	/^#define BCFG0_SETUP$/;"	d
+BCFG0_Val	arch/arm7lpc2000/boot/boot.S	/^#define BCFG0_Val		0x0000FBEF$/;"	d
+BCFG1_OFS	arch/arm7lpc2000/boot/boot.S	/^#define BCFG1_OFS		0x04        \/* BCFG1 Offset *\/$/;"	d
+BCFG1_SETUP	arch/arm7lpc2000/boot/boot.S	/^#define BCFG1_SETUP$/;"	d
+BCFG1_Val	arch/arm7lpc2000/boot/boot.S	/^#define BCFG1_Val		0x0000FBEF$/;"	d
+BCFG2_OFS	arch/arm7lpc2000/boot/boot.S	/^#define BCFG2_OFS		0x08        \/* BCFG2 Offset *\/$/;"	d
+BCFG2_SETUP	arch/arm7lpc2000/boot/boot.S	/^#define BCFG2_SETUP$/;"	d
+BCFG2_Val	arch/arm7lpc2000/boot/boot.S	/^#define BCFG2_Val		0x0000FBEF$/;"	d
+BCFG3_OFS	arch/arm7lpc2000/boot/boot.S	/^#define BCFG3_OFS		0x0C        \/* BCFG3 Offset *\/$/;"	d
+BCFG3_SETUP	arch/arm7lpc2000/boot/boot.S	/^#define BCFG3_SETUP$/;"	d
+BCFG3_Val	arch/arm7lpc2000/boot/boot.S	/^#define BCFG3_Val		0x0000FBEF$/;"	d
+CC	Makefile	/^CC      = $(CROSS_COMPILE)-gcc$/;"	m
+CC	apps/from_lib/lpc2148.mk	/^CC      = arm-elf-gcc$/;"	m
+CCR	include/arm7lpc2000/lpc214x.h	258;"	d
+CCR	include/asm/lpc214x.h	258;"	d
+CCR_CLKEN	arch/arm7lpc2000/kernel/rtc.c	13;"	d	file:
+CCR_CTCRST	arch/arm7lpc2000/kernel/rtc.c	12;"	d	file:
+CCR_EXTOSC	arch/arm7lpc2000/kernel/rtc.c	14;"	d	file:
+CC_C_BIT	include/prv/arm7lpc2000/ptrace.h	22;"	d
+CC_C_BIT	include/prv/asm/ptrace.h	22;"	d
+CC_N_BIT	include/prv/arm7lpc2000/ptrace.h	24;"	d
+CC_N_BIT	include/prv/asm/ptrace.h	24;"	d
+CC_V_BIT	include/prv/arm7lpc2000/ptrace.h	21;"	d
+CC_V_BIT	include/prv/asm/ptrace.h	21;"	d
+CC_Z_BIT	include/prv/arm7lpc2000/ptrace.h	23;"	d
+CC_Z_BIT	include/prv/asm/ptrace.h	23;"	d
+CIIR	include/arm7lpc2000/lpc214x.h	259;"	d
+CIIR	include/asm/lpc214x.h	259;"	d
+CLST	apps/from_lib/lpc2148.mk	/^CLST = -Wa,-adhlns=$(<:.c=.lst)$/;"	m
+COMMON_FLAGS	apps/from_lib/Makefile	/^COMMON_FLAGS = -Wall $/;"	m
+CONFIG_ARM7LPC2000	include/isix/isix_config.h	2;"	d
+CONFIG_HZ	include/isix/isix_config.h	17;"	d
+CONFIG_MCLK	include/isix/isix_config.h	8;"	d
+CONFIG_PCLK	include/isix/isix_config.h	5;"	d
+CONFIG_STACK_GROWTH	include/isix/isix_config.h	11;"	d
+CONFIG_USE_PREEMPTION	include/isix/isix_config.h	14;"	d
+CONVTARGET	apps/from_lib/lpc2148.mk	/^	CONVTARGET = $(TARGET).$(FORMAT)$/;"	m
+CP	Makefile	/^CP      = $(CROSS_COMPILE)-objcopy$/;"	m
+CP	apps/from_lib/lpc2148.mk	/^CP      = arm-elf-objcopy$/;"	m
+CPFLAGS	Makefile	/^CPFLAGS =  -O $(FORMAT) -S$/;"	m
+CPFLAGS	apps/from_lib/lpc2148.mk	/^CPFLAGS =  -S$/;"	m
+CPPLST	apps/from_lib/lpc2148.mk	/^CPPLST = -Wa,-adhlns=$(<:.cpp=.lst)$/;"	m
+CPPSRC	apps/from_lib/lpc2148.mk	/^CPPSRC = $(wildcard *.cpp)$/;"	m
+CROSS_COMPILE	Makefile	/^CROSS_COMPILE ?= arm-elf$/;"	m
+CSPR	include/arm7lpc2000/lpc214x.h	125;"	d
+CSPR	include/asm/lpc214x.h	125;"	d
+CTC	include/arm7lpc2000/lpc214x.h	257;"	d
+CTC	include/asm/lpc214x.h	257;"	d
+CTIME0	include/arm7lpc2000/lpc214x.h	261;"	d
+CTIME0	include/asm/lpc214x.h	261;"	d
+CTIME1	include/arm7lpc2000/lpc214x.h	262;"	d
+CTIME1	include/asm/lpc214x.h	262;"	d
+CTIME2	include/arm7lpc2000/lpc214x.h	263;"	d
+CTIME2	include/asm/lpc214x.h	263;"	d
+CXX	apps/from_lib/lpc2148.mk	/^CXX	= arm-elf-c++$/;"	m
+DACR	include/arm7lpc2000/lpc214x.h	315;"	d
+DACR	include/asm/lpc214x.h	315;"	d
+DAbt_Addr	arch/arm7lpc2000/boot/boot.S	/^DAbt_Addr:      .word   DAbt_Handler$/;"	l
+DAbt_Handler	arch/arm7lpc2000/boot/boot.S	/^DAbt_Handler:$/;"	l
+DEBUG	Makefile	/^DEBUG 	= y$/;"	m
+DEBUG	apps/from_lib/Makefile	/^DEBUG = y$/;"	m
+DEBUG_SCHEDULER	arch/arm7lpc2000/kernel/scheduler.c	33;"	d	file:
+DOM	include/arm7lpc2000/lpc214x.h	267;"	d
+DOM	include/asm/lpc214x.h	267;"	d
+DOW	include/arm7lpc2000/lpc214x.h	268;"	d
+DOW	include/asm/lpc214x.h	268;"	d
+DOY	include/arm7lpc2000/lpc214x.h	269;"	d
+DOY	include/asm/lpc214x.h	269;"	d
+EINT1_SEL	apps/from_lib/test2.c	66;"	d	file:
+EINT1_SEL	apps/isixtest/test.c	59;"	d	file:
+EINT1_SEL	apps/isixtest/test2.c	66;"	d	file:
+EMC_BASE	arch/arm7lpc2000/boot/boot.S	/^#define EMC_BASE		0xFFE00000  \/* EMC Base Address *\/$/;"	d
+EXTERNAL_MODE	arch/arm7lpc2000/boot/boot.S	/^#define EXTERNAL_MODE$/;"	d
+EXTINT	include/arm7lpc2000/lpc214x.h	116;"	d
+EXTINT	include/asm/lpc214x.h	116;"	d
+EXTMODE	include/arm7lpc2000/lpc214x.h	118;"	d
+EXTMODE	include/asm/lpc214x.h	118;"	d
+EXTPOLAR	include/arm7lpc2000/lpc214x.h	119;"	d
+EXTPOLAR	include/asm/lpc214x.h	119;"	d
+FIO0CLR	include/arm7lpc2000/lpc214x.h	84;"	d
+FIO0CLR	include/asm/lpc214x.h	84;"	d
+FIO0DIR	include/arm7lpc2000/lpc214x.h	80;"	d
+FIO0DIR	include/asm/lpc214x.h	80;"	d
+FIO0MASK	include/arm7lpc2000/lpc214x.h	81;"	d
+FIO0MASK	include/asm/lpc214x.h	81;"	d
+FIO0PIN	include/arm7lpc2000/lpc214x.h	82;"	d
+FIO0PIN	include/asm/lpc214x.h	82;"	d
+FIO0SET	include/arm7lpc2000/lpc214x.h	83;"	d
+FIO0SET	include/asm/lpc214x.h	83;"	d
+FIO1CLR	include/arm7lpc2000/lpc214x.h	89;"	d
+FIO1CLR	include/asm/lpc214x.h	89;"	d
+FIO1DIR	include/arm7lpc2000/lpc214x.h	85;"	d
+FIO1DIR	include/asm/lpc214x.h	85;"	d
+FIO1MASK	include/arm7lpc2000/lpc214x.h	86;"	d
+FIO1MASK	include/asm/lpc214x.h	86;"	d
+FIO1PIN	include/arm7lpc2000/lpc214x.h	87;"	d
+FIO1PIN	include/asm/lpc214x.h	87;"	d
+FIO1SET	include/arm7lpc2000/lpc214x.h	88;"	d
+FIO1SET	include/asm/lpc214x.h	88;"	d
+FIQ26_MODE	include/prv/arm7lpc2000/ptrace.h	7;"	d
+FIQ26_MODE	include/prv/asm/ptrace.h	7;"	d
+FIQ_Addr	arch/arm7lpc2000/boot/boot.S	/^FIQ_Addr:       .word   FIQ_Handler$/;"	l
+FIQ_Handler	arch/arm7lpc2000/boot/boot.S	/^FIQ_Handler: $/;"	l
+FIQ_MASK	arch/arm7lpc2000/kernel/interrupt.c	16;"	d	file:
+FIQ_MODE	include/prv/arm7lpc2000/ptrace.h	11;"	d
+FIQ_MODE	include/prv/asm/ptrace.h	11;"	d
+FIQ_Stack_Size	arch/arm7lpc2000/boot/boot.S	/^#define FIQ_Stack_Size		0x00000004$/;"	d
+FORMAT	Makefile	/^FORMAT	= ihex$/;"	m
+FORMAT	apps/from_lib/Makefile	/^FORMAT	= hex$/;"	m
+F_BIT	include/prv/arm7lpc2000/ptrace.h	19;"	d
+F_BIT	include/prv/asm/ptrace.h	19;"	d
+F_Bit	arch/arm7lpc2000/boot/boot.S	/^#define F_Bit          0x40    \/* when F bit is set, FIQ is disabled *\/$/;"	d
+HOUR	include/arm7lpc2000/lpc214x.h	266;"	d
+HOUR	include/asm/lpc214x.h	266;"	d
+HZ	include/isix/scheduler.h	27;"	d
+I2C0ADR	include/arm7lpc2000/lpc214x.h	223;"	d
+I2C0ADR	include/asm/lpc214x.h	223;"	d
+I2C0CONCLR	include/arm7lpc2000/lpc214x.h	226;"	d
+I2C0CONCLR	include/asm/lpc214x.h	226;"	d
+I2C0CONSET	include/arm7lpc2000/lpc214x.h	220;"	d
+I2C0CONSET	include/asm/lpc214x.h	220;"	d
+I2C0DAT	include/arm7lpc2000/lpc214x.h	222;"	d
+I2C0DAT	include/asm/lpc214x.h	222;"	d
+I2C0SCLH	include/arm7lpc2000/lpc214x.h	224;"	d
+I2C0SCLH	include/asm/lpc214x.h	224;"	d
+I2C0SCLL	include/arm7lpc2000/lpc214x.h	225;"	d
+I2C0SCLL	include/asm/lpc214x.h	225;"	d
+I2C0STAT	include/arm7lpc2000/lpc214x.h	221;"	d
+I2C0STAT	include/asm/lpc214x.h	221;"	d
+I2C1ADR	include/arm7lpc2000/lpc214x.h	232;"	d
+I2C1ADR	include/asm/lpc214x.h	232;"	d
+I2C1CONCLR	include/arm7lpc2000/lpc214x.h	235;"	d
+I2C1CONCLR	include/asm/lpc214x.h	235;"	d
+I2C1CONSET	include/arm7lpc2000/lpc214x.h	229;"	d
+I2C1CONSET	include/asm/lpc214x.h	229;"	d
+I2C1DAT	include/arm7lpc2000/lpc214x.h	231;"	d
+I2C1DAT	include/asm/lpc214x.h	231;"	d
+I2C1SCLH	include/arm7lpc2000/lpc214x.h	233;"	d
+I2C1SCLH	include/asm/lpc214x.h	233;"	d
+I2C1SCLL	include/arm7lpc2000/lpc214x.h	234;"	d
+I2C1SCLL	include/asm/lpc214x.h	234;"	d
+I2C1STAT	include/arm7lpc2000/lpc214x.h	230;"	d
+I2C1STAT	include/asm/lpc214x.h	230;"	d
+ILR	include/arm7lpc2000/lpc214x.h	256;"	d
+ILR	include/asm/lpc214x.h	256;"	d
+INITIAL_SPSR	arch/arm7lpc2000/kernel/scheduler.c	11;"	d	file:
+INTERRUPT_FIQ_PROC	include/arm7lpc2000/interrupt.h	97;"	d
+INTERRUPT_FIQ_PROC	include/asm/interrupt.h	97;"	d
+INTERRUPT_NUM_ADC0	include/arm7lpc2000/lpc214x_vic.h	29;"	d
+INTERRUPT_NUM_ADC0	include/asm/lpc214x_vic.h	29;"	d
+INTERRUPT_NUM_ADC1	include/arm7lpc2000/lpc214x_vic.h	32;"	d
+INTERRUPT_NUM_ADC1	include/asm/lpc214x_vic.h	32;"	d
+INTERRUPT_NUM_BOD	include/arm7lpc2000/lpc214x_vic.h	31;"	d
+INTERRUPT_NUM_BOD	include/asm/lpc214x_vic.h	31;"	d
+INTERRUPT_NUM_EINT0	include/arm7lpc2000/lpc214x_vic.h	25;"	d
+INTERRUPT_NUM_EINT0	include/asm/lpc214x_vic.h	25;"	d
+INTERRUPT_NUM_EINT1	include/arm7lpc2000/lpc214x_vic.h	26;"	d
+INTERRUPT_NUM_EINT1	include/asm/lpc214x_vic.h	26;"	d
+INTERRUPT_NUM_EINT2	include/arm7lpc2000/lpc214x_vic.h	27;"	d
+INTERRUPT_NUM_EINT2	include/asm/lpc214x_vic.h	27;"	d
+INTERRUPT_NUM_EINT3	include/arm7lpc2000/lpc214x_vic.h	28;"	d
+INTERRUPT_NUM_EINT3	include/asm/lpc214x_vic.h	28;"	d
+INTERRUPT_NUM_I2C0	include/arm7lpc2000/lpc214x_vic.h	20;"	d
+INTERRUPT_NUM_I2C0	include/asm/lpc214x_vic.h	20;"	d
+INTERRUPT_NUM_I2C1	include/arm7lpc2000/lpc214x_vic.h	30;"	d
+INTERRUPT_NUM_I2C1	include/asm/lpc214x_vic.h	30;"	d
+INTERRUPT_NUM_ICERX	include/arm7lpc2000/lpc214x_vic.h	13;"	d
+INTERRUPT_NUM_ICERX	include/asm/lpc214x_vic.h	13;"	d
+INTERRUPT_NUM_ICETX	include/arm7lpc2000/lpc214x_vic.h	14;"	d
+INTERRUPT_NUM_ICETX	include/asm/lpc214x_vic.h	14;"	d
+INTERRUPT_NUM_PLL	include/arm7lpc2000/lpc214x_vic.h	23;"	d
+INTERRUPT_NUM_PLL	include/asm/lpc214x_vic.h	23;"	d
+INTERRUPT_NUM_PWM0	include/arm7lpc2000/lpc214x_vic.h	19;"	d
+INTERRUPT_NUM_PWM0	include/asm/lpc214x_vic.h	19;"	d
+INTERRUPT_NUM_RTC	include/arm7lpc2000/lpc214x_vic.h	24;"	d
+INTERRUPT_NUM_RTC	include/asm/lpc214x_vic.h	24;"	d
+INTERRUPT_NUM_SPI0	include/arm7lpc2000/lpc214x_vic.h	21;"	d
+INTERRUPT_NUM_SPI0	include/asm/lpc214x_vic.h	21;"	d
+INTERRUPT_NUM_SPI1	include/arm7lpc2000/lpc214x_vic.h	22;"	d
+INTERRUPT_NUM_SPI1	include/asm/lpc214x_vic.h	22;"	d
+INTERRUPT_NUM_TIMER0	include/arm7lpc2000/lpc214x_vic.h	15;"	d
+INTERRUPT_NUM_TIMER0	include/asm/lpc214x_vic.h	15;"	d
+INTERRUPT_NUM_TIMER1	include/arm7lpc2000/lpc214x_vic.h	16;"	d
+INTERRUPT_NUM_TIMER1	include/asm/lpc214x_vic.h	16;"	d
+INTERRUPT_NUM_UART0	include/arm7lpc2000/lpc214x_vic.h	17;"	d
+INTERRUPT_NUM_UART0	include/asm/lpc214x_vic.h	17;"	d
+INTERRUPT_NUM_UART1	include/arm7lpc2000/lpc214x_vic.h	18;"	d
+INTERRUPT_NUM_UART1	include/asm/lpc214x_vic.h	18;"	d
+INTERRUPT_NUM_USB	include/arm7lpc2000/lpc214x_vic.h	33;"	d
+INTERRUPT_NUM_USB	include/asm/lpc214x_vic.h	33;"	d
+INTERRUPT_NUM_WDT	include/arm7lpc2000/lpc214x_vic.h	12;"	d
+INTERRUPT_NUM_WDT	include/asm/lpc214x_vic.h	12;"	d
+INTERRUPT_PRIO	include/arm7lpc2000/lpc214x_vic.h	7;"	d
+INTERRUPT_PRIO	include/asm/lpc214x_vic.h	7;"	d
+INTERRUPT_PRIO_DEFAULT	include/arm7lpc2000/lpc214x_vic.h	6;"	d
+INTERRUPT_PRIO_DEFAULT	include/asm/lpc214x_vic.h	6;"	d
+INTERRUPT_PRIO_FIRST	include/arm7lpc2000/lpc214x_vic.h	8;"	d
+INTERRUPT_PRIO_FIRST	include/asm/lpc214x_vic.h	8;"	d
+INTERRUPT_PRIO_LAST	include/arm7lpc2000/lpc214x_vic.h	9;"	d
+INTERRUPT_PRIO_LAST	include/asm/lpc214x_vic.h	9;"	d
+INTERRUPT_PROC	apps/from_lib/test2.c	/^INTERRUPT_PROC(extint_isr)$/;"	f
+INTERRUPT_PROC	apps/isixtest/test.c	/^INTERRUPT_PROC(extint_isr)$/;"	f
+INTERRUPT_PROC	apps/isixtest/test2.c	/^INTERRUPT_PROC(extint_isr)$/;"	f
+INTERRUPT_PROC	arch/arm7lpc2000/kernel/scheduler.c	/^INTERRUPT_PROC(sys_timer_isr)$/;"	f
+INTERRUPT_PROC	include/arm7lpc2000/interrupt.h	91;"	d
+INTERRUPT_PROC	include/asm/interrupt.h	91;"	d
+INTWAKE	include/arm7lpc2000/lpc214x.h	117;"	d
+INTWAKE	include/asm/lpc214x.h	117;"	d
+INT_MASK	arch/arm7lpc2000/kernel/interrupt.c	17;"	d	file:
+IO0CLR	include/arm7lpc2000/lpc214x.h	75;"	d
+IO0CLR	include/asm/lpc214x.h	75;"	d
+IO0DIR	include/arm7lpc2000/lpc214x.h	74;"	d
+IO0DIR	include/asm/lpc214x.h	74;"	d
+IO0PIN	include/arm7lpc2000/lpc214x.h	72;"	d
+IO0PIN	include/asm/lpc214x.h	72;"	d
+IO0SET	include/arm7lpc2000/lpc214x.h	73;"	d
+IO0SET	include/asm/lpc214x.h	73;"	d
+IO1CLR	include/arm7lpc2000/lpc214x.h	79;"	d
+IO1CLR	include/asm/lpc214x.h	79;"	d
+IO1DIR	include/arm7lpc2000/lpc214x.h	78;"	d
+IO1DIR	include/asm/lpc214x.h	78;"	d
+IO1PIN	include/arm7lpc2000/lpc214x.h	76;"	d
+IO1PIN	include/asm/lpc214x.h	76;"	d
+IO1SET	include/arm7lpc2000/lpc214x.h	77;"	d
+IO1SET	include/asm/lpc214x.h	77;"	d
+IOCLR0	include/arm7lpc2000/lpc214x.h	67;"	d
+IOCLR0	include/asm/lpc214x.h	67;"	d
+IOCLR1	include/arm7lpc2000/lpc214x.h	71;"	d
+IOCLR1	include/asm/lpc214x.h	71;"	d
+IODIR0	include/arm7lpc2000/lpc214x.h	66;"	d
+IODIR0	include/asm/lpc214x.h	66;"	d
+IODIR1	include/arm7lpc2000/lpc214x.h	70;"	d
+IODIR1	include/asm/lpc214x.h	70;"	d
+IOPIN0	include/arm7lpc2000/lpc214x.h	64;"	d
+IOPIN0	include/asm/lpc214x.h	64;"	d
+IOPIN1	include/arm7lpc2000/lpc214x.h	68;"	d
+IOPIN1	include/asm/lpc214x.h	68;"	d
+IOSET0	include/arm7lpc2000/lpc214x.h	65;"	d
+IOSET0	include/asm/lpc214x.h	65;"	d
+IOSET1	include/arm7lpc2000/lpc214x.h	69;"	d
+IOSET1	include/asm/lpc214x.h	69;"	d
+IRQ26_MODE	include/prv/arm7lpc2000/ptrace.h	8;"	d
+IRQ26_MODE	include/prv/asm/ptrace.h	8;"	d
+IRQ_MASK	arch/arm7lpc2000/kernel/interrupt.c	15;"	d	file:
+IRQ_MODE	include/prv/arm7lpc2000/ptrace.h	12;"	d
+IRQ_MODE	include/prv/asm/ptrace.h	12;"	d
+IRQ_Stack_Size	arch/arm7lpc2000/boot/boot.S	/^#define IRQ_Stack_Size		0x00000100$/;"	d
+ISIX_DBG_OFF	include/isix/config.h	9;"	d
+ISIX_DBG_ON	include/isix/config.h	8;"	d
+ISIX_DEBUG_FIFO	include/isix/isix_config.h	21;"	d
+ISIX_DEBUG_FIFO	kernel/fifo.c	11;"	d	file:
+ISIX_DEBUG_MEMORY	include/isix/isix_config.h	22;"	d
+ISIX_DEBUG_MEMORY	kernel/memory.c	6;"	d	file:
+ISIX_DEBUG_SCHEDULER	include/isix/isix_config.h	20;"	d
+ISIX_DEBUG_SCHEDULER	kernel/scheduler.c	13;"	d	file:
+ISIX_DEBUG_SEMAPHORE	include/isix/isix_config.h	23;"	d
+ISIX_DEBUG_SEMAPHORE	kernel/semaphore.c	12;"	d	file:
+ISIX_DEBUG_TASK	include/isix/isix_config.h	24;"	d
+ISIX_DEBUG_TASK	kernel/task.c	9;"	d	file:
+ISIX_EBUSY	include/isix/error.h	16;"	d
+ISIX_EFIFOFULL	include/isix/error.h	14;"	d
+ISIX_EINVARG	include/isix/error.h	12;"	d
+ISIX_ENOMEM	include/isix/error.h	8;"	d
+ISIX_EOK	include/isix/error.h	6;"	d
+ISIX_ETIMEOUT	include/isix/error.h	10;"	d
+ISIX_INC	apps/from_lib/lpc2148.mk	/^ISIX_INC = ..\/..\/include$/;"	m
+ISIX_LIB	apps/from_lib/lpc2148.mk	/^ISIX_LIB = ..\/..\/$/;"	m
+ISP	Makefile	/^ISP = n$/;"	m
+ISPBAUD	Makefile	/^ISPBAUD = 19200$/;"	m
+ISPPORT	Makefile	/^ISPPORT = \/dev\/ttyUSB0$/;"	m
+ISPPROG	Makefile	/^ISPPROG  = lpc21isp$/;"	m
+ISPXTAL	Makefile	/^ISPXTAL = 12000$/;"	m
+I_BIT	include/prv/arm7lpc2000/ptrace.h	20;"	d
+I_BIT	include/prv/asm/ptrace.h	20;"	d
+I_Bit	arch/arm7lpc2000/boot/boot.S	/^#define I_Bit          0x80    \/* when I bit is set, IRQ is disabled *\/$/;"	d
+JTAGPROG	Makefile	/^JTAGPROG = openocd$/;"	m
+JTAGPROG	apps/from_lib/lpc2148.mk	/^JTAGPROG  = openocd$/;"	m
+LD	Makefile	/^LD      = $(CROSS_COMPILE)-ld$/;"	m
+LIBRARY	Makefile	/^LIBRARY = y$/;"	m
+LINKFILES	Makefile	/^LINKFILES =  kernel\/kernel.o arch\/arm7lpc2000\/kernel_arch.o $/;"	m
+LISTING	apps/from_lib/Makefile	/^LISTING = y$/;"	m
+LSCRIPT	apps/from_lib/lpc2148.mk	/^LSCRIPT = ..\/..\/arch\/arm7lpc2000\/boot\/$(SCRIPTLINK).ld$/;"	m
+LSSTARGET	apps/from_lib/lpc2148.mk	/^LSSTARGET = $(TARGET).lss$/;"	m
+LST	apps/from_lib/lpc2148.mk	/^LST = $(SRC:.c=.lst) $(CPPSRC:.cpp=.lst) $(ASRC:.S=.lst)$/;"	m
+LoopRel	arch/arm7lpc2000/boot/boot.S	/^LoopRel:        CMP     R2, R3$/;"	l
+LoopZI	arch/arm7lpc2000/boot/boot.S	/^LoopZI:         CMP     R1, R2$/;"	l
+MAMCR	include/arm7lpc2000/lpc214x.h	92;"	d
+MAMCR	include/asm/lpc214x.h	92;"	d
+MAMCR_OFS	arch/arm7lpc2000/boot/boot.S	/^#define MAMCR_OFS		0x00        \/* MAM Control Offset*\/$/;"	d
+MAMCR_Val	arch/arm7lpc2000/boot/boot.S	/^#define MAMCR_Val		0x00000002$/;"	d
+MAMTIM	include/arm7lpc2000/lpc214x.h	93;"	d
+MAMTIM	include/asm/lpc214x.h	93;"	d
+MAMTIM_OFS	arch/arm7lpc2000/boot/boot.S	/^#define MAMTIM_OFS     		0x04        \/* MAM Timing Offset *\/$/;"	d
+MAMTIM_Val	arch/arm7lpc2000/boot/boot.S	/^#define MAMTIM_Val		0x00000003$/;"	d
+MAM_BASE	arch/arm7lpc2000/boot/boot.S	/^#define MAM_BASE		0xE01FC000  \/* MAM Base Address *\/$/;"	d
+MAM_SETUP	arch/arm7lpc2000/boot/boot.S	/^#define MAM_SETUP$/;"	d
+MCU	Makefile	/^MCU	= arm7tdmi$/;"	m
+MCU	apps/from_lib/lpc2148.mk	/^MCU	= arm7tdmi-s$/;"	m
+MEMMAP	arch/arm7lpc2000/boot/boot.S	/^#define MEMMAP		0xE01FC040  \/* Memory Mapping Control *\/$/;"	d
+MEMMAP	include/arm7lpc2000/lpc214x.h	94;"	d
+MEMMAP	include/asm/lpc214x.h	94;"	d
+MIN	include/arm7lpc2000/lpc214x.h	265;"	d
+MIN	include/asm/lpc214x.h	265;"	d
+MODE_MASK	include/prv/arm7lpc2000/ptrace.h	17;"	d
+MODE_MASK	include/prv/asm/ptrace.h	17;"	d
+MONTH	include/arm7lpc2000/lpc214x.h	270;"	d
+MONTH	include/asm/lpc214x.h	270;"	d
+MR0_ADDVAL	arch/arm7lpc2000/kernel/scheduler.c	30;"	d	file:
+Mode_ABT	arch/arm7lpc2000/boot/boot.S	/^#define Mode_ABT       0x17$/;"	d
+Mode_FIQ	arch/arm7lpc2000/boot/boot.S	/^#define Mode_FIQ       0x11$/;"	d
+Mode_IRQ	arch/arm7lpc2000/boot/boot.S	/^#define Mode_IRQ       0x12$/;"	d
+Mode_SVC	arch/arm7lpc2000/boot/boot.S	/^#define Mode_SVC       0x13$/;"	d
+Mode_SYS	arch/arm7lpc2000/boot/boot.S	/^#define Mode_SYS       0x1F$/;"	d
+Mode_UND	arch/arm7lpc2000/boot/boot.S	/^#define Mode_UND       0x1B$/;"	d
+Mode_USR	arch/arm7lpc2000/boot/boot.S	/^#define Mode_USR       0x10$/;"	d
+NULL	include/isix/types.h	11;"	d
+OBJ	apps/from_lib/lpc2148.mk	/^OBJ = $(SRC:.c=.o) $(CPPSRC:.cpp=.o) $(ASRC:.S=.o)$/;"	m
+OBJ-y	apps/isixtest/Makefile	/^OBJ-y = test.o $/;"	m
+OBJ-y	arch/arm7lpc2000/boot/Makefile	/^OBJ-y = boot.o$/;"	m
+OBJ-y	arch/arm7lpc2000/kernel/Makefile	/^OBJ-y = scheduler.o interrupt.o rtc.o exceptions.o uart_early.o$/;"	m
+OBJ-y	kernel/Makefile	/^OBJ-y = printk.o scheduler.o memory.o task.o semaphore.o time.o fifo.o diag.o$/;"	m
+OBJDUMP	Makefile	/^OBJDUMP = $(CROSS_COMPILE)-objdump $/;"	m
+OBJDUMP	apps/from_lib/lpc2148.mk	/^OBJDUMP = arm-elf-objdump $/;"	m
+OBJ_LINK	apps/isixtest/Makefile	/^OBJ_LINK = $(OBJ-y)$/;"	m
+OBJ_LINK	arch/arm7lpc2000/Makefile	/^OBJ_LINK = $(OBJ_SUBDIR-y)$/;"	m
+OBJ_LINK	arch/arm7lpc2000/boot/Makefile	/^OBJ_LINK = $(OBJ-y)$/;"	m
+OBJ_LINK	arch/arm7lpc2000/kernel/Makefile	/^OBJ_LINK = $(OBJ-y)$/;"	m
+OBJ_LINK	kernel/Makefile	/^OBJ_LINK = $(OBJ-y)$/;"	m
+OBJ_SUBDIR-y	arch/arm7lpc2000/Makefile	/^OBJ_SUBDIR-y = boot\/boot_arch.o kernel\/kernel_arch.o$/;"	m
+OBJ_TARGET	apps/isixtest/Makefile	/^OBJ_TARGET = isixtest.o$/;"	m
+OBJ_TARGET	arch/arm7lpc2000/Makefile	/^OBJ_TARGET= kernel_arch.o$/;"	m
+OBJ_TARGET	arch/arm7lpc2000/boot/Makefile	/^OBJ_TARGET = boot_arch.o$/;"	m
+OBJ_TARGET	arch/arm7lpc2000/kernel/Makefile	/^OBJ_TARGET = kernel_arch.o$/;"	m
+OBJ_TARGET	kernel/Makefile	/^OBJ_TARGET = kernel.o$/;"	m
+OCDSCRIPT	apps/from_lib/lpc2148.mk	/^OCDSCRIPT=\/tmp\/openocd.script$/;"	m
+OPT	Makefile	/^OPT 	= s$/;"	m
+OPT	apps/from_lib/Makefile	/^OPT 	= s$/;"	m
+P014_SEL_MASK	apps/from_lib/test2.c	67;"	d	file:
+P014_SEL_MASK	apps/isixtest/test.c	60;"	d	file:
+P014_SEL_MASK	apps/isixtest/test2.c	67;"	d	file:
+PADDING	kernel/printk.c	30;"	d	file:
+PAbt_Addr	arch/arm7lpc2000/boot/boot.S	/^PAbt_Addr:      .word   PAbt_Handler$/;"	l
+PAbt_Handler	arch/arm7lpc2000/boot/boot.S	/^PAbt_Handler:$/;"	l
+PCMASK	include/prv/arm7lpc2000/ptrace.h	25;"	d
+PCMASK	include/prv/asm/ptrace.h	25;"	d
+PCON	include/arm7lpc2000/lpc214x.h	112;"	d
+PCON	include/asm/lpc214x.h	112;"	d
+PCONP	include/arm7lpc2000/lpc214x.h	113;"	d
+PCONP	include/asm/lpc214x.h	113;"	d
+PINSEL0	include/arm7lpc2000/lpc214x.h	59;"	d
+PINSEL0	include/asm/lpc214x.h	59;"	d
+PINSEL1	include/arm7lpc2000/lpc214x.h	60;"	d
+PINSEL1	include/asm/lpc214x.h	60;"	d
+PINSEL2	arch/arm7lpc2000/boot/boot.S	/^#define	PINSEL2		0xE002C014  \/* PINSEL2 Address *\/$/;"	d
+PINSEL2	include/arm7lpc2000/lpc214x.h	61;"	d
+PINSEL2	include/asm/lpc214x.h	61;"	d
+PINSEL2_Val	arch/arm7lpc2000/boot/boot.S	/^#define PINSEL2_Val	0x0E6149E4  $/;"	d
+PLL0CFG	include/arm7lpc2000/lpc214x.h	98;"	d
+PLL0CFG	include/asm/lpc214x.h	98;"	d
+PLL0CON	include/arm7lpc2000/lpc214x.h	97;"	d
+PLL0CON	include/asm/lpc214x.h	97;"	d
+PLL0FEED	include/arm7lpc2000/lpc214x.h	100;"	d
+PLL0FEED	include/asm/lpc214x.h	100;"	d
+PLL0STAT	include/arm7lpc2000/lpc214x.h	99;"	d
+PLL0STAT	include/asm/lpc214x.h	99;"	d
+PLL1CFG	include/arm7lpc2000/lpc214x.h	104;"	d
+PLL1CFG	include/asm/lpc214x.h	104;"	d
+PLL1CON	include/arm7lpc2000/lpc214x.h	103;"	d
+PLL1CON	include/asm/lpc214x.h	103;"	d
+PLL1FEED	include/arm7lpc2000/lpc214x.h	106;"	d
+PLL1FEED	include/asm/lpc214x.h	106;"	d
+PLL1STAT	include/arm7lpc2000/lpc214x.h	105;"	d
+PLL1STAT	include/asm/lpc214x.h	105;"	d
+PLLCFG_MSEL	arch/arm7lpc2000/boot/boot.S	/^#define PLLCFG_MSEL	    	(0x1F<<0)   \/* PLL Multiplier *\/$/;"	d
+PLLCFG_OFS	arch/arm7lpc2000/boot/boot.S	/^#define PLLCFG_OFS   		0x04        \/* PLL Configuration Offset *\/$/;"	d
+PLLCFG_PSEL	arch/arm7lpc2000/boot/boot.S	/^#define PLLCFG_PSEL		(0x03<<5)   \/* PLL Divider *\/$/;"	d
+PLLCFG_Val	arch/arm7lpc2000/boot/boot.S	/^#define PLLCFG_Val		0x00000024	$/;"	d
+PLLCON_OFS	arch/arm7lpc2000/boot/boot.S	/^#define PLLCON_OFS	     	0x00        \/* PLL Control Offset*\/$/;"	d
+PLLCON_PLLC	arch/arm7lpc2000/boot/boot.S	/^#define PLLCON_PLLC    		(1<<1)      \/* PLL Connect *\/$/;"	d
+PLLCON_PLLE	arch/arm7lpc2000/boot/boot.S	/^#define PLLCON_PLLE    		(1<<0)      \/* PLL Enable *\/$/;"	d
+PLLFEED_OFS	arch/arm7lpc2000/boot/boot.S	/^#define PLLFEED_OFS		0x0C        \/* PLL Feed Offset *\/$/;"	d
+PLLSTAT_OFS	arch/arm7lpc2000/boot/boot.S	/^#define PLLSTAT_OFS		0x08        \/* PLL Status Offset *\/$/;"	d
+PLLSTAT_PLOCK	arch/arm7lpc2000/boot/boot.S	/^#define PLLSTAT_PLOCK		(1<<10)     \/* PLL Lock Status *\/$/;"	d
+PLL_BASE	arch/arm7lpc2000/boot/boot.S	/^#define PLL_BASE 	        0xE01FC080  \/* PLL Base Address *\/$/;"	d
+PLL_Loop	arch/arm7lpc2000/boot/boot.S	/^PLL_Loop:       LDR     R3, [R0, #PLLSTAT_OFS]$/;"	l
+PLL_SETUP	arch/arm7lpc2000/boot/boot.S	/^#define PLL_SETUP$/;"	d
+PREFRAC	include/arm7lpc2000/lpc214x.h	281;"	d
+PREFRAC	include/asm/lpc214x.h	281;"	d
+PREINT	include/arm7lpc2000/lpc214x.h	280;"	d
+PREINT	include/asm/lpc214x.h	280;"	d
+PWMIR	include/arm7lpc2000/lpc214x.h	169;"	d
+PWMIR	include/asm/lpc214x.h	169;"	d
+PWMLER	include/arm7lpc2000/lpc214x.h	183;"	d
+PWMLER	include/asm/lpc214x.h	183;"	d
+PWMMCR	include/arm7lpc2000/lpc214x.h	174;"	d
+PWMMCR	include/asm/lpc214x.h	174;"	d
+PWMMR0	include/arm7lpc2000/lpc214x.h	175;"	d
+PWMMR0	include/asm/lpc214x.h	175;"	d
+PWMMR1	include/arm7lpc2000/lpc214x.h	176;"	d
+PWMMR1	include/asm/lpc214x.h	176;"	d
+PWMMR2	include/arm7lpc2000/lpc214x.h	177;"	d
+PWMMR2	include/asm/lpc214x.h	177;"	d
+PWMMR3	include/arm7lpc2000/lpc214x.h	178;"	d
+PWMMR3	include/asm/lpc214x.h	178;"	d
+PWMMR4	include/arm7lpc2000/lpc214x.h	179;"	d
+PWMMR4	include/asm/lpc214x.h	179;"	d
+PWMMR5	include/arm7lpc2000/lpc214x.h	180;"	d
+PWMMR5	include/asm/lpc214x.h	180;"	d
+PWMMR6	include/arm7lpc2000/lpc214x.h	181;"	d
+PWMMR6	include/asm/lpc214x.h	181;"	d
+PWMPC	include/arm7lpc2000/lpc214x.h	173;"	d
+PWMPC	include/asm/lpc214x.h	173;"	d
+PWMPCR	include/arm7lpc2000/lpc214x.h	182;"	d
+PWMPCR	include/asm/lpc214x.h	182;"	d
+PWMPR	include/arm7lpc2000/lpc214x.h	172;"	d
+PWMPR	include/asm/lpc214x.h	172;"	d
+PWMTC	include/arm7lpc2000/lpc214x.h	171;"	d
+PWMTC	include/asm/lpc214x.h	171;"	d
+PWMTCR	include/arm7lpc2000/lpc214x.h	170;"	d
+PWMTCR	include/asm/lpc214x.h	170;"	d
+RSID	include/arm7lpc2000/lpc214x.h	122;"	d
+RSID	include/asm/lpc214x.h	122;"	d
+RTC_PREFRAC	arch/arm7lpc2000/kernel/rtc.c	10;"	d	file:
+RTC_PREINT	arch/arm7lpc2000/kernel/rtc.c	8;"	d	file:
+RXD0_P01_SEL	arch/arm7lpc2000/kernel/uart_early.c	8;"	d	file:
+Reset_Addr	arch/arm7lpc2000/boot/boot.S	/^Reset_Addr:     .word   Reset_Handler$/;"	l
+Reset_Handler	arch/arm7lpc2000/boot/boot.S	/^Reset_Handler:  $/;"	l
+S0SPCCR	include/arm7lpc2000/lpc214x.h	241;"	d
+S0SPCCR	include/asm/lpc214x.h	241;"	d
+S0SPCR	include/arm7lpc2000/lpc214x.h	238;"	d
+S0SPCR	include/asm/lpc214x.h	238;"	d
+S0SPDR	include/arm7lpc2000/lpc214x.h	240;"	d
+S0SPDR	include/asm/lpc214x.h	240;"	d
+S0SPINT	include/arm7lpc2000/lpc214x.h	242;"	d
+S0SPINT	include/asm/lpc214x.h	242;"	d
+S0SPSR	include/arm7lpc2000/lpc214x.h	239;"	d
+S0SPSR	include/asm/lpc214x.h	239;"	d
+SCHED_IDLE_PRIORITY	include/isix/scheduler.h	10;"	d
+SCHED_MIN_STACK_DEPTH	include/arm7lpc2000/scheduler.h	7;"	d
+SCHED_MIN_STACK_DEPTH	include/asm/scheduler.h	7;"	d
+SCRATCH	kernel/printk.c	10;"	d	file:
+SCRATCH	kernel/printk.c	15;"	d	file:
+SCRIPTLINK	Makefile	/^SCRIPTLINK = arch\/arm7lpc2000\/boot\/lpc2148-rom$/;"	m
+SCRIPTLINK	apps/from_lib/lpc2148.mk	/^SCRIPTLINK = lpc2148-rom$/;"	m
+SCS	include/arm7lpc2000/lpc214x.h	128;"	d
+SCS	include/asm/lpc214x.h	128;"	d
+SEC	include/arm7lpc2000/lpc214x.h	264;"	d
+SEC	include/asm/lpc214x.h	264;"	d
+SRC	apps/from_lib/lpc2148.mk	/^SRC = $(wildcard *.c)$/;"	m
+SSPCPSR	include/arm7lpc2000/lpc214x.h	249;"	d
+SSPCPSR	include/asm/lpc214x.h	249;"	d
+SSPCR0	include/arm7lpc2000/lpc214x.h	245;"	d
+SSPCR0	include/asm/lpc214x.h	245;"	d
+SSPCR1	include/arm7lpc2000/lpc214x.h	246;"	d
+SSPCR1	include/asm/lpc214x.h	246;"	d
+SSPDR	include/arm7lpc2000/lpc214x.h	247;"	d
+SSPDR	include/asm/lpc214x.h	247;"	d
+SSPICR	include/arm7lpc2000/lpc214x.h	253;"	d
+SSPICR	include/asm/lpc214x.h	253;"	d
+SSPIMSC	include/arm7lpc2000/lpc214x.h	250;"	d
+SSPIMSC	include/asm/lpc214x.h	250;"	d
+SSPMIS	include/arm7lpc2000/lpc214x.h	252;"	d
+SSPMIS	include/asm/lpc214x.h	252;"	d
+SSPRIS	include/arm7lpc2000/lpc214x.h	251;"	d
+SSPRIS	include/asm/lpc214x.h	251;"	d
+SSPSR	include/arm7lpc2000/lpc214x.h	248;"	d
+SSPSR	include/asm/lpc214x.h	248;"	d
+SUBDIR-y	arch/arm7lpc2000/Makefile	/^SUBDIR-y = boot kernel$/;"	m
+SVC26_MODE	include/prv/arm7lpc2000/ptrace.h	9;"	d
+SVC26_MODE	include/prv/asm/ptrace.h	9;"	d
+SVC_MODE	include/prv/arm7lpc2000/ptrace.h	13;"	d
+SVC_MODE	include/prv/asm/ptrace.h	13;"	d
+SVC_Stack_Size	arch/arm7lpc2000/boot/boot.S	/^#define SVC_Stack_Size 		0x00000100$/;"	d
+SWI_Addr	arch/arm7lpc2000/boot/boot.S	/^SWI_Addr:       .word   cpu_swi_yield$/;"	l
+SYSTEM_MODE	include/prv/arm7lpc2000/ptrace.h	16;"	d
+SYSTEM_MODE	include/prv/asm/ptrace.h	16;"	d
+S_FP	arch/arm7lpc2000/boot/boot.S	/^#define S_FP		44$/;"	d
+S_FRAME_SIZE	arch/arm7lpc2000/boot/boot.S	/^#define S_FRAME_SIZE	72$/;"	d
+S_IP	arch/arm7lpc2000/boot/boot.S	/^#define S_IP		48$/;"	d
+S_LR	arch/arm7lpc2000/boot/boot.S	/^#define S_LR		56$/;"	d
+S_OLD_R0	arch/arm7lpc2000/boot/boot.S	/^#define S_OLD_R0	68$/;"	d
+S_PC	arch/arm7lpc2000/boot/boot.S	/^#define S_PC		60$/;"	d
+S_PSR	arch/arm7lpc2000/boot/boot.S	/^#define S_PSR		64$/;"	d
+S_R0	arch/arm7lpc2000/boot/boot.S	/^#define S_R0		0$/;"	d
+S_R1	arch/arm7lpc2000/boot/boot.S	/^#define S_R1		4$/;"	d
+S_R10	arch/arm7lpc2000/boot/boot.S	/^#define S_R10		40$/;"	d
+S_R2	arch/arm7lpc2000/boot/boot.S	/^#define S_R2		8$/;"	d
+S_R3	arch/arm7lpc2000/boot/boot.S	/^#define S_R3		12$/;"	d
+S_R4	arch/arm7lpc2000/boot/boot.S	/^#define S_R4		16$/;"	d
+S_R5	arch/arm7lpc2000/boot/boot.S	/^#define S_R5		20$/;"	d
+S_R6	arch/arm7lpc2000/boot/boot.S	/^#define S_R6		24$/;"	d
+S_R7	arch/arm7lpc2000/boot/boot.S	/^#define S_R7		28$/;"	d
+S_R8	arch/arm7lpc2000/boot/boot.S	/^#define S_R8		32$/;"	d
+S_R9	arch/arm7lpc2000/boot/boot.S	/^#define S_R9		36$/;"	d
+S_SP	arch/arm7lpc2000/boot/boot.S	/^#define S_SP		52$/;"	d
+T0CCR	include/arm7lpc2000/lpc214x.h	141;"	d
+T0CCR	include/asm/lpc214x.h	141;"	d
+T0CR0	include/arm7lpc2000/lpc214x.h	142;"	d
+T0CR0	include/asm/lpc214x.h	142;"	d
+T0CR1	include/arm7lpc2000/lpc214x.h	143;"	d
+T0CR1	include/asm/lpc214x.h	143;"	d
+T0CR2	include/arm7lpc2000/lpc214x.h	144;"	d
+T0CR2	include/asm/lpc214x.h	144;"	d
+T0CR3	include/arm7lpc2000/lpc214x.h	145;"	d
+T0CR3	include/asm/lpc214x.h	145;"	d
+T0CTCR	include/arm7lpc2000/lpc214x.h	147;"	d
+T0CTCR	include/asm/lpc214x.h	147;"	d
+T0EMR	include/arm7lpc2000/lpc214x.h	146;"	d
+T0EMR	include/asm/lpc214x.h	146;"	d
+T0IR	include/arm7lpc2000/lpc214x.h	131;"	d
+T0IR	include/asm/lpc214x.h	131;"	d
+T0IR_MR0	arch/arm7lpc2000/kernel/scheduler.c	22;"	d	file:
+T0IR_MR1	arch/arm7lpc2000/kernel/scheduler.c	23;"	d	file:
+T0IR_MR2	arch/arm7lpc2000/kernel/scheduler.c	24;"	d	file:
+T0IR_MR3	arch/arm7lpc2000/kernel/scheduler.c	25;"	d	file:
+T0MCR	include/arm7lpc2000/lpc214x.h	136;"	d
+T0MCR	include/asm/lpc214x.h	136;"	d
+T0MCR_INTERRUPT_ON_MR0	arch/arm7lpc2000/kernel/scheduler.c	14;"	d	file:
+T0MCR_INTERRUPT_ON_MR1	arch/arm7lpc2000/kernel/scheduler.c	15;"	d	file:
+T0MCR_INTERRUPT_ON_MR2	arch/arm7lpc2000/kernel/scheduler.c	16;"	d	file:
+T0MCR_INTERRUPT_ON_MR3	arch/arm7lpc2000/kernel/scheduler.c	17;"	d	file:
+T0MCR_RESET_ON_MR0	arch/arm7lpc2000/kernel/scheduler.c	19;"	d	file:
+T0MR0	include/arm7lpc2000/lpc214x.h	137;"	d
+T0MR0	include/asm/lpc214x.h	137;"	d
+T0MR1	include/arm7lpc2000/lpc214x.h	138;"	d
+T0MR1	include/asm/lpc214x.h	138;"	d
+T0MR2	include/arm7lpc2000/lpc214x.h	139;"	d
+T0MR2	include/asm/lpc214x.h	139;"	d
+T0MR3	include/arm7lpc2000/lpc214x.h	140;"	d
+T0MR3	include/asm/lpc214x.h	140;"	d
+T0PC	include/arm7lpc2000/lpc214x.h	135;"	d
+T0PC	include/asm/lpc214x.h	135;"	d
+T0PR	include/arm7lpc2000/lpc214x.h	134;"	d
+T0PR	include/asm/lpc214x.h	134;"	d
+T0TC	include/arm7lpc2000/lpc214x.h	133;"	d
+T0TC	include/asm/lpc214x.h	133;"	d
+T0TCR	include/arm7lpc2000/lpc214x.h	132;"	d
+T0TCR	include/asm/lpc214x.h	132;"	d
+T0TCR_COUNTER_ENABLE	arch/arm7lpc2000/kernel/scheduler.c	21;"	d	file:
+T0TCR_COUNTER_RESET	arch/arm7lpc2000/kernel/scheduler.c	20;"	d	file:
+T0_TICKS	arch/arm7lpc2000/kernel/scheduler.c	28;"	d	file:
+T1CCR	include/arm7lpc2000/lpc214x.h	160;"	d
+T1CCR	include/asm/lpc214x.h	160;"	d
+T1CR0	include/arm7lpc2000/lpc214x.h	161;"	d
+T1CR0	include/asm/lpc214x.h	161;"	d
+T1CR1	include/arm7lpc2000/lpc214x.h	162;"	d
+T1CR1	include/asm/lpc214x.h	162;"	d
+T1CR2	include/arm7lpc2000/lpc214x.h	163;"	d
+T1CR2	include/asm/lpc214x.h	163;"	d
+T1CR3	include/arm7lpc2000/lpc214x.h	164;"	d
+T1CR3	include/asm/lpc214x.h	164;"	d
+T1CTCR	include/arm7lpc2000/lpc214x.h	166;"	d
+T1CTCR	include/asm/lpc214x.h	166;"	d
+T1EMR	include/arm7lpc2000/lpc214x.h	165;"	d
+T1EMR	include/asm/lpc214x.h	165;"	d
+T1IR	include/arm7lpc2000/lpc214x.h	150;"	d
+T1IR	include/asm/lpc214x.h	150;"	d
+T1MCR	include/arm7lpc2000/lpc214x.h	155;"	d
+T1MCR	include/asm/lpc214x.h	155;"	d
+T1MR0	include/arm7lpc2000/lpc214x.h	156;"	d
+T1MR0	include/asm/lpc214x.h	156;"	d
+T1MR1	include/arm7lpc2000/lpc214x.h	157;"	d
+T1MR1	include/asm/lpc214x.h	157;"	d
+T1MR2	include/arm7lpc2000/lpc214x.h	158;"	d
+T1MR2	include/asm/lpc214x.h	158;"	d
+T1MR3	include/arm7lpc2000/lpc214x.h	159;"	d
+T1MR3	include/asm/lpc214x.h	159;"	d
+T1PC	include/arm7lpc2000/lpc214x.h	154;"	d
+T1PC	include/asm/lpc214x.h	154;"	d
+T1PR	include/arm7lpc2000/lpc214x.h	153;"	d
+T1PR	include/asm/lpc214x.h	153;"	d
+T1TC	include/arm7lpc2000/lpc214x.h	152;"	d
+T1TC	include/asm/lpc214x.h	152;"	d
+T1TCR	include/arm7lpc2000/lpc214x.h	151;"	d
+T1TCR	include/asm/lpc214x.h	151;"	d
+TARGET	Makefile	/^TARGET	   = isix$/;"	m
+TARGET	apps/from_lib/Makefile	/^TARGET	   = sem_test$/;"	m
+TASK_CURRENT	include/isix/task.h	7;"	d
+TASK_DEAD	include/prv/scheduler.h	25;"	d
+TASK_FUNC	apps/from_lib/test2.c	/^TASK_FUNC(fun_task,n)$/;"	f
+TASK_FUNC	apps/from_lib/test2.c	/^TASK_FUNC(wake_task,n)$/;"	f
+TASK_FUNC	apps/isixtest/test.c	/^TASK_FUNC(fun_task,n)$/;"	f
+TASK_FUNC	apps/isixtest/test.c	/^TASK_FUNC(wake_task,n)$/;"	f
+TASK_FUNC	apps/isixtest/test2.c	/^TASK_FUNC(fun_task,n)$/;"	f
+TASK_FUNC	apps/isixtest/test2.c	/^TASK_FUNC(wake_task,n)$/;"	f
+TASK_FUNC	apps/isixtest/test3.c	/^TASK_FUNC(simple_task,n)$/;"	f
+TASK_FUNC	apps/isixtest/test4.c	/^TASK_FUNC(simple_task,n)$/;"	f
+TASK_FUNC	apps/isixtest/test5.c	/^TASK_FUNC(simple_task,n)$/;"	f
+TASK_FUNC	apps/isixtest/test6.c	/^TASK_FUNC(simple_task,n)$/;"	f
+TASK_FUNC	include/isix/task.h	12;"	d
+TASK_FUNC	kernel/scheduler.c	/^TASK_FUNC(idle_task,p)$/;"	f
+TASK_READY	include/prv/scheduler.h	21;"	d
+TASK_RUNNING	include/prv/scheduler.h	24;"	d
+TASK_SLEEPING	include/prv/scheduler.h	22;"	d
+TASK_WAITING	include/prv/scheduler.h	23;"	d
+TMPSCRIPT	Makefile	/^TMPSCRIPT = \/tmp\/pgm.script$/;"	m
+TOP_DIR	Makefile	/^TOP_DIR= $(shell pwd)$/;"	m
+TXD0_P00_SEL	arch/arm7lpc2000/kernel/uart_early.c	7;"	d	file:
+T_BIT	include/prv/arm7lpc2000/ptrace.h	18;"	d
+T_BIT	include/prv/asm/ptrace.h	18;"	d
+Top_Stack	arch/arm7lpc2000/boot/boot.S	/^#define Top_Stack      		0x40008000$/;"	d
+U0ACR	include/arm7lpc2000/lpc214x.h	198;"	d
+U0ACR	include/asm/lpc214x.h	198;"	d
+U0DLL	include/arm7lpc2000/lpc214x.h	196;"	d
+U0DLL	include/asm/lpc214x.h	196;"	d
+U0DLM	include/arm7lpc2000/lpc214x.h	197;"	d
+U0DLM	include/asm/lpc214x.h	197;"	d
+U0FCR	include/arm7lpc2000/lpc214x.h	190;"	d
+U0FCR	include/asm/lpc214x.h	190;"	d
+U0FCR_14Char_Fifo	arch/arm7lpc2000/kernel/uart_early.c	14;"	d	file:
+U0FCR_FIFO_Enable	arch/arm7lpc2000/kernel/uart_early.c	15;"	d	file:
+U0FDR	include/arm7lpc2000/lpc214x.h	199;"	d
+U0FDR	include/asm/lpc214x.h	199;"	d
+U0IER	include/arm7lpc2000/lpc214x.h	188;"	d
+U0IER	include/asm/lpc214x.h	188;"	d
+U0IIR	include/arm7lpc2000/lpc214x.h	189;"	d
+U0IIR	include/asm/lpc214x.h	189;"	d
+U0LCR	include/arm7lpc2000/lpc214x.h	191;"	d
+U0LCR	include/asm/lpc214x.h	191;"	d
+U0LCR_1Bit_Stop	arch/arm7lpc2000/kernel/uart_early.c	12;"	d	file:
+U0LCR_8Bit_Data	arch/arm7lpc2000/kernel/uart_early.c	11;"	d	file:
+U0LCR_Divisor_Latch_Access_Bit	arch/arm7lpc2000/kernel/uart_early.c	18;"	d	file:
+U0LCR_No_Parity	arch/arm7lpc2000/kernel/uart_early.c	13;"	d	file:
+U0LSR	include/arm7lpc2000/lpc214x.h	193;"	d
+U0LSR	include/asm/lpc214x.h	193;"	d
+U0LSR_RDR	arch/arm7lpc2000/kernel/uart_early.c	17;"	d	file:
+U0LSR_THRE	arch/arm7lpc2000/kernel/uart_early.c	16;"	d	file:
+U0MCR	include/arm7lpc2000/lpc214x.h	192;"	d
+U0MCR	include/asm/lpc214x.h	192;"	d
+U0MSR	include/arm7lpc2000/lpc214x.h	194;"	d
+U0MSR	include/asm/lpc214x.h	194;"	d
+U0RBR	include/arm7lpc2000/lpc214x.h	186;"	d
+U0RBR	include/asm/lpc214x.h	186;"	d
+U0SCR	include/arm7lpc2000/lpc214x.h	195;"	d
+U0SCR	include/asm/lpc214x.h	195;"	d
+U0TER	include/arm7lpc2000/lpc214x.h	200;"	d
+U0TER	include/asm/lpc214x.h	200;"	d
+U0THR	include/arm7lpc2000/lpc214x.h	187;"	d
+U0THR	include/asm/lpc214x.h	187;"	d
+U1ACR	include/arm7lpc2000/lpc214x.h	215;"	d
+U1ACR	include/asm/lpc214x.h	215;"	d
+U1DLL	include/arm7lpc2000/lpc214x.h	213;"	d
+U1DLL	include/asm/lpc214x.h	213;"	d
+U1DLM	include/arm7lpc2000/lpc214x.h	214;"	d
+U1DLM	include/asm/lpc214x.h	214;"	d
+U1FCR	include/arm7lpc2000/lpc214x.h	207;"	d
+U1FCR	include/asm/lpc214x.h	207;"	d
+U1FDR	include/arm7lpc2000/lpc214x.h	216;"	d
+U1FDR	include/asm/lpc214x.h	216;"	d
+U1IER	include/arm7lpc2000/lpc214x.h	205;"	d
+U1IER	include/asm/lpc214x.h	205;"	d
+U1IIR	include/arm7lpc2000/lpc214x.h	206;"	d
+U1IIR	include/asm/lpc214x.h	206;"	d
+U1LCR	include/arm7lpc2000/lpc214x.h	208;"	d
+U1LCR	include/asm/lpc214x.h	208;"	d
+U1LSR	include/arm7lpc2000/lpc214x.h	210;"	d
+U1LSR	include/asm/lpc214x.h	210;"	d
+U1MCR	include/arm7lpc2000/lpc214x.h	209;"	d
+U1MCR	include/asm/lpc214x.h	209;"	d
+U1MSR	include/arm7lpc2000/lpc214x.h	211;"	d
+U1MSR	include/asm/lpc214x.h	211;"	d
+U1RBR	include/arm7lpc2000/lpc214x.h	203;"	d
+U1RBR	include/asm/lpc214x.h	203;"	d
+U1SCR	include/arm7lpc2000/lpc214x.h	212;"	d
+U1SCR	include/asm/lpc214x.h	212;"	d
+U1TER	include/arm7lpc2000/lpc214x.h	217;"	d
+U1TER	include/asm/lpc214x.h	217;"	d
+U1THR	include/arm7lpc2000/lpc214x.h	204;"	d
+U1THR	include/asm/lpc214x.h	204;"	d
+UART_BAUD	arch/arm7lpc2000/kernel/uart_early.c	21;"	d	file:
+UND_MODE	include/prv/arm7lpc2000/ptrace.h	15;"	d
+UND_MODE	include/prv/asm/ptrace.h	15;"	d
+UND_Stack_Size	arch/arm7lpc2000/boot/boot.S	/^#define UND_Stack_Size 		0x00000004$/;"	d
+USBCmdCode	include/arm7lpc2000/lpc214x.h	343;"	d
+USBCmdCode	include/asm/lpc214x.h	343;"	d
+USBCmdData	include/arm7lpc2000/lpc214x.h	344;"	d
+USBCmdData	include/asm/lpc214x.h	344;"	d
+USBCtrl	include/arm7lpc2000/lpc214x.h	342;"	d
+USBCtrl	include/asm/lpc214x.h	342;"	d
+USBDMAIntEn	include/arm7lpc2000/lpc214x.h	353;"	d
+USBDMAIntEn	include/asm/lpc214x.h	353;"	d
+USBDMAIntSt	include/arm7lpc2000/lpc214x.h	352;"	d
+USBDMAIntSt	include/asm/lpc214x.h	352;"	d
+USBDMARClr	include/arm7lpc2000/lpc214x.h	346;"	d
+USBDMARClr	include/asm/lpc214x.h	346;"	d
+USBDMARSet	include/arm7lpc2000/lpc214x.h	347;"	d
+USBDMARSet	include/asm/lpc214x.h	347;"	d
+USBDMARSt	include/arm7lpc2000/lpc214x.h	345;"	d
+USBDMARSt	include/asm/lpc214x.h	345;"	d
+USBDevIntClr	include/arm7lpc2000/lpc214x.h	327;"	d
+USBDevIntClr	include/asm/lpc214x.h	327;"	d
+USBDevIntEn	include/arm7lpc2000/lpc214x.h	326;"	d
+USBDevIntEn	include/asm/lpc214x.h	326;"	d
+USBDevIntPri	include/arm7lpc2000/lpc214x.h	329;"	d
+USBDevIntPri	include/asm/lpc214x.h	329;"	d
+USBDevIntSet	include/arm7lpc2000/lpc214x.h	328;"	d
+USBDevIntSet	include/asm/lpc214x.h	328;"	d
+USBDevIntSt	include/arm7lpc2000/lpc214x.h	325;"	d
+USBDevIntSt	include/asm/lpc214x.h	325;"	d
+USBEoTIntClr	include/arm7lpc2000/lpc214x.h	355;"	d
+USBEoTIntClr	include/asm/lpc214x.h	355;"	d
+USBEoTIntSet	include/arm7lpc2000/lpc214x.h	356;"	d
+USBEoTIntSet	include/asm/lpc214x.h	356;"	d
+USBEoTIntSt	include/arm7lpc2000/lpc214x.h	354;"	d
+USBEoTIntSt	include/asm/lpc214x.h	354;"	d
+USBEpDMADis	include/arm7lpc2000/lpc214x.h	351;"	d
+USBEpDMADis	include/asm/lpc214x.h	351;"	d
+USBEpDMAEn	include/arm7lpc2000/lpc214x.h	350;"	d
+USBEpDMAEn	include/asm/lpc214x.h	350;"	d
+USBEpDMASt	include/arm7lpc2000/lpc214x.h	349;"	d
+USBEpDMASt	include/asm/lpc214x.h	349;"	d
+USBEpInd	include/arm7lpc2000/lpc214x.h	336;"	d
+USBEpInd	include/asm/lpc214x.h	336;"	d
+USBEpIntClr	include/arm7lpc2000/lpc214x.h	332;"	d
+USBEpIntClr	include/asm/lpc214x.h	332;"	d
+USBEpIntEn	include/arm7lpc2000/lpc214x.h	331;"	d
+USBEpIntEn	include/asm/lpc214x.h	331;"	d
+USBEpIntPri	include/arm7lpc2000/lpc214x.h	334;"	d
+USBEpIntPri	include/asm/lpc214x.h	334;"	d
+USBEpIntSet	include/arm7lpc2000/lpc214x.h	333;"	d
+USBEpIntSet	include/asm/lpc214x.h	333;"	d
+USBEpIntSt	include/arm7lpc2000/lpc214x.h	330;"	d
+USBEpIntSt	include/asm/lpc214x.h	330;"	d
+USBIntSt	include/arm7lpc2000/lpc214x.h	324;"	d
+USBIntSt	include/asm/lpc214x.h	324;"	d
+USBMaxPSize	include/arm7lpc2000/lpc214x.h	337;"	d
+USBMaxPSize	include/asm/lpc214x.h	337;"	d
+USBNDDRIntClr	include/arm7lpc2000/lpc214x.h	358;"	d
+USBNDDRIntClr	include/asm/lpc214x.h	358;"	d
+USBNDDRIntSet	include/arm7lpc2000/lpc214x.h	359;"	d
+USBNDDRIntSet	include/asm/lpc214x.h	359;"	d
+USBNDDRIntSt	include/arm7lpc2000/lpc214x.h	357;"	d
+USBNDDRIntSt	include/asm/lpc214x.h	357;"	d
+USBReEp	include/arm7lpc2000/lpc214x.h	335;"	d
+USBReEp	include/asm/lpc214x.h	335;"	d
+USBRxData	include/arm7lpc2000/lpc214x.h	338;"	d
+USBRxData	include/asm/lpc214x.h	338;"	d
+USBRxPLen	include/arm7lpc2000/lpc214x.h	339;"	d
+USBRxPLen	include/asm/lpc214x.h	339;"	d
+USBSysErrIntClr	include/arm7lpc2000/lpc214x.h	361;"	d
+USBSysErrIntClr	include/asm/lpc214x.h	361;"	d
+USBSysErrIntSet	include/arm7lpc2000/lpc214x.h	362;"	d
+USBSysErrIntSet	include/asm/lpc214x.h	362;"	d
+USBSysErrIntSt	include/arm7lpc2000/lpc214x.h	360;"	d
+USBSysErrIntSt	include/asm/lpc214x.h	360;"	d
+USBTxData	include/arm7lpc2000/lpc214x.h	340;"	d
+USBTxData	include/asm/lpc214x.h	340;"	d
+USBTxPLen	include/arm7lpc2000/lpc214x.h	341;"	d
+USBTxPLen	include/asm/lpc214x.h	341;"	d
+USBUDCAH	include/arm7lpc2000/lpc214x.h	348;"	d
+USBUDCAH	include/asm/lpc214x.h	348;"	d
+USE_CHAR	kernel/printk.c	21;"	d	file:
+USE_HEX	kernel/printk.c	23;"	d	file:
+USE_INTEGER	kernel/printk.c	22;"	d	file:
+USE_LONG	kernel/printk.c	18;"	d	file:
+USE_STRING	kernel/printk.c	20;"	d	file:
+USE_UPPER	kernel/printk.c	28;"	d	file:
+USE_UPPERHEX	kernel/printk.c	24;"	d	file:
+USE_UPPERHEX	kernel/printk.c	26;"	d	file:
+USR26_MODE	include/prv/arm7lpc2000/ptrace.h	6;"	d
+USR26_MODE	include/prv/asm/ptrace.h	6;"	d
+USR_MODE	include/prv/arm7lpc2000/ptrace.h	10;"	d
+USR_MODE	include/prv/asm/ptrace.h	10;"	d
+USR_Stack_Size	arch/arm7lpc2000/boot/boot.S	/^#define USR_Stack_Size		0x00000100$/;"	d
+Undef_Addr	arch/arm7lpc2000/boot/boot.S	/^Undef_Addr:     .word   Undef_Handler$/;"	l
+Undef_Handler	arch/arm7lpc2000/boot/boot.S	/^Undef_Handler:$/;"	l
+VICDefVectAddr	include/arm7lpc2000/lpc214x.h	24;"	d
+VICDefVectAddr	include/asm/lpc214x.h	24;"	d
+VICFIQStatus	include/arm7lpc2000/lpc214x.h	15;"	d
+VICFIQStatus	include/asm/lpc214x.h	15;"	d
+VICIRQStatus	include/arm7lpc2000/lpc214x.h	14;"	d
+VICIRQStatus	include/asm/lpc214x.h	14;"	d
+VICIntEnClr	include/arm7lpc2000/lpc214x.h	19;"	d
+VICIntEnClr	include/asm/lpc214x.h	19;"	d
+VICIntEnable	include/arm7lpc2000/lpc214x.h	18;"	d
+VICIntEnable	include/asm/lpc214x.h	18;"	d
+VICIntSelect	include/arm7lpc2000/lpc214x.h	17;"	d
+VICIntSelect	include/asm/lpc214x.h	17;"	d
+VICProtection	include/arm7lpc2000/lpc214x.h	22;"	d
+VICProtection	include/asm/lpc214x.h	22;"	d
+VICRawIntr	include/arm7lpc2000/lpc214x.h	16;"	d
+VICRawIntr	include/asm/lpc214x.h	16;"	d
+VICSoftInt	include/arm7lpc2000/lpc214x.h	20;"	d
+VICSoftInt	include/asm/lpc214x.h	20;"	d
+VICSoftIntClr	include/arm7lpc2000/lpc214x.h	21;"	d
+VICSoftIntClr	include/asm/lpc214x.h	21;"	d
+VICVectAddr	include/arm7lpc2000/lpc214x.h	23;"	d
+VICVectAddr	include/asm/lpc214x.h	23;"	d
+VICVectAddr0	include/arm7lpc2000/lpc214x.h	25;"	d
+VICVectAddr0	include/asm/lpc214x.h	25;"	d
+VICVectAddr1	include/arm7lpc2000/lpc214x.h	26;"	d
+VICVectAddr1	include/asm/lpc214x.h	26;"	d
+VICVectAddr10	include/arm7lpc2000/lpc214x.h	35;"	d
+VICVectAddr10	include/asm/lpc214x.h	35;"	d
+VICVectAddr11	include/arm7lpc2000/lpc214x.h	36;"	d
+VICVectAddr11	include/asm/lpc214x.h	36;"	d
+VICVectAddr12	include/arm7lpc2000/lpc214x.h	37;"	d
+VICVectAddr12	include/asm/lpc214x.h	37;"	d
+VICVectAddr13	include/arm7lpc2000/lpc214x.h	38;"	d
+VICVectAddr13	include/asm/lpc214x.h	38;"	d
+VICVectAddr14	include/arm7lpc2000/lpc214x.h	39;"	d
+VICVectAddr14	include/asm/lpc214x.h	39;"	d
+VICVectAddr15	include/arm7lpc2000/lpc214x.h	40;"	d
+VICVectAddr15	include/asm/lpc214x.h	40;"	d
+VICVectAddr2	include/arm7lpc2000/lpc214x.h	27;"	d
+VICVectAddr2	include/asm/lpc214x.h	27;"	d
+VICVectAddr3	include/arm7lpc2000/lpc214x.h	28;"	d
+VICVectAddr3	include/asm/lpc214x.h	28;"	d
+VICVectAddr4	include/arm7lpc2000/lpc214x.h	29;"	d
+VICVectAddr4	include/asm/lpc214x.h	29;"	d
+VICVectAddr5	include/arm7lpc2000/lpc214x.h	30;"	d
+VICVectAddr5	include/asm/lpc214x.h	30;"	d
+VICVectAddr6	include/arm7lpc2000/lpc214x.h	31;"	d
+VICVectAddr6	include/asm/lpc214x.h	31;"	d
+VICVectAddr7	include/arm7lpc2000/lpc214x.h	32;"	d
+VICVectAddr7	include/asm/lpc214x.h	32;"	d
+VICVectAddr8	include/arm7lpc2000/lpc214x.h	33;"	d
+VICVectAddr8	include/asm/lpc214x.h	33;"	d
+VICVectAddr9	include/arm7lpc2000/lpc214x.h	34;"	d
+VICVectAddr9	include/asm/lpc214x.h	34;"	d
+VICVectCntl0	include/arm7lpc2000/lpc214x.h	41;"	d
+VICVectCntl0	include/asm/lpc214x.h	41;"	d
+VICVectCntl1	include/arm7lpc2000/lpc214x.h	42;"	d
+VICVectCntl1	include/asm/lpc214x.h	42;"	d
+VICVectCntl10	include/arm7lpc2000/lpc214x.h	51;"	d
+VICVectCntl10	include/asm/lpc214x.h	51;"	d
+VICVectCntl11	include/arm7lpc2000/lpc214x.h	52;"	d
+VICVectCntl11	include/asm/lpc214x.h	52;"	d
+VICVectCntl12	include/arm7lpc2000/lpc214x.h	53;"	d
+VICVectCntl12	include/asm/lpc214x.h	53;"	d
+VICVectCntl13	include/arm7lpc2000/lpc214x.h	54;"	d
+VICVectCntl13	include/asm/lpc214x.h	54;"	d
+VICVectCntl14	include/arm7lpc2000/lpc214x.h	55;"	d
+VICVectCntl14	include/asm/lpc214x.h	55;"	d
+VICVectCntl15	include/arm7lpc2000/lpc214x.h	56;"	d
+VICVectCntl15	include/asm/lpc214x.h	56;"	d
+VICVectCntl2	include/arm7lpc2000/lpc214x.h	43;"	d
+VICVectCntl2	include/asm/lpc214x.h	43;"	d
+VICVectCntl3	include/arm7lpc2000/lpc214x.h	44;"	d
+VICVectCntl3	include/asm/lpc214x.h	44;"	d
+VICVectCntl4	include/arm7lpc2000/lpc214x.h	45;"	d
+VICVectCntl4	include/asm/lpc214x.h	45;"	d
+VICVectCntl5	include/arm7lpc2000/lpc214x.h	46;"	d
+VICVectCntl5	include/asm/lpc214x.h	46;"	d
+VICVectCntl6	include/arm7lpc2000/lpc214x.h	47;"	d
+VICVectCntl6	include/asm/lpc214x.h	47;"	d
+VICVectCntl7	include/arm7lpc2000/lpc214x.h	48;"	d
+VICVectCntl7	include/asm/lpc214x.h	48;"	d
+VICVectCntl8	include/arm7lpc2000/lpc214x.h	49;"	d
+VICVectCntl8	include/asm/lpc214x.h	49;"	d
+VICVectCntl9	include/arm7lpc2000/lpc214x.h	50;"	d
+VICVectCntl9	include/asm/lpc214x.h	50;"	d
+VIC_CNTLREG_MASK	include/arm7lpc2000/lpc214x_vic.h	35;"	d
+VIC_CNTLREG_MASK	include/asm/lpc214x_vic.h	35;"	d
+VIC_CNTLREG_SLOTEN	include/arm7lpc2000/lpc214x_vic.h	36;"	d
+VIC_CNTLREG_SLOTEN	include/asm/lpc214x_vic.h	36;"	d
+VPBDIV	arch/arm7lpc2000/boot/boot.S	/^#define VPBDIV         		0xE01FC100$/;"	d
+VPBDIV	include/arm7lpc2000/lpc214x.h	109;"	d
+VPBDIV	include/asm/lpc214x.h	109;"	d
+VPBDIV_SETUP	arch/arm7lpc2000/boot/boot.S	/^#define VPBDIV_SETUP		$/;"	d
+VPBDIV_Val	arch/arm7lpc2000/boot/boot.S	/^#define VPBDIV_Val    		0x00000001$/;"	d
+Vectors	arch/arm7lpc2000/boot/boot.S	/^Vectors:        LDR     PC, Reset_Addr         $/;"	l
+WDFEED	include/arm7lpc2000/lpc214x.h	320;"	d
+WDFEED	include/asm/lpc214x.h	320;"	d
+WDMOD	include/arm7lpc2000/lpc214x.h	318;"	d
+WDMOD	include/asm/lpc214x.h	318;"	d
+WDTC	include/arm7lpc2000/lpc214x.h	319;"	d
+WDTC	include/asm/lpc214x.h	319;"	d
+WDTV	include/arm7lpc2000/lpc214x.h	321;"	d
+WDTV	include/asm/lpc214x.h	321;"	d
+YEAR	include/arm7lpc2000/lpc214x.h	271;"	d
+YEAR	include/asm/lpc214x.h	271;"	d
+_BV	include/isix/types.h	23;"	d
+__ASM_INTERRUPT_H	include/arm7lpc2000/interrupt.h	2;"	d
+__ASM_INTERRUPT_H	include/asm/interrupt.h	2;"	d
+__ASM_LPC214X_VIC__	include/arm7lpc2000/lpc214x_vic.h	2;"	d
+__ASM_LPC214X_VIC__	include/asm/lpc214x_vic.h	2;"	d
+__ASM_PRV_CONTEXT_H	include/prv/arm7lpc2000/context.h	2;"	d
+__ASM_PRV_CONTEXT_H	include/prv/asm/context.h	2;"	d
+__ASM_PRV_PROC_PTRACE_H	include/prv/arm7lpc2000/ptrace.h	3;"	d
+__ASM_PRV_PROC_PTRACE_H	include/prv/asm/ptrace.h	3;"	d
+__ASM_PRV_SCHEDULER_H	include/prv/arm7lpc2000/scheduler.h	4;"	d
+__ASM_PRV_SCHEDULER_H	include/prv/asm/scheduler.h	4;"	d
+__ASM_RTC_H	include/arm7lpc2000/rtc.h	2;"	d
+__ASM_RTC_H	include/asm/rtc.h	2;"	d
+__ASM_TYPES_H	include/arm7lpc2000/types.h	2;"	d
+__ASM_TYPES_H	include/asm/types.h	2;"	d
+__ASM_UART_EARLY_H	include/arm7lpc2000/uart_early.h	2;"	d
+__ASM_UART_EARLY_H	include/asm/uart_early.h	2;"	d
+__ASM__SCHEDULER_H	include/arm7lpc2000/scheduler.h	2;"	d
+__ASM__SCHEDULER_H	include/asm/scheduler.h	2;"	d
+__ISIX_CONFIG__	include/isix/config.h	6;"	d
+__ISIX_ERROR_H__	include/isix/error.h	2;"	d
+__ISIX_FIFO_H	include/isix/fifo.h	3;"	d
+__ISIX_ISIX_H__	include/isix/isix.h	2;"	d
+__ISIX_LIST_H	include/prv/list.h	2;"	d
+__ISIX_MEMORY_H	include/isix/memory.h	2;"	d
+__ISIX_PRINTK_H	include/isix/printk.h	2;"	d
+__ISIX_PRV_SCHEDULER_H	include/prv/scheduler.h	2;"	d
+__ISIX_SCHEDULER_H__	include/isix/scheduler.h	2;"	d
+__ISIX_SEMAPHORE_H	include/isix/semaphore.h	2;"	d
+__ISIX_TASK_H	include/isix/task.h	2;"	d
+__ISIX_TIME_H	include/isix/time.h	2;"	d
+__ISIX_TYPES_H	include/isix/types.h	2;"	d
+__ISIX_VERSION_H	include/isix/version.h	2;"	d
+__LPC214x_H	include/arm7lpc2000/lpc214x.h	11;"	d
+__LPC214x_H	include/asm/lpc214x.h	11;"	d
+__PRV_ISIX_SEMAPHORE_H__	include/prv/semaphore.h	2;"	d
+__heap_end	arch/arm7lpc2000/boot/boot.S	/^__heap_end:	.word Top_Stack-UND_Stack_Size-SVC_Stack_Size-ABT_Stack_Size-FIQ_Stack_Size-IRQ_Stack_Size-USR_Stack_Size-8$/;"	l
+__sem_can_destroy	include/prv/semaphore.h	/^static inline bool __sem_can_destroy(sem_t *sem)$/;"	f	signature:(sem_t *sem)
+__sem_signal	include/isix/semaphore.h	/^int __sem_signal(sem_t *sem,bool isr);$/;"	p	signature:(sem_t *sem,bool isr)
+__sem_signal	kernel/semaphore.c	/^int __sem_signal(sem_t *sem,bool isr)$/;"	f	signature:(sem_t *sem,bool isr)
+__task_change_prio	include/isix/task.h	/^int __task_change_prio(task_t *task,prio_t new_prio,bool yield);$/;"	p	signature:(task_t *task,prio_t new_prio,bool yield)
+__task_change_prio	kernel/task.c	/^int __task_change_prio(task_t *task,prio_t new_prio,bool yield)$/;"	f	signature:(task_t *task,prio_t new_prio,bool yield)
+_startup	arch/arm7lpc2000/boot/boot.S	/^_startup:$/;"	l
+add_task_to_delete_list	include/prv/scheduler.h	/^void add_task_to_delete_list(struct task_struct *task);$/;"	p	signature:(struct task_struct *task)
+add_task_to_delete_list	kernel/scheduler.c	/^void add_task_to_delete_list(task_t *task)$/;"	f	signature:(task_t *task)
+add_task_to_ready_list	include/prv/scheduler.h	/^int add_task_to_ready_list(struct task_struct *task);$/;"	p	signature:(struct task_struct *task)
+add_task_to_ready_list	kernel/scheduler.c	/^int add_task_to_ready_list(task_t *task)$/;"	f	signature:(task_t *task)
+add_task_to_sem_list	include/prv/scheduler.h	/^void add_task_to_sem_list(list_entry_t *sem_list,struct task_struct *task);$/;"	p	signature:(list_entry_t *sem_list,struct task_struct *task)
+add_task_to_sem_list	kernel/scheduler.c	/^void add_task_to_sem_list(list_entry_t *sem_list,task_t *task)$/;"	f	signature:(list_entry_t *sem_list,task_t *task)
+add_task_to_waiting_list	include/prv/scheduler.h	/^void add_task_to_waiting_list(struct task_struct *task);$/;"	p	signature:(struct task_struct *task)
+add_task_to_waiting_list	kernel/scheduler.c	/^void add_task_to_waiting_list(task_t *task)$/;"	f	signature:(task_t *task)
+alloc_task_ready_t	kernel/scheduler.c	/^static task_ready_t *alloc_task_ready_t(void)$/;"	f	file:	signature:(void)
+bad_mode	arch/arm7lpc2000/kernel/exceptions.c	/^static void bad_mode (void)$/;"	f	file:	signature:(void)
+bool	include/isix/types.h	/^typedef u8 bool;$/;"	t
+bug	kernel/diag.c	/^void bug(void)$/;"	f	signature:(void)
+cleanup_tasks	kernel/scheduler.c	/^static inline void cleanup_tasks(void)$/;"	f	file:	signature:(void)
+condition_codes	include/prv/arm7lpc2000/ptrace.h	74;"	d
+condition_codes	include/prv/asm/ptrace.h	74;"	d
+console_output	include/isix/printk.h	/^void console_output(bool use_sem,const char *text,...);$/;"	p	signature:(bool use_sem,const char *text,...)
+console_output	kernel/printk.c	/^void console_output(bool use_sem,char const *format, ...)$/;"	f	signature:(bool use_sem,char const *format, ...)
+count	apps/isixtest/test5.c	/^    u32 count;$/;"	m	struct:dupa	file:	access:public
+cpu_restore_context	include/prv/arm7lpc2000/context.h	41;"	d
+cpu_restore_context	include/prv/asm/context.h	41;"	d
+cpu_save_context	include/prv/arm7lpc2000/context.h	11;"	d
+cpu_save_context	include/prv/asm/context.h	11;"	d
+cpu_swi_yield	arch/arm7lpc2000/kernel/scheduler.c	/^void cpu_swi_yield(void) __attribute__((interrupt("SWI"),naked));$/;"	p	file:	signature:(void)
+cpu_swi_yield	arch/arm7lpc2000/kernel/scheduler.c	/^void cpu_swi_yield(void)$/;"	f	signature:(void)
+cpu_yield	include/arm7lpc2000/scheduler.h	11;"	d
+cpu_yield	include/asm/scheduler.h	11;"	d
+ctor_end	arch/arm7lpc2000/boot/boot.S	/^ctor_end:$/;"	l
+ctor_loop	arch/arm7lpc2000/boot/boot.S	/^ctor_loop:$/;"	l
+current_task	kernel/scheduler.c	/^task_t * volatile current_task = NULL;$/;"	v
+data_abort_exception	arch/arm7lpc2000/kernel/exceptions.c	/^void data_abort_exception(struct pt_regs *pt_regs)$/;"	f	signature:(struct pt_regs *pt_regs)
+dead_task	kernel/scheduler.c	/^static list_entry_t dead_task;$/;"	v	file:
+delete_task_from_ready_list	include/prv/scheduler.h	/^void delete_task_from_ready_list(struct task_struct *task);$/;"	p	signature:(struct task_struct *task)
+delete_task_from_ready_list	kernel/scheduler.c	/^void delete_task_from_ready_list(task_t *task)$/;"	f	signature:(task_t *task)
+dtor_end	arch/arm7lpc2000/boot/boot.S	/^dtor_end:$/;"	l
+dtor_loop	arch/arm7lpc2000/boot/boot.S	/^dtor_loop:$/;"	l
+dupa	apps/isixtest/test3.c	/^typedef struct dupa$/;"	s	file:
+dupa	apps/isixtest/test3.c	/^} dupa;$/;"	t	typeref:struct:dupa	file:
+dupa	apps/isixtest/test4.c	/^typedef struct dupa$/;"	s	file:
+dupa	apps/isixtest/test4.c	/^} dupa;$/;"	t	typeref:struct:dupa	file:
+dupa	apps/isixtest/test5.c	/^typedef struct dupa$/;"	s	file:
+dupa	apps/isixtest/test5.c	/^} dupa;$/;"	t	typeref:struct:dupa	file:
+dupa	apps/isixtest/test6.c	/^typedef struct dupa$/;"	s	file:
+dupa	apps/isixtest/test6.c	/^} dupa;$/;"	t	typeref:struct:dupa	file:
+dupa::count	apps/isixtest/test5.c	/^    u32 count;$/;"	m	struct:dupa	file:	access:public
+dupa::i	apps/isixtest/test6.c	/^    u32 i;$/;"	m	struct:dupa	file:	access:public
+dupa::mask	apps/isixtest/test3.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
+dupa::mask	apps/isixtest/test4.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
+dupa::mask	apps/isixtest/test5.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
+dupa::mask	apps/isixtest/test6.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
+dupa::on	apps/isixtest/test3.c	/^    bool on;$/;"	m	struct:dupa	file:	access:public
+dupa::on	apps/isixtest/test4.c	/^    bool on;$/;"	m	struct:dupa	file:	access:public
+dupa::on	apps/isixtest/test5.c	/^    bool on;$/;"	m	struct:dupa	file:	access:public
+dupa::on	apps/isixtest/test6.c	/^    bool on;$/;"	m	struct:dupa	file:	access:public
+dupa::sec	apps/isixtest/test3.c	/^    u32 sec;$/;"	m	struct:dupa	file:	access:public
+dupa::sec	apps/isixtest/test4.c	/^    u32 sec;$/;"	m	struct:dupa	file:	access:public
+dupa::sec	apps/isixtest/test5.c	/^    u32 sec;$/;"	m	struct:dupa	file:	access:public
+dupa::sec	apps/isixtest/test6.c	/^    u32 sec;$/;"	m	struct:dupa	file:	access:public
+elem_size	kernel/fifo.c	/^    int elem_size; \/\/Element count$/;"	m	struct:fifo_struct	file:	access:public
+exit_loop	arch/arm7lpc2000/boot/boot.S	/^exit_loop:$/;"	l
+false	include/isix/types.h	19;"	d
+fast_interrupts_enabled	include/prv/arm7lpc2000/ptrace.h	71;"	d
+fast_interrupts_enabled	include/prv/asm/ptrace.h	71;"	d
+fifo	apps/isixtest/test.c	/^fifo_t *fifo;$/;"	v
+fifo_count	include/isix/fifo.h	/^int fifo_count(fifo_t *fifo);$/;"	p	signature:(fifo_t *fifo)
+fifo_count	kernel/fifo.c	/^int fifo_count(fifo_t *fifo)$/;"	f	signature:(fifo_t *fifo)
+fifo_create	include/isix/fifo.h	15;"	d
+fifo_create_isr	include/isix/fifo.h	/^fifo_t* fifo_create_isr(int n_elem, int elem_size,s8 interrupt);$/;"	p	signature:(int n_elem, int elem_size,s8 interrupt)
+fifo_create_isr	kernel/fifo.c	/^fifo_t* fifo_create_isr(int n_elem, int elem_size,s8 interrupt)$/;"	f	signature:(int n_elem, int elem_size,s8 interrupt)
+fifo_destroy	include/isix/fifo.h	/^int fifo_destroy(fifo_t *fifo);$/;"	p	signature:(fifo_t *fifo)
+fifo_destroy	kernel/fifo.c	/^int fifo_destroy(fifo_t *fifo)$/;"	f	signature:(fifo_t *fifo)
+fifo_read	include/isix/fifo.h	/^int fifo_read(fifo_t *fifo,void *item,unsigned long timeout);$/;"	p	signature:(fifo_t *fifo,void *item,unsigned long timeout)
+fifo_read	kernel/fifo.c	/^int fifo_read(fifo_t *fifo,void *item,unsigned long timeout)$/;"	f	signature:(fifo_t *fifo,void *item,unsigned long timeout)
+fifo_read_isr	include/isix/fifo.h	/^int fifo_read_isr(fifo_t *queue,void *item);$/;"	p	signature:(fifo_t *queue,void *item)
+fifo_read_isr	kernel/fifo.c	/^int fifo_read_isr(fifo_t *fifo,void *item)$/;"	f	signature:(fifo_t *fifo,void *item)
+fifo_struct	kernel/fifo.c	/^struct fifo_struct$/;"	s	file:
+fifo_struct::elem_size	kernel/fifo.c	/^    int elem_size; \/\/Element count$/;"	m	struct:fifo_struct	file:	access:public
+fifo_struct::mem_p	kernel/fifo.c	/^    char *mem_p;    \/\/Pointer to allocated memory$/;"	m	struct:fifo_struct	file:	access:public
+fifo_struct::rx_p	kernel/fifo.c	/^    char *rx_p;     \/\/Pointer to rx$/;"	m	struct:fifo_struct	file:	access:public
+fifo_struct::rx_sem	kernel/fifo.c	/^    sem_t *rx_sem;  \/\/Semaphore rx$/;"	m	struct:fifo_struct	file:	access:public
+fifo_struct::size	kernel/fifo.c	/^    int size;       \/\/Total fifo size$/;"	m	struct:fifo_struct	file:	access:public
+fifo_struct::tx_p	kernel/fifo.c	/^    char *tx_p;     \/\/Pointer to tx$/;"	m	struct:fifo_struct	file:	access:public
+fifo_struct::tx_sem	kernel/fifo.c	/^    sem_t *tx_sem;  \/\/Semaphore for tx$/;"	m	struct:fifo_struct	file:	access:public
+fifo_t	include/isix/fifo.h	/^typedef struct fifo_struct fifo_t;$/;"	t	typeref:struct:fifo_struct
+fifo_write	include/isix/fifo.h	/^int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout);$/;"	p	signature:(fifo_t *fifo,const void *item,unsigned long timeout)
+fifo_write	kernel/fifo.c	/^int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout)$/;"	f	signature:(fifo_t *fifo,const void *item,unsigned long timeout)
+fifo_write_isr	include/isix/fifo.h	/^int fifo_write_isr(fifo_t *queue,const void *item);$/;"	p	signature:(fifo_t *queue,const void *item)
+fifo_write_isr	kernel/fifo.c	/^int fifo_write_isr(fifo_t *fifo,const void *item)$/;"	f	signature:(fifo_t *fifo,const void *item)
+fiq_disable	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t fiq_disable(void)$/;"	f	signature:(void)
+fiq_disable	include/arm7lpc2000/interrupt.h	/^reg_t fiq_disable(void);$/;"	p	signature:(void)
+fiq_disable	include/asm/interrupt.h	/^reg_t fiq_disable(void);$/;"	p	signature:(void)
+fiq_enable	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t fiq_enable(void)$/;"	f	signature:(void)
+fiq_enable	include/arm7lpc2000/interrupt.h	/^reg_t fiq_enable(void);$/;"	p	signature:(void)
+fiq_enable	include/asm/interrupt.h	/^reg_t fiq_enable(void);$/;"	p	signature:(void)
+fiq_exception	arch/arm7lpc2000/kernel/exceptions.c	/^void fiq_exception(struct pt_regs *pt_regs)$/;"	f	signature:(struct pt_regs *pt_regs)
+fiq_restore	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t fiq_restore(reg_t old_cpsr)$/;"	f	signature:(reg_t old_cpsr)
+fiq_restore	include/arm7lpc2000/interrupt.h	/^reg_t fiq_restore(reg_t old_cpsr);$/;"	p	signature:(reg_t old_cpsr)
+fiq_restore	include/asm/interrupt.h	/^reg_t fiq_restore(reg_t old_cpsr);$/;"	p	signature:(reg_t old_cpsr)
+fiqirq_disable	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t fiqirq_disable(void)$/;"	f	signature:(void)
+fiqirq_disable	include/arm7lpc2000/interrupt.h	/^reg_t fiqirq_disable(void);$/;"	p	signature:(void)
+fiqirq_disable	include/asm/interrupt.h	/^reg_t fiqirq_disable(void);$/;"	p	signature:(void)
+fiqirq_enable	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t fiqirq_enable(void)$/;"	f	signature:(void)
+fiqirq_enable	include/arm7lpc2000/interrupt.h	/^reg_t fiqirq_enable(void);$/;"	p	signature:(void)
+fiqirq_enable	include/asm/interrupt.h	/^reg_t fiqirq_enable(void);$/;"	p	signature:(void)
+fiqirq_restore	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t fiqirq_restore(reg_t old_cpsr)$/;"	f	signature:(reg_t old_cpsr)
+fiqirq_restore	include/arm7lpc2000/interrupt.h	/^reg_t fiqirq_restore(reg_t old_cpsr);$/;"	p	signature:(reg_t old_cpsr)
+fiqirq_restore	include/asm/interrupt.h	/^reg_t fiqirq_restore(reg_t old_cpsr);$/;"	p	signature:(reg_t old_cpsr)
+free_list	kernel/memory.c	/^static freelist_t *free_list = NULL;$/;"	v	file:
+free_prio_elem	kernel/scheduler.c	/^static list_entry_t free_prio_elem;$/;"	v	file:
+free_task_ready_t	kernel/scheduler.c	/^static inline void free_task_ready_t(task_ready_t *prio)$/;"	f	file:	signature:(task_ready_t *prio)
+freelist	kernel/memory.c	/^typedef struct freelist$/;"	s	file:
+freelist::next	kernel/memory.c	/^    struct freelist *next;$/;"	m	struct:freelist	typeref:struct:freelist::freelist	file:	access:public
+freelist::prev	kernel/memory.c	/^    struct freelist *prev;$/;"	m	struct:freelist	typeref:struct:freelist::freelist	file:	access:public
+freelist::size	kernel/memory.c	/^    size_t size;$/;"	m	struct:freelist	file:	access:public
+freelist_t	kernel/memory.c	/^} freelist_t;$/;"	t	typeref:struct:freelist	file:
+get_cpsr	arch/arm7lpc2000/kernel/interrupt.c	/^static inline reg_t get_cpsr(void)$/;"	f	file:	signature:(void)
+get_jiffies	include/isix/time.h	/^u64 get_jiffies(void);$/;"	p	signature:(void)
+get_jiffies	kernel/time.c	/^u64 get_jiffies(void)$/;"	f	signature:(void)
+get_scheduler_state	include/prv/scheduler.h	/^const list_entry_t * get_scheduler_state(u8 task_type);$/;"	p	signature:(u8 task_type)
+get_scheduler_state	kernel/scheduler.c	/^const list_entry_t * get_scheduler_state(u8 task_type)$/;"	f	signature:(u8 task_type)
+get_sem_list	include/prv/semaphore.h	/^const list_entry_t* get_sem_list(void);$/;"	p	signature:(void)
+get_sem_list	kernel/semaphore.c	/^const list_entry_t* get_sem_list(void)$/;"	f	signature:(void)
+get_tmtime	arch/arm7lpc2000/kernel/rtc.c	/^void get_tmtime(struct tm *tmtime)$/;"	f	signature:(struct tm *tmtime)
+get_tmtime	include/arm7lpc2000/rtc.h	/^void get_tmtime(struct tm *tmtime);$/;"	p	signature:(struct tm *tmtime)
+get_tmtime	include/asm/rtc.h	/^void get_tmtime(struct tm *tmtime);$/;"	p	signature:(struct tm *tmtime)
+get_usec	include/arm7lpc2000/rtc.h	/^static inline u32 get_usec(void)$/;"	f	signature:(void)
+get_usec	include/asm/rtc.h	/^static inline u32 get_usec(void)$/;"	f	signature:(void)
+head	include/prv/list.h	/^   list_t head;$/;"	m	struct:list_entry	access:public
+i	apps/isixtest/test6.c	/^    u32 i;$/;"	m	struct:dupa	file:	access:public
+init_os	kernel/scheduler.c	/^void init_os(void)$/;"	f	signature:(void)
+init_stack	include/prv/scheduler.h	/^    reg_t *init_stack;          \/\/Initial value of stack for kfree$/;"	m	struct:task_struct	access:public
+inode	include/prv/scheduler.h	/^    list_t inode;               \/\/List of tasks$/;"	m	struct:task_struct	access:public
+inode	include/prv/scheduler.h	/^    list_t inode;              \/\/List inode$/;"	m	struct:task_ready_struct	access:public
+inode	include/prv/semaphore.h	/^    list_t inode;$/;"	m	struct:sem_struct	access:public
+inode_sem	include/prv/scheduler.h	/^    list_t inode_sem;           \/\/Inode of semaphore$/;"	m	struct:task_struct	access:public
+instruction_pointer	include/prv/arm7lpc2000/ptrace.h	81;"	d
+instruction_pointer	include/prv/asm/ptrace.h	81;"	d
+interrupt_isr_exit	include/arm7lpc2000/interrupt.h	/^static inline void interrupt_isr_exit(void) { VICVectAddr = 0; }$/;"	f	signature:(void)
+interrupt_isr_exit	include/asm/interrupt.h	/^static inline void interrupt_isr_exit(void) { VICVectAddr = 0; }$/;"	f	signature:(void)
+interrupt_mask	include/arm7lpc2000/interrupt.h	/^static inline void interrupt_mask(unsigned long mask)$/;"	f	signature:(unsigned long mask)
+interrupt_mask	include/asm/interrupt.h	/^static inline void interrupt_mask(unsigned long mask)$/;"	f	signature:(unsigned long mask)
+interrupt_proc_ptr_t	include/arm7lpc2000/interrupt.h	/^typedef void (*interrupt_proc_ptr_t)(void);$/;"	t
+interrupt_proc_ptr_t	include/asm/interrupt.h	/^typedef void (*interrupt_proc_ptr_t)(void);$/;"	t
+interrupt_register	arch/arm7lpc2000/kernel/interrupt.c	/^int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )$/;"	f	signature:(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
+interrupt_register	include/arm7lpc2000/interrupt.h	/^int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc );$/;"	p	signature:(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
+interrupt_register	include/asm/interrupt.h	/^int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc );$/;"	p	signature:(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
+interrupt_register_fiq	arch/arm7lpc2000/kernel/interrupt.c	/^int interrupt_register_fiq(u8 int_num)$/;"	f	signature:(u8 int_num)
+interrupt_register_fiq	include/arm7lpc2000/interrupt.h	/^int interrupt_register_fiq(u8 int_num);$/;"	p	signature:(u8 int_num)
+interrupt_register_fiq	include/asm/interrupt.h	/^int interrupt_register_fiq(u8 int_num);$/;"	p	signature:(u8 int_num)
+interrupt_umask	include/arm7lpc2000/interrupt.h	/^static inline void interrupt_umask(unsigned long mask)$/;"	f	signature:(unsigned long mask)
+interrupt_umask	include/asm/interrupt.h	/^static inline void interrupt_umask(unsigned long mask)$/;"	f	signature:(unsigned long mask)
+interrupt_unregister	arch/arm7lpc2000/kernel/interrupt.c	/^int interrupt_unregister(u8 int_num)$/;"	f	signature:(u8 int_num)
+interrupt_unregister	include/arm7lpc2000/interrupt.h	/^int interrupt_unregister(u8 int_num);$/;"	p	signature:(u8 int_num)
+interrupt_unregister	include/asm/interrupt.h	/^int interrupt_unregister(u8 int_num);$/;"	p	signature:(u8 int_num)
+interrupts_enabled	include/prv/arm7lpc2000/ptrace.h	68;"	d
+interrupts_enabled	include/prv/asm/ptrace.h	68;"	d
+intmask	include/prv/semaphore.h	/^    unsigned long intmask;$/;"	m	struct:sem_struct	access:public
+irq_disable	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t irq_disable(void)$/;"	f	signature:(void)
+irq_disable	include/arm7lpc2000/interrupt.h	/^reg_t irq_disable(void);$/;"	p	signature:(void)
+irq_disable	include/asm/interrupt.h	/^reg_t irq_disable(void);$/;"	p	signature:(void)
+irq_enable	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t irq_enable(void)$/;"	f	signature:(void)
+irq_enable	include/arm7lpc2000/interrupt.h	/^reg_t irq_enable(void);$/;"	p	signature:(void)
+irq_enable	include/asm/interrupt.h	/^reg_t irq_enable(void);$/;"	p	signature:(void)
+irq_restore	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t irq_restore(reg_t old_cpsr)$/;"	f	signature:(reg_t old_cpsr)
+irq_restore	include/arm7lpc2000/interrupt.h	/^reg_t irq_restore(reg_t old_cpsr);$/;"	p	signature:(reg_t old_cpsr)
+irq_restore	include/asm/interrupt.h	/^reg_t irq_restore(reg_t old_cpsr);$/;"	p	signature:(reg_t old_cpsr)
+jiffies	include/prv/scheduler.h	/^    u64 jiffies;                \/\/Ticks when task wake up$/;"	m	struct:task_struct	access:public
+jiffies	kernel/scheduler.c	/^volatile u64 jiffies;$/;"	v
+kfree	include/isix/memory.h	/^void kfree(void *mem);$/;"	p	signature:(void *mem)
+kfree	kernel/memory.c	/^void kfree(void *mem)$/;"	f	signature:(void *mem)
+kmalloc	include/isix/memory.h	/^void* kmalloc(size_t size);$/;"	p	signature:(size_t size)
+kmalloc	kernel/memory.c	/^void* kmalloc(size_t size)$/;"	f	signature:(size_t size)
+kputchar	kernel/printk.c	12;"	d	file:
+kupa	apps/isixtest/test3.c	/^dupa kupa[6] =$/;"	v
+kupa	apps/isixtest/test4.c	/^dupa kupa[6] =$/;"	v
+kupa	apps/isixtest/test5.c	/^dupa kupa[6] =$/;"	v
+kupa	apps/isixtest/test6.c	/^dupa kupa[6] =$/;"	v
+list	include/prv/list.h	/^typedef struct list$/;"	s
+list::next	include/prv/list.h	/^    struct list *next;$/;"	m	struct:list	typeref:struct:list::list	access:public
+list::prev	include/prv/list.h	/^    struct list *prev;$/;"	m	struct:list	typeref:struct:list::list	access:public
+list_delete	include/prv/list.h	/^static inline void list_delete(list_t *elem)$/;"	f	signature:(list_t *elem)
+list_entry	include/prv/list.h	/^typedef struct list_entry$/;"	s
+list_entry::head	include/prv/list.h	/^   list_t head;$/;"	m	struct:list_entry	access:public
+list_entry_t	include/prv/list.h	/^} list_entry_t;$/;"	t	typeref:struct:list_entry
+list_for_each	include/prv/list.h	63;"	d
+list_for_each_entry	include/prv/list.h	76;"	d
+list_for_each_entry_reverse	include/prv/list.h	83;"	d
+list_for_each_reverse	include/prv/list.h	69;"	d
+list_get_first	include/prv/list.h	91;"	d
+list_get_last	include/prv/list.h	96;"	d
+list_getitem	include/prv/list.h	60;"	d
+list_init	include/prv/list.h	/^static inline void list_init(list_entry_t *list)$/;"	f	signature:(list_entry_t *list)
+list_insert_after	include/prv/list.h	/^static inline void list_insert_after(list_t *after,list_t *elem)$/;"	f	signature:(list_t *after,list_t *elem)
+list_insert_before	include/prv/list.h	/^static inline void list_insert_before(list_t *before,list_t *elem)$/;"	f	signature:(list_t *before,list_t *elem)
+list_insert_between	include/prv/list.h	/^static inline void list_insert_between(list_t *a,list_t *b,list_t *elem)$/;"	f	signature:(list_t *a,list_t *b,list_t *elem)
+list_insert_end	include/prv/list.h	/^static inline void list_insert_end(list_entry_t *list,list_t *elem)$/;"	f	signature:(list_entry_t *list,list_t *elem)
+list_isempty	include/prv/list.h	108;"	d
+list_t	include/prv/list.h	/^} list_t;$/;"	t	typeref:struct:list
+main	apps/from_lib/test2.c	/^int main(void)$/;"	f	signature:(void)
+main	apps/isixtest/test.c	/^int main(void)$/;"	f	signature:(void)
+main	apps/isixtest/test2.c	/^int main(void)$/;"	f	signature:(void)
+main	apps/isixtest/test3.c	/^int main(void)$/;"	f	signature:(void)
+main	apps/isixtest/test4.c	/^int main(void)$/;"	f	signature:(void)
+main	apps/isixtest/test5.c	/^int main(void)$/;"	f	signature:(void)
+main	apps/isixtest/test6.c	/^int main(void)$/;"	f	signature:(void)
+main_fail	arch/arm7lpc2000/boot/boot.S	/^main_fail:               $/;"	l
+mask	apps/isixtest/test3.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
+mask	apps/isixtest/test4.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
+mask	apps/isixtest/test5.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
+mask	apps/isixtest/test6.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
+mem_p	kernel/fifo.c	/^    char *mem_p;    \/\/Pointer to allocated memory$/;"	m	struct:fifo_struct	file:	access:public
+memcpy	include/isix/memory.h	/^void* memcpy(void *dest,const void *src,size_t size);$/;"	p	signature:(void *dest,const void *src,size_t size)
+memcpy	kernel/memory.c	/^void* memcpy(void *dest,const void *src,size_t size)$/;"	f	signature:(void *dest,const void *src,size_t size)
+mktime	include/isix/time.h	/^time_t mktime(const struct tm *t);$/;"	p	signature:(const struct tm *t)
+mktime	kernel/time.c	/^time_t mktime(const struct tm *t)$/;"	f	signature:(const struct tm *t)
+myputchar	kernel/printk.c	34;"	d	file:
+next	include/prv/list.h	/^    struct list *next;$/;"	m	struct:list	typeref:struct:list::list	access:public
+next	kernel/memory.c	/^    struct freelist *next;$/;"	m	struct:freelist	typeref:struct:freelist::freelist	file:	access:public
+on	apps/isixtest/test3.c	/^    bool on;$/;"	m	struct:dupa	file:	access:public
+on	apps/isixtest/test4.c	/^    bool on;$/;"	m	struct:dupa	file:	access:public
+on	apps/isixtest/test5.c	/^    bool on;$/;"	m	struct:dupa	file:	access:public
+on	apps/isixtest/test6.c	/^    bool on;$/;"	m	struct:dupa	file:	access:public
+pc_pointer	include/prv/arm7lpc2000/ptrace.h	77;"	d
+pc_pointer	include/prv/asm/ptrace.h	77;"	d
+prefetch_abort_exception	arch/arm7lpc2000/kernel/exceptions.c	/^void prefetch_abort_exception(struct pt_regs *pt_regs)$/;"	f	signature:(struct pt_regs *pt_regs)
+prev	include/prv/list.h	/^    struct list *prev;$/;"	m	struct:list	typeref:struct:list::list	access:public
+prev	kernel/memory.c	/^    struct freelist *prev;$/;"	m	struct:freelist	typeref:struct:freelist::freelist	file:	access:public
+print_sem	kernel/printk.c	/^static sem_t *print_sem;$/;"	v	file:
+print_tasks	kernel/scheduler.c	/^static void print_tasks(list_entry_t *sem_list)$/;"	f	file:	signature:(list_entry_t *sem_list)
+print_tasks	kernel/scheduler.c	/^static void print_tasks(list_entry_t *sem_list);$/;"	p	file:	signature:(list_entry_t *sem_list)
+print_tasks	kernel/scheduler.c	22;"	d	file:
+printelem	kernel/memory.c	/^void printelem(void)$/;"	f	signature:(void)
+printf	include/isix/printk.h	11;"	d
+printk	arch/arm7lpc2000/kernel/interrupt.c	12;"	d	file:
+printk	include/isix/printk.h	9;"	d
+printk	kernel/fifo.c	18;"	d	file:
+printk	kernel/memory.c	13;"	d	file:
+printk	kernel/scheduler.c	20;"	d	file:
+printk	kernel/scheduler.c	21;"	d	file:
+printk	kernel/semaphore.c	19;"	d	file:
+printk	kernel/task.c	16;"	d	file:
+prio	include/prv/scheduler.h	/^    prio_t prio;			    \/\/Priority of task$/;"	m	struct:task_struct	access:public
+prio	include/prv/scheduler.h	/^    prio_t prio;               \/\/Tasks group priority$/;"	m	struct:task_ready_struct	access:public
+prio_elem	include/prv/scheduler.h	/^    task_ready_t *prio_elem;    \/\/Pointer to own prio list$/;"	m	struct:task_struct	access:public
+prio_t	include/isix/scheduler.h	/^typedef u8 prio_t;$/;"	t
+processor_mode	include/prv/arm7lpc2000/ptrace.h	65;"	d
+processor_mode	include/prv/asm/ptrace.h	65;"	d
+pt_regs	include/prv/arm7lpc2000/ptrace.h	/^struct pt_regs {$/;"	s
+pt_regs	include/prv/asm/ptrace.h	/^struct pt_regs {$/;"	s
+pt_regs::uregs	include/prv/arm7lpc2000/ptrace.h	/^	long uregs[18];$/;"	m	struct:pt_regs	access:public
+pt_regs::uregs	include/prv/asm/ptrace.h	/^	long uregs[18];$/;"	m	struct:pt_regs	access:public
+ready_task	kernel/scheduler.c	/^static list_entry_t ready_task;$/;"	v	file:
+reg_t	include/arm7lpc2000/types.h	/^typedef unsigned long reg_t;$/;"	t
+reg_t	include/asm/types.h	/^typedef unsigned long reg_t;$/;"	t
+reset_cpu	arch/arm7lpc2000/boot/boot.S	/^reset_cpu:$/;"	l
+reset_cpu	arch/arm7lpc2000/kernel/exceptions.c	/^extern void reset_cpu(void);$/;"	p	file:	signature:(void)
+rtc_clock_init	arch/arm7lpc2000/kernel/rtc.c	/^void rtc_clock_init(void)$/;"	f	signature:(void)
+rtc_clock_init	include/arm7lpc2000/rtc.h	/^void rtc_clock_init(void);$/;"	p	signature:(void)
+rtc_clock_init	include/asm/rtc.h	/^void rtc_clock_init(void);$/;"	p	signature:(void)
+rx_p	kernel/fifo.c	/^    char *rx_p;     \/\/Pointer to rx$/;"	m	struct:fifo_struct	file:	access:public
+rx_sem	kernel/fifo.c	/^    sem_t *rx_sem;  \/\/Semaphore rx$/;"	m	struct:fifo_struct	file:	access:public
+s16	include/arm7lpc2000/types.h	/^typedef signed short s16;$/;"	t
+s16	include/asm/types.h	/^typedef signed short s16;$/;"	t
+s32	include/arm7lpc2000/types.h	/^typedef signed int s32;$/;"	t
+s32	include/asm/types.h	/^typedef signed int s32;$/;"	t
+s64	include/arm7lpc2000/types.h	/^typedef signed long long s64;$/;"	t
+s64	include/asm/types.h	/^typedef signed long long s64;$/;"	t
+s8	include/arm7lpc2000/types.h	/^typedef signed char s8;$/;"	t
+s8	include/asm/types.h	/^typedef signed char s8;$/;"	t
+sched_lock	include/prv/scheduler.h	/^void sched_lock(void);$/;"	p	signature:(void)
+sched_lock	kernel/scheduler.c	/^void sched_lock(void)$/;"	f	signature:(void)
+sched_lock_counter	kernel/scheduler.c	/^static volatile int sched_lock_counter = 0;$/;"	v	file:
+sched_unlock	include/prv/scheduler.h	/^void sched_unlock(void);$/;"	p	signature:(void)
+sched_unlock	kernel/scheduler.c	/^void sched_unlock(void)$/;"	f	signature:(void)
+sched_yield	include/isix/scheduler.h	22;"	d
+schedule	include/prv/scheduler.h	/^void schedule(void);$/;"	p	signature:(void)
+schedule	kernel/scheduler.c	/^void schedule(void)$/;"	f	signature:(void)
+schedule_time	include/prv/scheduler.h	/^void schedule_time(void);$/;"	p	signature:(void)
+schedule_time	kernel/scheduler.c	/^void schedule_time(void)$/;"	f	signature:(void)
+schedule_timeout	include/isix/time.h	31;"	d
+scheduler_running	kernel/scheduler.c	/^volatile bool scheduler_running;$/;"	v
+sec	apps/isixtest/test3.c	/^    u32 sec;$/;"	m	struct:dupa	file:	access:public
+sec	apps/isixtest/test4.c	/^    u32 sec;$/;"	m	struct:dupa	file:	access:public
+sec	apps/isixtest/test5.c	/^    u32 sec;$/;"	m	struct:dupa	file:	access:public
+sec	apps/isixtest/test6.c	/^    u32 sec;$/;"	m	struct:dupa	file:	access:public
+sem	apps/from_lib/test2.c	/^sem_t *sem;$/;"	v
+sem	apps/isixtest/test2.c	/^sem_t *sem;$/;"	v
+sem	include/prv/scheduler.h	/^    sem_t   *sem;               \/\/Pointer to waiting sem$/;"	m	struct:task_struct	access:public
+sem_create	include/isix/semaphore.h	17;"	d
+sem_create_isr	include/isix/semaphore.h	/^sem_t* sem_create_isr(sem_t *sem,int val,s8 interrupt);$/;"	p	signature:(sem_t *sem,int val,s8 interrupt)
+sem_create_isr	kernel/semaphore.c	/^sem_t* sem_create_isr(sem_t *sem,int val,s8 interrupt)$/;"	f	signature:(sem_t *sem,int val,s8 interrupt)
+sem_destroy	include/isix/semaphore.h	/^int sem_destroy(sem_t *sem);$/;"	p	signature:(sem_t *sem)
+sem_destroy	kernel/semaphore.c	/^int sem_destroy(sem_t *sem)$/;"	f	signature:(sem_t *sem)
+sem_get_isr	include/isix/semaphore.h	/^int sem_get_isr(sem_t *sem);$/;"	p	signature:(sem_t *sem)
+sem_get_isr	kernel/semaphore.c	/^int sem_get_isr(sem_t *sem)$/;"	f	signature:(sem_t *sem)
+sem_getval	include/isix/semaphore.h	/^int sem_getval(sem_t *sem);$/;"	p	signature:(sem_t *sem)
+sem_getval	kernel/semaphore.c	/^int sem_getval(sem_t *sem)$/;"	f	signature:(sem_t *sem)
+sem_ret	include/prv/semaphore.h	/^    s8 sem_ret;$/;"	m	struct:sem_struct	access:public
+sem_setval	include/isix/semaphore.h	/^int sem_setval(sem_t *sem,int val);$/;"	p	signature:(sem_t *sem,int val)
+sem_setval	kernel/semaphore.c	/^int sem_setval(sem_t *sem,int val)$/;"	f	signature:(sem_t *sem,int val)
+sem_signal	include/isix/semaphore.h	33;"	d
+sem_signal_isr	include/isix/semaphore.h	35;"	d
+sem_struct	include/prv/semaphore.h	/^struct sem_struct$/;"	s
+sem_struct::inode	include/prv/semaphore.h	/^    list_t inode;$/;"	m	struct:sem_struct	access:public
+sem_struct::intmask	include/prv/semaphore.h	/^    unsigned long intmask;$/;"	m	struct:sem_struct	access:public
+sem_struct::sem_ret	include/prv/semaphore.h	/^    s8 sem_ret;$/;"	m	struct:sem_struct	access:public
+sem_struct::sem_task	include/prv/semaphore.h	/^    list_entry_t sem_task;$/;"	m	struct:sem_struct	access:public
+sem_struct::value	include/prv/semaphore.h	/^    int value;$/;"	m	struct:sem_struct	access:public
+sem_t	include/isix/semaphore.h	/^typedef struct sem_struct sem_t;$/;"	t	typeref:struct:sem_struct
+sem_task	include/prv/semaphore.h	/^    list_entry_t sem_task;$/;"	m	struct:sem_struct	access:public
+sem_wait	include/isix/semaphore.h	/^int sem_wait(sem_t *sem,unsigned long timeout);$/;"	p	signature:(sem_t *sem,unsigned long timeout)
+sem_wait	kernel/semaphore.c	/^int sem_wait(sem_t *sem,unsigned long timeout)$/;"	f	signature:(sem_t *sem,unsigned long timeout)
+semaphore_init	include/prv/semaphore.h	/^void semaphore_init(void);$/;"	p	signature:(void)
+semaphore_init	kernel/semaphore.c	/^void semaphore_init(void)$/;"	f	signature:(void)
+semaphore_list	kernel/semaphore.c	/^static list_entry_t semaphore_list;$/;"	v	file:
+set_cpsr	arch/arm7lpc2000/kernel/interrupt.c	/^static inline void set_cpsr(reg_t val)$/;"	f	file:	signature:(reg_t val)
+set_tmtime	arch/arm7lpc2000/kernel/rtc.c	/^void set_tmtime(const struct tm *tmtime)$/;"	f	signature:(const struct tm *tmtime)
+set_tmtime	include/arm7lpc2000/rtc.h	/^void set_tmtime(const struct tm *tmtime);$/;"	p	signature:(const struct tm *tmtime)
+set_tmtime	include/asm/rtc.h	/^void set_tmtime(const struct tm *tmtime);$/;"	p	signature:(const struct tm *tmtime)
+show_regs	arch/arm7lpc2000/kernel/exceptions.c	/^static void show_regs (struct pt_regs *regs)$/;"	f	file:	signature:(struct pt_regs *regs)
+size	kernel/fifo.c	/^    int size;       \/\/Total fifo size$/;"	m	struct:fifo_struct	file:	access:public
+size	kernel/memory.c	/^    size_t size;$/;"	m	struct:freelist	file:	access:public
+start_scheduler	kernel/scheduler.c	/^void start_scheduler(void) __attribute__((noreturn));$/;"	p	file:	signature:(void)
+start_scheduler	kernel/scheduler.c	/^void start_scheduler(void)$/;"	f	signature:(void)
+state	include/prv/scheduler.h	/^    u8 state;                   \/\/stan watku$/;"	m	struct:task_struct	access:public
+sys_time_init	arch/arm7lpc2000/kernel/scheduler.c	/^void sys_time_init(void)$/;"	f	signature:(void)
+sys_time_init	include/prv/arm7lpc2000/scheduler.h	/^void sys_time_init(void);$/;"	p	signature:(void)
+sys_time_init	include/prv/asm/scheduler.h	/^void sys_time_init(void);$/;"	p	signature:(void)
+t1	apps/from_lib/test2.c	/^task_t *t1,*t2,*t3;$/;"	v
+t1	apps/isixtest/test.c	/^task_t *t1,*t2,*t3;$/;"	v
+t1	apps/isixtest/test2.c	/^task_t *t1,*t2,*t3;$/;"	v
+t1	apps/isixtest/test3.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t1	apps/isixtest/test4.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t1	apps/isixtest/test5.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t1	apps/isixtest/test6.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t2	apps/from_lib/test2.c	/^task_t *t1,*t2,*t3;$/;"	v
+t2	apps/isixtest/test.c	/^task_t *t1,*t2,*t3;$/;"	v
+t2	apps/isixtest/test2.c	/^task_t *t1,*t2,*t3;$/;"	v
+t2	apps/isixtest/test3.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t2	apps/isixtest/test4.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t2	apps/isixtest/test5.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t2	apps/isixtest/test6.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t3	apps/from_lib/test2.c	/^task_t *t1,*t2,*t3;$/;"	v
+t3	apps/isixtest/test.c	/^task_t *t1,*t2,*t3;$/;"	v
+t3	apps/isixtest/test2.c	/^task_t *t1,*t2,*t3;$/;"	v
+t3	apps/isixtest/test3.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t3	apps/isixtest/test4.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t3	apps/isixtest/test5.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t3	apps/isixtest/test6.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t4	apps/isixtest/test3.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t4	apps/isixtest/test4.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t4	apps/isixtest/test5.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t4	apps/isixtest/test6.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t5	apps/isixtest/test3.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t5	apps/isixtest/test4.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t5	apps/isixtest/test5.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t5	apps/isixtest/test6.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t6	apps/isixtest/test3.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t6	apps/isixtest/test4.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t6	apps/isixtest/test5.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+t6	apps/isixtest/test6.c	/^task_t *t1,*t2,*t3,*t4,*t5,*t6;$/;"	v
+task_change_prio	include/isix/task.h	27;"	d
+task_create	include/isix/task.h	/^task_t* task_create(task_func_ptr_t task_func, void *func_param, reg_t stack_depth, prio_t priority);$/;"	p	signature:(task_func_ptr_t task_func, void *func_param, reg_t stack_depth, prio_t priority)
+task_create	kernel/task.c	/^task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_depth, prio_t priority)$/;"	f	signature:(task_func_ptr_t task_func, void *func_param,reg_t stack_depth, prio_t priority)
+task_delete	include/isix/task.h	/^int task_delete(task_t *task);$/;"	p	signature:(task_t *task)
+task_delete	kernel/task.c	/^int task_delete(task_t *task)$/;"	f	signature:(task_t *task)
+task_func_ptr_t	include/isix/scheduler.h	/^typedef void (*task_func_ptr_t)(void*);$/;"	t
+task_init_stack	arch/arm7lpc2000/kernel/scheduler.c	/^reg_t* task_init_stack(reg_t *sp,task_func_ptr_t pfun,void *param)$/;"	f	signature:(reg_t *sp,task_func_ptr_t pfun,void *param)
+task_init_stack	include/prv/arm7lpc2000/scheduler.h	/^reg_t* task_init_stack(reg_t *sp,task_func_ptr_t pfun,void *param);$/;"	p	signature:(reg_t *sp,task_func_ptr_t pfun,void *param)
+task_init_stack	include/prv/asm/scheduler.h	/^reg_t* task_init_stack(reg_t *sp,task_func_ptr_t pfun,void *param);$/;"	p	signature:(reg_t *sp,task_func_ptr_t pfun,void *param)
+task_list	include/prv/scheduler.h	/^    list_entry_t task_list;    \/\/List of task with some priority$/;"	m	struct:task_ready_struct	access:public
+task_ready_struct	include/prv/scheduler.h	/^typedef struct task_ready_struct$/;"	s
+task_ready_struct::inode	include/prv/scheduler.h	/^    list_t inode;              \/\/List inode$/;"	m	struct:task_ready_struct	access:public
+task_ready_struct::prio	include/prv/scheduler.h	/^    prio_t prio;               \/\/Tasks group priority$/;"	m	struct:task_ready_struct	access:public
+task_ready_struct::task_list	include/prv/scheduler.h	/^    list_entry_t task_list;    \/\/List of task with some priority$/;"	m	struct:task_ready_struct	access:public
+task_ready_t	include/prv/scheduler.h	/^} task_ready_t;$/;"	t	typeref:struct:task_ready_struct
+task_self	include/isix/task.h	/^task_t * task_self(void);$/;"	p	signature:(void)
+task_self	kernel/task.c	/^task_t * task_self(void)$/;"	f	signature:(void)
+task_struct	include/prv/scheduler.h	/^struct task_struct$/;"	s
+task_struct::init_stack	include/prv/scheduler.h	/^    reg_t *init_stack;          \/\/Initial value of stack for kfree$/;"	m	struct:task_struct	access:public
+task_struct::inode	include/prv/scheduler.h	/^    list_t inode;               \/\/List of tasks$/;"	m	struct:task_struct	access:public
+task_struct::inode_sem	include/prv/scheduler.h	/^    list_t inode_sem;           \/\/Inode of semaphore$/;"	m	struct:task_struct	access:public
+task_struct::jiffies	include/prv/scheduler.h	/^    u64 jiffies;                \/\/Ticks when task wake up$/;"	m	struct:task_struct	access:public
+task_struct::prio	include/prv/scheduler.h	/^    prio_t prio;			    \/\/Priority of task$/;"	m	struct:task_struct	access:public
+task_struct::prio_elem	include/prv/scheduler.h	/^    task_ready_t *prio_elem;    \/\/Pointer to own prio list$/;"	m	struct:task_struct	access:public
+task_struct::sem	include/prv/scheduler.h	/^    sem_t   *sem;               \/\/Pointer to waiting sem$/;"	m	struct:task_struct	access:public
+task_struct::state	include/prv/scheduler.h	/^    u8 state;                   \/\/stan watku$/;"	m	struct:task_struct	access:public
+task_struct::top_stack	include/prv/scheduler.h	/^    reg_t *top_stack;	        \/\/Task stack ptr$/;"	m	struct:task_struct	access:public
+task_t	include/isix/scheduler.h	/^typedef struct task_struct task_t;$/;"	t	typeref:struct:task_struct
+thumb_mode	include/prv/arm7lpc2000/ptrace.h	59;"	d
+thumb_mode	include/prv/arm7lpc2000/ptrace.h	62;"	d
+thumb_mode	include/prv/asm/ptrace.h	59;"	d
+thumb_mode	include/prv/asm/ptrace.h	62;"	d
+time	include/isix/time.h	/^time_t time(time_t *t);$/;"	p	signature:(time_t *t)
+time	kernel/time.c	/^time_t time(time_t *t)$/;"	f	signature:(time_t *t)
+time_t	include/isix/time.h	/^typedef u32 time_t;$/;"	t
+tm	include/isix/time.h	/^struct tm$/;"	s
+tm::tm_hour	include/isix/time.h	/^     unsigned char     tm_hour;        \/* godziny *\/$/;"	m	struct:tm	access:public
+tm::tm_mday	include/isix/time.h	/^     unsigned char     tm_mday;        \/* dzień miesiąca *\/$/;"	m	struct:tm	access:public
+tm::tm_min	include/isix/time.h	/^     unsigned char     tm_min;         \/* minuty *\/$/;"	m	struct:tm	access:public
+tm::tm_mon	include/isix/time.h	/^     unsigned char     tm_mon;         \/* miesiąc *\/$/;"	m	struct:tm	access:public
+tm::tm_sec	include/isix/time.h	/^     unsigned char     tm_sec;         \/* sekundy *\/$/;"	m	struct:tm	access:public
+tm::tm_wday	include/isix/time.h	/^     unsigned char     tm_wday;        \/* dzień tygodnia *\/$/;"	m	struct:tm	access:public
+tm::tm_yday	include/isix/time.h	/^     unsigned short    tm_yday;        \/* dzień roku *\/$/;"	m	struct:tm	access:public
+tm::tm_year	include/isix/time.h	/^     unsigned short    tm_year;        \/* rok *\/$/;"	m	struct:tm	access:public
+tm_hour	include/isix/time.h	/^     unsigned char     tm_hour;        \/* godziny *\/$/;"	m	struct:tm	access:public
+tm_mday	include/isix/time.h	/^     unsigned char     tm_mday;        \/* dzień miesiąca *\/$/;"	m	struct:tm	access:public
+tm_min	include/isix/time.h	/^     unsigned char     tm_min;         \/* minuty *\/$/;"	m	struct:tm	access:public
+tm_mon	include/isix/time.h	/^     unsigned char     tm_mon;         \/* miesiąc *\/$/;"	m	struct:tm	access:public
+tm_sec	include/isix/time.h	/^     unsigned char     tm_sec;         \/* sekundy *\/$/;"	m	struct:tm	access:public
+tm_wday	include/isix/time.h	/^     unsigned char     tm_wday;        \/* dzień tygodnia *\/$/;"	m	struct:tm	access:public
+tm_yday	include/isix/time.h	/^     unsigned short    tm_yday;        \/* dzień roku *\/$/;"	m	struct:tm	access:public
+tm_year	include/isix/time.h	/^     unsigned short    tm_year;        \/* rok *\/$/;"	m	struct:tm	access:public
+top_stack	include/prv/scheduler.h	/^    reg_t *top_stack;	        \/\/Task stack ptr$/;"	m	struct:task_struct	access:public
+true	include/isix/types.h	18;"	d
+tx_p	kernel/fifo.c	/^    char *tx_p;     \/\/Pointer to tx$/;"	m	struct:fifo_struct	file:	access:public
+tx_sem	kernel/fifo.c	/^    sem_t *tx_sem;  \/\/Semaphore for tx$/;"	m	struct:fifo_struct	file:	access:public
+u16	include/arm7lpc2000/types.h	/^typedef unsigned short u16;$/;"	t
+u16	include/asm/types.h	/^typedef unsigned short u16;$/;"	t
+u32	include/arm7lpc2000/types.h	/^typedef unsigned int u32;$/;"	t
+u32	include/asm/types.h	/^typedef unsigned int u32;$/;"	t
+u64	include/arm7lpc2000/types.h	/^typedef unsigned long long u64;$/;"	t
+u64	include/asm/types.h	/^typedef unsigned long long u64;$/;"	t
+u8	include/arm7lpc2000/types.h	/^typedef unsigned char u8;$/;"	t
+u8	include/asm/types.h	/^typedef unsigned char u8;$/;"	t
+uart_early_init	arch/arm7lpc2000/kernel/uart_early.c	/^void uart_early_init(void)$/;"	f	signature:(void)
+uart_early_init	include/arm7lpc2000/uart_early.h	/^void uart_early_init(void);$/;"	p	signature:(void)
+uart_early_init	include/asm/uart_early.h	/^void uart_early_init(void);$/;"	p	signature:(void)
+uart_early_putchar	arch/arm7lpc2000/kernel/uart_early.c	/^void uart_early_putchar(char c)$/;"	f	signature:(char c)
+uart_early_putchar	include/arm7lpc2000/uart_early.h	/^void uart_early_putchar(char c);$/;"	p	signature:(char c)
+uart_early_putchar	include/asm/uart_early.h	/^void uart_early_putchar(char c);$/;"	p	signature:(char c)
+undefined_exception	arch/arm7lpc2000/kernel/exceptions.c	/^void undefined_exception(struct pt_regs *pt_regs)$/;"	f	signature:(struct pt_regs *pt_regs)
+uregs	include/prv/arm7lpc2000/ptrace.h	/^	long uregs[18];$/;"	m	struct:pt_regs	access:public
+uregs	include/prv/asm/ptrace.h	/^	long uregs[18];$/;"	m	struct:pt_regs	access:public
+used_irq_slots	arch/arm7lpc2000/kernel/interrupt.c	/^static volatile u16 used_irq_slots = 0;$/;"	v	file:
+user_mode	include/prv/arm7lpc2000/ptrace.h	55;"	d
+user_mode	include/prv/asm/ptrace.h	55;"	d
+valid_user_regs	include/prv/arm7lpc2000/ptrace.h	/^static inline int valid_user_regs(struct pt_regs *regs)$/;"	f	signature:(struct pt_regs *regs)
+valid_user_regs	include/prv/asm/ptrace.h	/^static inline int valid_user_regs(struct pt_regs *regs)$/;"	f	signature:(struct pt_regs *regs)
+value	include/prv/semaphore.h	/^    int value;$/;"	m	struct:sem_struct	access:public
+waiting_task	kernel/scheduler.c	/^static list_entry_t waiting_task;$/;"	v	file:
+zero_memory	include/isix/memory.h	/^void zero_memory(void *s, size_t n);$/;"	p	signature:(void *s, size_t n)
+zero_memory	kernel/memory.c	/^void zero_memory(void *s, size_t n)$/;"	f	signature:(void *s, size_t n)

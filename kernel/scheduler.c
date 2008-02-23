@@ -13,8 +13,16 @@
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_ON
 #endif
 
+
+/*-----------------------------------------------------------------------*/
+static void bug(void)
+{
+    printk("OOPS: Please reset board\n");
+    while(1);
+}
+/*-----------------------------------------------------------------------*/
+
 #if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
-#include <isix/printk.h>
 static void print_tasks(list_entry_t *sem_list);
 #else
 #undef printk
@@ -130,6 +138,7 @@ void schedule_time(void)
         if(add_task_to_ready_list(task_c)<0)
         {
             printk("SchedulerTime: Error in add task to ready list\n");
+            bug();
         }
         if(list_isempty(&waiting_task)) return;
         task_c = list_get_first(&waiting_task,inode,task_t);

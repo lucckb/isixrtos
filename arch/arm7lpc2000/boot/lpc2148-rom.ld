@@ -9,6 +9,7 @@ MEMORY
 {
   CODE (xr) : ORIGIN = 0x00000000, LENGTH = 512K
   DATA (rw) : ORIGIN = 0x40000000, LENGTH = 32K
+  USBDATA(rw): ORIGIN = 0x7FD00000, LENGTH = 8K
 }
 
 
@@ -102,6 +103,14 @@ SECTIONS
   _end = .;
   PROVIDE (end = .);
   PROVIDE (__heap_start = .);
+  
+  .usbdata :
+  {
+    *(.usbdata)
+    *(.usbdata.*)
+  } > USBDATA
+  . = ALIGN(4);
+  
   /* Stabs zawiera sekcje debugera  */
   .stab          0 : { *(.stab) }
   .stabstr       0 : { *(.stabstr) }
