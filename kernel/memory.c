@@ -175,7 +175,7 @@ void* memcpy(void *dest,const void *src,size_t size)
 }
 
 /*------------------------------------------------------*/
-#ifdef DEBUG
+#if ISIX_DEBUG_MEMORY == ISIX_DBG_ON
 void printelem(void)
 {
     int j = 0;
@@ -194,3 +194,7 @@ void printelem(void)
 }
 
 #endif /* DEBUG */
+
+/*------------------------------------------------------*/
+
+
