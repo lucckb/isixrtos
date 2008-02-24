@@ -15,22 +15,6 @@
 
 
 /*-----------------------------------------------------------------------*/
-static void bug(void)
-{
-    printk("OOPS: Please reset board\n");
-    while(1);
-}
-/*-----------------------------------------------------------------------*/
-
-#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
-static void print_tasks(list_entry_t *sem_list);
-#else
-#undef printk
-#define printk(...)
-#define print_tasks(v)
-#endif
-
-/*-----------------------------------------------------------------------*/
 //Current task pointer
 volatile bool scheduler_running;
 
@@ -62,6 +46,42 @@ static list_entry_t free_prio_elem;
 
 //Global jiffies
 volatile u64 jiffies;
+
+
+/*-----------------------------------------------------------------------*/
+void bug(void)
+{
+    printk("OOPS: Please reset board\n");
+    task_ready_t *i;
+    task_t *j;
+    //Disable interrupt
+    fiqirq_disable();
+    printk("Ready tasks\n");
+    list_for_each_entry(&ready_task,i,inode)
+    {
+         printk("\t* List inode %08x prio %d\n",(unsigned int)i,i->prio);
+         list_for_each_entry(&i->task_list,j,inode)
+         {
+              printk("\t\t-> task %08x prio %d state %d\n",j,j->prio,j->state);
+         }
+    }
+    printk("Sleeping tasks\n");
+    list_for_each_entry(&waiting_task,j,inode)
+    {
+        printk("\t->Task: %08x prio: %d state %d jiffies %d\n",j,j->prio,j->state,j->jiffies);
+    }
+    while(1);
+}
+
+/*-----------------------------------------------------------------------*/
+//After bug function disable printk
+#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
+static void print_tasks(list_entry_t *sem_list);
+#else
+#undef printk
+#define printk(...)
+#define print_tasks(v)
+#endif
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler

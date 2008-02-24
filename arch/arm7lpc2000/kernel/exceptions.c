@@ -2,7 +2,7 @@
 #include <isix/types.h>
 #include <isix/printk.h>
 #include <prv/asm/ptrace.h>
-
+#include <asm/interrupt.h>
 
 /*------------------------------------------------*/
 
@@ -12,7 +12,8 @@ extern void reset_cpu(void);
 
 static void bad_mode (void)
 {
-	printk ("Halting CPU ... - Please RESET board\n");
+    fiqirq_disable();
+    printk ("Halting CPU ... - Please RESET board\n");
 	while(1);
 }
 

@@ -33,4 +33,8 @@ struct task_struct;
 typedef struct task_struct task_t;
 
 /*-----------------------------------------------------------------------*/
+//Halt system when critical error
+void bug(void);
+
+/*-----------------------------------------------------------------------*/
 #endif
