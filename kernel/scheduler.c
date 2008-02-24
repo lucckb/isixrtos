@@ -107,6 +107,7 @@ void schedule(void)
     printk("Scheduler: prev task %08x\n",current_task);
     current_task = list_get_first(&current_prio->task_list,inode,task_t);
     current_task->state |= TASK_RUNNING;
+    if(current_task->prio != current_prio->prio) bug();
     printk("Scheduler: new task %08x\n",current_task);
     sched_unlock();
 }
