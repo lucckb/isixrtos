@@ -86,6 +86,7 @@ fifo_t* fifo_create_isr(int n_elem, int elem_size,s8 interrupt)
 int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout)
 {
     if(!fifo) return ISIX_EINVARG;
+    //FIXME tu sie zesralo
     if(sem_wait(fifo->tx_sem,timeout)<0)
     {
         printk("FifoWrite: Timeout on TX queue\n");
