@@ -13,7 +13,7 @@ struct sem_struct
     //Task val waiting for semaphore
     list_entry_t sem_task;
     //Number of interrupt to mask
-    unsigned long intmask;
+    s8 intno;
     //Return reason
     s8 sem_ret;
 };

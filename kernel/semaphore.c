@@ -30,7 +30,7 @@ sem_t* sem_create_isr(sem_t *sem,int val,s8 interrupt)
     }
     zero_memory(sem,sizeof(sem_t));
     sem->value = val;
-    if(interrupt>=0) sem->intmask = _BV(interrupt);
+    sem->intno = interrupt;
     list_init(&sem->sem_task);
     printk("SemCreate: Create sem %08x val %d\n",sem,sem->value);
     return sem;
@@ -41,17 +41,18 @@ sem_t* sem_create_isr(sem_t *sem,int val,s8 interrupt)
 //TODO: priority inheritance
 int sem_wait(sem_t *sem,unsigned long timeout)
 {
+    bool pInt = true;
     //If nothing to to - exit
     if(sem==NULL && timeout==0) return ISIX_EINVARG;
     //Lock scheduler
     sched_lock();
-    if(sem && sem->intmask) interrupt_mask(sem->intmask);
+    if(sem && sem->intno!=-1) pInt = interrupt_control(sem->intno,false);
     printk("SemWait: Operate on task %08x state %02x\n",current_task,current_task->state);
     if(sem && sem->value>0)
     {
         sem->value--;
         printk("SemWait: Decrement value %d\n",sem->value);
-        if(sem->intmask) interrupt_umask(sem->intmask);
+        if(sem->intno!=-1) interrupt_control(sem->intno,pInt);
         sched_unlock();
         return ISIX_EOK;
     }
@@ -67,7 +68,7 @@ int sem_wait(sem_t *sem,unsigned long timeout)
     }
     else
     {
-        if(sem && sem->intmask) interrupt_umask(sem->intmask);
+        if(sem && sem->intno!=-1) interrupt_control(sem->intno,pInt);
         sched_unlock();
         return ISIX_EINVARG;
     }
@@ -90,9 +91,10 @@ int sem_wait(sem_t *sem,unsigned long timeout)
         current_task->sem = sem;
         printk("SemWait: Add task %08x to sem\n",current_task);
     }
-    if(sem && sem->intmask) interrupt_umask(sem->intmask);
+    if(sem && sem->intno!=-1) interrupt_control(sem->intno,true);
     sched_unlock();
     sched_yield();
+    if(sem && sem->intno!=-1) interrupt_control(sem->intno,pInt);
     printk("SemWait: task %08x after wakeup reason %d\n",current_task,sem->sem_ret);
     return sem->sem_ret;
 }
@@ -107,13 +109,14 @@ int __sem_signal(sem_t *sem,bool isr)
         printk("SemSignal: No sem\n");
         return ISIX_EINVARG;
     }
+    bool pInt = true;
     sched_lock();
-    if(isr==false && sem->intmask) interrupt_mask(sem->intmask);
+    if(isr==false && sem->intno!=-1) pInt = interrupt_control(sem->intno,false);
     if(list_isempty(&sem->sem_task)==true)
     {
         sem->value++;
         printk("SemSignal: Waiting list is empty incval to %d\n",sem->value);
-        if(isr==false && sem->intmask) interrupt_umask(sem->intmask);
+        if(isr==false && sem->intno!=-1) interrupt_control(sem->intno,pInt);
         sched_unlock();
         return ISIX_EOK;
     }
@@ -134,21 +137,21 @@ int __sem_signal(sem_t *sem,bool isr)
     current_task->sem = NULL;
     if(add_task_to_ready_list(task_wake)<0)
     {
-        if(isr==false && sem->intmask) interrupt_umask(sem->intmask);
+        if(isr==false && sem->intno!=-1) interrupt_control(sem->intno,pInt);
         sched_unlock();
         return ISIX_ENOMEM;
     }
     if(task_wake->prio<current_task->prio && !isr)
     {
         printk("SemSignal: Yield processor higer prio\n");
-        if(isr==false && sem->intmask) interrupt_umask(sem->intmask);
+        if(isr==false && sem->intno!=-1) interrupt_control(sem->intno,pInt);
         sched_unlock();
         sched_yield();
         return ISIX_EOK;
     }
     else
     {
-        if(isr==false && sem->intmask) interrupt_umask(sem->intmask);
+        if(isr==false && sem->intno!=-1) interrupt_control(sem->intno,pInt);
         sched_unlock();
         return ISIX_EOK;
     }
@@ -175,17 +178,18 @@ int sem_get_isr(sem_t *sem)
 int sem_setval(sem_t *sem,int val)
 {
     if(!sem) return ISIX_EINVARG;
+    unsigned long pInt = 0;
     //Semaphore is used
     sched_lock();
-    if(sem->intmask) interrupt_mask(sem->intmask);
+    if(sem->intno!=-1) pInt = interrupt_control(sem->intno,false);
     if(list_isempty(&sem->sem_task)==false)
     {
-        if(sem->intmask) interrupt_umask(sem->intmask);
+        if(sem->intno!=-1) interrupt_control(sem->intno,pInt);
         sched_unlock();
         return ISIX_EBUSY;
     }
     sem->value = val;
-    if(sem->intmask) interrupt_umask(sem->intmask);
+    if(sem->intno!=-1) interrupt_control(sem->intno,pInt);
     sched_unlock();
     return ISIX_EOK;
 }

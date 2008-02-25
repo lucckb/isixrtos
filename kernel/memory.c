@@ -163,6 +163,7 @@ void zero_memory(void *s, size_t n)
 //Copy memory from region src to dest
 void* memcpy(void *dest,const void *src,size_t size)
 {
+    /*
     u32 *ptr32d = (u32*)dest;
     u32 *ptr32s = (u32*)src;
     size_t elem32 = size/4;
@@ -172,6 +173,9 @@ void* memcpy(void *dest,const void *src,size_t size)
     u8 *ptr8s = (u8*)ptr32s;
     for(int i=0;i<elem8;i++) *ptr8d++ = *ptr8s++;
     return dest;
+    */
+    for(int i=0;i<size;i++)
+      ((u8*)dest)[i] = ((u8*)src)[i];
 }
 
 /*------------------------------------------------------*/

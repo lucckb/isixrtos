@@ -201,4 +201,17 @@ int interrupt_register_fiq(u8 int_num)
    return 0;
 }
 
+/*-----------------------------------------------------------------------*/
+//Control interrupt line
+bool interrupt_control(u8 intno,bool enabled)
+{
+    bool state;
+    reg_t cpsr = fiqirq_disable();
+    state = (VICIntEnable & _BV(intno))?true:false;
+    if(enabled==true) VICIntEnable = _BV(intno);
+    else VICIntEnClr = _BV(intno);
+    fiqirq_restore(cpsr);
+    return state;
+}
+/*-----------------------------------------------------------------------*/
 

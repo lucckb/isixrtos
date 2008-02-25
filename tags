@@ -267,8 +267,8 @@ I2C1STAT	include/asm/lpc214x.h	230;"	d
 ILR	include/arm7lpc2000/lpc214x.h	256;"	d
 ILR	include/asm/lpc214x.h	256;"	d
 INITIAL_SPSR	arch/arm7lpc2000/kernel/scheduler.c	11;"	d	file:
-INTERRUPT_FIQ_PROC	include/arm7lpc2000/interrupt.h	97;"	d
-INTERRUPT_FIQ_PROC	include/asm/interrupt.h	97;"	d
+INTERRUPT_FIQ_PROC	include/arm7lpc2000/interrupt.h	83;"	d
+INTERRUPT_FIQ_PROC	include/asm/interrupt.h	83;"	d
 INTERRUPT_NUM_ADC0	include/arm7lpc2000/lpc214x_vic.h	29;"	d
 INTERRUPT_NUM_ADC0	include/asm/lpc214x_vic.h	29;"	d
 INTERRUPT_NUM_ADC1	include/arm7lpc2000/lpc214x_vic.h	32;"	d
@@ -325,8 +325,8 @@ INTERRUPT_PROC	apps/from_lib/test2.c	/^INTERRUPT_PROC(extint_isr)$/;"	f
 INTERRUPT_PROC	apps/isixtest/test.c	/^INTERRUPT_PROC(extint_isr)$/;"	f
 INTERRUPT_PROC	apps/isixtest/test2.c	/^INTERRUPT_PROC(extint_isr)$/;"	f
 INTERRUPT_PROC	arch/arm7lpc2000/kernel/scheduler.c	/^INTERRUPT_PROC(sys_timer_isr)$/;"	f
-INTERRUPT_PROC	include/arm7lpc2000/interrupt.h	91;"	d
-INTERRUPT_PROC	include/asm/interrupt.h	91;"	d
+INTERRUPT_PROC	include/arm7lpc2000/interrupt.h	77;"	d
+INTERRUPT_PROC	include/asm/interrupt.h	77;"	d
 INTWAKE	include/arm7lpc2000/lpc214x.h	117;"	d
 INTWAKE	include/asm/lpc214x.h	117;"	d
 INT_MASK	arch/arm7lpc2000/kernel/interrupt.c	17;"	d	file:
@@ -377,7 +377,7 @@ ISIX_DEBUG_MEMORY	kernel/memory.c	6;"	d	file:
 ISIX_DEBUG_SCHEDULER	include/isix/isix_config.h	20;"	d
 ISIX_DEBUG_SCHEDULER	kernel/scheduler.c	13;"	d	file:
 ISIX_DEBUG_SEMAPHORE	include/isix/isix_config.h	23;"	d
-ISIX_DEBUG_SEMAPHORE	kernel/semaphore.c	12;"	d	file:
+ISIX_DEBUG_SEMAPHORE	kernel/semaphore.c	11;"	d	file:
 ISIX_DEBUG_TASK	include/isix/isix_config.h	24;"	d
 ISIX_DEBUG_TASK	kernel/task.c	9;"	d	file:
 ISIX_EBUSY	include/isix/error.h	16;"	d
@@ -438,10 +438,10 @@ Mode_UND	arch/arm7lpc2000/boot/boot.S	/^#define Mode_UND       0x1B$/;"	d
 Mode_USR	arch/arm7lpc2000/boot/boot.S	/^#define Mode_USR       0x10$/;"	d
 NULL	include/isix/types.h	11;"	d
 OBJ	apps/from_lib/lpc2148.mk	/^OBJ = $(SRC:.c=.o) $(CPPSRC:.cpp=.o) $(ASRC:.S=.o)$/;"	m
-OBJ-y	apps/isixtest/Makefile	/^OBJ-y = test.o $/;"	m
+OBJ-y	apps/isixtest/Makefile	/^OBJ-y = test6.o $/;"	m
 OBJ-y	arch/arm7lpc2000/boot/Makefile	/^OBJ-y = boot.o$/;"	m
 OBJ-y	arch/arm7lpc2000/kernel/Makefile	/^OBJ-y = scheduler.o interrupt.o rtc.o exceptions.o uart_early.o$/;"	m
-OBJ-y	kernel/Makefile	/^OBJ-y = printk.o scheduler.o memory.o task.o semaphore.o time.o fifo.o diag.o$/;"	m
+OBJ-y	kernel/Makefile	/^OBJ-y = printk.o scheduler.o memory.o task.o semaphore.o time.o fifo.o$/;"	m
 OBJDUMP	Makefile	/^OBJDUMP = $(CROSS_COMPILE)-objdump $/;"	m
 OBJDUMP	apps/from_lib/lpc2148.mk	/^OBJDUMP = arm-elf-objdump $/;"	m
 OBJ_LINK	apps/isixtest/Makefile	/^OBJ_LINK = $(OBJ-y)$/;"	m
@@ -996,6 +996,8 @@ YEAR	include/asm/lpc214x.h	271;"	d
 _BV	include/isix/types.h	23;"	d
 __ASM_INTERRUPT_H	include/arm7lpc2000/interrupt.h	2;"	d
 __ASM_INTERRUPT_H	include/asm/interrupt.h	2;"	d
+__ASM_INTLOCK_H__	include/arm7lpc2000/intlock.h	2;"	d
+__ASM_INTLOCK_H__	include/asm/intlock.h	2;"	d
 __ASM_LPC214X_VIC__	include/arm7lpc2000/lpc214x_vic.h	2;"	d
 __ASM_LPC214X_VIC__	include/asm/lpc214x_vic.h	2;"	d
 __ASM_PRV_CONTEXT_H	include/prv/arm7lpc2000/context.h	2;"	d
@@ -1013,6 +1015,7 @@ __ASM_UART_EARLY_H	include/asm/uart_early.h	2;"	d
 __ASM__SCHEDULER_H	include/arm7lpc2000/scheduler.h	2;"	d
 __ASM__SCHEDULER_H	include/asm/scheduler.h	2;"	d
 __ISIX_CONFIG__	include/isix/config.h	6;"	d
+__ISIX_DIAG_H__	include/isix/diag.h	2;"	d
 __ISIX_ERROR_H__	include/isix/error.h	2;"	d
 __ISIX_FIFO_H	include/isix/fifo.h	3;"	d
 __ISIX_ISIX_H__	include/isix/isix.h	2;"	d
@@ -1047,13 +1050,17 @@ add_task_to_waiting_list	kernel/scheduler.c	/^void add_task_to_waiting_list(task
 alloc_task_ready_t	kernel/scheduler.c	/^static task_ready_t *alloc_task_ready_t(void)$/;"	f	file:	signature:(void)
 bad_mode	arch/arm7lpc2000/kernel/exceptions.c	/^static void bad_mode (void)$/;"	f	file:	signature:(void)
 bool	include/isix/types.h	/^typedef u8 bool;$/;"	t
+bug	include/isix/diag.h	/^void bug(void);$/;"	p	signature:(void)
+bug	include/isix/scheduler.h	/^void bug(void);$/;"	p	signature:(void)
 bug	kernel/diag.c	/^void bug(void)$/;"	f	signature:(void)
+bug	kernel/scheduler.c	/^void bug(void)$/;"	f	signature:(void)
 cleanup_tasks	kernel/scheduler.c	/^static inline void cleanup_tasks(void)$/;"	f	file:	signature:(void)
 condition_codes	include/prv/arm7lpc2000/ptrace.h	74;"	d
 condition_codes	include/prv/asm/ptrace.h	74;"	d
 console_output	include/isix/printk.h	/^void console_output(bool use_sem,const char *text,...);$/;"	p	signature:(bool use_sem,const char *text,...)
 console_output	kernel/printk.c	/^void console_output(bool use_sem,char const *format, ...)$/;"	f	signature:(bool use_sem,char const *format, ...)
 count	apps/isixtest/test5.c	/^    u32 count;$/;"	m	struct:dupa	file:	access:public
+count	arch/arm7lpc2000/kernel/intlock.c	/^    unsigned int count;$/;"	m	struct:intlock_object	file:	access:public
 cpu_restore_context	include/prv/arm7lpc2000/context.h	41;"	d
 cpu_restore_context	include/prv/asm/context.h	41;"	d
 cpu_save_context	include/prv/arm7lpc2000/context.h	11;"	d
@@ -1153,10 +1160,6 @@ freelist_t	kernel/memory.c	/^} freelist_t;$/;"	t	typeref:struct:freelist	file:
 get_cpsr	arch/arm7lpc2000/kernel/interrupt.c	/^static inline reg_t get_cpsr(void)$/;"	f	file:	signature:(void)
 get_jiffies	include/isix/time.h	/^u64 get_jiffies(void);$/;"	p	signature:(void)
 get_jiffies	kernel/time.c	/^u64 get_jiffies(void)$/;"	f	signature:(void)
-get_scheduler_state	include/prv/scheduler.h	/^const list_entry_t * get_scheduler_state(u8 task_type);$/;"	p	signature:(u8 task_type)
-get_scheduler_state	kernel/scheduler.c	/^const list_entry_t * get_scheduler_state(u8 task_type)$/;"	f	signature:(u8 task_type)
-get_sem_list	include/prv/semaphore.h	/^const list_entry_t* get_sem_list(void);$/;"	p	signature:(void)
-get_sem_list	kernel/semaphore.c	/^const list_entry_t* get_sem_list(void)$/;"	f	signature:(void)
 get_tmtime	arch/arm7lpc2000/kernel/rtc.c	/^void get_tmtime(struct tm *tmtime)$/;"	f	signature:(struct tm *tmtime)
 get_tmtime	include/arm7lpc2000/rtc.h	/^void get_tmtime(struct tm *tmtime);$/;"	p	signature:(struct tm *tmtime)
 get_tmtime	include/asm/rtc.h	/^void get_tmtime(struct tm *tmtime);$/;"	p	signature:(struct tm *tmtime)
@@ -1168,14 +1171,14 @@ init_os	kernel/scheduler.c	/^void init_os(void)$/;"	f	signature:(void)
 init_stack	include/prv/scheduler.h	/^    reg_t *init_stack;          \/\/Initial value of stack for kfree$/;"	m	struct:task_struct	access:public
 inode	include/prv/scheduler.h	/^    list_t inode;               \/\/List of tasks$/;"	m	struct:task_struct	access:public
 inode	include/prv/scheduler.h	/^    list_t inode;              \/\/List inode$/;"	m	struct:task_ready_struct	access:public
-inode	include/prv/semaphore.h	/^    list_t inode;$/;"	m	struct:sem_struct	access:public
 inode_sem	include/prv/scheduler.h	/^    list_t inode_sem;           \/\/Inode of semaphore$/;"	m	struct:task_struct	access:public
 instruction_pointer	include/prv/arm7lpc2000/ptrace.h	81;"	d
 instruction_pointer	include/prv/asm/ptrace.h	81;"	d
+interrupt_control	arch/arm7lpc2000/kernel/interrupt.c	/^bool interrupt_control(u8 intno,bool enabled)$/;"	f	signature:(u8 intno,bool enabled)
+interrupt_control	include/arm7lpc2000/interrupt.h	/^bool interrupt_control(u8 intno,bool enabled);$/;"	p	signature:(u8 intno,bool enabled)
+interrupt_control	include/asm/interrupt.h	/^bool interrupt_control(u8 intno,bool enabled);$/;"	p	signature:(u8 intno,bool enabled)
 interrupt_isr_exit	include/arm7lpc2000/interrupt.h	/^static inline void interrupt_isr_exit(void) { VICVectAddr = 0; }$/;"	f	signature:(void)
 interrupt_isr_exit	include/asm/interrupt.h	/^static inline void interrupt_isr_exit(void) { VICVectAddr = 0; }$/;"	f	signature:(void)
-interrupt_mask	include/arm7lpc2000/interrupt.h	/^static inline void interrupt_mask(unsigned long mask)$/;"	f	signature:(unsigned long mask)
-interrupt_mask	include/asm/interrupt.h	/^static inline void interrupt_mask(unsigned long mask)$/;"	f	signature:(unsigned long mask)
 interrupt_proc_ptr_t	include/arm7lpc2000/interrupt.h	/^typedef void (*interrupt_proc_ptr_t)(void);$/;"	t
 interrupt_proc_ptr_t	include/asm/interrupt.h	/^typedef void (*interrupt_proc_ptr_t)(void);$/;"	t
 interrupt_register	arch/arm7lpc2000/kernel/interrupt.c	/^int interrupt_register(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )$/;"	f	signature:(u8 int_num,s16 prio,interrupt_proc_ptr_t interrupt_proc )
@@ -1184,14 +1187,29 @@ interrupt_register	include/asm/interrupt.h	/^int interrupt_register(u8 int_num,s
 interrupt_register_fiq	arch/arm7lpc2000/kernel/interrupt.c	/^int interrupt_register_fiq(u8 int_num)$/;"	f	signature:(u8 int_num)
 interrupt_register_fiq	include/arm7lpc2000/interrupt.h	/^int interrupt_register_fiq(u8 int_num);$/;"	p	signature:(u8 int_num)
 interrupt_register_fiq	include/asm/interrupt.h	/^int interrupt_register_fiq(u8 int_num);$/;"	p	signature:(u8 int_num)
-interrupt_umask	include/arm7lpc2000/interrupt.h	/^static inline void interrupt_umask(unsigned long mask)$/;"	f	signature:(unsigned long mask)
-interrupt_umask	include/asm/interrupt.h	/^static inline void interrupt_umask(unsigned long mask)$/;"	f	signature:(unsigned long mask)
 interrupt_unregister	arch/arm7lpc2000/kernel/interrupt.c	/^int interrupt_unregister(u8 int_num)$/;"	f	signature:(u8 int_num)
 interrupt_unregister	include/arm7lpc2000/interrupt.h	/^int interrupt_unregister(u8 int_num);$/;"	p	signature:(u8 int_num)
 interrupt_unregister	include/asm/interrupt.h	/^int interrupt_unregister(u8 int_num);$/;"	p	signature:(u8 int_num)
 interrupts_enabled	include/prv/arm7lpc2000/ptrace.h	68;"	d
 interrupts_enabled	include/prv/asm/ptrace.h	68;"	d
-intmask	include/prv/semaphore.h	/^    unsigned long intmask;$/;"	m	struct:sem_struct	access:public
+intlock_create	arch/arm7lpc2000/kernel/intlock.c	/^intlock_t* intlock_create(u8 interrupt_num)$/;"	f	signature:(u8 interrupt_num)
+intlock_create	include/arm7lpc2000/intlock.h	/^intlock_t* intlock_create(u8 interrupt_num);$/;"	p	signature:(u8 interrupt_num)
+intlock_create	include/asm/intlock.h	/^intlock_t* intlock_create(u8 interrupt_num);$/;"	p	signature:(u8 interrupt_num)
+intlock_destroy	arch/arm7lpc2000/kernel/intlock.c	/^void intlock_destroy(intlock_t *intlock)$/;"	f	signature:(intlock_t *intlock)
+intlock_destroy	include/arm7lpc2000/intlock.h	/^void intlock_destroy(intlock_t *intlock);$/;"	p	signature:(intlock_t *intlock)
+intlock_destroy	include/asm/intlock.h	/^void intlock_destroy(intlock_t *intlock);$/;"	p	signature:(intlock_t *intlock)
+intlock_lock	arch/arm7lpc2000/kernel/intlock.c	/^void intlock_lock(intlock_t *intlock)$/;"	f	signature:(intlock_t *intlock)
+intlock_lock	include/arm7lpc2000/intlock.h	/^void intlock_lock(intlock_t *intlock);$/;"	p	signature:(intlock_t *intlock)
+intlock_lock	include/asm/intlock.h	/^void intlock_lock(intlock_t *intlock);$/;"	p	signature:(intlock_t *intlock)
+intlock_object	arch/arm7lpc2000/kernel/intlock.c	/^struct intlock_object$/;"	s	file:
+intlock_object::count	arch/arm7lpc2000/kernel/intlock.c	/^    unsigned int count;$/;"	m	struct:intlock_object	file:	access:public
+intlock_object::mask	arch/arm7lpc2000/kernel/intlock.c	/^    unsigned long mask;$/;"	m	struct:intlock_object	file:	access:public
+intlock_t	include/arm7lpc2000/intlock.h	/^typedef struct intlock_object intlock_t;$/;"	t	typeref:struct:intlock_object
+intlock_t	include/asm/intlock.h	/^typedef struct intlock_object intlock_t;$/;"	t	typeref:struct:intlock_object
+intlock_unlock	arch/arm7lpc2000/kernel/intlock.c	/^void intlock_unlock(intlock_t *intlock)$/;"	f	signature:(intlock_t *intlock)
+intlock_unlock	include/arm7lpc2000/intlock.h	/^void intlock_unlock(intlock_t *intlock);$/;"	p	signature:(intlock_t *intlock)
+intlock_unlock	include/asm/intlock.h	/^void intlock_unlock(intlock_t *intlock);$/;"	p	signature:(intlock_t *intlock)
+intno	include/prv/semaphore.h	/^    u8 intno;$/;"	m	struct:sem_struct	access:public
 irq_disable	arch/arm7lpc2000/kernel/interrupt.c	/^reg_t irq_disable(void)$/;"	f	signature:(void)
 irq_disable	include/arm7lpc2000/interrupt.h	/^reg_t irq_disable(void);$/;"	p	signature:(void)
 irq_disable	include/asm/interrupt.h	/^reg_t irq_disable(void);$/;"	p	signature:(void)
@@ -1245,6 +1263,7 @@ mask	apps/isixtest/test3.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
 mask	apps/isixtest/test4.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
 mask	apps/isixtest/test5.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
 mask	apps/isixtest/test6.c	/^    u32 mask;$/;"	m	struct:dupa	file:	access:public
+mask	arch/arm7lpc2000/kernel/intlock.c	/^    unsigned long mask;$/;"	m	struct:intlock_object	file:	access:public
 mem_p	kernel/fifo.c	/^    char *mem_p;    \/\/Pointer to allocated memory$/;"	m	struct:fifo_struct	file:	access:public
 memcpy	include/isix/memory.h	/^void* memcpy(void *dest,const void *src,size_t size);$/;"	p	signature:(void *dest,const void *src,size_t size)
 memcpy	kernel/memory.c	/^void* memcpy(void *dest,const void *src,size_t size)$/;"	f	signature:(void *dest,const void *src,size_t size)
@@ -1265,16 +1284,16 @@ prev	kernel/memory.c	/^    struct freelist *prev;$/;"	m	struct:freelist	typeref:
 print_sem	kernel/printk.c	/^static sem_t *print_sem;$/;"	v	file:
 print_tasks	kernel/scheduler.c	/^static void print_tasks(list_entry_t *sem_list)$/;"	f	file:	signature:(list_entry_t *sem_list)
 print_tasks	kernel/scheduler.c	/^static void print_tasks(list_entry_t *sem_list);$/;"	p	file:	signature:(list_entry_t *sem_list)
-print_tasks	kernel/scheduler.c	22;"	d	file:
+print_tasks	kernel/scheduler.c	83;"	d	file:
 printelem	kernel/memory.c	/^void printelem(void)$/;"	f	signature:(void)
 printf	include/isix/printk.h	11;"	d
 printk	arch/arm7lpc2000/kernel/interrupt.c	12;"	d	file:
 printk	include/isix/printk.h	9;"	d
 printk	kernel/fifo.c	18;"	d	file:
 printk	kernel/memory.c	13;"	d	file:
-printk	kernel/scheduler.c	20;"	d	file:
-printk	kernel/scheduler.c	21;"	d	file:
-printk	kernel/semaphore.c	19;"	d	file:
+printk	kernel/scheduler.c	81;"	d	file:
+printk	kernel/scheduler.c	82;"	d	file:
+printk	kernel/semaphore.c	18;"	d	file:
 printk	kernel/task.c	16;"	d	file:
 prio	include/prv/scheduler.h	/^    prio_t prio;			    \/\/Priority of task$/;"	m	struct:task_struct	access:public
 prio	include/prv/scheduler.h	/^    prio_t prio;               \/\/Tasks group priority$/;"	m	struct:task_ready_struct	access:public
@@ -1338,8 +1357,7 @@ sem_setval	kernel/semaphore.c	/^int sem_setval(sem_t *sem,int val)$/;"	f	signatu
 sem_signal	include/isix/semaphore.h	33;"	d
 sem_signal_isr	include/isix/semaphore.h	35;"	d
 sem_struct	include/prv/semaphore.h	/^struct sem_struct$/;"	s
-sem_struct::inode	include/prv/semaphore.h	/^    list_t inode;$/;"	m	struct:sem_struct	access:public
-sem_struct::intmask	include/prv/semaphore.h	/^    unsigned long intmask;$/;"	m	struct:sem_struct	access:public
+sem_struct::intno	include/prv/semaphore.h	/^    u8 intno;$/;"	m	struct:sem_struct	access:public
 sem_struct::sem_ret	include/prv/semaphore.h	/^    s8 sem_ret;$/;"	m	struct:sem_struct	access:public
 sem_struct::sem_task	include/prv/semaphore.h	/^    list_entry_t sem_task;$/;"	m	struct:sem_struct	access:public
 sem_struct::value	include/prv/semaphore.h	/^    int value;$/;"	m	struct:sem_struct	access:public
@@ -1347,9 +1365,6 @@ sem_t	include/isix/semaphore.h	/^typedef struct sem_struct sem_t;$/;"	t	typeref:
 sem_task	include/prv/semaphore.h	/^    list_entry_t sem_task;$/;"	m	struct:sem_struct	access:public
 sem_wait	include/isix/semaphore.h	/^int sem_wait(sem_t *sem,unsigned long timeout);$/;"	p	signature:(sem_t *sem,unsigned long timeout)
 sem_wait	kernel/semaphore.c	/^int sem_wait(sem_t *sem,unsigned long timeout)$/;"	f	signature:(sem_t *sem,unsigned long timeout)
-semaphore_init	include/prv/semaphore.h	/^void semaphore_init(void);$/;"	p	signature:(void)
-semaphore_init	kernel/semaphore.c	/^void semaphore_init(void)$/;"	f	signature:(void)
-semaphore_list	kernel/semaphore.c	/^static list_entry_t semaphore_list;$/;"	v	file:
 set_cpsr	arch/arm7lpc2000/kernel/interrupt.c	/^static inline void set_cpsr(reg_t val)$/;"	f	file:	signature:(reg_t val)
 set_tmtime	arch/arm7lpc2000/kernel/rtc.c	/^void set_tmtime(const struct tm *tmtime)$/;"	f	signature:(const struct tm *tmtime)
 set_tmtime	include/arm7lpc2000/rtc.h	/^void set_tmtime(const struct tm *tmtime);$/;"	p	signature:(const struct tm *tmtime)

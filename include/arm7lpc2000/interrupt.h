@@ -65,21 +65,7 @@ int interrupt_register_fiq(u8 int_num);
 
 /*-----------------------------------------------------------------------*/
 //Mask selected interrupt
-static inline void interrupt_mask(unsigned long mask)
-{
-    reg_t cpsr = fiqirq_disable();
-    VICIntEnClr = mask;
-    fiqirq_restore(cpsr);
-}
-
-/*-----------------------------------------------------------------------*/
-// Unmask selected interrupt
-static inline void interrupt_umask(unsigned long mask)
-{
-    reg_t cpsr = fiqirq_disable();
-    VICIntEnable = mask;
-    fiqirq_restore(cpsr);
-}
+bool interrupt_control(u8 intno,bool enabled);
 
 /*-----------------------------------------------------------------------*/
 
