@@ -4,6 +4,7 @@
 #include <isix/types.h>
 #include <asm/lpc214x_vic.h>
 #include <asm/lpc214x.h>
+#include <asm/context.h>
 
 /*-----------------------------------------------------------------------*/
 //Pointer to task function
@@ -74,16 +75,26 @@ int interrupt_unregister(u8 int_num);
 
 /*-----------------------------------------------------------------------*/
 //Definition of task function IRQ
-#define INTERRUPT_PROC(FUNC)						\
-	void FUNC(void) __attribute__ ((interrupt("IRQ")));	\
-	void FUNC(void)
+#define INTERRUPT_PROC_ENTRY(FUNC)						\
+	void FUNC(void) __attribute__((interrupt("IRQ"),naked));\
+	void FUNC(void)\
+    { \
+        cpu_save_context();
 
+#define INTERRUPT_PROC_EXIT(FUNC) \
+        cpu_restore_context(); \
+    }
 /*-----------------------------------------------------------------------*/
 //Definition of task function FIQ
-#define INTERRUPT_FIQ_PROC(FUNC)						\
-	void FUNC(void) __attribute__ ((interrupt("FIQ")));	\
-	void FUNC(void)
+#define INTERRUPT_FIQ_PROC_ENTRY(FUNC)						\
+	void FUNC(void) __attribute__((interrupt("FIQ"),naked));\
+	void FUNC(void)\
+    { \
+        cpu_save_context();
 
+#define INTERRUPT_FIQ_PROC_EXIT(FUNC) \
+        cpu_restore_context(); \
+    }
 /*-----------------------------------------------------------------------*/
 //Interrupt controler info end of isr
 static inline void interrupt_isr_exit(void) { VICVectAddr = 0; }

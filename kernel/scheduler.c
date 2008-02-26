@@ -2,7 +2,7 @@
 #include <isix/printk.h>
 #include <isix/types.h>
 #include <prv/scheduler.h>
-#include <prv/asm/context.h>
+#include <asm/context.h>
 #include <isix/task.h>
 #include <isix/memory.h>
 #include <asm/interrupt.h>

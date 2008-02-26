@@ -1,7 +1,7 @@
 #include <isix/config.h>
 #include <isix/printk.h>
 #include <isix/types.h>
-#include <prv/asm/context.h>
+#include <asm/context.h>
 #include <asm/interrupt.h>
 #include <prv/scheduler.h>
 #include <isix/time.h>
@@ -75,7 +75,7 @@ reg_t* task_init_stack(reg_t *sp,task_func_ptr_t pfun,void *param)
 //Sys timer interrupt using timer 0 to provide timer tick
 #ifndef CONFIG_USE_PREEMPTION
 
-INTERRUPT_PROC(sys_timer_isr)
+void sys_timer_isr(void) __attribute__((interrupt("IRQ")));
 
 #else
 
