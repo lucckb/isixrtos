@@ -61,7 +61,7 @@ int sem_wait(sem_t *sem,unsigned long timeout)
     {
         if(current_task->state & TASK_READY)
         {
-            current_task->state &= ~TASK_READY;
+            current_task->state &= ~(TASK_READY| TASK_RUNNING );
             delete_task_from_ready_list(current_task);
             printk("SemWait: Delete task from ready list\n");
         }

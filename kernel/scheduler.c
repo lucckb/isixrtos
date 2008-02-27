@@ -181,6 +181,7 @@ static task_ready_t *alloc_task_ready_t(void)
         //Get element from list
         prio = list_get_first(&free_prio_elem,inode,task_ready_t);
         list_delete(&prio->inode);
+        prio->prio = 0;
         printk("alloc_task_ready_t: get from list node 0x%08x\n",prio);
    }
    return prio;

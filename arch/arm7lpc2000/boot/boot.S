@@ -5,11 +5,11 @@
 /*Ustawienia stosu*/ 
 #define Top_Stack      		0x40008000
 #define UND_Stack_Size 		0x00000004
-#define SVC_Stack_Size 		0x00000080
-#define ABT_Stack_Size 		0x00000080
+#define SVC_Stack_Size 		0x000000100
+#define ABT_Stack_Size 		0x000000100
 #define FIQ_Stack_Size		0x00000004
-#define IRQ_Stack_Size		0x00000080
-#define USR_Stack_Size		0x00000080
+#define IRQ_Stack_Size		0x000000100
+#define USR_Stack_Size		0x000000100
 
 /* Konfiguracja VPBDIV 	*/
 #define VPBDIV_SETUP		
