@@ -2,7 +2,6 @@
 #define __ISIX_PRINTK_H
 
 #include <isix/types.h>
-#include <asm/uart_early.h>
 
 void console_output(bool use_sem,const char *text,...);
 

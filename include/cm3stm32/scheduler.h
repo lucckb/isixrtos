@@ -7,9 +7,12 @@
 #define SCHED_MIN_STACK_DEPTH 192
 
 /*-----------------------------------------------------------------------*/
+void port_yield(void );
+
 //Yield the cpu
-#define cpu_yield() asm volatile("swi #1\t\n")
+#define cpu_yield() yield();
 
 /*-----------------------------------------------------------------------*/
+void start_first_task(void);
 
 #endif

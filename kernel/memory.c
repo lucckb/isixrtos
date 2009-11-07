@@ -34,8 +34,8 @@ typedef struct freelist
 static freelist_t *free_list = NULL;
 
 //Definition begin and end heap
-extern u8 __heap_start;
-extern u8 *__heap_end;
+extern uint8_t  __heap_start;
+extern uint8_t __heap_end;
 
 
 /*------------------------------------------------------*/
@@ -61,7 +61,7 @@ void* kmalloc(size_t size)
      if(free_list==NULL)
      {
         free_list = (freelist_t*)&__heap_start;
-        free_list->size = ((__heap_end) - (&__heap_start)) - sizeof(size_t);
+        free_list->size = ((&__heap_end) - (&__heap_start)) - sizeof(size_t);
         free_list->next = NULL;
         free_list->prev = NULL;
         printk("kmalloc: Initialize Heap ADR_START=%08x size=%d\n",&free_list->next,free_list->size);
@@ -88,7 +88,7 @@ void* kmalloc(size_t size)
      /* Teraz jestesmy pewni ze mamy jeden blok ktory jest
       * wiekszy niz rozmiar zadanego bloku wiec mozemy go
       * odpowiednio rozparcelowac i przydzielic         */
-     freelist_t *new_mem = (freelist_t*)(((u8*)grt)+size+sizeof(size_t));
+     freelist_t *new_mem = (freelist_t*)(((uint8_t*)grt)+size+sizeof(size_t));
      *new_mem = *grt;
      new_mem->size -= size + sizeof(size_t);
      grt->size = size;
@@ -105,14 +105,14 @@ void* kmalloc(size_t size)
 void kfree(void *mem)
 {
     //Check memory management pool...
-    if( ((u8*)mem) < &__heap_start || ((u8*)mem) > __heap_end )
+    if( ((uint8_t*)mem) < &__heap_start || ((uint8_t*)mem) > &__heap_end )
     {
         printk("kfree: ADR=%08x not in dynamic memory management\n",mem);
         return;
     }
     //Cast free list
     sched_lock();
-    freelist_t *rlist = (freelist_t*) (((u8*)mem)-sizeof(size_t));
+    freelist_t *rlist = (freelist_t*) (((uint8_t*)mem)-sizeof(size_t));
     rlist->next = rlist->prev = NULL;
     printk("kfree: Region to free ADR=%08x size=%d\n",&rlist->next,rlist->size);
     if(free_list==NULL) { free_list = rlist; return; }
@@ -120,7 +120,7 @@ void kfree(void *mem)
     {
         if(c<rlist && c->next) continue;
         //Found valid region range
-        if( ((u8*)&rlist->next)+rlist->size == ((u8*)c))
+        if( ((uint8_t*)&rlist->next)+rlist->size == ((uint8_t*)c))
         {
             //Concate to one area
 	        rlist->size += c->size + sizeof(size_t);
@@ -146,38 +146,6 @@ void kfree(void *mem)
     }
 }
 
-
-/*------------------------------------------------------*/
-//Zero of selected memory region
-void zero_memory(void *s, size_t n)
-{
-    u32 *ptr32 = (u32*)s;
-    size_t elem32 = n/4;
-    u8 elem8 = n%4;
-    for(int i=0;i<elem32;i++) *ptr32++ = 0;
-    u8 *ptr8 = (u8*)ptr32;
-    for(int i=0;i<elem8;i++) *ptr8++ = 0;
-}
-
-/*------------------------------------------------------*/
-//Copy memory from region src to dest
-void* memcpy(void *dest,const void *src,size_t size)
-{
-    /*
-    u32 *ptr32d = (u32*)dest;
-    u32 *ptr32s = (u32*)src;
-    size_t elem32 = size/4;
-    u8 elem8 = size%4;
-    for(int i=0;i<elem32;i++) *ptr32d++ = *ptr32s++;
-    u8 *ptr8d = (u8*)ptr32d;
-    u8 *ptr8s = (u8*)ptr32s;
-    for(int i=0;i<elem8;i++) *ptr8d++ = *ptr8s++;
-    return dest;
-    */
-    for(int i=0;i<size;i++)
-      ((u8*)dest)[i] = ((u8*)src)[i];
-    return dest;
-}
 
 /*------------------------------------------------------*/
 #if ISIX_DEBUG_MEMORY == ISIX_DBG_ON

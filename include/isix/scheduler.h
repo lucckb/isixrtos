@@ -15,11 +15,11 @@ typedef void (*task_func_ptr_t)(void*);
 
 /*-----------------------------------------------------------------------*/
 //Priority type
-typedef u8 prio_t;
+typedef uint8_t prio_t;
 /*-----------------------------------------------------------------------*/
 
 //Yield processor
-#define sched_yield() cpu_yield()
+#define sched_yield() port_yield()
 
 /*-----------------------------------------------------------------------*/
 
@@ -35,6 +35,10 @@ typedef struct task_struct task_t;
 /*-----------------------------------------------------------------------*/
 //Halt system when critical error
 void bug(void);
+
+/*-----------------------------------------------------------------------*/
+//Start scheduler
+void start_scheduler(void) __attribute__((noreturn));
 
 /*-----------------------------------------------------------------------*/
 #endif

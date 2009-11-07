@@ -20,26 +20,16 @@ struct tm
 
 /*-----------------------------------------------------------*/
 //Definition of time_t
-typedef u32 time_t;
+typedef uint32_t time_t;
 
 /*-----------------------------------------------------------*/
 //Get current jiffies
-u64 get_jiffies(void);
+uint64_t get_jiffies(void);
 
 /*-----------------------------------------------------------*/
 //Wait for n jiffies
 #define schedule_timeout(timeout) sem_wait(NULL,timeout)
 
-
-/*------------------------------------------------------------*/
-//Convert tm to time_t
-time_t mktime(const struct tm *t);
-
-/*------------------------------------------------------------*/
-//Get time in time_t format
-time_t time(time_t *t);
-
-/*------------------------------------------------------------*/
-#include <asm/rtc.h>
+/*-----------------------------------------------------------*/
 
 #endif

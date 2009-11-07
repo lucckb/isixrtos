@@ -56,7 +56,7 @@ TASK_FUNC(fun_task,n)
     }
 }
 /*-----------------------------------------------------------------------*/
-INTERRUPT_PROC(extint_isr)
+void extint_isr(void)
 {
    sem_signal_isr(sem);
    EXTINT = 0x02;

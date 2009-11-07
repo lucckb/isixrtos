@@ -4,6 +4,7 @@
 #include <isix/task.h>
 #include <isix/memory.h>
 #include <prv/semaphore.h>
+#include <string.h>
 
 #ifndef ISIX_DEBUG_TASK
 #define ISIX_DEBUG_TASK ISIX_DBG_OFF
@@ -39,7 +40,7 @@ task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_dept
     //No free memory
     if(task==NULL) return NULL;
     //Zero task structure
-    zero_memory(task,sizeof(task_t));
+    memset(task,0,sizeof(task_t));
     //Try Allocate stack for task
     task->init_stack = (reg_t*)kmalloc(stack_depth);
     printk("TaskCreate: Alloc stack mem %08x\n",task->init_stack);

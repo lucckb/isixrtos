@@ -1,6 +1,5 @@
 #include <stdarg.h>
 #include <isix/config.h>
-#include <asm/uart_early.h>
 #include <prv/scheduler.h>
 #include <isix/semaphore.h>
 #include <stdarg.h>
@@ -9,7 +8,7 @@
 //Printf buf
 #define SCRATCH 80
 
-#define kputchar uart_early_putchar
+#define kputchar 
 
 
 #define SCRATCH 80	//32Bits go up to 4GB + 1 Byte for \0
@@ -31,7 +30,7 @@
 
 
 
-#define myputchar uart_early_putchar
+#define myputchar
 
 
 //Semaphore for userspace printf

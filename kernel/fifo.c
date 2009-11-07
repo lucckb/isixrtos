@@ -36,7 +36,7 @@ struct fifo_struct
 
 /* Create queue for n elements
  * if succes return queue pointer else return null   */
-fifo_t* fifo_create_isr(int n_elem, int elem_size,s8 interrupt)
+fifo_t* fifo_create_isr(int n_elem, int elem_size,int interrupt)
 {
    //Create fifo struct
    fifo_t *fifo = (fifo_t*)kmalloc(sizeof(fifo_t));
@@ -92,14 +92,13 @@ int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout)
         printk("FifoWrite: Timeout on TX queue\n");
         return ISIX_ETIMEOUT;
     }
-    bool pInt = 0;
     sched_lock();
-    if(fifo->tx_sem->intno!=-1) pInt = interrupt_control(fifo->tx_sem->intno,false);
+    if(fifo->tx_sem->intno!=-1) sched_isr_lock();
     memcpy(fifo->tx_p,item,fifo->elem_size);
     printk("FifoWrite: Data write at TXp %08x\n",fifo->tx_p);
     fifo->tx_p+= fifo->elem_size;
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
-    if(fifo->tx_sem->intno!=-1) interrupt_control(fifo->tx_sem->intno,pInt);
+    if(fifo->tx_sem->intno!=-1) sched_isr_unlock();
     sched_unlock();
     printk("FifoWrite: New TXp %08x\n",fifo->tx_p);
     //Signaling RX thread with new data
@@ -135,14 +134,13 @@ int fifo_read(fifo_t *fifo,void *item,unsigned long timeout)
        printk("FifoRead: Timeout on RX queue\n");
        return ISIX_ETIMEOUT;
     }
-    bool pInt = true;
     sched_lock();
-    if(fifo->rx_sem->intno!=-1) pInt = interrupt_control(fifo->rx_sem->intno,false);
+    if(fifo->rx_sem->intno!=-1) sched_isr_lock();
     memcpy(item,fifo->rx_p,fifo->elem_size);
     printk("FifoRead: Data write at RXp %08x\n",fifo->rx_p);
     fifo->rx_p+= fifo->elem_size;
     if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;
-    if(fifo->rx_sem->intno!=-1) interrupt_control(fifo->rx_sem->intno,pInt);
+    if(fifo->rx_sem->intno!=-1) sched_isr_unlock();
     sched_unlock();
     printk("FifoRead: New Rxp %08x\n",fifo->rx_p);
     //Signaling TX for space avail

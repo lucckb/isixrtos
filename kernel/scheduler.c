@@ -45,7 +45,7 @@ static list_entry_t free_prio_elem;
 /*-----------------------------------------------------------------------*/
 
 //Global jiffies
-volatile u64 jiffies;
+volatile uint64_t jiffies;
 
 
 /*-----------------------------------------------------------------------*/
@@ -54,8 +54,6 @@ void bug(void)
     printk("OOPS: Please reset board\n");
     task_ready_t *i;
     task_t *j;
-    //Disable interrupt
-    fiqirq_disable();
     printk("Ready tasks\n");
     list_for_each_entry(&ready_task,i,inode)
     {
@@ -87,9 +85,10 @@ static void print_tasks(list_entry_t *sem_list);
 //Lock scheduler
 void sched_lock(void)
 {
-    reg_t irq_s = irq_disable();
+    //FIXME: IRQ Enable/Disable
+    //reg_t irq_s = irq_disable();
     sched_lock_counter++;
-    irq_restore(irq_s);
+    //irq_restore(irq_s);
     //printk("SchedLock: %d\n",sched_lock_counter);
 }
 
@@ -97,9 +96,10 @@ void sched_lock(void)
 //Unlock scheduler
 void sched_unlock(void)
 {
-    reg_t irq_s = irq_disable();
+    //FIXME:: interrupt enable disable
+    //reg_t irq_s = irq_disable();
     if(sched_lock_counter>0) sched_lock_counter--;
-    irq_restore(irq_s);
+    //irq_restore(irq_s);
     //printk("SchedUnlock: %d\n",sched_lock_counter);
 }
 
@@ -398,7 +398,7 @@ void init_os(void)
     //Initialize free prio elem list
     list_init(&free_prio_elem);
     //Other stuff
-    uart_early_init();
+    //uart_early_init();
     //Create idle task
     task_create(idle_task,NULL,SCHED_MIN_STACK_DEPTH,SCHED_IDLE_PRIORITY);
 }
@@ -410,9 +410,9 @@ void start_scheduler(void)
 {
    scheduler_running = true;
    //System time
-   sys_time_init();
+   //sys_time_init();
    //Restore context and run OS
-   cpu_restore_context();
+   start_first_task();
    while(1);    //Prevent compiler warning
 }
 

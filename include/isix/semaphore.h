@@ -12,7 +12,7 @@ typedef struct sem_struct sem_t;
 
 /*--------------------------------------------------------------*/
 //Create semaphore
-sem_t* sem_create_isr(sem_t *sem,int val,s8 interrupt);
+sem_t* sem_create_isr(sem_t *sem,int val,int interrupt);
 
 #define sem_create(sem,val) sem_create_isr(sem,val,-1)
 
