@@ -157,7 +157,7 @@ int isix_sem_get_isr(sem_t *sem)
 
 /*--------------------------------------------------------------*/
 //Sem value of semaphore
-int isix_sem_setval(sem_t *sem,int val)
+int isix_sem_setval(sem_t *sem, int val)
 {
     if(!sem) return ISIX_EINVARG;
     //Semaphore is used

@@ -33,9 +33,10 @@ struct fifo_struct
 };
 
 /*-------------------------------------------------------*/
-
 /* Create queue for n elements
- * if succes return queue pointer else return null   */
+ * if succes return queue pointer else return null
+ */
+
 fifo_t* isix_fifo_create(int n_elem, int elem_size)
 {
    //Create fifo struct
