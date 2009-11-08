@@ -61,11 +61,11 @@ void isixp_schedule_time(void);
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler and disable selected interrupt
-void isixp_sched_lock(void);
+void isixp_enter_critical(void);
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler and reenable selected interrupt;
-void isixp_sched_unlock(void);
+void isixp_exit_critical(void);
 
 /*-----------------------------------------------------------------------*/
 //Add selected task to waiting list

@@ -64,7 +64,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
     //Create initial task stack context
     task->top_stack = isixp_task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler
-    isixp_sched_lock();
+    isixp_enter_critical();
     //Add task to ready list
     if(isixp_add_task_to_ready_list(task)<0)
     {
@@ -72,7 +72,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
         printk("TaskCreate: Add task to ready list failed\n");
         isix_free(task->top_stack);
         isix_free(task);
-	    isixp_sched_unlock();
+	    isixp_exit_critical();
 	    return NULL;
     }
     if(isix_scheduler_running==false)
@@ -81,7 +81,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
         if(isix_current_task==NULL) isix_current_task = task;
         else if(isix_current_task->prio>task->prio) isix_current_task = task;
     }
-    isixp_sched_unlock();
+    isixp_exit_critical();
     if(isix_current_task->prio>task->prio && isix_scheduler_running==true)
     {
         //New task have higer priority then current task
@@ -97,13 +97,13 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
  * new_prio - new priority                                  */
 int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
 {
-    isixp_sched_lock();
+    isixp_enter_critical();
     task_t *taskc = task?task:isix_current_task;
     //Save task prio
     prio_t prio = taskc->prio;
     if(prio==new_prio)
     {
-        isixp_sched_unlock();
+        isixp_exit_critical();
         return ISIX_EOK;
     }
     bool yield_req = false;
@@ -116,7 +116,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
         //Add task to ready list
         if(isixp_add_task_to_ready_list(taskc)<0)
         {
-            isixp_sched_unlock();
+            isixp_exit_critical();
             return ISIX_ENOMEM;
         }
         if(new_prio<prio && !(isix_current_task->state&TASK_RUNNING) ) yield_req = true;
@@ -129,7 +129,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
         taskc->prio = new_prio;
         isixp_add_task_to_sem_list(&taskc->sem->sem_task,taskc);
     }
-    isixp_sched_unlock();
+    isixp_exit_critical();
     //Yield processor
     if(yield_req && yield)
     {
@@ -144,7 +144,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
 //Delete task pointed by struct task
 int isix_task_delete(task_t *task)
 {
-    isixp_sched_lock();
+    isixp_enter_critical();
     task_t *taskd = task?task:isix_current_task;
     if(taskd->state & TASK_READY)
     {
@@ -170,14 +170,14 @@ int isix_task_delete(task_t *task)
     isixp_add_task_to_delete_list(taskd);
     if(task==NULL || task==isix_current_task)
     {
-        isixp_sched_unlock();
+        isixp_exit_critical();
         printk("TaskDel: Current task yield req\n");
         isix_sched_yield();
         return ISIX_EOK;
     }
     else
     {
-        isixp_sched_unlock();
+        isixp_exit_critical();
         return ISIX_EOK;
     }
 }

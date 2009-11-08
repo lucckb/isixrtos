@@ -12,8 +12,6 @@ struct sem_struct
     int value;
     //Task val waiting for semaphore
     list_entry_t sem_task;
-    //Number of interrupt to mask
-    short intno;
     //Return reason
     int sem_ret;
 };

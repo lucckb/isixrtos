@@ -12,9 +12,8 @@ typedef struct sem_struct sem_t;
 
 /*--------------------------------------------------------------*/
 //Create semaphore
-sem_t* isix_sem_create_isr(sem_t *sem,int val,int interrupt);
+sem_t* isix_sem_create(sem_t *sem,int val);
 
-#define isix_sem_create(sem,val) isix_sem_create_isr(sem,val,-1)
 
 /*--------------------------------------------------------------*/
 //Wait for semaphore P()

@@ -22,7 +22,7 @@ task_t * volatile isix_current_task = NULL;
 
 /*-----------------------------------------------------------------------*/
 //Sched lock counter
-static volatile int sched_lock_counter = 0;
+static volatile unsigned short critical_count = 0;
 
 /*-----------------------------------------------------------------------*/
 //Binary tree of task ready to execute
@@ -46,8 +46,8 @@ static list_entry_t free_prio_elem;
 
 /*-----------------------------------------------------------------------*/
 
-//FIXME: Remove global after debug
-volatile tick_t jiffies;
+//Global jiffies var
+static volatile tick_t jiffies;
 
 /*-----------------------------------------------------------------------*/
 void isix_bug(void)
@@ -85,30 +85,30 @@ static void print_tasks(list_entry_t *sem_list);
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler
-void isixp_sched_lock(void)
+void isixp_enter_critical(void)
 {
     port_set_interrupt_mask();
-    sched_lock_counter++;
-    port_clear_interrupt_mask();
+    critical_count++;
 }
 
 /*-----------------------------------------------------------------------*/
 //Unlock scheduler
-void isixp_sched_unlock(void)
+void isixp_exit_critical(void)
 {
-    port_set_interrupt_mask();
-    if(sched_lock_counter>0) sched_lock_counter--;
-    port_clear_interrupt_mask();
+	critical_count--;
+	if(critical_count == 0 )
+    {
+    	port_clear_interrupt_mask();
+    }
 }
 
 /*-----------------------------------------------------------------------*/
 //Scheduler is called in switch context
 void isixp_schedule(void)
 {
-    //If scheduler is locked switch context is disable
-    if(sched_lock_counter) return;
+
     print_tasks(NULL);
-    isixp_sched_lock();
+    isixp_enter_critical();
 
     //Remove executed task and add at end
     if(isix_current_task->state & TASK_READY)
@@ -127,15 +127,13 @@ void isixp_schedule(void)
     isix_current_task->state |= TASK_RUNNING;
     if(isix_current_task->prio != current_prio->prio) isix_bug();
     printk("Scheduler: new task %08x\n",isix_current_task);
-    isixp_sched_unlock();
+    isixp_exit_critical();
 }
 
 /*-----------------------------------------------------------------------*/
 //Time call from isr
 void isixp_schedule_time(void)
 {
-	//If scheduler is locked switch context is disable
-	if(sched_lock_counter) return;
 
 	//Increment sys tick
 	jiffies++;
@@ -208,7 +206,7 @@ static inline void free_task_ready_t(task_ready_t *prio)
 int isixp_add_task_to_ready_list(task_t *task)
 {
     //Scheduler lock
-    isixp_sched_lock();
+    isixp_enter_critical();
     //Find task equal entry
     task_ready_t *prio_i;
     list_for_each_entry(&ready_task,prio_i,inode)
@@ -222,7 +220,7 @@ int isixp_add_task_to_ready_list(task_t *task)
             //Add task at end of ready list
             list_insert_end(&prio_i->task_list,&task->inode);
             //Unlock scheduler
-            isixp_sched_unlock();
+            isixp_exit_critical();
             return 0;
         }
         else if(prio_i->prio<task->prio)
@@ -244,7 +242,7 @@ int isixp_add_task_to_ready_list(task_t *task)
     list_insert_end(&prio_n->task_list,&task->inode);
     list_insert_after(&prio_i->inode,&prio_n->inode);
     printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_n,prio_n->prio);
-    isixp_sched_unlock();
+    isixp_exit_critical();
     return 0;
 }
 
@@ -253,7 +251,7 @@ int isixp_add_task_to_ready_list(task_t *task)
 void isixp_delete_task_from_ready_list(task_t *task)
 {
     //Scheduler lock
-   isixp_sched_lock();
+   isixp_enter_critical();
    list_delete(&task->inode);
    //Check for task on priority structure
    if(list_isempty(&task->prio_elem->task_list)==true)
@@ -264,7 +262,7 @@ void isixp_delete_task_from_ready_list(task_t *task)
         free_task_ready_t(task->prio_elem);
    }
    //Scheduler unlock
-   isixp_sched_unlock();
+   isixp_exit_critical();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -272,7 +270,7 @@ void isixp_delete_task_from_ready_list(task_t *task)
 void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
 {
     //Scheduler lock
-    isixp_sched_lock();
+    isixp_enter_critical();
     task->jiffies = jiffies + timeout;
     if(task->jiffies < jiffies)
     {
@@ -297,7 +295,7 @@ void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     	list_insert_before(&waitl->inode,&task->inode);
     }
     //Scheduler unlock
-    isixp_sched_unlock();
+    isixp_exit_critical();
 }
 
 /*--------------------------------------------------------------*/
@@ -305,7 +303,7 @@ void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
 void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 {
     //Scheduler lock
-    isixp_sched_lock();
+    isixp_enter_critical();
     //Insert on waiting list in time order
     task_t *taskl;
     list_for_each_entry_reverse(sem_list,taskl,inode_sem)
@@ -316,7 +314,7 @@ void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
     list_insert_after(&taskl->inode_sem,&task->inode_sem);
     print_tasks(sem_list);
     //Scheduler unlock
-    isixp_sched_unlock();
+    isixp_exit_critical();
 
 }
 /*-----------------------------------------------------------------------*/
@@ -324,9 +322,9 @@ void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 void isixp_add_task_to_delete_list(task_t *task)
 {
     //lock scheduler
-    isixp_sched_lock();
+    isixp_enter_critical();
     list_insert_end(&dead_task,&task->inode);
-    isixp_sched_unlock();
+    isixp_exit_critical();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -336,7 +334,7 @@ static inline void cleanup_tasks(void)
 {
     if(list_isempty(&dead_task)==false)
     {
-        isixp_sched_lock();
+        isixp_enter_critical();
         task_t *task_del = list_get_first(&dead_task,inode,task_t);
         list_delete(&task_del->inode);
         printk("CleanupTasks: Task to delete is %08x stack SP %08x\n",task_del,task_del->init_stack);
@@ -350,7 +348,7 @@ static inline void cleanup_tasks(void)
             isix_free(free_prio);
             printk("CleanupTasks: Free inode prio 0x%08x\n",free_prio);
         }
-        isixp_sched_unlock();
+        isixp_exit_critical();
     }
 }
 
@@ -377,7 +375,7 @@ static void print_tasks(list_entry_t *sem_list)
    {
         task_ready_t *i;
         task_t *j;
-        isixp_sched_lock();
+        isixp_enter_critical();
         printk("-------Ready tasks -------------\n");
         list_for_each_entry(&ready_task,i,inode)
         {
@@ -392,7 +390,7 @@ static void print_tasks(list_entry_t *sem_list)
         {
             printk("Task: %08x prio: %d state %d jiffies %d\n",j,j->prio,j->state,j->jiffies);
         }
-        isixp_sched_unlock();
+        isixp_exit_critical();
     }
     else
     {

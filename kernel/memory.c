@@ -57,7 +57,7 @@ void* isix_alloc(size_t size)
      }
      printk("kmalloc: heap_req=%d\n",size);
      //Jezeli nie zainicjalizowano list to sprobuj ja zainicjalizowac
-     isixp_sched_lock();
+     isixp_enter_critical();
      if(free_list==NULL)
      {
         free_list = (freelist_t*)&__heap_start;
@@ -80,7 +80,7 @@ void* isix_alloc(size_t size)
         if(c->prev) c->prev->next = c->next; else free_list = c->next;
         if(c->next) c->next->prev = c->prev;
         printk("kmalloc: Allocate equal region ADR=%08x size=%d\n",&c->next,c->size);
-        isixp_sched_unlock();
+        isixp_exit_critical();
         return (void*)&c->next;
      }
      //Brak pamieci wyjdz z bledem
@@ -96,7 +96,7 @@ void* isix_alloc(size_t size)
      else free_list = new_mem;
      printk("kmalloc: Return region ADR=%08x len=%d\n",&grt->next,grt->size);
      printk("kmalloc: Free region ADR=%08x len=%d\n",&new_mem->next,new_mem->size);
-     isixp_sched_unlock();
+     isixp_exit_critical();
      return &grt->next;
 }
 
@@ -111,7 +111,7 @@ void isix_free(void *mem)
         return;
     }
     //Cast free list
-    isixp_sched_lock();
+    isixp_enter_critical();
     freelist_t *rlist = (freelist_t*) (((uint8_t*)mem)-sizeof(size_t));
     rlist->next = rlist->prev = NULL;
     printk("kfree: Region to free ADR=%08x size=%d\n",&rlist->next,rlist->size);
@@ -129,7 +129,7 @@ void isix_free(void *mem)
 	        if(c->prev) c->prev->next = rlist;
 	        else free_list = rlist;
 	        printk("kfree: Concate1 region ADR=%08x len=%d\n",&c->next,c->size);
-            isixp_sched_unlock();
+            isixp_exit_critical();
             return;
         }
         else
@@ -140,7 +140,7 @@ void isix_free(void *mem)
 	        else free_list = rlist;
 	        c->prev = rlist;
 	        printk("kfree: New FIRST free region ADR=%08x len=%d\n",&rlist->next,rlist->size);
-            isixp_sched_unlock();
+            isixp_exit_critical();
             return;
         }
     }

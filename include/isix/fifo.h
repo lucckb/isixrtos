@@ -10,9 +10,8 @@ typedef struct fifo_struct fifo_t;
 /*--------------------------------------------------*/
 /* Create queue for n elements
  * if succes return queue pointer else return null   */
-fifo_t* isix_fifo_create_isr(int n_elem, int elem_size,int interrupt);
+fifo_t* isix_fifo_create(int n_elem, int elem_size);
 
-#define isix_fifo_create(n_elem,elem_size) isix_fifo_create_isr(n_elem,elem_size,-1)
 
 /* Send element to queue
  * queue - Pointer to queue
