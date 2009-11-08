@@ -30,9 +30,11 @@ static list_entry_t ready_task;
 
 /*-----------------------------------------------------------------------*/
 //Task waiting for event
-static list_entry_t waiting_task;
-//Overflowed waiting task
-static list_entry_t overflow_wating_task;
+static list_entry_t wait_tasks[2];
+
+//Pointer to current list overflow list
+static list_entry_t* p_waiting_task;
+static list_entry_t* pov_waiting_task;
 
 /*-----------------------------------------------------------------------*/
 //Task waiting for event
@@ -44,7 +46,7 @@ static list_entry_t free_prio_elem;
 
 /*-----------------------------------------------------------------------*/
 
-//Global jiffies
+//FIXME: Remove global after debug
 volatile tick_t jiffies;
 
 /*-----------------------------------------------------------------------*/
@@ -64,7 +66,7 @@ void isix_bug(void)
          }
     }
     printk("Sleeping tasks\n");
-    list_for_each_entry(&waiting_task,j,inode)
+    list_for_each_entry(p_waiting_task,j,inode)
     {
         printk("\t->Task: %08x prio: %d state %d jiffies %d\n",j,j->prio,j->state,j->jiffies);
     }
@@ -139,18 +141,22 @@ void isixp_schedule_time(void)
 	jiffies++;
 	if(jiffies == 0)
 	{
-	   list_entry_t tmp = waiting_task;
-	   waiting_task = overflow_wating_task;
-	   overflow_wating_task = tmp;
+	   list_entry_t *tmp = p_waiting_task;
+	   p_waiting_task = pov_waiting_task;
+	   pov_waiting_task = tmp;
 	}
 
-    if(list_isempty(&waiting_task)) return;
+    //if(list_isempty(&waiting_task)) return;
     task_t *task_c;
-    while( !list_isempty(&waiting_task) &&
-    		jiffies>=(task_c = list_get_first(&waiting_task,inode,task_t))->jiffies
+
+    while( !list_isempty(p_waiting_task) &&
+    		jiffies>=(task_c = list_get_first(p_waiting_task,inode,task_t))->jiffies
       )
+
+    //list_for_each_entry(p_waiting_task,task_c,inode)
     {
-        printk("SchedulerTime: sched_time %d task_time %d\n",jiffies,task_c->jiffies);
+    	//if(jiffies<task_c->jiffies) return;
+    	printk("SchedulerTime: sched_time %d task_time %d\n",jiffies,task_c->jiffies);
         task_c->state &= ~TASK_SLEEPING;
         task_c->state |= TASK_READY;
         list_delete(&task_c->inode);
@@ -167,8 +173,8 @@ void isixp_schedule_time(void)
             printk("SchedulerTime: Error in add task to ready list\n");
             isix_bug();
         }
-        if(list_isempty(&waiting_task)) return;
-        task_c = list_get_first(&waiting_task,inode,task_t);
+        if(list_isempty(p_waiting_task)) return;
+        task_c = list_get_first(p_waiting_task,inode,task_t);
     }
 }
 /*-----------------------------------------------------------------------*/
@@ -276,7 +282,7 @@ void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     {
     	//Insert on overflow waiting list in time order
     	task_t *waitl;
-    	list_for_each_entry(&overflow_wating_task,waitl,inode)
+    	list_for_each_entry(pov_waiting_task,waitl,inode)
     	{
     	   if(task->jiffies<waitl->jiffies) break;
     	}
@@ -285,9 +291,9 @@ void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     }
     else
     {
-    	//Insert on waiting list in time order no oferflow
+    	//Insert on waiting list in time order no overflow
     	task_t *waitl;
-    	list_for_each_entry(&waiting_task,waitl,inode)
+    	list_for_each_entry(p_waiting_task,waitl,inode)
     	{
     	    if(task->jiffies<waitl->jiffies) break;
     	}
@@ -427,9 +433,11 @@ void isix_init(void)
 	//Initialize ready task list
     list_init(&ready_task);
     //Initialize waiting list
-    list_init(&waiting_task);
+    list_init(&wait_tasks[0]);
+    list_init(&wait_tasks[1]);
     //Initialize overflow waiting list
-    list_init(&overflow_wating_task);
+    p_waiting_task = &wait_tasks[0];
+    pov_waiting_task = &wait_tasks[1];
     //Initialize dead task
     list_init(&dead_task);
     //Initialize free prio elem list
