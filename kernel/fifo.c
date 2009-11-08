@@ -93,12 +93,12 @@ int isix_fifo_write(fifo_t *fifo,const void *item, tick_t timeout)
         return ISIX_ETIMEOUT;
     }
     isixp_sched_lock();
-    if(fifo->tx_sem->intno!=-1) port_isr_lock();
+    if(fifo->tx_sem->intno!=-1) port_set_interrupt_mask();
     memcpy(fifo->tx_p,item,fifo->elem_size);
     printk("FifoWrite: Data write at TXp %08x\n",fifo->tx_p);
     fifo->tx_p+= fifo->elem_size;
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
-    if(fifo->tx_sem->intno!=-1) port_isr_unlock();
+    if(fifo->tx_sem->intno!=-1) port_clear_interrupt_mask();
     isixp_sched_unlock();
     printk("FifoWrite: New TXp %08x\n",fifo->tx_p);
     //Signaling RX thread with new data
@@ -135,12 +135,12 @@ int isix_fifo_read(fifo_t *fifo,void *item, tick_t timeout)
        return ISIX_ETIMEOUT;
     }
     isixp_sched_lock();
-    if(fifo->rx_sem->intno!=-1) port_isr_lock();
+    if(fifo->rx_sem->intno!=-1) port_set_interrupt_mask();
     memcpy(item,fifo->rx_p,fifo->elem_size);
     printk("FifoRead: Data write at RXp %08x\n",fifo->rx_p);
     fifo->rx_p+= fifo->elem_size;
     if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;
-    if(fifo->rx_sem->intno!=-1) port_isr_unlock();
+    if(fifo->rx_sem->intno!=-1) port_clear_interrupt_mask();
     isixp_sched_unlock();
     printk("FifoRead: New Rxp %08x\n",fifo->rx_p);
     //Signaling TX for space avail

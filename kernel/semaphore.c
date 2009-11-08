@@ -44,13 +44,13 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     if(sem==NULL && timeout==0) return ISIX_EINVARG;
     //Lock scheduler
     isixp_sched_lock();
-    if(sem && sem->intno!=-1) port_isr_lock();
+    if(sem && sem->intno!=-1) port_set_interrupt_mask();
     printk("SemWait: Operate on task %08x state %02x\n",isix_current_task,isix_current_task->state);
     if(sem && sem->value>0)
     {
         sem->value--;
         printk("SemWait: Decrement value %d\n",sem->value);
-        if(sem->intno!=-1) port_isr_unlock();
+        if(sem->intno!=-1) port_clear_interrupt_mask();
         isixp_sched_unlock();
         return ISIX_EOK;
     }
@@ -66,7 +66,7 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     }
     else
     {
-        if(sem && sem->intno!=-1) port_isr_unlock();
+        if(sem && sem->intno!=-1) port_clear_interrupt_mask();
         isixp_sched_unlock();
         return ISIX_EINVARG;
     }
@@ -85,10 +85,10 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
         isix_current_task->sem = sem;
         printk("SemWait: Add task %08x to sem\n",isix_current_task);
     }
-    if(sem && sem->intno!=-1) port_isr_unlock();
+    if(sem && sem->intno!=-1) port_clear_interrupt_mask();
     isixp_sched_unlock();
     isix_sched_yield();
-    if(sem && sem->intno!=-1) port_isr_unlock();
+    if(sem && sem->intno!=-1) port_clear_interrupt_mask();
     printk("SemWait: task %08x after wakeup reason %d\n",isix_current_task,sem->sem_ret);
     return sem->sem_ret;
 }
@@ -104,12 +104,12 @@ int isixp_sem_signal(sem_t *sem,bool isr)
         return ISIX_EINVARG;
     }
     isixp_sched_lock();
-    if(isr==false && sem->intno!=-1) port_isr_lock();
+    if(isr==false && sem->intno!=-1) port_set_interrupt_mask();
     if(list_isempty(&sem->sem_task)==true)
     {
         sem->value++;
         printk("SemSignal: Waiting list is empty incval to %d\n",sem->value);
-        if(isr==false && sem->intno!=-1) port_isr_unlock();
+        if(isr==false && sem->intno!=-1) port_clear_interrupt_mask();
         isixp_sched_unlock();
         return ISIX_EOK;
     }
@@ -130,21 +130,21 @@ int isixp_sem_signal(sem_t *sem,bool isr)
     isix_current_task->sem = NULL;
     if(isixp_add_task_to_ready_list(task_wake)<0)
     {
-        if(isr==false && sem->intno!=-1) port_isr_unlock();
+        if(isr==false && sem->intno!=-1) port_clear_interrupt_mask();
         isixp_sched_unlock();
         return ISIX_ENOMEM;
     }
     if(task_wake->prio<isix_current_task->prio && !isr)
     {
         printk("SemSignal: Yield processor higer prio\n");
-        if(isr==false && sem->intno!=-1) port_isr_unlock();
+        if(isr==false && sem->intno!=-1) port_clear_interrupt_mask();
         isixp_sched_unlock();
         isix_sched_yield();
         return ISIX_EOK;
     }
     else
     {
-        if(isr==false && sem->intno!=-1) port_isr_unlock();
+        if(isr==false && sem->intno!=-1) port_clear_interrupt_mask();
         isixp_sched_unlock();
         return ISIX_EOK;
     }
@@ -173,15 +173,15 @@ int isix_sem_setval(sem_t *sem,int val)
     if(!sem) return ISIX_EINVARG;
     //Semaphore is used
     isixp_sched_lock();
-    if(sem->intno!=-1) port_isr_lock();
+    if(sem->intno!=-1) port_set_interrupt_mask();
     if(list_isempty(&sem->sem_task)==false)
     {
-        if(sem->intno!=-1) port_isr_unlock();
+        if(sem->intno!=-1) port_clear_interrupt_mask();
         isixp_sched_unlock();
         return ISIX_EBUSY;
     }
     sem->value = val;
-    if(sem->intno!=-1) port_isr_unlock();
+    if(sem->intno!=-1) port_clear_interrupt_mask();
     isixp_sched_unlock();
     return ISIX_EOK;
 }

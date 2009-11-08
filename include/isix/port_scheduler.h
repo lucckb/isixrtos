@@ -15,9 +15,9 @@ void port_start_first_task(void);
 
 /*-----------------------------------------------------------------------*/
 //TODO: IRQ lock and IRQ unlock
-void port_isr_lock(void);
+void port_set_interrupt_mask(void);
 
-void port_isr_unlock(void);
+void port_clear_interrupt_mask(void);
 /*-----------------------------------------------------------------------*/
 
 #endif

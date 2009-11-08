@@ -87,18 +87,18 @@ static void print_tasks(list_entry_t *sem_list);
 //Lock scheduler
 void isixp_sched_lock(void)
 {
-    port_isr_lock();
+    port_set_interrupt_mask();
     sched_lock_counter++;
-    port_isr_unlock();
+    port_clear_interrupt_mask();
 }
 
 /*-----------------------------------------------------------------------*/
 //Unlock scheduler
 void isixp_sched_unlock(void)
 {
-    port_isr_lock();
+    port_set_interrupt_mask();
     if(sched_lock_counter>0) sched_lock_counter--;
-    port_isr_unlock();
+    port_clear_interrupt_mask();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -152,8 +152,6 @@ void isixp_schedule_time(void)
     while( !list_isempty(p_waiting_task) &&
     		jiffies>=(task_c = list_get_first(p_waiting_task,inode,task_t))->jiffies
       )
-
-    //list_for_each_entry(p_waiting_task,task_c,inode)
     {
     	//if(jiffies<task_c->jiffies) return;
     	printk("SchedulerTime: sched_time %d task_time %d\n",jiffies,task_c->jiffies);
@@ -173,8 +171,6 @@ void isixp_schedule_time(void)
             printk("SchedulerTime: Error in add task to ready list\n");
             isix_bug();
         }
-        if(list_isempty(p_waiting_task)) return;
-        task_c = list_get_first(p_waiting_task,inode,task_t);
     }
 }
 /*-----------------------------------------------------------------------*/

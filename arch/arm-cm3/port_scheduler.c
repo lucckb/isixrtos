@@ -107,9 +107,9 @@ void irq_handler_timer_isr(void) __attribute__((__interrupt__));
 void irq_handler_timer_isr(void)
 {
     //Increment system ticks
-    port_isr_lock();
+    port_set_interrupt_mask();
 	isixp_schedule_time();
-	port_isr_unlock();
+	port_clear_interrupt_mask();
 
 #ifdef CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
@@ -118,7 +118,7 @@ void irq_handler_timer_isr(void)
 }
 
 /*-----------------------------------------------------------------------*/
-void port_isr_lock(void)
+void port_set_interrupt_mask(void)
 {
  asm volatile(  "msr BASEPRI,%0\t\n"
                 ::"r"(configMAX_SYSCALL_INTERRUPT_PRIORITY)
@@ -126,10 +126,11 @@ void port_isr_lock(void)
 }
 
 /*-----------------------------------------------------------------------*/
-void port_isr_unlock(void)
+void port_clear_interrupt_mask(void)
 {
     asm volatile("msr BASEPRI,%0\t\n"::"r"(0));
 }
+
 /*-----------------------------------------------------------------------*/
 void port_yield(void )
 {
