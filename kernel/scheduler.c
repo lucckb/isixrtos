@@ -2,25 +2,23 @@
 #include <isix/printk.h>
 #include <isix/types.h>
 #include <prv/scheduler.h>
-#include <asm/context.h>
 #include <isix/task.h>
 #include <isix/memory.h>
-#include <asm/interrupt.h>
 #include <prv/list.h>
 #include <prv/semaphore.h>
 
 #ifndef ISIX_DEBUG_SCHEDULER
-#define ISIX_DEBUG_SCHEDULER ISIX_DBG_ON
+#define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
 #endif
 
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
-volatile bool scheduler_running;
+volatile bool isix_scheduler_running;
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
-task_t * volatile current_task = NULL;
+task_t * volatile isix_current_task = NULL;
 
 /*-----------------------------------------------------------------------*/
 //Sched lock counter
@@ -33,6 +31,8 @@ static list_entry_t ready_task;
 /*-----------------------------------------------------------------------*/
 //Task waiting for event
 static list_entry_t waiting_task;
+//Overflowed waiting task
+static list_entry_t overflow_wating_task;
 
 /*-----------------------------------------------------------------------*/
 //Task waiting for event
@@ -45,15 +45,15 @@ static list_entry_t free_prio_elem;
 /*-----------------------------------------------------------------------*/
 
 //Global jiffies
-volatile uint64_t jiffies;
-
+volatile tick_t jiffies;
 
 /*-----------------------------------------------------------------------*/
-void bug(void)
+void isix_bug(void)
 {
     printk("OOPS: Please reset board\n");
     task_ready_t *i;
     task_t *j;
+    //TODO: Add interrupt blocking
     printk("Ready tasks\n");
     list_for_each_entry(&ready_task,i,inode)
     {
@@ -72,7 +72,7 @@ void bug(void)
 }
 
 /*-----------------------------------------------------------------------*/
-//After bug function disable printk
+//After isix_bug function disable printk
 #if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
 static void print_tasks(list_entry_t *sem_list);
 #else
@@ -83,66 +83,72 @@ static void print_tasks(list_entry_t *sem_list);
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler
-void sched_lock(void)
+void isixp_sched_lock(void)
 {
-    //FIXME: IRQ Enable/Disable
-    //reg_t irq_s = irq_disable();
+    port_isr_lock();
     sched_lock_counter++;
-    //irq_restore(irq_s);
-    //printk("SchedLock: %d\n",sched_lock_counter);
+    port_isr_unlock();
 }
 
 /*-----------------------------------------------------------------------*/
 //Unlock scheduler
-void sched_unlock(void)
+void isixp_sched_unlock(void)
 {
-    //FIXME:: interrupt enable disable
-    //reg_t irq_s = irq_disable();
+    port_isr_lock();
     if(sched_lock_counter>0) sched_lock_counter--;
-    //irq_restore(irq_s);
-    //printk("SchedUnlock: %d\n",sched_lock_counter);
+    port_isr_unlock();
 }
 
 /*-----------------------------------------------------------------------*/
 //Scheduler is called in switch context
-void schedule(void)
+void isixp_schedule(void)
 {
     //If scheduler is locked switch context is disable
     if(sched_lock_counter) return;
     print_tasks(NULL);
-    sched_lock();
+    isixp_sched_lock();
 
     //Remove executed task and add at end
-    if(current_task->state & TASK_READY)
+    if(isix_current_task->state & TASK_READY)
     {
-        current_task->state &= ~TASK_RUNNING;
-        list_delete(&current_task->inode);
-        list_insert_end(&current_task->prio_elem->task_list,&current_task->inode);
+        isix_current_task->state &= ~TASK_RUNNING;
+        list_delete(&isix_current_task->inode);
+        list_insert_end(&isix_current_task->prio_elem->task_list,&isix_current_task->inode);
     }
     task_ready_t * current_prio;
     //Get first ready prio
     current_prio = list_get_first(&ready_task,inode,task_ready_t);
     printk("Scheduler: actual prio %d prio list %08x\n",current_prio->prio,current_prio);
     //Get first ready task
-    printk("Scheduler: prev task %08x\n",current_task);
-    current_task = list_get_first(&current_prio->task_list,inode,task_t);
-    current_task->state |= TASK_RUNNING;
-    if(current_task->prio != current_prio->prio) bug();
-    printk("Scheduler: new task %08x\n",current_task);
-    sched_unlock();
+    printk("Scheduler: prev task %08x\n",isix_current_task);
+    isix_current_task = list_get_first(&current_prio->task_list,inode,task_t);
+    isix_current_task->state |= TASK_RUNNING;
+    if(isix_current_task->prio != current_prio->prio) isix_bug();
+    printk("Scheduler: new task %08x\n",isix_current_task);
+    isixp_sched_unlock();
 }
 
 /*-----------------------------------------------------------------------*/
 //Time call from isr
-void schedule_time(void)
+void isixp_schedule_time(void)
 {
-    //Increment sys tick
-    jiffies++;
-    //If scheduler is locked switch context is disable
-    if(sched_lock_counter) return;
+	//If scheduler is locked switch context is disable
+	if(sched_lock_counter) return;
+
+	//Increment sys tick
+	jiffies++;
+	if(jiffies == 0)
+	{
+	   list_entry_t tmp = waiting_task;
+	   waiting_task = overflow_wating_task;
+	   overflow_wating_task = tmp;
+	}
+
     if(list_isempty(&waiting_task)) return;
-    task_t *task_c = list_get_first(&waiting_task,inode,task_t);
-    while(jiffies>=task_c->jiffies)
+    task_t *task_c;
+    while( !list_isempty(&waiting_task) &&
+    		jiffies>=(task_c = list_get_first(&waiting_task,inode,task_t))->jiffies
+      )
     {
         printk("SchedulerTime: sched_time %d task_time %d\n",jiffies,task_c->jiffies);
         task_c->state &= ~TASK_SLEEPING;
@@ -156,10 +162,10 @@ void schedule_time(void)
             task_c->sem = NULL;
             printk("SchedulerTime: Timeout delete from sem list\n");
         }
-        if(add_task_to_ready_list(task_c)<0)
+        if(isixp_add_task_to_ready_list(task_c)<0)
         {
             printk("SchedulerTime: Error in add task to ready list\n");
-            bug();
+            isix_bug();
         }
         if(list_isempty(&waiting_task)) return;
         task_c = list_get_first(&waiting_task,inode,task_t);
@@ -173,7 +179,7 @@ static task_ready_t *alloc_task_ready_t(void)
    if(list_isempty(&free_prio_elem)==true)
    {
         //If no free elem allocate it
-        prio = (task_ready_t*)kmalloc(sizeof(task_ready_t));
+        prio = (task_ready_t*)isix_alloc(sizeof(task_ready_t));
         printk("alloc_task_ready_t: kmalloc() node %08x\n",prio);
    }
    else
@@ -197,10 +203,10 @@ static inline void free_task_ready_t(task_ready_t *prio)
 
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list
-int add_task_to_ready_list(task_t *task)
+int isixp_add_task_to_ready_list(task_t *task)
 {
     //Scheduler lock
-    sched_lock();
+    isixp_sched_lock();
     //Find task equal entry
     task_ready_t *prio_i;
     list_for_each_entry(&ready_task,prio_i,inode)
@@ -214,7 +220,7 @@ int add_task_to_ready_list(task_t *task)
             //Add task at end of ready list
             list_insert_end(&prio_i->task_list,&task->inode);
             //Unlock scheduler
-            sched_unlock();
+            isixp_sched_unlock();
             return 0;
         }
         else if(prio_i->prio<task->prio)
@@ -236,16 +242,16 @@ int add_task_to_ready_list(task_t *task)
     list_insert_end(&prio_n->task_list,&task->inode);
     list_insert_after(&prio_i->inode,&prio_n->inode);
     printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_n,prio_n->prio);
-    sched_unlock();
+    isixp_sched_unlock();
     return 0;
 }
 
 /*-----------------------------------------------------------------------*/
 //Delete task from ready list
-void delete_task_from_ready_list(task_t *task)
+void isixp_delete_task_from_ready_list(task_t *task)
 {
     //Scheduler lock
-   sched_lock();
+   isixp_sched_lock();
    list_delete(&task->inode);
    //Check for task on priority structure
    if(list_isempty(&task->prio_elem->task_list)==true)
@@ -256,33 +262,48 @@ void delete_task_from_ready_list(task_t *task)
         free_task_ready_t(task->prio_elem);
    }
    //Scheduler unlock
-   sched_unlock();
+   isixp_sched_unlock();
 }
 
 /*-----------------------------------------------------------------------*/
 //Move selected task to waiting list
-void add_task_to_waiting_list(task_t *task)
+void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
 {
     //Scheduler lock
-    sched_lock();
-    //Insert on waiting list in time order
-    task_t *waitl;
-    list_for_each_entry(&waiting_task,waitl,inode)
+    isixp_sched_lock();
+    task->jiffies = jiffies + timeout;
+    if(task->jiffies < jiffies)
     {
-       if(task->jiffies<waitl->jiffies) break;
+    	//Insert on overflow waiting list in time order
+    	task_t *waitl;
+    	list_for_each_entry(&overflow_wating_task,waitl,inode)
+    	{
+    	   if(task->jiffies<waitl->jiffies) break;
+    	}
+    	printk("MoveTaskToWaiting: OVERFLOW insert in time list at %08x\n",&waitl->inode);
+    	list_insert_before(&waitl->inode,&task->inode);
     }
-    printk("MoveTaskToWaiting: insert in time list at %08x\n",&waitl->inode);
-    list_insert_before(&waitl->inode,&task->inode);
+    else
+    {
+    	//Insert on waiting list in time order no oferflow
+    	task_t *waitl;
+    	list_for_each_entry(&waiting_task,waitl,inode)
+    	{
+    	    if(task->jiffies<waitl->jiffies) break;
+    	}
+    	printk("MoveTaskToWaiting: NO overflow insert in time list at %08x\n",&waitl->inode);
+    	list_insert_before(&waitl->inode,&task->inode);
+    }
     //Scheduler unlock
-    sched_unlock();
+    isixp_sched_unlock();
 }
 
 /*--------------------------------------------------------------*/
 //Add task to semaphore list
-void add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
+void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 {
     //Scheduler lock
-    sched_lock();
+    isixp_sched_lock();
     //Insert on waiting list in time order
     task_t *taskl;
     list_for_each_entry_reverse(sem_list,taskl,inode_sem)
@@ -293,17 +314,17 @@ void add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
     list_insert_after(&taskl->inode_sem,&task->inode_sem);
     print_tasks(sem_list);
     //Scheduler unlock
-    sched_unlock();
+    isixp_sched_unlock();
 
 }
 /*-----------------------------------------------------------------------*/
 //Add task list to delete
-void add_task_to_delete_list(task_t *task)
+void isixp_add_task_to_delete_list(task_t *task)
 {
     //lock scheduler
-    sched_lock();
+    isixp_sched_lock();
     list_insert_end(&dead_task,&task->inode);
-    sched_unlock();
+    isixp_sched_unlock();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -313,34 +334,34 @@ static inline void cleanup_tasks(void)
 {
     if(list_isempty(&dead_task)==false)
     {
-        sched_lock();
+        isixp_sched_lock();
         task_t *task_del = list_get_first(&dead_task,inode,task_t);
         list_delete(&task_del->inode);
         printk("CleanupTasks: Task to delete is %08x stack SP %08x\n",task_del,task_del->init_stack);
-        kfree(task_del->init_stack);
-        kfree(task_del);
+        isix_free(task_del->init_stack);
+        isix_free(task_del);
         //Remove one priority from free priority innodes
         if(list_isempty(&free_prio_elem)==false)
         {
             task_ready_t *free_prio = list_get_first(&free_prio_elem,inode,task_ready_t);
             list_delete(&free_prio->inode);
-            kfree(free_prio);
-            printk("CleanupTasks: Free innode prio 0x%08x\n",free_prio);
+            isix_free(free_prio);
+            printk("CleanupTasks: Free inode prio 0x%08x\n",free_prio);
         }
-        sched_unlock();
+        isixp_sched_unlock();
     }
 }
 
 /*-----------------------------------------------------------------------*/
 //Idle task function do nothing and lower priority
-TASK_FUNC(idle_task,p)
+ISIX_TASK_FUNC(idle_task,p)
 {
     while(1)
     {
         //Cleanup free tasks
-         cleanup_tasks();
+        cleanup_tasks();
 #ifndef  CONFIG_USE_PREEMPTION
-        sched_yield();
+        isix_sched_yield();
 #endif
     }
 }
@@ -354,7 +375,7 @@ static void print_tasks(list_entry_t *sem_list)
    {
         task_ready_t *i;
         task_t *j;
-        sched_lock();
+        isixp_sched_lock();
         printk("-------Ready tasks -------------\n");
         list_for_each_entry(&ready_task,i,inode)
         {
@@ -365,11 +386,11 @@ static void print_tasks(list_entry_t *sem_list)
             }
         }
         printk("------ Sleeping tasks -------------\n");
-        list_for_each_entry(&waiting_task,j,inode)
+        list_for_each_entry(&xxxxxx_waiting_task,j,inode)
         {
             printk("Task: %08x prio: %d state %d jiffies %d\n",j,j->prio,j->state,j->jiffies);
         }
-        sched_unlock();
+        isixp_sched_unlock();
     }
     else
     {
@@ -386,33 +407,45 @@ static void print_tasks(list_entry_t *sem_list)
 #endif
 
 /*-----------------------------------------------------------------------*/
+//Get currrent jiffies
+tick_t isix_get_jiffies(void)
+{
+    tick_t t1,t2;
+    do
+    {
+        t1 = jiffies;
+        t2 = jiffies;
+    }
+    while(t1!=t2);
+    return t2;
+}
+
+/*-----------------------------------------------------------------------*/
 /* Initialize base OS structure before call main */
-void init_os(void)
+void isix_init(void)
 {
 	//Initialize ready task list
     list_init(&ready_task);
     //Initialize waiting list
     list_init(&waiting_task);
+    //Initialize overflow waiting list
+    list_init(&overflow_wating_task);
     //Initialize dead task
     list_init(&dead_task);
     //Initialize free prio elem list
     list_init(&free_prio_elem);
-    //Other stuff
-    //uart_early_init();
     //Create idle task
-    task_create(idle_task,NULL,SCHED_MIN_STACK_DEPTH,SCHED_IDLE_PRIORITY);
+    isix_task_create(idle_task,NULL,PORT_SCHED_MIN_STACK_DEPTH,ISIX_IDLE_PRIORITY);
 }
 
 /*-----------------------------------------------------------------------*/
 /* This function start scheduler after main function */
-void start_scheduler(void) __attribute__((noreturn));
-void start_scheduler(void)
+void isix_start_scheduler(void) __attribute__((noreturn));
+void isix_start_scheduler(void)
 {
-   scheduler_running = true;
-   //System time
-   //sys_time_init();
+   isix_scheduler_running = true;
    //Restore context and run OS
-   start_first_task();
+   port_start_first_task();
    while(1);    //Prevent compiler warning
 }
 

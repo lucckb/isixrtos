@@ -1,97 +1,34 @@
-########################################################################
-######              Top makefile project for the ISIX OS          ######
-######         Copyright (c) 2009 Lucjan Bryndza                  ######
-########################################################################
-# Isix os Makefile 
-#Katalog glowny
-TOP_DIR= $(shell pwd)
+# Automatic makefile for GNUARM (C/C++)
 
 #tutaj wpisz nazwe pliku hex
 TARGET	   = isix
 
-
 #Optymalizacja [0,1,2,3,s]
 # 0 - brak optymalizacji, s -optymalizacja rozmiaru
-OPT 	= 0
+OPT 	?= 2
 
-#Debug format 
-DEBUG 	= y
-
-
-#Typ procesora
-MCU	= cortex-m3
-
-
-#Skrypt linkera
-SCRIPTLINK = arch/arm7lpc2000/boot/lpc2148-rom
 
 #Opcje kompilatora C
-CFLAGS += -Wall
-CFLAGS += -std=gnu99
+CFLAGS += -std=gnu99 -Wall -pedantic
 
-CFLAGS += -I$(TOP_DIR)/include
+CFLAGS += -Iinclude
 
+#Wlaczyc wylaczyc listing
+LISTING ?= n
 
-CROSS_COMPILE ?= arm-elf-
-
-
-
-#Definicje programow
-CC      = $(CROSS_COMPILE)gcc
-AR      = $(CROSS_COMPILE)ar
-CP      = $(CROSS_COMPILE)objcopy
-LD      = $(CROSS_COMPILE)ld
-OBJDUMP = $(CROSS_COMPILE)objdump 
+#Wlaczyc wylaczyc debug
+DEBUG ?=  y
 
 
+#Kernel source 
+SRC += fifo.c  memory.c  scheduler.c  semaphore.c  task.c
 
-#Pozostale ustawienia kompilatora
+#Architecture specific sorces
+SRC += port_scheduler.c
 
-ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -O$(OPT) -mthumb
-LDFLAGS +=  -nostartfiles -nostdlib -lgcc -T$(SCRIPTLINK).ld -Wl,-Map=$(TARGET).map,--cref -O$(OPT) -mthumb
-CFLAGS  += -mcpu=$(MCU) -O$(OPT) -mthumb
-CPFLAGS =  -O $(FORMAT) -S
-ARFLAGS = rcs
+#pliki assemblerowe
+ASRC +=
 
-ifeq ($(DEBUG),y)
-CFLAGS += -g
-LDFLAGS += -g
-ASFLAGS += -gstabs
-else
-CFLAGS += -fomit-frame-pointer 
-LDFLAGS += -fomit-frame-pointer
-ASFLAGS += -fomit-frame-pointer
-endif
-
-
-#eksportujemy potrzebne dane
-export ASFLAGS LDFLAGS CFLAGS ARFLAGS TOP_DIR CC AR LD
-
-all:	build target
-
-
-install: build target 
-
-
-clean:
-	find $(TOP_DIR) -name '*.o' | xargs rm -f
-	find $(TOP_DIR) -name '*.dep' | xargs rm -f
-	rm -f *.lss *.map *.a
-
-
-target:	lib$(TARGET).a
-
-build:	
-	$(MAKE) -C kernel
-	$(MAKE) -C arch/cm3stm32
-
-
-LINKFILES =  kernel/kernel.o arch/cm3stm32/kernel_arch.o 
-
-
-lib$(TARGET).a: $(LINKFILES)
-	@echo "Creating static lib.."
-	$(AR) $(ARFLAGS) $@ $(LINKFILES)
-
-include Makefile.inc
+vpath %c kernel arch/arm-cm3
+include isix.mk
 

@@ -10,35 +10,35 @@ typedef struct fifo_struct fifo_t;
 /*--------------------------------------------------*/
 /* Create queue for n elements
  * if succes return queue pointer else return null   */
-fifo_t* fifo_create_isr(int n_elem, int elem_size,int interrupt);
+fifo_t* isix_fifo_create_isr(int n_elem, int elem_size,int interrupt);
 
-#define fifo_create(n_elem,elem_size) fifo_create_isr(n_elem,elem_size,-1)
+#define isix_fifo_create(n_elem,elem_size) isix_fifo_create_isr(n_elem,elem_size,-1)
 
 /* Send element to queue
  * queue - Pointer to queue
  * item -  Element to push in queue
  * timeout - Timeout for selected queue
  * return 0 if succes else return error     */
-int fifo_write(fifo_t *fifo,const void *item,unsigned long timeout);
+int isix_fifo_write(fifo_t *fifo, const void *item, tick_t timeout);
 
-int fifo_write_isr(fifo_t *queue,const void *item);
+int isix_fifo_write_isr(fifo_t *queue, const void *item);
 
 /*--------------------------------------------------*/
 /* Delete created queue */
-int fifo_destroy(fifo_t *fifo);
+int isix_fifo_destroy(fifo_t *fifo);
 
 /*--------------------------------------------------*/
 /* How many elements is in fifo */
-int fifo_count(fifo_t *fifo);
+int isix_fifo_count(fifo_t *fifo);
 
 /*--------------------------------------------------*/
 /* Get element from queue *
  * queue - Pointer to queue
  * item - Pointer to item
  * timeout - Max waiting timeouts */
-int fifo_read(fifo_t *fifo,void *item,unsigned long timeout);
+int isix_fifo_read(fifo_t *fifo,void *item, tick_t timeout);
 
-int fifo_read_isr(fifo_t *queue,void *item);
+int isix_fifo_read_isr(fifo_t *queue, void *item);
 
 /*--------------------------------------------------*/
 

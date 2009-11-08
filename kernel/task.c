@@ -24,68 +24,69 @@
 #define ALIGN_BYTES 4
 /*-----------------------------------------------------------------------*/
 /* Create task function */
-task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_depth, prio_t priority)
+task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned long  stack_depth, prio_t priority)
 {
     printk("TaskCreate: Create task with prio %d\n",priority);
     //If stack length is small error
-    if(stack_depth<SCHED_MIN_STACK_DEPTH) return NULL;
+    if(stack_depth<PORT_SCHED_MIN_STACK_DEPTH) return NULL;
     //Alignement
     if(stack_depth & ALIGN_MASK)
     {
         stack_depth += ALIGN_BYTES - (stack_depth & ALIGN_MASK);
     }
     //Allocate task_t structure
-    task_t *task = (task_t*)kmalloc(sizeof(task_t));
+    task_t *task = (task_t*)isix_alloc(sizeof(task_t));
     printk("TaskCreate: Alloc task struct %08x\n",task);
     //No free memory
     if(task==NULL) return NULL;
     //Zero task structure
     memset(task,0,sizeof(task_t));
     //Try Allocate stack for task
-    task->init_stack = (reg_t*)kmalloc(stack_depth);
+    task->init_stack = isix_alloc(stack_depth);
     printk("TaskCreate: Alloc stack mem %08x\n",task->init_stack);
     if(task->init_stack==NULL)
     {
         //Free allocated stack memory
-        kfree(task);
+        isix_free(task);
         return NULL;
     }
 #ifdef CONFIG_STACK_GROWTH
-     task->top_stack = (reg_t*)((char*)task->init_stack + stack_depth - 4);
+     task->top_stack = (unsigned long*)((char*)task->init_stack + stack_depth - 4);
 #else
      task->top_stack = task->init_stack;
 #endif
+    memset(task->init_stack,0x55,stack_depth);
     printk("TaskCreate: Top stack SP=%08x\n",task->top_stack);
     //Assign task priority
     task->prio = priority;
     //Task is ready
     task->state = TASK_READY;
     //Create initial task stack context
-    task->top_stack = task_init_stack(task->top_stack,task_func,func_param);
+    task->top_stack = isixp_task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler
-    sched_lock();
+    isixp_sched_lock();
     //Add task to ready list
-    if(add_task_to_ready_list(task)<0)
+    if(isixp_add_task_to_ready_list(task)<0)
     {
         //Free allocated innode
         printk("TaskCreate: Add task to ready list failed\n");
-        kfree(task->top_stack);
-        kfree(task);
-	    sched_unlock();
+        isix_free(task->top_stack);
+        isix_free(task);
+	    isixp_sched_unlock();
 	    return NULL;
     }
-    if(scheduler_running==false)
+    if(isix_scheduler_running==false)
     {
         //Scheduler not running assign task
-        if(current_task==NULL) current_task = task;
-        else if(current_task->prio>task->prio) current_task = task;
+        if(isix_current_task==NULL) isix_current_task = task;
+        else if(isix_current_task->prio>task->prio) isix_current_task = task;
     }
-    sched_unlock();
-    if(current_task->prio>task->prio && scheduler_running==true)
+    isixp_sched_unlock();
+    if(isix_current_task->prio>task->prio && isix_scheduler_running==true)
     {
         //New task have higer priority then current task
-	    printk("TaskCreate: Call scheduler new prio %d > old prio %d\n",task->prio,current_task->prio);
-        sched_yield();
+	    printk("TaskCreate: Call scheduler new prio %d > old prio %d\n",task->prio,isix_current_task->prio);
+        isix_sched_yield();
     }
     return task;
 }
@@ -94,31 +95,31 @@ task_t* task_create(task_func_ptr_t task_func, void *func_param,reg_t stack_dept
 /*Change task priority function
  * task - task pointer structure if NULL current prio change
  * new_prio - new priority                                  */
-int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
+int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
 {
-    sched_lock();
-    task_t *taskc = task?task:current_task;
+    isixp_sched_lock();
+    task_t *taskc = task?task:isix_current_task;
     //Save task prio
     prio_t prio = taskc->prio;
     if(prio==new_prio)
     {
-        sched_unlock();
+        isixp_sched_unlock();
         return ISIX_EOK;
     }
     bool yield_req = false;
     if(taskc->state & TASK_READY)
     {
         printk("ChangePrio: change prio of ready task\n");
-        delete_task_from_ready_list(taskc);
+        isixp_delete_task_from_ready_list(taskc);
         //Assign new prio
         taskc->prio = new_prio;
         //Add task to ready list
-        if(add_task_to_ready_list(taskc)<0)
+        if(isixp_add_task_to_ready_list(taskc)<0)
         {
-            sched_unlock();
+            isixp_sched_unlock();
             return ISIX_ENOMEM;
         }
-        if(new_prio<prio && !(current_task->state&TASK_RUNNING) ) yield_req = true;
+        if(new_prio<prio && !(isix_current_task->state&TASK_RUNNING) ) yield_req = true;
     }
     else if(taskc->state & TASK_WAITING)
     {
@@ -126,14 +127,14 @@ int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
         list_delete(&taskc->inode_sem);
         //Assign new prio
         taskc->prio = new_prio;
-        add_task_to_sem_list(&taskc->sem->sem_task,taskc);
+        isixp_add_task_to_sem_list(&taskc->sem->sem_task,taskc);
     }
-    sched_unlock();
+    isixp_sched_unlock();
     //Yield processor
     if(yield_req && yield)
     {
         printk("ChangePrio: CPUYield request\n");
-        sched_yield();
+        isix_sched_yield();
     }
     printk("ChangePrio: New prio %d\n",new_prio);
     return ISIX_EOK;
@@ -141,14 +142,14 @@ int __task_change_prio(task_t *task,prio_t new_prio,bool yield)
 
 /*-----------------------------------------------------------------------*/
 //Delete task pointed by struct task
-int task_delete(task_t *task)
+int isix_task_delete(task_t *task)
 {
-    sched_lock();
-    task_t *taskd = task?task:current_task;
+    isixp_sched_lock();
+    task_t *taskd = task?task:isix_current_task;
     if(taskd->state & TASK_READY)
     {
        //Task is ready remove from read
-        delete_task_from_ready_list(taskd);
+        isixp_delete_task_from_ready_list(taskd);
         printk("TaskDel: Remove from ready list\n");
     }
     else if(taskd->state & TASK_SLEEPING)
@@ -166,17 +167,17 @@ int task_delete(task_t *task)
     }
     //Add task to delete list
     taskd->state = TASK_DEAD;
-    add_task_to_delete_list(taskd);
-    if(task==NULL || task==current_task)
+    isixp_add_task_to_delete_list(taskd);
+    if(task==NULL || task==isix_current_task)
     {
-        sched_unlock();
+        isixp_sched_unlock();
         printk("TaskDel: Current task yield req\n");
-        sched_yield();
+        isix_sched_yield();
         return ISIX_EOK;
     }
     else
     {
-        sched_unlock();
+        isixp_sched_unlock();
         return ISIX_EOK;
     }
 }
@@ -185,7 +186,7 @@ int task_delete(task_t *task)
 //Get current thread handler
 task_t * task_self(void)
 {
-    task_t *t = current_task;
+    task_t *t = isix_current_task;
     return t;
 }
 

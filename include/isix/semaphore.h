@@ -12,41 +12,46 @@ typedef struct sem_struct sem_t;
 
 /*--------------------------------------------------------------*/
 //Create semaphore
-sem_t* sem_create_isr(sem_t *sem,int val,int interrupt);
+sem_t* isix_sem_create_isr(sem_t *sem,int val,int interrupt);
 
-#define sem_create(sem,val) sem_create_isr(sem,val,-1)
+#define isix_sem_create(sem,val) isix_sem_create_isr(sem,val,-1)
 
 /*--------------------------------------------------------------*/
 //Wait for semaphore P()
-int sem_wait(sem_t *sem,unsigned long timeout);
+int isix_sem_wait(sem_t *sem, tick_t timeout);
 
 /*--------------------------------------------------------------*/
 //Get semaphore from isr
-int sem_get_isr(sem_t *sem);
+int isix_sem_get_isr(sem_t *sem);
 
 /*--------------------------------------------------------------*/
 //Sem signal V()
-int __sem_signal(sem_t *sem,bool isr);
+int isixp_sem_signal(sem_t *sem, bool isr);
 
 /*--------------------------------------------------------------*/
 //Definition of sem and sem ISR
-#define sem_signal(sem) __sem_signal(sem,false)
+#define isix_sem_signal(sem) isixp_sem_signal(sem,false)
 
-#define sem_signal_isr(sem) __sem_signal(sem,true)
+#define isix_sem_signal_isr(sem) isixp_sem_signal(sem,true)
 
 /*--------------------------------------------------------------*/
 //Sem value of semaphore
-int sem_setval(sem_t *sem,int val);
+int isix_sem_setval(sem_t *sem,int val);
 
 /*--------------------------------------------------------------*/
 //Get value of semaphore
-int sem_getval(sem_t *sem);
+int isix_sem_getval(sem_t *sem);
 
 /*--------------------------------------------------------------*/
 //Sem destroy
-int sem_destroy(sem_t *sem);
+int isix_sem_destroy(sem_t *sem);
 
 /*--------------------------------------------------------------*/
+
+//Wait for n jiffies
+#define isix_wait(timeout) isix_sem_wait(NULL,timeout)
+
+/*-----------------------------------------------------------*/
 
 #endif
 

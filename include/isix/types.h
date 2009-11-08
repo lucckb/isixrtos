@@ -1,7 +1,8 @@
 #ifndef __ISIX_TYPES_H
 #define __ISIX_TYPES_H
 
-#include <asm/types.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <isix/error.h>
 
@@ -10,6 +11,10 @@
 #ifndef NULL
 #define NULL ((void*)0)
 #endif /* NULL */
+
+/*-----------------------------------------------------*/
+//!Define tick type
+typedef unsigned short tick_t;
 
 /*-----------------------------------------------------*/
 //Bit shift 

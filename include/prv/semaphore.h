@@ -13,7 +13,7 @@ struct sem_struct
     //Task val waiting for semaphore
     list_entry_t sem_task;
     //Number of interrupt to mask
-    int intno;
+    short intno;
     //Return reason
     int sem_ret;
 };
@@ -21,7 +21,7 @@ struct sem_struct
 /*--------------------------------------------------------------*/
 
 //Semaphore can by destroyed
-static inline bool __sem_can_destroy(sem_t *sem)
+static inline bool isixp_sem_can_destroy(sem_t *sem)
 {
    return list_isempty(&sem->sem_task);
 }

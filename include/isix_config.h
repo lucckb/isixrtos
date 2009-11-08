@@ -1,4 +1,5 @@
 
+
 /* Stack from high to low address */
 #define CONFIG_STACK_GROWTH 1
 
@@ -15,5 +16,5 @@
 #define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
 #define ISIX_DEBUG_TASK ISIX_DBG_OFF
 
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY 0xE0
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY 0x80
 

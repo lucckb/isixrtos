@@ -4,19 +4,12 @@
 #include <isix/types.h>
 /*------------------------------------------------------*/
 //Allocate memory
-void* kmalloc(size_t size);
+void* isix_alloc(size_t size);
 
 /*------------------------------------------------------*/
 //Free memory
-void kfree(void *mem);
+void isix_free(void *mem);
 
-/*------------------------------------------------------*/
-//Zero of selected memory region
-void zero_memory(void *s, size_t n);
-
-/*------------------------------------------------------*/
-//Copy memory from region src to dest
-void* memcpy(void *dest,const void *src,size_t size);
 /*------------------------------------------------------*/
 
 #endif

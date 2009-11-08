@@ -3,11 +3,11 @@
 
 #include <isix/config.h>
 #include <isix/types.h>
-#include <asm/scheduler.h>
+#include <isix/port_scheduler.h>
 
 /*-----------------------------------------------------------------------*/
 //Define idle priority value
-#define SCHED_IDLE_PRIORITY 255
+#define ISIX_IDLE_PRIORITY 255
 
 /*-----------------------------------------------------------------------*/
 //Pointer to task function
@@ -19,7 +19,7 @@ typedef uint8_t prio_t;
 /*-----------------------------------------------------------------------*/
 
 //Yield processor
-#define sched_yield() port_yield()
+#define isix_sched_yield() port_yield()
 
 /*-----------------------------------------------------------------------*/
 
@@ -34,11 +34,22 @@ typedef struct task_struct task_t;
 
 /*-----------------------------------------------------------------------*/
 //Halt system when critical error
-void bug(void);
+void isix_bug(void);
+
+/*-----------------------------------------------------------*/
+//Get current jiffies
+tick_t isix_get_jiffies(void);
+
 
 /*-----------------------------------------------------------------------*/
 //Start scheduler
-void start_scheduler(void) __attribute__((noreturn));
+void isix_start_scheduler(void) __attribute__((noreturn));
 
 /*-----------------------------------------------------------------------*/
+
+/* Initialize base OS structure before call main */
+void isix_init(void);
+
+/*-----------------------------------------------------------------------*/
+
 #endif
