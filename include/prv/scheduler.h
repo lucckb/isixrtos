@@ -37,8 +37,8 @@ struct task_struct
     sem_t   *sem;               	//Pointer to waiting sem
     list_t inode;               	//List of tasks
 };
-
 /*-----------------------------------------------------------------------*/
+
 #include <isix/types.h>
 #include <isix/scheduler.h>
 

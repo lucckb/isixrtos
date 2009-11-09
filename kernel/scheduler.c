@@ -55,7 +55,9 @@ static list_entry_t free_prio_elem;
 //Global jiffies var
 static volatile tick_t jiffies;
 
+
 /*-----------------------------------------------------------------------*/
+//Isix bug report when printk is defined
 void isix_bug(void)
 {
     printk("OOPS: Please reset board\n");
