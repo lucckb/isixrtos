@@ -5,7 +5,7 @@
 
 
 /*-----------------------------------------------------------------------*/
-
+//Save context
 #define cpu_save_context()										\
     asm volatile (												\
     "mrs r0, psp\t\n"					        				\
@@ -19,7 +19,7 @@
     ::"i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)                 \
 	)
 /*-----------------------------------------------------------------------*/
-
+//Restore context
 #define cpu_restore_context()                                   \
     asm volatile  (                                             \
     "mov r0,#0\t\n"                                             \
@@ -47,6 +47,7 @@
 #endif
 
 /*-----------------------------------------------------------------------*/
+//Pend SV interrupt (context switch)
 void irq_handler_pend_sv(void) __attribute__((__interrupt__,naked));
 
 void irq_handler_pend_sv(void)
@@ -59,6 +60,7 @@ void irq_handler_pend_sv(void)
 }
 
 /*-----------------------------------------------------------------------*/
+//SVC handler call for start the first task
 void irq_handler_svc(void) __attribute__((__interrupt__,naked));
 void irq_handler_svc(void)
 {
@@ -101,7 +103,7 @@ unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, vo
 }
 
 /*-----------------------------------------------------------------------*/
-
+//Cyclic schedule time interrupt
 void irq_handler_timer_isr(void) __attribute__((__interrupt__));
 
 void irq_handler_timer_isr(void)
@@ -118,6 +120,7 @@ void irq_handler_timer_isr(void)
 }
 
 /*-----------------------------------------------------------------------*/
+//Set interrupt mask
 void port_set_interrupt_mask(void)
 {
  asm volatile(  "msr BASEPRI,%0\t\n"
@@ -126,12 +129,14 @@ void port_set_interrupt_mask(void)
 }
 
 /*-----------------------------------------------------------------------*/
+//Clear interrupt mask
 void port_clear_interrupt_mask(void)
 {
     asm volatile("msr BASEPRI,%0\t\n"::"r"(0));
 }
 
 /*-----------------------------------------------------------------------*/
+//Yield to another task
 void port_yield(void )
 {
   /* Set a PendSV to request a context switch. */
@@ -139,6 +144,7 @@ void port_yield(void )
 }
 
 /*-----------------------------------------------------------------------*/
+//Start first task by svc call
 void port_start_first_task(void) __attribute__((naked));
 void port_start_first_task( void )
 {
@@ -151,4 +157,9 @@ void port_start_first_task( void )
       );
 }
 /*-----------------------------------------------------------------------*/
+//Idle task additional
+void port_idle_task()
+{
 
+}
+/*-----------------------------------------------------------------------*/

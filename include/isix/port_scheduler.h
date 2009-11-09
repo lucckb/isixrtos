@@ -18,6 +18,11 @@ void port_start_first_task(void);
 void port_set_interrupt_mask(void);
 
 void port_clear_interrupt_mask(void);
+
+/*-----------------------------------------------------------------------*/
+//Idle task additional
+void port_idle_task(void);
+
 /*-----------------------------------------------------------------------*/
 
 #endif
