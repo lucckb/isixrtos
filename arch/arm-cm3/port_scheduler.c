@@ -16,7 +16,7 @@
     "stmdb sp!, {r3,r14}\t\n"                                   \
     "mov r0,%0\t\n"                                             \
     "msr basepri,r0\t\n"                                        \
-    ::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY)                 \
+    ::"i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)                 \
 	)
 /*-----------------------------------------------------------------------*/
 
@@ -121,7 +121,7 @@ void irq_handler_timer_isr(void)
 void port_set_interrupt_mask(void)
 {
  asm volatile(  "msr BASEPRI,%0\t\n"
-                ::"r"(configMAX_SYSCALL_INTERRUPT_PRIORITY)
+                ::"r"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)
              );
 }
 

@@ -11,7 +11,7 @@ OPT 	?= 2
 #Opcje kompilatora C
 CFLAGS += -std=gnu99 -Wall -pedantic
 
-CFLAGS += -Iinclude
+CFLAGS += -Iinclude -I../libfoundation
 
 #Wlaczyc wylaczyc listing
 LISTING ?= n
@@ -23,7 +23,7 @@ DEBUG ?=  y
 #Kernel source 
 SRC += fifo.c  memory.c  scheduler.c  semaphore.c  task.c
 
-#Architecture specific sorces
+#Architecture specific sources
 SRC += port_scheduler.c
 
 #pliki assemblerowe

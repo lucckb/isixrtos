@@ -11,6 +11,12 @@
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
 #endif
 
+/*-----------------------------------------------------------------------*/
+//After isix_bug function disable printk
+#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_OFF
+#undef printk
+#define printk(...)
+#endif
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
@@ -74,16 +80,6 @@ void isix_bug(void)
 }
 
 /*-----------------------------------------------------------------------*/
-//After isix_bug function disable printk
-#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
-static void print_tasks(list_entry_t *sem_list);
-#else
-#undef printk
-#define printk(...)
-#define print_tasks(v)
-#endif
-
-/*-----------------------------------------------------------------------*/
 //Lock scheduler
 void isixp_enter_critical(void)
 {
@@ -107,8 +103,8 @@ void isixp_exit_critical(void)
 void isixp_schedule(void)
 {
 
-    print_tasks(NULL);
-    isixp_enter_critical();
+    //Enter to the critical section
+	isixp_enter_critical();
 
     //Remove executed task and add at end
     if(isix_current_task->state & TASK_READY)
@@ -144,14 +140,12 @@ void isixp_schedule_time(void)
 	   pov_waiting_task = tmp;
 	}
 
-    //if(list_isempty(&waiting_task)) return;
     task_t *task_c;
 
     while( !list_isempty(p_waiting_task) &&
     		jiffies>=(task_c = list_get_first(p_waiting_task,inode,task_t))->jiffies
       )
     {
-    	//if(jiffies<task_c->jiffies) return;
     	printk("SchedulerTime: sched_time %d task_time %d\n",jiffies,task_c->jiffies);
         task_c->state &= ~TASK_SLEEPING;
         task_c->state |= TASK_READY;
@@ -312,7 +306,7 @@ void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
     }
     printk("MoveTaskToSem: insert in time list at %08x\n",taskl);
     list_insert_after(&taskl->inode_sem,&task->inode_sem);
-    print_tasks(sem_list);
+
     //Scheduler unlock
     isixp_exit_critical();
 
@@ -365,46 +359,6 @@ ISIX_TASK_FUNC(idle_task,p)
 #endif
     }
 }
-/*-----------------------------------------------------------------------*/
-
-#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
-
-static void print_tasks(list_entry_t *sem_list)
-{
-   if(sem_list==NULL)
-   {
-        task_ready_t *i;
-        task_t *j;
-        isixp_enter_critical();
-        printk("-------Ready tasks -------------\n");
-        list_for_each_entry(&ready_task,i,inode)
-        {
-            printk("List inode %08x prio %d\n",(unsigned int)i,i->prio);
-            list_for_each_entry(&i->task_list,j,inode)
-            {
-                printk("\t task %08x prio %d state %d\n",j,j->prio,j->state);
-            }
-        }
-        printk("------ Sleeping tasks -------------\n");
-        list_for_each_entry(&xxxxxx_waiting_task,j,inode)
-        {
-            printk("Task: %08x prio: %d state %d jiffies %d\n",j,j->prio,j->state,j->jiffies);
-        }
-        isixp_exit_critical();
-    }
-    else
-    {
-       printk("------ Semaphore tasks -------------\n");
-       task_t *i;
-       list_for_each_entry(sem_list,i,inode_sem)
-       {
-         printk("Task: %08x prio: %d state %d\n",i,i->prio,i->state);
-       }
-    }
-}
-
-
-#endif
 
 /*-----------------------------------------------------------------------*/
 //Get currrent jiffies
@@ -421,7 +375,7 @@ tick_t isix_get_jiffies(void)
 }
 
 /*-----------------------------------------------------------------------*/
-/* Initialize base OS structure before call main */
+/* Number of priorites assigned when OS start */
 void isix_init(void)
 {
 	//Initialize ready task list
