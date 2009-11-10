@@ -46,6 +46,10 @@ int isix_sem_getval(sem_t *sem);
 int isix_sem_destroy(sem_t *sem);
 
 /*--------------------------------------------------------------*/
+//! Convert ms to ticks
+tick_t isix_ms2tick(unsigned long ms);
+
+/*--------------------------------------------------------------*/
 
 //Wait for n jiffies
 #define isix_wait(timeout) isix_sem_wait(NULL,timeout)

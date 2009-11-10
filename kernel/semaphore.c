@@ -197,4 +197,11 @@ int isix_sem_destroy(sem_t *sem)
    return ISIX_EOK;
 }
 
-
+/*--------------------------------------------------------------*/
+//! Convert ms to ticks
+tick_t isix_ms2tick(unsigned long ms)
+{
+	tick_t ticks = (CONFIG_HZ * ms)/1000UL;
+	if(ticks==0) ticks++;
+	return ticks;
+}

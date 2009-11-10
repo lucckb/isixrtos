@@ -33,7 +33,7 @@ int isix_task_delete(task_t *task);
 /*-----------------------------------------------------------------------*/
 
 //Get current thread handler
-task_t * task_self(void);
+task_t * isix_task_self(void);
 
 /*-----------------------------------------------------------------------*/
 
