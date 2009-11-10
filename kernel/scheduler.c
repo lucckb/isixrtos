@@ -359,7 +359,7 @@ ISIX_TASK_FUNC(idle_task,p)
         //Call port specific idle
         port_idle_task();
 #ifndef  CONFIG_USE_PREEMPTION
-        isix_sched_yield();
+        isix_yield();
 #endif
     }
 }

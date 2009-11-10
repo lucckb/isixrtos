@@ -82,7 +82,7 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
         printk("SemWait: Add task %08x to sem\n",isix_current_task);
     }
     isixp_exit_critical();
-    isix_sched_yield();
+    isix_yield();
     printk("SemWait: task %08x after wakeup reason %d\n",isix_current_task,sem->sem_ret);
     return sem->sem_ret;
 }
@@ -129,7 +129,7 @@ int isixp_sem_signal(sem_t *sem,bool isr)
     {
         printk("SemSignal: Yield processor higer prio\n");
         isixp_exit_critical();
-        isix_sched_yield();
+        isix_yield();
         return ISIX_EOK;
     }
     else

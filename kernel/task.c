@@ -86,7 +86,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
     {
         //New task have higer priority then current task
 	    printk("TaskCreate: Call scheduler new prio %d > old prio %d\n",task->prio,isix_current_task->prio);
-        isix_sched_yield();
+        isix_yield();
     }
     return task;
 }
@@ -134,7 +134,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     if(yield_req && yield)
     {
         printk("ChangePrio: CPUYield request\n");
-        isix_sched_yield();
+        isix_yield();
     }
     printk("ChangePrio: New prio %d\n",new_prio);
     return ISIX_EOK;
@@ -172,7 +172,7 @@ int isix_task_delete(task_t *task)
     {
         isixp_exit_critical();
         printk("TaskDel: Current task yield req\n");
-        isix_sched_yield();
+        isix_yield();
         return ISIX_EOK;
     }
     else

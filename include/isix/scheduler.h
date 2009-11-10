@@ -19,7 +19,7 @@ typedef uint8_t prio_t;
 /*-----------------------------------------------------------------------*/
 
 //Yield processor
-#define isix_sched_yield() port_yield()
+#define isix_yield() port_yield()
 
 /*-----------------------------------------------------------------------*/
 
