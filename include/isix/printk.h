@@ -9,7 +9,7 @@
 #else
 #include <foundation.h>
 #define printk(...) do { isixp_enter_critical(); \
-						 tiny_printf("%s:%d|",__FILE__,__LINE__); \
+						 tiny_printf("%s:%d|%s|",__FILE__,__LINE__,__FUNCTION__); \
 						 tiny_printf(__VA_ARGS__); \
 						 tiny_printf("\r\n"); \
 						 isixp_exit_critical(); \

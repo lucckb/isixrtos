@@ -11,12 +11,6 @@
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
 #endif
 
-/*-----------------------------------------------------------------------*/
-//After isix_bug function disable printk
-#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_OFF
-#undef printk
-#define printk(...)
-#endif
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
@@ -51,10 +45,11 @@ static list_entry_t dead_task;
 static list_entry_t free_prio_elem;
 
 /*-----------------------------------------------------------------------*/
-
 //Global jiffies var
 static volatile tick_t jiffies;
 
+//Number of deleted task
+static volatile unsigned number_of_task_deleted;
 
 /*-----------------------------------------------------------------------*/
 //Isix bug report when printk is defined
@@ -80,6 +75,13 @@ void isix_bug(void)
     }
     while(1);
 }
+/*-----------------------------------------------------------------------*/
+//After isix_bug function disable printk
+#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_OFF
+#undef printk
+#define printk(...)
+#endif
+
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler
@@ -123,7 +125,10 @@ void isixp_schedule(void)
     printk("Scheduler: prev task %08x\n",isix_current_task);
     isix_current_task = list_get_first(&current_prio->task_list,inode,task_t);
     isix_current_task->state |= TASK_RUNNING;
-    if(isix_current_task->prio != current_prio->prio) isix_bug();
+    if(isix_current_task->prio != current_prio->prio)
+    {
+    	isix_bug();
+    }
     printk("Scheduler: new task %08x\n",isix_current_task);
     isixp_exit_critical();
 }
@@ -320,6 +325,7 @@ void isixp_add_task_to_delete_list(task_t *task)
     //lock scheduler
     isixp_enter_critical();
     list_insert_end(&dead_task,&task->inode);
+    number_of_task_deleted++;
     isixp_exit_critical();
 }
 
@@ -328,21 +334,25 @@ void isixp_add_task_to_delete_list(task_t *task)
 //One idle call clean one dead tasks
 static inline void cleanup_tasks(void)
 {
-    if(list_isempty(&dead_task)==false)
+    if( number_of_task_deleted > 0 )
     {
         isixp_enter_critical();
-        task_t *task_del = list_get_first(&dead_task,inode,task_t);
-        list_delete(&task_del->inode);
-        printk("CleanupTasks: Task to delete is %08x stack SP %08x\n",task_del,task_del->init_stack);
-        isix_free(task_del->init_stack);
-        isix_free(task_del);
-        //Remove one priority from free priority innodes
-        if(list_isempty(&free_prio_elem)==false)
+        if(!list_isempty(&dead_task))
         {
-            task_ready_t *free_prio = list_get_first(&free_prio_elem,inode,task_ready_t);
-            list_delete(&free_prio->inode);
-            isix_free(free_prio);
-            printk("CleanupTasks: Free inode prio 0x%08x\n",free_prio);
+        	task_t *task_del = list_get_first(&dead_task,inode,task_t);
+        	list_delete(&task_del->inode);
+        	printk("Task to delete: %08x(SP %08x) PRIO: %d",task_del,task_del->init_stack,task_del->prio);
+        	isix_free(task_del->init_stack);
+        	isix_free(task_del);
+        	number_of_task_deleted--;
+        	//FIXME: Remove one priority from free priority innode
+        	if(!list_isempty(&free_prio_elem))
+        	{
+        		task_ready_t *free_prio = list_get_first(&free_prio_elem,inode,task_ready_t);
+        		list_delete(&free_prio->inode);
+        		isix_free(free_prio);
+        		printk("CleanupTasks: Free inode prio 0x%08x\n",free_prio);
+        	}
         }
         isixp_exit_critical();
     }
@@ -382,6 +392,8 @@ tick_t isix_get_jiffies(void)
 /* Number of priorites assigned when OS start */
 void isix_init(void)
 {
+	//Init heap
+	isix_alloc_init();
 	//Initialize ready task list
     list_init(&ready_task);
     //Initialize waiting list

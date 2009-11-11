@@ -11,5 +11,9 @@ void* isix_alloc(size_t size);
 void isix_free(void *mem);
 
 /*------------------------------------------------------*/
+//! Initialize global heap
+void isix_alloc_init(void);
+
+/*------------------------------------------------------*/
 
 #endif

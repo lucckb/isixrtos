@@ -1,3 +1,12 @@
+/*------------------------------------------------------*/
+/*
+ * memory.c
+ *  New heap allocator for the ISIX
+ *  Created on: 2009-11-11
+ *      Author: lucck
+ */
+/*------------------------------------------------------*/
+
 #include <isix/memory.h>
 #include <isix/types.h>
 #include <prv/scheduler.h>
@@ -12,162 +21,132 @@
 #else
 #define printk(...)
 #endif
-/*------------------------------------------------------*/
-
-//Align Mask
-#define ALIGN_MASK 0x03
-//Align Bytes
-#define ALIGN_BYTES 4
 
 /*------------------------------------------------------*/
 
-typedef struct freelist
+#define MAGIC 0x19790822
+#define ALIGN_TYPE      void *
+#define ALIGN_MASK      (sizeof(ALIGN_TYPE) - 1)
+#define ALIGN_SIZE(p)   (((size_t)(p) + ALIGN_MASK) & ~ALIGN_MASK)
+
+struct header
 {
-    size_t size;
-    struct freelist *next;
-    struct freelist *prev;
-} freelist_t;
-
+  union
+  {
+    struct header       *h_next;
+    size_t              h_magic;
+  };
+  size_t                h_size;
+};
 /*------------------------------------------------------*/
-
-//List of free blocks
-static freelist_t *free_list = NULL;
-
-//Definition begin and end heap
-extern uint8_t  __heap_start;
-extern uint8_t __heap_end;
-
-
-/*------------------------------------------------------*/
-//Simple malloc using global heap
-void* isix_alloc(size_t size)
+static struct
 {
-     printk("kmalloc: req_size=%d\n",size);
-    //Zero return
-     if(!size) return NULL;
-     //Ckeck chunk size
-     if(size < (sizeof(freelist_t)-sizeof(size_t)))
-     {
-        size = sizeof(freelist_t)-sizeof(size_t);
-     }
-     //Alignement
-     if(size & ALIGN_MASK)
-     {
-        size += ALIGN_BYTES - (size & ALIGN_MASK);
-     }
-     printk("kmalloc: heap_req=%d\n",size);
-     //Jezeli nie zainicjalizowano list to sprobuj ja zainicjalizowac
-     isixp_enter_critical();
-     if(free_list==NULL)
-     {
-        free_list = (freelist_t*)&__heap_start;
-        free_list->size = ((&__heap_end) - (&__heap_start)) - sizeof(size_t);
-        free_list->next = NULL;
-        free_list->prev = NULL;
-        printk("kmalloc: Initialize Heap ADR_START=%08x size=%d\n",&free_list->next,free_list->size);
-     }
-     /* Zaznacz pierwszy wolny blok o wiekszym rozmiarze a
-      * nastepnie kontynuj poszukiwania az do momentu
-      * znalezienia elementu o takim samym rozmiarze lub
-      * elementu mniejszego */
-     freelist_t *grt = NULL;
-     for(freelist_t *c=free_list; c ;c=c->next)
-     {
-        if( grt==NULL && c->size>size ) grt = c;
-        //if( (c->size-size)<sizeof(freelist_t) ) continue;
-        if( (c->size<size) || (c->size>(size+sizeof(freelist_t))) ) continue;
-        //Znaleziono wolny blok o tym samym lub nie duzo wiekszym rozmiarze
-        if(c->prev) c->prev->next = c->next; else free_list = c->next;
-        if(c->next) c->next->prev = c->prev;
-        printk("kmalloc: Allocate equal region ADR=%08x size=%d\n",&c->next,c->size);
-        isixp_exit_critical();
-        return (void*)&c->next;
-     }
-     //Brak pamieci wyjdz z bledem
-     if(grt==NULL) return NULL;
-     /* Teraz jestesmy pewni ze mamy jeden blok ktory jest
-      * wiekszy niz rozmiar zadanego bloku wiec mozemy go
-      * odpowiednio rozparcelowac i przydzielic         */
-     freelist_t *new_mem = (freelist_t*)(((uint8_t*)grt)+size+sizeof(size_t));
-     *new_mem = *grt;
-     new_mem->size -= size + sizeof(size_t);
-     grt->size = size;
-     if(new_mem->prev) new_mem->prev->next = new_mem;
-     else free_list = new_mem;
-     printk("kmalloc: Return region ADR=%08x len=%d\n",&grt->next,grt->size);
-     printk("kmalloc: Free region ADR=%08x len=%d\n",&new_mem->next,new_mem->size);
-     isixp_exit_critical();
-     return &grt->next;
+  struct header         free;   /* Guaranteed to be not adjacent to the heap */
+
+} heap;
+
+/*------------------------------------------------------*/
+//! Initialize global heap
+void isix_alloc_init(void)
+{
+  struct header *hp;
+
+  extern char __heap_start;
+  extern char __heap_end;
+
+  hp = (void *)&__heap_start;
+  hp->h_size = &__heap_end - &__heap_start - sizeof(struct header);
+
+  hp->h_next = NULL;
+  heap.free.h_next = hp;
+  heap.free.h_size = 0;
+
 }
 
 /*------------------------------------------------------*/
-//Memory free from dynamic range
-void isix_free(void *mem)
+void *isix_alloc(size_t size)
 {
-    //Check memory management pool...
-    if( ((uint8_t*)mem) < &__heap_start || ((uint8_t*)mem) > &__heap_end )
-    {
-        printk("kfree: ADR=%08x not in dynamic memory management\n",mem);
-        return;
+  struct header *qp, *hp, *fp;
+
+  size = ALIGN_SIZE(size);
+  qp = &heap.free;
+  isixp_enter_critical();
+
+  while (qp->h_next != NULL) {
+    hp = qp->h_next;
+    if (hp->h_size >= size) {
+      if (hp->h_size < size + sizeof(struct header)) {
+        /* Gets the whole block even if it is slightly bigger than the
+           requested size because the fragment would be too small to be
+           useful */
+        qp->h_next = hp->h_next;
+      }
+      else {
+        /* Block bigger enough, must split it */
+        fp = (void *)((char *)(hp) + sizeof(struct header) + size);
+        fp->h_next = hp->h_next;
+        fp->h_size = hp->h_size - sizeof(struct header) - size;
+        qp->h_next = fp;
+        hp->h_size = size;
+      }
+      hp->h_magic = MAGIC;
+
+      isixp_exit_critical();
+      return (void *)(hp + 1);
     }
-    //Cast free list
-    isixp_enter_critical();
-    freelist_t *rlist = (freelist_t*) (((uint8_t*)mem)-sizeof(size_t));
-    rlist->next = rlist->prev = NULL;
-    printk("kfree: Region to free ADR=%08x size=%d\n",&rlist->next,rlist->size);
-    if(free_list==NULL) { free_list = rlist; return; }
-    for(freelist_t *c=free_list; c ; c=c->next)
-    {
-        if(c<rlist && c->next) continue;
-        //Found valid region range
-        if( ((uint8_t*)&rlist->next)+rlist->size == ((uint8_t*)c))
-        {
-            //Concate to one area
-	        rlist->size += c->size + sizeof(size_t);
-	        rlist->next = c->next;
-	        rlist->prev = c->prev;
-	        if(c->prev) c->prev->next = rlist;
-	        else free_list = rlist;
-	        printk("kfree: Concate1 region ADR=%08x len=%d\n",&c->next,c->size);
-            isixp_exit_critical();
-            return;
-        }
-        else
-        {
-            rlist->next = c;
-	        rlist->prev = c->prev;
-	        if(c->prev) c->prev->next=rlist;
-	        else free_list = rlist;
-	        c->prev = rlist;
-	        printk("kfree: New FIRST free region ADR=%08x len=%d\n",&rlist->next,rlist->size);
-            isixp_exit_critical();
-            return;
-        }
-    }
+    qp = hp;
+  }
+
+  isixp_exit_critical();
+  return NULL;
 }
 
+/*------------------------------------------------------*/
+#define LIMIT(p) (struct header *)((char *)(p) + \
+                                   sizeof(struct header) + \
+                                   (p)->h_size)
 
 /*------------------------------------------------------*/
-#if ISIX_DEBUG_MEMORY == ISIX_DBG_ON
-void printelem(void)
+void isix_free(void *p)
 {
-    int j = 0;
-    freelist_t *z = NULL;
-    for(freelist_t *i=free_list; i; i = i->next)
-    {
-        printk("Elem %d Adr %08x Size %d\n",j++,&i->next,i->size);
-        z = i;
+  struct header *qp, *hp;
+
+
+  hp = (struct header *)p - 1;
+  /*chDbgAssert(hp->h_magic == MAGIC,
+              "chHeapFree(), #1",
+              "it is not magic"); */
+  qp = &heap.free;
+  isixp_enter_critical();
+
+  while (1) {
+
+/*    chDbgAssert((hp < qp) || (hp >= LIMIT(qp)),
+                "chHeapFree(), #2",
+                "within free block"); */
+
+    if (((qp == &heap.free) || (hp > qp)) &&
+        ((qp->h_next == NULL) || (hp < qp->h_next))) {
+      /* Insertion after qp */
+      hp->h_next = qp->h_next;
+      qp->h_next = hp;
+      /* Verifies if the newly inserted block should be merged */
+      if (LIMIT(hp) == hp->h_next) {
+        /* Merge with the next block */
+        hp->h_size += hp->h_next->h_size + sizeof(struct header);
+        hp->h_next = hp->h_next->h_next;
+      }
+      if ((LIMIT(qp) == hp)) {  /* Cannot happen when qp == &heap.free */
+        /* Merge with the previous block */
+        qp->h_size += hp->h_size + sizeof(struct header);
+        qp->h_next = hp->h_next;
+      }
+
+      isixp_exit_critical();
+      return;
     }
-    j = 0;
-    for(freelist_t *i = z; i ; i=i->prev)
-    {
-	printk("Rev Elem %d Adr %08x Size %d\n",j++,&i->next,i->size);
-    }
-    printk("Reverse count = %d\n",j);
+    qp = qp->h_next;
+  }
 }
 
-#endif /* DEBUG */
-
 /*------------------------------------------------------*/
-
-

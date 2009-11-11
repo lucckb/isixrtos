@@ -109,7 +109,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     bool yield_req = false;
     if(taskc->state & TASK_READY)
     {
-        printk("ChangePrio: change prio of ready task\n");
+        printk("Change prio of ready task\n");
         isixp_delete_task_from_ready_list(taskc);
         //Assign new prio
         taskc->prio = new_prio;
@@ -123,7 +123,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     }
     else if(taskc->state & TASK_WAITING)
     {
-        printk("ChangePrio: change prio of task waiting on sem\n");
+        printk("Change prio of task waiting on sem\n");
         list_delete(&taskc->inode_sem);
         //Assign new prio
         taskc->prio = new_prio;
@@ -133,10 +133,10 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     //Yield processor
     if(yield_req && yield)
     {
-        printk("ChangePrio: CPUYield request\n");
+        printk("CPUYield request\n");
         isix_yield();
     }
-    printk("ChangePrio: New prio %d\n",new_prio);
+    printk("New prio %d\n",new_prio);
     return ISIX_EOK;
 }
 
@@ -146,24 +146,25 @@ int isix_task_delete(task_t *task)
 {
     isixp_enter_critical();
     task_t *taskd = task?task:isix_current_task;
+    printk("Task: %08x(SP %08x) to delete",task,taskd->init_stack);
     if(taskd->state & TASK_READY)
     {
        //Task is ready remove from read
         isixp_delete_task_from_ready_list(taskd);
-        printk("TaskDel: Remove from ready list\n");
+        printk("Remove from ready list\n");
     }
     else if(taskd->state & TASK_SLEEPING)
     {
         //Task sleeping remove from sleeping
         list_delete(&taskd->inode);
-        printk("TaskDel: Remove from sleeping list\n");
+        printk("Remove from sleeping list");
     }
     //Task waiting for sem remove from waiting list
     if(taskd->state & TASK_WAITING)
     {
        list_delete(&taskd->inode_sem);
        taskd->sem = NULL;
-       printk("TaskDel: Remove from sem list\n");
+       printk("Remove from sem list");
     }
     //Add task to delete list
     taskd->state = TASK_DEAD;
@@ -171,7 +172,7 @@ int isix_task_delete(task_t *task)
     if(task==NULL || task==isix_current_task)
     {
         isixp_exit_critical();
-        printk("TaskDel: Current task yield req\n");
+        printk("Current task yield req");
         isix_yield();
         return ISIX_EOK;
     }
