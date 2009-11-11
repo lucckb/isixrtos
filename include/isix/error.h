@@ -15,5 +15,7 @@
 
 #define ISIX_EBUSY -5     /* <------ Resource is used  */
 
+#define ISIX_ENOPRIO -6   /* <------ Given priority is invalid */
+
 #endif
 

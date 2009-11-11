@@ -26,8 +26,12 @@
 /* Create task function */
 task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned long  stack_depth, prio_t priority)
 {
-    printk("TaskCreate: Create task with prio %d\n",priority);
-    //If stack length is small error
+	printk("TaskCreate: Create task with prio %d",priority);
+    if(isix_get_max_priority()< priority )
+    {
+    	return NULL;
+    }
+	//If stack length is small error
     if(stack_depth<PORT_SCHED_MIN_STACK_DEPTH) return NULL;
     //Alignement
     if(stack_depth & ALIGN_MASK)
@@ -69,7 +73,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
     if(isixp_add_task_to_ready_list(task)<0)
     {
         //Free allocated innode
-        printk("TaskCreate: Add task to ready list failed\n");
+        printk("TaskCreate: Add task to ready list failed.",);
         isix_free(task->top_stack);
         isix_free(task);
 	    isixp_exit_critical();
@@ -97,7 +101,11 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
  * new_prio - new priority                                  */
 int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
 {
-    isixp_enter_critical();
+	if(isix_get_max_priority()< new_prio )
+	{
+	   return ISIX_ENOPRIO;
+	}
+	isixp_enter_critical();
     task_t *taskc = task?task:isix_current_task;
     //Save task prio
     prio_t prio = taskc->prio;
@@ -191,4 +199,4 @@ task_t * isix_task_self(void)
     return t;
 }
 
-
+/*-----------------------------------------------------------------------*/

@@ -5,9 +5,6 @@
 #include <isix/types.h>
 #include <isix/port_scheduler.h>
 
-/*-----------------------------------------------------------------------*/
-//Define idle priority value
-#define ISIX_IDLE_PRIORITY 255
 
 /*-----------------------------------------------------------------------*/
 //Pointer to task function
@@ -48,8 +45,11 @@ void isix_start_scheduler(void) __attribute__((noreturn));
 /*-----------------------------------------------------------------------*/
 
 /* Initialize base OS structure before call main */
-void isix_init(void);
+void isix_init(prio_t num_priorities);
 
 /*-----------------------------------------------------------------------*/
+//Get maxium available priority
+prio_t isix_get_max_priority(void);
 
+/*-----------------------------------------------------------------------*/
 #endif

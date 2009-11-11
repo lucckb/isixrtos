@@ -51,6 +51,10 @@ static volatile tick_t jiffies;
 //Number of deleted task
 static volatile unsigned number_of_task_deleted;
 
+//Number of priorities
+
+static volatile prio_t number_of_priorities;
+
 /*-----------------------------------------------------------------------*/
 //Isix bug report when printk is defined
 void isix_bug(void)
@@ -179,9 +183,7 @@ static task_ready_t *alloc_task_ready_t(void)
    task_ready_t *prio = NULL;
    if(list_isempty(&free_prio_elem)==true)
    {
-        //If no free elem allocate it
-        prio = (task_ready_t*)isix_alloc(sizeof(task_ready_t));
-        printk("alloc_task_ready_t: kmalloc() node %08x\n",prio);
+       isix_bug();
    }
    else
    {
@@ -206,7 +208,9 @@ static inline void free_task_ready_t(task_ready_t *prio)
 //Add assigned task to ready list
 int isixp_add_task_to_ready_list(task_t *task)
 {
-    //Scheduler lock
+    if(task->prio > number_of_priorities)
+    	return ISIX_ENOPRIO;
+	//Scheduler lock
     isixp_enter_critical();
     //Find task equal entry
     task_ready_t *prio_i;
@@ -233,7 +237,7 @@ int isixp_add_task_to_ready_list(task_t *task)
     //Priority not found allocate priority node
     task_ready_t *prio_n = alloc_task_ready_t();
     //If malloc return NULL then failed
-    if(prio_n==NULL) return -1;
+    if(prio_n==NULL) return ISIX_ENOMEM;
     //Assign priority
     prio_n->prio = task->prio;
     //Set pointer to priority struct
@@ -244,7 +248,7 @@ int isixp_add_task_to_ready_list(task_t *task)
     list_insert_after(&prio_i->inode,&prio_n->inode);
     printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_n,prio_n->prio);
     isixp_exit_critical();
-    return 0;
+    return ISIX_EOK;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -345,14 +349,6 @@ static inline void cleanup_tasks(void)
         	isix_free(task_del->init_stack);
         	isix_free(task_del);
         	number_of_task_deleted--;
-        	//FIXME: Remove one priority from free priority innode
-        	if(!list_isempty(&free_prio_elem))
-        	{
-        		task_ready_t *free_prio = list_get_first(&free_prio_elem,inode,task_ready_t);
-        		list_delete(&free_prio->inode);
-        		isix_free(free_prio);
-        		printk("CleanupTasks: Free inode prio 0x%08x\n",free_prio);
-        	}
         }
         isixp_exit_critical();
     }
@@ -390,8 +386,10 @@ tick_t isix_get_jiffies(void)
 
 /*-----------------------------------------------------------------------*/
 /* Number of priorites assigned when OS start */
-void isix_init(void)
+void isix_init(prio_t num_priorities)
 {
+	//Copy priority
+	number_of_priorities = num_priorities;
 	//Init heap
 	isix_alloc_init();
 	//Initialize ready task list
@@ -406,8 +404,14 @@ void isix_init(void)
     list_init(&dead_task);
     //Initialize free prio elem list
     list_init(&free_prio_elem);
-    //Create idle task
-    isix_task_create(idle_task,NULL,PORT_SCHED_MIN_STACK_DEPTH,ISIX_IDLE_PRIORITY);
+    //This memory never will be freed
+    task_ready_t *prio = isix_alloc(sizeof(task_ready_t)*(num_priorities+1));
+    for(int i=0; i<num_priorities+1; i++)
+    {
+    	list_insert_end(&free_prio_elem,&prio[i].inode);
+    }
+    //Lower priority is the idle task
+    isix_task_create(idle_task,NULL,PORT_SCHED_MIN_STACK_DEPTH,num_priorities);
 }
 
 /*-----------------------------------------------------------------------*/
@@ -421,4 +425,10 @@ void isix_start_scheduler(void)
    while(1);    //Prevent compiler warning
 }
 
+/*-----------------------------------------------------------------------*/
+//Get maxium available priority
+prio_t isix_get_max_priority(void)
+{
+	return number_of_priorities;
+}
 /*-----------------------------------------------------------------------*/
