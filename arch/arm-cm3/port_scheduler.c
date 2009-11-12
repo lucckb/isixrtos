@@ -67,15 +67,15 @@ void irq_handler_svc(void)
      asm volatile(
      "ldr r3, 0f\t\n" /* Restore the context. */
      "ldr r1, [r3]\t\n"			 /* Use pxCurrentTCBConst to get the pxCurrentTCB address. */
-      "ldr r0, [r1]\t\n" 			/* The first item in pxCurrentTCB is the task top of stack. */
-      "ldmia r0!, {r4-r11}\t\n"	 /* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
-      "msr psp, r0\t\n" /* Restore the task stack pointer. */
-      "mov r0, #0\t\n"
-      "msr basepri, r0\t\n"
-      "orr r14, #0xd\t\n"
-      "bx r14\n"
-      ".align 2 \t\n"
-      "0: .word isix_current_task\t\n"
+     "ldr r0, [r1]\t\n" 			/* The first item in pxCurrentTCB is the task top of stack. */
+     "ldmia r0!, {r4-r11}\t\n"	 /* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
+     "msr psp, r0\t\n" /* Restore the task stack pointer. */
+     "mov r0, #0\t\n"
+     "msr basepri, r0\t\n"
+     "orr r14, #0xd\t\n"
+     "bx r14\n"
+     ".align 2 \t\n"
+     "0: .word isix_current_task\t\n"
       );
 }
 
@@ -91,6 +91,7 @@ unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, vo
     *sp-- = 0x2;            //R2
     *sp-- = 0x1;            //R1
     *sp-- = (unsigned long)param;   //R0
+    /*
     *sp-- = 0x11;	//R11
     *sp-- = 0x10;	//R10
     *sp-- = 0x9;	//R9
@@ -99,6 +100,8 @@ unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, vo
     *sp-- = 0x6;	//R6
     *sp-- = 0x5;	//R5
     *sp = 0x4;	//R4
+    *sp */
+    sp -= 7;
     return sp;
 }
 
