@@ -4,7 +4,7 @@
 
 /*-----------------------------------------------------------------------*/
 //Minimum stack depth
-#define PORT_SCHED_MIN_STACK_DEPTH 192
+#define PORT_SCHED_MIN_STACK_DEPTH 96
 
 /*-----------------------------------------------------------------------*/
 void port_yield(void );

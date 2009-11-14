@@ -31,7 +31,7 @@
     "msr psp, r0\t\n"                                           \
     "bx r14\r\n"                                                \
     ".align 2 \t\n"												\
-    "0: .word isix_current_task\t\n"									\
+    "0: .word isix_current_task\t\n"							\
    )
 
 /*-----------------------------------------------------------------------*/

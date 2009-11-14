@@ -91,7 +91,10 @@ void isix_bug(void)
 //Lock scheduler
 void isixp_enter_critical(void)
 {
-    port_set_interrupt_mask();
+	if(critical_count==0)
+	{
+		port_set_interrupt_mask();
+	}
     critical_count++;
 }
 
@@ -102,7 +105,7 @@ void isixp_exit_critical(void)
 	critical_count--;
 	if(critical_count == 0 )
     {
-    	port_clear_interrupt_mask();
+		port_clear_interrupt_mask();
     }
 }
 

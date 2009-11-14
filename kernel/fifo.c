@@ -28,8 +28,8 @@ struct fifo_struct
     char *mem_p;    //Pointer to allocated memory
     int size;       //Total fifo size
     int elem_size; //Element count
-    sem_t *rx_sem;  //Semaphore rx
-    sem_t *tx_sem;  //Semaphore for tx
+    sem_t rx_sem;  //Semaphore rx
+    sem_t tx_sem;  //Semaphore for tx
 };
 
 /*-------------------------------------------------------*/
@@ -60,24 +60,9 @@ fifo_t* isix_fifo_create(int n_elem, int elem_size)
    fifo->elem_size = elem_size;
    fifo->rx_p = fifo->tx_p = fifo->mem_p;
    //Create RX sem as 0 element in fifo (task sleep)
-   fifo->rx_sem = isix_sem_create(NULL,0);
-   if(!fifo->rx_sem)
-   {
-     printk("FifoCreate: Create sem RX failed\n");
-     isix_free(fifo->mem_p);
-     isix_free(fifo);
-     return NULL;
-   }
+   isix_sem_create(&fifo->rx_sem,0);
    //Create tx sem as numer of element in fifo
-   fifo->tx_sem = isix_sem_create(NULL,n_elem);
-   if(!fifo->tx_sem)
-   {
-      printk("FifoCreate: Create sem TX failed\n");
-      isix_free(fifo->mem_p);
-      isix_sem_destroy(fifo->rx_sem);
-      isix_free(fifo);
-      return NULL;
-   }
+   isix_sem_create(&fifo->tx_sem,n_elem);
    printk("FifoCreate New fifo handler %08x\n",fifo);
    return fifo;
 }
@@ -88,7 +73,7 @@ int isix_fifo_write(fifo_t *fifo,const void *item, tick_t timeout)
 {
     if(!fifo) return ISIX_EINVARG;
     //FIXME tu sie zesralo
-    if(isix_sem_wait(fifo->tx_sem,timeout)<0)
+    if(isix_sem_wait(&fifo->tx_sem,timeout)<0)
     {
         printk("FifoWrite: Timeout on TX queue\n");
         return ISIX_ETIMEOUT;
@@ -101,14 +86,14 @@ int isix_fifo_write(fifo_t *fifo,const void *item, tick_t timeout)
     isixp_exit_critical();
     printk("FifoWrite: New TXp %08x\n",fifo->tx_p);
     //Signaling RX thread with new data
-    return isix_sem_signal(fifo->rx_sem);
+    return isix_sem_signal(&fifo->rx_sem);
 }
 /*----------------------------------------------------------------*/
 //Fifo send to other task
 int isix_fifo_write_isr(fifo_t *fifo,const void *item)
 {
     if(!fifo) return ISIX_EINVARG;
-    if(isix_sem_get_isr(fifo->tx_sem)<0)
+    if(isix_sem_get_isr(&fifo->tx_sem)<0)
     {
         printk("FifoWriteISR: No space in TX queue\n");
         return ISIX_EFIFOFULL;
@@ -121,14 +106,14 @@ int isix_fifo_write_isr(fifo_t *fifo,const void *item)
     isixp_exit_critical();
     printk("FifoWriteISR: New TXp %08x\n",fifo->tx_p);
     //Signaling RX thread with new data
-    return isix_sem_signal_isr(fifo->rx_sem);
+    return isix_sem_signal_isr(&fifo->rx_sem);
 }
 /*----------------------------------------------------------------*/
 //Fifo receive from other task
 int isix_fifo_read(fifo_t *fifo,void *item, tick_t timeout)
 {
     if(!fifo) return ISIX_EINVARG;
-    if(isix_sem_wait(fifo->rx_sem,timeout)<0)
+    if(isix_sem_wait(&fifo->rx_sem,timeout)<0)
     {
        printk("FifoRead: Timeout on RX queue\n");
        return ISIX_ETIMEOUT;
@@ -141,7 +126,7 @@ int isix_fifo_read(fifo_t *fifo,void *item, tick_t timeout)
     isixp_exit_critical();
     printk("FifoRead: New Rxp %08x\n",fifo->rx_p);
     //Signaling TX for space avail
-    return isix_sem_signal(fifo->tx_sem);
+    return isix_sem_signal(&fifo->tx_sem);
 }
 
 /*----------------------------------------------------------------*/
@@ -149,7 +134,7 @@ int isix_fifo_read(fifo_t *fifo,void *item, tick_t timeout)
 int isix_fifo_read_isr(fifo_t *fifo,void *item)
 {
     if(!fifo) return ISIX_EINVARG;
-    if(isix_sem_get_isr(fifo->rx_sem)<0)
+    if(isix_sem_get_isr(&fifo->rx_sem)<0)
     {
        printk("FifoReadISR: No space in RX queue\n");
        return ISIX_EFIFOFULL;
@@ -162,7 +147,7 @@ int isix_fifo_read_isr(fifo_t *fifo,void *item)
     isixp_exit_critical();
     printk("FifoReadISR: New Rxp %08x\n",fifo->rx_p);
     //Signaling TX for space avail
-    return isix_sem_signal_isr(fifo->tx_sem);
+    return isix_sem_signal_isr(&fifo->tx_sem);
 }
 
 /*----------------------------------------------------------------*/
@@ -171,22 +156,22 @@ int isix_fifo_destroy(fifo_t *fifo)
 {
     isixp_enter_critical();
     //Check for TXSEM ban be destroyed
-    if(isixp_sem_can_destroy(fifo->tx_sem)==false)
+    if(isixp_sem_can_destroy(&fifo->tx_sem)==false)
     {
         printk("FifoDestroy: Error TXSem busy\n");
         isixp_exit_critical();
         return ISIX_EBUSY;
     }
     //Check for RXSEM can be destroyed
-    if(isixp_sem_can_destroy(fifo->rx_sem)==false)
+    if(isixp_sem_can_destroy(&fifo->rx_sem)==false)
     {
         printk("FifoDestroy: Error RXSem busy\n");
         isixp_exit_critical();
         return ISIX_EBUSY;
     }
     //Destroy RXSEM and TXSEM
-    isix_sem_destroy(fifo->rx_sem);
-    isix_sem_destroy(fifo->tx_sem);
+    isix_sem_destroy(&fifo->rx_sem);
+    isix_sem_destroy(&fifo->tx_sem);
     //Free queue used memory
     isix_free(fifo->mem_p);
     isix_free(fifo);
@@ -199,7 +184,7 @@ int isix_fifo_destroy(fifo_t *fifo)
 int isix_fifo_count(fifo_t *fifo)
 {
     if(!fifo) return ISIX_EINVARG;
-    return isix_sem_getval(fifo->rx_sem);
+    return isix_sem_getval(&fifo->rx_sem);
 }
 
 /*----------------------------------------------------------------*/

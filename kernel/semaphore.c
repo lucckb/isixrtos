@@ -28,6 +28,7 @@ sem_t* isix_sem_create(sem_t *sem, int val)
         if(sem==NULL) return NULL;
     }
     memset(sem,0,sizeof(sem_t));
+    sem->static_mem = sem!=NULL?true:false;
     sem->value = val;
     list_init(&sem->sem_task);
     printk("SemCreate: Create sem %08x val %d\n",sem,sem->value);
@@ -192,7 +193,7 @@ int isix_sem_destroy(sem_t *sem)
        isixp_exit_critical();
        return ISIX_EBUSY;
    }
-   isix_free(sem);
+   if(!sem->static_mem) isix_free(sem);
    isixp_exit_critical();
    return ISIX_EOK;
 }

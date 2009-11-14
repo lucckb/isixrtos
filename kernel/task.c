@@ -22,6 +22,8 @@
 #define ALIGN_MASK 0x03
 //Align Bytes
 #define ALIGN_BYTES 4
+//Magic value for stack checking
+#define MAGIC_FILL_VALUE 0x55
 /*-----------------------------------------------------------------------*/
 /* Create task function */
 task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned long  stack_depth, prio_t priority)
@@ -55,11 +57,13 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
         return NULL;
     }
 #ifdef CONFIG_STACK_GROWTH
-     task->top_stack = (unsigned long*)((char*)task->init_stack + stack_depth - 4);
+     task->top_stack = (unsigned long*)(((char*)task->init_stack) + stack_depth - sizeof(long));
 #else
      task->top_stack = task->init_stack;
 #endif
-    memset(task->init_stack,0x55,stack_depth);
+#if CONFIG_TASK_STACK_CHECK==ISIX_ON
+    memset(task->init_stack,MAGIC_FILL_VALUE,stack_depth);
+#endif
     printk("TaskCreate: Top stack SP=%08x\n",task->top_stack);
     //Assign task priority
     task->prio = priority;
@@ -199,4 +203,24 @@ task_t * isix_task_self(void)
     return t;
 }
 
+/*-----------------------------------------------------------------------*/
+//Stack check for fill value
+#if CONFIG_TASK_STACK_CHECK == ISIX_ON
+
+#ifndef CONFIG_STACK_GROWTH
+#error isix_free_stack_space() for grown stack not implemented yet
+#endif
+
+size_t isix_free_stack_space(const task_t *task)
+{
+	size_t usage=0;
+	unsigned char *bStack = (unsigned char*)task->init_stack;
+	while(*bStack==MAGIC_FILL_VALUE)
+	{
+		bStack++;
+		usage++;
+	}
+	return usage;
+}
+#endif
 /*-----------------------------------------------------------------------*/

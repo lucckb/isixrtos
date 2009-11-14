@@ -147,6 +147,7 @@ void isix_free(void *p)
     }
     qp = qp->h_next;
   }
+  isixp_exit_critical();
 }
 
 /*------------------------------------------------------*/

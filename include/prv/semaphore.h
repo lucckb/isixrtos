@@ -14,6 +14,8 @@ struct sem_struct
     list_entry_t sem_task;
     //Return reason
     int sem_ret;
+    //Resource type
+    bool static_mem;
 };
 
 /*--------------------------------------------------------------*/

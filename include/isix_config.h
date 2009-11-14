@@ -12,6 +12,9 @@
 /* Enable disable global debug */
 #define ISIX_DEBUG_ENABLE ISIX_DBG_OFF
 
+/* Configure the thread debuging */
+#define CONFIG_TASK_STACK_CHECK ISIX_ON
+
 /* Enable debug scheduler */
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
 #define ISIX_DEBUG_FIFO ISIX_DBG_OFF
@@ -20,5 +23,5 @@
 #define ISIX_DEBUG_TASK ISIX_DBG_OFF
 
 /* Maximum interrupt priority used with ISIX context */
-#define ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY 0x80
+#define ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY 0x40
 
