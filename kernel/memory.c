@@ -9,6 +9,8 @@
 //TODO: memory should not block interrupts
 #include <isix/memory.h>
 #include <isix/types.h>
+#include <isix/semaphore.h>
+#include <prv/semaphore.h>
 #include <prv/scheduler.h>
 
 #ifndef ISIX_DEBUG_MEMORY
@@ -46,6 +48,34 @@ static struct
 } heap;
 
 /*------------------------------------------------------*/
+//! Semaphore for locking the memory allocator
+static sem_t mem_sem;
+
+
+/*------------------------------------------------------*/
+//!Lock the memory
+static void mem_lock_init(void)
+{
+	//Create unlocked semaphore
+	isix_sem_create( &mem_sem, 1 );
+}
+/*------------------------------------------------------*/
+//!Lock the memory
+static void mem_lock(void)
+{
+	if(isix_scheduler_running)
+		isix_sem_wait( &mem_sem, ISIX_TIME_INFINITE );
+}
+
+/*------------------------------------------------------*/
+//!Unlock the memory
+static void mem_unlock(void)
+{
+	if(isix_scheduler_running)
+		isix_sem_signal( &mem_sem );
+}
+
+/*------------------------------------------------------*/
 //! Initialize global heap
 void isix_alloc_init(void)
 {
@@ -53,6 +83,8 @@ void isix_alloc_init(void)
 
   extern char __heap_start;
   extern char __heap_end;
+
+  mem_lock_init();
 
   hp = (void *)&__heap_start;
   hp->h_size = &__heap_end - &__heap_start - sizeof(struct header);
@@ -70,7 +102,7 @@ void *isix_alloc(size_t size)
 
   size = ALIGN_SIZE(size);
   qp = &heap.free;
-  isixp_enter_critical();
+  mem_lock();
 
   while (qp->h_next != NULL) {
     hp = qp->h_next;
@@ -91,13 +123,13 @@ void *isix_alloc(size_t size)
       }
       hp->h_magic = MAGIC;
 
-      isixp_exit_critical();
+      mem_unlock();
       return (void *)(hp + 1);
     }
     qp = hp;
   }
 
-  isixp_exit_critical();
+  mem_unlock();
   return NULL;
 }
 
@@ -117,7 +149,7 @@ void isix_free(void *p)
               "chHeapFree(), #1",
               "it is not magic"); */
   qp = &heap.free;
-  isixp_enter_critical();
+  mem_lock();
 
   while (1) {
 
@@ -142,12 +174,12 @@ void isix_free(void *p)
         qp->h_next = hp->h_next;
       }
 
-      isixp_exit_critical();
+      mem_unlock();
       return;
     }
     qp = qp->h_next;
   }
-  isixp_exit_critical();
+  mem_unlock();
 }
 
 /*------------------------------------------------------*/

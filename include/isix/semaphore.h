@@ -8,7 +8,9 @@
 
 struct sem_struct;
 typedef struct sem_struct sem_t;
+/*--------------------------------------------------------------*/
 
+#define ISIX_TIME_INFINITE (0)
 
 /*--------------------------------------------------------------*/
 //Create semaphore
