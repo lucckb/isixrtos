@@ -231,7 +231,7 @@ int isixp_add_task_to_ready_list(task_t *task)
             isixp_exit_critical();
             return 0;
         }
-        else if(prio_i->prio<task->prio)
+        else if(task->prio < prio_i->prio)
         {
            printk("AddTaskToReadyList: Insert %d node %08x\n",prio_i->prio,prio_i);
            break;
@@ -248,7 +248,7 @@ int isixp_add_task_to_ready_list(task_t *task)
     //Initialize and add at end of list
     list_init(&prio_n->task_list);
     list_insert_end(&prio_n->task_list,&task->inode);
-    list_insert_after(&prio_i->inode,&prio_n->inode);
+    list_insert_before(&prio_i->inode,&prio_n->inode);
     printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_n,prio_n->prio);
     isixp_exit_critical();
     return ISIX_EOK;
