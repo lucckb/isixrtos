@@ -6,7 +6,7 @@
  *      Author: lucck
  */
 /*------------------------------------------------------*/
-
+//TODO: memory should not block interrupts
 #include <isix/memory.h>
 #include <isix/types.h>
 #include <prv/scheduler.h>

@@ -314,12 +314,12 @@ void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
     isixp_enter_critical();
     //Insert on waiting list in time order
     task_t *taskl;
-    list_for_each_entry_reverse(sem_list,taskl,inode_sem)
+    list_for_each_entry(sem_list,taskl,inode_sem)
     {
-       if(task->prio<=taskl->prio) break;
+    	if(task->prio<taskl->prio) break;
     }
     printk("MoveTaskToSem: insert in time list at %08x\n",taskl);
-    list_insert_after(&taskl->inode_sem,&task->inode_sem);
+    list_insert_before(&taskl->inode_sem,&task->inode_sem);
 
     //Scheduler unlock
     isixp_exit_critical();
