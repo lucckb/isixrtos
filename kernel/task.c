@@ -29,7 +29,7 @@
 task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned long  stack_depth, prio_t priority)
 {
 	printk("TaskCreate: Create task with prio %d",priority);
-    if(isix_get_max_priority()< priority )
+    if(isix_get_min_priority()< priority )
     {
     	return NULL;
     }
@@ -105,7 +105,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
  * new_prio - new priority                                  */
 int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
 {
-	if(isix_get_max_priority()< new_prio )
+	if(isix_get_min_priority()< new_prio )
 	{
 	   return ISIX_ENOPRIO;
 	}

@@ -430,7 +430,7 @@ void isix_start_scheduler(void)
 
 /*-----------------------------------------------------------------------*/
 //Get maxium available priority
-prio_t isix_get_max_priority(void)
+prio_t isix_get_min_priority(void)
 {
 	return number_of_priorities;
 }

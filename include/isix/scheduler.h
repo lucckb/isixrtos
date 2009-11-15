@@ -49,7 +49,7 @@ void isix_init(prio_t num_priorities);
 
 /*-----------------------------------------------------------------------*/
 //Get maxium available priority
-prio_t isix_get_max_priority(void);
+prio_t isix_get_min_priority(void);
 
 /*-----------------------------------------------------------------------*/
 #endif
