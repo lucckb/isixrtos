@@ -1,4 +1,4 @@
-# Automatic makefile for ARM compiler (C/C++)
+# Automatic makefile for ARM compiler (C/C++) 
 
 #tutaj wpisz nazwe pliku hex
 TARGET	   = isix
