@@ -7,6 +7,10 @@
 #include <stdbool.h>
 #include "stm32f10x_lib.h"
 
+/*----------------------------------------------------------*/
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 /*----------------------------------------------------------*/
 /**  Setup NVIC priority group
@@ -207,4 +211,11 @@ static inline void io_config(GPIO_TypeDef* port,uint8_t bit,uint32_t mode,uint32
 #define FASTRUN __attribute__ ((long_call, section (".ram_func")))
 
 /*----------------------------------------------------------*/
+
+#ifdef __cplusplus
+}
+#endif
+
+/*----------------------------------------------------------*/
 #endif /*SYSTEM_H_*/
+

@@ -22,11 +22,13 @@ OCD=openocd
 
 STRLIB_INC = ../lib-stm32/inc/
 
-LSCRIPT = ../scripts/$(SCRIPTLINK).ld
+SCRIPTS_DIR = ../lib-stm32/scripts
+
+LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
 
 CFLAGS += -I$(STRLIB_INC)
-CXXFLAGS += -I$(STRLIB_INC)
+CXXFLAGS += -I$(STRLIB_INC) -fno-rtti -fcheck-new -fno-exceptions
 
 #dep
 OBJDIR=obj
@@ -83,12 +85,12 @@ clean:
 
 
 program:
-	openocd -f ../scripts/stm32.cfg -c init -c 'script ../scripts/flash-begin.script' \
-	-c "flash write_image $(TARGET).elf" -c 'script ../scripts/flash-end.script' \
+	openocd -f $(SCRIPTS_DIR)/stm32.cfg -c init -c 'script $(SCRIPTS_DIR)/flash-begin.script' \
+	-c "flash write_image $(TARGET).elf" -c 'script $(SCRIPTS_DIR)/flash-end.script' \
 	-c shutdown || true
 
 devrst:
-	openocd -f ../scripts/stm32.cfg -c init -c reset run -c shutdown
+	openocd -f $(SCRIPTS_DIR)/stm32.cfg -c init -c reset run -c shutdown
 
 ifeq ($(LIBRARY),y)
 build:	target  

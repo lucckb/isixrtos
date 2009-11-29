@@ -176,11 +176,11 @@ typedef enum IRQn
   USART2_IRQn                 = 38,     /*!< USART2 global Interrupt                              */
   EXTI15_10_IRQn              = 40,     /*!< External Line[15:10] Interrupts                      */
   RTCAlarm_IRQn               = 41,     /*!< RTC Alarm through EXTI Line Interrupt                */
-  USBWakeUp_IRQn              = 42,     /*!< USB Device WakeUp from suspend through EXTI Line Interrupt */    
+  USBWakeUp_IRQn              = 42     /*!< USB Device WakeUp from suspend through EXTI Line Interrupt */    
 #endif /* STM32F10X_LD */  
 
 #ifdef STM32F10X_MD
-  USB_HP_CAN1_TX_IRQn         = 19,     /*!< USB Device High Priority or CAN1 TX Interrupts       */
+  ,USB_HP_CAN1_TX_IRQn         = 19,     /*!< USB Device High Priority or CAN1 TX Interrupts       */
   USB_LP_CAN1_RX0_IRQn        = 20,     /*!< USB Device Low Priority or CAN1 RX0 Interrupts       */
   CAN1_RX1_IRQn               = 21,     /*!< CAN1 RX1 Interrupt                                   */
   CAN1_SCE_IRQn               = 22,     /*!< CAN1 SCE Interrupt                                   */
@@ -203,11 +203,11 @@ typedef enum IRQn
   USART3_IRQn                 = 39,     /*!< USART3 global Interrupt                              */
   EXTI15_10_IRQn              = 40,     /*!< External Line[15:10] Interrupts                      */
   RTCAlarm_IRQn               = 41,     /*!< RTC Alarm through EXTI Line Interrupt                */
-  USBWakeUp_IRQn              = 42,     /*!< USB Device WakeUp from suspend through EXTI Line Interrupt */  
+  USBWakeUp_IRQn              = 42     /*!< USB Device WakeUp from suspend through EXTI Line Interrupt */  
 #endif /* STM32F10X_MD */  
 
 #ifdef STM32F10X_HD
-  USB_HP_CAN1_TX_IRQn         = 19,     /*!< USB Device High Priority or CAN1 TX Interrupts       */
+  ,USB_HP_CAN1_TX_IRQn         = 19,     /*!< USB Device High Priority or CAN1 TX Interrupts       */
   USB_LP_CAN1_RX0_IRQn        = 20,     /*!< USB Device Low Priority or CAN1 RX0 Interrupts       */
   CAN1_RX1_IRQn               = 21,     /*!< CAN1 RX1 Interrupt                                   */
   CAN1_SCE_IRQn               = 22,     /*!< CAN1 SCE Interrupt                                   */
