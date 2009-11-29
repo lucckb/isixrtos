@@ -1,6 +1,6 @@
 /*
-Common part of the linker scripts for STR71x devices in EXT mode
-(that is, the EXT is seen at 0)
+Common part of the linker scripts for STR71x devices in FLASH mode
+(that is, the FLASH is seen at 0)
 Copyright RAISONANCE 2005
 You can use, modify and distribute thisfile freely, but without any waranty.
 */
@@ -11,39 +11,68 @@ You can use, modify and distribute thisfile freely, but without any waranty.
 
 SECTIONS
 {
-    /* the program code is stored in the .text section */
+    /* for Cortex devices, the beginning of the startup code is stored in the .isr_vector section, which goes to FLASH */
+    .isr_vector :
+    {
+	. = ALIGN(4);
+        KEEP(*(.isr_vector))            /* Startup code */
+	. = ALIGN(4);
+    } >FLASH
+ 
+    /* for some STRx devices, the beginning of the startup code is stored in the .flashtext section, which goes to FLASH */
+    .flashtext :
+    {
+	. = ALIGN(4);
+        *(.flashtext)            /* Startup code */
+	. = ALIGN(4);
+    } >FLASH
+ 
+    
+    /* the program code is stored in the .text section, which goes to Flash */
     .text :
     {
 	    . = ALIGN(4);
 	    
-        *crt0*.o (.text)            /* Startup code */
-        *startup.o (.text)         /* Startup code */
         *(.text)                   /* remaining code */
+        *(.text.*)                   /* remaining code */
         *(.rodata)                 /* read-only data (constants) */
         *(.rodata*)
         *(.glue_7)
         *(.glue_7t)
-
+        *(.gnu.linkonce.t.*)
+        *(.gnu.linkonce.r.*)
+        *(.gcc_except_table)
+       .  = ALIGN(4);
+        PROVIDE(__ctors_start__ = .);
+	    KEEP(*(SORT(.ctors.*)))
+	    KEEP(*(.ctors))
+	    PROVIDE(__ctors_end__ = .);
+	    .  = ALIGN(4);
+	    PROVIDE(__dtors_start__ = .); 
+	    KEEP(*(SORT(.dtors.*)))
+	    KEEP(*(.dtors))
+	    PROVIDE(__dtors_end__ = .);
 	    . = ALIGN(4);
    	 _etext = .;
 	    /* This is used by the startup in order to initialize the .data secion */
-	    _sidata = _etext ;
-    } >EXTMEMB0
+   	 _sidata = _etext;
+    } >FLASH
     
  
 
     /* This is the initialized data section
     The program executes knowing that the data is in the RAM
-    but the loader puts the initial values in the EXTMEM.
-    It is one task of the startup to copy the initial values from EXTMEMB0 to RAM. */
-    .data  : AT ( _etext )
+    but the loader puts the initial values in the FLASH (inidata).
+    It is one task of the startup to copy the initial values from FLASH to RAM. */
+    .data  : AT ( _sidata )
     {
 	    . = ALIGN(4);
         /* This is used by the startup in order to initialize the .data secion */
         _sdata = . ;
         
         *(.data)
-        
+        *(.data.*)
+
 	    . = ALIGN(4);
 	    /* This is used by the startup in order to initialize the .data secion */
    	 _edata = . ;
@@ -60,10 +89,10 @@ SECTIONS
         
         *(.bss)
         *(COMMON)
+        
 	    . = ALIGN(4);
 	    /* This is used by the startup in order to initialize the .bss secion */
    	 _ebss = . ;
-	    
     } >RAM
     
     PROVIDE ( end = _ebss );
@@ -73,6 +102,7 @@ SECTIONS
     This is just to check that there is enough RAM left for the User mode stack
     It should generate an error if it's full.
      */
+    /*
     ._usrstack :
     {
 	    . = ALIGN(4);
@@ -80,57 +110,68 @@ SECTIONS
         
         . = . + _Minimum_Stack_Size ;
         
-        _eusrstack = ALIGN(4) ;
-	    . = .;
+	    . = ALIGN(4);
+        _eusrstack = . ;
     } >RAM
-
-   
-    /* this is the FLASH Bank0 */
-    /* the C or assembly source must explicitly place the code or data there
-    using the "section" attribute */
-    .fb0text :
+    */
+    ._heap :
     {
-        *(.fb0text)                   /* remaining code */
-        *(.fb0rodata)                 /* read-only data (constants) */
-        *(.fb0rodata*)
-    } >FLASH
+        . = ALIGN(4);
+        _heap_start = .;
+        . = . + 4;
+    } > RAM
     
+    PROVIDE( __heap_start = _heap_start );
+    PROVIDE( __heap_end = _estack - _sys_stack_size );
+   
     /* this is the FLASH Bank1 */
     /* the C or assembly source must explicitly place the code or data there
     using the "section" attribute */
-    .fb1text :
-    {
-        *(.fb1text)                   /* remaining code */
-        *(.fb1rodata)                 /* read-only data (constants) */
-        *(.fb1rodata*)
-    } >FLASHB1
-    
-    /* EXTMEM Bank1 */
-    .eb1text :
+    .b1text :
     {
         *(.b1text)                   /* remaining code */
         *(.b1rodata)                 /* read-only data (constants) */
         *(.b1rodata*)
+    } >FLASHB1
+    
+    /* this is the EXTMEM */
+    /* the C or assembly source must explicitly place the code or data there
+    using the "section" attribute */
+    
+    /* EXTMEM Bank0 */
+    .eb0text :
+    {
+        *(.eb0text)                   /* remaining code */
+        *(.eb0rodata)                 /* read-only data (constants) */
+        *(.eb0rodata*)
+    } >EXTMEMB0
+    
+    /* EXTMEM Bank1 */
+    .eb1text :
+    {
+        *(.eb1text)                   /* remaining code */
+        *(.eb1rodata)                 /* read-only data (constants) */
+        *(.eb1rodata*)
     } >EXTMEMB1
     
     /* EXTMEM Bank2 */
     .eb2text :
     {
-        *(.b2text)                   /* remaining code */
-        *(.b2rodata)                 /* read-only data (constants) */
-        *(.b2rodata*)
+        *(.eb2text)                   /* remaining code */
+        *(.eb2rodata)                 /* read-only data (constants) */
+        *(.eb2rodata*)
     } >EXTMEMB2
     
     /* EXTMEM Bank0 */
     .eb3text :
     {
-        *(.b3text)                   /* remaining code */
-        *(.b3rodata)                 /* read-only data (constants) */
-        *(.b3rodata*)
+        *(.eb3text)                   /* remaining code */
+        *(.eb3rodata)                 /* read-only data (constants) */
+        *(.eb3rodata*)
     } >EXTMEMB3
     
     __exidx_start = .;
-    __exidx_end = .;    
+    __exidx_end = .;
     
     /* after that it's only debugging information. */
     
@@ -140,6 +181,8 @@ SECTIONS
      libc.a ( * )
      libm.a ( * )
      libgcc.a ( * )
+     *(.eh_frame)
+     *(.eh_frame*)
      }
 
     /* Stabs debugging sections.  */

@@ -7,13 +7,13 @@ Configure memory sizes, end of stack and boot mode for your project here.
 
 
 /* include the common STM32F10x sub-script */
-INCLUDE "STM32_COMMON.ld"
+INCLUDE "../scripts/stm32_common.ld"
 
 /* Memory Spaces Definitions */
 MEMORY
 {
-  RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 20K  /* also change _estack below */
-  FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 128K
+  RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 6K  /* also change _estack below */
+  FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 32K
   FLASHB1 (rx) : ORIGIN = 0x00000000, LENGTH = 0
   EXTMEMB0 (rx) : ORIGIN = 0x00000000, LENGTH = 0
   EXTMEMB1 (rx) : ORIGIN = 0x00000000, LENGTH = 0
@@ -22,8 +22,9 @@ MEMORY
 }
 
 /* highest address of the user mode stack */
-_estack = 0x20005000;
+_estack = 0x20001800;
 
 /* include the section management sub-script */
 /* (either "STM32_SEC_FLASH.ld" or "STM32_SEC_RAM.ld") */
-INCLUDE "STM32_SEC_FLASH.ld"
+INCLUDE "../scripts/stm32_flash.ld"
+
