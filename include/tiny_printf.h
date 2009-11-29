@@ -8,6 +8,12 @@
 /* ------------------------------------------------------------ */
 #ifndef TINY_PRINTF_H_
 #define TINY_PRINTF_H_
+
+/* ------------------------------------------------------------ */
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 /* ------------------------------------------------------------ */
 
 int tiny_printf(const char *format, ...);
@@ -21,6 +27,10 @@ int tiny_sprintf(char *out, const char *format, ...);
 void register_printf_putc_handler(int (*fputc)(int));
 
 /* ------------------------------------------------------------ */
+#ifdef __cplusplus
+ }
+#endif
+
 
 #endif /* PRINTF_H_ */
 

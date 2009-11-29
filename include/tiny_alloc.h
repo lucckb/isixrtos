@@ -12,6 +12,11 @@
 #include <stddef.h>
 
 /* ------------------------------------------------------------ */
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+/* ------------------------------------------------------------ */
 //! Initialize global heap
 void tiny_alloc_init(void);
 
@@ -24,6 +29,9 @@ void *tiny_alloc(size_t size);
 void tiny_free(void *p);
 
 /* ------------------------------------------------------------ */
+#ifdef __cplusplus
+ }
+#endif
 
 #endif /* TINY_ALLOC_H_ */
 
