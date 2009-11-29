@@ -6,21 +6,24 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------ */
-#ifndef PRINTF_H_
-#define PRINTF_H_
+#ifndef TINY_ALLOC_H_
+#define TINY_ALLOC_H_
 /* ------------------------------------------------------------ */
-
-int tiny_printf(const char *format, ...);
-
-/* ------------------------------------------------------------ */
-
-int tiny_sprintf(char *out, const char *format, ...);
+#include <stddef.h>
 
 /* ------------------------------------------------------------ */
+//! Initialize global heap
+void tiny_alloc_init(void);
 
-void register_printf_putc_handler(int (*fputc)(int));
+/* ------------------------------------------------------------ */
+void *tiny_alloc(size_t size);
+
 
 /* ------------------------------------------------------------ */
 
-#endif /* PRINTF_H_ */
+void tiny_free(void *p);
+
+/* ------------------------------------------------------------ */
+
+#endif /* TINY_ALLOC_H_ */
 

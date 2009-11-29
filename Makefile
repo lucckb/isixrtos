@@ -8,11 +8,11 @@ FORMAT	= bin
 
 #Optymalizacja [0,1,2,3,s]
 # 0 - brak optymalizacji, s -optymalizacja rozmiaru
-OPT 	?= s
+OPT 	?= 2
 
 
 #Common flags 
-COMMON_FLAGS = -Wall
+COMMON_FLAGS = -Wall -I./include
 
 #Opcje kompilatora C
 CFLAGS += $(COMMON_FLAGS)
@@ -42,4 +42,5 @@ ASRC += $(wildcard *.S)
 
 
 
-include ../scripts/stm32.mk
+include ../lib-stm32/scripts/stm32.mk
+

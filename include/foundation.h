@@ -9,8 +9,24 @@
 #ifndef FOUNDATION_H_
 #define FOUNDATION_H_
 /* ------------------------------------------------------------ */
+#ifdef __cplusplus
+ extern "C" {
+#endif
+/* ------------------------------------------------------------ */
+
 #include "tiny_printf.h"
+#include "tiny_alloc.h"
+/* ------------------------------------------------------------ */
+
+#ifdef __cplusplus
+ }
+#endif
+
+#ifdef __cplusplus
+#include "cpp_alloc.hpp"
+#endif
+
 
 /* ------------------------------------------------------------ */
-#endif 
+#endif
 
