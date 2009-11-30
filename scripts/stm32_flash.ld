@@ -107,7 +107,7 @@ SECTIONS
         
         *(.data)
         *(.data.*)
-
+		*(.gnu.linkonce.d.*)
 	    . = ALIGN(4);
 	    /* This is used by the startup in order to initialize the .data secion */
    	 _edata = . ;
@@ -123,6 +123,8 @@ SECTIONS
         _sbss = .;
         
         *(.bss)
+        *(.bss.*)
+        *(.gnu.linkonce.b.*)
         *(COMMON)
         
 	    . = ALIGN(4);
