@@ -1,7 +1,7 @@
 # Automatic makefile for GNUARM (C/C++)
 
 #tutaj wpisz nazwe pliku hex
-TARGET	   = system
+TARGET	   = stm32lite
 
 #Format wyjsciowy (moze byc elf,hex,bin)
 FORMAT	= hex
@@ -12,7 +12,7 @@ OPT 	?= 2
 
 
 #Common flags 
-COMMON_FLAGS = -Wall -I../inc
+COMMON_FLAGS = -Wall -I../inc -DCPP_STARTUP_CODE -DFUNCTION_MAIN_RETURN
 
 #Opcje kompilatora C
 CFLAGS += $(COMMON_FLAGS)
