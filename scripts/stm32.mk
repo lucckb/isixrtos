@@ -56,12 +56,12 @@ LDFLAGS += -g -DPDEBUG
 ASFLAGS += -gstabs -DPDEBUG
 else
 CFLAGS += -fomit-frame-pointer -ffunction-sections
-CXXFLAGS += -fomit-frame-pointer -ffunction-sections -fvtable-gc
+CXXFLAGS += -fomit-frame-pointer -ffunction-sections
 LDFLAGS += -fomit-frame-pointer -Wl,-gc-sections
 ASFLAGS += -fomit-frame-pointer -ffunction-sections
 #Remove unused functions 
 CFLAGS += -ffunction-sections -fdata-sections
-CXXFLAGS += -ffunction-sections -fdata-sections -fvtable-gc
+CXXFLAGS += -ffunction-sections -fdata-sections
 LDFLAGS+= -Wl,--gc-sections
 endif
 
