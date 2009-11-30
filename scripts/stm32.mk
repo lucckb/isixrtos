@@ -29,7 +29,6 @@ LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
 CFLAGS += -I$(STRLIB_INC)
 CXXFLAGS += -I$(STRLIB_INC) -fno-rtti -fcheck-new -fno-exceptions
-
 #dep
 OBJDIR=obj
 
@@ -55,10 +54,10 @@ CXXFLAGS += -g -DPDEBUG
 LDFLAGS += -g -DPDEBUG
 ASFLAGS += -gstabs -DPDEBUG
 else
-CFLAGS += -fomit-frame-pointer -ffunction-sections
-CXXFLAGS += -fomit-frame-pointer -ffunction-sections
-LDFLAGS += -fomit-frame-pointer -Wl,-gc-sections
-ASFLAGS += -fomit-frame-pointer -ffunction-sections
+CFLAGS += -fomit-frame-pointer
+CXXFLAGS += -fomit-frame-pointer
+LDFLAGS += -fomit-frame-pointer
+ASFLAGS += -fomit-frame-pointer
 #Remove unused functions 
 CFLAGS += -ffunction-sections -fdata-sections
 CXXFLAGS += -ffunction-sections -fdata-sections
