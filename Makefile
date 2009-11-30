@@ -26,7 +26,7 @@ CXXFLAGS += $(COMMON_FLAGS)
 LISTING = n
 
 #Wlaczyc wylaczyc debug
-DEBUG = y
+DEBUG ?= n
 
 #Czy biblioteka
 LIBRARY = y

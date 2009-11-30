@@ -117,7 +117,6 @@ void tiny_free(void *p)
 {
   struct header *qp, *hp;
 
-
   hp = (struct header *)p - 1;
   /*chDbgAssert(hp->h_magic == MAGIC,
               "chHeapFree(), #1",
