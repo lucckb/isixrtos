@@ -32,7 +32,6 @@ SECTIONS
     .text :
     {
 	    . = ALIGN(4);
-	    
         *(.text)                   /* remaining code */
         *(.text.*)                   /* remaining code */
         *(.rodata)                 /* read-only data (constants) */
@@ -41,8 +40,10 @@ SECTIONS
         *(.glue_7t)
         *(.gnu.linkonce.t.*)
         *(.gnu.linkonce.r.*)
+        *(.ARM.extab* .gnu.linkonce.armextab.*)
         *(.gcc_except_table)
-       .  = ALIGN(4);
+        *(.vfp11_veneer)
+       	.  = ALIGN(4);
         PROVIDE(__ctors_start__ = .);
 	    KEEP(*(SORT(.ctors.*)))
 	    KEEP(*(.ctors))
@@ -53,12 +54,46 @@ SECTIONS
 	    KEEP(*(.dtors))
 	    PROVIDE(__dtors_end__ = .);
 	    . = ALIGN(4);
+		KEEP(*(.init));
+		. = ALIGN(4);
+		__preinit_array_start = .;
+		KEEP(*(.preinit_array));
+		. = ALIGN(4);
+		__preinit_array_end = .;
+		__init_array_start = .;
+		KEEP(*(SORT(.init_array.*)));
+		. = ALIGN(4);
+		KEEP(*(.init_array));
+		. = ALIGN(4);
+		__init_array_end = .;
+		KEEP(*(.fini));
+		. = ALIGN(4);
+		__fini_array_start = .;
+		KEEP(*(.fini_array));
+		. = ALIGN(4);
+		KEEP(*(SORT(.fini_array.*)));
+		. = ALIGN(4);
+		__fini_array_end = .;
    	 _etext = .;
 	    /* This is used by the startup in order to initialize the .data secion */
    	 _sidata = _etext;
     } >FLASH
     
- 
+ 	.eh_frame_hdr : ALIGN (4)
+	{
+		KEEP (*(.eh_frame_hdr))
+	} >FLASH
+	.eh_frame : ALIGN (4)
+	{
+		KEEP (*(.eh_frame))
+	} >FLASH
+ 	/* .ARM.exidx is sorted, so has to go in its own output section.  */
+	__exidx_start = .;
+	.ARM.exidx :
+	{
+		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
+	} >FLASH
+    __exidx_end = .;
 
     /* This is the initialized data section
     The program executes knowing that the data is in the RAM
@@ -178,12 +213,10 @@ SECTIONS
     /* remove the debugging information from the standard libraries */
     /DISCARD/ :
     {
-     libc.a ( * )
-     libm.a ( * )
-     libgcc.a ( * )
-     *(.eh_frame)
-     *(.eh_frame*)
-     }
+		libc.a ( * )
+		libm.a ( * )
+		libgcc.a ( * )
+	}
 
     /* Stabs debugging sections.  */
     .stab          0 : { *(.stab) }
@@ -218,7 +251,10 @@ SECTIONS
     .debug_funcnames 0 : { *(.debug_funcnames) }
     .debug_typenames 0 : { *(.debug_typenames) }
     .debug_varnames  0 : { *(.debug_varnames) }
+    
+    note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }
+	.ARM.attributes 0 : { KEEP (*(.ARM.attributes)) }
+	/DISCARD/ : { *(.note.GNU-stack) }
 }
-
 
 
