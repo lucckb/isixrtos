@@ -10,6 +10,7 @@
 #include "tiny_alloc.h"
 
 /* -------------------------------------------------------------- */
+
 void* operator new( size_t n ) { return tiny_alloc(n); }
 
 void operator delete( void* p) { return tiny_free(p); }
