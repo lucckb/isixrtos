@@ -12,11 +12,7 @@
 
 #include "tiny_printf.h"
 #include "tiny_alloc.h"
-/* ------------------------------------------------------------ */
-
-#ifdef __cplusplus
-#include "cpp_alloc.hpp"
-#endif
+#include "system_alloc.h"
 
 /* ------------------------------------------------------------ */
 #endif

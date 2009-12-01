@@ -118,6 +118,7 @@ void tiny_free(void *p)
   struct header *qp, *hp;
 
   hp = (struct header *)p - 1;
+
   /*chDbgAssert(hp->h_magic == MAGIC,
               "chHeapFree(), #1",
               "it is not magic"); */
@@ -128,7 +129,7 @@ void tiny_free(void *p)
 
 /*    chDbgAssert((hp < qp) || (hp >= LIMIT(qp)),
                 "chHeapFree(), #2",
-                "within free block"); */
+                "within tiny_free block"); */
 
     if (((qp == &heap.free) || (hp > qp)) &&
         ((qp->h_next == NULL) || (hp < qp->h_next))) {
@@ -141,7 +142,7 @@ void tiny_free(void *p)
         hp->h_size += hp->h_next->h_size + sizeof(struct header);
         hp->h_next = hp->h_next->h_next;
       }
-      if ((LIMIT(qp) == hp)) {  /* Cannot happen when qp == &heap.free */
+      if ((LIMIT(qp) == hp)) {  /* Cannot happen when qp == &heap.tiny_free */
         /* Merge with the previous block */
         qp->h_size += hp->h_size + sizeof(struct header);
         qp->h_next = hp->h_next;
