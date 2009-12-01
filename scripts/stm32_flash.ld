@@ -27,7 +27,23 @@ SECTIONS
 	. = ALIGN(4);
     } >FLASH
  
-    
+     /* .ARM.exidx is sorted, so has to go in its own output section.  */
+	__exidx_start = .;
+	.ARM.exidx :
+	{
+		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
+	} >FLASH
+    __exidx_end = .;
+	
+ 	.eh_frame_hdr : ALIGN (4)
+	{
+		KEEP (*(.eh_frame_hdr))
+	} >FLASH
+	.eh_frame : ALIGN (4)
+	{
+		KEEP (*(.eh_frame))
+	} >FLASH
+	
     /* the program code is stored in the .text section, which goes to Flash */
     .text :
     {
@@ -79,22 +95,7 @@ SECTIONS
    	 _sidata = _etext;
     } >FLASH
     
- 	.eh_frame_hdr : ALIGN (4)
-	{
-		KEEP (*(.eh_frame_hdr))
-	} >FLASH
-	.eh_frame : ALIGN (4)
-	{
-		KEEP (*(.eh_frame))
-	} >FLASH
- 	/* .ARM.exidx is sorted, so has to go in its own output section.  */
-	__exidx_start = .;
-	.ARM.exidx :
-	{
-		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
-	} >FLASH
-    __exidx_end = .;
-
+ 	
     /* This is the initialized data section
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
