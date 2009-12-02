@@ -12,7 +12,8 @@ OPT 	?= 2
 
 
 #Common flags 
-COMMON_FLAGS = -Wall -I../inc -DCPP_STARTUP_CODE -DFUNCTION_MAIN_RETURN
+COMMON_FLAGS = -Wall -I../inc -DCPP_STARTUP_CODE 
+#-DFUNCTION_MAIN_RETURN
 
 #Opcje kompilatora C
 CFLAGS += $(COMMON_FLAGS)

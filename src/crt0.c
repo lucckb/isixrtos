@@ -314,9 +314,8 @@ void reset_handler(void)
 #endif /* __ARM_EABI__*/
     __cxa_finalize(0);
 
-    while(1);
-
 #endif /*defined(FUNCTION_MAIN_RETURN) && defined(CPP_STARTUP_CODE)*/
+    while(1);
 }
 
 
