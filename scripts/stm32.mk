@@ -162,9 +162,9 @@ $(OBJDIR)/%.dep: %.S
 	@echo "Converting to bin..."
 	$(CP) -O binary $(CPFLAGS) $< $@ 
 
-%.elf: $(OBJ) $(ADDITIONAL_DEPS)
+%.elf: $(OBJ) $(CRT0_OBJECT) $(ADDITIONAL_DEPS)
 	@echo "Linking..."
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECT) -o $@ $(LDFLAGS)
 
 $(OBJDIR)/%.o : %.S
 	@echo "Assembling..."
