@@ -15,6 +15,7 @@ CXX	= $(CROSS_COMPILE)c++
 AR      = $(CROSS_COMPILE)ar
 CP      = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump 
+SIZE = $(CROSS_COMPILE)size
 JTAGPROG  = openocd
 
 OCDSCRIPT=/tmp/pgm.script
@@ -94,7 +95,7 @@ devrst:
 ifeq ($(LIBRARY),y)
 build:	target  
 else
-build:	target $(CONVTARGET) $(LSSTARGET)
+build:	target $(CONVTARGET) $(LSSTARGET) size-calc
 endif
 
 
@@ -108,6 +109,10 @@ else
 target: $(TARGET).elf $(TARGET).hex $(TARGET).lss
 endif
 
+#Calculate size
+size-calc: $(TARGET).elf
+	$(SIZE) $<
+	
 
 #wszystkie zaleznosci
 $(TARGET).elf: $(OBJDIR) $(OBJ) $(LSCRIPT) 
