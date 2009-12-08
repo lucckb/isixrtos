@@ -318,4 +318,18 @@ void reset_handler(void)
     while(1);
 }
 
+/*----------------------------------------------------------*/
+#ifdef __UNDER_ISIX__
+/* thread safe constructed objects  */
+void __cxa_guard_acquire ()
+{
+  return;
+}
 
+void __cxa_guard_release ()
+{
+  return;
+}
+#endif
+
+/*----------------------------------------------------------*/
