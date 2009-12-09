@@ -333,3 +333,8 @@ void __cxa_guard_release ()
 #endif
 
 /*----------------------------------------------------------*/
+//Pure virtual call error handler
+void __cxa_pure_virtual()
+{
+	while (1);
+}
