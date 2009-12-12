@@ -267,8 +267,12 @@ void _init(void) {  }
 void _fini(void) {}
 #endif /* __ARM_EABI__ */
 
+static void empty_func(void) {}
+void __external_startup(void) __attribute__ ((weak, alias("empty_func")));
 
 #endif /* CPP_STARTUP_CODE */
+
+
 /*----------------------------------------------------------*/
 //Default reset handler
 void reset_handler(void)
@@ -293,6 +297,8 @@ void reset_handler(void)
     }
 
 #if defined(CPP_STARTUP_CODE)
+    //Startup code before construtors call
+    __external_startup();
 #if !defined(__ARM_EABI__)
     //Call constructor
     crt0_sys_construction();
