@@ -24,7 +24,7 @@ int tiny_sprintf(char *out, const char *format, ...);
 
 /* ------------------------------------------------------------ */
 
-void register_printf_putc_handler(int (*fputc)(int));
+void register_printf_putc_handler(int (*fputc)(int, void*),void *arg);
 
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus

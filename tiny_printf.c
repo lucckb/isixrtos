@@ -14,7 +14,8 @@
 #include "tiny_printf.h"
 /* ------------------------------------------------------------ */
 //Function pointer to putchar
-static int (*fn_putc)(int ) = NULL;
+static int (*fn_putc)(int,void* ) = NULL;
+static void * fn_putc_arg = NULL;
 
 /* ------------------------------------------------------------ */
 static void printchar(char **str,int c)
@@ -26,7 +27,7 @@ static void printchar(char **str,int c)
 	}
 	else if(fn_putc)
 	{
-		fn_putc(c);
+		fn_putc(c,fn_putc_arg);
 	}
 }
 
@@ -197,9 +198,10 @@ int tiny_sprintf(char *out, const char *format, ...)
 }
 
 /*----------------------------------------------------------*/
-void register_printf_putc_handler(int (*fputc)(int))
+void register_printf_putc_handler(int (*fputc)(int,void*),void *arg)
 {
     fn_putc = fputc;
+    fn_putc_arg = arg;
 }
 
 /*----------------------------------------------------------*/
