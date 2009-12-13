@@ -5,7 +5,7 @@ MCU	= cortex-m3
 
 
 #CROSS COMPILE
-CROSS_COMPILE ?= arm-elf-
+CROSS_COMPILE ?= arm-none-eabi-
 #Definicje programow
 CC      = $(CROSS_COMPILE)gcc
 CXX	= $(CROSS_COMPILE)c++
