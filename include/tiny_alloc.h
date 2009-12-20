@@ -8,6 +8,8 @@
 /* ------------------------------------------------------------ */
 #ifndef TINY_ALLOC_H_
 #define TINY_ALLOC_H_
+
+#ifndef __UNDER_ISIX__
 /* ------------------------------------------------------------ */
 #include <stddef.h>
 
@@ -31,6 +33,8 @@ void tiny_free(void *p);
 #ifdef __cplusplus
  }
 #endif
+
+#endif /* __UNDER_ISIX__ */
 
 #endif /* TINY_ALLOC_H_ */
 

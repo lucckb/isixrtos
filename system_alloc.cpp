@@ -6,14 +6,27 @@
  *     Author: lucck
  *
  * ------------------------------------------------------------ */
-
+#ifndef __UNDER_ISIX__
 #include "tiny_alloc.h"
+#endif
+
 #include "system_alloc.h"
 #include <cstring>
 /* -------------------------------------------------------------- */
+#ifndef __UNDER_ISIX__
 //It can be redefined
 #define foundation_alloc tiny_alloc
 #define foundation_free tiny_free
+
+#else /*__UNDER_ISIX__*/
+
+void *isix_alloc(size_t size);
+void isix_free(void *p);
+#define foundation_alloc isix_alloc
+#define foundation_free isix_free
+
+#endif /*__UNDER_ISIX__*/
+
 /* -------------------------------------------------------------- */
 void* operator new( size_t n )
 {

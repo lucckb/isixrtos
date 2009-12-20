@@ -9,7 +9,9 @@
 #include "tiny_alloc.h"
 
 /*------------------------------------------------------*/
+#ifndef __UNDER_ISIX__
 
+/*------------------------------------------------------*/
 #define MAGIC 0x19790822
 #define ALIGN_TYPE      void *
 #define ALIGN_MASK      (sizeof(ALIGN_TYPE) - 1)
@@ -157,3 +159,5 @@ void tiny_free(void *p)
 }
 
 /*------------------------------------------------------*/
+#endif /*__UNDER_ISIX__ */
+
