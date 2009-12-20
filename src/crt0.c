@@ -36,10 +36,19 @@ void hard_fault_exception_vector(void) __attribute__ ((interrupt, weak, alias("u
 void mem_manage_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 void bus_fault_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 void usage_fault_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
+#ifndef __UNDER_ISIX__
 void svc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
+#else
+void svc_isr_vector(void) __attribute__ ((interrupt));
+#endif
 void debug_monitor_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
+#ifndef __UNDER_ISIX__
 void pend_svc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 void systick_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
+#else
+void pend_svc_isr_vector(void) __attribute__ ((interrupt));
+void systick_isr_vector(void) __attribute__ ((interrupt));
+#endif
 void wwdg_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 void pvd_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 void tamper_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
@@ -257,6 +266,7 @@ int __cxa_atexit(void (*func) (void *), void * arg, void * dso_handle)
 {
 	return -1;
 }
+
 #endif /* FUNCTION_MAIN_RETURN */
 
 #ifdef __ARM_EABI__
@@ -325,7 +335,7 @@ void reset_handler(void)
 }
 
 /*----------------------------------------------------------*/
-#ifdef __UNDER_ISIX__
+#ifndef __UNDER_ISIX__
 /* thread safe constructed objects  */
 void __cxa_guard_acquire ()
 {
@@ -336,11 +346,13 @@ void __cxa_guard_release ()
 {
   return;
 }
-#endif
 
-/*----------------------------------------------------------*/
+
 //Pure virtual call error handler
 void __cxa_pure_virtual()
 {
 	while (1);
 }
+
+#endif
+
