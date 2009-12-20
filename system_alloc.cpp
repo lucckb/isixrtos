@@ -20,10 +20,15 @@
 
 #else /*__UNDER_ISIX__*/
 
+namespace isix {
+extern "C" {
 void *isix_alloc(size_t size);
 void isix_free(void *p);
-#define foundation_alloc isix_alloc
-#define foundation_free isix_free
+}
+}
+
+#define foundation_alloc isix::isix_alloc
+#define foundation_free isix::isix_free
 
 #endif /*__UNDER_ISIX__*/
 
