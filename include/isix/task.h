@@ -88,6 +88,7 @@ private:
 	__attribute__ ((noreturn)) static void start_task(void *ptr)
 	{
 		static_cast<task_base*>(ptr)->main();
+		while(1) isix_wait(-1);
 	}
 private:
 	task_t *task_id;
