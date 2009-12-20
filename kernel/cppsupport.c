@@ -19,12 +19,12 @@ void __cxa_guard_acquire ()
   if(ctors_sem==NULL)
   {
 	  ctors_sem = isix_sem_create(NULL,1);
-  }
-  else
-  {
-	  printk("FATAL: Cannot allocate CPP guard semaphore");
-	  //Remove task if can;t create semaphore
-	  isix_task_delete(NULL);
+	  if(ctors_sem==NULL)
+	  {
+		  isix_printk("FATAL: Cannot allocate CPP guard semaphore");
+		  //Remove task if can;t create semaphore
+		  isix_task_delete(NULL);
+	  }
   }
   if(ctors_sem && isix_scheduler_running)
   {
@@ -45,7 +45,7 @@ void __cxa_guard_release ()
 //Pure virtual call error handler
 void __cxa_pure_virtual()
 {
-	printk("FATAL: Pure virtual function called");
+	isix_printk("FATAL: Pure virtual function called");
 	//Remove task if can;t create semaphore
 	isix_task_delete(NULL);
 }

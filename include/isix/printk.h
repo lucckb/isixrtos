@@ -5,10 +5,10 @@
 #include <isix/config.h>
 /*-----------------------------------------------------------------------*/
 #if (ISIX_DEBUG_ENABLE == ISIX_DBG_OFF)
-#define printk(...)
+#define isix_printk(...)
 #else
 #include <foundation.h>
-#define printk(...) do { isixp_enter_critical(); \
+#define isix_printk(...) do { isixp_enter_critical(); \
 						 tiny_printf("%s:%d|%s|",__FILE__,__LINE__,__FUNCTION__); \
 						 tiny_printf(__VA_ARGS__); \
 						 tiny_printf("\r\n"); \
