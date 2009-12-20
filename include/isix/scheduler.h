@@ -21,7 +21,7 @@ typedef uint8_t prio_t;
 /*-----------------------------------------------------------------------*/
 
 //HZ value used as system ticks
-#define HZ CONFIG_HZ
+#define ISIX_HZ ISIX_CONFIG_HZ
 
 /*-----------------------------------------------------------------------*/
 

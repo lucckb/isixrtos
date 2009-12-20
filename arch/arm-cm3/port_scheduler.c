@@ -48,9 +48,9 @@
 
 /*-----------------------------------------------------------------------*/
 //Pend SV interrupt (context switch)
-void irq_handler_pend_sv(void) __attribute__((__interrupt__,naked));
+void pend_svc_isr_vector(void) __attribute__((__interrupt__,naked));
 
-void irq_handler_pend_sv(void)
+void pend_svc_isr_vector(void)
 {
     cpu_save_context();
 
@@ -61,8 +61,8 @@ void irq_handler_pend_sv(void)
 
 /*-----------------------------------------------------------------------*/
 //SVC handler call for start the first task
-void irq_handler_svc(void) __attribute__((__interrupt__,naked));
-void irq_handler_svc(void)
+void svc_isr_vector(void) __attribute__((__interrupt__,naked));
+void svc_isr_vector(void)
 {
      asm volatile(
      "ldr r3, 0f\t\n" /* Restore the context. */
@@ -106,17 +106,23 @@ unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, vo
 }
 
 /*-----------------------------------------------------------------------*/
-//Cyclic schedule time interrupt
-void irq_handler_timer_isr(void) __attribute__((__interrupt__));
+static void unused_func(void ) {}
+void isix_systime_handler(void) __attribute__ ((weak, alias("unused_func")));
 
-void irq_handler_timer_isr(void)
+/*-----------------------------------------------------------------------*/
+//Cyclic schedule time interrupt
+void systick_isr_vector(void) __attribute__((__interrupt__));
+
+void systick_isr_vector(void)
 {
     //Increment system ticks
     port_set_interrupt_mask();
 	isixp_schedule_time();
 	port_clear_interrupt_mask();
+    //Call isix system time handler if used
+    isix_systime_handler();
 
-#ifdef CONFIG_USE_PREEMPTION
+#ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
     *(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
 #endif
@@ -160,9 +166,17 @@ void port_start_first_task( void )
       );
 }
 /*-----------------------------------------------------------------------*/
+#ifdef ISIX_DEBUG
+#define wfi()
+#else
+#define wfi() asm volatile("wfi\t\n")
+#endif
+
+/*-----------------------------------------------------------------------*/
 //Idle task additional
 void port_idle_task()
 {
-
+    wfi();
 }
+
 /*-----------------------------------------------------------------------*/

@@ -21,7 +21,7 @@ DEBUG ?=  y
 
 
 #Kernel source 
-SRC += fifo.c  memory.c  scheduler.c  semaphore.c  task.c
+SRC += fifo.c  memory.c  scheduler.c  semaphore.c  task.c cppsupport.c
 
 #Architecture specific sources
 SRC += port_scheduler.c

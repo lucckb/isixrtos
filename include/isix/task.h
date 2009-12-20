@@ -37,7 +37,7 @@ task_t* isix_task_self(void);
 
 /*-----------------------------------------------------------------------*/
 //Stack check for fill value
-#if CONFIG_TASK_STACK_CHECK == ISIX_ON
+#if ISIX_CONFIG_TASK_STACK_CHECK == ISIX_ON
 size_t isix_free_stack_space(const task_t *task);
 #endif
 /*-----------------------------------------------------------------------*/

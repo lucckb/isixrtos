@@ -367,7 +367,7 @@ ISIX_TASK_FUNC(idle_task,p)
         cleanup_tasks();
         //Call port specific idle
         port_idle_task();
-#ifndef  CONFIG_USE_PREEMPTION
+#ifndef  ISIX_CONFIG_USE_PREEMPTION
         isix_yield();
 #endif
     }

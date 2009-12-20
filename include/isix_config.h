@@ -1,19 +1,19 @@
 
 
 /* Stack from high to low address */
-#define CONFIG_STACK_GROWTH 1
+#define ISIX_CONFIG_STACK_GROWTH 1
 
 /* Use preemtion */
-#define CONFIG_USE_PREEMPTION 1
+#define ISIX_CONFIG_USE_PREEMPTION 1
 
 /* Ticks per sec */
-#define CONFIG_HZ 1000
+#define ISIX_CONFIG_HZ 1000
 
 /* Enable disable global debug */
 #define ISIX_DEBUG_ENABLE ISIX_DBG_OFF
 
 /* Configure the thread debuging */
-#define CONFIG_TASK_STACK_CHECK ISIX_ON
+#define ISIX_CONFIG_TASK_STACK_CHECK ISIX_ON
 
 /* Enable debug scheduler */
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
