@@ -9,17 +9,15 @@ namespace isix {
 /*-----------------------------------------------------------------------*/
 #include <isix/types.h>
 #include <isix/scheduler.h>
-/*-----------------------------------------------------------------------*/
-#define ISIX_TASK_CURRENT NULL
-
 
 /*-----------------------------------------------------------------------*/
+#ifndef __cplusplus
 //Definition of task function
 #define ISIX_TASK_FUNC(FUNC, ARG)							\
 	void FUNC(void *ARG) __attribute__ ((noreturn));	\
 	void FUNC(void *ARG)
 
-
+#endif
 /*-----------------------------------------------------------------------*/
 /* Create task function */
 task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned long stack_depth, prio_t priority);

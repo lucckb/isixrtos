@@ -15,8 +15,8 @@ struct sem_struct;
 typedef struct sem_struct sem_t;
 /*--------------------------------------------------------------*/
 #ifdef __cplusplus
-#else
 static const unsigned ISIX_TIME_INFINITE = 0;
+#else
 #define ISIX_TIME_INFINITE (0)
 #endif /*__cplusplus*/
 /*--------------------------------------------------------------*/

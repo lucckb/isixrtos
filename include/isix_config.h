@@ -23,5 +23,5 @@
 #define ISIX_DEBUG_TASK ISIX_DBG_OFF
 
 /* Maximum interrupt priority used with ISIX context */
-#define ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY 0x40
+#define ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY 0x10
 
