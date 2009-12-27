@@ -20,54 +20,92 @@ static const unsigned ISIX_TIME_INFINITE = 0;
 #define ISIX_TIME_INFINITE (0)
 #endif /*__cplusplus*/
 /*--------------------------------------------------------------*/
-//Create semaphore
+/** Function create the semaphore
+ * @param[in] sem Semaphore object. When it is null semaphore is created on the stack
+ * @param[in] val Initial value of the semaphore
+ * @return Semaphore object or NULL when semaphore can't be created
+ */
 sem_t* isix_sem_create(sem_t *sem,int val);
 
 
 /*--------------------------------------------------------------*/
-//Wait for semaphore P()
+/** Wait on the semaphore P()
+ * @param[in] sem Semaphore object
+ * @param[in] timeout Max wait time
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 int isix_sem_wait(sem_t *sem, tick_t timeout);
 
 /*--------------------------------------------------------------*/
-//Get semaphore from isr
+/** Get semaphore from the ISR context
+ * @param[in] sem Semaphore object
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 int isix_sem_get_isr(sem_t *sem);
 
 /*--------------------------------------------------------------*/
-//Sem signal V()
+/** Semaphore  signal V() private
+ * @param[in] sem Semaphore object
+ * @param[in] isr True when it is called from the ISR context
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 int isixp_sem_signal(sem_t *sem, bool isr);
 
 /*--------------------------------------------------------------*/
-//Definition of sem and sem ISR
+/** Semaphore  signal V()
+ * @param[in] sem Semaphore object
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 static inline int isix_sem_signal(sem_t *sem)
 {
 	return isixp_sem_signal( sem, false );
 }
 
 /*--------------------------------------------------------------*/
+/** Semaphore  signal V() from the ISR context
+ * @param[in] sem Semaphore object
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 static inline int isix_sem_signal_isr(sem_t *sem)
 {
 	return isixp_sem_signal(sem,true);
 }
 
 /*--------------------------------------------------------------*/
-//Sem value of semaphore
+/** Set value of the semaphore
+ * @param[in] sem Semaphore object
+ * @param[in] val New semaphore value
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 int isix_sem_setval(sem_t *sem,int val);
 
 /*--------------------------------------------------------------*/
-//Get value of semaphore
+/** Get value of the semaphore
+ * @param[in] sem Semaphore object
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 int isix_sem_getval(sem_t *sem);
 
 /*--------------------------------------------------------------*/
-//Sem destroy
+/** Destroy the semaphore
+ * @param[in] sem Semaphore object
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 int isix_sem_destroy(sem_t *sem);
 
 /*--------------------------------------------------------------*/
-//! Convert ms to ticks
+/** Convert ms value to the system tick value
+ * @param[in] ms Time value in the millisecond
+ * @return Sys tick time value
+ */
 tick_t isix_ms2tick(unsigned long ms);
 
 /*--------------------------------------------------------------*/
 
-//Wait for n jiffies
+/** Wait thread for selected number of ticks
+ * @param[in] Wait time
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 static inline int isix_wait(tick_t timeout)
 {
 	return isix_sem_wait(NULL,timeout);
@@ -86,47 +124,65 @@ static inline int isix_wait(tick_t timeout)
 
 namespace isix {
 /*--------------------------------------------------------------*/
+//! Semaphore C++ class wrapper
 class semaphore
 {
 public:
-	//Constructor
+	/** Construct semaphore object
+	 * @param[in] val Initial value of the semaphore
+	 */
 	explicit semaphore(int val)
 	{
 		sem = isix_sem_create(NULL,val);
 	}
-	//Destructor
+	//! Destruct semaphore object
 	~semaphore()
 	{
 		isix_sem_destroy(sem);
 	}
-	//Check the fifo object is in valid state
+	/** Check the fifo object is in valid state
+	 * @return true if object is in valid state otherwise return false
+	 */
 	bool is_valid() { return sem!=0; }
-	//Wait for sem
+	/** Wait for the semaphore for selected time
+	 * @param[in] timeout Max waiting time
+	 */
 	int wait(tick_t timeout)
 	{
 		return isix_sem_wait( sem, timeout );
 	}
-	//Get from isr
+	/** Get the semaphore from the ISR context
+	 * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+	 */
 	int get_isr()
 	{
 		return isix_sem_get_isr(sem);
 	}
-	//Signal
+	/** Signaling the semaphore
+	 * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+	 */
 	int signal()
 	{
 		return isix_sem_signal(sem);
 	}
-	//Signal from ISR
+	/** Signal the semaphore from the ISR context
+	 * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+	 */
 	int signal_isr()
 	{
 		return isix_sem_signal_isr(sem);
 	}
-	//SetVal
+	/** Set value of the semaphore
+	 * @param[in] val Value of the semaphore
+	 * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+	 */
 	int setval(int val)
 	{
 		return isix_sem_setval( sem, val );
 	}
-	//GetVal
+	/** Get the semaphore value
+	 * @return the semaphore value otherwise an error
+	 */
 	int getval()
 	{
 		return isix_sem_getval( sem );

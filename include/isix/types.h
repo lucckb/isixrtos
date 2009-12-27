@@ -7,17 +7,17 @@
 #include <isix/error.h>
 
 /*-----------------------------------------------------*/
-//Null defs
+//! Null defs
 #ifndef NULL
 #define NULL ((void*)0)
 #endif /* NULL */
 
 /*-----------------------------------------------------*/
-//!Define tick type
+//! Define tick type
 typedef unsigned short tick_t;
 
 /*-----------------------------------------------------*/
-//Bit shift 
+//! Bit shift
 #define _BV(x) (1<<x)
 
 /*-----------------------------------------------------*/

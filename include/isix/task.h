@@ -12,22 +12,31 @@ namespace isix {
 
 /*-----------------------------------------------------------------------*/
 #ifndef __cplusplus
-//Definition of task function
+//!Definition of task function in C mode
 #define ISIX_TASK_FUNC(FUNC, ARG)							\
 	void FUNC(void *ARG) __attribute__ ((noreturn));	\
 	void FUNC(void *ARG)
 
 #endif
 /*-----------------------------------------------------------------------*/
-/* Create task function */
+/** Create the task function (System thread)
+ * @param[in] task_func Pointer to the thread function
+ * @param[in] func_param Function parameter
+ * @param[in] stack_depth Thread/Task stack depth
+ * @param[in] priority The task priority
+ * @return Task control object, or NULL when task can't be created */
 task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned long stack_depth, prio_t priority);
 
 /*-----------------------------------------------------------------------*/
-/*Change task priority function
- * task - task pointer structure if NULL current prio change
- * new_prio - new priority                                  */
+//! Private version of change prio function
 int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield);
 
+/*-----------------------------------------------------------------------*/
+/** Change the task/thread priority
+ * @param[in] task Task pointer structure if NULL change the current prio
+ * @param[in] new_prio New task priority
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 static inline int isix_task_change_prio( task_t* task, prio_t new_prio )
 {
 	return isixp_task_change_prio(task,new_prio,true);
@@ -35,16 +44,24 @@ static inline int isix_task_change_prio( task_t* task, prio_t new_prio )
 
 /*-----------------------------------------------------------------------*/
 
-//Delete task pointed by struct task
+/** Delete the task pointed by the task control object
+ *	@param[in] task Task control object
+ *	@return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
 int isix_task_delete(task_t *task);
 
 /*-----------------------------------------------------------------------*/
 
-//Get current thread handler
+/** Get current thread handler
+ *  @return Get the task control block of the current task/thread
+ */
 task_t* isix_task_self(void);
 
 /*-----------------------------------------------------------------------*/
-//Stack check for fill value
+/** Check of the available stack space
+ * @param[in] task Task control block
+ * @return Size of the number of bytes used by the task/thread
+ */
 #if ISIX_CONFIG_TASK_STACK_CHECK == ISIX_ON
 size_t isix_free_stack_space(const task_t *task);
 #endif
@@ -62,24 +79,33 @@ size_t isix_free_stack_space(const task_t *task);
 
 namespace isix {
 /*-----------------------------------------------------------------------*/
-//Base class for task creation
+//! C++ wrapper for the task/thread
 class task_base
 {
 public:
-	//Default constructor
+	/** Construct the task
+	 * @param[in] stack_depth Stack depth of the thread/task
+	 * @param[in] priority Thread/task priority
+	 */
 	explicit task_base(std::size_t stack_depth, prio_t priority)
 	{
 		task_id = isix_task_create( start_task, this, stack_depth, priority );
 	}
+	//! Destruct the task/thread object
 	virtual ~task_base()
 	{
 		isix_task_delete(task_id);
 	}
-	//Get task id
+	/** Get thread task id
+	 * @return Task control object
+	 */
 	task_t* get_taskid() { return task_id; }
-	//Check the fifo object is in valid state
+	/** Check the fifo object is in valid state
+	 * @return True when the object is in valid state
+	 */
 	bool is_valid() { return task_id!=0; }
 protected:
+	/** Pure virtual method for the object main thread */
 	virtual void main() = 0;
 
 private:

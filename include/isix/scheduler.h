@@ -12,51 +12,56 @@ namespace isix {
 #endif /*__cplusplus*/
 
 /*-----------------------------------------------------------------------*/
-//Pointer to task function
+//! Pointer to task function
 typedef void (*task_func_ptr_t)(void*);
 
 /*-----------------------------------------------------------------------*/
-//Priority type
+//! Priority type
 typedef uint8_t prio_t;
 /*-----------------------------------------------------------------------*/
 
-//Yield processor
+//! Yield the current process
 static inline void isix_yield() { port_yield(); }
 
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 static const unsigned ISIX_HZ = ISIX_CONFIG_HZ;
 #else
-//HZ value used as system ticks
+//! HZ value used as system ticks
 #define ISIX_HZ ISIX_CONFIG_HZ
 #endif
 
 /*-----------------------------------------------------------------------*/
 
-//Definition of task operations
+//! Definition of task operations
 struct task_struct;
 typedef struct task_struct task_t;
 
 /*-----------------------------------------------------------------------*/
-//Halt system when critical error
+//! Halt system when critical error is found
 void isix_bug(void);
 
 /*-----------------------------------------------------------*/
-//Get current jiffies
+/** Get current sytem ticks
+ * @return Number of system tick from system startup
+ */
 tick_t isix_get_jiffies(void);
 
 
 /*-----------------------------------------------------------------------*/
-//Start scheduler
+//!Start the scheduler
 void isix_start_scheduler(void) __attribute__((noreturn));
 
 /*-----------------------------------------------------------------------*/
 
-/* Initialize base OS structure before call main */
+/** Initialize base OS structure before call main
+ * @param[in] num_priorities Number of available tasks priorities*/
 void isix_init(prio_t num_priorities);
 
 /*-----------------------------------------------------------------------*/
-//Get maximum available priority
+/** Function return the minimal available priority
+ * @return Number of minimal available priority
+ */
 prio_t isix_get_min_priority(void);
 
 /*-----------------------------------------------------------------------*/

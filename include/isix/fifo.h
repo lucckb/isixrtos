@@ -13,35 +13,52 @@ struct fifo_struct;
 typedef struct fifo_struct fifo_t;
 
 /*--------------------------------------------------------------*/
-/* Create queue for n elements
- * if succes return queue pointer else return null   */
+/** Create queue for n elements
+ * @param[in] n_elem Number of available elements in the fifo
+ * @param[in] elem_size Size of the element
+ * @return Fifo object
+ */
 fifo_t* isix_fifo_create(int n_elem, int elem_size);
 
-
-/* Send element to queue
- * queue - Pointer to queue
- * item -  Element to push in queue
- * timeout - Timeout for selected queue
- * return 0 if succes else return error     */
+/*--------------------------------------------------------------*/
+/** Push element in the queue
+ * @param[in] queue  Pointer to queue
+ * @param[in] item item The element push in the queue
+ * @param[in] timeout Timeout for selected queue
+ * @return 0 if success else return error     */
 int isix_fifo_write(fifo_t *fifo, const void *item, tick_t timeout);
 
+/*--------------------------------------------------------------*/
+/** Push element in the queue from a ISR
+ * @param[in] queue  Pointer to queue
+ * @param[in] item The element push in the queue
+ * @return ISIX_EOK if success else return an error     */
 int isix_fifo_write_isr(fifo_t *queue, const void *item);
 
 /*--------------------------------------------------------------*/
-/* Delete created queue */
+/** Delete queue
+ * @param[in] fifo Pointer to the fifo object*/
 int isix_fifo_destroy(fifo_t *fifo);
 
 /*--------------------------------------------------------------*/
-/* How many elements is in fifo */
+/** Return number of the elements available in the fifo
+ * @param[in] fifo Pointer to the fifo object
+ * @return ISIX_EOK if success else return an error */
 int isix_fifo_count(fifo_t *fifo);
 
 /*--------------------------------------------------------------*/
-/* Get element from queue *
- * queue - Pointer to queue
- * item - Pointer to item
- * timeout - Max waiting timeouts */
+/** Read element from the queue if available
+ * @param[in] fifo Pointer to the fifo object
+ * @param[out] item Pointer to the bufer
+ * @param[in] timeout Max waiting timeout
+ * @return ISIX_EOK if success else return an error */
 int isix_fifo_read(fifo_t *fifo,void *item, tick_t timeout);
 
+/*--------------------------------------------------------------*/
+/** Read element from the queue if available. ISR version
+ * @param[in] fifo Pointer to the fifo object
+ * @param[out] item Pointer to the bufer
+ * @return ISIX_EOK if success else return an error */
 int isix_fifo_read_isr(fifo_t *queue, void *item);
 
 /*--------------------------------------------------------------*/
@@ -56,42 +73,65 @@ int isix_fifo_read_isr(fifo_t *queue, void *item);
 
 namespace isix {
 /*--------------------------------------------------------------*/
+//! The C++ class wrapper for the queue
 template <typename T> class fifo
 {
 public:
-	//Constructor
+	/** Construct fifo object with the selected elements
+	 * @param n_elem Number of elements in the fifo
+	 */
 	explicit fifo(std::size_t n_elem)
 	{
 		hwnd = isix_fifo_create(n_elem,sizeof(T));
 	}
-	//Destructor
+	//! Destruct fifo object
 	~fifo()
 	{
 		isix_fifo_destroy(hwnd);
 	}
-	//Check the fifo object is in valid state
+	/** Check if the fifo object is in valid state
+	 * @return true if object is ok else return false
+	 */
 	bool is_valid() { return hwnd!=0; }
-	//Push data to the queue
+	/* Push data in the queue
+	 * @param[in] c Reference to the object
+	 * @param[in] timeout Wait time when queue is not empty
+	 * @return ISIX_EOK if success else return an error
+	 */
 	int push(const T &c,tick_t timeout=0)
 	{
 		return isix_fifo_write( hwnd, &c, timeout );
 	}
-	//Push data from the ISR
+	/* Push data in the queue from the ISR
+	 * @param[in] c Reference to the object
+	 * @param[in] timeout Wait time when queue is not empty
+	 * @return ISIX_EOK if success else return an error
+	 */
 	int push_isr(const T &c)
 	{
 		return isix_fifo_write_isr( hwnd, &c );
 	}
-	//Get fifo free count
-	int free() const
+	/** Get available elements in the fifo
+	 * @return available elements in the fifo
+	 */
+	int size() const
 	{
 		return isix_fifo_count( hwnd );
 	}
-	//Pop element
+	/** Pop the element from the queue
+	 * @param[in] c Reference to the buffer
+	 * @param[in] timeout Max waiting time
+	 * @return ISIX_EOK if success else return an error
+	 */
 	int pop(T &c, tick_t timeout=0)
 	{
 		return isix_fifo_read( hwnd, &c, timeout );
 	}
-	//Pop element from ISR
+	/** Pop the element from the queue. Called from the ISR
+	 * @param[in] c Reference to the buffer
+	 * @param[in] timeout Max waiting time
+	 * @return ISIX_EOK if success else return an error
+	 */
 	int pop_isr(T &c)
 	{
 		return isix_fifo_read_isr( hwnd, &c );

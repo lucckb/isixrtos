@@ -9,11 +9,16 @@ namespace isix {
 #endif /*__cplusplus*/
 
 /*------------------------------------------------------*/
-//Allocate memory
+/** Allocate the memory from the global heap
+ * @param[in] size Allocated size
+ * @return Pointer to the allocated area otherwise NULL
+ */
 void* isix_alloc(size_t size);
 
 /*------------------------------------------------------*/
-//Free memory
+/** Free alocated earlier memory area
+ * param[in] mem Pointer to the allocated memory
+ */
 void isix_free(void *mem);
 
 /*------------------------------------------------------*/
