@@ -103,7 +103,7 @@ tick_t isix_ms2tick(unsigned long ms);
 /*--------------------------------------------------------------*/
 
 /** Wait thread for selected number of ticks
- * @param[in] Wait time
+ * @param[in] timeout Wait time
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
 static inline int isix_wait(tick_t timeout)

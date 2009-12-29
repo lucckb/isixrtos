@@ -22,7 +22,7 @@ fifo_t* isix_fifo_create(int n_elem, int elem_size);
 
 /*--------------------------------------------------------------*/
 /** Push element in the queue
- * @param[in] queue  Pointer to queue
+ * @param[in] fifo  Pointer to queue
  * @param[in] item item The element push in the queue
  * @param[in] timeout Timeout for selected queue
  * @return 0 if success else return error     */
@@ -56,7 +56,7 @@ int isix_fifo_read(fifo_t *fifo,void *item, tick_t timeout);
 
 /*--------------------------------------------------------------*/
 /** Read element from the queue if available. ISR version
- * @param[in] fifo Pointer to the fifo object
+ * @param[in] queue Pointer to the fifo object
  * @param[out] item Pointer to the bufer
  * @return ISIX_EOK if success else return an error */
 int isix_fifo_read_isr(fifo_t *queue, void *item);
