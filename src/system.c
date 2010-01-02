@@ -82,7 +82,7 @@ void nvic_irq_enable(IRQn_Type irq_num, bool enable)
 	if(enable)
 	{
 		/* Enable the Selected IRQ Channels */
-		NVIC->ISER[(uint32_t)irq_num >> 0x05] = (u32)0x01 << ((int32_t)irq_num & (u8)0x1F);
+		NVIC->ISER[(uint32_t)irq_num >> 0x05] = (u32)0x01 << ((uint32_t)irq_num & (u8)0x1F);
 	}
 	else
 	{
