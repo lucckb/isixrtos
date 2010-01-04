@@ -206,3 +206,30 @@ tick_t isix_ms2tick(unsigned long ms)
 	if(ticks==0) ticks++;
 	return ticks;
 }
+
+/*--------------------------------------------------------------*/
+//! Isix wait selected amount of time
+int isix_wait(tick_t timeout)
+{
+	if(isix_scheduler_running)
+	{
+		//If scheduler is running delay on semaphore
+		return isix_sem_wait(NULL,timeout);
+	}
+	else
+	{
+		//If scheduler is not running delay on busy wait
+		tick_t t1 = isix_get_jiffies();
+		if(t1+timeout>t1)
+		{
+			t1+= timeout;
+			while(t1>isix_get_jiffies()) port_idle_cpu();
+		}
+		else
+		{
+			t1+= timeout;
+			while(t1<isix_get_jiffies()) port_idle_cpu();
+		}
+		return ISIX_EOK;
+	}
+}

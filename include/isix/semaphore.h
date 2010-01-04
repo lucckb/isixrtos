@@ -106,12 +106,20 @@ tick_t isix_ms2tick(unsigned long ms);
  * @param[in] timeout Wait time
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-static inline int isix_wait(tick_t timeout)
+int isix_wait(tick_t timeout);
+
+/*-----------------------------------------------------------*/
+/** Wait thread for selected number of milliseconds
+ * @param[in] timeout Wait time
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
+static inline int isix_wait_ms(unsigned long ms)
 {
-	return isix_sem_wait(NULL,timeout);
+	return isix_wait(isix_ms2tick(ms));
 }
 
 /*-----------------------------------------------------------*/
+
 #ifdef __cplusplus
 }	//end namespace
 }	//end extern-C

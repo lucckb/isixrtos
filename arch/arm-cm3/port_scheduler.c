@@ -124,7 +124,10 @@ void systick_isr_vector(void)
 
 #ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
-    *(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
+    if(isix_scheduler_running)
+    {
+    	*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
+    }
 #endif
 }
 
@@ -165,18 +168,4 @@ void port_start_first_task( void )
       "svc 0\r\n"
       );
 }
-/*-----------------------------------------------------------------------*/
-#ifdef ISIX_DEBUG
-#define wfi()
-#else
-#define wfi() asm volatile("wfi\t\n")
-#endif
-
-/*-----------------------------------------------------------------------*/
-//Idle task additional
-void port_idle_task()
-{
-    wfi();
-}
-
 /*-----------------------------------------------------------------------*/

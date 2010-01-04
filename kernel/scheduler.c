@@ -147,6 +147,11 @@ void isixp_schedule_time(void)
 
 	//Increment sys tick
 	jiffies++;
+	if(!isix_scheduler_running)
+	{
+		isix_printk("Scheduler is not started");
+		return;
+	}
 	if(jiffies == 0)
 	{
 	   list_entry_t *tmp = p_waiting_task;
@@ -366,7 +371,7 @@ ISIX_TASK_FUNC(idle_task,p)
         //Cleanup free tasks
         cleanup_tasks();
         //Call port specific idle
-        port_idle_task();
+        port_idle_cpu();
 #ifndef  ISIX_CONFIG_USE_PREEMPTION
         isix_yield();
 #endif
@@ -422,6 +427,7 @@ void isix_init(prio_t num_priorities)
 void isix_start_scheduler(void) __attribute__((noreturn));
 void isix_start_scheduler(void)
 {
+   jiffies = 0;		//Zero jiffies if it was previously run
    isix_scheduler_running = true;
    //Restore context and run OS
    port_start_first_task();

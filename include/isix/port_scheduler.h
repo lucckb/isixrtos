@@ -28,7 +28,12 @@ void port_clear_interrupt_mask( void );
 
 /*-----------------------------------------------------------------------*/
 //Idle task additional
-void port_idle_task( void );
+static inline void port_idle_cpu( void )
+{
+#ifndef ISIX_DEBUG
+	asm volatile("wfi\t\n");
+#endif
+}
 
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
