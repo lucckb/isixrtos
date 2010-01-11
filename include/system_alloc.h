@@ -10,9 +10,12 @@
 #define __CPP_ALLOC_HPP__
 /*----------------------------------------------------------------*/
 #include "tiny_alloc.h"
-#include <new>
+#include <stddef.h>
 /*----------------------------------------------------------------*/
 #ifdef __cplusplus
+
+#include <new>
+
 //New delete operators
 void* operator new( size_t n );
 
