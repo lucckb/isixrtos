@@ -13,7 +13,7 @@
 #define ISIX_DEBUG_ENABLE ISIX_DBG_OFF
 
 /** Configure the thread debugging */
-#define ISIX_CONFIG_TASK_STACK_CHECK ISIX_ON
+#define ISIX_CONFIG_TASK_STACK_CHECK ISIX_OFF
 
 /** Enable debugging options */
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF

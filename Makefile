@@ -11,7 +11,7 @@ OPT 	?= 2
 #Opcje kompilatora C
 CFLAGS += -std=gnu99 -Wall -pedantic
 
-CFLAGS += -Iinclude -I../libfoundation
+CFLAGS += -Iinclude -I../libfoundation/include
 
 #Wlaczyc wylaczyc listing
 LISTING ?= n

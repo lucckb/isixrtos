@@ -59,23 +59,23 @@ static volatile prio_t number_of_priorities;
 //Isix bug report when isix_printk is defined
 void isix_bug(void)
 {
-    isix_printk("OOPS: Please reset board\n");
+    isix_printk("OOPS: Please reset board");
     task_ready_t *i;
     task_t *j;
     //TODO: Add interrupt blocking
-    isix_printk("Ready tasks\n");
+    isix_printk("Ready tasks");
     list_for_each_entry(&ready_task,i,inode)
     {
-         isix_printk("\t* List inode %08x prio %d\n",(unsigned int)i,i->prio);
+         isix_printk("\t* List inode %08x prio %d",(unsigned int)i,i->prio);
          list_for_each_entry(&i->task_list,j,inode)
          {
-              isix_printk("\t\t-> task %08x prio %d state %d\n",j,j->prio,j->state);
+              isix_printk("\t\t-> task %08x prio %d state %d",j,j->prio,j->state);
          }
     }
     isix_printk("Sleeping tasks\n");
     list_for_each_entry(p_waiting_task,j,inode)
     {
-        isix_printk("\t->Task: %08x prio: %d state %d jiffies %d\n",j,j->prio,j->state,j->jiffies);
+        isix_printk("\t->Task: %08x prio: %d state %d jiffies %d",j,j->prio,j->state,j->jiffies);
     }
     while(1);
 }
@@ -149,7 +149,6 @@ void isixp_schedule_time(void)
 	jiffies++;
 	if(!isix_scheduler_running)
 	{
-		isix_printk("Scheduler is not started");
 		return;
 	}
 	if(jiffies == 0)

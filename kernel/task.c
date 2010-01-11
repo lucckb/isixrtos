@@ -77,7 +77,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
     if(isixp_add_task_to_ready_list(task)<0)
     {
         //Free allocated innode
-        isix_printk("TaskCreate: Add task to ready list failed.",);
+        isix_printk("TaskCreate: Add task to ready list failed.");
         isix_free(task->top_stack);
         isix_free(task);
 	    isixp_exit_critical();
