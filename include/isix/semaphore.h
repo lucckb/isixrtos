@@ -195,7 +195,9 @@ public:
 	{
 		return isix_sem_getval( sem );
 	}
-
+private:
+	semaphore(const semaphore&);
+	semaphore& operator=(const semaphore&);
 private:
 	sem_t *sem;
 };

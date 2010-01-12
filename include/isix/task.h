@@ -115,6 +115,9 @@ private:
 		while(1) isix_wait(-1);
 	}
 private:
+	task_base(const task_base&);
+	task_base& operator=(const task_base&);
+private:
 	task_t *task_id;
 };
 

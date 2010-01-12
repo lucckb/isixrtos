@@ -14,7 +14,7 @@ static sem_t *ctors_sem;
 
 /* ------------------------------------------------------------------ */
 /* thread safe constructed objects  */
-void __cxa_guard_acquire ()
+int __cxa_guard_acquire (void)
 {
   if(ctors_sem==NULL)
   {
@@ -30,10 +30,11 @@ void __cxa_guard_acquire ()
   {
 	  isix_sem_wait(ctors_sem,ISIX_TIME_INFINITE);
   }
+  return 1;
 }
 
 /* ------------------------------------------------------------------ */
-void __cxa_guard_release ()
+void __cxa_guard_release (void)
 {
 	if(ctors_sem && isix_scheduler_running)
 	{

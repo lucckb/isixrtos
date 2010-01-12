@@ -137,6 +137,9 @@ public:
 		return isix_fifo_read_isr( hwnd, &c );
 	}
 private:
+	fifo(const fifo&);
+	fifo& operator=(const fifo&);
+private:
 	fifo_t *hwnd;
 };
 
