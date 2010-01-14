@@ -14,7 +14,7 @@
 
 /*-----------------------------------------------------*/
 //! Define tick type
-typedef unsigned short tick_t;
+typedef unsigned int tick_t;
 
 /*-----------------------------------------------------*/
 //! Bit shift
