@@ -16,6 +16,8 @@ struct sem_struct
     int sem_ret;
     //Resource type
     bool static_mem;
+    //Semaphore limit value
+    int limit_value;
 };
 
 /*--------------------------------------------------------------*/

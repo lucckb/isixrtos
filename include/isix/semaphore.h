@@ -16,17 +16,30 @@ typedef struct sem_struct sem_t;
 /*--------------------------------------------------------------*/
 #ifdef __cplusplus
 static const unsigned ISIX_TIME_INFINITE = 0;
+static const unsigned ISIX_SEM_ULIMITED = 0;
 #else
 #define ISIX_TIME_INFINITE (0)
+#define ISIX_SEM_ULIMITED (0)
 #endif /*__cplusplus*/
+/*--------------------------------------------------------------*/
+/** Function create the semaphore
+ * @param[in] sem Semaphore object. When it is null semaphore is created on the stack
+ * @param[in] val Initial value of the semaphore
+ * @param[in] limit_val Maximum value allowed in the sem
+ * @return Semaphore object or NULL when semaphore can't be created
+ */
+sem_t* isix_sem_create_limited(sem_t *sem,int val, int limit_val);
+
 /*--------------------------------------------------------------*/
 /** Function create the semaphore
  * @param[in] sem Semaphore object. When it is null semaphore is created on the stack
  * @param[in] val Initial value of the semaphore
  * @return Semaphore object or NULL when semaphore can't be created
  */
-sem_t* isix_sem_create(sem_t *sem,int val);
-
+static inline sem_t* isix_sem_create(sem_t *sem,int val)
+{
+	return isix_sem_create_limited( sem, val, ISIX_SEM_ULIMITED );
+}
 
 /*--------------------------------------------------------------*/
 /** Wait on the semaphore P()
@@ -139,9 +152,9 @@ public:
 	/** Construct semaphore object
 	 * @param[in] val Initial value of the semaphore
 	 */
-	explicit semaphore(int val)
+	explicit semaphore( int val, int limit_val=ISIX_SEM_ULIMITED )
 	{
-		sem = isix_sem_create(NULL,val);
+		sem = isix_sem_create_limited( NULL, val, limit_val );
 	}
 	//! Destruct semaphore object
 	~semaphore()

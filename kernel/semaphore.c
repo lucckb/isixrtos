@@ -20,9 +20,13 @@
 
 /*--------------------------------------------------------------*/
 //Create semaphore
-sem_t* isix_sem_create(sem_t *sem, int val)
+sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
 {
-    if(sem==NULL)
+	if(limit_val<0)
+	{
+		return NULL;
+	}
+	if(sem==NULL)
     {
         sem = (sem_t*)isix_alloc(sizeof(sem_t));
         if(sem==NULL) return NULL;
@@ -30,6 +34,7 @@ sem_t* isix_sem_create(sem_t *sem, int val)
     memset(sem,0,sizeof(sem_t));
     sem->static_mem = sem!=NULL?true:false;
     sem->value = val;
+    sem->limit_value = limit_val;
     list_init(&sem->sem_task);
     isix_printk("SemCreate: Create sem %08x val %d\n",sem,sem->value);
     return sem;
@@ -102,6 +107,14 @@ int isixp_sem_signal(sem_t *sem,bool isr)
     if(list_isempty(&sem->sem_task)==true)
     {
         sem->value++;
+        if(sem->limit_value > ISIX_SEM_ULIMITED)
+        {
+        	if(sem->value > sem->limit_value)
+        	{
+        		isix_printk("Limit value to %d",sem->value);
+        		sem->value = sem->limit_value;
+        	}
+        }
         isix_printk("SemSignal: Waiting list is empty incval to %d\n",sem->value);
         isixp_exit_critical();
         return ISIX_EOK;
@@ -169,6 +182,14 @@ int isix_sem_setval(sem_t *sem, int val)
         return ISIX_EBUSY;
     }
     sem->value = val;
+    if(sem->limit_value > ISIX_SEM_ULIMITED)
+    {
+         if(sem->value > sem->limit_value)
+         {
+           isix_printk("Limit value to %d",sem->value);
+            sem->value = sem->limit_value;
+         }
+    }
     isixp_exit_critical();
     return ISIX_EOK;
 }
@@ -178,7 +199,10 @@ int isix_sem_setval(sem_t *sem, int val)
 int isix_sem_getval(sem_t *sem)
 {
     if(!sem) return ISIX_EINVARG;
-    return sem->value;
+    isixp_enter_critical();
+    int v = sem->value;
+    isixp_exit_critical();
+    return v;
 }
 
 /*--------------------------------------------------------------*/
