@@ -43,7 +43,7 @@
 
 #if USED_UART==CFG_USART1
 #define USART USART1
-#define CLK_HZ CONFIG_PCLK2_HZ
+#define USART_PCLK_HZ CONFIG_PCLK2_HZ
 #else
 #define USART USART2
 #define USART_PCLK_HZ CONFIG_PCLK1_HZ
@@ -53,7 +53,7 @@
 void usartsimple_init(unsigned baudrate)
 {
 #if USED_UART==CFG_USART1
-	RCC->APB2ENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1;
+		RCC->APB2ENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1;
         //Configure GPIO port TxD and RxD
         io_config(GPIOA,USART1_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
         io_config(GPIOA,USART1_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);

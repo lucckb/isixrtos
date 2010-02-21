@@ -1,0 +1,8 @@
+#ifndef __LIBSTM32_CONFIG_H__
+#define __LIBSTM32_CONFIG_H__
+
+#define CONFIG_PCLK1_HZ 37500000
+#define CONFIG_PCLK2_HZ 75000000
+
+#endif
+
