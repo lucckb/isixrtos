@@ -4,7 +4,7 @@
 MCU	= cortex-m3
 
 #Skrypt linkera
-SCRIPTLINK = stm32
+SCRIPTLINK = stm32-$(MCU_VARIANT)
 
 
 #CROSS COMPILE
@@ -85,8 +85,8 @@ clean:
 
 
 program:
-	openocd -f $(SCRIPTS_DIR)/stm32.cfg -c init -c 'script $(SCRIPTS_DIR)/flash-begin.script' \
-	-c "flash write_image $(TARGET).elf" -c 'script $(SCRIPTS_DIR)/flash-end.script' \
+	openocd -f $(SCRIPTS_DIR)/stm32.cfg -c init -c 'script $(SCRIPTS_DIR)/flash-begin-$(MCU_VARIANT).script' \
+	-c "flash write_image $(TARGET).elf" -c 'script $(SCRIPTS_DIR)/flash-end-$(MCU_VARIANT).script' \
 	-c shutdown || true
 
 devrst:
