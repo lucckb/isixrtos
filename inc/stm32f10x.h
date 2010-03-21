@@ -20,7 +20,6 @@
   * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
   ******************************************************************************
   */
-
 /** @addtogroup CMSIS
   * @{
   */
