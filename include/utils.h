@@ -15,6 +15,7 @@
 /* ------------------------------------------------------------ */
 //Convert string to unsigned
 unsigned fnd_atoui(const char *str);
+void fnd_uitoa(char *str, unsigned val , int fmt);
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
  }

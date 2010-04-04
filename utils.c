@@ -29,3 +29,30 @@ unsigned fnd_atoui(const char *str)
 
 
 /* ------------------------------------------------------------ */
+static void strrev(char *str, int len)
+{
+	char *p1, *p2;
+
+	if (! str || ! *str)
+	   return;
+	for (p1 = str, p2 = str + len - 1; p2 > p1; ++p1, --p2)
+	{
+		*p1 ^= *p2;
+		*p2 ^= *p1;
+		*p1 ^= *p2;
+	}
+}
+/* ------------------------------------------------------------ */
+void fnd_uitoa(char *str, unsigned val ,int fmt)
+{
+    int digits;
+    if(fmt>10) return;
+    for(digits=0; val>0; val/=10,digits++)
+        str[digits] = val % 10 + '0';
+    for(int i=fmt-digits; i>0; i--,digits++)
+        str[digits] = '0';
+    str[digits] = '\0';
+    strrev(str,digits);
+}
+
+/* ------------------------------------------------------------ */

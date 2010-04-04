@@ -8,8 +8,8 @@
 /* ------------------------------------------------------------ */
 #ifndef TINY_PRINTF_H_
 #define TINY_PRINTF_H_
-
 /* ------------------------------------------------------------ */
+
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -20,7 +20,8 @@ int tiny_printf(const char *format, ...);
 
 /* ------------------------------------------------------------ */
 
-int tiny_sprintf(char *out, const char *format, ...);
+int tiny_snprintf(char *out, size_t len,  const char *format, ...);
+
 
 /* ------------------------------------------------------------ */
 
