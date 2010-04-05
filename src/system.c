@@ -128,3 +128,14 @@ void iwdt_setup(uint8_t prescaler,uint16_t reload)
 }
 
 /*----------------------------------------------------------*/
+void io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t config)
+{
+	for(unsigned i=0; i<31; i++)
+	{
+		if(bit & (1<<i))
+		{
+			io_config(port,i,mode,config);
+		}
+	}
+}
+/*----------------------------------------------------------*/

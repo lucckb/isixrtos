@@ -181,7 +181,8 @@ static inline uint8_t atomic_xchg_byte(volatile uint8_t *addr,uint8_t val)
 #define io_clr(PORT,BIT) (PORT)->BRR = 1<<(BIT)
 
 //! Get GPIO bit macro
-#define io_get(PORT,BIT) (((PORT)->IDR & (1<<(BIT)))?1:0)
+//#define io_get(PORT,BIT) (((PORT)->IDR & (1<<(BIT)))?1:0)
+#define io_get(PORT,BIT) (((PORT)->IDR >> (BIT))&1)
 
 //! Enable apb2 perhiperal macro
 #define io_apb2set(M)  RCC->APB2ENR |= (M)
@@ -206,6 +207,9 @@ static inline void io_config(GPIO_TypeDef* port,uint8_t bit,uint32_t mode,uint32
 		port->CRL |= (mode|(config<<2)) << (4*bit);
 	}
 }
+/*----------------------------------------------------------*/
+
+void io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t config);
 
 /*----------------------------------------------------------*/
 #define FASTRUN __attribute__ ((long_call, section (".ram_func")))
