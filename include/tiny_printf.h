@@ -20,7 +20,7 @@ int tiny_printf(const char *format, ...);
 
 /* ------------------------------------------------------------ */
 
-int tiny_snprintf(char *out, size_t len,  const char *format, ...);
+int tiny_snprintf(char *out, unsigned long len,  const char *format, ...);
 
 
 /* ------------------------------------------------------------ */

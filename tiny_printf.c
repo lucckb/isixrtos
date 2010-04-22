@@ -207,7 +207,7 @@ int tiny_printf(const char *format, ...)
 
 /*----------------------------------------------------------*/
 
-int tiny_snprintf(char *out, size_t max_len, const char *format, ...)
+int tiny_snprintf(char *out, unsigned long max_len, const char *format, ...)
 {
         va_list args;
         va_start( args, format );
