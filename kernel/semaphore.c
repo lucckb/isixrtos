@@ -126,6 +126,7 @@ int isixp_sem_signal(sem_t *sem,bool isr)
     if(task_wake->state & TASK_SLEEPING)
     {
         list_delete(&task_wake->inode);
+        task_wake->state &= ~TASK_SLEEPING;
     }
     //Task in waiting list is always in waking state
     //Reschedule is needed wakeup task have higer prio then current prio

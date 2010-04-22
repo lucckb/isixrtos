@@ -30,7 +30,7 @@ struct task_struct
     unsigned long *top_stack;		//Task stack ptr
     unsigned long *init_stack;      //Initial value of stack for isix_free
     prio_t prio;			    	//Priority of task
-    uint8_t state;              	//stan watku
+    uint8_t state;        			//stan watku
     tick_t jiffies;            		//Ticks when task wake up
     task_ready_t *prio_elem;    	//Pointer to own prio list
     list_t inode_sem;           	//Inode of semaphore

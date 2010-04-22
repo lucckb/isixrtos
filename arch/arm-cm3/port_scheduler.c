@@ -118,9 +118,9 @@ void systick_isr_vector(void)
     //Increment system ticks
     port_set_interrupt_mask();
 	isixp_schedule_time();
-	port_clear_interrupt_mask();
     //Call isix system time handler if used
     isix_systime_handler();
+	port_clear_interrupt_mask();
 
 #ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */

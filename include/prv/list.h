@@ -101,6 +101,8 @@ static inline void list_delete(list_t *elem)
 {
     elem->prev->next = elem->next;
     elem->next->prev = elem->prev;
+    elem->next = NULL;
+    elem->prev = NULL;
 }
 
 
