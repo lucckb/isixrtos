@@ -22,6 +22,7 @@ typedef struct task_ready_struct
 #define TASK_WAITING (1<<2)        //Task is waiting
 #define TASK_RUNNING (1<<3)        //Task is running
 #define TASK_DEAD    (1<<4)        //Task is dead
+#define TASK_SEM_WKUP (1<<5)       //After sem wakeup
 /*-----------------------------------------------------------------------*/
 
 //Definition of task operations

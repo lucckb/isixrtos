@@ -116,11 +116,14 @@ void systick_isr_vector(void) __attribute__((__interrupt__));
 void systick_isr_vector(void)
 {
     //Increment system ticks
-    port_set_interrupt_mask();
-	isixp_schedule_time();
-    //Call isix system time handler if used
+	isixp_enter_critical();
+
+	//Call isix system time handler if used
     isix_systime_handler();
-	port_clear_interrupt_mask();
+	isixp_schedule_time();
+
+	//Clear interrupt mask
+	isixp_exit_critical();
 
 #ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */

@@ -42,14 +42,14 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
     }
     //Allocate task_t structure
     task_t *task = (task_t*)isix_alloc(sizeof(task_t));
-    isix_printk("TaskCreate: Alloc task struct %08x\n",task);
+    isix_printk("Alloc task struct %08x",task);
     //No free memory
     if(task==NULL) return NULL;
     //Zero task structure
     memset(task,0,sizeof(task_t));
     //Try Allocate stack for task
     task->init_stack = isix_alloc(stack_depth);
-    isix_printk("TaskCreate: Alloc stack mem %08x\n",task->init_stack);
+    isix_printk("Alloc stack mem %08x",task->init_stack);
     if(task->init_stack==NULL)
     {
         //Free allocated stack memory
@@ -64,7 +64,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
 #if ISIX_CONFIG_TASK_STACK_CHECK==ISIX_ON
     memset(task->init_stack,MAGIC_FILL_VALUE,stack_depth);
 #endif
-    isix_printk("TaskCreate: Top stack SP=%08x\n",task->top_stack);
+    isix_printk("Top stack SP=%08x",task->top_stack);
     //Assign task priority
     task->prio = priority;
     //Task is ready
@@ -77,7 +77,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
     if(isixp_add_task_to_ready_list(task)<0)
     {
         //Free allocated innode
-        isix_printk("TaskCreate: Add task to ready list failed.");
+        isix_printk("Add task to ready list failed.");
         isix_free(task->top_stack);
         isix_free(task);
 	    isixp_exit_critical();
@@ -93,7 +93,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
     if(isix_current_task->prio>task->prio && isix_scheduler_running==true)
     {
         //New task have higer priority then current task
-	    isix_printk("TaskCreate: Call scheduler new prio %d > old prio %d\n",task->prio,isix_current_task->prio);
+	    isix_printk("Call scheduler new prio %d > old prio %d",task->prio,isix_current_task->prio);
         isix_yield();
     }
     return task;
@@ -121,7 +121,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     bool yield_req = false;
     if(taskc->state & TASK_READY)
     {
-        isix_printk("Change prio of ready task\n");
+        isix_printk("Change prio of ready task");
         isixp_delete_task_from_ready_list(taskc);
         //Assign new prio
         taskc->prio = new_prio;
@@ -135,7 +135,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     }
     else if(taskc->state & TASK_WAITING)
     {
-        isix_printk("Change prio of task waiting on sem\n");
+        isix_printk("Change prio of task waiting on sem");
         list_delete(&taskc->inode_sem);
         //Assign new prio
         taskc->prio = new_prio;
@@ -145,7 +145,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     //Yield processor
     if(yield_req && yield)
     {
-        isix_printk("CPUYield request\n");
+        isix_printk("CPUYield request");
         isix_yield();
     }
     isix_printk("New prio %d\n",new_prio);

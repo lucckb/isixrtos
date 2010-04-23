@@ -10,7 +10,7 @@
 #define ISIX_CONFIG_HZ 1000
 
 /** Enable disable global debug */
-#define ISIX_DEBUG_ENABLE ISIX_DBG_OFF
+#define ISIX_DEBUG_ENABLE ISIX_DBG_ON
 
 /** Configure the thread debugging */
 #define ISIX_CONFIG_TASK_STACK_CHECK ISIX_ON

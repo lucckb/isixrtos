@@ -36,7 +36,7 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
     sem->value = val;
     sem->limit_value = limit_val;
     list_init(&sem->sem_task);
-    isix_printk("SemCreate: Create sem %08x val %d\n",sem,sem->value);
+    isix_printk("Create sem %08x val %d",sem,sem->value);
     return sem;
 }
 
@@ -49,11 +49,11 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     if(sem==NULL && timeout==0) return ISIX_EINVARG;
     //Lock scheduler
     isixp_enter_critical();
-    isix_printk("SemWait: Operate on task %08x state %02x\n",isix_current_task,isix_current_task->state);
+    isix_printk("Operate on task %08x state %02x",isix_current_task,isix_current_task->state);
     if(sem && sem->value>0)
     {
         sem->value--;
-        isix_printk("SemWait: Decrement value %d\n",sem->value);
+        isix_printk("Decrement value %d",sem->value);
         isixp_exit_critical();
         return ISIX_EOK;
     }
@@ -64,7 +64,7 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
         {
             isix_current_task->state &= ~(TASK_READY| TASK_RUNNING );
             isixp_delete_task_from_ready_list(isix_current_task);
-            isix_printk("SemWait: Delete task from ready list\n");
+            isix_printk("Delete task from ready list");
         }
     }
     else
@@ -78,19 +78,25 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     	//Add to waiting list
     	isixp_add_task_to_waiting_list(isix_current_task,timeout);
         isix_current_task->state |= TASK_SLEEPING;
-        isix_printk("SemWait: Wait after %d ticks\n",isix_current_task->jiffies);
+        isix_printk("Wait after %d ticks",isix_current_task->jiffies);
     }
     if(sem)
     {
-        isixp_add_task_to_sem_list(&sem->sem_task,isix_current_task);
+    	if(isix_current_task->sem)
+    	{
+    	   isix_printk("OOPS task assigned to not empty sem %08x",isix_current_task->sem);
+    	   isix_bug();
+    	}
+    	isixp_add_task_to_sem_list(&sem->sem_task,isix_current_task);
         isix_current_task->state |= TASK_WAITING;
         isix_current_task->sem = sem;
-        isix_printk("SemWait: Add task %08x to sem\n",isix_current_task);
+        isix_printk("Add task %08x to sem",isix_current_task);
     }
     isixp_exit_critical();
     isix_yield();
-    isix_printk("SemWait: task %08x after wakeup reason %d\n",isix_current_task,sem->sem_ret);
-    return sem->sem_ret;
+    isix_printk("task %08x after wakeup reason %d", isix_current_task,
+    	(isix_current_task->state&TASK_SEM_WKUP)?ISIX_EOK:ISIX_ETIMEOUT);
+    return (isix_current_task->state&TASK_SEM_WKUP)?ISIX_EOK:ISIX_ETIMEOUT;
 }
 
 /*--------------------------------------------------------------*/
@@ -100,7 +106,7 @@ int isixp_sem_signal(sem_t *sem,bool isr)
     //If not sem not release it
     if(!sem)
     {
-        isix_printk("SemSignal: No sem\n");
+        isix_printk("No sem");
         return ISIX_EINVARG;
     }
     isixp_enter_critical();
@@ -115,13 +121,13 @@ int isixp_sem_signal(sem_t *sem,bool isr)
         		sem->value = sem->limit_value;
         	}
         }
-        isix_printk("SemSignal: Waiting list is empty incval to %d\n",sem->value);
+        isix_printk("Waiting list is empty incval to %d",sem->value);
         isixp_exit_critical();
         return ISIX_EOK;
     }
     //List is not empty wakeup high priority task
     task_t *task_wake = list_get_first(&sem->sem_task,inode_sem,task_t);
-    isix_printk("SemSignal: Task to wakeup %08x\n",task_wake);
+    isix_printk("Task to wakeup %08x",task_wake);
     //Remove from time list
     if(task_wake->state & TASK_SLEEPING)
     {
@@ -130,11 +136,20 @@ int isixp_sem_signal(sem_t *sem,bool isr)
     }
     //Task in waiting list is always in waking state
     //Reschedule is needed wakeup task have higer prio then current prio
-    list_delete(&task_wake->inode_sem);
+    if(!task_wake->sem)
+    {
+    	isix_printk("OOPS sem is empty when sem is required");
+    	isix_bug();
+    }
+    if(task_wake->sem != sem)
+    {
+    	isix_printk("This task is not assigned to valid sem");
+    	isix_bug();
+    }
     task_wake->state &= ~TASK_WAITING;
-    task_wake->state |= TASK_READY;
-    sem->sem_ret = 0;
-    isix_current_task->sem = NULL;
+    task_wake->state |= TASK_READY | TASK_SEM_WKUP;
+    task_wake->sem = NULL;
+    list_delete(&task_wake->inode_sem);
     if(isixp_add_task_to_ready_list(task_wake)<0)
     {
         isixp_exit_critical();
@@ -142,7 +157,7 @@ int isixp_sem_signal(sem_t *sem,bool isr)
     }
     if(task_wake->prio<isix_current_task->prio && !isr)
     {
-        isix_printk("SemSignal: Yield processor higer prio\n");
+        isix_printk("Yield processor higer prio");
         isixp_exit_critical();
         isix_yield();
         return ISIX_EOK;

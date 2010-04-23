@@ -170,10 +170,15 @@ void isixp_schedule_time(void)
         list_delete(&task_c->inode);
         if(task_c->state & TASK_WAITING)
         {
+            if(!task_c->sem)
+            {
+            	isix_printk("OOPS task waiting when not assigned to sem");
+            	isix_bug();
+            }
+        	task_c->state &= ~ TASK_SEM_WKUP;
+            task_c->sem = NULL;
             task_c->state &= ~TASK_WAITING;
             list_delete(&task_c->inode_sem);
-            task_c->sem->sem_ret = ISIX_ETIMEOUT;
-            task_c->sem = NULL;
             isix_printk("SchedulerTime: Timeout delete from sem list\n");
         }
         if(isixp_add_task_to_ready_list(task_c)<0)

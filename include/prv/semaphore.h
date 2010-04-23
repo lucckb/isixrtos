@@ -12,8 +12,6 @@ struct sem_struct
     int value;
     //Task val waiting for semaphore
     list_entry_t sem_task;
-    //Return reason
-    int sem_ret;
     //Resource type
     bool static_mem;
     //Semaphore limit value
