@@ -11,7 +11,8 @@
 /* ------------------------------------------------------------ */
 
 #ifdef __cplusplus
- extern "C" {
+namespace fnd {
+extern "C" {
 #endif
 
 /* ------------------------------------------------------------ */
@@ -29,6 +30,7 @@ void register_printf_putc_handler(int (*fputc)(int, void*),void *arg);
 
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
+ }
  }
 #endif
 

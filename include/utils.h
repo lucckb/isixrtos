@@ -10,7 +10,8 @@
 #define UTILS_H_
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
- extern "C" {
+namespace fnd {
+extern "C" {
 #endif
 /* ------------------------------------------------------------ */
 //Convert string to unsigned
@@ -18,6 +19,7 @@ unsigned fnd_atoui(const char *str);
 void fnd_uitoa(char *str, unsigned val , int fmt);
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
+ }
  }
 #endif
 /* ------------------------------------------------------------ */
