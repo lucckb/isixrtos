@@ -9,7 +9,8 @@
 
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
- extern "C" {
+ namespace stm32 {
+	extern "C" {
 #endif
 
 /*----------------------------------------------------------*/
@@ -60,31 +61,37 @@ void nvic_irq_pend_clear(IRQn_Type irq_num);
 
 /*----------------------------------------------------------*/
 //! Memory access in bit band region
+enum {
+	RAM_BASE =      0x20000000,
+	RAM_BB_BASE =    0x22000000
+};
 
-#define RAM_BASE       0x20000000
-#define RAM_BB_BASE    0x22000000
+static inline void resetBit_BB(void *VarAddr, unsigned BitNumber)
+{
+     (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)) = 0);
+}
 
+static inline void setBit_BB(void *VarAddr, unsigned BitNumber)
+{
+    (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)) = 1);
+}
 
-#define  resetBit_BB(VarAddr, BitNumber)    \
-          (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)) = 0)
-
-#define  setBit_BB(VarAddr, BitNumber)       \
-          (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)) = 1)
-
-#define getBit_BB(VarAddr, BitNumber)       \
-          (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)))
+static inline bool getBit_BB(void *VarAddr, unsigned BitNumber)
+{
+     return (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)));
+}
 
 /*----------------------------------------------------------*/
 //! Sleep mode wait for interrupt macros
 #ifndef PDEBUG
-#define wfi() asm volatile("wfi")
+static inline void wfi(void ) { asm volatile("wfi"); }
 #else
-#define wfi()
+static inline void wfi(void) {}
 #endif
 
 /*----------------------------------------------------------*/
 //! NOP command definition
-#define nop() asm volatile("nop")
+static inline void nop(void) { asm volatile("nop"); }
 
 /*----------------------------------------------------------*/
 /** Configure watchdog with timeout
@@ -96,10 +103,11 @@ void iwdt_setup(uint8_t prescaler,uint16_t reload);
 /*----------------------------------------------------------*/
 
 /** KR register bit mask */
-#define KR_KEY_Reload    ((u16)0xAAAA)
-
+enum {
+	KR_KEY_Reload  = 0xAAAA
+};
 //! Reset Watchdog MACRO
-#define iwdt_reset() IWDG->KR = KR_KEY_Reload
+static inline void iwdt_reset(void) { IWDG->KR = KR_KEY_Reload; }
 
 /*----------------------------------------------------------*/
 /** Try write atomic into specified location
@@ -149,43 +157,58 @@ static inline uint8_t atomic_xchg_byte(volatile uint8_t *addr,uint8_t val)
 
 /*----------------------------------------------------------*/
 /** GPIO bits macros */
+enum
+{
+	//! GPIO mode input
+	GPIO_MODE_INPUT = 0,
+	//! GPIO mode out 10MHZ
+	GPIO_MODE_10MHZ = 1,
+	//! GPIO mode out 2MHZ
+	GPIO_MODE_2MHZ = 2,
+	//! GPIO mode out 50MHZ
+	GPIO_MODE_50MHZ = 3
+};
 
-//! GPIO mode input
-#define GPIO_MODE_INPUT 0
-//! GPIO mode out 10MHZ
-#define GPIO_MODE_10MHZ 1
-//! GPIO mode out 2MHZ
-#define GPIO_MODE_2MHZ  2
-//! GPIO mode out 50MHZ
-#define GPIO_MODE_50MHZ 3
+enum
+{
+	//! GPIO mode PUSH-PULL
+	GPIO_CNF_GPIO_PP = 0,
+	//! GPIO mode Open Drain
+	GPIO_CNF_GPIO_OD = 1,
+	//! Alternate function PUSH-PULL
+	GPIO_CNF_ALT_PP = 2,
+	//! Alternate function Open Drain
+	GPIO_CNF_ALT_OD = 3
+};
 
-//! GPIO mode PUSH-PULL
-#define GPIO_CNF_GPIO_PP 0
-//! GPIO mode Open Drain
-#define GPIO_CNF_GPIO_OD 1
-//! Alternate function PUSH-PULL
-#define GPIO_CNF_ALT_PP  2
-//! Alternate function Open Drain
-#define GPIO_CNF_ALT_OD  3
-//! Configuration IN analog mode
-#define GPIO_CNF_IN_ANALOG 0
-//! Configuration IN float mode
-#define GPIO_CNF_IN_FLOAT 1
-//! Configuration IN pullup mode
-#define GPIO_CNF_IN_PULLUP 2
+enum
+{
+	//! Configuration IN analog mode
+	GPIO_CNF_IN_ANALOG = 0,
+	//! Configuration IN float mode
+	GPIO_CNF_IN_FLOAT = 1,
+	//! Configuration IN pullup mode
+	GPIO_CNF_IN_PULLUP = 2
+};
 
 //! Set GPIO bit macro
-#define io_set(PORT,BIT) (PORT)->BSRR = 1<<(BIT)
+static inline void io_set(GPIO_TypeDef* port , unsigned bit)
+{
+	port->BSRR = 1<<bit;
+}
 
 //! Clear GPIO bit macro
-#define io_clr(PORT,BIT) (PORT)->BRR = 1<<(BIT)
+static inline void io_clr(GPIO_TypeDef* port , unsigned bit)
+{
+	port->BRR = 1<<bit;
+}
 
 //! Get GPIO bit macro
 //#define io_get(PORT,BIT) (((PORT)->IDR & (1<<(BIT)))?1:0)
-#define io_get(PORT,BIT) (((PORT)->IDR >> (BIT))&1)
-
-//! Enable apb2 perhiperal macro
-#define io_apb2set(M)  RCC->APB2ENR |= (M)
+static inline bool io_get(GPIO_TypeDef* port , unsigned bit)
+{
+	return (port->IDR >> (bit))&1;
+}
 
 /*----------------------------------------------------------*/
 /**
@@ -212,11 +235,12 @@ static inline void io_config(GPIO_TypeDef* port,uint8_t bit,uint32_t mode,uint32
 void io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t config);
 
 /*----------------------------------------------------------*/
-#define FASTRUN __attribute__ ((long_call, section (".ram_func")))
+#define STM32_FASTRUN __attribute__ ((long_call, section (".ram_func")))
 
 /*----------------------------------------------------------*/
 
 #ifdef __cplusplus
+}
 }
 #endif
 

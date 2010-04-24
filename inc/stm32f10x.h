@@ -797,7 +797,7 @@ typedef struct
   * @brief General Purpose I/O
   */
 
-typedef struct
+typedef struct GPIO_TypeDef
 {
   __IO uint32_t CRL;
   __IO uint32_t CRH;
