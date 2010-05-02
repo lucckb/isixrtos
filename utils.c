@@ -43,14 +43,14 @@ static void strrev(char *str, int len)
 	}
 }
 /* ------------------------------------------------------------ */
-void fnd_uitoa(char *str, unsigned val ,int fmt)
+void fnd_uitoa(char *str, unsigned val ,int fmt, char fmtch)
 {
     int digits;
     if(fmt>10) return;
     for(digits=0; val>0; val/=10,digits++)
         str[digits] = val % 10 + '0';
     for(int i=fmt-digits; i>0; i--,digits++)
-        str[digits] = '0';
+        str[digits] = fmtch;
     str[digits] = '\0';
     strrev(str,digits);
 }

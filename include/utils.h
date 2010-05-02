@@ -16,7 +16,7 @@ extern "C" {
 /* ------------------------------------------------------------ */
 //Convert string to unsigned
 unsigned fnd_atoui(const char *str);
-void fnd_uitoa(char *str, unsigned val , int fmt);
+void fnd_uitoa(char *str, unsigned val , int fmt,  char fmtch);
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
  }
