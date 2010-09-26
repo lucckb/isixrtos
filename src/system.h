@@ -190,26 +190,43 @@ enum
 	//! Configuration IN pullup mode
 	GPIO_CNF_IN_PULLUP = 2
 };
-
+/*----------------------------------------------------------*/
 //! Set GPIO bit macro
 static inline void io_set(GPIO_TypeDef* port , unsigned bit)
 {
 	port->BSRR = 1<<bit;
 }
-
+/*----------------------------------------------------------*/
 //! Clear GPIO bit macro
 static inline void io_clr(GPIO_TypeDef* port , unsigned bit)
 {
 	port->BRR = 1<<bit;
 }
-
+/*----------------------------------------------------------*/
+//! Set by the mask
+static inline void io_set_mask(GPIO_TypeDef* port , uint16_t bitmask)
+{
+	port->BSRR = bitmask;
+}
+/*----------------------------------------------------------*/
+//! Clear GPIO bit mask
+static inline void io_clr_mask(GPIO_TypeDef* port , uint16_t bitmask)
+{
+	port->BRR = bitmask;
+}
+/*----------------------------------------------------------*/
 //! Get GPIO bit macro
 //#define io_get(PORT,BIT) (((PORT)->IDR & (1<<(BIT)))?1:0)
 static inline bool io_get(GPIO_TypeDef* port , unsigned bit)
 {
 	return (port->IDR >> (bit))&1;
 }
-
+/*----------------------------------------------------------*/
+//! Get GPIO bit mask
+static inline bool io_get_mask(GPIO_TypeDef* port , uint16_t bitmask)
+{
+	return port->IDR & bitmask;
+}
 /*----------------------------------------------------------*/
 /**
  * 	Configure GPIO line into selected mode

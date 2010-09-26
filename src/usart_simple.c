@@ -35,8 +35,8 @@
 #define USART_ORE (1<<3)
 
 /* ---------------------------------------------------------------------------- */
-#define USED_UART CFG_USART1
-//#define USART_ALTERNATE_OUTPUT
+#define USED_UART CFG_USART2
+#define USART_ALTERNATE_OUTPUT
 /* ---------------------------------------------------------------------------- */
 #define CFG_USART1 1
 #define CFG_USART2 2
