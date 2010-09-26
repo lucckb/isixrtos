@@ -215,6 +215,12 @@ static inline void io_clr_mask(GPIO_TypeDef* port , uint16_t bitmask)
 	port->BRR = bitmask;
 }
 /*----------------------------------------------------------*/
+//! set clr in one op
+static inline void io_set_clr_mask(GPIO_TypeDef* port , uint16_t enflags, uint16_t mask)
+{
+	port->BSRR = (uint32_t)(enflags & mask) | ((uint32_t)( ~enflags & mask)<<16);
+}
+/*----------------------------------------------------------*/
 //! Get GPIO bit macro
 //#define io_get(PORT,BIT) (((PORT)->IDR & (1<<(BIT)))?1:0)
 static inline bool io_get(GPIO_TypeDef* port , unsigned bit)
@@ -223,7 +229,7 @@ static inline bool io_get(GPIO_TypeDef* port , unsigned bit)
 }
 /*----------------------------------------------------------*/
 //! Get GPIO bit mask
-static inline bool io_get_mask(GPIO_TypeDef* port , uint16_t bitmask)
+static inline uint16_t io_get_mask(GPIO_TypeDef* port , uint16_t bitmask)
 {
 	return port->IDR & bitmask;
 }
