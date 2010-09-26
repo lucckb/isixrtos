@@ -15,12 +15,19 @@
  namespace stm32 {
 	extern "C" {
 #endif
-/* ---------------------------------------------------------------------------- */
-#define USARTSIMPLE_EOF (-1)
 
 /* ---------------------------------------------------------------------------- */
+enum
+{
+	USARTSIMPLE_INIT_OK,
+	USARTSIMPLE_EOF = -1,
+	USARTSIMPLE_NOT_INIT = -2,
+	USARTSIMPLE_INIT_FAIL=-3
+};
+/* ---------------------------------------------------------------------------- */
 //Initialize uart
-void usartsimple_init(unsigned baudrate);
+int usartsimple_init(USART_TypeDef *usart, unsigned baudrate, bool alternate,
+		unsigned long pclk1_hz, unsigned long pclk2_hz);
 
 /* ---------------------------------------------------------------------------- */
 //USART putchar
