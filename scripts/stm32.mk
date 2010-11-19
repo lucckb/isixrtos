@@ -138,21 +138,15 @@ else
 endif
 
 $(OBJDIR)/%.dep: %.c
-	$(CC) -M $(CFLAGS) $< > $@; \
-	sed -e 's/\(^$(*F)\.o\)/$(OBJDIR)\/\1/g' -i $@; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' -i $@
+	$(CC) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(CFLAGS) $< 
 
 
 $(OBJDIR)/%.dep: %.cpp 
-	$(CXX) -M $(CXXFLAGS) $< > $@; \
-	sed -e 's/\(^$(*F)\.o\)/$(OBJDIR)\/\1/g' -i $@; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' -i $@
+	$(CXX) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(CXXFLAGS) $< 
 
 
 $(OBJDIR)/%.dep: %.S
-	$(CC) -M $(ASFLAGS) $< > $@; \
-	sed -e 's/\(^$(*F)\.o\)/$(OBJDIR)\/\1/g' -i $@; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' -i $@
+	$(CC) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(ASFLAGS) $< 
 
 
 %.lss: %.elf
