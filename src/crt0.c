@@ -322,10 +322,9 @@ void reset_handler(void)
     {
         *(pulDest++) = 0;
     }
-
-#if defined(CPP_STARTUP_CODE)
     //Startup code before construtors call
     __external_startup();
+#if defined(CPP_STARTUP_CODE)
 #if !defined(__ARM_EABI__)
     //Call constructor
     crt0_sys_construction();
@@ -352,7 +351,7 @@ void reset_handler(void)
 }
 
 /*----------------------------------------------------------*/
-#ifndef __UNDER_ISIX__
+#if !defined( __UNDER_ISIX__) && defined(CPP_STARTUP_CODE)
 /* thread safe constructed objects  */
 void __cxa_guard_acquire ()
 {
