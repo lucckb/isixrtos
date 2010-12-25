@@ -15,8 +15,8 @@
 /* -------------------------------------------------------------- */
 #ifndef __UNDER_ISIX__
 //It can be redefined
-#define foundation_alloc tiny_alloc
-#define foundation_free tiny_free
+#define foundation_alloc fnd::tiny_alloc
+#define foundation_free fnd::tiny_free
 
 #else /*__UNDER_ISIX__*/
 
