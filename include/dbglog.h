@@ -21,6 +21,7 @@
   	   usart_init(__VA_ARGS__); } while(0)
 #define dblog_init_putc(function,arg) fnd::register_printf_putc_handler(function,arg)
 #define dbprintf(fmt, ...) fnd::tiny_printf("%s:%d|"fmt"\r\n",__FILE__,__LINE__,## __VA_ARGS__)
+#define dblog_init_simple(function, arg ) fnd::register_printf_putc_handler(function,arg)
 
 #else
 
@@ -29,7 +30,7 @@
   	   usart_init(__VA_ARGS__); } while(0)
 #define dblog_init_putc(function,arg) register_printf_putc_handler(function,arg)
 #define dbprintf(fmt, ...) tiny_printf("%s:%d|"fmt"\r\n",__FILE__,__LINE__,## __VA_ARGS__)
-
+#define dblog_init_simple(function, arg ) register_printf_putc_handler(function,arg)
 
 #endif /*__cplusplus */
 
@@ -39,7 +40,7 @@
 #define dblog_init(function,arg, usart_init,...) do {} while(0)
 #define dblog_init_putc(function,arg) do {} while(0)
 #define dbprintf(...) do {} while(0)
-
+#define dblog_init_simple(function, arg ) do {} while(0)
 
 #endif /* PDEBUG */
 
