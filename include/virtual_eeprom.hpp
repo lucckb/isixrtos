@@ -30,6 +30,9 @@ public:
 	virtual_eeprom(iflash_mem &_flash);
 	int read(unsigned address, unsigned &value ) const;
 	int write(unsigned address, unsigned value);
+protected:
+	virtual void lock() const {}
+	virtual void unlock() const {}
 private:
 	int find_free_slot() const;
 	int sort_flash();

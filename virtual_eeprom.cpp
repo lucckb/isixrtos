@@ -37,13 +37,14 @@ virtual_eeprom::virtual_eeprom(iflash_mem &_flash)
 	: flash(_flash), active_page(0), inactive_page(0), va_max(flash.page_size()/8)
 {
 	// TODO Auto-generated constructor stub
+	lock();
 	iflash_mem::paddr_t npages = flash.num_pages();
 	unsigned short val1, val2;
 	flash.read_halfword( npages-1, EEHDR_ADDRESS, val1 );
 	flash.read_halfword( npages-2, EEHDR_ADDRESS, val2 );
 	if(val1==EEHDR_VALID && val2==EEHDR_VALID)
 	{
-		if( flash.page_erase( npages-2 )<0 ) return;
+		if( flash.page_erase( npages-2 )<0 ) { unlock(); return; }
 	}
 	if(val1==EEHDR_VALID)
 	{
@@ -68,6 +69,7 @@ virtual_eeprom::virtual_eeprom(iflash_mem &_flash)
 			inactive_page = npages - 2;
 		}
 	}
+	unlock();
 }
 /* ------------------------------------------------------------------ */
 int virtual_eeprom::find_free_slot() const
@@ -126,6 +128,7 @@ int virtual_eeprom::read(unsigned addr, unsigned &value ) const
 		return ERRNO_INIT;
 	if( addr>va_max )
 		return ERRNO_VA_RANGE;
+	lock();
 	const int eaddr = (flash.page_size() / sizeof(eeitem) ) * sizeof(eeitem)
 			- sizeof(eeitem) + sizeof(uint16_t);
 	for(int a=eaddr; a>=static_cast<int>(sizeof(uint16_t)); a-=sizeof(eeitem) )
@@ -135,9 +138,11 @@ int virtual_eeprom::read(unsigned addr, unsigned &value ) const
 		if( vaddr == addr)
 		{
 			flash.read_word( active_page, a+sizeof(vaddr), value );
+			unlock();
 			return ERRNO_OK;
 		}
 	}
+	unlock();
 	return ERRNO_NOT_FOUND;
 }
 
@@ -148,16 +153,18 @@ int virtual_eeprom::write(unsigned address, unsigned value)
 		return ERRNO_INIT;
 	if(address>va_max)
 		return ERRNO_VA_RANGE;
+	lock();
 	int fsaddr = find_free_slot();
 	if(fsaddr<0)	//No free slot try sort it
 	{
 		int sf = sort_flash();
-		if(sf<0) return sf;
+		if(sf<0) { unlock(); return sf; }
 		fsaddr = find_free_slot();
-		if(fsaddr>0) return fsaddr;
+		if(fsaddr>0) { unlock(); return fsaddr; }
 	}
 	int res = flash.write_halfword( active_page, fsaddr, address );
 	if(res>=0) res = flash.write_word(active_page, fsaddr+sizeof(uint16_t), value );
+	unlock();
 	return res;
 }
 
