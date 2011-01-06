@@ -18,6 +18,7 @@ namespace fnd
 class virtual_eeprom
 {
 public:
+	static const unsigned value_size = sizeof(unsigned);
 	enum errno
 	{
 		ERRNO_OK,
