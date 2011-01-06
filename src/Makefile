@@ -12,7 +12,7 @@ OPT 	?= 2
 
 
 #Common flags 
-COMMON_FLAGS = -Wall -I../inc -DCPP_STARTUP_CODE 
+COMMON_FLAGS = -Wall -I../inc -DCPP_STARTUP_CODE  -I../../libfoundation/include
 #-DFUNCTION_MAIN_RETURN
 
 #Opcje kompilatora C
