@@ -52,6 +52,18 @@ static inline void irq_umask(void)
 			::"r"(0):"cc"
 	);
 }
+/*----------------------------------------------------------*/
+//!Disable IRQ in the core
+static inline void irq_disable(void)
+{
+	asm volatile("cpsid i\t\n");
+}
+/*----------------------------------------------------------*/
+//!Enable IRQ in the core
+static inline void irq_enable(void)
+{
+	asm volatile("cpsie i\t\n");
+}
 
 /*----------------------------------------------------------*/
 /** Clear pending IRQ interrupt in CORTEX-M3 core
