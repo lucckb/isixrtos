@@ -55,10 +55,10 @@ CXXFLAGS += -g -DPDEBUG
 LDFLAGS += -g -DPDEBUG
 ASFLAGS += -gstabs -DPDEBUG
 else
-CFLAGS += -fomit-frame-pointer
-CXXFLAGS += -fomit-frame-pointer
-LDFLAGS += -fomit-frame-pointer
-ASFLAGS += -fomit-frame-pointer
+CFLAGS += -fomit-frame-pointer -flto
+CXXFLAGS += -fomit-frame-pointer -flto
+LDFLAGS += -fomit-frame-pointer -flto
+ASFLAGS += -fomit-frame-pointer -flto
 #Remove unused functions 
 CFLAGS += -ffunction-sections -fdata-sections
 CXXFLAGS += -ffunction-sections -fdata-sections
