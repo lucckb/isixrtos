@@ -35,7 +35,7 @@ class usart_buffered
 {
 	friend void usart1_isr_vector(void);
 	friend void usart2_isr_vector(void);
-#if	defined(STM32F10X_HD) || defined(STM32F10X_CL)
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
 	friend void usart3_isr_vector(void);
 #endif
 #if	defined(STM32F10X_HD) || defined(STM32F10X_CL)
@@ -52,10 +52,10 @@ public:
 	};
 
 	//Constructor
-	explicit usart_buffered(
-		USART_TypeDef *_usart, unsigned _pclk1_hz,
-		unsigned _pclk2_hz, unsigned cbaudrate = 115200,
-		std::size_t queue_size=192, parity cpar=parity_none
+	usart_buffered(
+		USART_TypeDef *_usart, unsigned _pclk1_hz, unsigned _pclk2_hz,
+		unsigned cbaudrate = 115200, std::size_t queue_size=192, parity cpar=parity_none,
+		unsigned _irq_prio=1, unsigned _irq_sub=7, bool alterate_gpio=false
 	);
 
 	//Set baudrate
@@ -87,26 +87,30 @@ public:
 protected:
 	virtual void before_tx() {}
 	virtual void after_tx() {}
-private:
-	static const unsigned USART2_IRQ_PRIO = 0;
-	static const unsigned USART2_IRQ_SUB = 7;
-	static const unsigned USART1_IRQ_PRIO = 1;
-	static const unsigned USART1_IRQ_SUB = 6;
+
 private:
 	void start_tx();
 	void isr();
-	void irq_mask();
+	void irq_mask() { stm32::irq_mask( irq_prio, irq_sub ); }
 	void irq_umask() { stm32::irq_umask(); }
 	void periphcfg_usart1(bool is_alternate);
 	void periphcfg_usart2(bool is_alternate);
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
+	void periphcfg_usart3(bool is_alternate);
+#endif
+#if defined(STM32F10X_HD) || defined(STM32F10X_CL)
+	void periphcfg_usart4(bool is_alternate);
+	void periphcfg_usart5(bool is_alternate);
+#endif
 private:
 	USART_TypeDef * const usart;
 	const unsigned pclk1_hz;
 	const unsigned pclk2_hz;
 	isix::fifo<char> tx_queue;
 	isix::fifo<char> rx_queue;
+	const unsigned char irq_prio;
+	const unsigned char irq_sub;
 	volatile bool tx_en;
-
 private: 	//Noncopyable
 	usart_buffered(usart_buffered &);
 	usart_buffered& operator=(const usart_buffered&);

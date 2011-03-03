@@ -104,23 +104,57 @@ void usart_buffered::periphcfg_usart2(bool is_alternate)
 		 AFIO->MAPR |= AFIO_MAPR_USART2_REMAP;
 	}
 }
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
+	void usart_buffered::periphcfg_usart3(bool is_alternate)
+	{
+
+	}
+#endif
+#if defined(STM32F10X_HD) || defined(STM32F10X_CL)
+	void usart_buffered::periphcfg_usart4(bool is_alternate)
+	{
+
+	}
+	void usart_buffered::periphcfg_usart5(bool is_alternate)
+	{
+
+	}
+#endif
 /*----------------------------------------------------------*/
 //! Constructor called for usart buffered
 usart_buffered::usart_buffered(USART_TypeDef *_usart,
-		unsigned _pclk1_hz, unsigned _pclk2_hz,
-		unsigned cbaudrate, std::size_t queue_size ,parity cpar
+		unsigned _pclk1_hz, unsigned _pclk2_hz, unsigned cbaudrate,
+		std::size_t queue_size ,parity cpar, unsigned _irq_prio, unsigned _irq_sub,
+		 bool alterate_gpio
 ) : usart(_usart), pclk1_hz(_pclk1_hz), pclk2_hz(_pclk2_hz),
-	tx_queue(queue_size), rx_queue(queue_size) , tx_en( false )
+	tx_queue(queue_size), rx_queue(queue_size),
+	irq_prio(_irq_prio), irq_sub(_irq_sub) ,tx_en( false )
 {
 	using namespace stm32;
 	if(_usart == USART1)
 	{
-		periphcfg_usart1(false);
+		periphcfg_usart1(alterate_gpio);
 	}
 	else if(_usart == USART2)
 	{
-		periphcfg_usart2(false);
+		periphcfg_usart2(alterate_gpio);
 	}
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
+	else if(_usart == USART3)
+	{
+		periphcfg_usart3(alterate_gpio);
+	}
+#endif
+#if	defined(STM32F10X_HD) || defined(STM32F10X_CL)
+	else if(_usart == UART4)
+	{
+		periphcfg_usart4(alterate_gpio);
+	}
+	else if(_usart == UART5)
+	{
+		periphcfg_usart5(alterate_gpio);
+	}
+#endif
 	//Enable UART
 	usart->CR1 = CR1_UE_SET;
 	//Setup default baudrate
@@ -132,21 +166,40 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 
 	//Enable receiver and transmitter and anable related interrupts
 	usart->CR1 |=  USART_Mode_Rx |USART_RXNEIE | USART_Mode_Tx ;
-
+	IRQn irq_num = WWDG_IRQn;
 	if( _usart == USART1 )
 	{
 		usart1_obj = this;
-		//Enable usart IRQ with lower priority
-		nvic_set_priority( USART1_IRQn,USART1_IRQ_PRIO, USART1_IRQ_SUB );
-		nvic_irq_enable( USART1_IRQn, true );
+		irq_num = USART1_IRQn;
 	}
 	else if( _usart == USART2 )
 	{
 		usart2_obj = this;
-		//Enable usart IRQ with lower priority
-		nvic_set_priority( USART2_IRQn,USART2_IRQ_PRIO, USART2_IRQ_SUB );
-		//FIXME: modbus debug only
-		nvic_irq_enable(  USART2_IRQn, true );
+		irq_num = USART2_IRQn;
+	}
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
+	else if(  _usart == USART3 )
+	{
+		usart3_obj = this;
+		irq_num = USART3_IRQn;
+	}
+#endif
+#if	defined(STM32F10X_HD) || defined(STM32F10X_CL)
+	else if(  _usart == UART4 )
+	{
+		usart4_obj = this;
+		irq_num = UART4_IRQn;
+	}
+	else if(  _usart == UART5 )
+	{
+		usart5_obj = this;
+		irq_num = UART5_IRQn;
+	}
+#endif
+	if(irq_num != WWDG_IRQn)
+	{
+		nvic_set_priority( irq_num, _irq_prio, _irq_sub );
+		nvic_irq_enable( irq_num, true );
 	}
 }
 
@@ -189,14 +242,7 @@ void usart_buffered::set_parity(parity new_parity)
 		usart->CR1 &= ~USART_PS_BIT;
 	}
 }
-/*----------------------------------------------------------*/
-void usart_buffered::irq_mask()
-{
-	if(usart==USART1)
-		stm32::irq_mask(USART1_IRQ_PRIO, USART1_IRQ_SUB);
-	else if(usart==USART2)
-		stm32::irq_mask(USART2_IRQ_PRIO, USART2_IRQ_SUB);
-}
+
 /*----------------------------------------------------------*/
 //! Usart start transmision called by usb endpoint
 void usart_buffered::start_tx()
