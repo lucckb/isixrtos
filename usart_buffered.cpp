@@ -39,20 +39,36 @@ namespace
 	const unsigned USART1_TX_BIT = 9;
 	const unsigned USART1_RX_BIT = 10;
 	GPIO_TypeDef * const USART1_PORT = GPIOA;
+	//Alternate usart1
+	const unsigned USART1_ALT_TX_BIT = 6;
+	const unsigned USART1_ALT_RX_BIT = 7;
+	GPIO_TypeDef * const USART1_ALT_PORT = GPIOB;
 	//USART2 port
 	const unsigned USART2_TX_BIT = 2;
 	const unsigned USART2_RX_BIT = 3;
 	GPIO_TypeDef * const USART2_PORT = GPIOA;
-
 	//Alternate usart2
 	const unsigned USART2_ALT_TX_BIT = 5;
 	const unsigned USART2_ALT_RX_BIT = 6;
 	GPIO_TypeDef * const USART2_ALT_PORT = GPIOD;
+	//USART3 port
+	const unsigned USART3_TX_BIT = 10;
+	const unsigned USART3_RX_BIT = 11;
+	GPIO_TypeDef * const USART3_PORT = GPIOB;
+	//USART4 port
+	const unsigned USART4_TX_BIT = 10;
+	const unsigned USART4_RX_BIT = 11;
+	GPIO_TypeDef * const USART4_PORT = GPIOC;
+	//USART5 port
+	const unsigned USART5_TX_BIT = 12;
+	const unsigned USART5_RX_BIT = 2;
+	GPIO_TypeDef * const USART5_PORT_TX = GPIOC;
+	GPIO_TypeDef * const USART5_PORT_RX = GPIOD;
+
 
 
 	const unsigned CR1_UE_SET = 0x2000;
 	const unsigned CCR_ENABLE_SET = 0x00000001;
-	const unsigned USART1_DR_BASE = 0x40013804;
 	const unsigned USART_M_BIT = (1<<12);
 	const unsigned USART_PCE_BIT = (1<<10);
 	const unsigned USART_PS_BIT = (1<<9);
@@ -80,7 +96,10 @@ void usart_buffered::periphcfg_usart1(bool is_alternate)
 	}
 	else
 	{
-		//TODO: Alternative remap reimpl
+		 RCC->APB2ENR |= RCC_APB2ENR_AFIOEN |RCC_APB2Periph_GPIOB | RCC_APB2Periph_USART1;
+		 io_config(USART1_ALT_PORT,USART1_ALT_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+		 io_config(USART1_ALT_PORT,USART1_ALT_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+		 AFIO->MAPR |= AFIO_MAPR_USART1_REMAP;
 	}
 }
 /*----------------------------------------------------------*/
@@ -107,17 +126,32 @@ void usart_buffered::periphcfg_usart2(bool is_alternate)
 #if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
 	void usart_buffered::periphcfg_usart3(bool is_alternate)
 	{
-
+		//TODO: Add remapping
+		RCC->APB2ENR |= RCC_APB2Periph_GPIOB;
+		RCC->APB1ENR |= RCC_APB1Periph_USART3;
+		//Configure GPIO port TxD and RxD
+		io_config(USART3_PORT,USART3_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+		io_config(USART3_PORT,USART3_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
 	}
 #endif
 #if defined(STM32F10X_HD) || defined(STM32F10X_CL)
 	void usart_buffered::periphcfg_usart4(bool is_alternate)
 	{
-
+		//TODO: Add remapping
+		RCC->APB2ENR |= RCC_APB2Periph_GPIOC;
+		RCC->APB1ENR |= RCC_APB1Periph_UART4;
+		//Configure GPIO port TxD and RxD
+		io_config(USART4_PORT,USART4_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+		io_config(USART4_PORT,USART4_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
 	}
 	void usart_buffered::periphcfg_usart5(bool is_alternate)
 	{
-
+		//TODO: Add remapping
+		RCC->APB2ENR |= RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD;
+		RCC->APB1ENR |= RCC_APB1Periph_UART5;
+		//Configure GPIO port TxD and RxD
+		io_config(USART5_PORT_TX,USART5_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+		io_config(USART5_PORT_RX,USART5_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
 	}
 #endif
 /*----------------------------------------------------------*/
@@ -131,29 +165,14 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 	irq_prio(_irq_prio), irq_sub(_irq_sub) ,tx_en( false )
 {
 	using namespace stm32;
-	if(_usart == USART1)
-	{
-		periphcfg_usart1(alterate_gpio);
-	}
-	else if(_usart == USART2)
-	{
-		periphcfg_usart2(alterate_gpio);
-	}
+	if(_usart == USART1) periphcfg_usart1(alterate_gpio);
+	else if(_usart == USART2) periphcfg_usart2(alterate_gpio);
 #if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
-	else if(_usart == USART3)
-	{
-		periphcfg_usart3(alterate_gpio);
-	}
+	else if(_usart == USART3) periphcfg_usart3(alterate_gpio);
 #endif
 #if	defined(STM32F10X_HD) || defined(STM32F10X_CL)
-	else if(_usart == UART4)
-	{
-		periphcfg_usart4(alterate_gpio);
-	}
-	else if(_usart == UART5)
-	{
-		periphcfg_usart5(alterate_gpio);
-	}
+	else if(_usart == UART4) periphcfg_usart4(alterate_gpio);
+	else if(_usart == UART5) periphcfg_usart5(alterate_gpio);
 #endif
 	//Enable UART
 	usart->CR1 = CR1_UE_SET;
