@@ -1,7 +1,7 @@
 # Automatic makefile for GNUARM (C/C++)
 
 #tutaj wpisz nazwe pliku hex
-TARGET	   = isixdrv
+TARGET	   = isixdrv-stm32
 
 #Format wyjsciowy (moze byc elf,hex,bin)
 FORMAT	= bin
@@ -12,7 +12,7 @@ OPT 	?= 2
 
 
 #Common flags 
-COMMON_FLAGS = -Wall -I./include
+COMMON_FLAGS = -Wall -I./include -I../isix/include
 
 #Opcje kompilatora C
 CFLAGS += $(COMMON_FLAGS)
