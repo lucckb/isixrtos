@@ -400,7 +400,7 @@ extern "C"
 	void usart5_isr_vector(void) __attribute__ ((interrupt));
 	void usart5_isr_vector(void)
 	{
-		if(usart5_obj) usart4_obj->isr();
+		if(usart5_obj) usart5_obj->isr();
 	}
 #endif /* #if defined(STM32F10X_HD) || defined(STM32F10X_CL) */
 }
