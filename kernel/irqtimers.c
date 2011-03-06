@@ -41,7 +41,7 @@ static void add_vtimer_to_list(vtimer_t *timer)
     if(timer->jiffies < isix_get_jiffies())
     {
     	//Insert on overflow waiting list in time order
-    	vtimer_t *waitl = NULL;
+    	vtimer_t *waitl;
     	list_for_each_entry(pov_vtimer_list,waitl,inode)
     	{
     	   if(timer->jiffies<waitl->jiffies) break;
