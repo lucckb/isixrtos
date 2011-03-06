@@ -12,7 +12,7 @@
 /*-----------------------------------------------------------------------*/
 #include <isix/config.h>
 #include <isix/types.h>
-
+#include <isix/semaphore.h>
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {
@@ -54,6 +54,16 @@ static inline int isix_vtimer_stop(vtimer_t* timer)
  * @return success if ISIX_EOK , otherwise error
  */
 int isix_vtimer_destroy(vtimer_t* timer);
+/*-----------------------------------------------------------------------*/
+/** Start the timer on the selected period
+ * @param[in] timer Pointer to the timer structure
+ * @param[in] timeout in milisec Timeout for the next start
+ * @return success if ISIX_EOK , otherwise error
+ */
+static inline int isix_vtimer_start_ms(vtimer_t* timer, tick_t timeout)
+{
+	return isix_vtimer_start( timer, timeout>0?isix_ms2tick(timeout):0 );
+}
 
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
@@ -86,7 +96,11 @@ public:
 	bool is_valid() { return timer!=0; }
 	//! Start the timer on selected period
 	int start(tick_t timeout) { return isix_vtimer_start( timer, timeout ); }
+	//! Start the timer on selected period
+	int start_ms(tick_t timeout) { return isix_vtimer_start( timer, timeout ); }
+	//! Stop the timer
 	int stop() { return isix_vtimer_stop( timer ); }
+
 protected:
 	//! Virtual function called on time
 	virtual void handle_timer() = 0;
@@ -97,8 +111,8 @@ private:
 	}
 private:
 	//Noncopyable
-	virtual_timer(const task_base&);
-	virtual_timer& operator=(const task_base&);
+	virtual_timer(const virtual_timer&);
+	virtual_timer& operator=(const virtual_timer&);
 private:
 	vtimer_t *timer;
 };
