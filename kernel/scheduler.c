@@ -6,6 +6,7 @@
 #include <isix/memory.h>
 #include <prv/list.h>
 #include <prv/semaphore.h>
+#include <prv/irqtimers.h>
 
 #ifndef ISIX_DEBUG_SCHEDULER
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
@@ -187,6 +188,8 @@ void isixp_schedule_time(void)
             isix_bug();
         }
     }
+    //Handle time from vtimers
+    isixp_vtimer_handle_time( jiffies );
 }
 /*-----------------------------------------------------------------------*/
 //Try get task ready from free list if is not exist allocate memory
@@ -424,6 +427,8 @@ void isix_init(prio_t num_priorities)
     }
     //Lower priority is the idle task
     isix_task_create(idle_task,NULL,ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities);
+    //Initialize virtual timers infrastructure
+    isixp_vtimer_init();
 }
 
 /*-----------------------------------------------------------------------*/

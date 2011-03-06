@@ -10,6 +10,7 @@
 #include <isix/scheduler.h>
 #include <isix/semaphore.h>
 #include <isix/task.h>
+#include <isix/irqtimers.h>
 /*--------------------------------------------------*/
 
 #endif

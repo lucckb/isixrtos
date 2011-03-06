@@ -109,5 +109,10 @@ static inline void list_delete(list_t *elem)
  //List is empty check
 #define list_isempty(list_entryp) ((list_entryp)->head.next==&(list_entryp)->head)
 
+//Check if the element is free
+static inline bool list_is_elem_assigned( list_t *elem )
+{
+	return elem->next!=NULL && elem->prev!=NULL;
+}
 
 #endif
