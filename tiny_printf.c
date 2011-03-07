@@ -16,7 +16,8 @@
 //Function pointer to putchar
 static int (*fn_putc)(int,void* ) = NULL;
 static void * fn_putc_arg = NULL;
-
+static void (*fn_lock)(void) = NULL;
+static void (*fn_unlock)(void) = NULL;
 /* ------------------------------------------------------------ */
 static void printchar(char **str,int c)
 {
@@ -201,7 +202,9 @@ int tiny_printf(const char *format, ...)
 		int result;
 		va_list args;
 		va_start( args, format );
+		if(fn_lock && fn_unlock) fn_lock();
         result = print( NULL,0, format, args );
+        if(fn_lock && fn_unlock) fn_unlock();
         return  result;
 }
 
@@ -215,10 +218,13 @@ int tiny_snprintf(char *out, unsigned long max_len, const char *format, ...)
 }
 
 /*----------------------------------------------------------*/
-void register_printf_putc_handler(int (*fputc)(int,void*),void *arg)
+void register_printf_putc_handler_syslock(int (*fputc)(int,void*),void *arg,
+		void (*lock)(void),void (*unlock)(void))
 {
     fn_putc = fputc;
     fn_putc_arg = arg;
+    fn_lock = lock;
+    fn_unlock = unlock;
 }
 
 /*----------------------------------------------------------*/
