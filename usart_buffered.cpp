@@ -9,7 +9,6 @@
 #include "usart_buffered.hpp"
 #include <system.h>
 
-
 /*----------------------------------------------------------*/
 namespace stm32
 {
