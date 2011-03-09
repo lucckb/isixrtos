@@ -39,6 +39,8 @@ public:
 	//Default constructor
 	adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask, sample_time sh_time=sample71C5,
 			int irq_prio=1, int irq_sub=7);
+	//Default destructor
+	~adc_converter();
 	//Start the ADC conversion on selected chns sleep current process for conv
 	int get_adc_values(unsigned short *regs);
 private:

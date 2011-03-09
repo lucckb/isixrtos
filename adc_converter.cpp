@@ -139,6 +139,17 @@ adc_converter::adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask,
 
 }
 /* ------------------------------------------------------------------ */
+//Destructor
+adc_converter::~adc_converter()
+{
+	//Disable interrupts
+	stm32::nvic_irq_enable( DMA1_Channel1_IRQn, false );
+	//Disable the ADC converter
+	 ADC->CR2 &= ~CR2_ADON_Set;
+	//Shutdown the converter
+    if(ADC==ADC1)   RCC->APB2ENR &= ~RCC_APB2Periph_ADC1;
+}
+/* ------------------------------------------------------------------ */
 void adc_converter::start_conv()
 {
     ADC->CR2 |= CR2_EXTTRIG_SWSTART_Set;
@@ -174,6 +185,7 @@ void adc_converter::isr()
 }
 
 /* ------------------------------------------------------------------ */
+//External interrupt triggering
 extern "C"
 {
     void dma1_channel1_isr_vector(void) __attribute__((interrupt));
