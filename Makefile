@@ -12,7 +12,7 @@ OPT 	?= 2
 
 
 #Common flags 
-COMMON_FLAGS = -Wall -I./include -I../isix/include
+COMMON_FLAGS = -Wall -I./include -I../isix/include 
 
 #Opcje kompilatora C
 CFLAGS += $(COMMON_FLAGS)

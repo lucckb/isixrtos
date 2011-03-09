@@ -8,6 +8,7 @@
 /* ------------------------------------------------------------------ */
 #include "adc_converter.hpp"
 #include <isix.h>
+#include <stm32dma.h>
 /* ------------------------------------------------------------------ */
 namespace stm32 {
 namespace dev {
@@ -53,13 +54,17 @@ namespace
 	const unsigned CR2_EXTTRIG_Sw = 7<<17;
     const unsigned SR_EOC = 1<<1;
     const unsigned adc_conversion_timeout = 1000;
+    //Clear flashs
+    const unsigned SR_CLR_Flags = 0x7;
+    //DMA enable CR2
+    const unsigned CR2_DMAEn = 1<<8;
+    //const unsigned CR2_Cont = 1<<1;
 	inline unsigned SQR1_L( unsigned num )
 	{
 		return (num & 0x0F) << 20;
 	}
     //Global object for interrupt handling
     adc_converter * adc1_object;
-    adc_converter * adc2_object;
 }
 /* ------------------------------------------------------------------ */
 adc_converter::adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask,
@@ -67,14 +72,14 @@ adc_converter::adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask,
 	: ADC(_ADC),lock_sem(1, 1), complete_sem(0,1), num_active_chns(0)
 {
 	if(ADC==ADC1)   RCC->APB2ENR |= RCC_APB2Periph_ADC1;
-	else if(ADC==ADC2) RCC->APB2ENR |= RCC_APB2Periph_ADC2;
-	if( ADC==ADC1 || ADC==ADC2 )
+	if( ADC==ADC1 )
 	{
 		for(int ch=0; ch<adc_channels; ch++)
 		{
-			if( (_ch_mask & (1 << ch)) && adc_ports[ch] )
+			if( _ch_mask & (1 << ch))
 			{
-				stm32::io_config( adc_ports[ch],adc_pins[ch],stm32::GPIO_MODE_INPUT, stm32::GPIO_CNF_IN_ANALOG);
+				if( adc_ports[ch] )
+					stm32::io_config( adc_ports[ch],adc_pins[ch],stm32::GPIO_MODE_INPUT, stm32::GPIO_CNF_IN_ANALOG);
 				num_active_chns++;
 			}
 		}
@@ -83,10 +88,10 @@ adc_converter::adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask,
 	//After conversion values will be avaiable at the channel
 	// Clear DUALMOD and SCAN bits
 	ADC->CR1 &= CR1_CLEAR_Mask;
-	ADC->CR1 |= CR1_ModeScan | CR1_EOCInt;
+	ADC->CR1 |= CR1_ModeScan;
 	//CR2 Configuration settings
 	ADC->CR2 &= CR2_CLEAR_Mask;
-	ADC->CR2 |= CR2_TempEn | CR2_EXTTRIG_Sw;
+	ADC->CR2 |= CR2_TempEn | CR2_EXTTRIG_Sw | CR2_DMAEn;
 	//SQR1 register
 	ADC->SQR1 = SQR1_L(num_active_chns);
 	ADC->SQR2 = 0; ADC->SQR3 = 0;
@@ -96,8 +101,8 @@ adc_converter::adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask,
 		if( _ch_mask & (1 << ch) )
 		{
 			if(act<6) ADC->SQR3 |= ch << (5*act);
-			else if(act>=6 && act<12)  ADC->SQR2 |= ch << (5*act);
-			else if(act>=12 && act<16) ADC->SQR1 |= ch << (5*act);
+			else if(act>=6 && act<12)  ADC->SQR2 |= ch << (5*(act-6));
+			else if(act>=12 && act<16) ADC->SQR1 |= ch << (5*(act-12));
 			act++;
 		}
 	}
@@ -107,7 +112,7 @@ adc_converter::adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask,
     for(int ch=0; ch<adc_channels; ch++)
     {
         if(ch<10) ADC->SMPR2 |= sh_time << (ch*3);
-        else ADC->SMPR1 |= sh_time << (ch*3);
+        else ADC->SMPR1 |= sh_time << ((ch-10)*3);
     }
     //Enable the ADC converter
     ADC->CR2 |= CR2_ADON_Set;
@@ -123,14 +128,15 @@ adc_converter::adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask,
         if((ADC->CR2 & CR2_CAL_Set) == 0) break;
         isix::isix_wait_ms(10);
     }
-    if(ADC==ADC1) adc1_object = this;
-    else if(ADC==ADC2) adc2_object = this;
+    if( ADC==ADC1 ) adc1_object = this;
     //Enable adc interrupt in nvic
-    if(ADC==ADC1 || ADC==ADC2)
+    if( ADC==ADC1 )
     {
-    	stm32::nvic_set_priority( ADC1_2_IRQn, irq_prio, irq_sub );
-    	stm32::nvic_irq_enable( ADC1_2_IRQn, true );
+    	stm32::nvic_set_priority( DMA1_Channel1_IRQn, irq_prio, irq_sub );
+    	stm32::nvic_irq_enable( DMA1_Channel1_IRQn, true );
     }
+    stm32::dma_enable(stm32::DMACNTR_1);
+
 }
 /* ------------------------------------------------------------------ */
 void adc_converter::start_conv()
@@ -140,12 +146,19 @@ void adc_converter::start_conv()
 /* ------------------------------------------------------------------ */
 int adc_converter::get_adc_values(unsigned short *regs)
 {
-    int res = lock_sem.wait ( isix::ISIX_TIME_INFINITE );
+	int res = lock_sem.wait ( isix::ISIX_TIME_INFINITE );
     if(res < 0) return res;
-    data_buf = regs;
-    curr_conv = 0;
+    stm32::dma_channel_enable(DMA1_Channel1,
+        DMA_DIR_PeripheralSRC | DMA_PeripheralInc_Disable |
+        DMA_MemoryInc_Enable | DMA_PeripheralDataSize_HalfWord |
+        DMA_MemoryDataSize_HalfWord | DMA_Mode_Normal | DMA_Priority_High | DMA_M2M_Disable,
+        regs, &ADC->DR, num_active_chns);
+    stm32::dma_channel_enable(DMA1_Channel1);
+    stm32::dma_irq_enable(DMA1_Channel1,DMA_IT_TC);
     start_conv();
     res = complete_sem.wait( adc_conversion_timeout );
+    stm32::dma_channel_disable(DMA1_Channel1);
+    stm32::dma_irq_disable(DMA1_Channel1,DMA_IT_TC);
     if(res<0)
     {
     	lock_sem.signal();
@@ -157,25 +170,18 @@ int adc_converter::get_adc_values(unsigned short *regs)
 //Interrupt service routine
 void adc_converter::isr()
 {
-	if(curr_conv<num_active_chns)
-	{
-		data_buf[curr_conv++] = ADC->DR;
-		start_conv();
-	}
-	if(curr_conv==num_active_chns)
-		complete_sem.signal_isr();
+   complete_sem.signal_isr();
 }
 
 /* ------------------------------------------------------------------ */
 extern "C"
 {
-    void adc_isr_vector(void) __attribute__((interrupt));
-    void adc_isr_vector(void)
+    void dma1_channel1_isr_vector(void) __attribute__((interrupt));
+    void dma1_channel1_isr_vector(void)
     {
-    	if(( ADC1->SR & SR_EOC) && adc1_object)
+    	if(adc1_object)
             adc1_object->isr();
-        if((ADC2->SR & SR_EOC) && adc2_object)
-            adc2_object->isr();
+    	stm32::dma_clear_flag( DMA1_FLAG_TC1 );
     }
 }
 

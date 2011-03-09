@@ -17,11 +17,11 @@ namespace dev {
 /* ------------------------------------------------------------------ */
 extern "C"
 {
-    void adc_isr_vector(void) __attribute__((interrupt));
+    void dma1_channel1_isr_vector() __attribute__((interrupt));
 }
 /* ------------------------------------------------------------------ */
 class adc_converter {
-    friend void adc_isr_vector();
+    friend void dma1_channel1_isr_vector();
 public:
 	//ADC channel table
 	enum ch
@@ -49,8 +49,6 @@ private:
 	ADC_TypeDef * const ADC;
     isix::semaphore lock_sem;
     isix::semaphore complete_sem;
-    unsigned short *data_buf;
-    volatile short curr_conv;
     short num_active_chns;
 private: //nonocopyable
 	adc_converter(adc_converter &);
