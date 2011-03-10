@@ -7,6 +7,8 @@ TARGET	   = isix
 # 0 - brak optymalizacji, s -optymalizacja rozmiaru
 OPT 	?= 2
 
+#Default isix architecture
+ISIX_ARCH ?= arm-cm3
 
 #Opcje kompilatora C
 CFLAGS += -std=gnu99 -Wall -pedantic
@@ -21,14 +23,13 @@ DEBUG ?=  y
 
 
 #Kernel source 
-SRC += fifo.c  memory.c  scheduler.c  semaphore.c  task.c cppsupport.c irqtimers.c
+SRC += kernel/fifo.c  kernel/memory.c  kernel/scheduler.c  kernel/semaphore.c  kernel/task.c kernel/cppsupport.c kernel/irqtimers.c
 
 #Architecture specific sources
-SRC += port_scheduler.c
+SRC += arch/$(ISIX_ARCH)/port_scheduler.c
 
 #pliki assemblerowe
 ASRC +=
 
-vpath %c kernel arch/arm-cm3
-include isix.mk
+include isix-deprecated.mk
 
