@@ -13,7 +13,7 @@ ISIX_ARCH ?= arm-cm3
 #Opcje kompilatora C
 CFLAGS += -std=gnu99 -Wall -pedantic
 
-CFLAGS += -Iinclude -I../libfoundation/include
+CFLAGS += -Iinclude -I../libfoundation/include -Iarch/$(ISIX_ARCH)/include
 
 #Wlaczyc wylaczyc listing
 LISTING ?= n

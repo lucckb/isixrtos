@@ -1,5 +1,6 @@
 #ifndef __PORT_SCHEDULER_H
 #define __PORT_SCHEDULER_H
+#include <unistd.h>
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {
@@ -25,14 +26,15 @@ void port_start_first_task( void );
 void port_set_interrupt_mask( void );
 
 void port_clear_interrupt_mask( void );
+/*-----------------------------------------------------------------------*/
+//Cleanup task for example for free additional memory
+void port_cleanup_task(void *sp);
 
 /*-----------------------------------------------------------------------*/
 //Idle task additional
 static inline void port_idle_cpu( void )
 {
-#ifndef ISIX_DEBUG
-	asm volatile("wfi\t\n");
-#endif
+    usleep(50);
 }
 
 /*-----------------------------------------------------------------------*/

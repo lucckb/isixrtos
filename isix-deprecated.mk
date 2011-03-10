@@ -15,10 +15,6 @@ OBJDUMP = $(CROSS_COMPILE)objdump
 JTAGPROG  = openocd
 
 
-CFLAGS += -I$(STRLIB_INC)
-CXXFLAGS += -I$(STRLIB_INC)
-
-
 #Pozostale ustawienia kompilatora
 
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb

@@ -361,6 +361,7 @@ static inline void cleanup_tasks(void)
         	task_t *task_del = list_get_first(&dead_task,inode,task_t);
         	list_delete(&task_del->inode);
         	isix_printk("Task to delete: %08x(SP %08x) PRIO: %d",task_del,task_del->init_stack,task_del->prio);
+        	port_cleanup_task(task_del->top_stack);
         	isix_free(task_del->init_stack);
         	isix_free(task_del);
         	number_of_task_deleted--;
