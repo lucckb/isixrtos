@@ -27,9 +27,11 @@ void port_set_interrupt_mask( void );
 void port_clear_interrupt_mask( void );
 /*-----------------------------------------------------------------------*/
 //Cleanup task for example dealocate memory
-static inline void port_cleanup_task(void *sp)
-{
-}
+#ifdef __cplusplus
+static inline void port_cleanup_task(void */*sp*/) {}
+#else
+#define port_cleanup_task(p) do {} while(0)
+#endif
 /*-----------------------------------------------------------------------*/
 //Idle task additional
 static inline void port_idle_cpu( void )
