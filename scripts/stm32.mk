@@ -28,8 +28,7 @@ SCRIPTS_DIR = ../lib-stm32/scripts
 LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
 
-CFLAGS += -I$(STRLIB_INC)
-CXXFLAGS += -I$(STRLIB_INC) -fno-rtti -fcheck-new -fno-exceptions
+CXXFLAGS += -fno-rtti -fcheck-new -fno-exceptions
 
 #Pozostale ustawienia kompilatora
 
