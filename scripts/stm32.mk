@@ -30,8 +30,6 @@ LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
 CFLAGS += -I$(STRLIB_INC)
 CXXFLAGS += -I$(STRLIB_INC) -fno-rtti -fcheck-new -fno-exceptions
-#dep
-OBJDIR=obj
 
 #Pozostale ustawienia kompilatora
 
@@ -43,9 +41,9 @@ CPFLAGS =  -S
 ARFLAGS = rcs
 
 ifeq ($(LISTING),y)
-ASLST = -Wa,-adhlns=$(<:%.S=$(OBJDIR)/%.lst)
-CLST = -Wa,-adhlns=$(<:%.c=$(OBJDIR)/%.lst)
-CPPLST = -Wa,-adhlns=$(<:%.cpp=$(OBJDIR)/%.lst)
+ASLST = -Wa,-adhlns=$(<:%.S=%.lst)
+CLST = -Wa,-adhlns=$(<:%.c=%.lst)
+CPPLST = -Wa,-adhlns=$(<:%.cpp=%.lst)
 LSSTARGET = $(TARGET).lss
 endif
 
@@ -65,23 +63,17 @@ CXXFLAGS += -ffunction-sections -fdata-sections
 LDFLAGS+= -Wl,--gc-sections
 endif
 
-ifneq ($(FORMAT),elf)
-	CONVTARGET = $(TARGET).$(FORMAT)
-endif
-
-
 all:	build
 
 install: build program
 
 clean:
-	rm -f $(TARGET).hex
+	rm -f $(TARGET).$(FORMAT)
 	rm -f $(TARGET).elf
 	rm -f $(TARGET).map
 	rm -f $(TARGET).lss
-	rm -f $(TARGET).bin
 	rm -f lib$(TARGET).a
-	rm -rf $(OBJDIR)
+	rm -f $(OBJ) $(LST) $(DEPFILES)
 
 
 program:
@@ -95,18 +87,15 @@ devrst:
 ifeq ($(LIBRARY),y)
 build:	target  
 else
-build:	target $(CONVTARGET) $(LSSTARGET) size-calc
+build:	target $(LSSTARGET) size-calc
 endif
 
 
-#Create object directory
-$(OBJDIR):
-		mkdir -p $@
 
 ifeq ($(LIBRARY),y)
 target:	lib$(TARGET).a
 else
-target: $(TARGET).elf $(TARGET).hex $(TARGET).lss
+target: $(TARGET).elf $(TARGET).$(FORMAT) $(TARGET).lss
 endif
 
 #Calculate size
@@ -115,21 +104,23 @@ size-calc: $(TARGET).elf
 	
 
 #wszystkie zaleznosci
-$(TARGET).elf: $(OBJDIR) $(OBJ) $(LSCRIPT) 
+$(TARGET).elf: $(OBJ) $(LSCRIPT) 
 #Tworzenie biblioteki
-lib$(TARGET).a: $(OBJDIR) $(OBJ)
+lib$(TARGET).a: $(OBJ)
 
--include $(shell mkdir -p $(OBJDIR))
--include $(SRC:%.c=$(OBJDIR)/%.dep)
--include $(CPPSRC:%.cpp=$(OBJDIR)/%.dep)
--include $(ASRC:%.S=$(OBJDIR)/%.dep)
+-include $(SRC:%.c=%.dep)
+-include $(CPPSRC:%.cpp=%.dep)
+-include $(ASRC:%.S=%.dep)
+ 
  
 #Objects files
-OBJ = $(SRC:%.c=$(OBJDIR)/%.o) $(CPPSRC:%.cpp=$(OBJDIR)/%.o) $(ASRC:%.S=$(OBJDIR)/%.o)
+OBJ = $(SRC:%.c=%.o) $(CPPSRC:%.cpp=%.o) $(ASRC:%.S=%.o)
 # Define all listing files.
-LST = $(SRC:%.c=$(OBJDIR)/%.lst) $(CPPSRC:%.cpp=$(OBJDIR)/%.lst) $(ASRC:%.S=$(OBJDIR)/%.lst)
-#Objects files
+LST = $(SRC:%.c=%.lst) $(CPPSRC:%.cpp=%.lst) $(ASRC:%.S=%.lst)
+#Depend files
+DEPFILES = $(SRC:%.c=%.dep) $(CPPSRC:%.cpp=%.dep) $(ASRC:%.S=%.dep)
 
+#Objects files
 .PRECIOUS : $(OBJ)
 ifeq ($(LIBRARY),y)
 .SECONDARY: lib$(TARGET).a
@@ -137,15 +128,15 @@ else
 .SECONDARY: $(TARGET).elf
 endif
 
-$(OBJDIR)/%.dep: %.c
+
+%.dep: %.c
 	$(CC) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(CFLAGS) $< 
 
-
-$(OBJDIR)/%.dep: %.cpp 
+%.dep: %.cpp 
 	$(CXX) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(CXXFLAGS) $< 
 
 
-$(OBJDIR)/%.dep: %.S
+%.dep: %.S
 	$(CC) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(ASFLAGS) $< 
 
 
@@ -161,26 +152,24 @@ $(OBJDIR)/%.dep: %.S
 	@echo "Converting to bin..."
 	$(CP) -O binary $(CPFLAGS) $< $@ 
 
-%.elf: $(OBJ) $(CRT0_OBJECT) $(ADDITIONAL_DEPS)
+$(TARGET).elf: $(OBJ) $(CRT0_OBJECT) $(ADDITIONAL_DEPS)
 	@echo "Linking..."
 	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECT) -o $@ $(LDFLAGS)
 
-$(OBJDIR)/%.o : %.S
+%.o : %.S
 	@echo "Assembling..."
 	$(CC) -c $(ASFLAGS) $(ASLST) $< -o $@ 
 
 
-$(OBJDIR)/%.o : %.c	
+%.o : %.c	
 	@echo "Compiling C..."
 	$(CC) -c $(CFLAGS) $(CLST) $< -o $@
 
-$(OBJDIR)/%.o : %.cpp
+%.o : %.cpp
 	@echo "Compiling C++..."
 	$(CXX) -c $(CXXFLAGS) $(CPPLST) $< -o $@
 
-ifeq ($(LIBRARY),y)
-%.a : $(OBJ)
+lib$(TARGET).a : $(OBJ)
 	@echo "Creating library ..."
 	$(AR) $(ARFLAGS) $@ $(OBJ)
-endif
 
