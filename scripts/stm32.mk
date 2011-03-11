@@ -21,8 +21,6 @@ JTAGPROG  = openocd
 OCDSCRIPT=/tmp/pgm.script
 OCD=openocd
 
-STRLIB_INC = ../lib-stm32/inc/
-
 SCRIPTS_DIR = ../lib-stm32/scripts
 
 LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
@@ -72,7 +70,7 @@ clean:
 	rm -f $(TARGET).map
 	rm -f $(TARGET).lss
 	rm -f lib$(TARGET).a
-	rm -f $(OBJ) $(LST) $(DEPFILES)
+	rm -f $(OBJ) $(LST) $(DEPFILES) $(LIBS) $(LIBS_OBJS)
 
 
 program:
@@ -107,26 +105,26 @@ $(TARGET).elf: $(OBJ) $(LSCRIPT)
 #Tworzenie biblioteki
 lib$(TARGET).a: $(OBJ)
 
--include $(SRC:%.c=%.dep)
--include $(CPPSRC:%.cpp=%.dep)
--include $(ASRC:%.S=%.dep)
+#Depend files
+DEPFILES += $(SRC:%.c=%.dep) $(CPPSRC:%.cpp=%.dep) $(ASRC:%.S=%.dep)
+
+-include $(DEPFILES)
  
  
 #Objects files
 OBJ = $(SRC:%.c=%.o) $(CPPSRC:%.cpp=%.o) $(ASRC:%.S=%.o)
 # Define all listing files.
 LST = $(SRC:%.c=%.lst) $(CPPSRC:%.cpp=%.lst) $(ASRC:%.S=%.lst)
-#Depend files
-DEPFILES = $(SRC:%.c=%.dep) $(CPPSRC:%.cpp=%.dep) $(ASRC:%.S=%.dep)
 
 #Objects files
-.PRECIOUS : $(OBJ)
+$.PRECIOUS : $(OBJ)
 ifeq ($(LIBRARY),y)
 .SECONDARY: lib$(TARGET).a
 else
 .SECONDARY: $(TARGET).elf
 endif
 
+.DEFAULT_GOAL := all
 
 %.dep: %.c
 	$(CC) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(CFLAGS) $< 
@@ -151,9 +149,9 @@ endif
 	@echo "Converting to bin..."
 	$(CP) -O binary $(CPFLAGS) $< $@ 
 
-$(TARGET).elf: $(OBJ) $(CRT0_OBJECT) $(ADDITIONAL_DEPS)
+$(TARGET).elf: $(OBJ) $(CRT0_OBJECT) $(ADDITIONAL_DEPS) $(LIBS)
 	@echo "Linking..."
-	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECT) -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECT) $(LIBS) -o $@ $(LDFLAGS)
 
 %.o : %.S
 	@echo "Assembling..."
@@ -167,6 +165,7 @@ $(TARGET).elf: $(OBJ) $(CRT0_OBJECT) $(ADDITIONAL_DEPS)
 %.o : %.cpp
 	@echo "Compiling C++..."
 	$(CXX) -c $(CXXFLAGS) $(CPPLST) $< -o $@
+
 
 lib$(TARGET).a : $(OBJ)
 	@echo "Creating library ..."
