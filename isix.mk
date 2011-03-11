@@ -20,3 +20,13 @@ ifeq ($(DEBUG),y)
 ISIX_INC += -DISIX_DEBUG
 endif
 
+ISIX_LIB = $(ISIX_DIR)/libisix.a
+ISIX_OBJS += $(ISIX_SRC:%.c=%.o) 
+DEPFILES += $(ISIX_SRC:%.c=%.dep) 
+
+$(ISIX_LIB): $(ISIX_OBJS)
+	    $(AR) $(ARFLAGS) $@ $^
+
+LIBS += $(ISIX_LIB)
+LIBS_OBJS += $(ISIX_OBJS)
+
