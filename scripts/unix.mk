@@ -55,7 +55,7 @@ clean:
 	rm -f $(TARGET).map
 	rm -f $(TARGET).lss
 	rm -f lib$(TARGET).a
-	rm -f $(OBJ) $(LST) $(DEPFILES)
+	rm -f $(OBJ) $(LST) $(DEPFILES) $(LIBS) $(LIBS_OBJS)
 
 
 
@@ -83,18 +83,16 @@ $(TARGET).elf: $(OBJ) $(LSCRIPT)
 #Tworzenie biblioteki
 lib$(TARGET).a: $(OBJ)
 
--include $(SRC:%.c=%.dep)
--include $(CPPSRC:%.cpp=%.dep)
--include $(ASRC:%.S=%.dep)
+#Depend files
+DEPFILES += $(SRC:%.c=%.dep) $(CPPSRC:%.cpp=%.dep) $(ASRC:%.S=%.dep)
+
+-include $(DEPFILES)
  
  
 #Objects files
 OBJ = $(SRC:%.c=%.o) $(CPPSRC:%.cpp=%.o) $(ASRC:%.S=%.o)
 # Define all listing files.
 LST = $(SRC:%.c=%.lst) $(CPPSRC:%.cpp=%.lst) $(ASRC:%.S=%.lst)
-#Depend files
-DEPFILES = $(SRC:%.c=%.dep) $(CPPSRC:%.cpp=%.dep) $(ASRC:%.S=%.dep)
-
 #Objects files
 .PRECIOUS : $(OBJ)
 ifeq ($(LIBRARY),y)
@@ -102,6 +100,7 @@ ifeq ($(LIBRARY),y)
 else
 .SECONDARY: $(TARGET).elf
 endif
+.DEFAULT_GOAL := all
 
 
 %.dep: %.c
@@ -127,9 +126,9 @@ endif
 	@echo "Converting to bin..."
 	$(CP) -O binary $(CPFLAGS) $< $@ 
 
-$(TARGET).elf: $(OBJ) $(CRT0_OBJECT) $(ADDITIONAL_DEPS)
+$(TARGET).elf: $(OBJ) $(CRT0_OBJECT) $(ADDITIONAL_DEPS) $(LIBS)
 	@echo "Linking..."
-	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECT) -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECT) $(LIBS) -o $@ $(LDFLAGS)
 
 %.o : %.S
 	@echo "Assembling..."
