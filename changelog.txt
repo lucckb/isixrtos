@@ -1,4 +1,4 @@
-Added timers in new stable version 
+Added timers in new stable version for interrupt context
 
 
 Revision 30 (1.0) Initial Version
