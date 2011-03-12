@@ -13,7 +13,7 @@ Revision 81 (1.1)
 - Slab allocator reduces kmalloc/kfree in scheduler code
 - Error codes instead -1 return
 
-TODO: (not acutal now)
+TODO: (not acutal now!!!)
 - Prevent Priority Inversion (Priority Inheritance)
 - Add support for device drivers
 - Add basic documentation
