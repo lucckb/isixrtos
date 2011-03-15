@@ -1,1 +1,10 @@
-flash-end-f101CTC6.script
+#Enable protection in prod mode
+#flash protect 0 0 7 on
+#stm32x lock 0
+
+sleep 100
+reset run
+sleep 100
+#resume
+#shutdown
+
