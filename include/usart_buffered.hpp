@@ -84,6 +84,7 @@ public:
 	//Get string into the uart
 	int gets(char *str, std::size_t max_len, isix::tick_t timeout=isix::ISIX_TIME_INFINITE);
 	int get(void *buf, std::size_t max_len, isix::tick_t timeout);
+	int rx_avail() const { return rx_queue.size(); }
 protected:
 	virtual void before_tx() {}
 	virtual void after_tx() {}
