@@ -346,7 +346,11 @@ int usart_buffered::gets(char *str, std::size_t max_len, isix::tick_t timeout)
 			if(str[l]=='\r') str[l] = '\0';
 			else if(str[l]=='\n') { str[l] = '\0'; break; }
 		}
-		else return res;
+		else
+		{
+		    str[l] = '\0';
+		    return res;
+		}
 	}
 	if(l>=max_len) str[l] = '\0';
 	return l;
