@@ -17,14 +17,14 @@ namespace isix {
 union ihandle
 {
 #ifdef __cplusplus
-	ihandle(sem_t *sem_) : sem(sem_) {}
-	ihandle(fifo_t *fifo_) : fifo(fifo_) {}
-	ihandle(semaphore &sem_) : sem(sem_.sem) {}
-	ihandle(fifo_base &fifo_) : fifo(fifo_.hwnd) {}
+	ihandle(const sem_t *sem_) : sem(sem_) {}
+	ihandle(const fifo_t *fifo_) : fifo(fifo_) {}
+	ihandle(const semaphore &sem_) : sem(sem_.sem) {}
+	ihandle(const fifo_base &fifo_) : fifo(fifo_.hwnd) {}
 private:
 #endif
-	sem_t *sem;
-	fifo_t *fifo;
+	const sem_t *sem;
+	const fifo_t *fifo;
 };
 /*--------------------------------------------------------------*/
 typedef union ihandle ihandle_t;
