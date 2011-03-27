@@ -133,6 +133,7 @@ int isixp_sem_signal( sem_t *sem, bool isr )
         isix_printk("No sem");
         return ISIX_EINVARG;
     }
+
     isixp_enter_critical();
     if(list_isempty(&sem->sem_task)==true)
     {
@@ -145,8 +146,9 @@ int isixp_sem_signal( sem_t *sem, bool isr )
         		sem->value = sem->limit_value;
         	}
         }
+        isix_printk("Waiting list is empty incval to %d",sem->value);
 #ifdef ISIX_CONFIG_USE_MULTIOBJECTS
-        if( sem->value == 1 )	//Only for multiple objs
+        //Only for multiple objs
         {
           int ret = isixp_wakeup_multiple_waiting_tasks( sem, isixp_wakeup_multiple );
           if(ret>0)
@@ -162,7 +164,6 @@ int isixp_sem_signal( sem_t *sem, bool isr )
           else { isixp_exit_critical(); return ret; }
         }
 #endif
-        isix_printk("Waiting list is empty incval to %d",sem->value);
         isixp_exit_critical();
         return ISIX_EOK;
     }

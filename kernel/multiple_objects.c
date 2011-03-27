@@ -105,35 +105,34 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 	{
 		hwnd, count, isix_current_task, {NULL, NULL}
 	};
-	do
+    //Enter critical state
+	isixp_enter_critical();
+	//Check if any fifo.rxsem, or sem is signaled
+	for(size_t o = 0; o < count; o++)
 	{
-		//Enter critical state
-		isixp_enter_critical();
-		//Check if any fifo.rxsem, or sem is signaled
-		for(size_t o = 0; o < count; o++)
+		if( hwnd[o].sem->type == IHANDLE_T_SEM )
 		{
-			if( hwnd[o].sem->type == IHANDLE_T_SEM )
+			if( hwnd[o].sem->value > 0 )
 			{
-				if( hwnd[o].sem->value > 0 )
-				{
-					retval = o+1;
-					break;
-				}
-			}
-			else if( hwnd[o].sem->type == IHANDLE_T_FIFO )
-			{
-				if( hwnd[o].fifo->rx_sem.value > 0 )
-				{
-					retval = o+1;
-					break;
-				}
-			}
-			else
-			{
-				isix_printk("Obj is not fifo and it is not sem. Stack corrupted?");
-				isix_bug();
+				isixp_exit_critical();
+                return o+1;
 			}
 		}
+		else if( hwnd[o].sem->type == IHANDLE_T_FIFO )
+		{
+			if( hwnd[o].fifo->rx_sem.value > 0 )
+			{
+				isixp_exit_critical();
+                return o+1;
+			}
+		}
+		else
+		{
+			isix_printk("Obj is not fifo and it is not sem. Stack corrupted?");
+			isix_bug();
+		}
+	}
+    do {
 		//Add to waiting object group
 		list_insert_end( &waiting_objects, &multiple_obj.inode );
 		if(isix_current_task->state & TASK_READY)
