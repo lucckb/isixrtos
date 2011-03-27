@@ -9,7 +9,8 @@
 #ifndef TINY_PRINTF_H_
 #define TINY_PRINTF_H_
 /* ------------------------------------------------------------ */
-
+#include <stddef.h>
+/* ------------------------------------------------------------ */
 #ifdef __cplusplus
 namespace fnd {
 extern "C" {

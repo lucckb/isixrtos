@@ -40,7 +40,7 @@ static void printchar(char **str,int c)
 
 static int prints(char **out, size_t len, const char *string, int width, int pad)
 {
-	register int pc = 0, padchar = ' ';
+	register size_t pc = 0, padchar = ' ';
 
 	if (width > 0)
 	{
@@ -84,7 +84,8 @@ static int printi(char **out, size_t len, int i, int b, int sg, int width, int p
 {
 	char print_buf[PRINT_BUF_LEN];
 	register char *s;
-	register int t, neg = 0, pc = 0;
+	register int t, neg = 0;
+	size_t pc = 0;
 	register unsigned int u = i;
 
 	if (i == 0)
@@ -133,7 +134,7 @@ static int printi(char **out, size_t len, int i, int b, int sg, int width, int p
 static int print(char **out, size_t len, const char *format, va_list args )
 {
 	register int width, pad;
-	register int pc = 0;
+	register size_t pc = 0;
 	char scr[2];
 
 	for (; *format != 0; ++format) {
