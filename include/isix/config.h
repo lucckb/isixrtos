@@ -2,8 +2,8 @@
     Isix configuration file (C) 2007 L. Bryndza
 */
 
-#ifndef __ISIX_CONFIG__
-#define __ISIX_CONFIG__
+#ifndef _ISIX_CONFIG
+#define _ISIX_CONFIG
 
 #define ISIX_DBG_ON 1
 #define ISIX_DBG_OFF 0

@@ -23,7 +23,8 @@ DEBUG ?=  y
 
 
 #Kernel source 
-SRC += kernel/fifo.c  kernel/memory.c  kernel/scheduler.c  kernel/semaphore.c  kernel/task.c kernel/cppsupport.c kernel/irqtimers.c
+SRC += kernel/fifo.c  kernel/memory.c  kernel/scheduler.c  kernel/semaphore.c  
+SRC += kernel/task.c kernel/cppsupport.c kernel/irqtimers.c kernel/multiple_objects.c
 
 #Architecture specific sources
 SRC += arch/$(ISIX_ARCH)/port_scheduler.c

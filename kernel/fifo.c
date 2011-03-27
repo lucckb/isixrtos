@@ -6,6 +6,7 @@
 #include <prv/semaphore.h>
 #include <prv/scheduler.h>
 #include <string.h>
+#include <prv/fifo.h>
 
 #ifndef ISIX_DEBUG_FIFO
 #define ISIX_DEBUG_FIFO ISIX_DBG_OFF
@@ -18,19 +19,6 @@
 #define isix_printk(...)
 #endif
 
-
-/*-------------------------------------------------------*/
-/* Queue structure */
-struct fifo_struct
-{
-    char *rx_p;     //Pointer to rx
-    char *tx_p;     //Pointer to tx
-    char *mem_p;    //Pointer to allocated memory
-    int size;       //Total fifo size
-    int elem_size; //Element count
-    sem_t rx_sem;  //Semaphore rx
-    sem_t tx_sem;  //Semaphore for tx
-};
 
 /*-------------------------------------------------------*/
 /* Create queue for n elements
@@ -46,6 +34,8 @@ fifo_t* isix_fifo_create(int n_elem, int elem_size)
        isix_printk("FifoCreate: Error alloc fifo struct\n");
        return NULL;
    }
+   //Set fifo type
+   fifo->type = IHANDLE_T_FIFO;
    //Calculate size
    fifo->size = n_elem * elem_size;
    //Create used memory struct

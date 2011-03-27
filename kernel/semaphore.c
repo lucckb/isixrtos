@@ -5,6 +5,7 @@
 #include <isix/semaphore.h>
 #include <prv/semaphore.h>
 #include <string.h>
+#include <prv/multiple_objects.h>
 
 #ifndef ISIX_DEBUG_SEMAPHORE
 #define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
@@ -35,6 +36,8 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
     sem->static_mem = sem!=NULL?true:false;
     sem->value = val;
     sem->limit_value = limit_val;
+    //Set sem type
+    sem->type = IHANDLE_T_SEM;
     list_init(&sem->sem_task);
     isix_printk("Create sem %08x val %d",sem,sem->value);
     return sem;
@@ -98,10 +101,31 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     	(isix_current_task->state&TASK_SEM_WKUP)?ISIX_EOK:ISIX_ETIMEOUT);
     return (isix_current_task->state&TASK_SEM_WKUP)?ISIX_EOK:ISIX_ETIMEOUT;
 }
-
+/*--------------------------------------------------------------*/
+#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
+//Wakeup from iterate over muliple objects
+static int isixp_wakeup_multiple( task_t *task_wake )
+{
+	isix_printk("task state %02x",task_wake->state);
+	//Remove from time list
+	if(task_wake->state & TASK_SLEEPING)
+	{
+	    list_delete(&task_wake->inode);
+	    task_wake->state &= ~TASK_SLEEPING;
+	    isix_printk("Remove task %08x from time list",task_wake );
+	}
+	task_wake->state &= ~TASK_WAITING_MULTIPLE;
+	task_wake->state |= TASK_READY | TASK_MULTIPLE_WKUP;
+	if(isixp_add_task_to_ready_list(task_wake)<0)
+	{
+	     return ISIX_ENOMEM;
+	}
+	return ISIX_EOK;
+}
+#endif
 /*--------------------------------------------------------------*/
 //Sem signal V()
-int isixp_sem_signal(sem_t *sem,bool isr)
+int isixp_sem_signal( sem_t *sem, bool isr )
 {
     //If not sem not release it
     if(!sem)
@@ -112,7 +136,7 @@ int isixp_sem_signal(sem_t *sem,bool isr)
     isixp_enter_critical();
     if(list_isempty(&sem->sem_task)==true)
     {
-        sem->value++;
+    	sem->value++;
         if(sem->limit_value > ISIX_SEM_ULIMITED)
         {
         	if(sem->value > sem->limit_value)
@@ -121,6 +145,23 @@ int isixp_sem_signal(sem_t *sem,bool isr)
         		sem->value = sem->limit_value;
         	}
         }
+#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
+        if( sem->value == 1 )	//Only for multiple objs
+        {
+          int ret = isixp_wakeup_multiple_waiting_tasks( sem, isixp_wakeup_multiple );
+          if(ret>0)
+          {
+        	  if(ret<isix_current_task->prio && !isr)
+       		  {
+        		 isix_printk("Yield processor higer prio wktask %d main %d",ret,isix_current_task->prio);
+        		 isixp_exit_critical();
+       			 isix_yield();
+    			 isixp_enter_critical();
+       		  }
+          }
+          else { isixp_exit_critical(); return ret; }
+        }
+#endif
         isix_printk("Waiting list is empty incval to %d",sem->value);
         isixp_exit_critical();
         return ISIX_EOK;
@@ -273,3 +314,6 @@ int isix_wait(tick_t timeout)
 		return ISIX_EOK;
 	}
 }
+
+/*--------------------------------------------------------------*/
+

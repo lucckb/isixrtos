@@ -4,6 +4,7 @@
 #include <isix/task.h>
 #include <isix/memory.h>
 #include <prv/semaphore.h>
+#include <prv/multiple_objects.h>
 #include <string.h>
 
 #ifndef ISIX_DEBUG_TASK
@@ -178,6 +179,13 @@ int isix_task_delete(task_t *task)
        taskd->sem = NULL;
        isix_printk("Remove from sem list");
     }
+#if ISIX_CONFIG_USE_MULTIOBJECTS
+    if( taskd->state & TASK_WAITING_MULTIPLE )
+    {
+    	isixp_delete_from_multiple_wait_list( taskd );
+    	isix_printk("Remove item from multiple list");
+    }
+#endif
     //Add task to delete list
     taskd->state = TASK_DEAD;
     isixp_add_task_to_delete_list(taskd);

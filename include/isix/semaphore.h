@@ -1,5 +1,5 @@
-#ifndef __ISIX_SEMAPHORE_H
-#define __ISIX_SEMAPHORE_H
+#ifndef _ISIX_SEMAPHORE_H
+#define _ISIX_SEMAPHORE_H
 
 #include <isix/config.h>
 #include <isix/types.h>
@@ -142,12 +142,19 @@ static inline int isix_wait_ms(unsigned long ms)
 //****************************** C++ API ***********************************
 #ifdef __cplusplus
 #include <cstddef>
-
 namespace isix {
+/*--------------------------------------------------------------*/
+#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
+union ihandle;
+#endif
+
 /*--------------------------------------------------------------*/
 //! Semaphore C++ class wrapper
 class semaphore
 {
+#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
+	friend union ihandle;
+#endif
 public:
 	/** Construct semaphore object
 	 * @param[in] val Initial value of the semaphore

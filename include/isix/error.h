@@ -1,5 +1,5 @@
-#ifndef __ISIX_ERROR_H__
-#define __ISIX_ERROR_H__
+#ifndef ISIX_ERROR_H_
+#define ISIX_ERROR_H_
 
 /*--------------------------------------------------*/
 #ifdef __cplusplus

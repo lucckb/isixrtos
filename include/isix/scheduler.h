@@ -1,5 +1,5 @@
-#ifndef __ISIX_SCHEDULER_H__
-#define __ISIX_SCHEDULER_H__
+#ifndef _ISIX_SCHEDULER_H
+#define _ISIX_SCHEDULER_H
 /*-----------------------------------------------------------------------*/
 #include <isix/config.h>
 #include <isix/types.h>

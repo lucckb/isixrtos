@@ -1,14 +1,23 @@
-#ifndef __PRV_ISIX_SEMAPHORE_H__
-#define __PRV_ISIX_SEMAPHORE_H__
+#ifndef PRV_ISIX_SEMAPHORE_H_
+#define PRV_ISIX_SEMAPHORE_H_
 
 
 #include <prv/list.h>
 
 /*--------------------------------------------------------------*/
+enum ihandle_type
+{
+	IHANDLE_T_SEM=1,
+	IHANDLE_T_FIFO=2
+};
+
+/*--------------------------------------------------------------*/
+
 //Structure of semaphore
 struct sem_struct
 {
-    //Semaphore val
+    enum ihandle_type type;
+	//Semaphore val
     int value;
     //Task val waiting for semaphore
     list_entry_t sem_task;
