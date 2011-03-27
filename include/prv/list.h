@@ -1,5 +1,5 @@
-#ifndef __ISIX_LIST_H
-#define __ISIX_LIST_H
+#ifndef _ISIX_LIST_H
+#define _ISIX_LIST_H
 
 /* L. Bryndza list version 1.0  */
 

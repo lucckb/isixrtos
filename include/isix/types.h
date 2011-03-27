@@ -1,5 +1,5 @@
-#ifndef __ISIX_TYPES_H
-#define __ISIX_TYPES_H
+#ifndef _ISIX_TYPES_H
+#define _ISIX_TYPES_H
 
 #include <stdint.h>
 #include <stdbool.h>

@@ -1,5 +1,5 @@
-#ifndef __ISIX_MEMORY_H
-#define __ISIX_MEMORY_H
+#ifndef _ISIX_MEMORY_H
+#define _ISIX_MEMORY_H
 /*------------------------------------------------------*/
 #include <isix/types.h>
 /*------------------------------------------------------*/

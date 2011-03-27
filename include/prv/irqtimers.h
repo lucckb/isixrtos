@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 
-#ifndef PRV_IRQTIMERS_H_
-#define PRV_IRQTIMERS_H_
+#ifndef ISIX_PRV_IRQTIMERS_H_
+#define ISIX_PRV_IRQTIMERS_H_
 /*-----------------------------------------------------------------------*/
 #include <isix/types.h>
 #include <prv/list.h>

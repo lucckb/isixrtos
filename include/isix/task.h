@@ -1,5 +1,5 @@
-#ifndef __ISIX_TASK_H
-#define __ISIX_TASK_H
+#ifndef _ISIX_TASK_H
+#define _ISIX_TASK_H
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {

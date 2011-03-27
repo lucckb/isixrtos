@@ -1,5 +1,5 @@
-#ifndef __ISIX_ISIX_H__
-#define __ISIX_ISIX_H__
+#ifndef _ISIX_ISIX_H
+#define _ISIX_ISIX_H
 
 /*--------------------------------------------------*/
 #include <isix/config.h>
@@ -11,6 +11,7 @@
 #include <isix/semaphore.h>
 #include <isix/task.h>
 #include <isix/irqtimers.h>
+#include <isix/multiple_objects.h>
 /*--------------------------------------------------*/
 
 #endif

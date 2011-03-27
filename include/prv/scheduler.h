@@ -1,5 +1,5 @@
-#ifndef __ISIX_PRV_SCHEDULER_H
-#define __ISIX_PRV_SCHEDULER_H
+#ifndef _ISIX_PRV_SCHEDULER_H
+#define _ISIX_PRV_SCHEDULER_H
 
 #include <prv/list.h>
 #include <isix/config.h>
@@ -23,6 +23,10 @@ typedef struct task_ready_struct
 #define TASK_RUNNING (1<<3)        //Task is running
 #define TASK_DEAD    (1<<4)        //Task is dead
 #define TASK_SEM_WKUP (1<<5)       //After sem wakeup
+#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
+#define TASK_WAITING_MULTIPLE (1<<6)    //After sem wakeup
+#define TASK_MULTIPLE_WKUP (1<<7)       //After wait for multiple wkup
+#endif
 /*-----------------------------------------------------------------------*/
 
 //Definition of task operations

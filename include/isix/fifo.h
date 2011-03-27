@@ -1,6 +1,6 @@
 /* Queue operations */
-#ifndef __ISIX_FIFO_H
-#define __ISIX_FIFO_H
+#ifndef _ISIX_FIFO_H
+#define _ISIX_FIFO_H
 
 /*--------------------------------------------------------------*/
 #ifdef __cplusplus
@@ -73,16 +73,37 @@ int isix_fifo_read_isr(fifo_t *queue, void *item);
 
 namespace isix {
 /*--------------------------------------------------------------*/
+#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
+union ihandle;
+#endif
+
+/*--------------------------------------------------------------*/
+//! The base class for fifo contains only data
+class fifo_base
+{
+#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
+	friend union ihandle;
+#endif
+public:
+	explicit fifo_base(fifo_t *hwnd_) : hwnd(hwnd_) {}
+protected:
+	fifo_t *hwnd;
+private:
+	fifo_base(const fifo_base&);
+	fifo_base& operator=(const fifo_base&);
+};
+
+/*--------------------------------------------------------------*/
 //! The C++ class wrapper for the queue
-template <typename T> class fifo
+template <typename T> class fifo : public fifo_base
 {
 public:
 	/** Construct fifo object with the selected elements
 	 * @param n_elem Number of elements in the fifo
 	 */
 	explicit fifo(std::size_t n_elem)
+		: fifo_base(isix_fifo_create(n_elem,sizeof(T)))
 	{
-		hwnd = isix_fifo_create(n_elem,sizeof(T));
 	}
 	//! Destruct fifo object
 	~fifo()
@@ -139,8 +160,6 @@ public:
 private:
 	fifo(const fifo&);
 	fifo& operator=(const fifo&);
-private:
-	fifo_t *hwnd;
 };
 
 /*--------------------------------------------------------------*/
