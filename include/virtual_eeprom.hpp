@@ -27,10 +27,10 @@ public:
 		ERRNO_NO_SPACE = -7002,
 		ERRNO_NOT_FOUND = -7003
 	};
-	virtual_eeprom(iflash_mem &_flash);
+	virtual_eeprom(iflash_mem &_flash, unsigned flash_sector=0);
 	int read(unsigned address, unsigned &value ) const;
 	int write(unsigned address, unsigned value);
-	unsigned get_max_index() const;
+	unsigned get_max_index() const { return va_max; }
 protected:
 	virtual void lock() const {}
 	virtual void unlock() const {}

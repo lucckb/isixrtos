@@ -33,12 +33,12 @@ namespace
 }
 
 /* ------------------------------------------------------------------ */
-virtual_eeprom::virtual_eeprom(iflash_mem &_flash)
+virtual_eeprom::virtual_eeprom(iflash_mem &_flash, unsigned flash_sector)
 	: flash(_flash), active_page(0), inactive_page(0), va_max(flash.page_size()/8)
 {
 	// TODO Auto-generated constructor stub
 	lock();
-	iflash_mem::paddr_t npages = flash.num_pages();
+	iflash_mem::paddr_t npages = flash.num_pages() - 2*flash_sector;
 	unsigned short val1, val2;
 	flash.read_halfword( npages-1, EEHDR_ADDRESS, val1 );
 	flash.read_halfword( npages-2, EEHDR_ADDRESS, val2 );
@@ -166,11 +166,6 @@ int virtual_eeprom::write(unsigned address, unsigned value)
 	if(res>=0) res = flash.write_word(active_page, fsaddr+sizeof(uint16_t), value );
 	unlock();
 	return res;
-}
-
-unsigned virtual_eeprom::get_max_index() const
-{
-    return va_max;
 }
 
 /* ------------------------------------------------------------------ */
