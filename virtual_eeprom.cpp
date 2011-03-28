@@ -168,6 +168,11 @@ int virtual_eeprom::write(unsigned address, unsigned value)
 	return res;
 }
 
+unsigned virtual_eeprom::get_max_index() const
+{
+    return va_max;
+}
+
 /* ------------------------------------------------------------------ */
 }
 /* ------------------------------------------------------------------ */

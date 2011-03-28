@@ -30,6 +30,7 @@ public:
 	virtual_eeprom(iflash_mem &_flash);
 	int read(unsigned address, unsigned &value ) const;
 	int write(unsigned address, unsigned value);
+	unsigned get_max_index() const;
 protected:
 	virtual void lock() const {}
 	virtual void unlock() const {}
