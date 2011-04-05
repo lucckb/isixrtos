@@ -50,12 +50,18 @@ public:
 		parity_odd,
 		parity_even
 	};
-
+	enum altgpio_mode
+	{
+		altgpio_mode_0,
+		altgpio_mode_1,
+		altgpio_mode_2,
+		altgpio_mode_3
+	};
 	//Constructor
 	usart_buffered(
 		USART_TypeDef *_usart, unsigned _pclk1_hz, unsigned _pclk2_hz,
 		unsigned cbaudrate = 115200, std::size_t queue_size=192, parity cpar=parity_none,
-		unsigned _irq_prio=1, unsigned _irq_sub=7, bool alterate_gpio=false
+		unsigned _irq_prio=1, unsigned _irq_sub=7, altgpio_mode alternate_gpio_mode=altgpio_mode_0
 	);
 
 	//Set baudrate
@@ -95,14 +101,14 @@ private:
 	void isr();
 	void irq_mask() { stm32::irq_mask( irq_prio, irq_sub ); }
 	void irq_umask() { stm32::irq_umask(); }
-	void periphcfg_usart1(bool is_alternate);
-	void periphcfg_usart2(bool is_alternate);
+	void periphcfg_usart1(altgpio_mode mode);
+	void periphcfg_usart2(altgpio_mode mode);
 #if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
-	void periphcfg_usart3(bool is_alternate);
+	void periphcfg_usart3(altgpio_mode mode);
 #endif
 #if defined(STM32F10X_HD) || defined(STM32F10X_CL)
-	void periphcfg_usart4(bool is_alternate);
-	void periphcfg_usart5(bool is_alternate);
+	void periphcfg_usart4(altgpio_mode mode);
+	void periphcfg_usart5(altgpio_mode mode);
 #endif
 private:
 	USART_TypeDef * const usart;

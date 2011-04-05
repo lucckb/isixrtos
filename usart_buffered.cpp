@@ -54,6 +54,12 @@ namespace
 	const unsigned USART3_TX_BIT = 10;
 	const unsigned USART3_RX_BIT = 11;
 	GPIO_TypeDef * const USART3_PORT = GPIOB;
+	const unsigned USART3_ALT1_TX_BIT = 10;
+	const unsigned USART3_ALT1_RX_BIT = 11;
+	GPIO_TypeDef * const USART3_ALT1_PORT = GPIOC;
+	const unsigned USART3_ALT3_TX_BIT = 8;
+	const unsigned USART3_ALT3_RX_BIT = 9;
+	GPIO_TypeDef * const USART3_ALT3_PORT = GPIOD;
 	//USART4 port
 	const unsigned USART4_TX_BIT = 10;
 	const unsigned USART4_RX_BIT = 11;
@@ -83,10 +89,10 @@ namespace
 }
 
 /*----------------------------------------------------------*/
-void usart_buffered::periphcfg_usart1(bool is_alternate)
+void usart_buffered::periphcfg_usart1(altgpio_mode mode)
 {
 	using namespace stm32;
-	if(!is_alternate)
+	if( mode == altgpio_mode_0 )
 	{
 		RCC->APB2ENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1;
 		//Configure GPIO port TxD and RxD
@@ -102,10 +108,10 @@ void usart_buffered::periphcfg_usart1(bool is_alternate)
 	}
 }
 /*----------------------------------------------------------*/
-void usart_buffered::periphcfg_usart2(bool is_alternate)
+void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 {
 	using namespace stm32;
-	if(!is_alternate)
+	if( mode == altgpio_mode_0 )
 	{
 		RCC->APB2ENR |= RCC_APB2Periph_GPIOA;
 		RCC->APB1ENR |= RCC_APB1Periph_USART2;
@@ -123,18 +129,34 @@ void usart_buffered::periphcfg_usart2(bool is_alternate)
 	}
 }
 #if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
-	void usart_buffered::periphcfg_usart3(bool is_alternate)
+	void usart_buffered::periphcfg_usart3(altgpio_mode mode)
 	{
-		//TODO: Add remapping
-		RCC->APB2ENR |= RCC_APB2Periph_GPIOB;
-		RCC->APB1ENR |= RCC_APB1Periph_USART3;
-		//Configure GPIO port TxD and RxD
-		io_config(USART3_PORT,USART3_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
-		io_config(USART3_PORT,USART3_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+		if( mode == altgpio_mode_0 )
+		{
+			RCC->APB2ENR |= RCC_APB2Periph_GPIOB;
+			RCC->APB1ENR |= RCC_APB1Periph_USART3;
+			//Configure GPIO port TxD and RxD
+			io_config(USART3_PORT,USART3_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+			io_config(USART3_PORT,USART3_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+		}
+		else if( mode == altgpio_mode_1 )
+		{
+			 RCC->APB2ENR |= RCC_APB2ENR_AFIOEN |RCC_APB2Periph_GPIOC;
+			 //Configure GPIO port TxD and RxD
+			 io_config(USART3_ALT1_PORT,USART3_ALT1_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+			 io_config(USART3_ALT1_PORT,USART3_ALT1_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+		}
+		else if( mode == altgpio_mode_3 )
+		{
+			RCC->APB2ENR |= RCC_APB2ENR_AFIOEN |RCC_APB2Periph_GPIOD;
+			//Configure GPIO port TxD and RxD
+			io_config(USART3_ALT3_PORT,USART3_ALT3_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+			io_config(USART3_ALT3_PORT,USART3_ALT3_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+		}
 	}
 #endif
 #if defined(STM32F10X_HD) || defined(STM32F10X_CL)
-	void usart_buffered::periphcfg_usart4(bool is_alternate)
+	void usart_buffered::periphcfg_usart4(altgpio_mode /*mode*/)
 	{
 		//TODO: Add remapping
 		RCC->APB2ENR |= RCC_APB2Periph_GPIOC;
@@ -143,7 +165,7 @@ void usart_buffered::periphcfg_usart2(bool is_alternate)
 		io_config(USART4_PORT,USART4_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
 		io_config(USART4_PORT,USART4_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
 	}
-	void usart_buffered::periphcfg_usart5(bool is_alternate)
+	void usart_buffered::periphcfg_usart5(altgpio_mode /*mode*/)
 	{
 		//TODO: Add remapping
 		RCC->APB2ENR |= RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD;
@@ -158,20 +180,20 @@ void usart_buffered::periphcfg_usart2(bool is_alternate)
 usart_buffered::usart_buffered(USART_TypeDef *_usart,
 		unsigned _pclk1_hz, unsigned _pclk2_hz, unsigned cbaudrate,
 		std::size_t queue_size ,parity cpar, unsigned _irq_prio, unsigned _irq_sub,
-		 bool alterate_gpio
+		altgpio_mode alternate_gpio_mode
 ) : usart(_usart), pclk1_hz(_pclk1_hz), pclk2_hz(_pclk2_hz),
 	tx_queue(queue_size), rx_queue(queue_size),
 	irq_prio(_irq_prio), irq_sub(_irq_sub) ,tx_en( false )
 {
 	using namespace stm32;
-	if(_usart == USART1) periphcfg_usart1(alterate_gpio);
-	else if(_usart == USART2) periphcfg_usart2(alterate_gpio);
+	if(_usart == USART1) periphcfg_usart1(alternate_gpio_mode);
+	else if(_usart == USART2) periphcfg_usart2(alternate_gpio_mode);
 #if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)
-	else if(_usart == USART3) periphcfg_usart3(alterate_gpio);
+	else if(_usart == USART3) periphcfg_usart3(alternate_gpio_mode);
 #endif
 #if	defined(STM32F10X_HD) || defined(STM32F10X_CL)
-	else if(_usart == UART4) periphcfg_usart4(alterate_gpio);
-	else if(_usart == UART5) periphcfg_usart5(alterate_gpio);
+	else if(_usart == UART4) periphcfg_usart4(alternate_gpio_mode);
+	else if(_usart == UART5) periphcfg_usart5(alternate_gpio_mode);
 #endif
 	//Enable UART
 	usart->CR1 = CR1_UE_SET;
