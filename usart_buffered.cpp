@@ -145,6 +145,7 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 			 //Configure GPIO port TxD and RxD
 			 io_config(USART3_ALT1_PORT,USART3_ALT1_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
 			 io_config(USART3_ALT1_PORT,USART3_ALT1_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+			 AFIO->MAPR |= AFIO_MAPR_USART3_REMAP_PARTIALREMAP;
 		}
 		else if( mode == altgpio_mode_3 )
 		{
@@ -152,6 +153,7 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 			//Configure GPIO port TxD and RxD
 			io_config(USART3_ALT3_PORT,USART3_ALT3_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
 			io_config(USART3_ALT3_PORT,USART3_ALT3_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+			AFIO->MAPR |= AFIO_MAPR_USART3_REMAP_FULLREMAP;
 		}
 	}
 #endif
