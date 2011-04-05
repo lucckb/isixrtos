@@ -142,6 +142,7 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 		else if( mode == altgpio_mode_1 )
 		{
 			 RCC->APB2ENR |= RCC_APB2ENR_AFIOEN |RCC_APB2Periph_GPIOC;
+			 RCC->APB1ENR |= RCC_APB1Periph_USART3;
 			 //Configure GPIO port TxD and RxD
 			 io_config(USART3_ALT1_PORT,USART3_ALT1_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
 			 io_config(USART3_ALT1_PORT,USART3_ALT1_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
@@ -150,6 +151,7 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 		else if( mode == altgpio_mode_3 )
 		{
 			RCC->APB2ENR |= RCC_APB2ENR_AFIOEN |RCC_APB2Periph_GPIOD;
+			RCC->APB1ENR |= RCC_APB1Periph_USART3;
 			//Configure GPIO port TxD and RxD
 			io_config(USART3_ALT3_PORT,USART3_ALT3_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
 			io_config(USART3_ALT3_PORT,USART3_ALT3_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
