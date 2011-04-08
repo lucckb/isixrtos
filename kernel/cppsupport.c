@@ -52,3 +52,11 @@ void __cxa_pure_virtual()
 }
 
 /* ------------------------------------------------------------------ */
+//Errno support for newlib
+#ifdef ISIX_CONFIG_NEWLIB_ERRNO_SUPPORT
+int * __errno(void)
+{
+	return &isix_current_task->thread_errno;
+}	
+#endif
+
