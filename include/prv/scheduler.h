@@ -41,7 +41,7 @@ struct task_struct
     list_t inode_sem;           	//Inode of semaphore
     sem_t   *sem;               	//Pointer to waiting sem
     list_t inode;               	//List of tasks
-#ifdef ISIX_CONFIG_NEWLIB_ERRNO_SUPPORT
+#ifdef ISIX_CONFIG_NEWLIB_SUPPORT
     int thread_errno;			//Errno per thread
 #endif
 };
