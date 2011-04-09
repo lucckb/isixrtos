@@ -266,7 +266,10 @@ static inline void io_config(GPIO_TypeDef* port,uint8_t bit,uint32_t mode,uint32
 	}
 }
 /*----------------------------------------------------------*/
+//Reset the MCU system
+void nvic_system_reset(void);
 
+/*----------------------------------------------------------*/
 void io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t config);
 
 /*----------------------------------------------------------*/

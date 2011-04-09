@@ -139,3 +139,14 @@ void io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t con
 	}
 }
 /*----------------------------------------------------------*/
+//Reset the system
+#define AICR_SYSRESET_REQ 4
+
+void nvic_system_reset(void)
+{
+	SCB->AIRCR = AIRCR_VECTKEY_MASK | AICR_SYSRESET_REQ;
+	asm volatile("dsb\n");
+	for(;;);	//Wait for system reset
+}
+
+/*----------------------------------------------------------*/
