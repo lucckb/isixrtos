@@ -59,14 +59,5 @@ int * __errno(void)
 	return &isix_current_task->thread_errno;
 }
 
-void *_malloc_r(struct _reent *r, size_t size)
-{
-	return isix_alloc(size);
-}
-
-void _free_r(struct _reent *r, void *ptr)
-{
-	isix_free(ptr);
-}
 #endif
 
