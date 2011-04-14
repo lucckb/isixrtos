@@ -12,18 +12,17 @@
 #include "tiny_alloc.h"
 #include <stddef.h>
 /*----------------------------------------------------------------*/
-#ifdef __cplusplus
-
+#if defined(__cplusplus) && !defined(CONFIG_ENABLE_EXCEPTIONS)
 #include <new>
 
 //New delete operators
-void* operator new( size_t n );
+void* operator new( size_t n )  throw();
 
-void operator delete( void* p);
+void operator delete( void* p)  throw();
 
-void* operator new[]( size_t n);
+void* operator new[]( size_t n)  throw();
 
-void operator delete[]( void* p);
+void operator delete[]( void* p)  throw();
 
 #endif
 

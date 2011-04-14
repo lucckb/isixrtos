@@ -33,30 +33,31 @@ void isix_free(void *p);
 #endif /*COMPILED_UNDER_ISIX*/
 
 /* -------------------------------------------------------------- */
-void* operator new( size_t n )
+#ifndef  CONFIG_ENABLE_EXCEPTIONS
+void* operator new( size_t n ) throw()
 {
     if(n==0) n++;
     return foundation_alloc(n);
 }
 
-void operator delete( void* p)
+void operator delete( void* p) throw()
 {
     if(p)
     	foundation_free(p);
 }
 
-void* operator new[]( size_t n)
+void* operator new[]( size_t n) throw()
 {
     if(n==0) n++;
     return foundation_alloc(n);
 }
 
-void operator delete[]( void* p)
+void operator delete[]( void* p) throw()
 {
     if(p)
     	foundation_free(p);
 }
-
+#endif /* CONFIG_ENABLE_EXCEPTIONS  */
 void* malloc(size_t size)
 {
 	return foundation_alloc(size);
@@ -78,10 +79,20 @@ void *calloc(size_t nmemb, size_t size)
 	return ptr;
 }
 
-void *realloc(void *ptr, size_t size)
+void *realloc(void */*ptr*/, size_t /*size*/)
 {
 	//TODO: Not implemented
 	return NULL;
+}
+
+void *_malloc_r(struct _reent */*r*/, size_t size)
+{
+	return foundation_alloc(size);
+}
+
+void _free_r(struct _reent */*r*/, void *ptr)
+{
+	foundation_free(ptr);
 }
 
 /* -------------------------------------------------------------- */
