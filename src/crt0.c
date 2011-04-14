@@ -36,13 +36,13 @@ void hard_fault_exception_vector(void) __attribute__ ((interrupt, weak, alias("u
 void mem_manage_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 void bus_fault_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 void usage_fault_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-#ifndef __UNDER_ISIX__
+#ifndef COMPILED_UNDER_ISIX
 void svc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 #else
 void svc_isr_vector(void) __attribute__ ((interrupt));
 #endif
 void debug_monitor_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-#ifndef __UNDER_ISIX__
+#ifndef COMPILED_UNDER_ISIX
 void pend_svc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 void systick_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 #else
@@ -323,7 +323,7 @@ void reset_handler(void)
         *(pulDest++) = 0;
     }
     //Startup code before construtors call
-    __external_startup();
+    _external_startup();
 #if defined(CPP_STARTUP_CODE)
 #if !defined(__ARM_EABI__)
     //Call constructor
@@ -351,7 +351,7 @@ void reset_handler(void)
 }
 
 /*----------------------------------------------------------*/
-#if !defined( __UNDER_ISIX__) && defined(CPP_STARTUP_CODE)
+#if !defined(COMPILED_UNDER_ISIX) && defined(CPP_STARTUP_CODE)
 /* thread safe constructed objects  */
 void __cxa_guard_acquire ()
 {
