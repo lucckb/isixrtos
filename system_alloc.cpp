@@ -85,6 +85,12 @@ void *realloc(void */*ptr*/, size_t /*size*/)
 	return NULL;
 }
 
+extern "C"
+{
+	void *_malloc_r(struct _reent */*r*/, size_t size);
+	void _free_r(struct _reent */*r*/, void *ptr);
+}
+
 void *_malloc_r(struct _reent */*r*/, size_t size)
 {
 	return foundation_alloc(size);
