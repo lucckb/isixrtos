@@ -13,7 +13,7 @@ extern unsigned long _sbss;			/* start address for the .bss section. defined
                                    in linker script */
 extern unsigned long _ebss;			/* end address for the .bss section. defined in
                                    linker script */
-extern void _estack;				/* init value for the stack pointer. defined in linker script */
+extern unsigned long _estack;				/* init value for the stack pointer. defined in linker script */
 
 
 /*----------------------------------------------------------*/
@@ -119,12 +119,13 @@ void can2_rx1_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_ve
 void can2_sce_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 void otg_fs_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 
+
 /*----------------------------------------------------------*/
 //Interrupt vector table
 __attribute__ ((section(".isr_vector")))
 const vect_fun_t const exceptions_vectors[] =
 {
-  (vect_fun_t)&_estack,            // The initial stack pointer
+  (vect_fun_t)(long)&_estack,            // The initial stack pointer
   reset_handler,             // The reset handler
   nmi_exception_vector, //NMIException
   hard_fault_exception_vector, //HardFaultException
@@ -279,8 +280,12 @@ void __cxa_finalize(void *d)
 }
 
 #else /* FUNCTION_MAIN_RETURN */
-int __cxa_atexit(void (*func) (void *), void * arg, void * dso_handle)
+int __cxa_atexit(void (*func)(void *), void * arg, void * dso_handle);
+int __cxa_atexit(void (*func)(void *), void * arg, void * dso_handle)
 {
+	(void)func;
+	(void)arg;
+	(void)dso_handle;
 	return -1;
 }
 
@@ -295,7 +300,7 @@ void _fini(void) {}
 #endif /* __ARM_EABI__ */
 
 static void empty_func(void) {}
-void __external_startup(void) __attribute__ ((weak, alias("empty_func")));
+void _external_startup(void) __attribute__ ((weak, alias("empty_func")));
 
 #endif /* CPP_STARTUP_CODE */
 
@@ -371,4 +376,6 @@ void __cxa_pure_virtual()
 }
 
 #endif
+
+
 

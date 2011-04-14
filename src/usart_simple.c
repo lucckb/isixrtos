@@ -105,6 +105,7 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 //USART putchar
 int usartsimple_putc(int ch, void* p)
 {
+	(void)p;
 	if(!usart) return USARTSIMPLE_NOT_INIT;
 	while((usart->SR & USART_TXE)==0);
     usart->DR = ch & 0xff;
