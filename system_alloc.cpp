@@ -6,19 +6,19 @@
  *     Author: lucck
  *
  * ------------------------------------------------------------ */
-#ifndef __UNDER_ISIX__
+#ifndef COMPILED_UNDER_ISIX
 #include "tiny_alloc.h"
 #endif
 
 #include "system_alloc.h"
 #include <cstring>
 /* -------------------------------------------------------------- */
-#ifndef __UNDER_ISIX__
+#ifndef COMPILED_UNDER_ISIX
 //It can be redefined
 #define foundation_alloc fnd::tiny_alloc
 #define foundation_free fnd::tiny_free
 
-#else /*__UNDER_ISIX__*/
+#else /*COMPILED_UNDER_ISIX*/
 
 namespace isix {
 extern "C" {
@@ -30,7 +30,7 @@ void isix_free(void *p);
 #define foundation_alloc isix::isix_alloc
 #define foundation_free isix::isix_free
 
-#endif /*__UNDER_ISIX__*/
+#endif /*COMPILED_UNDER_ISIX*/
 
 /* -------------------------------------------------------------- */
 void* operator new( size_t n )

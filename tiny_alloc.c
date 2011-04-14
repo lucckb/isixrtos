@@ -9,7 +9,7 @@
 #include "tiny_alloc.h"
 
 /*------------------------------------------------------*/
-#ifndef __UNDER_ISIX__
+#ifndef COMPILED_UNDER_ISIX
 
 /*------------------------------------------------------*/
 #define MAGIC 0x19790822
@@ -159,5 +159,5 @@ void tiny_free(void *p)
 }
 
 /*------------------------------------------------------*/
-#endif /*__UNDER_ISIX__ */
+#endif /*COMPILED_UNDER_ISIX*/
 

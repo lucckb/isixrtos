@@ -9,7 +9,7 @@
 #ifndef TINY_ALLOC_H_
 #define TINY_ALLOC_H_
 
-#ifndef __UNDER_ISIX__
+#ifndef COMPILED_UNDER_ISIX
 /* ------------------------------------------------------------ */
 #include <stddef.h>
 
@@ -36,7 +36,7 @@ void tiny_free(void *p);
  }
 #endif
 
-#endif /* __UNDER_ISIX__ */
+#endif /* COMPILED_UNDER_ISIX */
 
 #endif /* TINY_ALLOC_H_ */
 
