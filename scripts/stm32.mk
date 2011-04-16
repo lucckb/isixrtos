@@ -26,16 +26,20 @@ SCRIPTS_DIR = ../lib-stm32/scripts
 LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
 
-CXXFLAGS += -fno-rtti -fcheck-new -fno-exceptions
-
 #Pozostale ustawienia kompilatora
-
+COMMON_FLAGS += -O$(OPT) -mcpu=$(MCU) -mthumb -Wno-variadic-macros
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb
-LDFLAGS +=  -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
-CFLAGS  += -O$(OPT) -mcpu=$(MCU) -mthumb
-CXXFLAGS += -O$(OPT) -mcpu=$(MCU) -mthumb
+LDFLAGS +=  -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
 CPFLAGS =  -S
 ARFLAGS = rcs
+
+#If cpp exceptions is suported
+ifeq ($(CPP_EXCEPTIONS),y)
+LINK_LIBS = -Wl,--start-group -lstdc++ -lc -lm -lg -lgcc -Wl,--end-group
+COMMON_FLAGS += -DCONFIG_ENABLE_EXCEPTIONS
+else
+CXXFLAGS += -fno-exceptions -fno-rtti
+endif
 
 ifeq ($(LISTING),y)
 ASLST = -Wa,-adhlns=$(<:%.S=%.lst)
@@ -59,6 +63,9 @@ CFLAGS += -ffunction-sections -fdata-sections
 CXXFLAGS += -ffunction-sections -fdata-sections
 LDFLAGS+= -Wl,--gc-sections
 endif
+CXXFLAGS+= $(COMMON_FLAGS)
+CFLAGS+= $(COMMON_FLAGS)
+
 
 all:	build
 
@@ -149,9 +156,9 @@ endif
 	@echo "Converting to bin..."
 	$(CP) -O binary $(CPFLAGS) $< $@ 
 
-$(TARGET).elf: $(OBJ) $(CRT0_OBJECT) $(ADDITIONAL_DEPS) $(LIBS)
+$(TARGET).elf: $(OBJ) $(CRT0_OBJECTS) $(ADDITIONAL_DEPS) $(LIBS)
 	@echo "Linking..."
-	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECT) $(LIBS) -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECTS) $(LIBS) -o $@ $(LDFLAGS) $(LINK_LIBS)
 
 %.o : %.S
 	@echo "Assembling..."

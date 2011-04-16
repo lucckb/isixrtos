@@ -241,7 +241,8 @@ static void crt0_sys_destruction(void)
 }
 #endif
 /*----------------------------------------------------------*/
-void *__dso_handle; /*only the address of this symbol is taken by gcc*/
+/*only the address of this symbol is taken by gcc*/
+void *__dso_handle = (void*) &__dso_handle;
 
 /*----------------------------------------------------------*/
 #ifdef FUNCTION_MAIN_RETURN
@@ -356,26 +357,6 @@ void reset_handler(void)
 }
 
 /*----------------------------------------------------------*/
-#if !defined(COMPILED_UNDER_ISIX) && defined(CPP_STARTUP_CODE)
-/* thread safe constructed objects  */
-void __cxa_guard_acquire ()
-{
-  return;
-}
-
-void __cxa_guard_release ()
-{
-  return;
-}
-
-
-//Pure virtual call error handler
-void __cxa_pure_virtual()
-{
-	while (1);
-}
-
-#endif
 
 
 

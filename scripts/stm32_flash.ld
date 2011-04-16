@@ -208,8 +208,6 @@ SECTIONS
         *(.eb3rodata*)
     } >EXTMEMB3
     
-    __exidx_start = .;
-    __exidx_end = .;
     
     /* after that it's only debugging information. */
     
