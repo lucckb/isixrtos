@@ -12,7 +12,6 @@
 
 #include "tiny_printf.h"
 #include "tiny_alloc.h"
-#include "system_alloc.h"
 
 /* ------------------------------------------------------------ */
 #endif
