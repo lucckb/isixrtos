@@ -37,7 +37,7 @@ struct header
   {
     struct header       *h_next;
     size_t              h_magic;
-  };
+  } h;
   size_t                h_size;
 };
 /*------------------------------------------------------*/
@@ -89,8 +89,8 @@ void isix_alloc_init(void)
   hp = (void *)&__heap_start;
   hp->h_size = &__heap_end - &__heap_start - sizeof(struct header);
 
-  hp->h_next = NULL;
-  heap.free.h_next = hp;
+  hp->h.h_next = NULL;
+  heap.free.h.h_next = hp;
   heap.free.h_size = 0;
 
 }
@@ -104,24 +104,24 @@ void *isix_alloc(size_t size)
   qp = &heap.free;
   mem_lock();
 
-  while (qp->h_next != NULL) {
-    hp = qp->h_next;
+  while (qp->h.h_next != NULL) {
+    hp = qp->h.h_next;
     if (hp->h_size >= size) {
       if (hp->h_size < size + sizeof(struct header)) {
         /* Gets the whole block even if it is slightly bigger than the
            requested size because the fragment would be too small to be
            useful */
-        qp->h_next = hp->h_next;
+        qp->h.h_next = hp->h.h_next;
       }
       else {
         /* Block bigger enough, must split it */
         fp = (void *)((char *)(hp) + sizeof(struct header) + size);
-        fp->h_next = hp->h_next;
+        fp->h.h_next = hp->h.h_next;
         fp->h_size = hp->h_size - sizeof(struct header) - size;
-        qp->h_next = fp;
+        qp->h.h_next = fp;
         hp->h_size = size;
       }
-      hp->h_magic = MAGIC;
+      hp->h.h_magic = MAGIC;
 
       mem_unlock();
       return (void *)(hp + 1);
@@ -158,26 +158,26 @@ void isix_free(void *p)
                 "within free block"); */
 
     if (((qp == &heap.free) || (hp > qp)) &&
-        ((qp->h_next == NULL) || (hp < qp->h_next))) {
+        ((qp->h.h_next == NULL) || (hp < qp->h.h_next))) {
       /* Insertion after qp */
-      hp->h_next = qp->h_next;
-      qp->h_next = hp;
+      hp->h.h_next = qp->h.h_next;
+      qp->h.h_next = hp;
       /* Verifies if the newly inserted block should be merged */
-      if (LIMIT(hp) == hp->h_next) {
+      if (LIMIT(hp) == hp->h.h_next) {
         /* Merge with the next block */
-        hp->h_size += hp->h_next->h_size + sizeof(struct header);
-        hp->h_next = hp->h_next->h_next;
+        hp->h_size += hp->h.h_next->h_size + sizeof(struct header);
+        hp->h.h_next = hp->h.h_next->h.h_next;
       }
       if ((LIMIT(qp) == hp)) {  /* Cannot happen when qp == &heap.free */
         /* Merge with the previous block */
         qp->h_size += hp->h_size + sizeof(struct header);
-        qp->h_next = hp->h_next;
+        qp->h.h_next = hp->h.h_next;
       }
 
       mem_unlock();
       return;
     }
-    qp = qp->h_next;
+    qp = qp->h.h_next;
   }
   mem_unlock();
 }

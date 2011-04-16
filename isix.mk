@@ -7,10 +7,6 @@ ISIX_SRC += $(ISIX_DIR)/kernel/semaphore.c
 ISIX_SRC += $(ISIX_DIR)/kernel/task.c 
 ISIX_SRC += $(ISIX_DIR)/kernel/irqtimers.c
 ISIX_SRC += $(ISIX_DIR)/kernel/multiple_objects.c
-
-ifneq ($(ISIX_ARCH),simunix-x86)
-	ISIX_SRC += $(ISIX_DIR)/kernel/cppsupport.c
-endif
 #Architecture specific sources
 ISIX_SRC += $(ISIX_DIR)/arch/$(ISIX_ARCH)/port_scheduler.c
 

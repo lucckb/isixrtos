@@ -61,7 +61,9 @@ static volatile prio_t number_of_priorities;
 //Isix bug report when isix_printk is defined
 void isix_bug(void)
 {
-    isix_printk("OOPS: Please reset board");
+    //Go to critical sections forever
+	isixp_enter_critical();
+	isix_printk("OOPS: Please reset board");
     task_ready_t *i;
     task_t *j;
     //TODO: Add interrupt blocking
@@ -381,7 +383,8 @@ static inline void cleanup_tasks(void)
 //Idle task function do nothing and lower priority
 ISIX_TASK_FUNC(idle_task,p)
 {
-    while(1)
+   (void)p;
+	while(1)
     {
         //Cleanup free tasks
         cleanup_tasks();
@@ -460,3 +463,4 @@ prio_t isix_get_min_priority(void)
 	return number_of_priorities;
 }
 /*-----------------------------------------------------------------------*/
+
