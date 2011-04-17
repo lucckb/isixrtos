@@ -26,7 +26,14 @@ void isix_free(void *mem);
 void isix_alloc_init(void);
 
 /*------------------------------------------------------*/
+/** Function display current memory usage
+ * @param[out] fragments - return number of fragments mem
+ * @return free memory space
+ */
+size_t isix_heap_free(int *fragments);
 
+
+/*------------------------------------------------------*/
 #ifdef __cplusplus
 }	//end namespace
 }	//end extern-C

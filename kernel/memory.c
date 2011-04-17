@@ -181,5 +181,19 @@ void isix_free(void *p)
   }
   mem_unlock();
 }
-
+/*------------------------------------------------------*/
+size_t isix_heap_free(int *fragments)
+{
+	int frags = 0; size_t mem = 0;
+	mem_lock();
+	for(struct header *qp=&heap.free; qp;  qp=qp->h.h_next)
+	{
+		mem += qp->h_size;
+		frags++;
+	}
+	mem_unlock();
+	if(fragments)
+		*fragments = frags;
+	return mem;
+}
 /*------------------------------------------------------*/
