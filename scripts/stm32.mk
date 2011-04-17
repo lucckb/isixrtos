@@ -33,9 +33,9 @@ LDFLAGS +=  -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -
 CPFLAGS =  -S
 ARFLAGS = rcs
 
+LINK_LIBS = -Wl,--start-group -lstdc++ -lc -lm -lg -lgcc -Wl,--end-group
 #If cpp exceptions is suported
 ifeq ($(CPP_EXCEPTIONS),y)
-LINK_LIBS = -Wl,--start-group -lstdc++ -lc -lm -lg -lgcc -Wl,--end-group
 COMMON_FLAGS += -DCONFIG_ENABLE_EXCEPTIONS
 else
 CXXFLAGS += -fno-exceptions -fno-rtti
