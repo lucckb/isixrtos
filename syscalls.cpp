@@ -40,7 +40,7 @@ void* operator new( size_t n ) throw()
 {
     if(n==0) n++;
     void *ptr = foundation_alloc(n);
-    if(!ptr) abort();
+    if(!ptr) terminate_process();
     return ptr;
 }
 
@@ -54,7 +54,7 @@ void* operator new[]( size_t n) throw()
 {
     if(n==0) n++;
     void *ptr = foundation_alloc(n);
-    if(!ptr) abort();
+    if(!ptr) terminate_process();
     return ptr;
 }
 
@@ -84,9 +84,6 @@ extern "C"
 /* -------------------------------------------------------------- */
 #ifdef COMPILED_UNDER_ISIX
 static isix::sem_t *ctors_sem;
-extern "C" {
-	extern volatile bool isix_scheduler_running;
-}
 #endif
 /* -------------------------------------------------------------- */
 #ifdef CPP_STARTUP_CODE
@@ -103,7 +100,7 @@ int __cxa_guard_acquire(void)
 		  terminate_process();
 	  }
   }
-  if(ctors_sem && isix_scheduler_running)
+  if(ctors_sem && isix::isix_is_scheduler_active())
   {
 	  isix::isix_sem_wait(ctors_sem,isix::ISIX_TIME_INFINITE);
   }
@@ -116,7 +113,7 @@ int __cxa_guard_acquire(void)
 void __cxa_guard_release(void)
 {
 #ifdef COMPILED_UNDER_ISIX
-	if(ctors_sem && isix_scheduler_running)
+	if(ctors_sem && isix::isix_is_scheduler_active())
 	{
 		isix::isix_sem_signal(ctors_sem);
 	}
@@ -129,16 +126,6 @@ void __cxa_pure_virtual()
 	terminate_process();
 }
 #endif /*CPP_STARTUP_CODE*/
-
-/* ------------------------------------------------------------------ */
-//Errno support for newlib
-#if defined(ISIX_CONFIG_NEWLIB_SUPPORT) && defined(COMPILED_UNDER_ISIX)
-int * __errno(void)
-{
-	return &isix_current_task->thread_errno;
-}
-
-#endif /*ISIX_CONFIG_NEWLIB_SUPPORT*/
 
 /* ------------------------------------------------------------------ */
 
