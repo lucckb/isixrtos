@@ -463,4 +463,8 @@ prio_t isix_get_min_priority(void)
 	return number_of_priorities;
 }
 /*-----------------------------------------------------------------------*/
-
+//Return scheduler active
+bool isix_is_scheduler_active(void)
+{
+    return isix_scheduler_running;
+}

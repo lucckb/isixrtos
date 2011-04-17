@@ -63,6 +63,11 @@ void isix_init(prio_t num_priorities);
  * @return Number of minimal available priority
  */
 prio_t isix_get_min_priority(void);
+/*-----------------------------------------------------------------------*/
+/** Functtion return scheduling state 
+ @return True if scheduler is running
+ */
+bool isix_is_scheduler_active(void);
 
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
