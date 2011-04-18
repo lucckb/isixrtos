@@ -42,7 +42,7 @@ public:
 	//Default destructor
 	~adc_converter();
 	//Start the ADC conversion on selected chns sleep current process for conv
-	int get_adc_values(unsigned short *regs);
+	int get_adc_values(volatile unsigned short *regs);
 private:
 	static const int adc_channels = 18;
     void start_conv();

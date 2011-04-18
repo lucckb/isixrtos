@@ -61,7 +61,7 @@ namespace
     //const unsigned CR2_Cont = 1<<1;
 	inline unsigned SQR1_L( unsigned num )
 	{
-		return (num & 0x0F) << 20;
+		return ((num-1) & 0x0F) << 20;
 	}
     //Global object for interrupt handling
     adc_converter * adc1_object;
@@ -117,11 +117,13 @@ adc_converter::adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask,
     //Enable the ADC converter
     ADC->CR2 |= CR2_ADON_Set;
     //Wait for initialization
+    ADC->CR2 |= CR2_RSTCAL_Set;
     for(int i=0;i<100;i++)
     {
         if((ADC->CR2 & CR2_RSTCAL_Set) == 0) break;
         isix::isix_wait_ms(10);
     }
+    ADC->CR2 |= CR2_CAL_Set;
     //Calibrate
     for(int i=0;i<100;i++)
     {
@@ -155,7 +157,8 @@ void adc_converter::start_conv()
     ADC->CR2 |= CR2_EXTTRIG_SWSTART_Set;
 }
 /* ------------------------------------------------------------------ */
-int adc_converter::get_adc_values(unsigned short *regs)
+
+int adc_converter::get_adc_values(volatile unsigned short *regs)
 {
 	int res = lock_sem.wait ( isix::ISIX_TIME_INFINITE );
     if(res < 0) return res;
