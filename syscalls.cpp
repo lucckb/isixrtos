@@ -80,6 +80,7 @@ extern "C"
 	void __cxa_guard_release (void);
 	void __cxa_pure_virtual();
 	int * __errno(void);
+	void __cxa_guard_abort(void *);
 }
 /* -------------------------------------------------------------- */
 #ifdef COMPILED_UNDER_ISIX
@@ -87,6 +88,7 @@ static isix::sem_t *ctors_sem;
 #endif
 /* -------------------------------------------------------------- */
 #ifdef CPP_STARTUP_CODE
+
 /* thread safe constructed objects  */
 int __cxa_guard_acquire(void)
 {
@@ -125,6 +127,12 @@ void __cxa_pure_virtual()
 {
 	terminate_process();
 }
+
+void __cxa_guard_abort(void *)
+{
+	terminate_process();
+}
+
 #endif /*CPP_STARTUP_CODE*/
 
 /* ------------------------------------------------------------------ */
