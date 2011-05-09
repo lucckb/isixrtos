@@ -21,7 +21,7 @@ JTAGPROG  = openocd
 OCDSCRIPT=/tmp/pgm.script
 OCD=openocd
 
-SCRIPTS_DIR = ../lib-stm32/scripts
+SCRIPTS_DIR = ../isixrtos/libstm32/scripts
 
 LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
