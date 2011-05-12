@@ -200,4 +200,9 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 	return retval;
 }
 /*--------------------------------------------------------------*/
+#else
+
+//NOTE: avoid warning iso C forbid empty translation unit
+static inline void ixixp_multiple_objects_init( void ) {}
+
 #endif /* ISIX_CONFIG_USE_MULTIOBJECTS */

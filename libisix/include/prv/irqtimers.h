@@ -30,7 +30,7 @@ struct vtimer_struct
 /*-----------------------------------------------------------------------*/
 #else
 static inline void isixp_vtimer_init(void) {}
-static inline void isixp_vtimer_handle_time(tick_t jiffies) {}
+static inline void isixp_vtimer_handle_time(tick_t jiffies) { (void)jiffies; }
 #endif
 /*-----------------------------------------------------------------------*/
 #endif /* IRQTIMERS_H_ */
