@@ -21,7 +21,7 @@ JTAGPROG  = openocd
 OCDSCRIPT=/tmp/pgm.script
 OCD=openocd
 
-SCRIPTS_DIR = ../isixrtos/libstm32/scripts
+SCRIPTS_DIR = $(LIBSTM32_DIR)/scripts
 
 LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
@@ -29,7 +29,7 @@ LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 #Pozostale ustawienia kompilatora
 COMMON_FLAGS += -O$(OPT) -mcpu=$(MCU) -mthumb -Wno-variadic-macros
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb
-LDFLAGS +=  -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
+LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
 CPFLAGS =  -S
 ARFLAGS = rcs
 

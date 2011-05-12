@@ -7,7 +7,7 @@ Configure memory sizes, end of stack and boot mode for your project here.
 
 
 /* include the common STM32F10x sub-script */
-INCLUDE "../isixrtos/libstm32/scripts/stm32_common.ld"
+INCLUDE "stm32_common.ld"
 
 /* Memory Spaces Definitions */
 MEMORY
@@ -27,5 +27,5 @@ _estack = 0x2000C000;
 
 /* include the section management sub-script */
 /* (either "STM32_SEC_FLASH.ld" or "STM32_SEC_RAM.ld") */
-INCLUDE "../isixrtos/libstm32/scripts/stm32_flash.ld"
+INCLUDE "stm32_flash.ld"
 
