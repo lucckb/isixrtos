@@ -1,0 +1,10 @@
+#Use blob syntax
+syntax: glob
+*.dep
+*.o
+*.a
+*.elf
+*.hex
+*.lss
+*.map
+
