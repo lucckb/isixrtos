@@ -11,7 +11,7 @@ SCRIPTLINK = stm32-$(MCU_VARIANT)
 CROSS_COMPILE ?= arm-none-eabi-
 #Definicje programow
 CC      = $(CROSS_COMPILE)gcc
-CXX	= $(CROSS_COMPILE)c++
+CXX	= $(CROSS_COMPILE)g++
 AR      = $(CROSS_COMPILE)ar
 CP      = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump 
