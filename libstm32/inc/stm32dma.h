@@ -32,11 +32,13 @@ static inline void dma_enable(enum dma_cntr ch)
 		RCC->AHBENR |= RCC_AHBENR_DMA1EN;
 		DMA1->IFCR = 0xFFFFFFFF;
 	}
+#if defined(STM32F10X_HD) || defined(STM32F10X_CL)
 	else if(ch == DMACNTR_2)
 	{
 		RCC->AHBENR |= RCC_AHBENR_DMA2EN;
 		DMA2->IFCR = 0xFFFFFFFF;
 	}
+#endif
 }
 /* ---------------------------------------------------------------------------- */
 //Disable the dma channel
@@ -46,10 +48,12 @@ void dma_disable(enum dma_cntr ch)
 	{
 		RCC->AHBENR &= ~RCC_AHBENR_DMA1EN;
 	}
+#if defined(STM32F10X_HD) || defined(STM32F10X_CL)
 	else if(ch == DMACNTR_2)
 	{
 		RCC->AHBENR &= ~RCC_AHBENR_DMA2EN;
 	}
+#endif
 }
 /* ---------------------------------------------------------------------------- */
 //Dma channel enable
