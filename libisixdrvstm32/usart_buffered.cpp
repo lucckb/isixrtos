@@ -394,7 +394,7 @@ int usart_buffered::get(void *buf, std::size_t max_len, isix::tick_t timeout)
 		else if(res<0)
 			return res;
 	}
-	return res;
+	return l;
 }
 /*----------------------------------------------------------*/
 //Serial interrupts handlers
