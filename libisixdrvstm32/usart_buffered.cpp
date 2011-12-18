@@ -386,7 +386,8 @@ int usart_buffered::get(void *buf, std::size_t max_len, isix::tick_t timeout)
 {
 	int res =0;
 	char *fbuf = static_cast<char*>(buf);
-	for(std::size_t l=0; l<max_len; l++)
+    std::size_t l;
+	for(l=0; l<max_len; l++)
 	{
 		res= getchar ( fbuf[l],timeout );
 		if( res == isix::ISIX_ETIMEOUT )
