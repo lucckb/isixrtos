@@ -73,11 +73,11 @@ namespace
 //! Get pagesize
 stm32fmc::poffs_t stm32fmc::page_size() const
 {
-#if defined(STM32F10X_LD)
+#if defined(STM32F10X_LD) || defined(STM32F10X_LD_VL)
 	return FLASH_PAGE_SIZE_1;
-#elif defined(STM32F10X_MD)
+#elif defined(STM32F10X_MD) || defined(STM32F10X_MD_VL)
 	return FLASH_PAGE_SIZE_1;
-#elif defined(STM32F10X_HD)
+#elif defined(STM32F10X_HD) || defined(STM32F10X_HD_VL)
 	return FLASH_PAGE_SIZE_2;
 #elif defined(STM32F10X_CL)
 	return FLASH_PAGE_SIZE_2;

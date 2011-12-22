@@ -2,12 +2,12 @@
   ******************************************************************************
   * @file    stm32f10x_dma.h
   * @author  MCD Application Team
-  * @version V3.2.0
-  * @date    03/01/2010
+  * @version V3.5.0
+  * @date    11-March-2011
   * @brief   This file contains all the functions prototypes for the DMA firmware 
   *          library.
   ******************************************************************************
-  * @copy
+  * @attention
   *
   * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
   * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
@@ -16,8 +16,9 @@
   * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
-  * <h2><center>&copy; COPYRIGHT 2010 STMicroelectronics</center></h2>
-  */ 
+  * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
+  ******************************************************************************
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_DMA_H
@@ -29,16 +30,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
-
-
-
-/** @defgroup DMA_data_transfer_direction 
-  * @{
-  */
-
 #define DMA_DIR_PeripheralDST              ((uint32_t)0x00000010)
 #define DMA_DIR_PeripheralSRC              ((uint32_t)0x00000000)
-
 /**
   * @}
   */
@@ -49,7 +42,6 @@
 
 #define DMA_PeripheralInc_Enable           ((uint32_t)0x00000040)
 #define DMA_PeripheralInc_Disable          ((uint32_t)0x00000000)
-
 /**
   * @}
   */
@@ -60,7 +52,6 @@
 
 #define DMA_MemoryInc_Enable               ((uint32_t)0x00000080)
 #define DMA_MemoryInc_Disable              ((uint32_t)0x00000000)
-
 /**
   * @}
   */
@@ -72,7 +63,6 @@
 #define DMA_PeripheralDataSize_Byte        ((uint32_t)0x00000000)
 #define DMA_PeripheralDataSize_HalfWord    ((uint32_t)0x00000100)
 #define DMA_PeripheralDataSize_Word        ((uint32_t)0x00000200)
-
 /**
   * @}
   */
@@ -84,7 +74,6 @@
 #define DMA_MemoryDataSize_Byte            ((uint32_t)0x00000000)
 #define DMA_MemoryDataSize_HalfWord        ((uint32_t)0x00000400)
 #define DMA_MemoryDataSize_Word            ((uint32_t)0x00000800)
-
 /**
   * @}
   */
@@ -95,7 +84,6 @@
 
 #define DMA_Mode_Circular                  ((uint32_t)0x00000020)
 #define DMA_Mode_Normal                    ((uint32_t)0x00000000)
-
 /**
   * @}
   */
@@ -108,8 +96,9 @@
 #define DMA_Priority_High                  ((uint32_t)0x00002000)
 #define DMA_Priority_Medium                ((uint32_t)0x00001000)
 #define DMA_Priority_Low                   ((uint32_t)0x00000000)
-
-
+/**
+  * @}
+  */
 
 /** @defgroup DMA_memory_to_memory 
   * @{
@@ -129,6 +118,7 @@
 #define DMA_IT_TC                          ((uint32_t)0x00000002)
 #define DMA_IT_HT                          ((uint32_t)0x00000004)
 #define DMA_IT_TE                          ((uint32_t)0x00000008)
+#define IS_DMA_CONFIG_IT(IT) ((((IT) & 0xFFFFFFF1) == 0x00) && ((IT) != 0x00))
 
 #define DMA1_IT_GL1                        ((uint32_t)0x00000001)
 #define DMA1_IT_TC1                        ((uint32_t)0x00000002)
@@ -179,7 +169,6 @@
 #define DMA2_IT_TC5                        ((uint32_t)0x10020000)
 #define DMA2_IT_HT5                        ((uint32_t)0x10040000)
 #define DMA2_IT_TE5                        ((uint32_t)0x10080000)
-
 
 
 /**
@@ -239,12 +228,21 @@
 #define DMA2_FLAG_HT5                      ((uint32_t)0x10040000)
 #define DMA2_FLAG_TE5                      ((uint32_t)0x10080000)
 
-
 #ifdef __cplusplus
 }
 #endif
 
 #endif /*__STM32F10x_DMA_H */
+/**
+  * @}
+  */
 
+/**
+  * @}
+  */
 
-/******************* (C) COPYRIGHT 2010 STMicroelectronics *****END OF FILE****/
+/**
+  * @}
+  */
+
+/******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

@@ -2,12 +2,12 @@
   ******************************************************************************
   * @file    stm32f10x_spi.h
   * @author  MCD Application Team
-  * @version V3.1.2
-  * @date    09/28/2009
+  * @version V3.5.0
+  * @date    11-March-2011
   * @brief   This file contains all the functions prototypes for the SPI firmware 
   *          library.
   ******************************************************************************
-  * @copy
+  * @attention
   *
   * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
   * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
@@ -16,8 +16,9 @@
   * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
-  * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
-  */ 
+  * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
+  ******************************************************************************
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_SPI_H
@@ -30,6 +31,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
+
+
+/**
+  * @}
+  */
+
+/** @defgroup SPI_Exported_Constants
+  * @{
+  */
 
 #define IS_SPI_ALL_PERIPH(PERIPH) (((PERIPH) == SPI1) || \
                                    ((PERIPH) == SPI2) || \
@@ -216,6 +226,7 @@
   * @{
   */
 
+#define I2S_AudioFreq_192k               ((uint32_t)192000)
 #define I2S_AudioFreq_96k                ((uint32_t)96000)
 #define I2S_AudioFreq_48k                ((uint32_t)48000)
 #define I2S_AudioFreq_44k                ((uint32_t)44100)
@@ -225,14 +236,9 @@
 #define I2S_AudioFreq_11k                ((uint32_t)11025)
 #define I2S_AudioFreq_8k                 ((uint32_t)8000)
 #define I2S_AudioFreq_Default            ((uint32_t)2)
-#define IS_I2S_AUDIO_FREQ(FREQ) (((FREQ) == I2S_AudioFreq_96k) || \
-                                 ((FREQ) == I2S_AudioFreq_48k) || \
-                                 ((FREQ) == I2S_AudioFreq_44k) || \
-                                 ((FREQ) == I2S_AudioFreq_32k) || \
-                                 ((FREQ) == I2S_AudioFreq_22k) || \
-                                 ((FREQ) == I2S_AudioFreq_16k) || \
-                                 ((FREQ) == I2S_AudioFreq_11k) || \
-                                 ((FREQ) == I2S_AudioFreq_8k)  || \
+
+#define IS_I2S_AUDIO_FREQ(FREQ) ((((FREQ) >= I2S_AudioFreq_8k) && \
+                                  ((FREQ) <= I2S_AudioFreq_192k)) || \
                                  ((FREQ) == I2S_AudioFreq_Default))
 /**
   * @}
@@ -261,7 +267,7 @@
   * @}
   */
 
-/** @defgroup SPI_NSS_internal_software_mangement 
+/** @defgroup SPI_NSS_internal_software_management 
   * @{
   */
 
@@ -362,4 +368,4 @@
   * @}
   */
 
-/******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

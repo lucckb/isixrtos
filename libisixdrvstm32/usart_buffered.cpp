@@ -27,7 +27,7 @@ namespace	//Object pointers for interrupt
 	usart_buffered *usart4_obj;
 	usart_buffered *usart5_obj;
 #else
-#error STM32 devtype not defined
+#warning STM32 devtype set properly
 #endif
 }
 
