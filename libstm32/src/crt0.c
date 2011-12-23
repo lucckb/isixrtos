@@ -129,7 +129,7 @@ void tim13_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vecto
 void tim14_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
 
 /*---------------------------------------------------------*/
-#if defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || (defined STM32F10X_HD_VL)
+#if defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL)
 __attribute__ ((section(".isr_vector")))
 const vect_fun_t const exceptions_vectors[] =
 {
