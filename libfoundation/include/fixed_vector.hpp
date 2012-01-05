@@ -6,8 +6,8 @@
  *      Author: lucck
  */
 /*----------------------------------------------------------*/
-#ifndef FIXED_VECTOR_HPP_
-#define FIXED_VECTOR_HPP_
+#ifndef FND_FIXED_VECTOR_HPP_
+#define FND_FIXED_VECTOR_HPP_
 /*----------------------------------------------------------*/
 #include <bits/stl_iterator_base_types.h>
 #include <bits/stl_iterator_base_funcs.h>
