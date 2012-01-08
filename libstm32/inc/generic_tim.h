@@ -236,7 +236,6 @@ static inline void tim_bdtr_config(TIM_TypeDef* TIMx, uint8_t dead_time, uint16_
 {
 	TIMx->BDTR = (uint16_t)dead_time | config;
 }
-/* ---------------------------------------------------------------------------- */
 //Preload enable timer CCR will be updated only on new cycle
 /* ---------------------------------------------------------------------------- */
 //Set compare capture reg
@@ -262,6 +261,24 @@ static inline void tim_preload_enable(TIM_TypeDef* TIMx, enum tim_cc_chns chn, i
 			break;
 	}
 
+}
+/* ---------------------------------------------------------------------------- */
+/** Enable or disable ARR shadow register in the time base,
+ * required only if the time base will be changed
+ */
+static inline void tim_arr_preload_enable(TIM_TypeDef* TIMx, int enable)
+{
+	/* Check the parameters */
+	  if (enable)
+	  {
+	    /* Set the ARR Preload Bit */
+	    TIMx->CR1 |= TIM_CR1_ARPE;
+	  }
+	  else
+	  {
+	    /* Reset the ARR Preload Bit */
+	    TIMx->CR1 &= (uint16_t)~((uint16_t)TIM_CR1_ARPE);
+	  }
 }
 
 /* ---------------------------------------------------------------------------- */
