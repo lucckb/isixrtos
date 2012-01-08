@@ -1,7 +1,7 @@
 reset halt
 sleep 100
 wait_halt
-stm32x unlock 0
+stm32f1x unlock 0
 #sleep 100
 #reset halt
 #wait_halt
@@ -9,7 +9,7 @@ stm32x unlock 0
 sleep 100
 flash probe 0
 sleep 1000
-stm32x mass_erase 0
+stm32f1x mass_erase 0
 #sleep 10
 #flash protect_check 0
 sleep 10

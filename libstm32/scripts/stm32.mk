@@ -66,6 +66,12 @@ endif
 CXXFLAGS+= $(COMMON_FLAGS)
 CFLAGS+= $(COMMON_FLAGS)
 
+ifeq ($(SMALL_WORK_AREA),y)
+OCDSCRIPT_FILE=stm32small.cfg
+else
+OCDSCRIPT_FILE=stm32.cfg
+endif
+
 
 all:	build
 
@@ -81,12 +87,12 @@ clean:
 
 
 program:
-	openocd -f $(SCRIPTS_DIR)/stm32.cfg -c init -c 'script $(SCRIPTS_DIR)/flash-begin-$(MCU_VARIANT).script' \
+	openocd -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c 'script $(SCRIPTS_DIR)/flash-begin-$(MCU_VARIANT).script' \
 	-c "flash write_image $(TARGET).elf" -c 'script $(SCRIPTS_DIR)/flash-end-$(MCU_VARIANT).script' \
 	-c shutdown || true
 
 devrst:
-	openocd -f $(SCRIPTS_DIR)/stm32.cfg -c init -c reset run -c shutdown
+	openocd -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c reset run -c shutdown
 
 ifeq ($(LIBRARY),y)
 build:	target  
