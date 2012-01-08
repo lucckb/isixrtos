@@ -45,8 +45,8 @@ namespace lcd
 		virtual void write8_i(uint8_t addr, uint8_t value ) = 0;
 		virtual void write8_n(uint8_t addr, uint8_t value ) = 0;
 		virtual uint8_t read8( uint8_t addr ) const = 0;
-		virtual void udelay( unsigned period) = 0;
-		virtual void mdelay( unsigned period) = 0;
+		virtual void udelay( unsigned period) const= 0;
+		virtual void mdelay( unsigned period) const = 0;
 	private:
 		int wait4dev();
 		enum wtype { W_INSTR, W_DATA };
