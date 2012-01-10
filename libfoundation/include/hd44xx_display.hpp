@@ -23,7 +23,7 @@ namespace lcd
 			EDISPLAY_TIMEOUT=-675776
 		};
 		hd44xx_display();
-		~hd44xx_display() {}
+		virtual ~hd44xx_display() {}
 		int clear();
 		int cursor(bool enable)
 		{
@@ -36,27 +36,36 @@ namespace lcd
 			return wait4dev();
 		}
 		int setpos(int x, int y);
-		unsigned char read_currpos() const
-		{
-			return read8(W_INSTR) & (~0x80);
-		}
+		int read_currpos();
 		int show_icon(char chpos, const char *str);
 	protected:
 		virtual void write8_i(uint8_t addr, uint8_t value ) = 0;
 		virtual void write8_n(uint8_t addr, uint8_t value ) = 0;
-		virtual uint8_t read8( uint8_t addr ) const = 0;
-		virtual void udelay( unsigned period) const= 0;
-		virtual void mdelay( unsigned period) const = 0;
+		virtual uint8_t read8( uint8_t addr )  = 0;
+		virtual void mdelay( unsigned period)  = 0;
 	private:
 		int wait4dev();
 		enum wtype { W_INSTR, W_DATA };
 		void write_dev(unsigned char val, wtype command)
 		{
+			if( !m_initialized )
+			{
+				init_dev();
+			}
 			write8_n(command, val);
+		}
+		uint8_t read_dev( wtype command )
+		{
+			if( !m_initialized )
+			{
+				init_dev();
+			}
+			return read8( command );
 		}
 		int init_dev();
 	private:
 		static const unsigned CMD_DISP_ON = 8;
+		bool m_initialized;
 	private: 	//Noncopyable
 		hd44xx_display(hd44xx_display &);
 		hd44xx_display& operator=(const hd44xx_display&);

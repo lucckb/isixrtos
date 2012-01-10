@@ -21,8 +21,8 @@ namespace //CFG
 }
 /* ------------------------------------------------------------------ */
 hd44xx_display::hd44xx_display()
+	: m_initialized(false)
 {
-	init_dev();
 }
 /* ------------------------------------------------------------------ */
 //Wait4lcd
@@ -33,7 +33,7 @@ int hd44xx_display::wait4dev()
 	//Sprawdzenie czy jest wolny wyswietlacz
 	do
 	{
-        r = read8( W_INSTR );
+        r = read_dev( W_INSTR );
 		if(--tout == 0) return EDISPLAY_TIMEOUT;
 	}
 	while(r & 0x80);
@@ -45,15 +45,17 @@ int hd44xx_display::init_dev()
 {
 
     int ret = EDISPLAY_OK;
-	//First initialization
+    m_initialized = true;
+    mdelay(50);
+    //First initialization
     write8_i(0, 0x30);
-    mdelay(20);
+    mdelay(10);
     write8_i(0, 0x30);
-    mdelay(20);
+    mdelay(5);
     write8_i(0, 0x30);
-    mdelay(20);
+    mdelay(5);
     write8_i(0, 0x20);
-    mdelay(20);
+    mdelay(5);
     //4 bit bus 2 lines
     write_dev(0x28,W_INSTR);
     if((ret=wait4dev())<0) return ret;
@@ -102,7 +104,20 @@ int hd44xx_display::clear()
 	mdelay(2);
 	return wait4dev();
 }
-
+/* ------------------------------------------------------------------ */
+int hd44xx_display::read_currpos()
+{
+	  uint8_t r;
+	  int tout = WAIT_DELAY_TOUT;
+		//Sprawdzenie czy jest wolny wyswietlacz
+	  do
+	  {
+	        r = read_dev( W_INSTR );
+			if(--tout == 0) return EDISPLAY_TIMEOUT;
+	  }
+	  while(r & 0x80);
+	  return r;
+}
 /* ------------------------------------------------------------------ */
 hd44xx_display& operator<<(hd44xx_display &o,const char *str)
 {
