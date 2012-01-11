@@ -20,8 +20,8 @@
 #endif
 /* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus
-namespace _internal
-{
+namespace _internal {
+namespace adc {
 #endif
 /* ADC DISCNUM mask */
 static const uint32_t CR1_DISCNUM_Reset  =  0xFFFF1FFF;
@@ -72,7 +72,7 @@ static const uint32_t SMPR2_SMP_Set              = 0x00000007;
 static const uint32_t JDR_Offset                 = 0x28;
 static const uint32_t DR_ADDRESS                 = 0x4001244C;
 #ifdef __cplusplus
-}
+}}
 #endif
 
 /* ---------------------------------------------------------------------------- */
@@ -82,7 +82,7 @@ static inline void adc_init(ADC_TypeDef* ADCx, uint32_t adc_mode, bool adc_scan_
 	uint32_t adc_data_align, uint8_t adc_n_of_channels )
 {
   #ifdef __cplusplus
-	using namespace _internal;
+	using namespace _internal::adc;
   #endif
   uint32_t tmpreg1 = 0;
   uint8_t tmpreg2 = 0;
@@ -134,7 +134,7 @@ static inline void adc_init(ADC_TypeDef* ADCx, uint32_t adc_mode, bool adc_scan_
 static inline void adc_cmd(ADC_TypeDef* ADCx, bool enable)
 {
   #ifdef __cplusplus
-	using namespace _internal;
+	using namespace _internal::adc;
   #endif
   /* Check the parameters */
   if ( enable )
@@ -160,7 +160,7 @@ static inline void adc_cmd(ADC_TypeDef* ADCx, bool enable)
 static inline void adc_dma_cmd(ADC_TypeDef* ADCx, bool enable)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
 
   /* Check the parameters */
@@ -192,7 +192,7 @@ static inline void adc_dma_cmd(ADC_TypeDef* ADCx, bool enable)
 static inline void adc_it_config(ADC_TypeDef* ADCx, uint16_t ADC_IT, bool enable)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
  
   uint8_t itmask = 0;
@@ -218,7 +218,7 @@ static inline void adc_it_config(ADC_TypeDef* ADCx, uint16_t ADC_IT, bool enable
 static inline void adc_reset_calibration(ADC_TypeDef* ADCx)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
  
  /* Resets the selected ADC calibration registers */  
@@ -233,7 +233,7 @@ static inline void adc_reset_calibration(ADC_TypeDef* ADCx)
 static inline bool adc_get_reset_calibration_status(ADC_TypeDef* ADCx)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
    return ( ADCx->CR2 & CR2_RSTCAL_Set)?true:false;
 }
@@ -247,7 +247,7 @@ static inline bool adc_get_reset_calibration_status(ADC_TypeDef* ADCx)
 static inline void adc_start_calibration(ADC_TypeDef* ADCx)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
   /* Enable the selected ADC calibration process */  
   ADCx->CR2 |= CR2_CAL_Set;
@@ -261,7 +261,7 @@ static inline void adc_start_calibration(ADC_TypeDef* ADCx)
 static inline bool adc_get_calibration_status(ADC_TypeDef* ADCx)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
    return (ADCx->CR2 & CR2_CAL_Set)?true:false;
 }
@@ -275,7 +275,7 @@ static inline bool adc_get_calibration_status(ADC_TypeDef* ADCx)
 static inline void adc_software_start_conv_cmd(ADC_TypeDef* ADCx, bool start_conv)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
  
   if ( start_conv )
@@ -300,7 +300,7 @@ static inline void adc_software_start_conv_cmd(ADC_TypeDef* ADCx, bool start_con
 static inline bool adc_get_software_start_conv_status(ADC_TypeDef* ADCx)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
   return (ADCx->CR2 & CR2_SWSTART_Set)?true:false;
 }
@@ -317,7 +317,7 @@ static inline bool adc_get_software_start_conv_status(ADC_TypeDef* ADCx)
 static inline void adc_disc_mode_channel_count_config(ADC_TypeDef* ADCx, uint8_t number)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
   uint32_t tmpreg1 = 0;
   uint32_t tmpreg2 = 0;
@@ -344,7 +344,7 @@ static inline void adc_disc_mode_channel_count_config(ADC_TypeDef* ADCx, uint8_t
 static inline void adc_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
   if (enable)
   {
@@ -398,7 +398,7 @@ static inline void adc_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
 static inline void adc_regular_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Channel, uint8_t Rank, uint8_t ADC_SampleTime)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
  
    uint32_t tmpreg1 = 0, tmpreg2 = 0;
@@ -493,7 +493,7 @@ static inline void adc_regular_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Cha
 static inline void adc_external_trig_conv_cmd(ADC_TypeDef* ADCx, bool enable )
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
  
   if ( enable )
@@ -527,7 +527,7 @@ static inline uint16_t adc_get_conversion_value(ADC_TypeDef* ADCx)
 static inline uint32_t adc_get_dual_mode_conversion_value(void)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif 
  /* Return the dual mode conversion value */
   return (*(__IO uint32_t *) DR_ADDRESS);
@@ -544,7 +544,7 @@ static inline uint32_t adc_get_dual_mode_conversion_value(void)
 static inline void adc_auto_injected_conv_cmd(ADC_TypeDef* ADCx, bool enable)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif 
  
   if ( enable )
@@ -571,7 +571,7 @@ static inline void adc_auto_injected_conv_cmd(ADC_TypeDef* ADCx, bool enable)
 static inline void adc_injected_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif 
  
   if ( enable )
@@ -612,7 +612,7 @@ static inline void adc_injected_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
 static inline void adc_external_trig_injected_conv_config(ADC_TypeDef* ADCx, uint32_t ADC_ExternalTrigInjecConv)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
   uint32_t tmpreg = 0;
   /* Get the old register value */
@@ -638,7 +638,7 @@ static inline void adc_external_trig_injected_conv_config(ADC_TypeDef* ADCx, uin
 static inline void adc_external_trig_injected_conv_cmd(ADC_TypeDef* ADCx, bool enable)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
   #endif
 
   if ( enable )
@@ -664,7 +664,7 @@ static inline void adc_external_trig_injected_conv_cmd(ADC_TypeDef* ADCx, bool e
 static inline void adc_software_start_injected_conv_cmd(ADC_TypeDef* ADCx, bool enable)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
   if ( enable )
   {
@@ -689,7 +689,7 @@ static inline void adc_software_start_injected_conv_cmd(ADC_TypeDef* ADCx, bool 
 static inline bool adc_get_software_start_injected_conv_cmd_status(ADC_TypeDef* ADCx)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
    return (ADCx->CR2 & CR2_JSWSTART_Set)?true:false;
 }
@@ -734,7 +734,7 @@ static inline bool adc_get_software_start_injected_conv_cmd_status(ADC_TypeDef* 
 static inline void adc_injected_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Channel, uint8_t Rank, uint8_t ADC_SampleTime)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
 
   uint32_t tmpreg1 = 0, tmpreg2 = 0, tmpreg3 = 0;
@@ -796,7 +796,7 @@ static inline void adc_injected_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Ch
 static inline void adc_injected_sequencer_length_config(ADC_TypeDef* ADCx, uint8_t Length)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
   uint32_t tmpreg1 = 0;
   uint32_t tmpreg2 = 0;
@@ -828,7 +828,7 @@ static inline void adc_injected_sequencer_length_config(ADC_TypeDef* ADCx, uint8
 static inline void adc_set_injected_offset(ADC_TypeDef* ADCx, uint8_t ADC_InjectedChannel, uint16_t Offset)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
   __IO uint32_t tmp = 0;
   tmp = (uint32_t)ADCx;
@@ -852,7 +852,7 @@ static inline void adc_set_injected_offset(ADC_TypeDef* ADCx, uint8_t ADC_Inject
 static inline uint16_t adc_get_injected_conversion_value(ADC_TypeDef* ADCx, uint8_t ADC_InjectedChannel)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
  
   __IO uint32_t tmp = 0;
@@ -883,7 +883,7 @@ static inline uint16_t adc_get_injected_conversion_value(ADC_TypeDef* ADCx, uint
 static inline void adc_analog_watchdog_cmd(ADC_TypeDef* ADCx, uint32_t ADC_AnalogWatchdog)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
   uint32_t tmpreg = 0;
   /* Get the old register value */
@@ -909,7 +909,7 @@ static inline void adc_analog_watchdog_thresholds_config(ADC_TypeDef* ADCx, uint
                                         uint16_t LowThreshold)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
   /* Set the ADCx high threshold */
   ADCx->HTR = HighThreshold;
@@ -945,7 +945,7 @@ static inline void adc_analog_watchdog_thresholds_config(ADC_TypeDef* ADCx, uint
 static inline void adc_analog_watchdog_single_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Channel)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
  
   uint32_t tmpreg = 0;
@@ -968,7 +968,7 @@ static inline void adc_analog_watchdog_single_channel_config(ADC_TypeDef* ADCx, 
 static inline void adc_temp_sensor_vref_int_cmd( bool enable )
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
   
  /* Check the parameters */
@@ -999,7 +999,7 @@ static inline void adc_temp_sensor_vref_int_cmd( bool enable )
 static inline bool adc_get_status_flag(ADC_TypeDef* ADCx, uint8_t ADC_FLAG)
 {
   #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
    return (ADCx->SR & ADC_FLAG)?true:false;
 }
@@ -1019,7 +1019,7 @@ static inline bool adc_get_status_flag(ADC_TypeDef* ADCx, uint8_t ADC_FLAG)
 static inline void adc_clear_flag(ADC_TypeDef* ADCx, uint8_t ADC_FLAG)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
   /* Clear the selected ADC flags */
   ADCx->SR = ~(uint32_t)ADC_FLAG;
@@ -1038,7 +1038,7 @@ static inline void adc_clear_flag(ADC_TypeDef* ADCx, uint8_t ADC_FLAG)
 static inline bool adc_get_it_status(ADC_TypeDef* ADCx, uint16_t ADC_IT)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
   
   uint32_t itmask = 0, enablestatus = 0;
@@ -1064,7 +1064,7 @@ static inline bool adc_get_it_status(ADC_TypeDef* ADCx, uint16_t ADC_IT)
 static inline void adc_clear_it_pending_bit(ADC_TypeDef* ADCx, uint16_t ADC_IT)
 {
    #ifdef __cplusplus
-      using namespace _internal;
+      using namespace _internal::adc;
    #endif
   uint8_t itmask = 0;
   /* Get the ADC IT index */
