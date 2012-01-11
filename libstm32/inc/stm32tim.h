@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 
-#ifndef GENERIC_TIM_H_
-#define GENERIC_TIM_H_
+#ifndef STM32TIM_H_
+#define STM32TIM_H_
 /* ---------------------------------------------------------------------------- */
 #include <stm32f10x_lib.h>
 #include <stm32f10x_tim.h>
@@ -285,4 +285,4 @@ static inline void tim_arr_preload_enable(TIM_TypeDef* TIMx, int enable)
 #ifdef __cplusplus
  }
 #endif
-#endif /* GENERIC_TIM_HPP_ */
+#endif /* STM32TIM_H_ */
