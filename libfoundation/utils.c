@@ -11,6 +11,7 @@
 #include <string.h>
 
 /* ------------------------------------------------------------ */
+//Convert ascii to unsigned int
 unsigned fnd_atoui(const char *str)
 {
     unsigned ret = 0;
@@ -29,7 +30,8 @@ unsigned fnd_atoui(const char *str)
 
 
 /* ------------------------------------------------------------ */
-static void strrev(char *str, int len)
+//Strev without allocate extra memory using xor
+static inline void strrev(char *str, int len)
 {
 	char *p1, *p2;
 
@@ -43,12 +45,25 @@ static void strrev(char *str, int len)
 	}
 }
 /* ------------------------------------------------------------ */
-void fnd_uitoa(char *str, unsigned val ,int fmt, char fmtch)
+//Convert value to digit
+static inline char base_to_digit( int digit )
+{
+	if( digit >=0 && digit <= 9)
+		return digit + '0';
+	else if( digit - 10 <= 'Z' - 'A')
+		return digit - 10 + 'A';
+	else
+		return '.';
+}
+
+/* ------------------------------------------------------------ */
+//Convert unsigned int to ascii
+void fnd_uitoa(char *str, unsigned val ,int fmt, char fmtch, int base)
 {
     int digits;
-    if(fmt>10) return;
-    for(digits=0; val>0; val/=10,digits++)
-        str[digits] = val % 10 + '0';
+    if(fmt>16) return;
+    for(digits=0; val>0; val/=base,digits++)
+        str[digits] = base_to_digit(val % base);
     for(int i=fmt-digits; i>0; i--,digits++)
         str[digits] = fmtch;
     str[digits] = '\0';

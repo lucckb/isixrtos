@@ -131,7 +131,7 @@ hd44xx_display& operator<<(hd44xx_display &o,const char *str)
 hd44xx_display& operator<<(hd44xx_display &o,unsigned value)
 {
 	char buf[11];
-	fnd::fnd_uitoa(buf,value,1,'0');
+	fnd::fnd_uitoa(buf,value,1,'0',10);
 	o << buf;
 	return o;
 }
@@ -139,7 +139,7 @@ hd44xx_display& operator<<(hd44xx_display &o,unsigned value)
 hd44xx_display& operator<<(hd44xx_display &o,const lfmt &fmt)
 {
 	char buf[11];
-	fnd::fnd_uitoa(buf,fmt.val,fmt.fmt,fmt.fmtch);
+	fnd::fnd_uitoa(buf,fmt.val,fmt.fmt,fmt.fmtch,fmt.base);
 	o << buf;
 	return o;
 }

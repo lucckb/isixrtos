@@ -75,12 +75,18 @@ namespace lcd
 	{
 		friend hd44xx_display& operator<<(hd44xx_display &o,const lfmt &fmt);
 	public:
-		lfmt(unsigned val_,int fmt_, char fmtch_='0')
-		: val(val_),fmt(fmt_),fmtch(fmtch_) {}
+		enum
+		{
+			dec = 10,
+			hex = 16
+		};
+		lfmt(unsigned val_, int fmt_, char fmtch_='0', short base_=dec)
+		: val(val_),fmt(fmt_),fmtch(fmtch_) , base(base_) {}
 	private:
 		unsigned val;
 		int fmt;
 		char fmtch;
+		short base;
 	};
 /* ------------------------------------------------------------------ */
 	struct icon
