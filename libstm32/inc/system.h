@@ -249,6 +249,7 @@ static inline uint16_t io_get_mask(GPIO_TypeDef* port , uint16_t bitmask)
 /**
  * 	Configure GPIO line into selected mode
  *	@param[in] port Port to configure
+ *	@param[in] bit  Pin bit number
  *	@param[in] mode New port mode
  *	@param[in] config New port configuration
  */
@@ -270,13 +271,40 @@ static inline void io_config(GPIO_TypeDef* port,uint8_t bit,uint32_t mode,uint32
 void nvic_system_reset(void);
 
 /*----------------------------------------------------------*/
+/**
+ * 	Configure GPIO lines into selected mode
+ *	@param[in] port Port to configure
+ *	@param[in] bitmask Pin bitmap to configure
+ *	@param[in] mode New port mode
+ *	@param[in] config New port configuration
+ */
+
 void io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t config);
 
 /*----------------------------------------------------------*/
+/** Put function in the RAM section */
 #define STM32_FASTRUN __attribute__ ((long_call, section (".ram_func")))
 
 /*----------------------------------------------------------*/
-
+/** Return FLASH size in the CPU
+ */
+static inline int flash_mem_size(void)
+{
+	return (*(vu16 *)(0x1FFFF7E0));
+}
+/*----------------------------------------------------------*/
+/** Return CPUID
+ * @param[in] word pos number
+ * @return value
+ */
+static inline unsigned get_cpuid(unsigned pos)
+{
+	if(pos<3)
+		return ((vu32 *)( 0x1FFFF7E8))[pos];
+	else
+		return 0;
+}
+/*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
 }
