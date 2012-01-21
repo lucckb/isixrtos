@@ -305,6 +305,30 @@ static inline unsigned get_cpuid(unsigned pos)
 		return 0;
 }
 /*----------------------------------------------------------*/
+/**
+ * @brief  Initialize and start the SysTick counter and its interrupt.
+ *
+ * @param   ticks   number of ticks between two interrupts
+ * @return  1 = failed, 0 = successful
+ *
+ * Initialise the system tick timer and its interrupt and start the
+ * system tick timer / counter in free running mode to generate
+ * periodical interrupts.
+ */
+
+static inline int systick_config(uint32_t ticks)
+{
+  if (ticks > SysTick_LOAD_RELOAD_Msk)  return (-1);            /* Reload value impossible */
+
+  SysTick->LOAD  = (ticks & SysTick_LOAD_RELOAD_Msk) - 1;      /* set reload register */
+  SysTick->VAL   = 0;                                          /* Load the SysTick Counter Value */
+  SysTick->CTRL  = /*SysTick_CTRL_CLKSOURCE_Msk | */
+                   SysTick_CTRL_TICKINT_Msk   |
+                   SysTick_CTRL_ENABLE_Msk;                    /* Enable SysTick IRQ and SysTick Timer */
+  return (0);                                                  /* Function successful */
+}
+
+/*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
 }
