@@ -98,7 +98,7 @@ static inline bool getBit_BB(void *VarAddr, unsigned BitNumber)
 #ifndef PDEBUG
 static inline void wfi(void ) { asm volatile("wfi"); }
 #else
-static inline void wfi(void) {}
+static inline void wfi(void) { asm volatile("nop");  }
 #endif
 
 /*----------------------------------------------------------*/
