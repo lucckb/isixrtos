@@ -162,7 +162,7 @@ int adc_converter::get_adc_values(volatile unsigned short *regs)
 {
 	int res = lock_sem.wait ( isix::ISIX_TIME_INFINITE );
     if(res < 0) return res;
-    stm32::dma_channel_enable(DMA1_Channel1,
+    stm32::dma_channel_config(DMA1_Channel1,
         DMA_DIR_PeripheralSRC | DMA_PeripheralInc_Disable |
         DMA_MemoryInc_Enable | DMA_PeripheralDataSize_HalfWord |
         DMA_MemoryDataSize_HalfWord | DMA_Mode_Normal | DMA_Priority_High | DMA_M2M_Disable,

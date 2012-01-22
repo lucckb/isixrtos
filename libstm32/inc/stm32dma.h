@@ -58,7 +58,7 @@ void dma_disable(enum dma_cntr ch)
 }
 /* ---------------------------------------------------------------------------- */
 //Dma channel enable
-static inline void dma_channel_enable(DMA_Channel_TypeDef *DMAchx, uint32_t config,
+static inline void dma_channel_config(DMA_Channel_TypeDef *DMAchx, uint32_t config,
 		volatile void * mem, volatile void *periph, size_t size)
 {
 	DMAchx->CCR = config;

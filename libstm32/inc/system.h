@@ -329,6 +329,38 @@ static inline int systick_config(uint32_t ticks)
 }
 
 /*----------------------------------------------------------*/
+/**
+ * @brief Enable or disable selected perhipheral
+ * @param clock_type Clock type depends on the bus
+ * @param periph  Perhipherals bitmask
+ * @param enable Enable or disable
+ */
+enum rcc_clock_type
+{
+	rcc_clk_ahb,
+	rcc_clk_apb2,
+	rcc_clk_apb1
+};
+
+static inline void periph_clock_cmd( enum rcc_clock_type clock_type, uint32_t periph, bool enable)
+{
+	switch( clock_type )
+	{
+	case rcc_clk_ahb:
+		if( enable ) RCC->AHBENR |= periph;
+		else RCC->AHBENR &= ~periph;
+		break;
+	case rcc_clk_apb2:
+		if( enable ) RCC->APB2ENR |= periph;
+		else RCC->APB2ENR &= ~periph;
+		break;
+	case rcc_clk_apb1:
+		if( enable ) RCC->APB1ENR |= periph;
+		else RCC->APB1ENR &= ~periph;
+		break;
+	}
+}
+/*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
 }
