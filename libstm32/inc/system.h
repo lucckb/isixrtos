@@ -126,6 +126,7 @@ static inline void iwdt_reset(void) { IWDG->KR = KR_KEY_Reload; }
  * This function should be called from interrupt context
  * @param[out] addr Atomic location to write
  * @param[in] val Value to write into selected addr
+ * @return 1 if unable to access memory
  */
 static inline long atomic_try_writeb(volatile uint8_t *addr,uint8_t val)
 {
