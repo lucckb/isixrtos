@@ -176,9 +176,9 @@ static inline uint8_t atomic_xchg_byte( volatile uint8_t *addr, uint8_t val )
  * @param[out] addr Address with location to write
  * @return Value read from specified location
  */
-static inline uint8_t atomic_read_byte( volatile uint8_t *addr )
+static inline uint8_t atomic_read_byte( const volatile uint8_t *addr )
 {
-	uint8_t ret;
+	uint8_t ret = 0;
 	unsigned long lock;
 	asm volatile
 	(
@@ -244,9 +244,9 @@ static inline uint32_t atomic_xchg_word( volatile uint32_t *addr, uint32_t val )
  * @param[out] addr Address with location to write
  * @return Value read from specified location
  */
-static inline uint32_t atomic_read_word( volatile uint32_t *addr )
+static inline uint32_t atomic_read_word( const volatile uint32_t *addr )
 {
-	uint32_t ret;
+	uint32_t ret = 0;
 	unsigned long lock;
 	asm volatile
 	(
