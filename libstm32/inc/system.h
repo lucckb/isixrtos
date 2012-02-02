@@ -17,7 +17,7 @@
 /**  Setup NVIC priority group
  * @param[in] group Priority group to set
  */
-void nvic_priority_group(uint32_t group);
+void nvic_priority_group( uint32_t group );
 
 /*----------------------------------------------------------*/
 /** Setup NVIC priority in CORTEX-M3 core
@@ -25,14 +25,14 @@ void nvic_priority_group(uint32_t group);
  * @param[in] priority Assigned IRQ preemtion priority
  * @param[in] subpriority  Assigned supbriority
  */
-void nvic_set_priority(IRQn_Type irq_num,uint32_t priority,uint32_t subpriority);
+void nvic_set_priority( IRQn_Type irq_num, uint32_t priority, uint32_t subpriority );
 
 /*----------------------------------------------------------*/
 /** Enable or disable selected interrupt in CORTEX-M3 NVIC core
  * @param[in] channel IRQ channel number
  * @param[in] enable Enable or disable selected channel
  */
-void nvic_irq_enable(IRQn_Type irq_num, bool enable);
+void nvic_irq_enable( IRQn_Type irq_num, bool enable );
 
 
 /*----------------------------------------------------------*/
@@ -40,7 +40,7 @@ void nvic_irq_enable(IRQn_Type irq_num, bool enable);
  * @param[in] priority Assigned IRQ preemtion priority
  * @param[in] subpriority Assigned supbriority
  */
-void irq_mask(uint32_t priority,uint32_t subpriority);
+void irq_mask( uint32_t priority, uint32_t subpriority );
 
 /*----------------------------------------------------------*/
 //! Disable IRQ masking in CORTEX-M3 core
@@ -96,9 +96,9 @@ static inline bool getBit_BB(void *VarAddr, unsigned BitNumber)
 /*----------------------------------------------------------*/
 //! Sleep mode wait for interrupt macros
 #ifndef PDEBUG
-static inline void wfi(void ) { asm volatile("wfi"); }
+static inline void wfi( void ) { asm volatile("wfi"); }
 #else
-static inline void wfi(void) { asm volatile("nop");  }
+static inline void wfi( void ) { asm volatile("nop");  }
 #endif
 
 /*----------------------------------------------------------*/
@@ -110,7 +110,7 @@ static inline void nop(void) { asm volatile("nop"); }
  * @param[in] prescaler Prescaler value
  * @param[in] reload  Reload timeout value
  */
-void iwdt_setup(uint8_t prescaler,uint16_t reload);
+void iwdt_setup( uint8_t prescaler, uint16_t reload );
 
 /*----------------------------------------------------------*/
 
@@ -119,7 +119,10 @@ enum {
 	KR_KEY_Reload  = 0xAAAA
 };
 //! Reset Watchdog MACRO
-static inline void iwdt_reset(void) { IWDG->KR = KR_KEY_Reload; }
+static inline void iwdt_reset(void)
+{
+    IWDG->KR = KR_KEY_Reload;
+}
 
 /*----------------------------------------------------------*/
 /** Try write atomic into specified location
@@ -128,22 +131,21 @@ static inline void iwdt_reset(void) { IWDG->KR = KR_KEY_Reload; }
  * @param[in] val Value to write into selected addr
  * @return 1 if unable to access memory
  */
-static inline long atomic_try_writeb(volatile uint8_t *addr,uint8_t val)
+static inline long atomic_try_write_byte( volatile uint8_t *addr, uint8_t val )
 {
 	long lock;
 	asm volatile
 	(
-		"ldrexb %0,[%1]\n"
-		"strexb %0,%2,[%1]\n"
-		: "=&r"(lock)
-		: "r"(addr),"r"(val)
-		: "cc"
+		"ldrexb %[lock],[%[addr]]\n"
+		"strexb %[lock],%[val],[%[addr]]\n"
+		: [lock] "=&r"(lock)
+		: [addr] "r"(addr), [val] "r"(val)
+		: "cc", "memory"
 	);
 	return lock;
 }
 
 /*----------------------------------------------------------*/
-
 /** Atomic exchange byte
  * Write and read to selected address. Function
  * should be called from main context
@@ -151,23 +153,113 @@ static inline long atomic_try_writeb(volatile uint8_t *addr,uint8_t val)
  * @param[in] val Value to write
  * @return Value read from specified location
  */
-static inline uint8_t atomic_xchg_byte(volatile uint8_t *addr,uint8_t val)
+static inline uint8_t atomic_xchg_byte( volatile uint8_t *addr, uint8_t val )
 {
 	uint8_t ret;
-	unsigned long tmp;
+	unsigned long lock;
 	asm volatile
 	(
-	"1:	ldrexb %0,[%2]\n"
-	   "strexb %1,%3,[%2]\n"
-	   "teq %1,#0\n"
+	"1:	ldrexb %[ret],[%[addr]]\n"
+	   "strexb %[lock],%[val],[%[addr]]\n"
+	   "teq %[lock],#0\n"
 	   "bne 1b\n"
-		: "=&r"(ret),"=&r"(tmp)
-		: "r"(addr),"r"(val)
-		: "cc"
+		: [ret]"=&r"(ret), [lock]"=&r"(lock)
+		: [addr]"r"(addr), [val]"r"(val)
+		: "cc", "memory"
 	);
 	return ret;
 }
+/*----------------------------------------------------------*/
+/** Atomic read byte
+ * Write and read to selected address. Function
+ * should be called from main context
+ * @param[out] addr Address with location to write
+ * @return Value read from specified location
+ */
+static inline uint8_t atomic_read_byte( volatile uint8_t *addr )
+{
+	uint8_t ret;
+	unsigned long lock;
+	asm volatile
+	(
+	"1:	ldrexb %[ret],[%[addr]]\n"
+	   "strexb %[lock],%[ret],[%[addr]]\n"
+	   "teq %[lock],#0\n"
+	   "bne 1b\n"
+		: [ret]"+&r"(ret), [lock]"=&r"(lock)
+		: [addr]"r"(addr)
+		: "cc", "memory"
+	);
+	return ret;
+}
+/*----------------------------------------------------------*/
+/** Try write atomic into specified location
+ * This function should be called from interrupt context
+ * @param[out] addr Atomic location to write
+ * @param[in] val Value to write into selected addr
+ * @return 1 if unable to access memory
+ */
+static inline long atomic_try_write_word( volatile uint32_t *addr, uint32_t val )
+{
+	long lock;
+	asm volatile
+	(
+		"ldrex %[lock],[%[addr]]\n"
+		"strex %[lock],%[val],[%[addr]]\n"
+		: [lock] "=&r"(lock)
+		: [addr] "r"(addr), [val] "r"(val)
+		: "cc", "memory"
+	);
+	return lock;
+}
 
+/*----------------------------------------------------------*/
+/** Atomic exchange byte
+ * Write and read to selected address. Function
+ * should be called from main context
+ * @param[out] addr Address with location to write
+ * @param[in] val Value to write
+ * @return Value read from specified location
+ */
+static inline uint32_t atomic_xchg_word( volatile uint32_t *addr, uint32_t val )
+{
+	uint32_t ret;
+	unsigned long lock;
+	asm volatile
+	(
+	"1:	ldrex %[ret],[%[addr]]\n"
+	   "strex %[lock],%[val],[%[addr]]\n"
+	   "teq %[lock],#0\n"
+	   "bne 1b\n"
+		: [ret]"=&r"(ret), [lock]"=&r"(lock)
+		: [addr]"r"(addr), [val]"r"(val)
+		: "cc", "memory"
+	);
+	return ret;
+}
+/*----------------------------------------------------------*/
+/** Atomic read byte
+ * Write and read to selected address. Function
+ * should be called from main context
+ * @param[out] addr Address with location to write
+ * @return Value read from specified location
+ */
+static inline uint32_t atomic_read_word( volatile uint32_t *addr )
+{
+	uint32_t ret;
+	unsigned long lock;
+	asm volatile
+	(
+	"1:	ldrex %[ret],[%[addr]]\n"
+	   "strex %[lock],%[ret],[%[addr]]\n"
+	   "teq %[lock],#0\n"
+	   "bne 1b\n"
+		: [ret]"+&r"(ret), [lock]"=&r"(lock)
+		: [addr]"r"(addr)
+		: "cc", "memory"
+	);
+	return ret;
+}
 /*----------------------------------------------------------*/
 /** GPIO bits macros */
 enum
