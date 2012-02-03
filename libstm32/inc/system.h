@@ -6,41 +6,115 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32f10x_lib.h"
+/*----------------------------------------------------------*/
+#ifdef __cplusplus
+namespace stm32 {
+#endif
+/*----------------------------------------------------------*/
+//Internal namespace
+#ifdef __cplusplus
+namespace _internal {
+namespace system {
+#endif
+/*----------------------------------------------------------*/
+//! Setup priority group in NVIC controler
+static const uint32_t AIRCR_VECTKEY_MASK  = 0x05FA0000;
+//! Reset the system
+static const uint32_t AICR_SYSRESET_REQ = 4;
+
+/*----------------------------------------------------------*/
+static inline uint32_t _system_calc_priority(uint32_t preempt_prio, uint32_t sub_prio )
+{
+    uint32_t tmpsub = 0x0F;
+    uint32_t tmppriority = (0x700 - ((SCB->AIRCR) & (uint32_t)0x700))>> 0x08;
+    uint32_t tmppre = (0x4 - tmppriority);
+    tmpsub = tmpsub >> tmppriority;
+
+    tmppriority =  preempt_prio << tmppre;
+    tmppriority |=  sub_prio & tmpsub;
+    tmppriority = tmppriority << 0x04;
+    return tmppriority;
+}
 
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
- namespace stm32 {
-	extern "C" {
+}}	//Internal namespace
 #endif
 
 /*----------------------------------------------------------*/
 /**  Setup NVIC priority group
  * @param[in] group Priority group to set
  */
-void nvic_priority_group( uint32_t group );
+static inline void nvic_priority_group(uint32_t group )
+{
+#ifdef __cplusplus
+	using namespace _internal::system;
+#endif
+	/* Set the PRIGROUP[10:8] bits according to NVIC_PriorityGroup value */
+	SCB->AIRCR = AIRCR_VECTKEY_MASK | group;
+}
 
 /*----------------------------------------------------------*/
 /** Setup NVIC priority in CORTEX-M3 core
- * @param[in] channel Setup selected channel
+ * @param[in] irq_n Setup selected channel
  * @param[in] priority Assigned IRQ preemtion priority
  * @param[in] subpriority  Assigned supbriority
  */
-void nvic_set_priority( IRQn_Type irq_num, uint32_t priority, uint32_t subpriority );
+static inline void nvic_set_priority(IRQn_Type irq_num,uint32_t priority,uint32_t subpriority )
+{
+#ifdef __cplusplus
+	using namespace _internal::system;
+#endif
+	uint32_t prio =  _system_calc_priority(priority,subpriority);
+	if(irq_num>=0)
+	{
+	    NVIC->IP[(uint32_t)irq_num] = prio;
+	}
+	else
+	{
+	    SCB->SHP[((uint32_t)(irq_num) & 0xF)-4] = prio;
+	}
+}
 
 /*----------------------------------------------------------*/
 /** Enable or disable selected interrupt in CORTEX-M3 NVIC core
  * @param[in] channel IRQ channel number
  * @param[in] enable Enable or disable selected channel
  */
-void nvic_irq_enable( IRQn_Type irq_num, bool enable );
-
+static inline void nvic_irq_enable(IRQn_Type irq_num, bool enable )
+{
+	if(enable)
+	{
+		/* Enable the Selected IRQ Channels */
+		NVIC->ISER[(uint32_t)irq_num >> 0x05] = (u32)0x01 << ((uint32_t)irq_num & (u8)0x1F);
+	}
+	else
+	{
+		/* Disable the Selected IRQ Channels */
+		NVIC->ICER[(uint32_t)irq_num >> 0x05] = (u32)0x01 << ((uint32_t)irq_num & (u8)0x1F);
+	}
+}
 
 /*----------------------------------------------------------*/
 /** Irq mask interrupt priority in CORTEX-M3 core
  * @param[in] priority Assigned IRQ preemtion priority
  * @param[in] subpriority Assigned supbriority
  */
-void irq_mask( uint32_t priority, uint32_t subpriority );
+static inline void irq_mask(uint32_t priority,uint32_t subpriority)
+{
+#ifdef __cplusplus
+	using namespace _internal::system;
+#endif
+	/* Compute the Corresponding IRQ Priority */
+	uint32_t tmppriority =  _system_calc_priority(priority,subpriority);
+
+	asm volatile
+	(
+			"msr BASEPRI,%0\n"
+			::"r"(tmppriority)
+	);
+
+}
 
 /*----------------------------------------------------------*/
 //! Disable IRQ masking in CORTEX-M3 core
@@ -48,8 +122,8 @@ static inline void irq_umask(void)
 {
 	asm volatile
 	(
-			"msr BASEPRI,%0\n"
-			::"r"(0):"cc"
+		"msr BASEPRI,%0\n"
+		::"r"(0):"cc"
 	);
 }
 /*----------------------------------------------------------*/
@@ -66,10 +140,16 @@ static inline void irq_enable(void)
 }
 
 /*----------------------------------------------------------*/
+
 /** Clear pending IRQ interrupt in CORTEX-M3 core
  * @param[in] channel IRQ channel number
  */
-void nvic_irq_pend_clear(IRQn_Type irq_num);
+static inline void nvic_irq_pend_clear(IRQn_Type irq_num)
+{
+	//Clear pending bit
+	NVIC->ICPR[((uint32_t)irq_num >> 0x05)] = (u32)0x01 << ((uint32_t)irq_num & (u32)0x1F);
+}
+
 
 /*----------------------------------------------------------*/
 //! Memory access in bit band region
@@ -106,18 +186,36 @@ static inline void wfi( void ) { asm volatile("nop");  }
 static inline void nop(void) { asm volatile("nop"); }
 
 /*----------------------------------------------------------*/
+
+/** KR register bit mask */
+enum {
+	KR_KEY_Reload  = 0xAAAA,
+	KR_KEY_Enable  =  0xCCCC
+};
+
+/*----------------------------------------------------------*/
 /** Configure watchdog with timeout
  * @param[in] prescaler Prescaler value
  * @param[in] reload  Reload timeout value
  */
-void iwdt_setup( uint8_t prescaler, uint16_t reload );
+static inline void iwdt_setup(uint8_t prescaler,uint16_t reload)
+{
+#ifdef __cplusplus
+	using namespace _internal::system;
+#endif
+	//Enable write access to wdt
+	IWDG->KR = IWDG_WriteAccess_Enable;
+	//Program prescaler
+	IWDG->PR = prescaler;
+	//Set reload value
+	IWDG->RLR = reload;
+	//Reload register
+	IWDG->KR = KR_KEY_Reload;
+	//Watchdog enable
+	IWDG->KR = KR_KEY_Enable;
+}
 
 /*----------------------------------------------------------*/
-
-/** KR register bit mask */
-enum {
-	KR_KEY_Reload  = 0xAAAA
-};
 //! Reset Watchdog MACRO
 static inline void iwdt_reset(void)
 {
@@ -361,7 +459,15 @@ static inline void io_config(GPIO_TypeDef* port,uint8_t bit,uint32_t mode,uint32
 }
 /*----------------------------------------------------------*/
 //Reset the MCU system
-void nvic_system_reset(void);
+static inline void nvic_system_reset(void)
+{
+#ifdef __cplusplus
+	using namespace _internal::system;
+#endif
+	SCB->AIRCR = AIRCR_VECTKEY_MASK | AICR_SYSRESET_REQ;
+	asm volatile("dsb\n");
+	for(;;);	//Wait for system reset
+}
 
 /*----------------------------------------------------------*/
 /**
@@ -371,9 +477,16 @@ void nvic_system_reset(void);
  *	@param[in] mode New port mode
  *	@param[in] config New port configuration
  */
-
-void io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t config);
-
+static inline void io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t config)
+{
+	for(unsigned i=0; i<16; i++)
+	{
+		if(bit & (1<<i))
+		{
+			io_config(port,i,mode,config);
+		}
+	}
+}
 /*----------------------------------------------------------*/
 /** Put function in the RAM section */
 #define STM32_FASTRUN __attribute__ ((long_call, section (".ram_func")))
@@ -455,7 +568,6 @@ static inline void periph_clock_cmd( enum rcc_clock_type clock_type, uint32_t pe
 }
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
-}
 }
 #endif
 
