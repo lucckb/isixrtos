@@ -136,6 +136,14 @@ hd44xx_display& operator<<(hd44xx_display &o,unsigned value)
 	return o;
 }
 /* ------------------------------------------------------------------ */
+hd44xx_display& operator<<(hd44xx_display &o,int value)
+{
+	char buf[12];
+	fnd::fnd_itoa(buf,value,1,'0');
+	o << buf;
+	return o;
+}
+/* ------------------------------------------------------------------ */
 hd44xx_display& operator<<(hd44xx_display &o,const lfmt &fmt)
 {
 	char buf[11];

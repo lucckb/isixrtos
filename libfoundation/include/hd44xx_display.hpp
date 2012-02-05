@@ -117,6 +117,8 @@ namespace lcd
 	hd44xx_display& operator<<(hd44xx_display &o,const icon &fmt);
 
 	hd44xx_display& operator<<(hd44xx_display &o,const pos &fmt);
+
+	hd44xx_display& operator<<(hd44xx_display &o,int value);
 /* ------------------------------------------------------------------ */
 
 }}
