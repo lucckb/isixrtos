@@ -390,7 +390,7 @@ void _fini(void) {}
 
 static void empty_func(void) {}
 void _external_startup(void) __attribute__ ((weak, alias("empty_func")));
-
+void _external_exit(void) __attribute__ ((weak, alias("empty_func")));
 #endif /* CPP_STARTUP_CODE */
 
 
@@ -439,7 +439,7 @@ void reset_handler(void)
     __libc_fini_array();
 #endif /* __ARM_EABI__*/
     __cxa_finalize(0);
-
+    _external_exit();
 #endif /*defined(FUNCTION_MAIN_RETURN) && defined(CPP_STARTUP_CODE)*/
     while(1);
 }
