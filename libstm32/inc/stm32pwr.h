@@ -16,7 +16,7 @@
 #ifdef __cplusplus
 namespace _internal {
 namespace pwr {
-#endif
+
 
 /* --------- PWR registers bit address in the alias region ---------- */
 static const unsigned PWR_OFFSET      =         PWR_BASE - PERIPH_BASE;
@@ -44,11 +44,34 @@ static const unsigned  CSR_EWUP_BB     =         PERIPH_BB_BASE + (CSR_OFFSET * 
 /* CR register bit mask */
 static const unsigned  CR_DS_MASK   =           0xFFFFFFFC;
 static const unsigned  CR_PLS_MASK  =           0xFFFFFF1F;
-
-
-#ifdef __cplusplus
 }}
-#endif
+
+#else /* __cplusplus */
+
+#define PWR_OFFSET              (PWR_BASE - PERIPH_BASE)
+/* Alias word address of DBP bit */
+#define   CR_OFFSET             (PWR_OFFSET + 0x00)
+#define   DBP_BitNumber         0x08
+#define   CR_DBP_BB             (PERIPH_BB_BASE + (CR_OFFSET * 32) + (DBP_BitNumber * 4))
+
+/* Alias word address of PVDE bit */
+#define   PVDE_BitNumber      0x04
+#define   CR_PVDE_BB           (PERIPH_BB_BASE + (CR_OFFSET * 32) + (PVDE_BitNumber * 4))
+
+/* --- CSR Register ---*/
+
+/* Alias word address of EWUP bit */
+#define   CSR_OFFSET          (PWR_OFFSET + 0x04)
+#define   EWUP_BitNumber       0x08
+#define   CSR_EWUP_BB          (PERIPH_BB_BASE + (CSR_OFFSET * 32) + (EWUP_BitNumber * 4))
+
+/* ------------------ PWR registers bit mask ------------------------ */
+
+/* CR register bit mask */
+#define  CR_DS_MASK            0xFFFFFFFC
+#define  CR_PLS_MASK           0xFFFFFF1F
+
+#endif /* __cplusplus */
 /* ---------------------------------------------------------------------------- */
 /**
   * @brief  Enables or disables access to the RTC and backup registers.
@@ -218,6 +241,21 @@ static inline void pwr_clear_flag(uint32_t PWR_FLAG)
 
 #ifdef __cplusplus
  }
-#endif
+
+#else	//Undefine local #define
+
+#undef PWR_OFFSET
+#undef CR_OFFSET
+#undef DBP_BitNumber
+#undef CR_DBP_BB
+#undef  PVDE_BitNumber
+#undef CR_PVDE_BB
+#undef CSR_OFFSET
+#undef EWUP_BitNumber
+#undef CSR_EWUP_BB
+#undef CR_DS_MASK
+#undef CR_PLS_MASK
+
+#endif /*__cplusplus*/
 
 /* ---------------------------------------------------------------------------- */
