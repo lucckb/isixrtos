@@ -458,6 +458,53 @@ static inline void io_config(GPIO_TypeDef* port,uint8_t bit,uint32_t mode,uint32
 	}
 }
 /*----------------------------------------------------------*/
+enum gpio_port_source
+{
+	GPIO_PortSourceGPIOA   =    0x00,
+	GPIO_PortSourceGPIOB   =    0x01,
+	GPIO_PortSourceGPIOC   =    0x02,
+	GPIO_PortSourceGPIOD   =    0x03,
+	GPIO_PortSourceGPIOE   =    0x04,
+	GPIO_PortSourceGPIOF   =    0x05,
+	GPIO_PortSourceGPIOG   =    0x06
+};
+enum gpio_pin_source
+{
+	GPIO_PinSource0     =       0x00,
+	GPIO_PinSource1     =       0x01,
+	GPIO_PinSource2     =       0x02,
+	GPIO_PinSource3     =       0x03,
+	GPIO_PinSource4     =       0x04,
+	GPIO_PinSource5     =       0x05,
+	GPIO_PinSource6     =       0x06,
+	GPIO_PinSource7     =       0x07,
+	GPIO_PinSource8     =       0x08,
+	GPIO_PinSource9     =       0x09,
+	GPIO_PinSource10    =       0x0A,
+	GPIO_PinSource11    =       0x0B,
+	GPIO_PinSource12    =       0x0C,
+	GPIO_PinSource13    =       0x0D,
+	GPIO_PinSource14    =       0x0E,
+	GPIO_PinSource15    =       0x0F
+};
+
+/**
+  * @brief  Selects the GPIO pin used as EXTI Line.
+  * @param  GPIO_PortSource: selects the GPIO port to be used as source for EXTI lines.
+  *   This parameter can be GPIO_PortSourceGPIOx where x can be (A..G).
+  * @param  GPIO_PinSource: specifies the EXTI line to be configured.
+  *   This parameter can be GPIO_PinSourcex where x can be (0..15).
+  * @retval None
+  */
+static inline void gpio_exti_line_config(uint8_t GPIO_PortSource, uint8_t GPIO_PinSource)
+{
+  uint32_t tmp = 0x00;
+  tmp = ((uint32_t)0x0F) << (0x04 * (GPIO_PinSource & (uint8_t)0x03));
+  AFIO->EXTICR[GPIO_PinSource >> 0x02] &= ~tmp;
+  AFIO->EXTICR[GPIO_PinSource >> 0x02] |= (((uint32_t)GPIO_PortSource) << (0x04 * (GPIO_PinSource & (uint8_t)0x03)));
+}
+
+/*----------------------------------------------------------*/
 //Reset the MCU system
 static inline void nvic_system_reset(void)
 {
