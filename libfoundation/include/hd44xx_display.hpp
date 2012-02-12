@@ -35,6 +35,13 @@ namespace lcd
 			write_dev(ch,W_DATA);
 			return wait4dev();
 		}
+		int erase(int n_chars)
+		{
+			int ret;
+			for(int i=0; i<n_chars; i++)
+				if((ret = putc(' ')) != 0) return ret;
+			return 0;
+		}
 		int setpos(int x, int y);
 		int read_currpos();
 		int show_icon(char chpos, const char *str);
