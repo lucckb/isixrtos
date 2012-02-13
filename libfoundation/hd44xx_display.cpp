@@ -18,7 +18,7 @@ namespace lcd
 namespace //CFG
 {
 	const unsigned WAIT_DELAY_TOUT = 32000;
-    const char bar_patterns[] = { 0x10, 0x18, 0x1c, 0x1E, 0x1F };
+    const char bar_patterns[] = { 0x00, 0x10, 0x18, 0x1c, 0x1E, 0x1F };
 }
 /* ------------------------------------------------------------------ */
 hd44xx_display::hd44xx_display()
