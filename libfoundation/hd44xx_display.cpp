@@ -120,18 +120,21 @@ int hd44xx_display::read_currpos()
 	  return r;
 }
 /* ------------------------------------------------------------------ */
-int hd44xx_display::progress_bar(int x, int y, int width, char chpos)
+int hd44xx_display::progress_bar(int x, int y, int value, int width, char chpos)
 {
     char cgram[8];
-    int ret = 0;
+    int ret = 0, pos;
     if((ret=setpos( x, y ))!=0) return ret;
     static const int full_fill_len = 5;
     static const char full_char = 0xff;
-    for( int i = 0; i < width/full_fill_len; ++i )
+    static const char empty_char = ' ';
+    for( pos = 0; (pos<value/full_fill_len) && (pos<width/full_fill_len) ; ++pos )
         if((ret = putc( full_char ))!=0) return ret;
     for( unsigned i=0; i < sizeof(cgram)/sizeof(cgram[0]); ++i)
-       cgram[i] = bar_patterns[ width % full_fill_len ];
+       cgram[i] = bar_patterns[ value % full_fill_len ];
     if((ret=show_icon( chpos, cgram ))!=0) return ret;
+    for(++pos ; pos< width/full_fill_len; ++pos)
+    	 if((ret = putc( empty_char ))!=0) return ret;
     return ret;
 }
 /* ------------------------------------------------------------------ */
