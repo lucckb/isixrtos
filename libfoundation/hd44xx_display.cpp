@@ -18,6 +18,7 @@ namespace lcd
 namespace //CFG
 {
 	const unsigned WAIT_DELAY_TOUT = 32000;
+    const char bar_patterns[] = { 0x10, 0x18, 0x1c, 0x1E, 0x1F };
 }
 /* ------------------------------------------------------------------ */
 hd44xx_display::hd44xx_display()
@@ -117,6 +118,21 @@ int hd44xx_display::read_currpos()
 	  }
 	  while(r & 0x80);
 	  return r;
+}
+/* ------------------------------------------------------------------ */
+int hd44xx_display::progress_bar(int x, int y, int width, char chpos)
+{
+    char cgram[8];
+    int ret = 0;
+    if((ret=setpos( x, y ))!=0) return ret;
+    static const int full_fill_len = 5;
+    static const char full_char = 0xff;
+    for( int i = 0; i < width/full_fill_len; ++i )
+        if((ret = putc( full_char ))!=0) return ret;
+    for( unsigned i=0; i < sizeof(cgram)/sizeof(cgram[0]); ++i)
+       cgram[i] = bar_patterns[ width % full_fill_len ];
+    if((ret=show_icon( chpos, cgram ))!=0) return ret;
+    return ret;
 }
 /* ------------------------------------------------------------------ */
 hd44xx_display& operator<<(hd44xx_display &o,const char *str)

@@ -45,6 +45,7 @@ namespace lcd
 		int setpos(int x, int y);
 		int read_currpos();
 		int show_icon(char chpos, const char *str);
+        int progress_bar(int x, int y, int width, char chpos=0);
 	protected:
 		virtual void write8_i(uint8_t addr, uint8_t value ) = 0;
 		virtual void write8_n(uint8_t addr, uint8_t value ) = 0;
