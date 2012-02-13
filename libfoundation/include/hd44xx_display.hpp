@@ -20,7 +20,8 @@ namespace lcd
 		enum err
 		{
 			EDISPLAY_OK,
-			EDISPLAY_TIMEOUT=-675776
+			EDISPLAY_TIMEOUT=-675776,
+			EDISPLAY_INVALID_PARAM
 		};
 		hd44xx_display();
 		virtual ~hd44xx_display() {}

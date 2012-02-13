@@ -124,6 +124,7 @@ int hd44xx_display::progress_bar(int x, int y, int value, int width, char chpos)
 {
     char cgram[8];
     int ret = 0, pos;
+    if( value < 0 ) return EDISPLAY_INVALID_PARAM;
     if((ret=setpos( x, y ))!=0) return ret;
     static const int full_fill_len = 5;
     static const char full_char = 0xff;
