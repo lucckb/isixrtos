@@ -43,8 +43,6 @@
 #define RCC_HSE_OFF                      ((uint32_t)0x00000000)
 #define RCC_HSE_ON                       ((uint32_t)0x00010000)
 #define RCC_HSE_Bypass                   ((uint32_t)0x00040000)
-#define IS_RCC_HSE(HSE) (((HSE) == RCC_HSE_OFF) || ((HSE) == RCC_HSE_ON) || \
-                         ((HSE) == RCC_HSE_Bypass))
 
 /**
   * @}
@@ -64,8 +62,7 @@
                                    ((SOURCE) == RCC_PLLSource_HSE_Div2))
 #else
  #define RCC_PLLSource_PREDIV1            ((uint32_t)0x00010000)
- #define IS_RCC_PLL_SOURCE(SOURCE) (((SOURCE) == RCC_PLLSource_HSI_Div2) || \
-                                   ((SOURCE) == RCC_PLLSource_PREDIV1))
+
 #endif /* STM32F10X_CL */ 
 
 /**
@@ -91,14 +88,7 @@
  #define RCC_PLLMul_14                   ((uint32_t)0x00300000)
  #define RCC_PLLMul_15                   ((uint32_t)0x00340000)
  #define RCC_PLLMul_16                   ((uint32_t)0x00380000)
- #define IS_RCC_PLL_MUL(MUL) (((MUL) == RCC_PLLMul_2) || ((MUL) == RCC_PLLMul_3)   || \
-                              ((MUL) == RCC_PLLMul_4) || ((MUL) == RCC_PLLMul_5)   || \
-                              ((MUL) == RCC_PLLMul_6) || ((MUL) == RCC_PLLMul_7)   || \
-                              ((MUL) == RCC_PLLMul_8) || ((MUL) == RCC_PLLMul_9)   || \
-                              ((MUL) == RCC_PLLMul_10) || ((MUL) == RCC_PLLMul_11) || \
-                              ((MUL) == RCC_PLLMul_12) || ((MUL) == RCC_PLLMul_13) || \
-                              ((MUL) == RCC_PLLMul_14) || ((MUL) == RCC_PLLMul_15) || \
-                              ((MUL) == RCC_PLLMul_16))
+
 
 #else
  #define RCC_PLLMul_4                    ((uint32_t)0x00080000)
@@ -109,10 +99,7 @@
  #define RCC_PLLMul_9                    ((uint32_t)0x001C0000)
  #define RCC_PLLMul_6_5                  ((uint32_t)0x00340000)
 
- #define IS_RCC_PLL_MUL(MUL) (((MUL) == RCC_PLLMul_4) || ((MUL) == RCC_PLLMul_5) || \
-                              ((MUL) == RCC_PLLMul_6) || ((MUL) == RCC_PLLMul_7) || \
-                              ((MUL) == RCC_PLLMul_8) || ((MUL) == RCC_PLLMul_9) || \
-                              ((MUL) == RCC_PLLMul_6_5))
+
 #endif /* STM32F10X_CL */                              
 /**
   * @}
@@ -139,14 +126,7 @@
  #define  RCC_PREDIV1_Div15              ((uint32_t)0x0000000E)
  #define  RCC_PREDIV1_Div16              ((uint32_t)0x0000000F)
 
- #define IS_RCC_PREDIV1(PREDIV1) (((PREDIV1) == RCC_PREDIV1_Div1) || ((PREDIV1) == RCC_PREDIV1_Div2) || \
-                                  ((PREDIV1) == RCC_PREDIV1_Div3) || ((PREDIV1) == RCC_PREDIV1_Div4) || \
-                                  ((PREDIV1) == RCC_PREDIV1_Div5) || ((PREDIV1) == RCC_PREDIV1_Div6) || \
-                                  ((PREDIV1) == RCC_PREDIV1_Div7) || ((PREDIV1) == RCC_PREDIV1_Div8) || \
-                                  ((PREDIV1) == RCC_PREDIV1_Div9) || ((PREDIV1) == RCC_PREDIV1_Div10) || \
-                                  ((PREDIV1) == RCC_PREDIV1_Div11) || ((PREDIV1) == RCC_PREDIV1_Div12) || \
-                                  ((PREDIV1) == RCC_PREDIV1_Div13) || ((PREDIV1) == RCC_PREDIV1_Div14) || \
-                                  ((PREDIV1) == RCC_PREDIV1_Div15) || ((PREDIV1) == RCC_PREDIV1_Div16))
+
 #endif
 /**
   * @}
@@ -161,13 +141,10 @@
  #define  RCC_PREDIV1_Source_HSE         ((uint32_t)0x00000000) 
  #define  RCC_PREDIV1_Source_PLL2        ((uint32_t)0x00010000) 
 
- #define IS_RCC_PREDIV1_SOURCE(SOURCE) (((SOURCE) == RCC_PREDIV1_Source_HSE) || \
-                                        ((SOURCE) == RCC_PREDIV1_Source_PLL2)) 
 #elif defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL)
 /* PREDIV1 clock source (for STM32 Value line devices) */
  #define  RCC_PREDIV1_Source_HSE         ((uint32_t)0x00000000) 
 
- #define IS_RCC_PREDIV1_SOURCE(SOURCE) (((SOURCE) == RCC_PREDIV1_Source_HSE)) 
 #endif
 /**
   * @}
@@ -195,14 +172,7 @@
  #define  RCC_PREDIV2_Div15              ((uint32_t)0x000000E0)
  #define  RCC_PREDIV2_Div16              ((uint32_t)0x000000F0)
 
- #define IS_RCC_PREDIV2(PREDIV2) (((PREDIV2) == RCC_PREDIV2_Div1) || ((PREDIV2) == RCC_PREDIV2_Div2) || \
-                                  ((PREDIV2) == RCC_PREDIV2_Div3) || ((PREDIV2) == RCC_PREDIV2_Div4) || \
-                                  ((PREDIV2) == RCC_PREDIV2_Div5) || ((PREDIV2) == RCC_PREDIV2_Div6) || \
-                                  ((PREDIV2) == RCC_PREDIV2_Div7) || ((PREDIV2) == RCC_PREDIV2_Div8) || \
-                                  ((PREDIV2) == RCC_PREDIV2_Div9) || ((PREDIV2) == RCC_PREDIV2_Div10) || \
-                                  ((PREDIV2) == RCC_PREDIV2_Div11) || ((PREDIV2) == RCC_PREDIV2_Div12) || \
-                                  ((PREDIV2) == RCC_PREDIV2_Div13) || ((PREDIV2) == RCC_PREDIV2_Div14) || \
-                                  ((PREDIV2) == RCC_PREDIV2_Div15) || ((PREDIV2) == RCC_PREDIV2_Div16))
+
 /**
   * @}
   */
@@ -222,11 +192,7 @@
  #define  RCC_PLL2Mul_16                 ((uint32_t)0x00000E00)
  #define  RCC_PLL2Mul_20                 ((uint32_t)0x00000F00)
 
- #define IS_RCC_PLL2_MUL(MUL) (((MUL) == RCC_PLL2Mul_8) || ((MUL) == RCC_PLL2Mul_9)  || \
-                               ((MUL) == RCC_PLL2Mul_10) || ((MUL) == RCC_PLL2Mul_11) || \
-                               ((MUL) == RCC_PLL2Mul_12) || ((MUL) == RCC_PLL2Mul_13) || \
-                               ((MUL) == RCC_PLL2Mul_14) || ((MUL) == RCC_PLL2Mul_16) || \
-                               ((MUL) == RCC_PLL2Mul_20))
+
 /**
   * @}
   */
@@ -246,11 +212,6 @@
  #define  RCC_PLL3Mul_16                 ((uint32_t)0x0000E000)
  #define  RCC_PLL3Mul_20                 ((uint32_t)0x0000F000)
 
- #define IS_RCC_PLL3_MUL(MUL) (((MUL) == RCC_PLL3Mul_8) || ((MUL) == RCC_PLL3Mul_9)  || \
-                               ((MUL) == RCC_PLL3Mul_10) || ((MUL) == RCC_PLL3Mul_11) || \
-                               ((MUL) == RCC_PLL3Mul_12) || ((MUL) == RCC_PLL3Mul_13) || \
-                               ((MUL) == RCC_PLL3Mul_14) || ((MUL) == RCC_PLL3Mul_16) || \
-                               ((MUL) == RCC_PLL3Mul_20))
 /**
   * @}
   */
@@ -265,9 +226,7 @@
 #define RCC_SYSCLKSource_HSI             ((uint32_t)0x00000000)
 #define RCC_SYSCLKSource_HSE             ((uint32_t)0x00000001)
 #define RCC_SYSCLKSource_PLLCLK          ((uint32_t)0x00000002)
-#define IS_RCC_SYSCLK_SOURCE(SOURCE) (((SOURCE) == RCC_SYSCLKSource_HSI) || \
-                                      ((SOURCE) == RCC_SYSCLKSource_HSE) || \
-                                      ((SOURCE) == RCC_SYSCLKSource_PLLCLK))
+
 /**
   * @}
   */
@@ -285,11 +244,7 @@
 #define RCC_SYSCLK_Div128                ((uint32_t)0x000000D0)
 #define RCC_SYSCLK_Div256                ((uint32_t)0x000000E0)
 #define RCC_SYSCLK_Div512                ((uint32_t)0x000000F0)
-#define IS_RCC_HCLK(HCLK) (((HCLK) == RCC_SYSCLK_Div1) || ((HCLK) == RCC_SYSCLK_Div2) || \
-                           ((HCLK) == RCC_SYSCLK_Div4) || ((HCLK) == RCC_SYSCLK_Div8) || \
-                           ((HCLK) == RCC_SYSCLK_Div16) || ((HCLK) == RCC_SYSCLK_Div64) || \
-                           ((HCLK) == RCC_SYSCLK_Div128) || ((HCLK) == RCC_SYSCLK_Div256) || \
-                           ((HCLK) == RCC_SYSCLK_Div512))
+
 /**
   * @}
   */ 
@@ -303,9 +258,7 @@
 #define RCC_HCLK_Div4                    ((uint32_t)0x00000500)
 #define RCC_HCLK_Div8                    ((uint32_t)0x00000600)
 #define RCC_HCLK_Div16                   ((uint32_t)0x00000700)
-#define IS_RCC_PCLK(PCLK) (((PCLK) == RCC_HCLK_Div1) || ((PCLK) == RCC_HCLK_Div2) || \
-                           ((PCLK) == RCC_HCLK_Div4) || ((PCLK) == RCC_HCLK_Div8) || \
-                           ((PCLK) == RCC_HCLK_Div16))
+
 /**
   * @}
   */
@@ -322,20 +275,12 @@
 #define RCC_IT_CSS                       ((uint8_t)0x80)
 
 #ifndef STM32F10X_CL
- #define IS_RCC_IT(IT) ((((IT) & (uint8_t)0xE0) == 0x00) && ((IT) != 0x00))
- #define IS_RCC_GET_IT(IT) (((IT) == RCC_IT_LSIRDY) || ((IT) == RCC_IT_LSERDY) || \
-                            ((IT) == RCC_IT_HSIRDY) || ((IT) == RCC_IT_HSERDY) || \
-                            ((IT) == RCC_IT_PLLRDY) || ((IT) == RCC_IT_CSS))
- #define IS_RCC_CLEAR_IT(IT) ((((IT) & (uint8_t)0x60) == 0x00) && ((IT) != 0x00))
+
 #else
  #define RCC_IT_PLL2RDY                  ((uint8_t)0x20)
  #define RCC_IT_PLL3RDY                  ((uint8_t)0x40)
- #define IS_RCC_IT(IT) ((((IT) & (uint8_t)0x80) == 0x00) && ((IT) != 0x00))
- #define IS_RCC_GET_IT(IT) (((IT) == RCC_IT_LSIRDY) || ((IT) == RCC_IT_LSERDY) || \
-                            ((IT) == RCC_IT_HSIRDY) || ((IT) == RCC_IT_HSERDY) || \
-                            ((IT) == RCC_IT_PLLRDY) || ((IT) == RCC_IT_CSS) || \
-                            ((IT) == RCC_IT_PLL2RDY) || ((IT) == RCC_IT_PLL3RDY))
- #define IS_RCC_CLEAR_IT(IT) ((IT) != 0x00)
+
+
 #endif /* STM32F10X_CL */ 
 
 
@@ -351,8 +296,6 @@
  #define RCC_USBCLKSource_PLLCLK_1Div5   ((uint8_t)0x00)
  #define RCC_USBCLKSource_PLLCLK_Div1    ((uint8_t)0x01)
 
- #define IS_RCC_USBCLK_SOURCE(SOURCE) (((SOURCE) == RCC_USBCLKSource_PLLCLK_1Div5) || \
-                                      ((SOURCE) == RCC_USBCLKSource_PLLCLK_Div1))
 /**
   * @}
   */
@@ -363,8 +306,6 @@
  #define RCC_OTGFSCLKSource_PLLVCO_Div3    ((uint8_t)0x00)
  #define RCC_OTGFSCLKSource_PLLVCO_Div2    ((uint8_t)0x01)
 
- #define IS_RCC_OTGFSCLK_SOURCE(SOURCE) (((SOURCE) == RCC_OTGFSCLKSource_PLLVCO_Div3) || \
-                                         ((SOURCE) == RCC_OTGFSCLKSource_PLLVCO_Div2))
 /**
   * @}
   */
@@ -378,8 +319,7 @@
  #define RCC_I2S2CLKSource_SYSCLK        ((uint8_t)0x00)
  #define RCC_I2S2CLKSource_PLL3_VCO      ((uint8_t)0x01)
 
- #define IS_RCC_I2S2CLK_SOURCE(SOURCE) (((SOURCE) == RCC_I2S2CLKSource_SYSCLK) || \
-                                        ((SOURCE) == RCC_I2S2CLKSource_PLL3_VCO))
+
 /**
   * @}
   */
@@ -390,8 +330,6 @@
  #define RCC_I2S3CLKSource_SYSCLK        ((uint8_t)0x00)
  #define RCC_I2S3CLKSource_PLL3_VCO      ((uint8_t)0x01)
 
- #define IS_RCC_I2S3CLK_SOURCE(SOURCE) (((SOURCE) == RCC_I2S3CLKSource_SYSCLK) || \
-                                        ((SOURCE) == RCC_I2S3CLKSource_PLL3_VCO))    
 /**
   * @}
   */
@@ -406,8 +344,7 @@
 #define RCC_PCLK2_Div4                   ((uint32_t)0x00004000)
 #define RCC_PCLK2_Div6                   ((uint32_t)0x00008000)
 #define RCC_PCLK2_Div8                   ((uint32_t)0x0000C000)
-#define IS_RCC_ADCCLK(ADCCLK) (((ADCCLK) == RCC_PCLK2_Div2) || ((ADCCLK) == RCC_PCLK2_Div4) || \
-                               ((ADCCLK) == RCC_PCLK2_Div6) || ((ADCCLK) == RCC_PCLK2_Div8))
+
 /**
   * @}
   */
@@ -419,8 +356,7 @@
 #define RCC_LSE_OFF                      ((uint8_t)0x00)
 #define RCC_LSE_ON                       ((uint8_t)0x01)
 #define RCC_LSE_Bypass                   ((uint8_t)0x04)
-#define IS_RCC_LSE(LSE) (((LSE) == RCC_LSE_OFF) || ((LSE) == RCC_LSE_ON) || \
-                         ((LSE) == RCC_LSE_Bypass))
+
 /**
   * @}
   */
@@ -432,9 +368,7 @@
 #define RCC_RTCCLKSource_LSE             ((uint32_t)0x00000100)
 #define RCC_RTCCLKSource_LSI             ((uint32_t)0x00000200)
 #define RCC_RTCCLKSource_HSE_Div128      ((uint32_t)0x00000300)
-#define IS_RCC_RTCCLK_SOURCE(SOURCE) (((SOURCE) == RCC_RTCCLKSource_LSE) || \
-                                      ((SOURCE) == RCC_RTCCLKSource_LSI) || \
-                                      ((SOURCE) == RCC_RTCCLKSource_HSE_Div128))
+
 /**
   * @}
   */
@@ -452,15 +386,13 @@
 #ifndef STM32F10X_CL
  #define RCC_AHBPeriph_FSMC              ((uint32_t)0x00000100)
  #define RCC_AHBPeriph_SDIO              ((uint32_t)0x00000400)
- #define IS_RCC_AHB_PERIPH(PERIPH) ((((PERIPH) & 0xFFFFFAA8) == 0x00) && ((PERIPH) != 0x00))
 #else
  #define RCC_AHBPeriph_OTG_FS            ((uint32_t)0x00001000)
  #define RCC_AHBPeriph_ETH_MAC           ((uint32_t)0x00004000)
  #define RCC_AHBPeriph_ETH_MAC_Tx        ((uint32_t)0x00008000)
  #define RCC_AHBPeriph_ETH_MAC_Rx        ((uint32_t)0x00010000)
 
- #define IS_RCC_AHB_PERIPH(PERIPH) ((((PERIPH) & 0xFFFE2FA8) == 0x00) && ((PERIPH) != 0x00))
- #define IS_RCC_AHB_PERIPH_RESET(PERIPH) ((((PERIPH) & 0xFFFFAFFF) == 0x00) && ((PERIPH) != 0x00))
+
 #endif /* STM32F10X_CL */
 /**
   * @}
@@ -544,20 +476,14 @@
 #define RCC_MCO_PLLCLK_Div2              ((uint8_t)0x07)
 
 #ifndef STM32F10X_CL
- #define IS_RCC_MCO(MCO) (((MCO) == RCC_MCO_NoClock) || ((MCO) == RCC_MCO_HSI) || \
-                          ((MCO) == RCC_MCO_SYSCLK)  || ((MCO) == RCC_MCO_HSE) || \
-                          ((MCO) == RCC_MCO_PLLCLK_Div2))
+
 #else
  #define RCC_MCO_PLL2CLK                 ((uint8_t)0x08)
  #define RCC_MCO_PLL3CLK_Div2            ((uint8_t)0x09)
  #define RCC_MCO_XT1                     ((uint8_t)0x0A)
  #define RCC_MCO_PLL3CLK                 ((uint8_t)0x0B)
 
- #define IS_RCC_MCO(MCO) (((MCO) == RCC_MCO_NoClock) || ((MCO) == RCC_MCO_HSI) || \
-                          ((MCO) == RCC_MCO_SYSCLK)  || ((MCO) == RCC_MCO_HSE) || \
-                          ((MCO) == RCC_MCO_PLLCLK_Div2) || ((MCO) == RCC_MCO_PLL2CLK) || \
-                          ((MCO) == RCC_MCO_PLL3CLK_Div2) || ((MCO) == RCC_MCO_XT1) || \
-                          ((MCO) == RCC_MCO_PLL3CLK))
+
 #endif /* STM32F10X_CL */ 
 
 /**
@@ -581,25 +507,13 @@
 #define RCC_FLAG_LPWRRST                 ((uint8_t)0x7F)
 
 #ifndef STM32F10X_CL
- #define IS_RCC_FLAG(FLAG) (((FLAG) == RCC_FLAG_HSIRDY) || ((FLAG) == RCC_FLAG_HSERDY) || \
-                            ((FLAG) == RCC_FLAG_PLLRDY) || ((FLAG) == RCC_FLAG_LSERDY) || \
-                            ((FLAG) == RCC_FLAG_LSIRDY) || ((FLAG) == RCC_FLAG_PINRST) || \
-                            ((FLAG) == RCC_FLAG_PORRST) || ((FLAG) == RCC_FLAG_SFTRST) || \
-                            ((FLAG) == RCC_FLAG_IWDGRST)|| ((FLAG) == RCC_FLAG_WWDGRST)|| \
-                            ((FLAG) == RCC_FLAG_LPWRRST))
+
 #else
  #define RCC_FLAG_PLL2RDY                ((uint8_t)0x3B) 
  #define RCC_FLAG_PLL3RDY                ((uint8_t)0x3D) 
- #define IS_RCC_FLAG(FLAG) (((FLAG) == RCC_FLAG_HSIRDY) || ((FLAG) == RCC_FLAG_HSERDY) || \
-                            ((FLAG) == RCC_FLAG_PLLRDY) || ((FLAG) == RCC_FLAG_LSERDY) || \
-                            ((FLAG) == RCC_FLAG_PLL2RDY) || ((FLAG) == RCC_FLAG_PLL3RDY) || \
-                            ((FLAG) == RCC_FLAG_LSIRDY) || ((FLAG) == RCC_FLAG_PINRST) || \
-                            ((FLAG) == RCC_FLAG_PORRST) || ((FLAG) == RCC_FLAG_SFTRST) || \
-                            ((FLAG) == RCC_FLAG_IWDGRST)|| ((FLAG) == RCC_FLAG_WWDGRST)|| \
-                            ((FLAG) == RCC_FLAG_LPWRRST))
+
 #endif /* STM32F10X_CL */ 
 
-#define IS_RCC_CALIBRATION_VALUE(VALUE) ((VALUE) <= 0x1F)
 
 
 #ifdef __cplusplus
