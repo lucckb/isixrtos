@@ -17,11 +17,17 @@ namespace _internal {
 namespace system {
 #endif
 /*----------------------------------------------------------*/
+#ifdef __cplusplus
 //! Setup priority group in NVIC controler
 static const uint32_t AIRCR_VECTKEY_MASK  = 0x05FA0000;
 //! Reset the system
 static const uint32_t AICR_SYSRESET_REQ = 4;
-
+#else /*__cplusplus */
+//! Setup priority group in NVIC controler
+#define AIRCR_VECTKEY_MASK   0x05FA0000
+//! Reset the system
+#define  AICR_SYSRESET_REQ  4
+#endif
 /*----------------------------------------------------------*/
 static inline uint32_t _system_calc_priority(uint32_t preempt_prio, uint32_t sub_prio )
 {
@@ -584,7 +590,13 @@ static inline int systick_config(uint32_t ticks)
 #ifdef __cplusplus
 }
 #endif
+/*----------------------------------------------------------*/
+#ifndef __cplusplus
 
+#undef AIRCR_VECTKEY_MASK
+#undef  AICR_SYSRESET_REQ
+
+#endif
 /*----------------------------------------------------------*/
 #endif /*SYSTEM_H_*/
 

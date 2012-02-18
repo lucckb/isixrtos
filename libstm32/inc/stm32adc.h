@@ -22,7 +22,6 @@
 #ifdef __cplusplus
 namespace _internal {
 namespace adc {
-#endif
 /* ADC DISCNUM mask */
 static const uint32_t CR1_DISCNUM_Reset  =  0xFFFF1FFF;
 /* ADC DISCEN mask */
@@ -71,8 +70,51 @@ static const uint32_t SMPR1_SMP_Set              = 0x00000007;
 static const uint32_t SMPR2_SMP_Set              = 0x00000007;
 static const uint32_t JDR_Offset                 = 0x28;
 static const uint32_t DR_ADDRESS                 = 0x4001244C;
-#ifdef __cplusplus
 }}
+#else
+
+#define CR1_DISCNUM_Reset    0xFFFF1FFF
+#define CR1_DISCEN_Set       0x00000800
+#define CR1_DISCEN_Reset     0xFFFFF7FF
+#define CR1_JAUTO_Set        0x00000400
+#define CR1_JAUTO_Reset      0xFFFFFBFF
+#define CR1_JDISCEN_Set      0x00001000
+#define CR1_JDISCEN_Reset    0xFFFFEFFF
+#define CR1_AWDCH_Reset      0xFFFFFFE0
+#define CR1_AWDMode_Reset           0xFF3FFDFF
+#define CR1_CLEAR_Mask              0xFFF0FEFF
+#define CR2_ADON_Set                0x00000001
+#define CR2_ADON_Reset              0xFFFFFFFE
+#define CR2_DMA_Set                 0x00000100
+#define CR2_DMA_Reset               0xFFFFFEFF
+#define CR2_RSTCAL_Set              0x00000008
+#define CR2_CAL_Set                 0x00000004
+#define CR2_SWSTART_Set             0x00400000
+#define CR2_EXTTRIG_Set             0x00100000
+#define CR2_EXTTRIG_Reset           0xFFEFFFFF
+#define CR2_EXTTRIG_SWSTART_Set     0x00500000
+#define CR2_EXTTRIG_SWSTART_Reset   0xFFAFFFFF
+#define CR2_JEXTSEL_Reset           0xFFFF8FFF
+#define CR2_JEXTTRIG_Set            0x00008000
+#define CR2_JEXTTRIG_Reset          0xFFFF7FFF
+#define CR2_JSWSTART_Set            0x00200000
+#define CR2_JEXTTRIG_JSWSTART_Set   0x00208000
+#define CR2_JEXTTRIG_JSWSTART_Reset 0xFFDF7FFF
+#define CR2_TSVREFE_Set             0x00800000
+#define CR2_TSVREFE_Reset           0xFF7FFFFF
+#define CR2_CLEAR_Mask              0xFFF1F7FD
+#define SQR3_SQ_Set                 0x0000001F
+#define SQR2_SQ_Set                 0x0000001F
+#define SQR1_SQ_Set                 0x0000001F
+#define SQR1_CLEAR_Mask             0xFF0FFFFF
+#define JSQR_JSQ_Set                0x0000001F
+#define JSQR_JL_Set                 0x00300000
+#define JSQR_JL_Reset               0xFFCFFFFF
+#define SMPR1_SMP_Set               0x00000007
+#define SMPR2_SMP_Set               0x00000007
+#define JDR_Offset                  0x28
+#define DR_ADDRESS                  0x4001244C
+
 #endif
 
 /* ---------------------------------------------------------------------------- */
@@ -1076,6 +1118,51 @@ static inline void adc_clear_it_pending_bit(ADC_TypeDef* ADCx, uint16_t ADC_IT)
 /* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus
 }
+#else /* __cplusplus */
+
+#undef CR1_DISCNUM_Reset
+#undef CR1_DISCEN_Set
+#undef CR1_DISCEN_Reset
+#undef CR1_JAUTO_Set
+#undef CR1_JAUTO_Reset
+#undef CR1_JDISCEN_Set
+#undef CR1_JDISCEN_Reset
+#undef CR1_AWDCH_Reset
+#undef CR1_AWDMode_Reset
+#undef CR1_CLEAR_Mask
+#undef CR2_ADON_Set
+#undef CR2_ADON_Reset
+#undef CR2_DMA_Set
+#undef CR2_DMA_Reset
+#undef CR2_RSTCAL_Set
+#undef CR2_CAL_Set
+#undef CR2_SWSTART_Set
+#undef CR2_EXTTRIG_Set
+#undef CR2_EXTTRIG_Reset
+#undef CR2_EXTTRIG_SWSTART_Set
+#undef CR2_EXTTRIG_SWSTART_Reset
+#undef CR2_JEXTSEL_Reset
+#undef CR2_JEXTTRIG_Set
+#undef CR2_JEXTTRIG_Reset
+#undef CR2_JSWSTART_Set
+#undef CR2_JEXTTRIG_JSWSTART_Set
+#undef CR2_JEXTTRIG_JSWSTART_Reset
+#undef CR2_TSVREFE_Set
+#undef CR2_TSVREFE_Reset
+#undef CR2_CLEAR_Mask
+#undef SQR3_SQ_Set
+#undef SQR2_SQ_Set
+#undef SQR1_SQ_Set
+#undef SQR1_CLEAR_Mask
+#undef JSQR_JSQ_Set
+#undef JSQR_JL_Set
+#undef JSQR_JL_Reset
+#undef SMPR1_SMP_Set
+#undef SMPR2_SMP_Set
+#undef JDR_Offset
+#undef DR_ADDRESS
+
 #endif
+
 #endif /* STM32ADC_H_ */
 
