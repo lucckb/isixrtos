@@ -1,7 +1,15 @@
 # Automatic makefile for GNUARM (C/C++)
 
+#Cortex type
+STM32TYPE = $(findstring f4, $(MCU_VARIANT) )
+
 #Typ procesora
+ifeq ($(STM32TYPE),f4)
+MCU	= cortex-m4
+else
 MCU	= cortex-m3
+endif
+
 
 #Skrypt linkera
 SCRIPTLINK = stm32-$(MCU_VARIANT)
@@ -28,6 +36,9 @@ LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
 #Pozostale ustawienia kompilatora
 COMMON_FLAGS += -O$(OPT) -mcpu=$(MCU) -mthumb -Wno-variadic-macros
+ifeq ($(STM32TYPE),f4)
+COMMON_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffast-math
+endif
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb
 LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
 CPFLAGS =  -S
@@ -69,7 +80,11 @@ CFLAGS+= $(COMMON_FLAGS)
 ifeq ($(SMALL_WORK_AREA),y)
 OCDSCRIPT_FILE=stm32small.cfg
 else
+ifeq ($(STM32TYPE),f4)
+OCDSCRIPT_FILE=stm32f4x.cfg
+else
 OCDSCRIPT_FILE=stm32.cfg
+endif
 endif
 
 
@@ -151,36 +166,28 @@ endif
 
 
 %.lss: %.elf
-	@echo "Create extended listing..."
 	$(OBJDUMP) -h -S $< > $@
 
 %.hex: %.elf
-	@echo "Converting to hex..."
 	$(CP) -O ihex $(CPFLAGS) $< $@ 
 
 %.bin: %.elf
-	@echo "Converting to bin..."
 	$(CP) -O binary $(CPFLAGS) $< $@ 
 
 $(TARGET).elf: $(OBJ) $(CRT0_OBJECTS) $(ADDITIONAL_DEPS) $(LIBS)
-	@echo "Linking..."
 	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECTS) $(LIBS) -o $@ $(LDFLAGS) $(LINK_LIBS)
 
 %.o : %.S
-	@echo "Assembling..."
 	$(CC) -c $(ASFLAGS) $(ASLST) $< -o $@ 
 
 
 %.o : %.c	
-	@echo "Compiling C..."
 	$(CC) -c $(CFLAGS) $(CLST) $< -o $@
 
 %.o : %.cpp
-	@echo "Compiling C++..."
 	$(CXX) -c $(CXXFLAGS) $(CPPLST) $< -o $@
 
 
 lib$(TARGET).a : $(OBJ)
-	@echo "Creating library ..."
 	$(AR) $(ARFLAGS) $@ $(OBJ)
 
