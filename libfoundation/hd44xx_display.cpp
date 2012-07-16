@@ -6,8 +6,6 @@
  */
 
 #include "hd44xx_display.hpp"
-#include <stm32f10x_lib.h>
-#include <system.h>
 #include <utils.h>
 /* ------------------------------------------------------------------ */
 namespace fnd

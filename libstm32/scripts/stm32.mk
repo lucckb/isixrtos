@@ -1,15 +1,15 @@
 # Automatic makefile for GNUARM (C/C++)
 
-#Cortex type
-STM32TYPE = $(findstring f4, $(MCU_VARIANT) )
 
 #Typ procesora
-ifeq ($(STM32TYPE),f4)
+ifeq ($(MCU_MAJOR_TYPE),f4)
 MCU	= cortex-m4
 else
 MCU	= cortex-m3
 endif
 
+#Old MCU variant now is defined as minor major CPU code
+MCU_VARIANT ?= $(MCU_MAJOR_TYPE)$(MCU_MINOR_TYPE)
 
 #Skrypt linkera
 SCRIPTLINK = stm32-$(MCU_VARIANT)
@@ -36,8 +36,11 @@ LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
 #Pozostale ustawienia kompilatora
 COMMON_FLAGS += -O$(OPT) -mcpu=$(MCU) -mthumb -Wno-variadic-macros
-ifeq ($(STM32TYPE),f4)
+ifeq ($(MCU_MAJOR_TYPE),f4)
 COMMON_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffast-math
+COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F4
+else
+COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F1
 endif
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb
 LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
@@ -80,7 +83,7 @@ CFLAGS+= $(COMMON_FLAGS)
 ifeq ($(SMALL_WORK_AREA),y)
 OCDSCRIPT_FILE=stm32small.cfg
 else
-ifeq ($(STM32TYPE),f4)
+ifeq ($(MCU_MAJOR_TYPE),f4)
 OCDSCRIPT_FILE=stm32f4x.cfg
 else
 OCDSCRIPT_FILE=stm32.cfg

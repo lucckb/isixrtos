@@ -29,8 +29,13 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f10x.h"
-
+#if defined(STM32MCU_MAJOR_TYPE_F1)
+#include "stm32f10xx/stm32f10x.h"
+#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#include "stm32f4x/stm32f4xx.h"
+#else
+#error Selected MCU type is invalid
+#endif
 
 /**
 @code  

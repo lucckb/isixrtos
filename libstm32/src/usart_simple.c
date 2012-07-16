@@ -6,7 +6,7 @@
  *      Author: lucck
  */
 /* ---------------------------------------------------------------------------- */
-#include <stm32f10x_lib.h>
+#include <stm32lib.h>
 #include "system.h"
 #include "usart_simple.h"
 
@@ -34,6 +34,8 @@
 #define USART_PE (1<<0)
 #define USART_ORE (1<<3)
 
+#warning Not implemented yet
+#if 0
 /* ---------------------------------------------------------------------------- */
 
 static USART_TypeDef *usart;
@@ -135,3 +137,5 @@ void usartsimple_puts(const char * str)
 		usartsimple_putc(*str++,0);
 }
 /* ---------------------------------------------------------------------------- */
+
+#endif
