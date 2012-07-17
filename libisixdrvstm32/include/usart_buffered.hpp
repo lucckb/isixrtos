@@ -10,7 +10,7 @@
 #define USART_BUFFERED_HPP_
 /*----------------------------------------------------------*/
 #include <isix.h>
-#include <system.h>
+#include <stm32system.h>
 /*----------------------------------------------------------*/
 namespace stm32
 {

@@ -1,5 +1,5 @@
-#ifndef SYSTEM_H_
-#define SYSTEM_H_
+#ifndef STM32_SYSTEM_H_
+#define STM32_SYSTEM_H_
 
 /*----------------------------------------------------------*/
 

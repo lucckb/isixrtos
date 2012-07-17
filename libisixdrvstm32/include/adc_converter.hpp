@@ -9,7 +9,7 @@
 #ifndef ADC_CONVERTER_HPP_
 #define ADC_CONVERTER_HPP_
 /* ------------------------------------------------------------------ */
-#include <system.h>
+#include <stm32system.h>
 #include <isix.h>
 /* ------------------------------------------------------------------ */
 namespace stm32 {

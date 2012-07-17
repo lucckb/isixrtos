@@ -10,7 +10,6 @@
 #include "stm32f10x_iwdg.h"
 #include "stm32f10x_dma.h"
 #include "misc.h"
-#include "system.h"
 
 #endif
 
