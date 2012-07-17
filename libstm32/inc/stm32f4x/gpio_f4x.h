@@ -46,11 +46,11 @@ enum e_gpio_ospeed
 	//! GPIO port speed 2MHz
 	GPIO_SPEED_2MHZ = 0,
 	//! GPIO port speed 25MHz
-	GPIO_SPEED_25MHz = 1,
+	GPIO_SPEED_25MHZ = 1,
 	//! GPIO port speed 50MHz
-	GPIO_SPEED_50MHz = 2,
+	GPIO_SPEED_50MHZ = 2,
 	//! GPIO port speed 100MHz
-	GPIO_SPEED_100MHz = 3
+	GPIO_SPEED_100MHZ = 3
 };
 
 enum e_gpio_pullup

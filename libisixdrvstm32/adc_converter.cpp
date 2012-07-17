@@ -79,7 +79,7 @@ adc_converter::adc_converter(ADC_TypeDef * const _ADC, unsigned _ch_mask,
 			if( _ch_mask & (1 << ch))
 			{
 				if( adc_ports[ch] )
-					stm32::io_config( adc_ports[ch],adc_pins[ch],stm32::GPIO_MODE_INPUT, stm32::GPIO_CNF_IN_ANALOG);
+					stm32::gpio_config( adc_ports[ch],adc_pins[ch],stm32::GPIO_MODE_INPUT, stm32::GPIO_CNF_IN_ANALOG );
 				num_active_chns++;
 			}
 		}

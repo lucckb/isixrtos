@@ -5,10 +5,10 @@
  *      Author: lucck
  */
 
-#ifndef STM32DMA_H_
-#define STM32DMA_H_
+#ifndef STM32F1DMA_H_
+#define STM32F1DMA_H_
 /* ---------------------------------------------------------------------------- */
-#include <stm32f10x_lib.h>
+#include "stm32f10x_lib.h"
 #include <cstddef>
 /* ---------------------------------------------------------------------------- */
 
