@@ -35,6 +35,13 @@
 #define USART_ORE (1<<3)
 
 #warning Not implemented yet
+int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
+		unsigned long pclk1_hz, unsigned long pclk2_hz) {}
+
+int usartsimple_putc(int ch, void* p) {}
+
+int usartsimple_getc(void) {}
+
 #if 0
 /* ---------------------------------------------------------------------------- */
 

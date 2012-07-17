@@ -13,7 +13,7 @@ extern unsigned long _sbss;			/* start address for the .bss section. defined
                                    in linker script */
 extern unsigned long _ebss;			/* end address for the .bss section. defined in
                                    linker script */
-extern unsigned long _estack;				/* init value for the stack pointer. defined in linker script */
+extern unsigned long _estack;	   /* init value for the stack pointer. defined in linker script */
 
 
 /*----------------------------------------------------------*/
@@ -31,105 +31,233 @@ static void unused_vector() { while(1); }
 typedef void(*vect_fun_t)(void);
 
 /*----------------------------------------------------------*/
-void nmi_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void hard_fault_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void mem_manage_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void bus_fault_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void usage_fault_exception_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
+#define DEFINE_INTERRUPT_HANDLER( handler_name ) void handler_name(void) __attribute__ ((interrupt, weak, alias("unused_vector")))
+
+DEFINE_INTERRUPT_HANDLER(nmi_exception_vector);
+DEFINE_INTERRUPT_HANDLER(hard_fault_exception_vector);
+DEFINE_INTERRUPT_HANDLER(mem_manage_exception_vector);
+DEFINE_INTERRUPT_HANDLER(bus_fault_exception_vector);
+DEFINE_INTERRUPT_HANDLER(usage_fault_exception_vector);
 #ifndef COMPILED_UNDER_ISIX
-void svc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
+DEFINE_INTERRUPT_HANDLER(svc_isr_vector);
 #else
-void svc_isr_vector(void) __attribute__ ((interrupt));
+DEFINE_INTERRUPT_HANDLER(svc_isr_vector);
 #endif
-void debug_monitor_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
+DEFINE_INTERRUPT_HANDLER(debug_monitor_isr_vector);
 #ifndef COMPILED_UNDER_ISIX
-void pend_svc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void systick_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
+DEFINE_INTERRUPT_HANDLER(pend_svc_isr_vector);
+DEFINE_INTERRUPT_HANDLER(systick_isr_vector);
 #else
-void pend_svc_isr_vector(void) __attribute__ ((interrupt));
-void systick_isr_vector(void) __attribute__ ((interrupt));
+DEFINE_INTERRUPT_HANDLER(pend_svc_isr_vector);
+DEFINE_INTERRUPT_HANDLER(systick_isr_vector);
 #endif
-void wwdg_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void pvd_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tamper_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void rtc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void flash_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void rcc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void exti0_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void exti1_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void exti2_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void exti3_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void exti4_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma1_channel1_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma1_channel2_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma1_channel3_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma1_channel4_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma1_channel5_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma1_channel6_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma1_channel7_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void adc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void usb_hp_can_tx_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void usb_lp_can_rx0_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void can_rx1_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void can_sce_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void exti9_5_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim1_brk_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim1_up_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim1_trg_com_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim1_cc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim2_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim3_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim4_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void i2c1_ev_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void i2c1_er_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void i2c2_ev_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void i2c2_er_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void spi1_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void spi2_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void usart1_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void usart2_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void usart3_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void exti15_10_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void rtc_alarm_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void usb_wakeup_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim8_brk_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim8_up_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim8_trg_com_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim8_cc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void adc3_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void fsmc_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void sdio_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim5_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void spi3_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void usart4_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void usart5_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim6_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim7_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma2_channel1_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma2_channel2_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma2_channel3_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void dma2_channel4_5_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
+DEFINE_INTERRUPT_HANDLER(wwdg_isr_vector);
+DEFINE_INTERRUPT_HANDLER(pvd_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tamper_isr_vector);
+DEFINE_INTERRUPT_HANDLER(rtc_isr_vector);
+DEFINE_INTERRUPT_HANDLER(flash_isr_vector);
+DEFINE_INTERRUPT_HANDLER(rcc_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti0_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti2_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti3_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti4_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_channel1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_channel2_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_channel3_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_channel4_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_channel5_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_channel6_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_channel7_isr_vector);
+DEFINE_INTERRUPT_HANDLER(adc_isr_vector);
+DEFINE_INTERRUPT_HANDLER(usb_hp_can_tx_isr_vector);
+DEFINE_INTERRUPT_HANDLER(usb_lp_can_rx0_isr_vector);
+DEFINE_INTERRUPT_HANDLER(can_rx1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(can_sce_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti9_5_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_brk_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_up_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_trg_com_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_cc_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim2_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim3_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim4_isr_vector);
+DEFINE_INTERRUPT_HANDLER(i2c1_ev_isr_vector);
+DEFINE_INTERRUPT_HANDLER(i2c1_er_isr_vector);
+DEFINE_INTERRUPT_HANDLER(i2c2_ev_isr_vector);
+DEFINE_INTERRUPT_HANDLER(i2c2_er_isr_vector);
+DEFINE_INTERRUPT_HANDLER(spi1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(spi2_isr_vector);
+DEFINE_INTERRUPT_HANDLER(usart1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(usart2_isr_vector);
+DEFINE_INTERRUPT_HANDLER(usart3_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti15_10_isr_vector);
+DEFINE_INTERRUPT_HANDLER(rtc_alarm_isr_vector);
+DEFINE_INTERRUPT_HANDLER(usb_wakeup_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim8_brk_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim8_up_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim8_trg_com_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim8_cc_isr_vector);
+DEFINE_INTERRUPT_HANDLER(adc3_isr_vector);
+DEFINE_INTERRUPT_HANDLER(fsmc_isr_vector);
+DEFINE_INTERRUPT_HANDLER(sdio_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim5_isr_vector);
+DEFINE_INTERRUPT_HANDLER(spi3_isr_vector);
+DEFINE_INTERRUPT_HANDLER(usart4_isr_vector);
+DEFINE_INTERRUPT_HANDLER(usart5_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim6_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim7_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_channel1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_channel2_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_channel3_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_channel4_5_isr_vector);
 /* Connectivity line only */
-void dma2_channel5_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void eth_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void eth_wkup_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void can2_tx_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void can2_rx0_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void can2_rx1_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void can2_sce_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void otg_fs_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-
-void tim1_brk_tim15_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim1_up_tim16_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim1_trg_com_tim17_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void cec_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim6_dac_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim12_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim13_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-void tim14_isr_vector(void) __attribute__ ((interrupt, weak, alias("unused_vector")));
-
+DEFINE_INTERRUPT_HANDLER(dma2_channel5_isr_vector);
+DEFINE_INTERRUPT_HANDLER(eth_isr_vector);
+DEFINE_INTERRUPT_HANDLER(eth_wkup_isr_vector);
+DEFINE_INTERRUPT_HANDLER(can2_tx_isr_vector);
+DEFINE_INTERRUPT_HANDLER(can2_rx0_isr_vector);
+DEFINE_INTERRUPT_HANDLER(can2_rx1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(can2_sce_isr_vector);
+DEFINE_INTERRUPT_HANDLER(otg_fs_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_brk_tim15_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_up_tim16_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_trg_com_tim17_isr_vector);
+DEFINE_INTERRUPT_HANDLER(cec_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim6_dac_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim12_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim13_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim14_isr_vector);
+DEFINE_INTERRUPT_HANDLER(can1_tx_isr_vector);
+/* STM32F4 interrupts */
+DEFINE_INTERRUPT_HANDLER(can1_rx0_isr_vector);
+DEFINE_INTERRUPT_HANDLER(can1_rx1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(can1_sce_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_brk_tim9_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_up_tim10_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim1_trg_com_tim11_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim8_brk_tim12_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim8_up_tim13_isr_vector);
+DEFINE_INTERRUPT_HANDLER(tim8_trg_com_tim14_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_channel8_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_channel4_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_channel6_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_channel7_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_channel8_isr_vector);
+DEFINE_INTERRUPT_HANDLER(usart6_isr_vector);
+DEFINE_INTERRUPT_HANDLER(i2c3_ev_isr_vector);
+DEFINE_INTERRUPT_HANDLER(i2c3_er_isr_vector);
+DEFINE_INTERRUPT_HANDLER(otg_hs_ep1_out_isr_vector);
+DEFINE_INTERRUPT_HANDLER(otg_hs_wkup_isr_vector);
+DEFINE_INTERRUPT_HANDLER(otg_hs_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dcmi_isr_vector);
+DEFINE_INTERRUPT_HANDLER(cryp_isr_vector);
+DEFINE_INTERRUPT_HANDLER(hash_rng_isr_vector);
+DEFINE_INTERRUPT_HANDLER(fpu_isr_vector);
+#undef DEFINE_INTERRUPT_HANDLER
 /*---------------------------------------------------------*/
-#if defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL)
+#if defined(STM32MCU_MAJOR_TYPE_F4)
+//Interrupt vector table
+__attribute__ ((section(".isr_vector")))
+const vect_fun_t const exceptions_vectors[] =
+{
+  (vect_fun_t)(long)&_estack,            // The initial stack pointer
+  reset_handler,             // The reset handler
+  nmi_exception_vector, //NMIException
+  hard_fault_exception_vector, //HardFaultException
+  mem_manage_exception_vector, //MemManageException
+  bus_fault_exception_vector, //BusFaultException
+  usage_fault_exception_vector, //UsageFaultException
+  0, 0, 0, 0,            /* Reserved */
+  svc_isr_vector, //SVCHandler
+  debug_monitor_isr_vector, //DebugMonitor
+  0,                      /* Reserved */
+  pend_svc_isr_vector, 	//PendSVC
+  systick_isr_vector,//SysTickHandler,
+  wwdg_isr_vector,//,WWDG_IRQHandler,	P*0
+  pvd_isr_vector,//PVD_IRQHandler, P*1
+  tamper_isr_vector,//TAMPER_IRQHandler, P*2
+  rtc_isr_vector,//RTC_IRQHandler,TIM2->CCR1 P*3
+  flash_isr_vector,//FLASH_IRQHandler, P*4
+  rcc_isr_vector,//RCC_IRQHandler, P*5
+  exti0_isr_vector,//EXTI0_IRQHandler, P*6
+  exti1_isr_vector,//EXTI1_IRQHandler, P*7
+  exti2_isr_vector,//EXTI2_IRQHandler, P*8
+  exti3_isr_vector,//EXTI3_IRQHandler, P*9
+  exti4_isr_vector,//EXTI4_IRQHandler, P*10
+  dma1_channel1_isr_vector,//DMAChannel1_IRQHandler, P*11
+  dma1_channel2_isr_vector,//DMAChannel2_IRQHandler, P*12
+  dma1_channel3_isr_vector,//DMAChannel3_IRQHandler, P*13
+  dma1_channel4_isr_vector,//DMAChannel4_IRQHandler, P*14
+  dma1_channel5_isr_vector,//DMAChannel5_IRQHandler, P*15
+  dma1_channel6_isr_vector,//DMAChannel6_IRQHandler, P*16
+  dma1_channel7_isr_vector,//DMAChannel7_IRQHandler, P*17
+  adc_isr_vector,//ADC_IRQHandler, P*18
+  can1_tx_isr_vector,	//CAN11 TX,	P*19
+  can1_rx0_isr_vector,  //CAN1  RX0, P*20
+  can1_rx1_isr_vector,//CAN1_RX1_IRQHandler, P*21
+  can1_sce_isr_vector,//CAN1_SCE_IRQHandler, P*22
+  exti9_5_isr_vector,//EXTI9_5_IRQHandler, P*23
+  tim1_brk_tim9_isr_vector,//TIM1_BRK_IRQHandler, P*24
+  tim1_up_tim10_isr_vector,//TIM1_UP_IRQHandler, P*25
+  tim1_trg_com_tim11_isr_vector,//TIM1_TRG_COM_IRQHandler, P*26
+  tim1_cc_isr_vector,//TIM1_CC_IRQHandler, P*27
+  tim2_isr_vector,//TIM2_IRQHandler, P*28
+  tim3_isr_vector,//TIM3_IRQHandler, P*29
+  tim4_isr_vector,//TIM4_IRQHandler, P*30
+  i2c1_ev_isr_vector,//I2C1_EV_IRQHandler, P*31
+  i2c1_er_isr_vector,//I2C1_ER_IRQHandler, P*32
+  i2c2_ev_isr_vector,//I2C2_EV_IRQHandler, P*33
+  i2c2_er_isr_vector,//I2C2_ER_IRQHandler, P*34
+  spi1_isr_vector,//SPI1_IRQHandler,	P*35
+  spi2_isr_vector,//SPI2_IRQHandler, P*36
+  usart1_isr_vector,//USART1_IRQHandler, P*37
+  usart2_isr_vector,//USART2_IRQHandler, P*38
+  usart3_isr_vector,//unused_vector,//USART3_IRQHandler, P*39
+  exti15_10_isr_vector,//EXTI15_10_IRQHandler, P*40
+  rtc_alarm_isr_vector,//RTCAlarm_IRQHandler, P*41
+  usb_wakeup_isr_vector,//USBWakeUp_IRQHandler, P*42
+  tim8_brk_tim12_isr_vector,					// TIM8 break interrupt P*43
+  tim8_up_tim13_isr_vector,					// TIM8 update interrupt P*44
+  tim8_trg_com_tim14_isr_vector,			// TIM8 trigger and commutation interrupts P*45
+  tim8_cc_isr_vector,					// TIM8 capture compare interrupt P*46
+  dma1_channel8_isr_vector,				// DMA1 channel8 P*47
+  fsmc_isr_vector,						// FSMC global interrupt P*48
+  sdio_isr_vector,						// SDIO global interrupt P*49
+  tim5_isr_vector,						// TIM5 global interrupt P*50
+  spi3_isr_vector,						// SPI3 global interrupt P*51
+  usart4_isr_vector,						// USART4 global interrupt P*52
+  usart5_isr_vector,						// USART5 global interrupt P*53
+  tim6_dac_isr_vector,						// TIM6 global interrupt P*54
+  tim7_isr_vector,						// TIM7 global interrupt P*55
+  dma2_channel1_isr_vector,				// DMA2 Channel1 global interrupt P*56
+  dma2_channel2_isr_vector,				// DMA2 Channel2 global interrupt P*57
+  dma2_channel3_isr_vector,				// DMA2 Channel3 global interrupt P*58
+  dma2_channel4_isr_vector, 			// DMA2 Channel4 and DMA2 Channel5 global interrupts P*59
+  dma2_channel5_isr_vector,				// Beginning from 60 Connectivity line only P*60
+  eth_isr_vector,						// Ethernet isr vector P*61
+  eth_wkup_isr_vector,					// Ethernet wakeup vector P*62
+  can2_tx_isr_vector,					// Can2 tx P*63
+  can2_rx0_isr_vector,					// Can2 rx0 P*64
+  can2_rx1_isr_vector,					// Can2 rx1 P*65
+  can2_sce_isr_vector,					// Can2 sce P*66
+  otg_fs_isr_vector,					// Usb on the go isr P*67
+  dma2_channel6_isr_vector,				// Dma channel 6 P*68
+  dma2_channel7_isr_vector,				// Dma channel 7 P*69
+  dma2_channel8_isr_vector,				// Dma channel 8 P*70
+  usart6_isr_vector,					// Usart 6 isr vector P*71
+  i2c3_ev_isr_vector,					// I2c4 ev isr vector P*72
+  i2c3_er_isr_vector,					// I2c4 er isr vector P*73
+  otg_hs_ep1_out_isr_vector,		    // USB OTG HS endpoint out P*74
+  otg_hs_ep1_out_isr_vector,			// USB OTG HS endpoint in P*75
+  otg_hs_wkup_isr_vector,				//USB OTG  HS wakeup P*76
+  otg_hs_isr_vector,					//USB OTG  HS global IRQ P*77
+  dcmi_isr_vector,						//DCMI global interrupt P*78
+  cryp_isr_vector,						//CRYP global interrupt P*79
+  hash_rng_isr_vector,					//hash rng interrupt P*80
+  fpu_isr_vector,						//FPU ISR P*81
+};
+#elif defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL)
 __attribute__ ((section(".isr_vector")))
 const vect_fun_t const exceptions_vectors[] =
 {
@@ -219,7 +347,92 @@ const vect_fun_t const exceptions_vectors[] =
   hard_fault_exception_vector, //HardFaultException
   mem_manage_exception_vector, //MemManageException
   bus_fault_exception_vector, //BusFaultException
-  usage_fault_exception_vector, //UsageFaultException
+  usage_fault_exception_vector, //UsageFaultException//Interrupt vector table
+  __attribute__ ((section(".isr_vector")))
+  const vect_fun_t const exceptions_vectors[] =
+  {
+    (vect_fun_t)(long)&_estack,            // The initial stack pointer
+    reset_handler,             // The reset handler
+    nmi_exception_vector, //NMIException
+    hard_fault_exception_vector, //HardFaultException
+    mem_manage_exception_vector, //MemManageException
+    bus_fault_exception_vector, //BusFaultException
+    usage_fault_exception_vector, //UsageFaultException
+    0, 0, 0, 0,            /* Reserved */
+    svc_isr_vector, //SVCHandler
+    debug_monitor_isr_vector, //DebugMonitor
+    0,                      /* Reserved */
+    pend_svc_isr_vector, 	//PendSVC
+    systick_isr_vector,//SysTickHandler,
+    wwdg_isr_vector,//,WWDG_IRQHandler,	P*0
+    pvd_isr_vector,//PVD_IRQHandler, P*1
+    tamper_isr_vector,//TAMPER_IRQHandler, P*2
+    rtc_isr_vector,//RTC_IRQHandler,TIM2->CCR1 P*3
+    flash_isr_vector,//FLASH_IRQHandler, P*4
+    rcc_isr_vector,//RCC_IRQHandler, P*5
+    exti0_isr_vector,//EXTI0_IRQHandler, P*6
+    exti1_isr_vector,//EXTI1_IRQHandler, P*7
+    exti2_isr_vector,//EXTI2_IRQHandler, P*8
+    exti3_isr_vector,//EXTI3_IRQHandler, P*9
+    exti4_isr_vector,//EXTI4_IRQHandler, P*10
+    dma1_channel1_isr_vector,//DMAChannel1_IRQHandler, P*11
+    dma1_channel2_isr_vector,//DMAChannel2_IRQHandler, P*12
+    dma1_channel3_isr_vector,//DMAChannel3_IRQHandler, P*13
+    dma1_channel4_isr_vector,//DMAChannel4_IRQHandler, P*14
+    dma1_channel5_isr_vector,//DMAChannel5_IRQHandler, P*15
+    dma1_channel6_isr_vector,//DMAChannel6_IRQHandler, P*16
+    dma1_channel7_isr_vector,//DMAChannel7_IRQHandler, P*17
+    adc_isr_vector,//ADC_IRQHandler, P*18
+    usb_hp_can_tx_isr_vector,//USB_HP_CAN_TX_IRQHandler,	P*19
+    usb_lp_can_rx0_isr_vector,//USB_LP_CAN_RX0_IRQHandler, P*20
+    can_rx1_isr_vector,//CAN_RX1_IRQHandler, P*21
+    can_sce_isr_vector,//CAN_SCE_IRQHandler, P*22
+    exti9_5_isr_vector,//EXTI9_5_IRQHandler, P*23
+    tim1_brk_isr_vector,//TIM1_BRK_IRQHandler, P*24
+    tim1_up_isr_vector,//TIM1_UP_IRQHandler, P*25
+    tim1_trg_com_isr_vector,//TIM1_TRG_COM_IRQHandler, P*26
+    tim1_cc_isr_vector,//TIM1_CC_IRQHandler, P*27
+    tim2_isr_vector,//TIM2_IRQHandler, P*28
+    tim3_isr_vector,//TIM3_IRQHandler, P*29
+    tim4_isr_vector,//TIM4_IRQHandler, P*30
+    i2c1_ev_isr_vector,//I2C1_EV_IRQHandler, P*31
+    i2c1_er_isr_vector,//I2C1_ER_IRQHandler, P*32
+    i2c2_ev_isr_vector,//I2C2_EV_IRQHandler, P*33
+    i2c2_er_isr_vector,//I2C2_ER_IRQHandler, P*34
+    spi1_isr_vector,//SPI1_IRQHandler,	P*35
+    spi2_isr_vector,//SPI2_IRQHandler, P*36
+    usart1_isr_vector,//USART1_IRQHandler, P*37
+    usart2_isr_vector,//USART2_IRQHandler, P*38
+    usart3_isr_vector,//unused_vector,//USART3_IRQHandler, P*39
+    exti15_10_isr_vector,//EXTI15_10_IRQHandler, P*40
+    rtc_alarm_isr_vector,//RTCAlarm_IRQHandler, P*41
+    usb_wakeup_isr_vector,//USBWakeUp_IRQHandler, P*42
+    tim8_brk_isr_vector,					// TIM8 break interrupt P*43
+    tim8_up_isr_vector,					// TIM8 update interrupt P*44
+    tim8_trg_com_isr_vector,				// TIM8 trigger and commutation interrupts P*45
+    tim8_cc_isr_vector,					// TIM8 capture compare interrupt P*46
+    adc3_isr_vector,						// ADC3 global interrupt P*47
+    fsmc_isr_vector,						// FSMC global interrupt P*48
+    sdio_isr_vector,						// SDIO global interrupt P*49
+    tim5_isr_vector,						// TIM5 global interrupt P*50
+    spi3_isr_vector,						// SPI3 global interrupt P*51
+    usart4_isr_vector,						// USART4 global interrupt P*52
+    usart5_isr_vector,						// USART5 global interrupt P*53
+    tim6_isr_vector,						// TIM6 global interrupt P*54
+    tim7_isr_vector,						// TIM7 global interrupt P*55
+    dma2_channel1_isr_vector,				// DMA2 Channel1 global interrupt P*56
+    dma2_channel2_isr_vector,				// DMA2 Channel2 global interrupt P*57
+    dma2_channel3_isr_vector,				// DMA2 Channel3 global interrupt P*58
+    dma2_channel4_5_isr_vector, 			// DMA2 Channel4 and DMA2 Channel5 global interrupts P*59
+    dma2_channel5_isr_vector,				// Beginning from 60 Connectivity line only P*60
+    eth_isr_vector,						// Ethernet isr vector P*61
+    eth_wkup_isr_vector,					// Ethernet wakeup vector P*62
+    can2_tx_isr_vector,					// Can2 tx P*63
+    can2_rx0_isr_vector,					// Can2 rx0 P*64
+    can2_rx1_isr_vector,					// Can2 rx1 P*65
+    can2_sce_isr_vector,					// Can2 sce P*66
+    otg_fs_isr_vector						// Usb on the go isr P*67
+  };
   0, 0, 0, 0,            /* Reserved */
   svc_isr_vector, //SVCHandler
   debug_monitor_isr_vector, //DebugMonitor
