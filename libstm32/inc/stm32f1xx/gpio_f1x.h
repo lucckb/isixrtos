@@ -19,7 +19,7 @@ namespace stm32 {
 /*----------------------------------------------------------*/
 
 /** GPIO bits macros */
-enum
+enum e_gpio_mode
 {
 	//! GPIO mode input
 	GPIO_MODE_INPUT = 0,
@@ -31,7 +31,7 @@ enum
 	GPIO_MODE_50MHZ = 3
 };
 
-enum
+enum e_gpio_ocnf
 {
 	//! GPIO mode PUSH-PULL
 	GPIO_CNF_GPIO_PP = 0,
@@ -43,7 +43,7 @@ enum
 	GPIO_CNF_ALT_OD = 3
 };
 
-enum
+enum e_gpio_icnf
 {
 	//! Configuration IN analog mode
 	GPIO_CNF_IN_ANALOG = 0,

@@ -12,6 +12,7 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_iwdg.h"
 #include "stm32f4xx_flash.h"
+#include "stm32f4xx_rcc.h"
 #include "misc.h"
 #include "system.h"
 

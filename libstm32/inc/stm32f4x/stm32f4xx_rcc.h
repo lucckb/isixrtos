@@ -183,8 +183,7 @@ typedef struct
 #define RCC_RTCCLKSource_HSE_Div30       ((uint32_t)0x001E0300)
 #define RCC_RTCCLKSource_HSE_Div31       ((uint32_t)0x001F0300)
 
-  * @}
-  */ 
+
   
 /** @defgroup RCC_I2S_Clock_Source
   * @{
@@ -316,8 +315,7 @@ typedef struct
 #define RCC_MCO1Div_5                    ((uint32_t)0x07000000)
 
 
-  * @}
-  */ 
+
   
 /** @defgroup RCC_MCO2_Clock_Source_Prescaler
   * @{

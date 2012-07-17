@@ -32,7 +32,6 @@ typedef void(*vect_fun_t)(void);
 
 /*----------------------------------------------------------*/
 #define DEFINE_INTERRUPT_HANDLER( handler_name ) void handler_name(void) __attribute__ ((interrupt, weak, alias("unused_vector")))
-
 DEFINE_INTERRUPT_HANDLER(nmi_exception_vector);
 DEFINE_INTERRUPT_HANDLER(hard_fault_exception_vector);
 DEFINE_INTERRUPT_HANDLER(mem_manage_exception_vector);
