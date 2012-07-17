@@ -180,9 +180,11 @@ static inline int gpio_abstract_config_ext(GPIO_TypeDef* port, uint8_t bit, enum
 	{
 		if(bit & (1<<i))
 		{
-			gpio_abstract_config( port, i, conf, speed );
+			if( gpio_abstract_config( port, i, conf, speed ) == EA_GPIO_RESULT_FAILURE )
+				return EA_GPIO_RESULT_FAILURE;
 		}
 	}
+	return EA_GPIO_RESULT_SUCCESS;
 }
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
