@@ -208,7 +208,7 @@ static inline void gpio_exti_line_config(uint8_t GPIO_PortSource, uint8_t GPIO_P
  *	@param[in] ospeed Port speed
  *	@param[in] otype Output port type
  */
-static inline void gpio_io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint16_t mode, uint16_t pullup,
+static inline void gpio_config_ext(GPIO_TypeDef* port, uint16_t bit, uint16_t mode, uint16_t pullup,
 #ifdef __cplusplus
 		uint16_t ospeed=0, uint16_t otype=0)
 #else

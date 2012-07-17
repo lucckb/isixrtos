@@ -166,7 +166,24 @@ static inline int gpio_abstract_config(GPIO_TypeDef* port, uint8_t bit, enum e_a
 #endif
 	return EA_GPIO_RESULT_SUCCESS;
 }
-
+/*----------------------------------------------------------*/
+/**  Configure selected GPIO using abstract mode
+ * @param[in] Port GPIO port
+ * @param[in] bit Bitmask
+ * @param[in] conf Current port configuration
+ * @param[in] speed Port speed in output mode
+ * @result success or failure */
+static inline int gpio_abstract_config_ext(GPIO_TypeDef* port, uint8_t bit, enum e_abstract_gpio_config conf,
+		enum e_abstract_gpio_speed speed  )
+{
+	for(unsigned i=0; i<16; i++)
+	{
+		if(bit & (1<<i))
+		{
+			gpio_abstract_config( port, i, conf, speed );
+		}
+	}
+}
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
