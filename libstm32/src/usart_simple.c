@@ -57,8 +57,8 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 		{
 			RCC->APB2ENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1;
 			//Configure GPIO port TxD and RxD
-			io_config(GPIOA,USART1_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
-			io_config(GPIOA,USART1_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+		 gpio_config(GPIOA,USART1_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+		 gpio_config(GPIOA,USART1_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
 		}
 		else
 		{
@@ -72,15 +72,15 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 			RCC->APB2ENR |= RCC_APB2Periph_GPIOA;
 			RCC->APB1ENR |= RCC_APB1Periph_USART2;
 			//Configure GPIO port TxD and RxD
-			io_config(GPIOA,USART2_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
-			io_config(GPIOA,USART2_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+		 gpio_config(GPIOA,USART2_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+		 gpio_config(GPIOA,USART2_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
 		}
 		else
 		{
 			RCC->APB2ENR |= RCC_APB2ENR_AFIOEN |RCC_APB2Periph_GPIOD;
 			RCC->APB1ENR |= RCC_APB1Periph_USART2;
-			io_config(GPIOD,USART2_ALT_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
-			io_config(GPIOD,USART2_ALT_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
+		 gpio_config(GPIOD,USART2_ALT_TX_BIT,GPIO_MODE_10MHZ,GPIO_CNF_ALT_PP);
+		 gpio_config(GPIOD,USART2_ALT_RX_BIT,GPIO_MODE_INPUT,GPIO_CNF_IN_FLOAT);
 			AFIO->MAPR |= AFIO_MAPR_USART2_REMAP;
 		}
 	}

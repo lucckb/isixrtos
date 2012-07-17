@@ -170,7 +170,7 @@ static inline void gpio_exti_line_config(uint8_t GPIO_PortSource, uint8_t GPIO_P
  *	@param[in] mode New port mode
  *	@param[in] config New port configuration
  */
-static inline void gpio_io_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t config)
+static inline void gpio_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mode, uint32_t config)
 {
 	for(unsigned i=0; i<16; i++)
 	{
