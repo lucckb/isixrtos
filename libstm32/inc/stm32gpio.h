@@ -8,7 +8,6 @@
 #ifndef STM32GPIO_H_
 #define STM32GPIO_H_
 /*----------------------------------------------------------*/
-
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 #include "stm32f1xx/gpio_f1x.h"
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
@@ -16,6 +15,7 @@
 #else
 #error Selected MCU type is invalid
 #endif
+
 
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
@@ -69,6 +69,7 @@ static inline int _gpio_speed_to_value(enum e_abstract_gpio_speed vspeed )
 	case AGPIO_SPEED_HALF:  return GPIO_MODE_10MHZ;
 	case AGPIO_SPEED_FULL:  return GPIO_MODE_10MHZ;
 	}
+	return GPIO_MODE_2MHZ;
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
 	switch( vspeed )
 	{
@@ -77,6 +78,7 @@ static inline int _gpio_speed_to_value(enum e_abstract_gpio_speed vspeed )
 	case AGPIO_SPEED_HALF:  return GPIO_SPEED_50MHZ;
 	case AGPIO_SPEED_FULL:  return GPIO_SPEED_100MHZ;
 	}
+	return GPIO_SPEED_2MHZ;
 #endif
 }
 /*----------------------------------------------------------*/
@@ -187,6 +189,7 @@ static inline int gpio_abstract_config_ext(GPIO_TypeDef* port, uint8_t bit, enum
 	return EA_GPIO_RESULT_SUCCESS;
 }
 /*----------------------------------------------------------*/
+
 #ifdef __cplusplus
 }
 #endif

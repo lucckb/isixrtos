@@ -300,6 +300,13 @@ static inline void gpio_pin_lock_config(GPIO_TypeDef* port, uint16_t bit )
   *            @arg GPIO_AF_EVENTOUT: Connect EVENTOUT pins to AF15
   * @retval None
   */
+/*----------------------------------------------------------*/
+/** Setup alternate function for the pin
+ * @param[in] GPIOx Gpio port
+ * @param[in] GPIO_PinSource Pin number
+ * @param[in] GPIO_AF Alternate number
+ *
+ * ***/
 static inline void gpio_pin_AF_config(GPIO_TypeDef* GPIOx, uint16_t GPIO_PinSource, uint8_t GPIO_AF)
 {
 
@@ -308,7 +315,49 @@ static inline void gpio_pin_AF_config(GPIO_TypeDef* GPIOx, uint16_t GPIO_PinSour
   uint32_t temp_2 = GPIOx->AFR[GPIO_PinSource >> 0x03] | temp;
   GPIOx->AFR[GPIO_PinSource >> 0x03] = temp_2;
 }
+/*----------------------------------------------------------*/
+#ifdef __cplusplus
+namespace _internal {
+namespace stm32 {
+#endif
+/*----------------------------------------------------------*/
+//Internal port to number conversion
+static inline int _gpio_clock_port_to_number( GPIO_TypeDef* port )
+{
+	if		( port == GPIOA ) return RCC_AHB1ENR_GPIOAEN;
+	else if ( port == GPIOB ) return RCC_AHB1ENR_GPIOBEN;
+	else if ( port == GPIOC ) return RCC_AHB1ENR_GPIOCEN;
+	else if ( port == GPIOD ) return RCC_AHB1ENR_GPIODEN;
+	else if ( port == GPIOE ) return RCC_AHB1ENR_GPIOEEN;
+	else if ( port == GPIOF ) return RCC_AHB1ENR_GPIOFEN;
+	else if ( port == GPIOG ) return RCC_AHB1ENR_GPIOGEN;
+	else if ( port == GPIOH ) return RCC_AHB1ENR_GPIOHEN;
+	else if ( port == GPIOI ) return RCC_AHB1ENR_GPIOIEN;
+	else return -1;
+}
+/*----------------------------------------------------------*/
+#ifdef __cplusplus
+}}
+#endif
+/*----------------------------------------------------------*/
 
+/*** Enable or disable CLK for selected port
+ * @param[in] port GPIO porrt
+ * @param[in] enable Enable disable flag
+ */
+static inline void gpio_clock_enable( GPIO_TypeDef* port, bool enable )
+{
+#ifdef __cplusplus
+	using namespace stm32;
+	using namespace _internal::stm32;
+#endif
+	if(_gpio_clock_port_to_number( port ) < 0 )
+		return;
+	if( enable )
+		RCC->AHB1ENR |=  _gpio_clock_port_to_number( port );
+	else
+		RCC->AHB1ENR &=  ~_gpio_clock_port_to_number( port );
+}
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 }

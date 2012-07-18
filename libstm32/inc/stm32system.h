@@ -158,29 +158,6 @@ static inline void nvic_irq_pend_clear(IRQn_Type irq_num)
 }
 
 
-/*----------------------------------------------------------*/
-//! Memory access in bit band region
-enum {
-	RAM_BASE =      0x20000000,
-	RAM_BB_BASE =    0x22000000
-};
-
-static inline void resetBit_BB(void *VarAddr, unsigned BitNumber)
-{
-     (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)) = 0);
-}
-
-static inline void setBit_BB(void *VarAddr, unsigned BitNumber)
-{
-    (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)) = 1);
-}
-
-static inline bool getBit_BB(void *VarAddr, unsigned BitNumber)
-{
-     return (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)));
-}
-
-/*----------------------------------------------------------*/
 //! Sleep mode wait for interrupt macros
 #ifndef PDEBUG
 static inline void wfi( void ) { asm volatile("wfi"); }

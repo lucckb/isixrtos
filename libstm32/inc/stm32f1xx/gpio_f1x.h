@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32lib.h"
+#include "stm32bitbang.h"
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 namespace stm32 {
@@ -179,6 +180,47 @@ static inline void gpio_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mo
 			gpio_config(port,i,mode,config);
 		}
 	}
+}
+/*----------------------------------------------------------*/
+#ifdef __cplusplus
+namespace _internal {
+namespace stm32 {
+#endif
+/*----------------------------------------------------------*/
+//Internal port to number conversion
+static inline int _gpio_clock_port_to_number( GPIO_TypeDef* port )
+{
+	if		( port == GPIOA ) return RCC_APB2Periph_GPIOA;
+	else if ( port == GPIOB ) return RCC_APB2Periph_GPIOB;
+	else if ( port == GPIOC ) return RCC_APB2Periph_GPIOC;
+	else if ( port == GPIOD ) return RCC_APB2Periph_GPIOD;
+	else if ( port == GPIOE ) return RCC_APB2Periph_GPIOE;
+	else if ( port == GPIOF ) return RCC_APB2Periph_GPIOF;
+	else if ( port == GPIOG ) return RCC_APB2Periph_GPIOG;
+	else return -1;
+}
+/*----------------------------------------------------------*/
+#ifdef __cplusplus
+}}
+#endif
+/*----------------------------------------------------------*/
+
+/*** Enable or disable CLK for selected port
+ * @param[in] port GPIO porrt
+ * @param[in] enable Enable disable flag
+ */
+static inline void gpio_clock_enable( GPIO_TypeDef* port, bool enable )
+{
+#ifdef __cplusplus
+	using namespace stm32;
+	using namespace _internal::stm32;
+#endif
+	if(_gpio_clock_port_to_number( port ) < 0 )
+		return;
+	if( enable )
+		RCC->APB2ENR |=  _gpio_clock_port_to_number( port );
+	else
+		RCC->APB2ENR &=  ~_gpio_clock_port_to_number( port );
 }
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
