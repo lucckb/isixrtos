@@ -9,14 +9,17 @@
 #define cpu_save_context()										\
     asm volatile (												\
     "mrs r0, psp\t\n"					        				\
-    "stmdb r0!, {r4-r11}\t\n"                                   \
     "ldr r3,0f\t\n"                                   			\
     "ldr r2,[r3]\t\n"                                           \
+    "tst r14, #10\t\n"											\
+    "it eq\t\n"													\
+    "vstmdbeq r0!, {s16-s31}\t\n"								\
+    "stmdb r0!, {r4-r11,r14}\t\n"                               \
     "str r0, [r2]\t\n"                                          \
     "stmdb sp!, {r3,r14}\t\n"                                   \
     "mov r0,%0\t\n"                                             \
     "msr basepri,r0\t\n"                                        \
-    ::"i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)                 \
+    ::"i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)                  \
 	)
 /*-----------------------------------------------------------------------*/
 //Restore context
@@ -27,8 +30,11 @@
 	"ldmia sp!, {r3,r14}\t\n"                                   \
     "ldr r1,[r3]\t\n"                                           \
     "ldr r0, [r1]\t\n"                                          \
-    "ldmia r0!, {r4-r11}\t\n"                                   \
-    "msr psp, r0\t\n"                                           \
+    "ldmia r0!, {r4-r11, r14}\t\n"                              \
+    "tst r14, #10\r\n"                              			\
+    "it eq\t\n"													\
+    "vldmiaeq r0!, {s16-s31}\t\n"								\
+	"msr psp, r0\t\n"                                           \
     "bx r14\r\n"                                                \
     ".align 2 \t\n"												\
     "0: .word isix_current_task\t\n"							\
@@ -65,15 +71,14 @@ void svc_isr_vector(void) __attribute__((__interrupt__,naked));
 void svc_isr_vector(void)
 {
      asm volatile(
-     "ldr r3, 0f\t\n" /* Restore the context. */
-     "ldr r1, [r3]\t\n"			 /* Use pxCurrentTCBConst to get the pxCurrentTCB address. */
-     "ldr r0, [r1]\t\n" 			/* The first item in pxCurrentTCB is the task top of stack. */
-     "ldmia r0!, {r4-r11}\t\n"	 /* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
-     "msr psp, r0\t\n" /* Restore the task stack pointer. */
+     "ldr r3, 0f\t\n" 			 	/* Restore the context. */
+     "ldr r1, [r3]\t\n"			 	/* Use pxCurrentTCBConst to get the pxCurrentTCB address. */
+     "ldr r0, [r1]\t\n" 		 	/* The first item in pxCurrentTCB is the task top of stack. */
+     "ldmia r0!, {r4-r11, r14}\t\n"	 /* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
+     "msr psp, r0\t\n" 			 	 /* Restore the task stack pointer. */
      "mov r0, #0\t\n"
      "msr basepri, r0\t\n"
-     "orr r14, #0xd\t\n"
-     "bx r14\n"
+     "bx r14\t\n"
      ".align 2 \t\n"
      "0: .word isix_current_task\t\n"
       );
@@ -169,7 +174,7 @@ void port_start_first_task( void )
       "ldr r0, [r0]\t\n"
       "msr msp, r0\t\n" 	/* Set the msp back to the start of the stack. */
       "svc 0\t\n"
-	  "nop\t\n"
+	  "nop\r\n"
       );
 }
 /*-----------------------------------------------------------------------*/
