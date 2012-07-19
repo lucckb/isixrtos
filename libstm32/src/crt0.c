@@ -1,3 +1,8 @@
+#if defined(STM32MCU_MAJOR_TYPE_F4)
+#include <stm32f4x/stm32f4xx.h>
+#include <core_cm4.h>
+#endif
+
 //Cortex startup file based on STM32 code
 
 /*----------------------------------------------------------*/
@@ -527,7 +532,10 @@ void _external_exit(void) __attribute__ ((weak, alias("empty_func")));
 void reset_handler(void)
 {
 	unsigned long *pulSrc, *pulDest;
-
+	//Enable FPU if present
+#if defined(STM32MCU_MAJOR_TYPE_F4)	&& (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+	SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));	// set CP10 and CP11 Full Access
+#endif
     ///
     // Copy the data segment initializers from flash to SRAM.
     //
