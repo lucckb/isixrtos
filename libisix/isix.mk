@@ -1,3 +1,9 @@
+ifeq ($(MCU_MAJOR_TYPE),f4)
+ISIX_ARCH ?= arm-cm4f
+endif
+ifeq ($(MCU_MAJOR_TYPE),f1)
+ISIX_ARCH ?= arm-cm3
+endif
 
 #Kernel source 
 ISIX_SRC += $(ISIX_DIR)/kernel/fifo.c 
@@ -16,6 +22,7 @@ ISIX_INC += -I$(ISIX_DIR)/include -I$(ISIX_DIR)/arch/$(ISIX_ARCH)/include
 ifeq ($(DEBUG),y)
 ISIX_INC += -DISIX_DEBUG
 endif
+
 
 ISIX_LIB = $(ISIX_DIR)/libisix.a
 ISIX_OBJS += $(ISIX_SRC:%.c=%.o) 
