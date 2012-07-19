@@ -90,6 +90,9 @@ OCDSCRIPT_FILE=stm32.cfg
 endif
 endif
 
+ifdef MCU_SYSTEM_STACK_SIZE
+LDFLAGS += -Wl,--defsym=_sys_stack_size=$(MCU_SYSTEM_STACK_SIZE)
+endif
 
 all:	build
 
