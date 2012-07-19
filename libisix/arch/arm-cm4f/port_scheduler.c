@@ -47,7 +47,7 @@
 
 //System Mode enable IRQ and FIQ
 #define INITIAL_XPSR 0x01000000
-
+#define INITIAL_EXEC_RETURN    0xfffffffd
 #ifndef DEBUG_SCHEDULER
 #define DEBUG_SCHEDULER DBG_OFF
 #endif
@@ -90,12 +90,13 @@ unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, vo
 {
     *sp-- = INITIAL_XPSR;
     *sp-- = (unsigned long)pfun;    //PC
-    *sp-- = 0x14;           //LR
+    *sp-- = 0x0;            //LR
     *sp-- = 0x12;           //R12
     *sp-- = 0x3;            //R3
     *sp-- = 0x2;            //R2
     *sp-- = 0x1;            //R1
     *sp-- = (unsigned long)param;   //R0
+    *sp-- = INITIAL_EXEC_RETURN;
     /*
     *sp-- = 0x11;	//R11
     *sp-- = 0x10;	//R10
