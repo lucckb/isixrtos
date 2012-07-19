@@ -403,6 +403,8 @@ static inline int systick_config(uint32_t ticks)
   return (0);                                                  /* Function successful */
 }
 /*----------------------------------------------------------*/
+
+/*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
 #endif
