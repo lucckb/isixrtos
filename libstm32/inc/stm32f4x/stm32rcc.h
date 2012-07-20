@@ -15,7 +15,8 @@
 #endif
 
 /* ------------------------------------------------------------------ */
-/** Setup the best flash latency according to the CPU speed */
+/** Setup the best flash latency according to the CPU speed
+ * @param[in] frequency Sysclk frequency */
 static inline void rcc_flash_latency(uint32_t frequency)
 {
 	uint32_t wait_states;
@@ -28,12 +29,13 @@ static inline void rcc_flash_latency(uint32_t frequency)
 }
 
 /* ------------------------------------------------------------------ */
+//! Structure for defining sysclk mode
 enum e_sysclk_mode
 {
-	e_sysclk_hsi,
-	e_sysclk_hse,
-	e_sysclk_hsi_pll,
-	e_sysclk_hse_pll
+	e_sysclk_hsi,		//! hi speed internal oscilator only
+	e_sysclk_hse,		//! hi speed external oscilator only
+	e_sysclk_hsi_pll,	//! hi speed internal PLL
+	e_sysclk_hse_pll	//! hi speed external PLL
 };
 
 #ifndef __cplusplus
@@ -45,6 +47,13 @@ enum e_sysclk_mode
 #define RCC_PLLCFGR_PLLQ_bit                            24
 #endif
 
+/** Setup SYSCLK mode by unified way without required manual intervention
+ * @param[in] mode System mode
+ * @param[in] crystal Crystal frequency value
+ * @param[in] frequency Excepted system frequency
+ * @retval best fit frequency
+ *
+ */
 static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, uint32_t crystal, uint32_t frequency)
 {
 #ifdef __cplusplus
@@ -58,6 +67,8 @@ static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, uint32_t c
 	uint32_t best_frequency_core = 0;
 	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hse )
 		RCC->CR  |= RCC_CR_HSEON;
+	else
+		crystal = 16000000ul;
 	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hsi_pll )
 	{
 		uint32_t div, mul, div_core, vco_input_frequency, vco_output_frequency, frequency_core;
@@ -119,7 +130,7 @@ static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, uint32_t c
 		RCC->CFGR |= RCC_CFGR_SW_HSI;			// change SYSCLK to PLL
 		while ( ((RCC->CFGR) & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI );	// wait for switch
 		RCC->CR &= ~RCC_CR_PLLON;
-		best_frequency_core = 16000000ul;
+		best_frequency_core = crystal;
 	}
 	else if( mode == e_sysclk_hse )
 	{

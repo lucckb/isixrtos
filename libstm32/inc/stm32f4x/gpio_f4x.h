@@ -318,7 +318,7 @@ static inline void gpio_pin_AF_config(GPIO_TypeDef* GPIOx, uint16_t GPIO_PinSour
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 namespace _internal {
-namespace stm32 {
+namespace gpio_f4 {
 #endif
 /*----------------------------------------------------------*/
 //Internal port to number conversion
@@ -349,7 +349,7 @@ static inline void gpio_clock_enable( GPIO_TypeDef* port, bool enable )
 {
 #ifdef __cplusplus
 	using namespace stm32;
-	using namespace _internal::stm32;
+	using namespace _internal::gpio_f4;
 #endif
 	if(_gpio_clock_port_to_number( port ) < 0 )
 		return;

@@ -184,7 +184,7 @@ static inline void gpio_config_ext(GPIO_TypeDef* port, uint16_t bit, uint32_t mo
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 namespace _internal {
-namespace stm32 {
+namespace gpio_f1 {
 #endif
 /*----------------------------------------------------------*/
 //Internal port to number conversion
@@ -213,7 +213,7 @@ static inline void gpio_clock_enable( GPIO_TypeDef* port, bool enable )
 {
 #ifdef __cplusplus
 	using namespace stm32;
-	using namespace _internal::stm32;
+	using namespace _internal::gpio_f1;
 #endif
 	if(_gpio_clock_port_to_number( port ) < 0 )
 		return;

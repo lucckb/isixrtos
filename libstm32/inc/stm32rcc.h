@@ -9,11 +9,11 @@
 #define STM32RCC_H_
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
-#error rcc not implemented
+#include "stm32f1xx/stm32rcc.h"
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
 #include "stm32f4x/stm32rcc.h"
 #else
-#error Selected MCU type is invalid
+#error "Unknown device type"
 #endif
 
 
