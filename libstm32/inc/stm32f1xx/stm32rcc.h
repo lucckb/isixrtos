@@ -122,6 +122,7 @@ static const uint32_t CIR_BYTE3_ADDRESS    =     0x4002100A;
 static const uint32_t CFGR_BYTE4_ADDRESS  =      0x40021007;
 /* BDCR register base address */
 static const uint32_t BDCR_ADDRESS         =     (PERIPH_BASE + BDCR_OFFSET);
+
 }}
 #else	//C defines
 
@@ -712,7 +713,7 @@ static inline void rcc_hclk_config( uint32_t RCC_SYSCLK )
   *     @arg RCC_HCLK_Div16: APB1 clock = HCLK/16
   * @retval None
   */
-static inline void rcc_pck1_config(uint32_t RCC_HCLK)
+static inline void rcc_pclk1_config(uint32_t RCC_HCLK)
 {
 #ifdef __cplusplus
 	using namespace _internal::rcc;
@@ -1199,6 +1200,7 @@ static inline void rcc_clear_it_pending_bit(uint8_t RCC_IT)
   *(__IO uint8_t *) CIR_BYTE3_ADDRESS = RCC_IT;
 }
 
+
 /* ------------------------------------------------------------------ */
 /*****    EXTENDED ISIX LIBRARY FUNCTIONS  *******/
 /* ------------------------------------------------------------------ */
@@ -1243,9 +1245,6 @@ enum e_sysclk_mode
  */
 static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, uint32_t crystal, uint32_t frequency)
 {
-	//Mode not supported
-	if( mode == e_sysclk_hsi_pll )
-		return 0;
 #ifdef __cplusplus
 static const unsigned PLL1_Bit_Shift = 18;
 static const unsigned PLL1_Bit_Mask = 0xf;
@@ -1258,6 +1257,7 @@ static const unsigned PRE1Div_Offset = 1;
 		RCC->CR  |= RCC_CR_HSEON;
 	else
 		crystal = 8000000ul;
+	if( mode == e_sysclk_hsi_pll ) crystal /= 2;
 	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hsi_pll )
 	{
 		uint32_t div, mul, vco_input_frequency, frequency_core;
@@ -1294,11 +1294,12 @@ static const unsigned PRE1Div_Offset = 1;
 				}
 			}
 		}
-	   // configure PLL factors, always divide USB clock by 9
+	   // configure PLL
 	   RCC->CFGR = ((best_mul - PLL1_Mul_Offset) & PLL1_Bit_Mask) << PLL1_Bit_Shift;
 #if defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) || \
 	defined(STM32F10X_HD_VL) || defined(STM32F10X_CL)
 	   RCC->CFGR2 = (best_div - PRE1Div_Offset) & PRE1Div_Mask;
+	   if( mode == e_sysclk_hse_pll ) RCC->CFGR |= RCC_CFGR_PLLSRC;
 #endif
 		// AHB - no prescaler, APB1 - divide by 16, APB2 - divide by 16 (adefine always safe value)
 		RCC->CFGR |= RCC_CFGR_PPRE2_DIV16 | RCC_CFGR_PPRE1_DIV16 | RCC_CFGR_HPRE_DIV1;

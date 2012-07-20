@@ -5,14 +5,13 @@
  *      Author: lucck
  */
 
-#ifndef GPIO_F1X_H_
-#define GPIO_F1X_H_
+#ifndef STM32_GPIO_F1X_H_
+#define STM32_GPIO_F1X_H_
 /*----------------------------------------------------------*/
 
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32lib.h"
-#include "stm32bitbang.h"
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 namespace stm32 {
