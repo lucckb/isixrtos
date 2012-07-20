@@ -5,11 +5,11 @@
  *      Author: lucck
  */
 
-#ifndef STM32RCC_H_
-#define STM32RCC_H_
+#ifndef STM32F1_STM32RCC_H_
+#define STM32F1_STM32RCC_H_
 
 /* ---------------------------------------------------------------------------- */
-#include <stm32f10x_lib.h>
+#include <stm32f1xx/stm32f10x_lib.h>
 #include <stddef.h>
 #include "stm32f10x_rcc.h"
 /* ---------------------------------------------------------------------------- */
@@ -1227,12 +1227,11 @@ enum e_sysclk_mode
 };
 
 #ifndef __cplusplus
-#define RCC_PLLCFGR_PLLM_bit                            0
-#define RCC_PLLCFGR_PLLN_bit                            6
-#define RCC_PLLCFGR_PLLP_bit                            16
-#define RCC_PLLCFGR_PLLQ_DIV9_value                     9
-#define RCC_PLLCFGR_PLLQ_DIV9                           (RCC_PLLCFGR_PLLQ_DIV9_value << RCC_PLLCFGR_PLLQ_bit)
-#define RCC_PLLCFGR_PLLQ_bit                            24
+#define PLL1_Bit_Shift 18ul
+#define PLL1_Bit_Mask 0xf
+#define PLL1_Mul_Offset  2ul
+#define PRE1Div_Mask 0x0F
+#define PRE1Div_Offset  1ul
 #endif
 
 /** Setup SYSCLK mode by unified way without required manual intervention
@@ -1244,60 +1243,65 @@ enum e_sysclk_mode
  */
 static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, uint32_t crystal, uint32_t frequency)
 {
+	//Mode not supported
+	if( mode == e_sysclk_hsi_pll )
+		return 0;
 #ifdef __cplusplus
-	static const uint32_t RCC_PLLCFGR_PLLM_bit          =                  0;
-	static const uint32_t RCC_PLLCFGR_PLLN_bit          =                  6;
-	static const uint32_t RCC_PLLCFGR_PLLP_bit          =                  16;
-	static const uint32_t RCC_PLLCFGR_PLLQ_DIV9_value   =                  9;
-	static const uint32_t RCC_PLLCFGR_PLLQ_bit          =                  24;
-	static const uint32_t RCC_PLLCFGR_PLLQ_DIV9         =   RCC_PLLCFGR_PLLQ_DIV9_value << RCC_PLLCFGR_PLLQ_bit;
+static const unsigned PLL1_Bit_Shift = 18;
+static const unsigned PLL1_Bit_Mask = 0xf;
+static const unsigned PLL1_Mul_Offset = 2;
+static const unsigned PRE1Div_Mask = 0x0F;
+static const unsigned PRE1Div_Offset = 1;
 #endif
 	uint32_t best_frequency_core = 0;
 	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hse )
 		RCC->CR  |= RCC_CR_HSEON;
 	else
-		crystal = 16000000ul;
+		crystal = 8000000ul;
 	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hsi_pll )
 	{
-		uint32_t div, mul, div_core, vco_input_frequency, vco_output_frequency, frequency_core;
-		uint32_t best_div = 0, best_mul = 0, best_div_core = 0;
-		for (div = 2; div <= 63; div++)			// PLLM in [2; 63]
+		uint32_t div, mul, vco_input_frequency, frequency_core;
+		uint32_t best_div = 0, best_mul = 0;
+#if defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) || \
+	defined(STM32F10X_HD_VL) || defined(STM32F10X_CL)
+		for (div = 2; div <= 16; div++)			// PLL divider
 		{
+#elif defined(STM32F10X_LD) || defined(STM32F10X_MD) || \
+	  defined(STM32F10X_HD) || defined(STM32F10X_XL)
+		for (div = 1; div <= 1; div++)			// PLL divider
+#else
+#error Unknown MCU type
+#endif
 			vco_input_frequency = crystal / div;
-
-			if ((vco_input_frequency < 1000000ul) || (vco_input_frequency > 2000000))	// skip invalid settings
-				continue;
-
-			for (mul = 64; mul <= 432; mul++)	// PLLN in [64; 432]
+#if defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) || \
+	defined(STM32F10X_HD_VL) || defined(STM32F10X_LD) || defined(STM32F10X_MD) || \
+	defined(STM32F10X_HD) || defined(STM32F10X_XL)
+			for (mul = 2; mul <= 16; mul++)	// Multiply
+#elif defined(STM32F10X_CL)
+			for (mul = 4; mul <= 9; mul++)	// Multiply
+#else
+#error Unknown MCU type
+#endif
 			{
-				vco_output_frequency = vco_input_frequency * mul;
-
-				if ((vco_output_frequency < 64000000ul) || (vco_output_frequency > 432000000ul))	// skip invalid settings
-					continue;
-
-				for (div_core = 2; div_core <= 8; div_core += 2)	// PLLP in {2, 4, 6, 8}
+				frequency_core = vco_input_frequency * mul;
+				if (frequency_core > frequency)	// skip values over desired frequency
+				continue;
+				if (frequency_core > best_frequency_core)	// is this configuration better than previous one?
 				{
-					frequency_core = vco_output_frequency / div_core;
-
-					if (frequency_core > frequency)	// skip values over desired frequency
-						continue;
-
-					if (frequency_core > best_frequency_core)	// is this configuration better than previous one?
-					{
-						best_frequency_core = frequency_core;	// yes - save values
-						best_div = div;
-						best_mul = mul;
-						best_div_core = div_core;
-					}
+					best_frequency_core = frequency_core;	// yes - save values
+					best_div = div;
+					best_mul = mul;
 				}
 			}
 		}
 	   // configure PLL factors, always divide USB clock by 9
-		RCC->PLLCFGR = (best_div << RCC_PLLCFGR_PLLM_bit) | (best_mul << RCC_PLLCFGR_PLLN_bit) |
-				((best_div_core / 2 - 1) << RCC_PLLCFGR_PLLP_bit)
-				| RCC_PLLCFGR_PLLQ_DIV9 | (mode == e_sysclk_hse_pll?RCC_PLLCFGR_PLLSRC_HSE:RCC_PLLCFGR_PLLSRC_HSI);
-		// AHB - no prescaler, APB1 - divide by 16, APB2 - divide by 16 (always safe value)
-		RCC->CFGR = RCC_CFGR_PPRE2_DIV16 | RCC_CFGR_PPRE1_DIV16 | RCC_CFGR_HPRE_DIV1;
+	   RCC->CFGR = ((best_mul - PLL1_Mul_Offset) & PLL1_Bit_Mask) << PLL1_Bit_Shift;
+#if defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) || \
+	defined(STM32F10X_HD_VL) || defined(STM32F10X_CL)
+	   RCC->CFGR2 = (best_div - PRE1Div_Offset) & PRE1Div_Mask;
+#endif
+		// AHB - no prescaler, APB1 - divide by 16, APB2 - divide by 16 (adefine always safe value)
+		RCC->CFGR |= RCC_CFGR_PPRE2_DIV16 | RCC_CFGR_PPRE1_DIV16 | RCC_CFGR_HPRE_DIV1;
 	}
 	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hse ) while(1)
 	{
@@ -1330,12 +1334,11 @@ static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, uint32_t c
 	return best_frequency_core;
 }
 #ifndef __cplusplus
-#undef RCC_PLLCFGR_PLLM_bit
-#undef RCC_PLLCFGR_PLLN_bit
-#undef RCC_PLLCFGR_PLLP_bit
-#undef RCC_PLLCFGR_PLLQ_DIV9_value
-#undef RCC_PLLCFGR_PLLQ_DIV9
-#undef RCC_PLLCFGR_PLLQ_bit
+#undef  PLL1_Bit_Shift
+#undef  PLL1_Bit_Mask
+#undef PLL1_Mul_Offset
+#undef PRE1Div_Mask
+#undef PRE1Div_Offset
 #endif
 
 
