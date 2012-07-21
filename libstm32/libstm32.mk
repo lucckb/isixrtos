@@ -1,7 +1,10 @@
 
 LIBSTM32_O_SRC += $(LIBSTM32_DIR)/src/crt0.c
 LIBSTM32_SRC += $(LIBSTM32_DIR)/src/usart_simple.c
-LIBSTM32_CPPSRC += $(LIBSTM32_DIR)/src/stm32fmc.cpp
+#Only F1 type support regular memory controller for flash emu
+ifeq ($(MCU_MAJOR_TYPE),f1)
+LIBSTM32_CPPSRC += $(LIBSTM32_DIR)/src/stm32f1fmc.cpp
+endif
 LIBSTM32_INC += -I$(LIBSTM32_DIR)/inc -DCPP_STARTUP_CODE
 
 LIBSTM32_LIB = $(LIBSTM32_DIR)/libstm32lite.a

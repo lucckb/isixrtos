@@ -37,39 +37,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 
-/** @addtogroup STM32F4xx_StdPeriph_Driver
-  * @{
-  */
 
-/** @addtogroup FLASH
-  * @{
-  */ 
 
-/* Exported types ------------------------------------------------------------*/
-/** 
-  * @brief FLASH Status  
-  */ 
-typedef enum
-{ 
-  FLASH_BUSY = 1,
-  FLASH_ERROR_PGS,
-  FLASH_ERROR_PGP,
-  FLASH_ERROR_PGA,
-  FLASH_ERROR_WRP,
-  FLASH_ERROR_PROGRAM,
-  FLASH_ERROR_OPERATION,
-  FLASH_COMPLETE
-}FLASH_Status;
-
-/* Exported constants --------------------------------------------------------*/
-
-/** @defgroup FLASH_Exported_Constants
-  * @{
-  */  
-
-/** @defgroup Flash_Latency 
-  * @{
-  */ 
 #define FLASH_Latency_0                ((uint8_t)0x0000)  /*!< FLASH Zero Latency cycle */
 #define FLASH_Latency_1                ((uint8_t)0x0001)  /*!< FLASH One Latency cycle */
 #define FLASH_Latency_2                ((uint8_t)0x0002)  /*!< FLASH Two Latency cycles */
@@ -231,8 +200,6 @@ typedef enum
   * @{
   */ 
 #define RDP_KEY                  ((uint16_t)0x00A5)
-#define FLASH_KEY1               ((uint32_t)0x45670123)
-#define FLASH_KEY2               ((uint32_t)0xCDEF89AB)
 #define FLASH_OPT_KEY1           ((uint32_t)0x08192A3B)
 #define FLASH_OPT_KEY2           ((uint32_t)0x4C5D6E7F)
 /**

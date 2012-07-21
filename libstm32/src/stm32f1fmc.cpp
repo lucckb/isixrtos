@@ -13,8 +13,7 @@
 
 namespace stm32
 {
-#warning Not implemented yet
-#if 0
+
 /* ------------------------------------------------------------------ */
 namespace //private registers
 {
@@ -293,8 +292,6 @@ int stm32fmc::write_word(paddr_t pg, poffs_t pa, unsigned val)
 	  /* Return the Program Status */
 	  return status;
 }
-
-#endif
 /* ------------------------------------------------------------------ */
 
 }
