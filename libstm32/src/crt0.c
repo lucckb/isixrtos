@@ -158,6 +158,23 @@ DEFINE_INTERRUPT_HANDLER(dcmi_isr_vector);
 DEFINE_INTERRUPT_HANDLER(cryp_isr_vector);
 DEFINE_INTERRUPT_HANDLER(hash_rng_isr_vector);
 DEFINE_INTERRUPT_HANDLER(fpu_isr_vector);
+//F4 version only
+DEFINE_INTERRUPT_HANDLER(dma1_stream0_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_stream1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_stream2_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_stream3_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_stream4_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_stream5_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_stream6_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma1_stream7_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_stream0_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_stream1_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_stream2_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_stream3_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_stream4_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_stream5_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_stream6_isr_vector);
+DEFINE_INTERRUPT_HANDLER(dma2_stream7_isr_vector);
 #undef DEFINE_INTERRUPT_HANDLER
 /*---------------------------------------------------------*/
 #if defined(STM32MCU_MAJOR_TYPE_F4)
@@ -189,13 +206,13 @@ const vect_fun_t const exceptions_vectors[] =
   exti2_isr_vector,//EXTI2_IRQHandler, P*8
   exti3_isr_vector,//EXTI3_IRQHandler, P*9
   exti4_isr_vector,//EXTI4_IRQHandler, P*10
-  dma1_channel1_isr_vector,//DMAChannel1_IRQHandler, P*11
-  dma1_channel2_isr_vector,//DMAChannel2_IRQHandler, P*12
-  dma1_channel3_isr_vector,//DMAChannel3_IRQHandler, P*13
-  dma1_channel4_isr_vector,//DMAChannel4_IRQHandler, P*14
-  dma1_channel5_isr_vector,//DMAChannel5_IRQHandler, P*15
-  dma1_channel6_isr_vector,//DMAChannel6_IRQHandler, P*16
-  dma1_channel7_isr_vector,//DMAChannel7_IRQHandler, P*17
+  dma1_stream0_isr_vector,//DMAChannel1_IRQHandler, P*11
+  dma1_stream1_isr_vector,//DMAChannel2_IRQHandler, P*12
+  dma1_stream2_isr_vector,//DMAChannel3_IRQHandler, P*13
+  dma1_stream3_isr_vector,//DMAChannel4_IRQHandler, P*14
+  dma1_stream4_isr_vector,//DMAChannel5_IRQHandler, P*15
+  dma1_stream5_isr_vector,//DMAChannel6_IRQHandler, P*16
+  dma1_stream6_isr_vector,//DMAChannel7_IRQHandler, P*17
   adc_isr_vector,//ADC_IRQHandler, P*18
   can1_tx_isr_vector,	//CAN11 TX,	P*19
   can1_rx0_isr_vector,  //CAN1  RX0, P*20
@@ -225,7 +242,7 @@ const vect_fun_t const exceptions_vectors[] =
   tim8_up_tim13_isr_vector,					// TIM8 update interrupt P*44
   tim8_trg_com_tim14_isr_vector,			// TIM8 trigger and commutation interrupts P*45
   tim8_cc_isr_vector,					// TIM8 capture compare interrupt P*46
-  dma1_channel8_isr_vector,				// DMA1 channel8 P*47
+  dma1_stream7_isr_vector,				// DMA1 channel8 P*47
   fsmc_isr_vector,						// FSMC global interrupt P*48
   sdio_isr_vector,						// SDIO global interrupt P*49
   tim5_isr_vector,						// TIM5 global interrupt P*50
@@ -234,11 +251,11 @@ const vect_fun_t const exceptions_vectors[] =
   usart5_isr_vector,						// USART5 global interrupt P*53
   tim6_dac_isr_vector,						// TIM6 global interrupt P*54
   tim7_isr_vector,						// TIM7 global interrupt P*55
-  dma2_channel1_isr_vector,				// DMA2 Channel1 global interrupt P*56
-  dma2_channel2_isr_vector,				// DMA2 Channel2 global interrupt P*57
-  dma2_channel3_isr_vector,				// DMA2 Channel3 global interrupt P*58
-  dma2_channel4_isr_vector, 			// DMA2 Channel4 and DMA2 Channel5 global interrupts P*59
-  dma2_channel5_isr_vector,				// Beginning from 60 Connectivity line only P*60
+  dma2_stream0_isr_vector,				// DMA2 Channel1 global interrupt P*56
+  dma2_stream1_isr_vector,				// DMA2 Channel2 global interrupt P*57
+  dma2_stream2_isr_vector,				// DMA2 Channel3 global interrupt P*58
+  dma2_stream3_isr_vector, 				// DMA2 Channel4 and DMA2 Channel5 global interrupts P*59
+  dma2_stream4_isr_vector,				// Beginning from 60 Connectivity line only P*60
   eth_isr_vector,						// Ethernet isr vector P*61
   eth_wkup_isr_vector,					// Ethernet wakeup vector P*62
   can2_tx_isr_vector,					// Can2 tx P*63
@@ -246,9 +263,9 @@ const vect_fun_t const exceptions_vectors[] =
   can2_rx1_isr_vector,					// Can2 rx1 P*65
   can2_sce_isr_vector,					// Can2 sce P*66
   otg_fs_isr_vector,					// Usb on the go isr P*67
-  dma2_channel6_isr_vector,				// Dma channel 6 P*68
-  dma2_channel7_isr_vector,				// Dma channel 7 P*69
-  dma2_channel8_isr_vector,				// Dma channel 8 P*70
+  dma2_stream5_isr_vector,				// Dma channel 6 P*68
+  dma2_stream6_isr_vector,				// Dma channel 7 P*69
+  dma2_stream7_isr_vector,				// Dma channel 8 P*70
   usart6_isr_vector,					// Usart 6 isr vector P*71
   i2c3_ev_isr_vector,					// I2c4 ev isr vector P*72
   i2c3_er_isr_vector,					// I2c4 er isr vector P*73
