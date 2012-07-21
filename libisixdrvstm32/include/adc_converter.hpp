@@ -10,6 +10,7 @@
 #define ADC_CONVERTER_HPP_
 /* ------------------------------------------------------------------ */
 #include <stm32system.h>
+#include <stm32lib.h>
 #include <isix.h>
 /* ------------------------------------------------------------------ */
 namespace stm32 {
@@ -48,7 +49,7 @@ private:
     void start_conv();
     void isr();
 private:
-	ADC_TypeDef * const ADC;
+	ADC_TypeDef * const m_ADC;
     isix::semaphore lock_sem;
     isix::semaphore complete_sem;
     short num_active_chns;

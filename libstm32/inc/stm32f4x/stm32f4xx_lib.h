@@ -14,5 +14,7 @@
 #include "stm32f4xx_flash.h"
 #include "stm32f4xx_rcc.h"
 #include "stm32f4xx_usart.h"
+#include "stm32f4xx_dma.h"
+#include "stm32f4xx_adc.h"
 #include "misc.h"
 #endif /* STM32F4XX_LIB_H_ */
