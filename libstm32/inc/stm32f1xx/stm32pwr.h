@@ -1,3 +1,5 @@
+#ifndef STM32F1_PWR_H_
+#define STM32F1_PWR_H_
 /* Based on the stm32 lib
  * Lucjan Bryndza <lucck@boff.pl>
  *
@@ -258,4 +260,5 @@ static inline void pwr_clear_flag(uint32_t PWR_FLAG)
 
 #endif /*__cplusplus*/
 
+#endif /* STM32F1_PWR_H_ */
 /* ---------------------------------------------------------------------------- */

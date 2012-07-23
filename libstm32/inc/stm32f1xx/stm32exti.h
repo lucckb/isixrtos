@@ -6,8 +6,8 @@
  *      Author: lucck
  */
 /* ---------------------------------------------------------------------------- */
-#ifndef STM32_EXTI_H_
-#define STM32_EXTI_H_
+#ifndef STM32_F1EXTI_H_
+#define STM32_F1EXTI_H_
 /* ---------------------------------------------------------------------------- */
 #include "stm32f10x_exti.h"
 #include <stdint.h>

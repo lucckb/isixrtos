@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 /* ---------------------------------------------------------------------------- */
-#ifndef STM32BKP_H_
-#define STM32BKP_H_
+#ifndef STM32F1BKP_H_
+#define STM32F1BKP_H_
 /* ---------------------------------------------------------------------------- */
 #include <stm32f10x_lib.h>
 #include <stddef.h>

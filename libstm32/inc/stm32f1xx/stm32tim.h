@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 
-#ifndef STM32TIM_H_
-#define STM32TIM_H_
+#ifndef STM32F1TIM_H_
+#define STM32F1TIM_H_
 /* ---------------------------------------------------------------------------- */
 #include <stm32f10x_lib.h>
 #include <stm32f10x_tim.h>
