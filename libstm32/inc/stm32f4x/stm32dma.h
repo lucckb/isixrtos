@@ -49,7 +49,7 @@ namespace stm32 {
   */
 static inline void dma_init(DMA_Stream_TypeDef* DMAy_Streamx,
 		uint32_t config, uint32_t fifo_config, uint32_t buffer_size,
-		void *periph, void *memory0base )
+		volatile void *periph, volatile void *memory0base )
 {
   uint32_t tmpreg = 0;
 

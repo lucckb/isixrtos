@@ -19,10 +19,12 @@ namespace dev {
 extern "C"
 {
     void dma1_channel1_isr_vector() __attribute__((interrupt));
+    void dma2_stream0_isr_vector() __attribute__((interrupt));
 }
 /* ------------------------------------------------------------------ */
 class adc_converter {
     friend void dma1_channel1_isr_vector();
+    friend void dma2_stream0_isr_vector();
 public:
 	//ADC channel table
 	enum ch

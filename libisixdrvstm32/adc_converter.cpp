@@ -11,6 +11,7 @@
 #include <stm32dma.h>
 #include <stm32lib.h>
 #include <stm32gpio.h>
+#include <stm32rcc.h>
 /* ------------------------------------------------------------------ */
 namespace stm32 {
 namespace dev {
@@ -73,7 +74,7 @@ adc_converter::adc_converter(ADC_TypeDef * const _m_ADC, unsigned _ch_mask,
 		sample_time sh_time, int irq_prio, int irq_sub)
 	: m_ADC(_m_ADC),lock_sem(1, 1), complete_sem(0,1), num_active_chns(0)
 {
-	if(m_ADC==ADC1)   RCC->APB2ENR |= RCC_APB2Periph_ADC1;
+	if( m_ADC == ADC1 ) rcc_apb2_periph_clock_cmd( RCC_APB2Periph_ADC1, true );
 	if( m_ADC==ADC1 )
 	{
 		for(int ch=0; ch<adc_channels; ch++)
@@ -140,6 +141,8 @@ adc_converter::adc_converter(ADC_TypeDef * const _m_ADC, unsigned _ch_mask,
     	stm32::nvic_set_priority( DMA1_Channel1_IRQn, irq_prio, irq_sub );
     	stm32::nvic_irq_enable( DMA1_Channel1_IRQn, true );
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
+    	rcc_ahb1_periph_clock_cmd( RCC_AHB1Periph_DMA2, true );
+    	stm32::nvic_irq_enable( DMA2_Stream0_IRQn, true );
 #else
 #error unknown MCU type
 #endif
@@ -147,6 +150,7 @@ adc_converter::adc_converter(ADC_TypeDef * const _m_ADC, unsigned _ch_mask,
 #if defined(STM32MCU_MAJOR_TYPE_F1)
     stm32::dma_enable(stm32::DMACNTR_1);
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
+    stm32::nvic_irq_enable( DMA2_Stream0_IRQn, true );
 #else
 #error unknown MCU type
 #endif
@@ -188,6 +192,15 @@ int adc_converter::get_adc_values(volatile unsigned short *regs)
     stm32::dma_channel_enable(DMA1_Channel1);
     stm32::dma_irq_enable(DMA1_Channel1,DMA_IT_TC);
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
+    dma_init( DMA2_Stream0,
+    			DMA_DIR_PeripheralToMemory | DMA_PeripheralInc_Disable | DMA_Channel_0 |
+    			DMA_MemoryInc_Disable | DMA_PeripheralDataSize_HalfWord |
+    			DMA_MemoryDataSize_HalfWord | DMA_Mode_Normal |
+    			DMA_Priority_Medium | DMA_MemoryBurst_Single | DMA_PeripheralBurst_Single,
+    			DMA_FIFOMode_Disable | DMA_FIFOThreshold_Full,
+    			num_active_chns, &ADC1->DR, regs );
+    dma_it_config( DMA2_Stream0, DMA_IT_TC, true );
+    dma_cmd( DMA1_Stream0, true );
 #else
 #error unknown MCU type
 #endif
@@ -197,6 +210,8 @@ int adc_converter::get_adc_values(volatile unsigned short *regs)
     stm32::dma_channel_disable(DMA1_Channel1);
     stm32::dma_irq_disable(DMA1_Channel1,DMA_IT_TC);
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
+    dma_it_config( DMA2_Stream0, DMA_IT_TC, false );
+    dma_cmd( DMA2_Stream0, false );
 #else
 #error unknown MCU type
 #endif
@@ -227,6 +242,13 @@ extern "C"
     	stm32::dma_clear_flag( DMA1_FLAG_TC1 );
     }
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
+    void dma2_stream0_isr_vector(void) __attribute__((interrupt));
+    void dma2_stream0_isr_vector(void)
+    {
+    	if(adc1_object)
+    	    adc1_object->isr();
+    	 stm32::dma_clear_flag( DMA2_Stream0, DMA_IT_TC );
+    }
 #else
 #error unknown MCU type
 #endif
