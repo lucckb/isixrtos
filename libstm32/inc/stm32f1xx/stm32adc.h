@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 
-#ifndef STM32ADC_H_
-#define STM32ADC_H_
+#ifndef STM32F1ADC_H_
+#define STM32F1ADC_H_
 /* ---------------------------------------------------------------------------- */
 #include <stm32f10x_lib.h>
 #include <stm32f10x_adc.h>
