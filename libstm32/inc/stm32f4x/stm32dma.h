@@ -8,8 +8,7 @@
 #ifndef STM32F4DMA_H_
 #define STM32F4DMA_H_
 /* ---------------------------------------------------------------------------- */
-#include "stm32f4xx.h"
-#include "stm32f4xx_dma.h"
+#include <stm32lib.h>
 /* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus
 namespace stm32 {

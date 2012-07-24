@@ -142,6 +142,7 @@ adc_converter::adc_converter(ADC_TypeDef * const _m_ADC, unsigned _ch_mask,
     	stm32::nvic_irq_enable( DMA1_Channel1_IRQn, true );
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
     	rcc_ahb1_periph_clock_cmd( RCC_AHB1Periph_DMA2, true );
+    	stm32::nvic_set_priority( DMA2_Stream0_IRQn, irq_prio, irq_sub );
     	stm32::nvic_irq_enable( DMA2_Stream0_IRQn, true );
 #else
 #error unknown MCU type

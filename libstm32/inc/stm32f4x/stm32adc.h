@@ -7,7 +7,8 @@
 
 #ifndef STM32F4ADC_H_
 #define STM32F4ADC_H_
-
+/* ---------------------------------------------------------------------------- */
+#include <stm32lib.h>
 /* ---------------------------------------------------------------------------- */
 /* ADC DISCNUM mask */
 #define CR1_DISCNUM_RESET         ((uint32_t)0xFFFF1FFF)
@@ -559,7 +560,7 @@ static inline void adc_disc_mode_channel_count_config(ADC_TypeDef* ADCx, uint8_t
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None
   */
-static void adc_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
+static inline void adc_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
 {
 
   if ( enable )

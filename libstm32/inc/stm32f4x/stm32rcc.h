@@ -8,7 +8,7 @@
 #ifndef STM32F4_STM32RCC_H_
 #define STM32F4_STM32RCC_H_
 /* ------------------------------------------------------------------ */
-#include "stm32f4xx.h"
+#include <stm32lib.h>
 /* ------------------------------------------------------------------ */
 #ifdef __cplusplus
  namespace stm32 {

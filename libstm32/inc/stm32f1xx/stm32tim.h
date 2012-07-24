@@ -8,11 +8,7 @@
 #ifndef STM32F1TIM_H_
 #define STM32F1TIM_H_
 /* ---------------------------------------------------------------------------- */
-#if defined(STM32MCU_MAJOR_TYPE_F4)
-#include "stm32f4x/stm32f4xx_tim.h"
-#elif defined(STM32MCU_MAJOR_TYPE_F1)
-#include "stm32f1xx/stm32f10x_tim.h"
-#endif
+#include <stm32lib.h>
 #include <stddef.h>
 /* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus

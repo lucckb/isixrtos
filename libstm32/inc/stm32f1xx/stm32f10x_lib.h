@@ -9,6 +9,10 @@
 #include "stm32f10x_flash.h"
 #include "stm32f10x_iwdg.h"
 #include "stm32f10x_dma.h"
+#include "stm32f10x_adc.h"
+#include "stm32f10x_exti.h"
+#include "stm32f10x_pwr.h"
+#include "stm32f10x_tim.h"
 #include "misc.h"
 
 #endif
