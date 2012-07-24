@@ -177,7 +177,7 @@ DEFINE_INTERRUPT_HANDLER(dma2_stream6_isr_vector);
 DEFINE_INTERRUPT_HANDLER(dma2_stream7_isr_vector);
 #undef DEFINE_INTERRUPT_HANDLER
 /*---------------------------------------------------------*/
-#if defined(STM32MCU_MAJOR_TYPE_F4)
+#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 //Interrupt vector table
 __attribute__ ((section(".isr_vector")))
 const vect_fun_t const exceptions_vectors[] =
