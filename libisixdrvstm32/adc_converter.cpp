@@ -165,6 +165,7 @@ adc_converter::~adc_converter()
 	//Disable interrupts
 	stm32::nvic_irq_enable( DMA1_Channel1_IRQn, false );
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
+	stm32::nvic_irq_enable( DMA2_Stream0_IRQn, false );
 #else
 #error unknown MCU type
 #endif
