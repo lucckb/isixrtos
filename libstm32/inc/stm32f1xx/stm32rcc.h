@@ -1022,6 +1022,22 @@ static inline void rcc_periph_clock_cmd( enum rcc_clock_type clock_type, uint32_
 	}
 }
 /*----------------------------------------------------------*/
+/** Compatibility with old stdlib */
+static inline void rcc_apb2_periph_clock_cmd( uint32_t periph, bool enable)
+{
+    rcc_periph_clock_cmd(rcc_clk_apb2, periph, enable);
+}
+
+static inline void rcc_apb1_periph_clock_cmd( uint32_t periph, bool enable)
+{
+    rcc_periph_clock_cmd(rcc_clk_apb1, periph, enable);
+}
+
+static inline void rcc_ahb_periph_clock_cmd( uint32_t periph, bool enable)
+{
+    rcc_periph_clock_cmd(rcc_clk_ahb, periph, enable);
+}
+/*----------------------------------------------------------*/
 /**
  * @brief Set reset on selected peripheral
  * @param clock_type Clock type depends on the bus
