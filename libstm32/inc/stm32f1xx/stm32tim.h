@@ -8,15 +8,16 @@
 #ifndef STM32F1TIM_H_
 #define STM32F1TIM_H_
 /* ---------------------------------------------------------------------------- */
-#include <stm32f10x_lib.h>
-#include <stm32f10x_tim.h>
+#if defined(STM32MCU_MAJOR_TYPE_F4)
+#include "stm32f4x/stm32f4xx_tim.h"
+#elif defined(STM32MCU_MAJOR_TYPE_F1)
+#include "stm32f1xx/stm32f10x_tim.h"
+#endif
 #include <stddef.h>
 /* ---------------------------------------------------------------------------- */
-
 #ifdef __cplusplus
  namespace stm32 {
 #endif
-
 
 /* ---------------------------------------------------------------------------- */
 enum tim_cc_chns { tim_cc_chn1, tim_cc_chn2, tim_cc_chn3, tim_cc_chn4 };
@@ -54,7 +55,12 @@ static inline void tim_timebase_init(TIM_TypeDef* TIMx, uint16_t prescaler, uint
 	  /* Set the Prescaler value */
 	  TIMx->PSC = prescaler;
 
-	  if ((TIMx == TIM1) || (TIMx == TIM8)|| (TIMx == TIM15)|| (TIMx == TIM16) || (TIMx == TIM17))
+	  if ((TIMx == TIM1) || (TIMx == TIM8)
+#ifndef STM32MCU_MAJOR_TYPE_F4
+			  || (TIMx == TIM15)|| (TIMx == TIM16) || (TIMx == TIM17))
+#else
+		  )
+#endif
 	  {
 	    /* Set the Repetition Counter value */
 	    TIMx->RCR = rptcounter;
@@ -140,8 +146,13 @@ static inline void tim_oc_init(TIM_TypeDef* TIMx, enum tim_cc_chns chn, uint16_t
 	  /* Set the Output State */
 	  tmpccer |= output_state << (4*chn);
 
-	  if((TIMx == TIM1) || (TIMx == TIM8)|| (TIMx == TIM15)||
+	  if((TIMx == TIM1) || (TIMx == TIM8)
+#ifndef STM32MCU_MAJOR_TYPE_F4
+			  || (TIMx == TIM15)||
 	     (TIMx == TIM16)|| (TIMx == TIM17))
+#else
+		  )
+#endif
 	  {
 
 	    /* Reset the Output N Polarity level */
@@ -1991,6 +2002,33 @@ static inline void tim_clear_it_pending_bit(TIM_TypeDef* TIMx, uint16_t TIM_IT)
   TIMx->SR = (uint16_t)~TIM_IT;
 }
 
+/* ---------------------------------------------------------------------------- */
+#if defined(STM32MCU_MAJOR_TYPE_F4)
+/**
+  * @brief  Configures the TIM2, TIM5 and TIM11 Remapping input capabilities.
+  * @param  TIMx: where x can be 2, 5 or 11 to select the TIM peripheral.
+  * @param  TIM_Remap: specifies the TIM input remapping source.
+  *          This parameter can be one of the following values:
+  *            @arg TIM2_TIM8_TRGO: TIM2 ITR1 input is connected to TIM8 Trigger output(default)
+  *            @arg TIM2_ETH_PTP:   TIM2 ITR1 input is connected to ETH PTP trogger output.
+  *            @arg TIM2_USBFS_SOF: TIM2 ITR1 input is connected to USB FS SOF.
+  *            @arg TIM2_USBHS_SOF: TIM2 ITR1 input is connected to USB HS SOF.
+  *            @arg TIM5_GPIO:      TIM5 CH4 input is connected to dedicated Timer pin(default)
+  *            @arg TIM5_LSI:       TIM5 CH4 input is connected to LSI clock.
+  *            @arg TIM5_LSE:       TIM5 CH4 input is connected to LSE clock.
+  *            @arg TIM5_RTC:       TIM5 CH4 input is connected to RTC Output event.
+  *            @arg TIM11_GPIO:     TIM11 CH4 input is connected to dedicated Timer pin(default)
+  *            @arg TIM11_HSE:      TIM11 CH4 input is connected to HSE_RTC clock
+  *                                 (HSE divided by a programmable prescaler)
+  * @retval None
+  */
+static inline void tim_remap_config(TIM_TypeDef* TIMx, uint16_t TIM_Remap)
+{
+  /* Set the Timer remapping configuration */
+  TIMx->OR =  TIM_Remap;
+}
+
+#endif
 /* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus
  }
