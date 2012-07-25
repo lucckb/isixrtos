@@ -4,6 +4,9 @@ endif
 ifeq ($(MCU_MAJOR_TYPE),f1)
 ISIX_ARCH ?= arm-cm3
 endif
+ifeq ($(MCU_MAJOR_TYPE),f2)
+ISIX_ARCH ?= arm-cm3
+endif
 
 #Kernel source 
 ISIX_SRC += $(ISIX_DIR)/kernel/fifo.c 

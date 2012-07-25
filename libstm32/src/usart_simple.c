@@ -79,7 +79,7 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 			gpio_abstract_config(GPIOD,USART2_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0);
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			AFIO->MAPR |= AFIO_MAPR_USART2_REMAP;
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 			gpio_pin_AF_config( GPIOD, USART2_ALT_TX_BIT, 7 );
 			gpio_pin_AF_config( GPIOD, USART2_ALT_RX_BIT, 7 );
 #endif

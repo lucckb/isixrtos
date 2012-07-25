@@ -52,7 +52,7 @@ static inline void tim_timebase_init(TIM_TypeDef* TIMx, uint16_t prescaler, uint
 	  TIMx->PSC = prescaler;
 
 	  if ((TIMx == TIM1) || (TIMx == TIM8)
-#ifndef STM32MCU_MAJOR_TYPE_F4
+#if !defined(STM32MCU_MAJOR_TYPE_F4) && !defined(STM32MCU_MAJOR_TYPE_F2)
 			  || (TIMx == TIM15)|| (TIMx == TIM16) || (TIMx == TIM17))
 #else
 		  )
@@ -143,9 +143,8 @@ static inline void tim_oc_init(TIM_TypeDef* TIMx, enum tim_cc_chns chn, uint16_t
 	  tmpccer |= output_state << (4*chn);
 
 	  if((TIMx == TIM1) || (TIMx == TIM8)
-#ifndef STM32MCU_MAJOR_TYPE_F4
-			  || (TIMx == TIM15)||
-	     (TIMx == TIM16)|| (TIMx == TIM17))
+#if !defined(STM32MCU_MAJOR_TYPE_F4) && !defined(STM32MCU_MAJOR_TYPE_F2)
+			  || (TIMx == TIM15)|| (TIMx == TIM16)|| (TIMx == TIM17))
 #else
 		  )
 #endif

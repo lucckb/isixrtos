@@ -140,7 +140,7 @@ adc_converter::adc_converter(ADC_TypeDef * const _m_ADC, unsigned _ch_mask,
 #if defined(STM32MCU_MAJOR_TYPE_F1)
     	stm32::nvic_set_priority( DMA1_Channel1_IRQn, irq_prio, irq_sub );
     	stm32::nvic_irq_enable( DMA1_Channel1_IRQn, true );
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
     	rcc_ahb1_periph_clock_cmd( RCC_AHB1Periph_DMA2, true );
     	stm32::nvic_set_priority( DMA2_Stream0_IRQn, irq_prio, irq_sub );
     	stm32::nvic_irq_enable( DMA2_Stream0_IRQn, true );
@@ -150,7 +150,7 @@ adc_converter::adc_converter(ADC_TypeDef * const _m_ADC, unsigned _ch_mask,
     }
 #if defined(STM32MCU_MAJOR_TYPE_F1)
     stm32::dma_enable(stm32::DMACNTR_1);
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
     stm32::nvic_irq_enable( DMA2_Stream0_IRQn, true );
 #else
 #error unknown MCU type
@@ -164,7 +164,7 @@ adc_converter::~adc_converter()
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 	//Disable interrupts
 	stm32::nvic_irq_enable( DMA1_Channel1_IRQn, false );
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	stm32::nvic_irq_enable( DMA2_Stream0_IRQn, false );
 #else
 #error unknown MCU type
@@ -193,7 +193,7 @@ int adc_converter::get_adc_values(volatile unsigned short *regs)
         regs, &m_ADC->DR, num_active_chns);
     stm32::dma_channel_enable(DMA1_Channel1);
     stm32::dma_irq_enable(DMA1_Channel1,DMA_IT_TC);
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
     dma_init( DMA2_Stream0,
     			DMA_DIR_PeripheralToMemory | DMA_PeripheralInc_Disable | DMA_Channel_0 |
     			DMA_MemoryInc_Disable | DMA_PeripheralDataSize_HalfWord |
@@ -211,7 +211,7 @@ int adc_converter::get_adc_values(volatile unsigned short *regs)
 #if defined(STM32MCU_MAJOR_TYPE_F1)
     stm32::dma_channel_disable(DMA1_Channel1);
     stm32::dma_irq_disable(DMA1_Channel1,DMA_IT_TC);
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
     dma_it_config( DMA2_Stream0, DMA_IT_TC, false );
     dma_cmd( DMA2_Stream0, false );
 #else
@@ -243,7 +243,7 @@ extern "C"
             adc1_object->isr();
     	stm32::dma_clear_flag( DMA1_FLAG_TC1 );
     }
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
     void dma2_stream0_isr_vector(void) __attribute__((interrupt));
     void dma2_stream0_isr_vector(void)
     {

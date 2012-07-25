@@ -40,7 +40,11 @@ ifeq ($(MCU_MAJOR_TYPE),f4)
 COMMON_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffast-math -fsingle-precision-constant
 COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F4
 else
+ifeq ($(MCU_MAJOR_TYPE),f2)
+COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F2
+else
 COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F1
+endif
 endif
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb
 LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb

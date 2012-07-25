@@ -13,6 +13,8 @@
 #include "stm32f1xx/stm32pwr.h"
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
 #include "stm32f4x/stm32pwr.h"
+#elif defined(STM32MCU_MAJOR_TYPE_F2)
+#include "stm32f2x/stm32pwr.h"
 #else
 #error "Unknown device type"
 #endif

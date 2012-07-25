@@ -22,7 +22,7 @@ namespace	//Object pointers for interrupt
 #if defined(STM32F10X_LD)
 #elif defined(STM32F10X_MD)
 	usart_buffered *usart3_obj;
-#elif defined(STM32F10X_HD) || defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32F10X_HD) || defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	usart_buffered *usart3_obj;
 	usart_buffered *usart4_obj;
 	usart_buffered *usart5_obj;
@@ -113,7 +113,7 @@ void usart_buffered::periphcfg_usart1(altgpio_mode mode)
 		 gpio_abstract_config(USART1_ALT_PORT,USART1_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 		 AFIO->MAPR |= AFIO_MAPR_USART1_REMAP;
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 		 gpio_pin_AF_config( USART1_ALT_PORT, USART1_ALT_TX_BIT, 7 );
 		 gpio_pin_AF_config( USART1_ALT_PORT, USART1_ALT_TX_BIT, 7 );
 #endif
@@ -140,13 +140,13 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 		 RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 		 AFIO->MAPR |= AFIO_MAPR_USART2_REMAP;
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 		 gpio_pin_AF_config( USART2_ALT_PORT,USART2_ALT_TX_BIT, 7 );
 		 gpio_pin_AF_config( USART2_ALT_PORT,USART2_ALT_RX_BIT, 7 );
 #endif
 	}
 }
-#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4)
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	void usart_buffered::periphcfg_usart3(altgpio_mode mode)
 	{
 		if( mode == altgpio_mode_0 )
@@ -167,7 +167,7 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			 RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 			 AFIO->MAPR |= AFIO_MAPR_USART3_REMAP_PARTIALREMAP;
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 			 gpio_pin_AF_config( USART3_ALT1_PORT,USART3_ALT1_TX_BIT, 7 );
 			 gpio_pin_AF_config( USART3_ALT1_PORT,USART3_ALT1_RX_BIT, 7 );
 #endif
@@ -182,14 +182,14 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 			AFIO->MAPR |= AFIO_MAPR_USART3_REMAP_FULLREMAP;
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 			gpio_pin_AF_config( USART3_ALT3_PORT,USART3_ALT3_TX_BIT, 7 );
 			gpio_pin_AF_config( USART3_ALT3_PORT,USART3_ALT3_RX_BIT, 7 );
 #endif
 		}
 	}
 #endif
-#if defined(STM32F10X_HD) || defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4)
+#if defined(STM32F10X_HD) || defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	void usart_buffered::periphcfg_usart4(altgpio_mode /*mode*/)
 	{
 		//TODO: Add remapping
@@ -223,10 +223,10 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 	using namespace stm32;
 	if(_usart == USART1) periphcfg_usart1(alternate_gpio_mode);
 	else if(_usart == USART2) periphcfg_usart2(alternate_gpio_mode);
-#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4)
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	else if(_usart == USART3) periphcfg_usart3(alternate_gpio_mode);
 #endif
-#if	defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4)
+#if	defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	else if(_usart == UART4) periphcfg_usart4(alternate_gpio_mode);
 	else if(_usart == UART5) periphcfg_usart5(alternate_gpio_mode);
 #endif
@@ -252,14 +252,14 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 		usart2_obj = this;
 		irq_num = USART2_IRQn;
 	}
-#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4)
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	else if(  _usart == USART3 )
 	{
 		usart3_obj = this;
 		irq_num = USART3_IRQn;
 	}
 #endif
-#if	defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4)
+#if	defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	else if(  _usart == UART4 )
 	{
 		usart4_obj = this;
@@ -444,7 +444,7 @@ extern "C"
 	{
 		if(usart2_obj) usart2_obj->isr();
 	}
-#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4)
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	//Usart 2
 	void usart3_isr_vector(void) __attribute__ ((interrupt));
 	void usart3_isr_vector(void)
@@ -452,7 +452,7 @@ extern "C"
 		if(usart3_obj) usart3_obj->isr();
 	}
 #endif /*defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL) */
-#if	defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4)
+#if	defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	void usart4_isr_vector(void) __attribute__ ((interrupt));
 	void usart4_isr_vector(void)
 	{
