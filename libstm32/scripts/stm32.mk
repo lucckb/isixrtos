@@ -89,7 +89,11 @@ OCDSCRIPT_FILE=stm32small.cfg
 else
 ifeq ($(MCU_MAJOR_TYPE),f4)
 OCDSCRIPT_FILE=stm32f4x.cfg
-else
+endif
+ifeq ($(MCU_MAJOR_TYPE),f2)
+OCDSCRIPT_FILE=stm32f2x.cfg
+endif
+ifeq ($(MCU_MAJOR_TYPE),f1)
 OCDSCRIPT_FILE=stm32.cfg
 endif
 endif
