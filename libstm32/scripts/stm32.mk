@@ -18,20 +18,66 @@ SCRIPTLINK = stm32-$(MCU_VARIANT)
 #CROSS COMPILE
 CROSS_COMPILE ?= arm-none-eabi-
 #Definicje programow
-CC      = $(CROSS_COMPILE)gcc
-CXX	= $(CROSS_COMPILE)g++
-AR      = $(CROSS_COMPILE)ar
-CP      = $(CROSS_COMPILE)objcopy
-OBJDUMP = $(CROSS_COMPILE)objdump 
-SIZE = $(CROSS_COMPILE)size
-JTAGPROG  = openocd
+CC_V     	:= $(CROSS_COMPILE)gcc
+CXX_V	  	:= $(CROSS_COMPILE)g++
+AR_V      	:= $(CROSS_COMPILE)ar
+CP_V      	:= $(CROSS_COMPILE)objcopy
+OBJDUMP_V 	:= $(CROSS_COMPILE)objdump 
+SIZE_V 	  	:= $(CROSS_COMPILE)size
+JTAGPROG_V  := openocd
+RM_V		:= rm
+LD_V		:= $(CROSS_COMPILE)g++
+ 
+#Verbose stuff BEGIN
+V?=0
+CC_0 = @echo -e "   CC\t" $(@); $(CC_V)
+CC_1 = $(CC_V)
+CC = $(CC_$(V))
 
-OCDSCRIPT=/tmp/pgm.script
-OCD=openocd
+CXX_0 = @echo -e "   CXX\t" $(@); $(CXX_V)
+CXX_1 = $(CXX_V)
+CXX = $(CXX_$(V))
 
-SCRIPTS_DIR = $(LIBSTM32_DIR)/scripts
+LD_0 = @echo -e "   LD\t" $(@); $(LD_V)
+LD_1 = $(LD_V)
+LD = $(LD_$(V))
 
-LSCRIPT = $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
+AR_0 = @echo -e "   AR\t" $(@); $(AR_V)
+AR_1 = $(AR_V)
+AR = $(AR_$(V))
+
+CP_0 = @echo -e "   CP\t" $(@); $(CP_V)
+CP_1 = $(CP_V)
+CP = $(CP_$(V))
+
+
+OBJDUMP_0 = @echo -e "   OBJ\t" $(@); $(OBJDUMP_V)
+OBJDUMP_1 = $(OBJDUMP_V)
+OBJDUMP = $(OBJDUMP_$(V))
+
+SIZE_0 := @$(SIZE_V)
+SIZE_1 := $(SIZE_V)
+SIZE =   $(SIZE_$(V))
+
+JTAGPROG_0 = @echo -e "   PGM\t" $(@); $(JTAGPROG_V)
+JTAGPROG_1 = $(JTAGPROG_V)
+JTAGPROG = $(JTAGPROG_$(V))
+
+RM = $(RM_V)
+
+DEP_CC_0 = @echo -e "   DEP\t" $(@); $(CC_V)
+DEP_CC_1 = $(CC_V)
+DEP_CC = $(DEP_CC_$(V))
+
+DEP_CXX_0 = @echo -e "   DEP\t" $(@); $(CXX_V)
+DEP_CXX_1 = $(CXX_V)
+DEP_CXX = $(DEP_CXX_$(V))
+
+#Verbose stuff END
+
+
+SCRIPTS_DIR := $(LIBSTM32_DIR)/scripts
+LSCRIPT := $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
 
 #Pozostale ustawienia kompilatora
@@ -109,21 +155,21 @@ all:	build
 install: build program
 
 clean:
-	rm -f $(TARGET).$(FORMAT)
-	rm -f $(TARGET).elf
-	rm -f $(TARGET).map
-	rm -f $(TARGET).lss
-	rm -f lib$(TARGET).a
-	rm -f $(OBJ) $(LST) $(DEPFILES) $(LIBS) $(LIBS_OBJS)
+	$(RM) -f $(TARGET).$(FORMAT)
+	$(RM) -f $(TARGET).elf
+	$(RM) -f $(TARGET).map
+	$(RM) -f $(TARGET).lss
+	$(RM) -f lib$(TARGET).a
+	$(RM) -f $(OBJ) $(LST) $(DEPFILES) $(LIBS) $(LIBS_OBJS)
 
 
 program:
-	openocd -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c 'script $(SCRIPTS_DIR)/flash-begin-$(MCU_VARIANT).script' \
+	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c 'script $(SCRIPTS_DIR)/flash-begin-$(MCU_VARIANT).script' \
 	-c "flash write_image erase unlock $(TARGET).elf" -c 'script $(SCRIPTS_DIR)/flash-end-$(MCU_VARIANT).script' \
 	-c shutdown || true
 
 devrst:
-	openocd -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c reset run -c shutdown
+	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c reset run -c shutdown
 
 ifeq ($(LIBRARY),y)
 build:	target  
@@ -170,40 +216,47 @@ endif
 
 .DEFAULT_GOAL := all
 
+.ONESHELL:
 %.dep: %.c
-	$(CC) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(CFLAGS) $< 
+	$(DEP_CC) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(CFLAGS) $< 
 
+.ONESHELL:
 %.dep: %.cpp 
-	$(CXX) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(CXXFLAGS) $< 
+	$(DEP_CXX) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(CXXFLAGS) $< 
 
-
+.ONESHELL:
 %.dep: %.S
-	$(CC) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(ASFLAGS) $< 
+	$(DEP_CC) -MM -MF $@ -MP -MT $(subst .dep,.o,$@) $(ASFLAGS) $< 
 
-
+.ONESHELL:
 %.lss: %.elf
 	$(OBJDUMP) -h -S $< > $@
 
+.ONESHELL:
 %.hex: %.elf
 	$(CP) -O ihex $(CPFLAGS) $< $@ 
 
+.ONESHELL:
 %.bin: %.elf
 	$(CP) -O binary $(CPFLAGS) $< $@ 
 
+.ONESHELL:
 $(TARGET).elf: $(OBJ) $(CRT0_OBJECTS) $(ADDITIONAL_DEPS) $(LIBS)
-	$(CXX) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECTS) $(LIBS) -o $@ $(LDFLAGS) $(LINK_LIBS)
+	$(LD) $(CXXFLAGS) $(OBJ) $(CRT0_OBJECTS) $(LIBS) -o $@ $(LDFLAGS) $(LINK_LIBS)
 
+.ONESHELL:
 %.o : %.S
 	$(CC) -c $(ASFLAGS) $(ASLST) $< -o $@ 
 
-
+.ONESHELL:
 %.o : %.c	
 	$(CC) -c $(CFLAGS) $(CLST) $< -o $@
 
+.ONESHELL:
 %.o : %.cpp
 	$(CXX) -c $(CXXFLAGS) $(CPPLST) $< -o $@
 
-
+.ONESHELL:
 lib$(TARGET).a : $(OBJ)
 	$(AR) $(ARFLAGS) $@ $(OBJ)
 
