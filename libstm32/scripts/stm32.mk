@@ -63,13 +63,15 @@ JTAGPROG_0 = @echo -e "   PGM\t" $(@); $(JTAGPROG_V)
 JTAGPROG_1 = $(JTAGPROG_V)
 JTAGPROG = $(JTAGPROG_$(V))
 
-RM = $(RM_V)
+RM_0 := @$(RM_V)
+RM_1 := $(RM_V)
+RM =   $(RM_$(V))
 
-DEP_CC_0 = @echo -e "   DEP\t" $(@); $(CC_V)
+DEP_CC_0 = @$(CC_V)
 DEP_CC_1 = $(CC_V)
 DEP_CC = $(DEP_CC_$(V))
 
-DEP_CXX_0 = @echo -e "   DEP\t" $(@); $(CXX_V)
+DEP_CXX_0 = @$(CXX_V)
 DEP_CXX_1 = $(CXX_V)
 DEP_CXX = $(DEP_CXX_$(V))
 

@@ -31,6 +31,7 @@ ISIX_LIB = $(ISIX_DIR)/libisix.a
 ISIX_OBJS += $(ISIX_SRC:%.c=%.o) 
 DEPFILES += $(ISIX_SRC:%.c=%.dep) 
 
+.ONESHELL:
 $(ISIX_LIB): $(ISIX_OBJS)
 	    $(AR) $(ARFLAGS) $@ $^
 

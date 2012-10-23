@@ -11,6 +11,7 @@ LIBSTM32_LIB = $(LIBSTM32_DIR)/libstm32lite.a
 LIBSTM32_OBJS += $(LIBSTM32_SRC:%.c=%.o) $(LIBSTM32_CPPSRC:%.cpp=%.o)
 DEPFILES += $(LIBSTM32_SRC:%.c=%.dep) $(LIBSTM32_CPPSRC:%.cpp=%.dep)  $(LIBSTM32_O_SRC:%.c=%.dep)
 
+.ONESHELL:
 $(LIBSTM32_LIB): $(LIBSTM32_OBJS)
 	$(AR) $(ARFLAGS) $@ $^
 

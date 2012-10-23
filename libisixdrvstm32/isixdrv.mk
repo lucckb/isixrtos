@@ -8,6 +8,7 @@ ISIXDRV_LIB = $(ISIXDRV_DIR)/libisixdrv-stm32.a
 ISIXDRV_OBJS += $(ISIXDRV_SRC:%.c=%.o) $(ISIXDRV_CPPSRC:%.cpp=%.o)
 DEPFILES += $(ISIXDRV_SRC:%.c=%.dep) $(ISIXDRV_CPPSRC:%.cpp=%.dep)
 
+.ONESHELL:
 $(ISIXDRV_LIB): $(ISIXDRV_OBJS)
 	    $(AR) $(ARFLAGS) $@ $^
 
