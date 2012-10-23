@@ -156,6 +156,7 @@ all:	build
 
 install: build program
 
+.PHONY : clean
 clean:
 	$(RM) -f $(TARGET).$(FORMAT)
 	$(RM) -f $(TARGET).elf
@@ -165,20 +166,22 @@ clean:
 	$(RM) -f $(OBJ) $(LST) $(DEPFILES) $(LIBS) $(LIBS_OBJS)
 
 
+.PHONY : program
 program:
 	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c 'script $(SCRIPTS_DIR)/flash-begin-$(MCU_VARIANT).script' \
 	-c "flash write_image erase unlock $(TARGET).elf" -c 'script $(SCRIPTS_DIR)/flash-end-$(MCU_VARIANT).script' \
 	-c shutdown || true
 
+.PHONY : devrst
 devrst:
 	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c reset run -c shutdown
+
 
 ifeq ($(LIBRARY),y)
 build:	target  
 else
 build:	target $(LSSTARGET) size-calc
 endif
-
 
 
 ifeq ($(LIBRARY),y)
