@@ -158,6 +158,7 @@ install: build program
 
 .PHONY : clean
 clean:
+	@echo Cleaning project $(TARGET)
 	$(RM) -f $(TARGET).$(FORMAT)
 	$(RM) -f $(TARGET).elf
 	$(RM) -f $(TARGET).map
