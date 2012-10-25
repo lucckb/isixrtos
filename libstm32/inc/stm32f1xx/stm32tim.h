@@ -296,6 +296,12 @@ static const uint16_t  SMCR_ETR_Mask      =       0x00FF;
 static const uint16_t  CCER_CCE_Set       =       0x0001;
 static const uint16_t  CCER_CCNE_Set      =       0x0004;
 static const uint16_t  CCMR_Offset        =       0x0018;
+#else
+#define  SMCR_ETR_Mask             (uint16_t)0x00FF
+#define  CCER_CCE_Set              (uint16_t)0x0001
+#define  CCER_CCNE_Set             (uint16_t)0x0004
+#define  CCMR_Offset               (uint16_t)0x0018
+#endif
 /* ---------------------------------------------------------------------------- */
 static inline void TI1_Config(TIM_TypeDef* TIMx, uint16_t TIM_ICPolarity, uint16_t TIM_ICSelection,
                        uint16_t TIM_ICFilter)
@@ -749,6 +755,7 @@ static inline void SetIC4Prescaler(TIM_TypeDef* TIMx, uint16_t TIM_ICPSC)
 
 
 /* ---------------------------------------------------------------------------- */
+#ifdef __cplusplus
 }
 }
 #endif
@@ -2028,4 +2035,13 @@ static inline void tim_remap_config(TIM_TypeDef* TIMx, uint16_t TIM_Remap)
 #ifdef __cplusplus
  }
 #endif
+
+
+#ifndef __cplusplus
+#undef  SMCR_ETR_Mask
+#undef  CCER_CCE_Set
+#undef  CCER_CCNE_Set
+#undef  CCMR_Offset
+#endif
+
 #endif /* STM32TIM_H_ */
