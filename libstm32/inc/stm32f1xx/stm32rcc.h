@@ -1044,23 +1044,74 @@ static inline void rcc_ahb_periph_clock_cmd( uint32_t periph, bool enable)
  * @param periph  Perhipherals bitmask
  * @param enable Enable or disable
  */
+static inline void rcc_ahb_periph_reset_cmd(uint32_t periph, bool enable )
+{
+  if ( enable )
+  {
+    RCC->AHBRSTR |= periph;
+  }
+  else
+  {
+    RCC->AHBRSTR &= ~periph;
+  }
+}
+/*----------------------------------------------------------*/
+/**
+ * @brief Set reset on selected peripheral
+ * @param clock_type Clock type depends on the bus
+ * @param periph  Perhipherals bitmask
+ * @param enable Enable or disable
+ */
+static inline void rcc_apb2_periph_reset_cmd(uint32_t periph, bool enable )
+{
+  if ( enable )
+  {
+	  RCC->APB2RSTR |= periph;
+  }
+  else
+  {
+	  RCC->APB2RSTR &= ~periph;
+  }
+}
+/*----------------------------------------------------------*/
+/**
+ * @brief Set reset on selected peripheral
+ * @param clock_type Clock type depends on the bus
+ * @param periph  Perhipherals bitmask
+ * @param enable Enable or disable
+ */
+static inline void rcc_apb1_periph_reset_cmd(uint32_t periph, bool enable )
+{
+  if ( enable )
+  {
+	  RCC->APB1RSTR |= periph;
+  }
+  else
+  {
+	  RCC->APB1RSTR &= ~periph;
+  }
+}
+/*----------------------------------------------------------*/
+/**
+ * @brief Set reset on selected peripheral
+ * @param clock_type Clock type depends on the bus
+ * @param periph  Perhipherals bitmask
+ * @param enable Enable or disable
+ */
 static inline void rcc_periph_reset_cmd(enum rcc_clock_type clock_type, uint32_t periph, bool enable )
 {
 	switch( clock_type )
 	{
 	case rcc_clk_ahb:
 #ifdef STM32F10X_CL
-		if( enable ) RCC->AHBRSTR |= periph;
-		else RCC->AHBRSTR &= ~periph;
+		rcc_ahb_periph_reset_cmd( periph, enable );
 #endif
 		break;
 	case rcc_clk_apb2:
-		if( enable ) RCC->APB2RSTR |= periph;
-		else  RCC->APB2RSTR &= ~periph;
+		rcc_apb2_periph_reset_cmd( periph, enable );
 		break;
 	case rcc_clk_apb1:
-		if( enable ) RCC->APB1RSTR |= periph;
-		else RCC->APB1RSTR &= ~periph;
+		rcc_apb1_periph_reset_cmd( periph, enable );
 		break;
 	}
 }
