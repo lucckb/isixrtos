@@ -431,7 +431,7 @@ ethernetif_init(struct netif *netif)
 
   ethernetif->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
 
-  netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
+  //netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
   /* initialize the hardware */
   low_level_init(netif);
 

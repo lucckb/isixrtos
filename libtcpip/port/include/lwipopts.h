@@ -282,7 +282,7 @@
  * (requires NO_SYS==0)
  */
 
-#define MEMP_NUM_SYS_TIMEOUT            5
+#define MEMP_NUM_SYS_TIMEOUT            8
 
 
 /**
@@ -756,21 +756,21 @@
  * transport.
  */
 
-//#define LWIP_DNS                        0
+#define LWIP_DNS                        1
 
 /** DNS maximum number of entries to maintain locally. */
 
-//#define DNS_TABLE_SIZE                  4
+#define DNS_TABLE_SIZE                  2
 
 
 /** DNS maximum host name length supported in the name table. */
 
-//#define DNS_MAX_NAME_LENGTH             256
+#define DNS_MAX_NAME_LENGTH             128
 
 
 /** The maximum of DNS servers */
 
-//#define DNS_MAX_SERVERS                 2
+#define DNS_MAX_SERVERS                 2
 
 
 /** DNS do a name checking between the query and the response. */
