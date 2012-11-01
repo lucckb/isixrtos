@@ -11,9 +11,9 @@
 #include "lwip/sys.h"
 #include "lwip/mem.h"
 #include "lwip/timers.h"
-#include <isix.h>
-#include <dbglog.h>
-
+//#include <dbglog.h>
+#undef dbprintf
+#define dbprintf(...) do {} while(0)
 /* ------------------------------------------------------------------ */
 
 //Default task structure
@@ -87,7 +87,6 @@ sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, 
     {
         st = introduce_thread(task);
     }
-    dbprintf("sys_thread_new: New thread created %08x\n",task);
     return st;
 }
 
@@ -173,17 +172,24 @@ timeout.
 Note that a function with a similar name, sys_mbox_fetch(), is
 implemented by lwIP.
 */
-u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
+typedef void* message_t;
+
+u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, message_t *msg, u32_t timeout)
 {
-    void *fifor=NULL;
-    timeout = (timeout*ISIX_HZ)/1000;
+    message_t m;
+	timeout = (timeout*ISIX_HZ)/1000;
     tick_t t = isix_get_jiffies();
-    int reason = isix_fifo_read(*mbox,&fifor,timeout);
-    t = isix_get_jiffies() - t;
-    t = (t*1000)/ISIX_HZ;
-    if(reason == ISIX_ETIMEOUT) return SYS_ARCH_TIMEOUT;
-    if(msg != NULL) *msg = fifor;
-    return t;
+    int reason = isix_fifo_read( *mbox, &m, timeout);
+    if(reason == ISIX_ETIMEOUT)
+    	return SYS_ARCH_TIMEOUT;
+    else
+    {
+    	dbprintf("F s=%08x v=%08x", *mbox, m);
+    	if( msg ) *msg = m;
+    	t = isix_get_jiffies() - t;
+    	t = (t*1000)/ISIX_HZ;
+    	return t;
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -209,10 +215,10 @@ err_t sys_mbox_new(sys_mbox_t *mbox, int size)
 }
 /* ------------------------------------------------------------------ */
 /* Post the message to the mailbox */
-void sys_mbox_post(sys_mbox_t *mbox, void *msg)
+void sys_mbox_post(sys_mbox_t *mbox,  message_t msg)
 {
-    void *tmp = msg;
-   isix_fifo_write(*mbox,&tmp,0);
+	dbprintf("P s=%08x v=%08x",*mbox,msg);
+	isix_fifo_write( *mbox, &msg, ISIX_TIME_INFINITE );
 }
 /* ------------------------------------------------------------------ */
 /** Wait for a new message to arrive in the mbox
@@ -221,9 +227,12 @@ void sys_mbox_post(sys_mbox_t *mbox, void *msg)
  * @param timeout maximum time (in milliseconds) to wait for a message
  * @return 0 (milliseconds) if a message has been received
  *         or SYS_MBOX_EMPTY if the mailbox is empty */
-u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, void **msg)
+u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, message_t *msg)
 {
-	int reason = isix_fifo_read_isr( *mbox, msg );
+	message_t m;
+	int reason = isix_fifo_read( *mbox, &m, 1 );
+	if( msg && reason==ISIX_EOK) *msg = m;
+	dbprintf("TF s=%08x v=%08x",*mbox,msg);
 	return ( reason==ISIX_EOK )?( 0 ):( SYS_MBOX_EMPTY );
 }
 
@@ -231,9 +240,10 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, void **msg)
 /** Try to post a message to an mbox - may fail if full or ISR
  * @param mbox mbox to posts the message
  * @param msg message to post (ATTENTION: can be NULL) */
-err_t sys_mbox_trypost(sys_mbox_t *mbox, void *msg)
+err_t sys_mbox_trypost(sys_mbox_t *mbox, message_t msg)
 {
-	int reason = isix_fifo_write_isr( *mbox, msg );
+	dbprintf("TP s=%08x v=%08x", *mbox, msg);
+	int reason = isix_fifo_write( *mbox, &msg, 1 );
 	return ( reason==ISIX_EOK )?( 0 ):( SYS_MBOX_EMPTY );
 }
 
@@ -250,7 +260,8 @@ err_t sys_mbox_trypost(sys_mbox_t *mbox, void *msg)
 /* ------------------------------------------------------------------ */
 sys_prot_t sys_arch_protect(void)
 {
-    isix_sem_wait( arch_protect_sem, ISIX_TIME_INFINITE );
+	LWIP_ASSERT("Invalid TCPIP lock semaphore", arch_protect_sem );
+	isix_sem_wait( arch_protect_sem, ISIX_TIME_INFINITE );
 	return 1;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -264,13 +275,14 @@ an operating system.
 void sys_arch_unprotect(sys_prot_t pval)
 {
 	(void)pval;
+	LWIP_ASSERT("Invalid TCPIP lock semaphore", arch_protect_sem );
 	isix_sem_signal( arch_protect_sem );
 }
 /* ------------------------------------------------------------------ */
 /* Add system initialize stuff before tcpip init */
 void sys_init(void)
 {
-	arch_protect_sem = isix_sem_create( NULL, 0 );
+	arch_protect_sem = isix_sem_create( NULL, 1 );
 	LWIP_ASSERT("Unable to create lock semaphore", arch_protect_sem );
 }
 

@@ -152,6 +152,9 @@ ifdef MCU_SYSTEM_STACK_SIZE
 LDFLAGS += -Wl,--defsym=_sys_stack_size=$(MCU_SYSTEM_STACK_SIZE)
 endif
 
+#TODO: Enable it later 
+#CFLAGS += -Wc++-compat
+
 all:	build
 
 install: build program

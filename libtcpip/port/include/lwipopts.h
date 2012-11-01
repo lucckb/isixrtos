@@ -11,8 +11,10 @@
 
 /* Timeval provided by the OS */
 #define LWIP_TIMEVAL_PRIVATE 0
+
 /* OS dont provide standard unix like errnos */
 #define LWIP_PROVIDE_ERRNO 1
+
 /* Use semaphores instead of mutexes */
 #define LWIP_COMPAT_MUTEX 1
 
@@ -226,7 +228,7 @@
  * (requires the LWIP_TCP option)
  */
 
-#define MEMP_NUM_TCP_PCB_LISTEN         8
+#define MEMP_NUM_TCP_PCB_LISTEN         4
 
 
 /**
@@ -377,7 +379,7 @@
  * PBUF_POOL_SIZE: the number of buffers in the pbuf pool. 
  */
 
-#define PBUF_POOL_SIZE                  10
+#define PBUF_POOL_SIZE                  8
 
 
 /*
@@ -437,7 +439,6 @@
  * might be disabled
  */
 //#define LWIP_ETHERNET                   (LWIP_ARP || PPPOE_SUPPORT)
-
 
 /** ETH_PAD_SIZE: number of bytes added before the ethernet header to ensure
  * alignment of payload after that header. Since the header is 14 bytes long,
@@ -1157,7 +1158,7 @@
  * sys_thread_new() when the thread is created.
  */
 
-#define TCPIP_THREAD_STACKSIZE          1024
+#define TCPIP_THREAD_STACKSIZE          512
 
 
 /**
@@ -1250,7 +1251,7 @@
  * sys_thread_new() when the thread is created.
  */
 
-#define DEFAULT_THREAD_PRIO             1
+#define DEFAULT_THREAD_PRIO             3
 
 
 /**
@@ -1332,7 +1333,7 @@
  * LWIP_SOCKET==1: Enable Socket API (require to use sockets.c)
  */
 
-//#define LWIP_SOCKET                     1
+#define LWIP_SOCKET                     1
 
 
 /**
@@ -1660,7 +1661,7 @@
    ---------------------------------------
 */
 
-//#define LWIP_DEBUG                  1
+#undef LWIP_DEBUG
 
 /**
  * LWIP_DBG_MIN_LEVEL: After masking, the value of the debug is
@@ -1668,7 +1669,7 @@
  * messages are written.
  */
 
-//#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
+#define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_OFF
 
 
 /**
@@ -1757,11 +1758,11 @@
 /**
  * TCP_DEBUG: Enable debugging for TCP.
  */
-#define TCP_DEBUG                       LWIP_DBG_OFF
+#define TCP_DEBUG                       LWIP_DBG_ON
 /**
  * TCP_INPUT_DEBUG: Enable debugging in tcp_in.c for incoming debug.
  */
-#define TCP_INPUT_DEBUG                 LWIP_DBG_OFF
+#define TCP_INPUT_DEBUG                 LWIP_DBG_ON
 /**
  * TCP_FR_DEBUG: Enable debugging in tcp_in.c for fast retransmit.
  */
