@@ -62,7 +62,7 @@
 #include <stm32system.h>
 #include <dbglog.h>
 /* TCP and ARP timeouts */
-volatile int tcp_end_time, arp_end_time;
+
 
 /* Define those to better describe your network interface. */
 #define IFNAME0 's'
@@ -91,19 +91,21 @@ err_t  ethernetif_input(struct netif *netif);
 #define ETH_RXBUFNB        4
 #define ETH_TXBUFNB        2
 
-uint8_t MACaddr[6];
-ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB], DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Rx & Tx DMA Descriptors */
-uint8_t Rx_Buff[ETH_RXBUFNB][ETH_MAX_PACKET_SIZE], Tx_Buff[ETH_TXBUFNB][ETH_MAX_PACKET_SIZE];/* Ethernet buffers */
+static uint8_t MACaddr[6];
+static ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB], DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Rx & Tx DMA Descriptors */
+static uint8_t Rx_Buff[ETH_RXBUFNB][ETH_MAX_PACKET_SIZE], Tx_Buff[ETH_TXBUFNB][ETH_MAX_PACKET_SIZE];/* Ethernet buffers */
 
-ETH_DMADESCTypeDef  *DMATxDesc = DMATxDscrTab;
 extern ETH_DMADESCTypeDef  *DMATxDescToSet;
 extern ETH_DMADESCTypeDef  *DMARxDescToGet;
 
-typedef struct{
-u32 length;
-u32 buffer;
-ETH_DMADESCTypeDef *descriptor;
-}FrameTypeDef;
+typedef struct
+{
+	u32 length;
+	u32 buffer;
+	ETH_DMADESCTypeDef *descriptor;
+}
+FrameTypeDef;
+
 
 static FrameTypeDef ETH_RxPkt_ChainMode(void);
 static u32 ETH_GetCurrentTxBuffer(void);
@@ -125,7 +127,7 @@ void set_mac_address(uint8_t* macadd)
   MACaddr[3] = macadd[3];
   MACaddr[4] = macadd[4];
   MACaddr[5] = macadd[5];
-  
+
   ETH_MACAddressConfig(ETH_MAC_Address0, macadd);  
 }
 
