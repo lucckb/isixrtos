@@ -105,9 +105,9 @@ u32 buffer;
 ETH_DMADESCTypeDef *descriptor;
 }FrameTypeDef;
 
-FrameTypeDef ETH_RxPkt_ChainMode(void);
-u32 ETH_GetCurrentTxBuffer(void);
-u32 ETH_TxPkt_ChainMode(u16 FrameLength);
+static FrameTypeDef ETH_RxPkt_ChainMode(void);
+static u32 ETH_GetCurrentTxBuffer(void);
+static u32 ETH_TxPkt_ChainMode(u16 FrameLength);
 
 static sem_t *netif_sem;
 
