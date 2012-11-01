@@ -760,7 +760,7 @@
 
 /** DNS maximum number of entries to maintain locally. */
 
-#define DNS_TABLE_SIZE                  2
+#define DNS_TABLE_SIZE                  1
 
 
 /** DNS maximum host name length supported in the name table. */
@@ -800,7 +800,6 @@
  *  at runtime. */
 
 //#define DNS_LOCAL_HOSTLIST_IS_DYNAMIC   0
-
 
 /*
    ---------------------------------
