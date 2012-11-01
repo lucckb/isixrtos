@@ -115,7 +115,7 @@ static const uint32_t GPIO_Remap_MISC             = 0x80002000;
 
 #ifdef __cplusplus
 namespace _internal {
-namespace gpio {
+namespace gpio_f1 {
 static const uint16_t EVCR_PORTPINCONFIG_MASK  =  0xFF80;
 static const uint16_t LSB_MASK                 =  0xFFFF;
 static const uint32_t DBGAFR_POSITION_MASK     =  0x000F0000;
@@ -342,8 +342,8 @@ static inline void gpio_clock_enable( GPIO_TypeDef* port, bool enable )
 static inline void gpio_pin_remap_config( uint32_t GPIO_Remap, bool enable )
 {
 #ifdef __cplusplus
-	using namespace _internal::gpio;
- #endif
+	using namespace _internal::gpio_f1;
+#endif
 
   uint32_t tmp = 0x00, tmp1 = 0x00, tmpreg = 0x00, tmpmask = 0x00;
 
@@ -391,10 +391,70 @@ static inline void gpio_pin_remap_config( uint32_t GPIO_Remap, bool enable )
   }
 }
 
+/* ------------------------------------------------------------------ */
+/**
+  * @brief  Selects the Ethernet media interface.
+  * @note   This function applies only to STM32 Connectivity line devices.
+  * @param  GPIO_ETH_MediaInterface: specifies the Media Interface mode.
+  *   This parameter can be one of the following values:
+  *     @arg GPIO_ETH_MediaInterface_MII: MII mode
+  *     @arg GPIO_ETH_MediaInterface_RMII: RMII mode
+  * @retval None
+  */
+
+#ifdef __cplusplus
+#ifdef __cplusplus
+namespace _internal {
+namespace gpio_f1 {
+#endif
+
+static const uint32_t GPIO_ETH_MediaInterface_MII  = 0x00000000;
+static const uint32_t GPIO_ETH_MediaInterface_RMII = 0x00000001;
+static const uint32_t AFIO_OFFSET                  = AFIO_BASE - PERIPH_BASE;
+static const uint32_t MAPR_OFFSET                  = AFIO_OFFSET + 0x04;
+static const uint32_t MII_RMII_SEL_BitNumber       = 0x17;
+static const uint32_t MAPR_MII_RMII_SEL_BB         = PERIPH_BB_BASE + (MAPR_OFFSET * 32) + (MII_RMII_SEL_BitNumber * 4);
+
+}}
+#else
+#define GPIO_ETH_MediaInterface_MII    ((u32)0x00000000)
+#define GPIO_ETH_MediaInterface_RMII   ((u32)0x00000001)
+#define MAPR_MII_RMII_SEL_BB        (PERIPH_BB_BASE + (MAPR_OFFSET * 32) + (MII_RMII_SEL_BitNumber * 4))
+#define MAPR_OFFSET                 (AFIO_OFFSET + 0x04)
+#define MII_RMII_SEL_BitNumber      ((u8)0x17)
+#define AFIO_OFFSET                 (AFIO_BASE - PERIPH_BASE)
+#endif
+
+
+static inline void gpio_eth_media_interface_config(uint32_t media_ifc)
+{
+#ifdef __cplusplus
+	using namespace _internal::gpio_f1;
+#endif
+  /* Configure MII_RMII selection bit */
+  *(__IO uint32_t *) MAPR_MII_RMII_SEL_BB = media_ifc;
+}
+
+
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
 #endif
+
+/*----------------------------------------------------------*/
+#ifndef __cplusplus
+#undef EVCR_PORTPINCONFIG_MASK
+#undef LSB_MASK
+#undef DBGAFR_POSITION_MASK
+#undef DBGAFR_SWJCFG_MASK
+#undef DBGAFR_LOCATION_MASK
+#undef DBGAFR_NUMBITS_MASK
+#undef MAPR_MII_RMII_SEL_BB
+#undef MAPR_OFFSET
+#undef MII_RMII_SEL_BitNumber
+#undef AFIO_OFFSET
+#endif
+
 /*----------------------------------------------------------*/
 #endif /* GPIO_F1X_H_ */
 /*----------------------------------------------------------*/

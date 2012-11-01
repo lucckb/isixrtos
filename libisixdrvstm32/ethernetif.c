@@ -346,8 +346,7 @@ low_level_input(struct netif *netif)
  *
  * @param netif the lwip network interface structure for this ethernetif
  */
-err_t
-ethernetif_input(struct netif *netif)
+err_t ethernetif_input(struct netif *netif)
 {
   err_t err = ERR_OK;
   struct pbuf *p;
