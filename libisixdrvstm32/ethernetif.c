@@ -334,7 +334,7 @@ stm32_emac_if_init_callback(struct netif *netif)
    * is available...) */
   netif->output = etharp_output;
   netif->linkoutput = low_level_output;
-  netif->mtu = 1500;
+  netif->mtu = MAX_ETH_PAYLOAD;
   /* hardware address length */
   netif->hwaddr_len  = ETHARP_HWADDR_LEN;
 
@@ -534,7 +534,7 @@ static void eth_gpio_mii_init(bool provide_mco)
 	  /* Configure PD8, PD9, PD10, PD11 and PD12 as input */
 	  gpio_config_ext(GPIOD, (1<<8)|(1<<9)|(1<<10)|(1<<11)|(1<<12), GPIO_MODE_INPUT, GPIO_CNF_IN_FLOAT );
 
-	  /* MCO pin configuration------------------------------------------------- */
+	  /* MCO pin configuration */
 	  /* Configure MCO (PA8) as alternate function push-pull */
 	  if(provide_mco)
 		  gpio_config( GPIOA, 8 , GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP);
@@ -552,7 +552,7 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool con
 
   ETH_InitTypeDef ETH_InitStructure;
 
-  /* MII/RMII Media interface selection ------------------------------------------*/
+  /* MII/RMII Media interface selection */
   if( !is_rmii )
   {
 	 eth_gpio_mii_init(configure_mco);
@@ -572,11 +572,11 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool con
   /* Wait for software reset */
   while (ETH_GetSoftwareResetStatus() == SET) nop();
 
-  /* ETHERNET Configuration ------------------------------------------------------*/
+  /* ETHERNET Configuration */
   /* Call ETH_StructInit if you don't like to configure all ETH_InitStructure parameter */
   ETH_StructInit(&ETH_InitStructure);
   /* Fill ETH_InitStructure parametrs */
-  /*------------------------   MAC   -----------------------------------*/
+  /*  MAC  */
   ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Enable;
   ETH_InitStructure.ETH_LoopbackMode = ETH_LoopbackMode_Disable;
   ETH_InitStructure.ETH_RetryTransmission = ETH_RetryTransmission_Disable;
@@ -590,7 +590,7 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool con
   ETH_InitStructure.ETH_ChecksumOffload = ETH_ChecksumOffload_Enable;
 #endif
 
-  /*------------------------   DMA   -----------------------------------*/
+  /*  DMA */
 
   /* When we use the Checksum offload feature, we need to enable the Store and Forward mode:
   the store and forward guarantee that a whole frame is stored in the FIFO, so the MAC can insert/verify the checksum,
