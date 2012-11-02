@@ -56,25 +56,6 @@ static sem_t *netif_sem;
 //Net interface copy task
 static task_t *netif_task_id;
 
-/* ------------------------------------------------------------------ */
-#define ETH_DMA_IT_TST       ((uint32_t)0x20000000)  /*!< Time-stamp trigger interrupt (on DMA) */
-#define ETH_DMA_IT_PMT       ((uint32_t)0x10000000)  /*!< PMT interrupt (on DMA) */
-#define ETH_DMA_IT_MMC       ((uint32_t)0x08000000)  /*!< MMC interrupt (on DMA) */
-#define ETH_DMA_IT_NIS       ((uint32_t)0x00010000)  /*!< Normal interrupt summary */
-#define ETH_DMA_IT_AIS       ((uint32_t)0x00008000)  /*!< Abnormal interrupt summary */
-#define ETH_DMA_IT_ER        ((uint32_t)0x00004000)  /*!< Early receive interrupt */
-#define ETH_DMA_IT_FBE       ((uint32_t)0x00002000)  /*!< Fatal bus error interrupt */
-#define ETH_DMA_IT_ET        ((uint32_t)0x00000400)  /*!< Early transmit interrupt */
-#define ETH_DMA_IT_RWT       ((uint32_t)0x00000200)  /*!< Receive watchdog timeout interrupt */
-#define ETH_DMA_IT_RPS       ((uint32_t)0x00000100)  /*!< Receive process stopped interrupt */
-#define ETH_DMA_IT_RBU       ((uint32_t)0x00000080)  /*!< Receive buffer unavailable interrupt */
-#define ETH_DMA_IT_R         ((uint32_t)0x00000040)  /*!< Receive interrupt */
-#define ETH_DMA_IT_TU        ((uint32_t)0x00000020)  /*!< Underflow interrupt */
-#define ETH_DMA_IT_RO        ((uint32_t)0x00000010)  /*!< Overflow interrupt */
-#define ETH_DMA_IT_TJT       ((uint32_t)0x00000008)  /*!< Transmit jabber timeout interrupt */
-#define ETH_DMA_IT_TBU       ((uint32_t)0x00000004)  /*!< Transmit buffer unavailable interrupt */
-#define ETH_DMA_IT_TPS       ((uint32_t)0x00000002)  /*!< Transmit process stopped interrupt */
-#define ETH_DMA_IT_T         ((uint32_t)0x00000001)  /*!< Transmit interrupt */
 
 /* ------------------------------------------------------------------ */
 /*
@@ -119,8 +100,7 @@ static ISIX_TASK_FUNC( netif_task, ifc)
  * @param netif the already initialized lwip network interface structure
  *        for this ethernetif
  */
-static void
-low_level_init(struct netif *netif)
+static void low_level_init(struct netif *netif)
 {
   /* Initialize Tx Descriptors list: Chain Mode */
   ETH_DMATxDescChainInit(DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
@@ -175,8 +155,7 @@ low_level_init(struct netif *netif)
  *       dropped because of memory failure (except for the TCP timers).
  */
 
-static err_t
-low_level_output(struct netif *netif, struct pbuf *p)
+static err_t low_level_output(struct netif *netif, struct pbuf *p)
 {
   (void)netif;
   struct pbuf *q;
@@ -202,8 +181,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
  * @return a pbuf filled with the received packet (including MAC header)
  *         NULL on memory error
  */
-static struct pbuf *
-low_level_input(struct netif *netif)
+static struct pbuf* low_level_input(struct netif *netif)
 {
   (void)netif;
   struct pbuf *p, *q;
@@ -305,8 +283,7 @@ err_t ethernetif_input(struct netif *netif)
  *         ERR_MEM if private data couldn't be allocated
  *         any other err_t on error
  */
-err_t
-stm32_emac_if_init_callback(struct netif *netif)
+err_t stm32_emac_if_init_callback(struct netif *netif)
 {
 
  LWIP_ASSERT("netif != NULL", (netif != NULL));
@@ -482,7 +459,6 @@ static void eth_deinit(void)
 }
 
 /* ------------------------------------------------------------------ */
-
 //GPIO initialize
 static void eth_gpio_mii_init(bool provide_mco)
 {
