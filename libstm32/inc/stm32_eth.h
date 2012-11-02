@@ -1393,7 +1393,7 @@ void ETH_BackPressureActivationCmd(FunctionalState NewState);
 FlagStatus ETH_GetMACFlagStatus(uint32_t ETH_MAC_FLAG);  
 ITStatus ETH_GetMACITStatus(uint32_t ETH_MAC_IT);
 void ETH_MACITConfig(uint32_t ETH_MAC_IT, FunctionalState NewState);
-void ETH_MACAddressConfig(uint32_t MacAddr, u8 *Addr);
+void ETH_MACAddressConfig(uint32_t MacAddr, const u8 *Addr);
 void ETH_GetMACAddress(uint32_t MacAddr, u8 *Addr);
 void ETH_MACAddressPerfectFilterCmd(uint32_t MacAddr, FunctionalState NewState);
 void ETH_MACAddressFilterConfig(uint32_t MacAddr, uint32_t Filter);

@@ -11,6 +11,10 @@ err_t ethernetif_input(struct netif *netif);
 struct netif *ethernetif_register(void);
 void set_mac_address(unsigned char* macadd);
 
+/** Input packet handling */
+struct netif* ethernetif_setup( const uint8_t *hw_addr, uint8_t phy_addr, uint32_t hclk,
+        bool is_rmii, bool configure_mco );
+
 
 
 #endif

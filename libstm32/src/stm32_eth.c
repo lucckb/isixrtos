@@ -924,7 +924,7 @@ void ETH_MACITConfig(uint32_t ETH_MAC_IT, FunctionalState NewState)
   * @param  Addr: Pointer on MAC address buffer data (6 bytes).
   * @retval None
   */
-void ETH_MACAddressConfig(uint32_t MacAddr, uint8_t *Addr)
+void ETH_MACAddressConfig(uint32_t MacAddr, const uint8_t *Addr)
 {
   uint32_t tmpreg;
   /* Check the parameters */
