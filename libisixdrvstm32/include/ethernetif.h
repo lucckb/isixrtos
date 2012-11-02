@@ -11,10 +11,9 @@
 extern C {
 #endif
 
-
 /* ------------------------------------------------------------------ */
 /* Initialize ethernet if interface */
-err_t ethernetif_init(struct netif *netif);
+err_t stm32_emac_if_init_callback(struct netif *netif);
 
 
 /* ------------------------------------------------------------------ */
@@ -25,7 +24,7 @@ err_t ethernetif_init(struct netif *netif);
  * @param [in] is_rmii Use reduced MII interface
  * @param [in] configure_mco Configure MCO pin for provide MCO output
  * */
-struct netif* ethernetif_setup( const uint8_t *hw_addr, uint8_t phy_addr, uint32_t hclk,
+struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint8_t phy_addr, uint32_t hclk,
         bool is_rmii, bool configure_mco );
 
 /* ------------------------------------------------------------------ */

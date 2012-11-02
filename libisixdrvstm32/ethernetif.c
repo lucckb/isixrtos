@@ -22,20 +22,6 @@ enum { ETH_ERROR = 0, ETH_SUCCESS = 1 };
 
 /* ------------------------------------------------------------------ */
 
-/**
- * Helper struct to hold private data used to operate your ethernet interface.
- * Keeping the ethernet address of the MAC in this struct is not necessary
- * as it is already kept in the struct netif.
- * But this is only an example, anyway...
- */
-struct ethernetif
-{
-  struct eth_addr *ethaddr;
-  /* Add whatever per-interface state that is needed here. */
-  int unused;
-};
-
-/* ------------------------------------------------------------------ */
 /* Forward declarations. */
 static err_t  ethernetif_input(struct netif *netif);
 
@@ -65,7 +51,10 @@ static u32 ETH_GetCurrentTxBuffer(void);
 static u32 ETH_TxPkt_ChainMode(u16 FrameLength);
 
 /* ------------------------------------------------------------------ */
+//Lock semaphore for the driver
 static sem_t *netif_sem;
+//Net interface copy task
+static task_t *netif_task_id;
 
 /* ------------------------------------------------------------------ */
 #define ETH_DMA_IT_TST       ((uint32_t)0x20000000)  /*!< Time-stamp trigger interrupt (on DMA) */
@@ -125,7 +114,7 @@ static ISIX_TASK_FUNC( netif_task, ifc)
 /* ------------------------------------------------------------------ */
 /**
  * In this function, the hardware should be initialized.
- * Called from ethernetif_init().
+ * Called from stm32_emac_if_init_callback().
  *
  * @param netif the already initialized lwip network interface structure
  *        for this ethernetif
@@ -133,14 +122,6 @@ static ISIX_TASK_FUNC( netif_task, ifc)
 static void
 low_level_init(struct netif *netif)
 {
-
-  /* maximum transfer unit */
-  netif->mtu = 1500;
-
-  /* device capabilities */
-  /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
-  netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
-
   /* Initialize Tx Descriptors list: Chain Mode */
   ETH_DMATxDescChainInit(DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
   /* Initialize Rx Descriptors list: Chain Mode  */
@@ -173,7 +154,7 @@ low_level_init(struct netif *netif)
   enum { C_netif_task_stack_size = 256 };
   netif_sem = isix_sem_create_limited( NULL, 0, 1 );
   LWIP_ASSERT("Unable to create netif semaphore", netif_sem);
-  task_t* netif_task_id = isix_task_create( netif_task, netif, C_netif_task_stack_size, isix_get_min_priority() );
+  netif_task_id = isix_task_create( netif_task, netif, C_netif_task_stack_size, isix_get_min_priority() );
   LWIP_ASSERT("Unable to create netif task", netif_task_id);
 }
 
@@ -325,18 +306,11 @@ err_t ethernetif_input(struct netif *netif)
  *         any other err_t on error
  */
 err_t
-ethernetif_init(struct netif *netif)
+stm32_emac_if_init_callback(struct netif *netif)
 {
-  struct ethernetif *ethernetif;
 
-  LWIP_ASSERT("netif != NULL", (netif != NULL));
+ LWIP_ASSERT("netif != NULL", (netif != NULL));
 
-  ethernetif = (struct ethernetif*)mem_malloc(sizeof(struct ethernetif));
-  if (ethernetif == NULL)
-  {
-    LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_init: out of memory\n"));
-    return ERR_MEM;
-  }
 
 #if LWIP_NETIF_HOSTNAME
   /* Initialize interface hostname */
@@ -350,7 +324,8 @@ ethernetif_init(struct netif *netif)
    */
   NETIF_INIT_SNMP(netif, snmp_ifType_ethernet_csmacd, 100000000);
 
-  netif->state = ethernetif;
+  /* Hold private data here */
+  //netif->state = NULL
   netif->name[0] = 's';
   netif->name[1] = 't';
   /* We directly use etharp_output() here to save a function call.
@@ -360,14 +335,14 @@ ethernetif_init(struct netif *netif)
   netif->output = etharp_output;
   netif->linkoutput = low_level_output;
   netif->mtu = 1500;
-   /* hardware address length */
-   netif->hwaddr_len = 6;
+  /* hardware address length */
+  netif->hwaddr_len  = ETHARP_HWADDR_LEN;
 
-  ethernetif->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
-
-  //netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
   /* initialize the hardware */
   low_level_init(netif);
+
+  /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
+  netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 
   return ERR_OK;
 }
@@ -509,7 +484,7 @@ static void eth_deinit(void)
 /* ------------------------------------------------------------------ */
 
 //GPIO initialize
-static void eth_gpio_init(bool provide_mco)
+static void eth_gpio_mii_init(bool provide_mco)
 {
     //Enable gpios
 	rcc_apb2_periph_clock_cmd( RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
@@ -581,14 +556,18 @@ static void ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool co
 	rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
 			RCC_AHBPeriph_ETH_MAC_Rx, true );
 
-  eth_gpio_init(configure_mco);
   ETH_InitTypeDef ETH_InitStructure;
 
   /* MII/RMII Media interface selection ------------------------------------------*/
   if( !is_rmii )
-	gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_MII);
+  {
+	 eth_gpio_mii_init(configure_mco);
+	 gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_MII);
+  }
   else
+  {
 	 gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_RMII);
+  }
 
   /* Reset ETHERNET on AHB Bus */
   eth_deinit();
@@ -661,11 +640,11 @@ static void ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool co
 /* ------------------------------------------------------------------ */
 
 /** Input packet handling */
-struct netif* ethernetif_setup( const uint8_t *hw_addr, uint8_t phy_addr, uint32_t hclk,
+struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint8_t phy_addr, uint32_t hclk,
         bool is_rmii, bool configure_mco )
 {
 	//Create NETIF interface
-	ethernet_init( hclk, phy_addr, is_rmii ,configure_mco  );
+	ethernet_init( hclk, phy_addr, is_rmii ,configure_mco );
 	struct netif* nifc = (struct netif*)mem_malloc(sizeof(struct netif));
 	if (nifc == NULL)
 	{
