@@ -506,11 +506,7 @@ static void eth_gpio_mii_init(bool provide_mco)
 	  gpio_config_ext( GPIOC, (1<<1)| (1<<2), GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP );
 	  /* Configure PB5, PB8, PB11, PB12 and PB13 as alternate function push-pull */
 	  gpio_config_ext( GPIOB, (1<<5)|(1<<8)|(1<<11)|(1<<12)|(1<<13), GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP );
-
-
-	  /**************************************************************/
 	  /*               For Remapped Ethernet pins                   */
-	  /*************************************************************/
 	  /* Input (Reset Value):
 	  - ETH_MII_CRS CRS: PA0
 	  - ETH_MII_RX_CLK / ETH_RMII_REF_CLK: PA1
@@ -547,10 +543,8 @@ static void eth_gpio_mii_init(bool provide_mco)
 /* ------------------------------------------------------------------ */
 /**
   * @brief  Configures the Ethernet Interface
-  * @param  None
-  * @retval None
   */
-static void ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool configure_mco)
+static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool configure_mco)
 {
     //Enable eth stuff
 	rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
@@ -614,28 +608,29 @@ static void ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool co
   ETH_InitStructure.ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;
   ETH_InitStructure.ETH_DMAArbitration = ETH_DMAArbitration_RoundRobin_RxTx_2_1;
   /* Configure Ethernet */
-  if ( ETH_Init(&ETH_InitStructure, phy_addr, hclk) == 1 )
+  if ( !ETH_Init(&ETH_InitStructure, phy_addr, hclk) )
   {
-	  dbprintf("ETH init success %s"
-			  , ETH_InitStructure.ETH_Speed == ETH_Speed_100M?"100MBPS":"10MBPS");
+	  return ERR_IF;
   }
-  else
+  /* konfiguracja diod świecących na ZL3ETH
+	 zielona - link status: on = good link, off = no link, blink = activity
+	pomarańczowa - speed: on = 100 Mb/s, off = 10 Mb/s
+   */
   {
-	  dbprintf("ETH init fail mode");
+	  enum { PHYIDR1 = 0x02, PHYIDR2 = 0x03, PHYCR =  0x19 };
+	  enum { LED_CNFG0 = 0x0020 };
+	  enum { LED_CNFG1 = 0x0040 };
+	  enum { DP83848_ID = 0x080017 };
+	  uint32_t phy_idcode = (((uint32_t)ETH_ReadPHYRegister( phy_addr, PHYIDR1)<<16) |
+			  ETH_ReadPHYRegister( phy_addr, PHYIDR2)) >> 10;
+	  if( phy_idcode == DP83848_ID )
+	  {
+		  uint16_t phyreg = ETH_ReadPHYRegister( phy_addr, PHYCR);
+		  phyreg &= ~(LED_CNFG0 | LED_CNFG1);
+		  ETH_WritePHYRegister( phy_addr, PHYCR, phyreg);
+	  }
   }
-   #define PHYCR     0x19
-   #define LED_CNFG0 0x0020
-   #define LED_CNFG1 0x0040
-   uint16_t phyreg;
-
-   /* konfiguracja diod świecących na ZL3ETH
-      zielona - link status:
-      on = good link, off = no link, blink = activity
-      pomarańczowa - speed:
-      on = 100 Mb/s, off = 10 Mb/s */
-   phyreg = ETH_ReadPHYRegister( phy_addr, PHYCR);
-   phyreg &= ~(LED_CNFG0 | LED_CNFG1);
-   ETH_WritePHYRegister( phy_addr, PHYCR, phyreg);
+  return ERR_OK;
 }
 /* ------------------------------------------------------------------ */
 
