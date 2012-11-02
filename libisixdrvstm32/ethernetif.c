@@ -1,78 +1,26 @@
-/**
- * @file
- * Ethernet Interface Skeleton
- *
- */
-
-/*
- * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
- *
- * This file is part of the lwIP TCP/IP stack.
- *
- * Author: Adam Dunkels <adam@sics.se>
- *
- */
-
-/*
- * This file is a skeleton for developing Ethernet network interface
- * drivers for lwIP. Add code to the low_level functions and do a
- * search-and-replace for the word "ethernetif" to replace it with
- * something that better describes your network interface.
- */
-
-#include "lwip/opt.h"
-#include "lwip/def.h"
-#include "lwip/mem.h"
-#include "lwip/pbuf.h"
-#include "lwip/sys.h"
+#include <lwip/opt.h>
+#include <lwip/def.h>
+#include <lwip/mem.h>
+#include <lwip/pbuf.h>
+#include <lwip/sys.h>
 #include <lwip/stats.h>
 #include <lwip/snmp.h>
-#include "netif/etharp.h"
-#include "netif/ppp_oe.h"
-//#include "err.h"
-#include "ethernetif.h"
-
-//#include "main.h"
-#include "stm32_eth.h"
+#include <netif/etharp.h>
+#include <netif/ppp_oe.h>
+#include <stm32_eth.h>
 #include <string.h>
 #include <isix.h>
 #include <stm32system.h>
-#include <dbglog.h>
 #include <stm32rcc.h>
+#include "ethernetif.h"
 
-/* TCP and ARP timeouts */
+/* ------------------------------------------------------------------ */
+enum {  ETH_DMARxDesc_FrameLengthShift   = 16 };
 
+/* ------------------------------------------------------------------ */
+enum { ETH_ERROR = 0, ETH_SUCCESS = 1 };
 
-/* Define those to better describe your network interface. */
-#define IFNAME0 's'
-#define IFNAME1 't'
-
-#define  ETH_DMARxDesc_FrameLengthShift           16
-#define  ETH_ERROR              ((u32)0)
-#define  ETH_SUCCESS            ((u32)1)
+/* ------------------------------------------------------------------ */
 
 /**
  * Helper struct to hold private data used to operate your ethernet interface.
@@ -87,11 +35,13 @@ struct ethernetif
   int unused;
 };
 
+/* ------------------------------------------------------------------ */
 /* Forward declarations. */
-err_t  ethernetif_input(struct netif *netif);
+static err_t  ethernetif_input(struct netif *netif);
 
-#define ETH_RXBUFNB        4
-#define ETH_TXBUFNB        2
+enum { ETH_RXBUFNB = 4 };
+enum { ETH_TXBUFNB = 2 };
+/* ------------------------------------------------------------------ */
 
 //static uint8_t MACaddr[6];
 static ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB], DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Rx & Tx DMA Descriptors */
@@ -100,6 +50,7 @@ static uint8_t Rx_Buff[ETH_RXBUFNB][ETH_MAX_PACKET_SIZE], Tx_Buff[ETH_TXBUFNB][E
 extern ETH_DMADESCTypeDef  *DMATxDescToSet;
 extern ETH_DMADESCTypeDef  *DMARxDescToGet;
 
+/* ------------------------------------------------------------------ */
 typedef struct
 {
 	u32 length;
@@ -107,36 +58,16 @@ typedef struct
 	ETH_DMADESCTypeDef *descriptor;
 }
 FrameTypeDef;
-
+/* ------------------------------------------------------------------ */
 
 static FrameTypeDef ETH_RxPkt_ChainMode(void);
 static u32 ETH_GetCurrentTxBuffer(void);
 static u32 ETH_TxPkt_ChainMode(u16 FrameLength);
 
+/* ------------------------------------------------------------------ */
 static sem_t *netif_sem;
 
-/**
- * Setting the MAC address.
- *
- * @param netif the already initialized lwip network interface structure
- *        for this ethernetif
- */
-
-/*
-void set_mac_address(uint8_t* macadd)
-{
-  MACaddr[0] = macadd[0];
-  MACaddr[1] = macadd[1];
-  MACaddr[2] = macadd[2];
-  MACaddr[3] = macadd[3];
-  MACaddr[4] = macadd[4];
-  MACaddr[5] = macadd[5];
-
-  ETH_MACAddressConfig(ETH_MAC_Address0, macadd);  
-}
-
-*/
-
+/* ------------------------------------------------------------------ */
 #define ETH_DMA_IT_TST       ((uint32_t)0x20000000)  /*!< Time-stamp trigger interrupt (on DMA) */
 #define ETH_DMA_IT_PMT       ((uint32_t)0x10000000)  /*!< PMT interrupt (on DMA) */
 #define ETH_DMA_IT_MMC       ((uint32_t)0x08000000)  /*!< MMC interrupt (on DMA) */
@@ -155,6 +86,8 @@ void set_mac_address(uint8_t* macadd)
 #define ETH_DMA_IT_TBU       ((uint32_t)0x00000004)  /*!< Transmit buffer unavailable interrupt */
 #define ETH_DMA_IT_TPS       ((uint32_t)0x00000002)  /*!< Transmit process stopped interrupt */
 #define ETH_DMA_IT_T         ((uint32_t)0x00000001)  /*!< Transmit interrupt */
+
+/* ------------------------------------------------------------------ */
 /*
   * @brief  Called when a frame is received
   * @param  None
@@ -169,7 +102,7 @@ void eth_isr_vector(void)
 	  ETH_DMAClearITPendingBit(ETH_DMA_IT_NIS);
 }
 
-
+/* ------------------------------------------------------------------ */
 static ISIX_TASK_FUNC( netif_task, ifc)
 {
 	/* Enable MAC and DMA transmission and reception */
@@ -189,7 +122,7 @@ static ISIX_TASK_FUNC( netif_task, ifc)
 	}
 }
 
-
+/* ------------------------------------------------------------------ */
 /**
  * In this function, the hardware should be initialized.
  * Called from ethernetif_init().
@@ -244,6 +177,7 @@ low_level_init(struct netif *netif)
   LWIP_ASSERT("Unable to create netif task", netif_task_id);
 }
 
+/* ------------------------------------------------------------------ */
 /**
  * This function should do the actual transmission of the packet. The packet is
  * contained in the pbuf that is passed to the function. This pbuf
@@ -278,6 +212,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
   return ERR_OK;
 }
 
+/* ------------------------------------------------------------------ */
 /**
  * Should allocate a pbuf and transfer the bytes of the incoming
  * packet from the interface into the pbuf.
@@ -333,6 +268,7 @@ low_level_input(struct netif *netif)
   return p;
 }
 
+/* ------------------------------------------------------------------ */
 /**
  * This function should be called when a packet is ready to be read
  * from the interface. It uses the function low_level_input() that
@@ -375,6 +311,7 @@ err_t ethernetif_input(struct netif *netif)
   return err;
 }
 
+/* ------------------------------------------------------------------ */
 /**
  * Should be called at the beginning of the program to set up the
  * network interface. It calls the function low_level_init() to do the
@@ -414,8 +351,8 @@ ethernetif_init(struct netif *netif)
   NETIF_INIT_SNMP(netif, snmp_ifType_ethernet_csmacd, 100000000);
 
   netif->state = ethernetif;
-  netif->name[0] = IFNAME0;
-  netif->name[1] = IFNAME1;
+  netif->name[0] = 's';
+  netif->name[1] = 't';
   /* We directly use etharp_output() here to save a function call.
    * You can instead declare your own function an call etharp_output()
    * from it if you have to do some checks before sending (e.g. if link
@@ -554,7 +491,6 @@ u32 ETH_GetCurrentTxBuffer(void)
 }
 
 
-
 /* ------------------------------------------------------------------ */
 /**
   * @brief  Deinitializes the ETHERNET peripheral registers to their default reset values.
@@ -569,11 +505,8 @@ static void eth_deinit(void)
   rcc_ahb_periph_reset_cmd( RCC_AHBPeriph_ETH_MAC, false );
   nop();
 }
-/* ------------------------------------------------------------------ */
-#define MII_MODE
 
 /* ------------------------------------------------------------------ */
-#define GPIO_Remap_ETH              ((uint32_t)0x00200020)
 
 //GPIO initialize
 static void eth_gpio_init(bool provide_mco)
@@ -642,39 +575,20 @@ static void eth_gpio_init(bool provide_mco)
   * @param  None
   * @retval None
   */
-static void ethernet_init(uint32_t hclk, uint8_t phy_addr, bool provide_mco)
+static void ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool configure_mco)
 {
     //Enable eth stuff
 	rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
 			RCC_AHBPeriph_ETH_MAC_Rx, true );
 
-  eth_gpio_init(provide_mco);
+  eth_gpio_init(configure_mco);
   ETH_InitTypeDef ETH_InitStructure;
 
   /* MII/RMII Media interface selection ------------------------------------------*/
-#ifdef MII_MODE /* Mode MII with STM3210C-EVAL  */
-  gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_MII);
-
- if( provide_mco)
- {
-  /* Get HSE clock = 25MHz on PA8 pin (MCO) */
- // RCC_MCOConfig(RCC_MCO_HSE);
-  rcc_mco_config( RCC_MCO_HSE );
- }
-#elif defined RMII_MODE  /* Mode RMII with STM3210C-EVAL */
-  GPIO_ETH_MediaInterfaceConfig(GPIO_ETH_MediaInterface_RMII);
-
-  /* Set PLL3 clock output to 50MHz (25MHz /5 *10 =50MHz) */
-  RCC_PLL3Config(RCC_PLL3Mul_10);
-  /* Enable PLL3 */
-  RCC_PLL3Cmd(ENABLE);
-  /* Wait till PLL3 is ready */
-  while (RCC_GetFlagStatus(RCC_FLAG_PLL3RDY) == RESET)
-  {}
-
-  /* Get PLL3 clock on PA8 pin (MCO) */
-  RCC_MCOConfig(RCC_MCO_PLL3CLK);
-#endif
+  if( !is_rmii )
+	gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_MII);
+  else
+	 gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_RMII);
 
   /* Reset ETHERNET on AHB Bus */
   eth_deinit();
@@ -730,7 +644,7 @@ static void ethernet_init(uint32_t hclk, uint8_t phy_addr, bool provide_mco)
   {
 	  dbprintf("ETH init fail mode");
   }
-	#define PHYCR     0x19
+   #define PHYCR     0x19
    #define LED_CNFG0 0x0020
    #define LED_CNFG1 0x0040
    uint16_t phyreg;
@@ -743,16 +657,15 @@ static void ethernet_init(uint32_t hclk, uint8_t phy_addr, bool provide_mco)
    phyreg = ETH_ReadPHYRegister( phy_addr, PHYCR);
    phyreg &= ~(LED_CNFG0 | LED_CNFG1);
    ETH_WritePHYRegister( phy_addr, PHYCR, phyreg);
-
 }
-
+/* ------------------------------------------------------------------ */
 
 /** Input packet handling */
 struct netif* ethernetif_setup( const uint8_t *hw_addr, uint8_t phy_addr, uint32_t hclk,
         bool is_rmii, bool configure_mco )
 {
 	//Create NETIF interface
-	ethernet_init( hclk, phy_addr, configure_mco  );
+	ethernet_init( hclk, phy_addr, is_rmii ,configure_mco  );
 	struct netif* nifc = (struct netif*)mem_malloc(sizeof(struct netif));
 	if (nifc == NULL)
 	{

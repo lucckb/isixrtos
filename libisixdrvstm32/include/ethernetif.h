@@ -1,20 +1,40 @@
+/* ------------------------------------------------------------------ */
 #ifndef LIBISIXSTM32DRV_ETHERNETIF_H_
 #define LIBISIXSTM32DRV_ETHERNETIF_H_
 
-
+/* ------------------------------------------------------------------ */
 #include "lwip/err.h"
 #include "lwip/netif.h"
 
-//TODO: Add C++ guard and isix porting
-err_t ethernetif_init(struct netif *netif);
-err_t ethernetif_input(struct netif *netif);
-struct netif *ethernetif_register(void);
-void set_mac_address(unsigned char* macadd);
+/* ------------------------------------------------------------------ */
+#ifdef __cplusplus
+extern C {
+#endif
 
-/** Input packet handling */
+
+/* ------------------------------------------------------------------ */
+/* Initialize ethernet if interface */
+err_t ethernetif_init(struct netif *netif);
+
+
+/* ------------------------------------------------------------------ */
+/** Create and setup ethernet if interface
+ * @param [in] hw_addr Hardware ethernet addresss
+ * @param [in] phy_addr Device phy address
+ * @param [in] hclk HCLK core frequency
+ * @param [in] is_rmii Use reduced MII interface
+ * @param [in] configure_mco Configure MCO pin for provide MCO output
+ * */
 struct netif* ethernetif_setup( const uint8_t *hw_addr, uint8_t phy_addr, uint32_t hclk,
         bool is_rmii, bool configure_mco );
 
+/* ------------------------------------------------------------------ */
 
-
+#ifdef __cplusplus
+}
 #endif
+
+/* ------------------------------------------------------------------ */
+#endif
+
+/* ------------------------------------------------------------------ */
