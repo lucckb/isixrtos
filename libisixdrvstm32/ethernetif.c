@@ -33,12 +33,15 @@ enum { TX_BUFFER_SIZE = ETH_MAX_PACKET_SIZE + VLAN_TAG - ETH_CRC };
 
 //Transmit and receive descriptors
 static ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];
-static ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB];
+static ETH_DMADESCTypeDef  dma_tx_ring[ETH_TXBUFNB];
 
 static uint8_t Rx_Buff[ETH_RXBUFNB][TX_BUFFER_SIZE];
-static uint8_t Tx_Buff[ETH_TXBUFNB][TX_BUFFER_SIZE];
+static uint8_t tx_buff[ETH_TXBUFNB][TX_BUFFER_SIZE];
 
-extern ETH_DMADESCTypeDef  *DMATxDescToSet;
+//Ring descriptor identifier
+static size_t dma_tx_idx;
+
+//TODO: FIXME later
 extern ETH_DMADESCTypeDef  *DMARxDescToGet;
 
 /* ------------------------------------------------------------------ */
@@ -52,15 +55,13 @@ FrameTypeDef;
 /* ------------------------------------------------------------------ */
 
 static FrameTypeDef ETH_RxPkt_ChainMode(void);
-static u32 ETH_GetCurrentTxBuffer(void);
-static u32 ETH_TxPkt_ChainMode(u16 FrameLength);
+
 
 /* ------------------------------------------------------------------ */
 //Lock semaphore for the driver
 static sem_t *netif_sem;
 //Net interface copy task
 static task_t *netif_task_id;
-
 
 /* ------------------------------------------------------------------ */
 /*
@@ -107,7 +108,25 @@ static ISIX_TASK_FUNC( netif_task, ifc)
 static void low_level_init(struct netif *netif)
 {
   /* Initialize Tx Descriptors list: Chain Mode */
-  ETH_DMATxDescChainInit(DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
+  //ETH_DMATxDescChainInit(DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
+
+  /* Configure TX descriptors
+   */
+  dma_tx_idx = 0;
+  for (int i = 0; i < ETH_TXBUFNB; ++i)
+  {
+#ifdef ISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE
+    dma_tx_ring[i].Status = ETH_DMATxDesc_ChecksumTCPUDPICMPFull;
+#else
+    dma_tx_ring[i].Status = 0;
+#endif
+    dma_tx_ring[i].ControlBufferSize = 0;
+    dma_tx_ring[i].Buffer1Addr = (uint32_t)tx_buff[i];
+    dma_tx_ring[i].Buffer2NextDescAddr = 0;
+  }
+  dma_tx_ring[ETH_TXBUFNB - 1].Status |= ETH_DMATxDesc_TER;
+  ETH->DMATDLAR = (uint32_t)dma_tx_ring;
+
   /* Initialize Rx Descriptors list: Chain Mode  */
   ETH_DMARxDescChainInit(DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
 
@@ -125,16 +144,6 @@ static void low_level_init(struct netif *netif)
       ETH_DMARxDescReceiveITConfig(&DMARxDscrTab[i], ENABLE);
     }
   }
-
-#ifdef ISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE
-  /* Enable the checksum insertion for the Tx frames */
-  { int i;
-    for(i=0; i<ETH_TXBUFNB; i++)
-    {
-      ETH_DMATxDescChecksumInsertionConfig(&DMATxDscrTab[i], ETH_DMATxDesc_ChecksumTCPUDPICMPFull);
-    }
-  }
-#endif
   enum { C_netif_task_stack_size = 256 };
   netif_sem = isix_sem_create_limited( NULL, 0, 1 );
   LWIP_ASSERT("Unable to create netif semaphore", netif_sem);
@@ -161,19 +170,50 @@ static void low_level_init(struct netif *netif)
 
 static err_t low_level_output(struct netif *netif, struct pbuf *p)
 {
-  (void)netif;
-  struct pbuf *q;
-  int l = 0;
-  u8 *buffer =  (u8 *)ETH_GetCurrentTxBuffer();
-  
-  for(q = p; q != NULL; q = q->next) 
-  {
-    memcpy((u8_t*)&buffer[l], q->payload, q->len);
-	l = l + q->len;
-  }
-  ETH_TxPkt_ChainMode(l);
+	  (void)netif;
+	  if (p == NULL)
+	  {
+	    return ERR_ARG;
+	  }
+	  if (p->tot_len > TX_BUFFER_SIZE)
+	  {
+	    return ERR_BUF; /* Frame not fit in dma buff */
+	  }
 
-  return ERR_OK;
+	  if ( dma_tx_ring[dma_tx_idx].Status & ETH_DMATxDesc_OWN )
+	  {
+	    return ERR_IF; /* Descriptor is busy */
+	  }
+#if STM32_ETHERNET_USE_PARTIAL_COPY
+	  pbuf_copy_partial(p, (void *)dma_tx_ring[dma_tx_idx].Buffer1Addr, TX_BUFFER_SIZE, 0);
+#else
+	  {
+		  struct pbuf *q;
+		  int l = 0;
+		  u8 *buffer = (u8*)dma_tx_ring[dma_tx_idx].Buffer1Addr;
+		  for(q = p; q != NULL; q = q->next)
+		  {
+			  memcpy((u8_t*)&buffer[l], q->payload, q->len);
+			  l = l + q->len;
+		  }
+	  }
+#endif
+	  dma_tx_ring[dma_tx_idx].ControlBufferSize = p->tot_len & ETH_DMATxDesc_TBS1;
+	  dma_tx_ring[dma_tx_idx].Status |= ETH_DMATxDesc_FS | ETH_DMATxDesc_LS | ETH_DMATxDesc_OWN;
+	  /* Start trasmission again if it is interrupted */
+	  if (ETH->DMASR & ETH_DMASR_TBUS)
+	  {
+	    ETH->DMASR = ETH_DMASR_TBUS;
+	    ETH->DMATPDR = 0;
+	  }
+
+	  /* Zmień deskryptor nadawczy DMA na następny w pierścieniu. */
+	  if (dma_tx_ring[dma_tx_idx].Status & ETH_DMATxDesc_TER)
+	    dma_tx_idx = 0;
+	  else
+	    ++dma_tx_idx;
+
+	  return ERR_OK;
 }
 
 /* ------------------------------------------------------------------ */
@@ -374,64 +414,6 @@ FrameTypeDef ETH_RxPkt_ChainMode(void)
   return (frame);  
 }
 
-/*******************************************************************************
-* Function Name  : ETH_TxPkt_ChainMode
-* Description    : Transmits a packet, from application buffer, pointed by ppkt.
-* Input          : - FrameLength: Tx Packet size.
-* Output         : None
-* Return         : ETH_ERROR: in case of Tx desc owned by DMA
-*                  ETH_SUCCESS: for correct transmission
-*******************************************************************************/
-u32 ETH_TxPkt_ChainMode(u16 FrameLength)
-{   
-  /* Check if the descriptor is owned by the ETHERNET DMA (when set) or CPU (when reset) */
-  if((DMATxDescToSet->Status & ETH_DMATxDesc_OWN) != (u32)RESET)
-  {  
-	/* Return ERROR: OWN bit set */
-    return ETH_ERROR;
-  }
-        
-  /* Setting the Frame Length: bits[12:0] */
-  DMATxDescToSet->ControlBufferSize = (FrameLength & ETH_DMATxDesc_TBS1);
-
-  /* Setting the last segment and first segment bits (in this case a frame is transmitted in one descriptor) */    
-  DMATxDescToSet->Status |= ETH_DMATxDesc_LS | ETH_DMATxDesc_FS;
-
-  /* Set Own bit of the Tx descriptor Status: gives the buffer back to ETHERNET DMA */
-  DMATxDescToSet->Status |= ETH_DMATxDesc_OWN;
-
-  /* When Tx Buffer unavailable flag is set: clear it and resume transmission */
-  if ((ETH->DMASR & ETH_DMASR_TBUS) != (u32)RESET)
-  {
-    /* Clear TBUS ETHERNET DMA flag */
-    ETH->DMASR = ETH_DMASR_TBUS;
-    /* Resume DMA transmission*/
-    ETH->DMATPDR = 0;
-  }
-  
-  /* Update the ETHERNET DMA global Tx descriptor with next Tx decriptor */  
-  /* Chained Mode */
-  /* Selects the next DMA Tx descriptor list for next buffer to send */ 
-  DMATxDescToSet = (ETH_DMADESCTypeDef*) (DMATxDescToSet->Buffer2NextDescAddr);    
-
-
-  /* Return SUCCESS */
-  return ETH_SUCCESS;   
-}
-
-
-/*******************************************************************************
-* Function Name  : ETH_GetCurrentTxBuffer
-* Description    : Return the address of the buffer pointed by the current descritor.
-* Input          : None
-* Output         : None
-* Return         : Buffer address
-*******************************************************************************/
-u32 ETH_GetCurrentTxBuffer(void)
-{ 
-  /* Return Buffer address */
-  return (DMATxDescToSet->Buffer1Addr);   
-}
 
 
 /* ------------------------------------------------------------------ */

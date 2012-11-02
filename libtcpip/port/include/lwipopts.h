@@ -1157,7 +1157,7 @@
  * sys_thread_new() when the thread is created.
  */
 
-#define TCPIP_THREAD_STACKSIZE          512
+#define TCPIP_THREAD_STACKSIZE          768
 
 
 /**
