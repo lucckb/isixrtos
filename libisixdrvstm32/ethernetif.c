@@ -27,11 +27,16 @@ static err_t  ethernetif_input(struct netif *netif);
 
 enum { ETH_RXBUFNB = 4 };
 enum { ETH_TXBUFNB = 2 };
+enum { TX_BUFFER_SIZE = ETH_MAX_PACKET_SIZE + VLAN_TAG - ETH_CRC };
+
 /* ------------------------------------------------------------------ */
 
-//static uint8_t MACaddr[6];
-static ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB], DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Rx & Tx DMA Descriptors */
-static uint8_t Rx_Buff[ETH_RXBUFNB][ETH_MAX_PACKET_SIZE], Tx_Buff[ETH_TXBUFNB][ETH_MAX_PACKET_SIZE];/* Ethernet buffers */
+//Transmit and receive descriptors
+static ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];
+static ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB];
+
+static uint8_t Rx_Buff[ETH_RXBUFNB][TX_BUFFER_SIZE];
+static uint8_t Tx_Buff[ETH_TXBUFNB][TX_BUFFER_SIZE];
 
 extern ETH_DMADESCTypeDef  *DMATxDescToSet;
 extern ETH_DMADESCTypeDef  *DMARxDescToGet;
@@ -83,7 +88,6 @@ static ISIX_TASK_FUNC( netif_task, ifc)
 	{
 		if( isix_sem_wait( netif_sem, ISIX_TIME_INFINITE ) == ISIX_EOK )
 		{
-			//dbprintf("Got packet !!!");
 			while( ETH_GetRxPktSize() !=0 )
 			{
 				ethernetif_input( netif );
@@ -239,7 +243,6 @@ static struct pbuf* low_level_input(struct netif *netif)
  */
 err_t ethernetif_input(struct netif *netif)
 {
-  err_t err = ERR_OK;
   struct pbuf *p;
 
   /* move received packet into a new pbuf */
@@ -248,25 +251,13 @@ err_t ethernetif_input(struct netif *netif)
   /* no packet could be read, silently ignore this */
   if (p == NULL) return ERR_MEM;
 
-  struct eth_hdr *ethhdr = p->payload;
-  switch( htons( ethhdr->type) )
-  {
-  case ETHTYPE_IP:
-  case ETHTYPE_ARP:
-	  /* Update arp table */
-	  err = netif->input(p, netif);
-	  break;
-  default:
-	  break;
+   err_t err = netif->input(p, netif);
+   if (err != ERR_OK)
+   {
+     LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
+     pbuf_free(p);
+     p = NULL;
   }
-
-  if (err != ERR_OK)
-  {
-    LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
-    pbuf_free(p);
-    p = NULL;
-  }
-
   return err;
 }
 
@@ -278,7 +269,7 @@ err_t ethernetif_input(struct netif *netif)
  *
  * This function should be passed as a parameter to netif_add().
  *
- * @param netif the lwip network interface structure for this ethernetif
+ * @param netif the lwip network iETHconfigureDMAnterface structure for this ethernetif
  * @return ERR_OK if the loopif is initialized
  *         ERR_MEM if private data couldn't be allocated
  *         any other err_t on error
