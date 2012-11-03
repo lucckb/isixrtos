@@ -9,6 +9,7 @@
 #include <netif/ppp_oe.h>
 #include <stm32_eth.h>
 #include <string.h>
+#include <stdbool.h>
 #include <isix.h>
 #include <stm32system.h>
 #include <stm32rcc.h>
@@ -30,31 +31,23 @@ enum { ETH_TXBUFNB = 2 };
 enum { TX_BUFFER_SIZE = ETH_MAX_PACKET_SIZE + VLAN_TAG - ETH_CRC };
 
 /* ------------------------------------------------------------------ */
-
+struct drv_rx_buff_s
+{
+	struct pbuf *pbuf;		//Receive pbuf
+	bool used;				//Buffer is used
+};
+/* ------------------------------------------------------------------ */
 //Transmit and receive descriptors
-static ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];
+static ETH_DMADESCTypeDef  dma_rx_ring[ETH_RXBUFNB];
 static ETH_DMADESCTypeDef  dma_tx_ring[ETH_TXBUFNB];
 
-static uint8_t Rx_Buff[ETH_RXBUFNB][TX_BUFFER_SIZE];
+//Global buffers for trx frames
 static uint8_t tx_buff[ETH_TXBUFNB][TX_BUFFER_SIZE];
+static struct drv_rx_buff_s rx_buff[ETH_RXBUFNB];
 
 //Ring descriptor identifier
 static size_t dma_tx_idx;
-
-//TODO: FIXME later
-extern ETH_DMADESCTypeDef  *DMARxDescToGet;
-
-/* ------------------------------------------------------------------ */
-typedef struct
-{
-	u32 length;
-	u32 buffer;
-	ETH_DMADESCTypeDef *descriptor;
-}
-FrameTypeDef;
-/* ------------------------------------------------------------------ */
-
-static FrameTypeDef ETH_RxPkt_ChainMode(void);
+static size_t dma_rx_idx;
 
 
 /* ------------------------------------------------------------------ */
@@ -62,6 +55,67 @@ static FrameTypeDef ETH_RxPkt_ChainMode(void);
 static sem_t *netif_sem;
 //Net interface copy task
 static task_t *netif_task_id;
+
+/* ------------------------------------------------------------------ */
+/* Initialize allocation of RX buffers in the ethernet driver */
+static int alloc_rx_pbufs(void)
+{
+  for (int i = 0; i < ETH_RXBUFNB; ++i)
+  {
+    rx_buff[i].used = false;
+    /*
+     *  Initial allocation of rx buff
+     */
+    rx_buff[i].pbuf = pbuf_alloc(PBUF_RAW, PBUF_POOL_BUFSIZE, PBUF_POOL);
+    if (rx_buff[i].pbuf == NULL)
+    {
+      for (int j = i - 1; j >= 0; --j)
+        pbuf_free(rx_buff[i].pbuf);
+      return ERR_MEM;
+    }
+  }
+  return ERR_OK;
+}
+/* ------------------------------------------------------------------ */
+/* Setup DMA RX buffer */
+static void dma_rx_buffer_set(ETH_DMADESCTypeDef *rx_desc, struct pbuf *p)
+{
+  /* We assume that buffer is created unsing single segment
+   */
+  rx_desc->ControlBufferSize &= ~(ETH_DMARxDesc_RBS1 |
+                                 ETH_DMARxDesc_RBS2);
+  rx_desc->ControlBufferSize |= p->len & ETH_DMARxDesc_RBS1;
+  rx_desc->Buffer1Addr = (uint32_t)p->payload;
+  rx_desc->Buffer2NextDescAddr = 0;
+  rx_desc->Status = ETH_DMARxDesc_OWN;
+}
+
+/* ------------------------------------------------------------------ */
+/** Reallocat receive buffers */
+static void realloc_rx_pbufs(void)
+{
+  static int idx = 0;
+
+  /* check buffers after last returned to the DMA */
+  while ( rx_buff[idx].used )
+  {
+    if ( rx_buff[idx].pbuf == NULL )
+    {
+      /*
+       *	Allocate PBUF RX buffer PBUF_POOL as single part
+       */
+    	rx_buff[idx].pbuf = pbuf_alloc(PBUF_RAW, PBUF_POOL_BUFSIZE,PBUF_POOL );
+      if ( rx_buff[idx].pbuf == NULL )
+        return;
+    }
+    rx_buff[idx].used = false;
+    dma_rx_buffer_set(&dma_rx_ring[idx], rx_buff[idx].pbuf);
+    if (dma_rx_ring[idx].ControlBufferSize & ETH_DMARxDesc_RER)
+      idx = 0;
+    else
+      ++idx;
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /*
@@ -89,9 +143,11 @@ static ISIX_TASK_FUNC( netif_task, ifc)
 	{
 		if( isix_sem_wait( netif_sem, ISIX_TIME_INFINITE ) == ISIX_EOK )
 		{
-			while( ETH_GetRxPktSize() !=0 )
+			//while( ETH_GetRxPktSize() !=0 )
+			while (!(dma_rx_ring[dma_rx_idx].Status & ETH_DMARxDesc_OWN))
 			{
 				ethernetif_input( netif );
+				realloc_rx_pbufs();
 			}
 		}
 	}
@@ -128,7 +184,15 @@ static void low_level_init(struct netif *netif)
   ETH->DMATDLAR = (uint32_t)dma_tx_ring;
 
   /* Initialize Rx Descriptors list: Chain Mode  */
-  ETH_DMARxDescChainInit(DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
+  for (int i = 0; i < ETH_RXBUFNB; ++i)
+  {
+     /* Zeruj bit ETH_DMARxDesc_DIC, aby uaktywnić przerwanie.
+       DMArxRing[i].ControlBufferSize &= ~ETH_DMARxDesc_DIC; */
+     dma_rx_ring[i].ControlBufferSize = 0;
+     dma_rx_buffer_set(&dma_rx_ring[i], rx_buff[i].pbuf);
+  }
+  dma_rx_ring[ETH_RXBUFNB - 1].ControlBufferSize |= ETH_DMARxDesc_RER;
+  ETH->DMARDLAR = (uint32_t)dma_rx_ring;
 
   /* Enable the Ethernet Rx Interrupt */
   ETH_DMAITConfig(ETH_DMA_IT_NIS | ETH_DMA_IT_R, ENABLE);
@@ -137,13 +201,6 @@ static void low_level_init(struct netif *netif)
 	nvic_set_priority( ETH_IRQn ,1, 7 );
 	nvic_irq_enable( ETH_IRQn, true );
 
-  /* Enable Ethernet Rx interrrupt */
-  { int i;
-    for(i=0; i<ETH_RXBUFNB; i++)
-    {
-      ETH_DMARxDescReceiveITConfig(&DMARxDscrTab[i], ENABLE);
-    }
-  }
   enum { C_netif_task_stack_size = 256 };
   netif_sem = isix_sem_create_limited( NULL, 0, 1 );
   LWIP_ASSERT("Unable to create netif semaphore", netif_sem);
@@ -227,48 +284,44 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
  */
 static struct pbuf* low_level_input(struct netif *netif)
 {
-  (void)netif;
-  struct pbuf *p, *q;
-  u16_t len;
-  int l =0;
-  FrameTypeDef frame;
-  u8 *buffer;
-  
-  p = NULL;
-  frame = ETH_RxPkt_ChainMode();
-  /* Obtain the size of the packet and put it into the "len"
-     variable. */
-  len = frame.length;
-  
-  buffer = (u8 *)frame.buffer;
+	(void)netif;
+	struct pbuf *p = NULL;
+	  uint32_t len;
+	  /* ETH_DMARxDesc_ES == 0 oznacza, że nie wystąpił błąd.
+	     ETH_DMARxDesc_LS == 1 && ETH_DMARxDesc_FS == 1 oznacza, że
+	     cała ramka jest opisana pojedynczym deskryptorem. */
+	  if ( !(dma_rx_ring[dma_rx_idx].Status & ETH_DMARxDesc_ES) &&
+	       (dma_rx_ring[dma_rx_idx].Status & ETH_DMARxDesc_LS) &&
+	        (dma_rx_ring[dma_rx_idx].Status & ETH_DMARxDesc_FS)
+	      )
+	  {
+	    len = ETH_GetDMARxDescFrameLength(&dma_rx_ring[dma_rx_idx]);
+	    if (len >= ETH_HEADER + MIN_ETH_PAYLOAD + ETH_CRC) {
+	      len -= ETH_CRC;
+	      /* Zakładamy, że rxBuffer[DMArxIdx] != NULL. */
+	      p = rx_buff[dma_rx_idx].pbuf;
+	      /* Dla buforów typu PBUF_POOL nie jest wykonywane kopiowane. */
+	      pbuf_realloc(p, len);
+	      /* Usuń bufor z kolejki odbiorczej. Bufor zostanie przekazany
+	         bibliotece lwIP. */
+	      rx_buff[dma_rx_idx].pbuf = NULL;
+	    }
+	  }
+	  rx_buff[dma_rx_idx].used = true;
 
-  /* We allocate a pbuf chain of pbufs from the pool. */
-  p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+	  /* Zmień deskryptor odbiorczy DMA na następny w pierścieniu. */
+	  if (dma_rx_ring[dma_rx_idx].ControlBufferSize & ETH_DMARxDesc_RER)
+	    dma_rx_idx = 0;
+	  else
+	    ++dma_rx_idx;
 
-  if (p != NULL)
-  {
-    for (q = p; q != NULL; q = q->next)
-    {
-	  memcpy((u8_t*)q->payload, (u8_t*)&buffer[l], q->len);
-      l = l + q->len;
-    }    
-  }
-
-
-  /* Set Own bit of the Rx descriptor Status: gives the buffer back to ETHERNET DMA */
-  frame.descriptor->Status = ETH_DMARxDesc_OWN; 
- 
-  /* When Rx Buffer unavailable flag is set: clear it and resume reception */
-  if ((ETH->DMASR & ETH_DMASR_RBUS) != (u32)RESET)  
-  {
-    /* Clear RBUS ETHERNET DMA flag */
-    ETH->DMASR = ETH_DMASR_RBUS;
-    /* Resume DMA reception */
-    ETH->DMARPDR = 0;
-  }
-
-
-  return p;
+	  /* Jeśli odbieranie DMA zostało wstrzymane, wznów je. */
+	  if (ETH->DMASR & ETH_DMASR_RBUS)
+	  {
+	    ETH->DMASR = ETH_DMASR_RBUS;
+	    ETH->DMARPDR = 0;
+	  }
+	  return p;
 }
 
 /* ------------------------------------------------------------------ */
@@ -354,66 +407,6 @@ err_t stm32_emac_if_init_callback(struct netif *netif)
 
   return ERR_OK;
 }
-
-/*******************************************************************************
-* Function Name  : ETH_RxPkt_ChainMode
-* Description    : Receives a packet.
-* Input          : None
-* Output         : None
-* Return         : frame: farme size and location
-*******************************************************************************/
-FrameTypeDef ETH_RxPkt_ChainMode(void)
-{ 
-  u32 framelength = 0;
-  FrameTypeDef frame = {0,0, NULL};
-
-  /* Check if the descriptor is owned by the ETHERNET DMA (when set) or CPU (when reset) */
-  if((DMARxDescToGet->Status & ETH_DMARxDesc_OWN) != (u32)RESET)
-  {	
-	frame.length = ETH_ERROR;
-
-    if ((ETH->DMASR & ETH_DMASR_RBUS) != (u32)RESET)  
-    {
-      /* Clear RBUS ETHERNET DMA flag */
-      ETH->DMASR = ETH_DMASR_RBUS;
-      /* Resume DMA reception */
-      ETH->DMARPDR = 0;
-    }
-
-	/* Return error: OWN bit set */
-    return frame; 
-  }
-  
-  if(((DMARxDescToGet->Status & ETH_DMARxDesc_ES) == (u32)RESET) && 
-     ((DMARxDescToGet->Status & ETH_DMARxDesc_LS) != (u32)RESET) &&  
-     ((DMARxDescToGet->Status & ETH_DMARxDesc_FS) != (u32)RESET))  
-  {      
-    /* Get the Frame Length of the received packet: substruct 4 bytes of the CRC */
-    framelength = ((DMARxDescToGet->Status & ETH_DMARxDesc_FL) >> ETH_DMARxDesc_FrameLengthShift) - 4;
-	
-	/* Get the addrees of the actual buffer */
-	frame.buffer = DMARxDescToGet->Buffer1Addr;	
-  }
-  else
-  {
-    /* Return ERROR */
-    framelength = ETH_ERROR;
-  }
-
-  frame.length = framelength;
-
-
-  frame.descriptor = DMARxDescToGet;
-  
-  /* Update the ETHERNET DMA global Rx descriptor with next Rx decriptor */      
-  /* Chained Mode */    
-  /* Selects the next DMA Rx descriptor list for next buffer to read */ 
-  DMARxDescToGet = (ETH_DMADESCTypeDef*) (DMARxDescToGet->Buffer2NextDescAddr);    
-  
-  /* Return Frame */
-  return (frame);  
-}
-
 
 
 /* ------------------------------------------------------------------ */
@@ -601,5 +594,9 @@ struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint8_t phy_addr, uin
 	nifc->hwaddr_len = ETHARP_HWADDR_LEN;
 	/* set MAC hardware address */
 	memcpy(nifc->hwaddr, hw_addr, ETHARP_HWADDR_LEN);
+	if ( alloc_rx_pbufs() != ERR_OK )
+	{
+		mem_free( nifc );
+	}
 	return nifc;
 }
