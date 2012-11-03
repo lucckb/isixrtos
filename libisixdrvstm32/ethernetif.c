@@ -367,128 +367,121 @@ static void eth_mac_address_config(uint32_t MacAddr, const uint8_t *Addr)
   * @retval ETH_ERROR: Ethernet initialization failed
   *         ETH_SUCCESS: Ethernet successfully initialized
   */
-static void ETH_Delay(__IO uint32_t nCount)
-{
-  __IO uint32_t index = 0;
-  for(index = nCount; index != 0; index--)
-  {
-  }
-}
 
-static int eth_init_0_phy(ETH_InitTypeDef* ETH_InitStruct, uint16_t PHYAddress, uint32_t hclk )
+static int eth_init_0_phy(ETH_InitTypeDef* ETH_InitStruct, uint16_t phy_addr, uint32_t hclk )
 {
-	__IO uint32_t timeout = 0;
-	uint32_t RegValue = 0;
 	static const uint32_t MACMIIAR_CR_MASK  = 0xFFFFFFE3;
-	 /* Get the ETHERNET MACMIIAR value */
-	  uint32_t tmpreg = ETH->MACMIIAR;
-	  /* Clear CSR Clock Range CR[2:0] bits */
-	  tmpreg &= MACMIIAR_CR_MASK;
+	/* Get the ETHERNET MACMIIAR value */
+	uint32_t tmpreg = ETH->MACMIIAR;
+	/* Clear CSR Clock Range CR[2:0] bits */
+	tmpreg &= MACMIIAR_CR_MASK;
+	/* Set CR bits depending on hclk value */
+	if((hclk >= 20000000)&&(hclk < 35000000))
+	{
+	   /* CSR Clock Range between 20-35 MHz */
+	   tmpreg |= (uint32_t)ETH_MACMIIAR_CR_Div16;
+	}
+	else if((hclk >= 35000000)&&(hclk < 60000000))
+	{
+	   /* CSR Clock Range between 35-60 MHz */
+	   tmpreg |= (uint32_t)ETH_MACMIIAR_CR_Div26;
+	}
+	else /* ((hclk >= 60000000)&&(hclk <= 72000000)) */
+	{
+	  /* CSR Clock Range between 60-72 MHz */
+	  tmpreg |= (uint32_t)ETH_MACMIIAR_CR_Div42;
+	}
+	/* Write to ETHERNET MAC MIIAR: Configure the ETHERNET CSR Clock Range */
+	ETH->MACMIIAR = (uint32_t)tmpreg;
+	/* PHY initialization and configuration */
+	/* Put the PHY in reset mode */
+	if( eth_write_phy_register(phy_addr, PHY_BCR, PHY_Reset) != ERR_OK)
+	{
+	  /* Return ERROR in case of write timeout */
+	  return ERR_IF;
+	}
 
-	  /* Set CR bits depending on hclk value */
-	  if((hclk >= 20000000)&&(hclk < 35000000))
+	/* Delay to assure PHY reset */
+	isix_wait_ms( 100 );
+
+	if(ETH_InitStruct->ETH_AutoNegotiation != ETH_AutoNegotiation_Disable)
+	{
+	  /* We wait for linked status... */
 	  {
-	    /* CSR Clock Range between 20-35 MHz */
-	    tmpreg |= (uint32_t)ETH_MACMIIAR_CR_Div16;
+	    enum { C_timeout = 20 };
+	    int to;
+		for(to=0; to<C_timeout; ++to )
+		{
+
+			if( eth_read_phy_register(phy_addr, PHY_BSR) & PHY_Linked_Status )
+				break;
+			isix_wait( 100 );
+		}
+		if( to == C_timeout )
+		{
+			return ERR_IF;
+		}
 	  }
-	  else if((hclk >= 35000000)&&(hclk < 60000000))
-	  {
-	    /* CSR Clock Range between 35-60 MHz */
-	    tmpreg |= (uint32_t)ETH_MACMIIAR_CR_Div26;
-	  }
-	  else /* ((hclk >= 60000000)&&(hclk <= 72000000)) */
-	  {
-	    /* CSR Clock Range between 60-72 MHz */
-	    tmpreg |= (uint32_t)ETH_MACMIIAR_CR_Div42;
-	  }
-	  /* Write to ETHERNET MAC MIIAR: Configure the ETHERNET CSR Clock Range */
-	  ETH->MACMIIAR = (uint32_t)tmpreg;
-	  /*-------------------- PHY initialization and configuration ----------------*/
-	  /* Put the PHY in reset mode */
-	  if( eth_write_phy_register(PHYAddress, PHY_BCR, PHY_Reset) != ERR_OK)
+	  /* Enable Auto-Negotiation */
+	  if(eth_write_phy_register(phy_addr, PHY_BCR, PHY_AutoNegotiation) != ERR_OK)
 	  {
 	    /* Return ERROR in case of write timeout */
 	    return ERR_IF;
 	  }
 
-	  /* Delay to assure PHY reset */
-	  _eth_delay_(PHY_ResetDelay);
-
-
-	  if(ETH_InitStruct->ETH_AutoNegotiation != ETH_AutoNegotiation_Disable)
+	  /* Wait until the autonegotiation will be completed */
 	  {
-		/* We wait for linked satus... */
-	    do
-	    {
-	      timeout++;
-	    } while (!(eth_read_phy_register(PHYAddress, PHY_BSR) & PHY_Linked_Status) && (timeout < PHY_READ_TO));
-	    /* Return ERROR in case of timeout */
-	    if(timeout == PHY_READ_TO)
-	    {
-	      return ERR_IF;
-	    }
-	    /* Reset Timeout counter */
-	    timeout = 0;
+		  enum { C_timeout = 20 };
+		  int to;
+		  for(to=0; to<C_timeout; ++to )
+		  {
 
-	    /* Enable Auto-Negotiation */
-	    if(eth_write_phy_register(PHYAddress, PHY_BCR, PHY_AutoNegotiation) != ERR_OK)
-	    {
-	      /* Return ERROR in case of write timeout */
-	      return ERR_IF;
-	    }
+		  	if( eth_read_phy_register(phy_addr, PHY_BSR) & PHY_AutoNego_Complete )
+		  		break;
+		  	isix_wait( 100 );
+		  }
+		  if( to == C_timeout )
+		  {
+		  	return ERR_IF;
+		  }
+	  }
+	  /* Read the result of the autonegotiation */
+	  int reg_value = eth_read_phy_register(phy_addr, PHY_SR);
 
-	    /* Wait until the autonegotiation will be completed */
-	    do
-	    {
-	      timeout++;
-	    } while (!(eth_read_phy_register(PHYAddress, PHY_BSR) & PHY_AutoNego_Complete) && (timeout < (uint32_t)PHY_READ_TO));
-	    /* Return ERROR in case of timeout */
-	    if(timeout == PHY_READ_TO)
-	    {
-	      return ERR_IF;
-	    }
-	    /* Reset Timeout counter */
-	    timeout = 0;
-
-	    /* Read the result of the autonegotiation */
-	    RegValue = eth_read_phy_register(PHYAddress, PHY_SR);
-
-	    /* Configure the MAC with the Duplex Mode fixed by the autonegotiation process */
-	    if((RegValue & PHY_Duplex_Status) != (uint32_t)RESET)
-	    {
-	      /* Set Ethernet duplex mode to FullDuplex following the autonegotiation */
-	      ETH_InitStruct->ETH_Mode = ETH_Mode_FullDuplex;
-
-	    }
-	    else
-	    {
-	      /* Set Ethernet duplex mode to HalfDuplex following the autonegotiation */
-	      ETH_InitStruct->ETH_Mode = ETH_Mode_HalfDuplex;
-	    }
-	    /* Configure the MAC with the speed fixed by the autonegotiation process */
-	    if(RegValue & PHY_Speed_Status)
-	    {
-	      /* Set Ethernet speed to 10M following the autonegotiation */
-	      ETH_InitStruct->ETH_Speed = ETH_Speed_10M;
-	    }
-	    else
-	    {
-	      /* Set Ethernet speed to 100M following the autonegotiation */
-	      ETH_InitStruct->ETH_Speed = ETH_Speed_100M;
-	    }
+	  /* Configure the MAC with the Duplex Mode fixed by the autonegotiation process */
+	  if((reg_value & PHY_Duplex_Status) != (uint32_t)RESET)
+	  {
+	    /* Set Ethernet duplex mode to FullDuplex following the autonegotiation */
+	    ETH_InitStruct->ETH_Mode = ETH_Mode_FullDuplex;
 	  }
 	  else
 	  {
-	    if(eth_write_phy_register(PHYAddress, PHY_BCR, ((uint16_t)(ETH_InitStruct->ETH_Mode >> 3) |
-	                                                   (uint16_t)(ETH_InitStruct->ETH_Speed >> 1))) != ERR_OK)
-	    {
-	      /* Return ERROR in case of write timeout */
-	      return ERR_IF;
-	    }
-	    /* Delay to assure PHY configuration */
-	    _eth_delay_(PHY_ConfigDelay);
-
+	    /* Set Ethernet duplex mode to HalfDuplex following the autonegotiation */
+	    ETH_InitStruct->ETH_Mode = ETH_Mode_HalfDuplex;
 	  }
+	  /* Configure the MAC with the speed fixed by the autonegotiation process */
+	  if(reg_value & PHY_Speed_Status)
+	  {
+	    /* Set Ethernet speed to 10M following the autonegotiation */
+	    ETH_InitStruct->ETH_Speed = ETH_Speed_10M;
+	  }
+	  else
+	  {
+	    /* Set Ethernet speed to 100M following the autonegotiation */
+	    ETH_InitStruct->ETH_Speed = ETH_Speed_100M;
+	  }
+	}
+	else
+	{
+	  if(eth_write_phy_register(phy_addr, PHY_BCR, ((uint16_t)(ETH_InitStruct->ETH_Mode >> 3) |
+	                                                 (uint16_t)(ETH_InitStruct->ETH_Speed >> 1))) != ERR_OK)
+	  {
+	    /* Return ERROR in case of write timeout */
+	    return ERR_IF;
+	  }
+	  /* Delay to assure PHY configuration */
+	  isix_wait_ms( 100 );
+	}
 	return 0;
 }
 
