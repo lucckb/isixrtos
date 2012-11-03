@@ -861,7 +861,8 @@ static struct pbuf* low_level_input(struct netif *netif)
 	      )
 	  {
 	    len = eth_get_dma_rx_desc_frame_length(&dma_rx_ring[dma_rx_idx]);
-	    if (len >= ETH_HEADER + MIN_ETH_PAYLOAD + ETH_CRC) {
+	    if (len >= ETH_HEADER + MIN_ETH_PAYLOAD + ETH_CRC)
+	    {
 	      len -= ETH_CRC;
 	      /* Zakładamy, że rxBuffer[DMArxIdx] != NULL. */
 	      p = rx_buff[dma_rx_idx].pbuf;
