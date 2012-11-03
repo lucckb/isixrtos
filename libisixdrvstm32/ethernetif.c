@@ -23,9 +23,6 @@ enum { ETH_ERROR = 0, ETH_SUCCESS = 1 };
 
 /* ------------------------------------------------------------------ */
 
-/* Forward declarations. */
-static err_t  ethernetif_input(struct netif *netif);
-
 enum { ETH_RXBUFNB = 4 };
 enum { ETH_TXBUFNB = 2 };
 enum { TX_BUFFER_SIZE = ETH_MAX_PACKET_SIZE + VLAN_TAG - ETH_CRC };
@@ -46,8 +43,8 @@ static uint8_t tx_buff[ETH_TXBUFNB][TX_BUFFER_SIZE];
 static struct drv_rx_buff_s rx_buff[ETH_RXBUFNB];
 
 //Ring descriptor identifier
-static size_t dma_tx_idx;
-static size_t dma_rx_idx;
+static volatile size_t dma_tx_idx;
+static volatile size_t dma_rx_idx;
 
 
 /* ------------------------------------------------------------------ */
@@ -117,6 +114,11 @@ static void realloc_rx_pbufs(void)
   }
 }
 
+
+/* ------------------------------------------------------------------ */
+/* Forward declarations. */
+static err_t  ethernetif_input(struct netif *netif);
+
 /* ------------------------------------------------------------------ */
 /*
   * @brief  Called when a frame is received
@@ -133,17 +135,16 @@ void eth_isr_vector(void)
 }
 
 /* ------------------------------------------------------------------ */
+/* Network interrupt bottom half Linux concept of bottom halfes */
 static ISIX_TASK_FUNC( netif_task, ifc)
 {
 	/* Enable MAC and DMA transmission and reception */
 	ETH_Start();
-	dbprintf("Start eth reception");
 	struct netif *netif = (struct netif*)(ifc);
 	for(;;)
 	{
 		if( isix_sem_wait( netif_sem, ISIX_TIME_INFINITE ) == ISIX_EOK )
 		{
-			//while( ETH_GetRxPktSize() !=0 )
 			while (!(dma_rx_ring[dma_rx_idx].Status & ETH_DMARxDesc_OWN))
 			{
 				ethernetif_input( netif );
