@@ -11,9 +11,7 @@
 #include "lwip/sys.h"
 #include "lwip/mem.h"
 #include "lwip/timers.h"
-//#include <dbglog.h>
-#undef dbprintf
-#define dbprintf(...) do {} while(0)
+
 /* ------------------------------------------------------------------ */
 
 //Default task structure
@@ -184,7 +182,6 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, message_t *msg, u32_t timeout)
     	return SYS_ARCH_TIMEOUT;
     else
     {
-    	dbprintf("F s=%08x v=%08x", *mbox, m);
     	if( msg ) *msg = m;
     	t = isix_get_jiffies() - t;
     	t = (t*1000)/ISIX_HZ;
@@ -217,7 +214,6 @@ err_t sys_mbox_new(sys_mbox_t *mbox, int size)
 /* Post the message to the mailbox */
 void sys_mbox_post(sys_mbox_t *mbox,  message_t msg)
 {
-	dbprintf("P s=%08x v=%08x",*mbox,msg);
 	isix_fifo_write( *mbox, &msg, ISIX_TIME_INFINITE );
 }
 /* ------------------------------------------------------------------ */
@@ -232,7 +228,6 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, message_t *msg)
 	message_t m;
 	int reason = isix_fifo_read( *mbox, &m, 1 );
 	if( msg && reason==ISIX_EOK) *msg = m;
-	dbprintf("TF s=%08x v=%08x",*mbox,msg);
 	return ( reason==ISIX_EOK )?( 0 ):( SYS_MBOX_EMPTY );
 }
 
@@ -242,7 +237,6 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, message_t *msg)
  * @param msg message to post (ATTENTION: can be NULL) */
 err_t sys_mbox_trypost(sys_mbox_t *mbox, message_t msg)
 {
-	dbprintf("TP s=%08x v=%08x", *mbox, msg);
 	int reason = isix_fifo_write( *mbox, &msg, 1 );
 	return ( reason==ISIX_EOK )?( 0 ):( SYS_MBOX_EMPTY );
 }

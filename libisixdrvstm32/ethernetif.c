@@ -1140,7 +1140,7 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool con
 /* ------------------------------------------------------------------ */
 
 /** Input packet handling */
-struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint8_t phy_addr, uint32_t hclk,
+struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, uint32_t hclk,
         bool is_rmii, bool configure_mco )
 {
 	//Create NETIF interface
@@ -1163,3 +1163,4 @@ struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint8_t phy_addr, uin
 	}
 	return nifc;
 }
+/* ------------------------------------------------------------------ */
