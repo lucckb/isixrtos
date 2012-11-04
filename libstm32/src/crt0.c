@@ -37,6 +37,8 @@ typedef void(*vect_fun_t)(void);
 
 /*----------------------------------------------------------*/
 #define DEFINE_INTERRUPT_HANDLER( handler_name ) void handler_name(void) __attribute__ ((interrupt, weak, alias("unused_vector")))
+#define DEFINE_REAL_INTERRUPT_HANDLER( handler_name )  void handler_name(void) __attribute__ ((interrupt))
+
 DEFINE_INTERRUPT_HANDLER(nmi_exception_vector);
 DEFINE_INTERRUPT_HANDLER(hard_fault_exception_vector);
 DEFINE_INTERRUPT_HANDLER(mem_manage_exception_vector);
@@ -78,7 +80,7 @@ DEFINE_INTERRUPT_HANDLER(usb_hp_can_tx_isr_vector);
 DEFINE_INTERRUPT_HANDLER(usb_lp_can_rx0_isr_vector);
 DEFINE_INTERRUPT_HANDLER(can_rx1_isr_vector);
 DEFINE_INTERRUPT_HANDLER(can_sce_isr_vector);
-DEFINE_INTERRUPT_HANDLER(exti9_5_isr_vector);
+DEFINE_REAL_INTERRUPT_HANDLER(exti9_5_isr_vector);
 DEFINE_INTERRUPT_HANDLER(tim1_brk_isr_vector);
 DEFINE_INTERRUPT_HANDLER(tim1_up_isr_vector);
 DEFINE_INTERRUPT_HANDLER(tim1_trg_com_isr_vector);
@@ -95,7 +97,7 @@ DEFINE_INTERRUPT_HANDLER(spi2_isr_vector);
 DEFINE_INTERRUPT_HANDLER(usart1_isr_vector);
 DEFINE_INTERRUPT_HANDLER(usart2_isr_vector);
 DEFINE_INTERRUPT_HANDLER(usart3_isr_vector);
-DEFINE_INTERRUPT_HANDLER(exti15_10_isr_vector);
+DEFINE_REAL_INTERRUPT_HANDLER(exti15_10_isr_vector);
 DEFINE_INTERRUPT_HANDLER(rtc_alarm_isr_vector);
 DEFINE_INTERRUPT_HANDLER(usb_wakeup_isr_vector);
 DEFINE_INTERRUPT_HANDLER(tim8_brk_isr_vector);
@@ -175,7 +177,22 @@ DEFINE_INTERRUPT_HANDLER(dma2_stream4_isr_vector);
 DEFINE_INTERRUPT_HANDLER(dma2_stream5_isr_vector);
 DEFINE_INTERRUPT_HANDLER(dma2_stream6_isr_vector);
 DEFINE_INTERRUPT_HANDLER(dma2_stream7_isr_vector);
+
+/***** EMULATED EXTI HANDLERS demuxed in CRT0 ******/
+DEFINE_INTERRUPT_HANDLER(exti5_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti6_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti7_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti8_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti9_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti10_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti11_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti12_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti13_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti14_isr_vector);
+DEFINE_INTERRUPT_HANDLER(exti15_isr_vector);
+
 #undef DEFINE_INTERRUPT_HANDLER
+#undef DEFINE_REAL_INTERRUPT_HANDLER
 /*---------------------------------------------------------*/
 #if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 //Interrupt vector table
@@ -598,6 +615,64 @@ void reset_handler(void)
 }
 
 /*----------------------------------------------------------*/
+//EXTI pending register for route interrupt
+#define EXTI_PR (*((volatile unsigned long*)(0x40010400+0x14)))
+#define EXTI_PEND( flags, inp ) ((flags) & (1<<(inp)))
 
+/************* EMULATED EXTI HANDLERS ***********************/
+void exti9_5_isr_vector(void)
+{
+	unsigned long flags = EXTI_PR;
+	if( EXTI_PEND(flags, 5) )
+	{
+		exti5_isr_vector();
+	}
+	if( EXTI_PEND(flags, 6) )
+	{
+		exti6_isr_vector();
+	}
+	if( EXTI_PEND(flags, 7) )
+	{
+		exti7_isr_vector();
+	}
+	if( EXTI_PEND(flags, 8) )
+	{
+		exti8_isr_vector();
+	}
+	if( EXTI_PEND(flags, 9) )
+	{
+		exti9_isr_vector();
+	}
+}
 
-
+void exti15_10_isr_vector(void)
+{
+	unsigned long flags = EXTI_PR;
+	if( EXTI_PEND(flags, 10) )
+	{
+		exti10_isr_vector();
+	}
+	if( EXTI_PEND(flags, 11) )
+	{
+		exti11_isr_vector();
+	}
+	if( EXTI_PEND(flags, 12) )
+	{
+		exti12_isr_vector();
+	}
+	if( EXTI_PEND(flags, 13) )
+	{
+		exti13_isr_vector();
+	}
+	if( EXTI_PEND(flags, 14) )
+	{
+		exti14_isr_vector();
+	}
+	if( EXTI_PEND(flags, 15) )
+	{
+		exti15_isr_vector();
+	}
+}
+#undef EXTI_PR
+#undef EXTI_PEND
+/*----------------------------------------------------------*/

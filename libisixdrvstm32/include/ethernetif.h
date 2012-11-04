@@ -23,9 +23,11 @@ err_t stm32_emac_if_init_callback(struct netif *netif);
  * @param [in] hclk HCLK core frequency
  * @param [in] is_rmii Use reduced MII interface
  * @param [in] configure_mco Configure MCO pin for provide MCO output
+ * @param [in] irq_prio - Irq priority
+ * @param [in] irq_subprio - IRQ subpriority
  * */
 struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, uint32_t hclk,
-        bool is_rmii, bool configure_mco );
+        bool is_rmii, bool configure_mco, uint8_t irq_prio, uint8_t irq_sub );
 
 /* ------------------------------------------------------------------ */
 

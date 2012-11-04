@@ -5,6 +5,7 @@
 #include <lwip/sys.h>
 #include <lwip/stats.h>
 #include <lwip/snmp.h>
+#include <lwip/tcpip.h>
 #include <netif/etharp.h>
 #include <netif/ppp_oe.h>
 #include <stm32_eth.h>
@@ -13,8 +14,26 @@
 #include <isix.h>
 #include <stm32system.h>
 #include <stm32rcc.h>
+#include <stm32exti.h>
 #include "ethernetif.h"
 
+/* ------------------------------------------------------------------ */
+//Use interrupt instead of polling
+#define PHY_INT_USE_INTERRUPT 1
+//PHY Interrupt configuration
+#define PHY_INT_EXTI_LINE_IRQ_N EXTI15_10_IRQn
+#define PHY_INT_EXTI_NUM 13
+#define PHY_INT_GPIO_PORT D
+
+
+
+/* ------------------------------------------------------------------ */
+#define PHY_INT_EXTI_CAT(x, y) x##y
+#define PHY_INT_EXTI_XGPIO(X)PHY_INT_EXTI_CAT(GPIO, X)
+#define PHY_INT_EXTI_XGPIOCAT(x, y) x##GPIO##y
+#define PHY_INT_EXTI_LINENUM(x) 	 PHY_INT_EXTI_CAT(EXTI_Line , x )
+#define PHY_INT_EXTI_PORT_SOURCE(x)  PHY_INT_EXTI_XGPIOCAT(GPIO_PortSource, x  )
+#define PHY_INT_EXTI_PIN_SOURCE(x)   PHY_INT_EXTI_CAT(GPIO_PinSource, x  )
 
 /* ------------------------------------------------------------------ */
 
@@ -28,6 +47,7 @@ struct drv_rx_buff_s
 	struct pbuf *pbuf;		//Receive pbuf
 	bool used;				//Buffer is used
 };
+
 /* ------------------------------------------------------------------ */
 //Transmit and receive descriptors
 static ETH_DMADESCTypeDef  dma_rx_ring[ETH_RXBUFNB];
@@ -41,13 +61,25 @@ static struct drv_rx_buff_s rx_buff[ETH_RXBUFNB];
 static volatile size_t dma_tx_idx;
 static volatile size_t dma_rx_idx;
 
-
-/* ------------------------------------------------------------------ */
 //Lock semaphore for the driver
 static sem_t *netif_sem;
+//Detect event type
+static volatile bool phy_event;
 //Net interface copy task
 static task_t *netif_task_id;
+// Phy addresss
+static uint16_t g_phy_address;
 
+/* ------------------------------------------------------------------ */
+//PHY registers and bits
+enum { MICR_INTEN = (1<<1),  MICR_INTOE = (1<<0 ) };
+
+enum { MICSR_ANC_INT_EN=(1<<2), MICSR_DUP_INT_EN=(1<<3), MICSR_SPD_INT_EN=(1<<4),
+		MICSR_LINK_INT_EN=(1<<5), MICSR_LINK_INT=(1<<13) };
+
+enum { BMSR_LINK_STATUS=(1<<2), BMSR_LINK_AUTONEG_COMPLETE=(1<<5) };
+
+enum { PHYBMSR=0x01, PHYIDR1=0x02, PHYIDR2=0x03, PHYMICR=0x11,PHYMICSR=0x12, PHYCR=0x19 };
 /* ------------------------------------------------------------------ */
 /**
   * @brief  Write to a PHY register
@@ -449,7 +481,7 @@ static int eth_init_0_phy( uint16_t phy_addr, uint32_t hclk, uint32_t link_cfg )
 	  int reg_value = eth_read_phy_register(phy_addr, PHY_SR);
 
 	  /* Configure the MAC with the Duplex Mode fixed by the autonegotiation process */
-	  if((reg_value & PHY_Duplex_Status) != (uint32_t)RESET)
+	  if( reg_value & PHY_Duplex_Status )
 	  {
 	    /* Set Ethernet duplex mode to FullDuplex following the autonegotiation */
 	    link_cfg |= ETH_Mode_FullDuplex;
@@ -513,6 +545,15 @@ static inline void eth_init_1_mac_cr( uint32_t watchdog, uint32_t jabber, uint32
 			    retry_transmission | automatic_pad_crc_strip | back_off_limit | defferal_check;
 	  /* Write to ETHERNET MACCR */
 	  ETH->MACCR = (uint32_t)tmpreg;
+}
+
+static inline void eth_cr_set_speed_mode( bool is_100mbps, bool is_full_duplex )
+{
+	uint32_t tmpreg = ETH->MACCR;
+	if( is_100mbps ) tmpreg |= ETH_Speed_100M;
+	else tmpreg &= ~ETH_Speed_100M;
+	if( is_full_duplex ) tmpreg |= ETH_Mode_FullDuplex;
+	else  tmpreg &= ~ETH_Mode_FullDuplex;
 }
 
 static inline void eth_init_2_mac_ffr( uint32_t receive_all, uint32_t source_addr_filter,
@@ -696,15 +737,35 @@ static err_t  ethernetif_input(struct netif *netif);
 void eth_isr_vector(void) __attribute__((__interrupt__));
 void eth_isr_vector(void)
 {
-	  isix_sem_signal_isr( netif_sem );
-	  /* Clear the Eth DMA Rx IT pending bits */
-	  eth_dma_clear_it_pending_bit(ETH_DMA_IT_R);
-	  eth_dma_clear_it_pending_bit(ETH_DMA_IT_NIS);
+
+	phy_event = false;
+	isix_sem_signal_isr( netif_sem );
+	/* Clear the Eth DMA Rx IT pending bits */
+	eth_dma_clear_it_pending_bit(ETH_DMA_IT_R);
+	eth_dma_clear_it_pending_bit(ETH_DMA_IT_NIS);
 }
 
 /* ------------------------------------------------------------------ */
+/**
+ *  Interrupt handler for MAC dervice
+ */
+#ifdef PHY_INT_USE_INTERRUPT
+#define DO_EXTI_HANLDLER(x) void  __attribute__((__interrupt__)) exti ## x ## _isr_vector(void)
+#define EXTI_HANDLER(x) DO_EXTI_HANLDLER( x )
+
+EXTI_HANDLER(PHY_INT_EXTI_NUM)
+{
+	phy_event = true;
+	isix_sem_signal_isr( netif_sem );
+	exti_clear_it_pending_bit( PHY_INT_EXTI_LINENUM(PHY_INT_EXTI_NUM) );
+}
+
+#undef DO_EXTI_HANLDLER
+#undef EXTI_HANDLER
+#endif
+/* ------------------------------------------------------------------ */
 /* Network interrupt bottom half Linux concept of bottom halfes */
-static ISIX_TASK_FUNC( netif_task, ifc)
+static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 {
 	/* Enable MAC and DMA transmission and reception */
 	eth_start();
@@ -713,6 +774,27 @@ static ISIX_TASK_FUNC( netif_task, ifc)
 	{
 		if( isix_sem_wait( netif_sem, ISIX_TIME_INFINITE ) == ISIX_EOK )
 		{
+			if( phy_event )
+			{
+				const uint16_t sr = eth_read_phy_register(g_phy_address, PHYMICSR);
+				dbprintf("Change state %04x", sr);
+				if( sr & MICSR_LINK_INT )
+				{
+					const uint16_t bmsr = eth_read_phy_register( g_phy_address,  PHYBMSR );
+					dbprintf("BMSR L=%d A=%d", !!(bmsr&0x04), !!(bmsr&0x20));
+					if(bmsr & BMSR_LINK_AUTONEG_COMPLETE )
+					{
+						dbprintf("LInku UP");
+						tcpip_callback_with_block( netif_set_link_up, netif, 0 );
+					}
+					else
+					{
+						dbprintf("LInku DOWN");
+						tcpip_callback_with_block( netif_set_link_down, netif, 0 );
+					}
+				}
+			}
+			else
 			while (!(dma_rx_ring[dma_rx_idx].Status & ETH_DMARxDesc_OWN))
 			{
 				ethernetif_input( netif );
@@ -721,8 +803,8 @@ static ISIX_TASK_FUNC( netif_task, ifc)
 		}
 	}
 }
-
 /* ------------------------------------------------------------------ */
+
 /**
  * In this function, the hardware should be initialized.
  * Called from stm32_emac_if_init_callback().
@@ -762,11 +844,17 @@ static void low_level_init(struct netif *netif)
 
   /* Enable the Ethernet Rx Interrupt */
   eth_dma_it_config(ETH_DMA_IT_NIS | ETH_DMA_IT_R, ENABLE);
-  //Enable eth irq in nvic
-  nvic_set_priority( ETH_IRQn ,1, 7 );
+  /* Enable interrupt in NVIC */
   nvic_irq_enable( ETH_IRQn, true );
-
-  enum { C_netif_task_stack_size = 256 };
+#if PHY_INT_USE_INTERRUPT
+  gpio_exti_line_config( PHY_INT_EXTI_PORT_SOURCE(PHY_INT_GPIO_PORT), PHY_INT_EXTI_PIN_SOURCE(PHY_INT_EXTI_NUM) );
+  exti_init( PHY_INT_EXTI_LINENUM(PHY_INT_EXTI_NUM), EXTI_Mode_Interrupt, EXTI_Trigger_Falling, true );
+  exti_clear_it_pending_bit( PHY_INT_EXTI_LINENUM(PHY_INT_EXTI_NUM) );
+  nvic_irq_enable( PHY_INT_EXTI_LINE_IRQ_N, true );
+  eth_read_phy_register( g_phy_address, PHYMICSR );
+#endif
+  /* Create task and sem */
+  enum { C_netif_task_stack_size = 384 };
   netif_sem = isix_sem_create_limited( NULL, 0, 1 );
   LWIP_ASSERT("Unable to create netif semaphore", netif_sem);
   netif_task_id = isix_task_create( netif_task, netif, C_netif_task_stack_size, isix_get_min_priority() );
@@ -1046,6 +1134,8 @@ static void eth_gpio_mii_init(bool provide_mco)
 	  /* Configure MCO (PA8) as alternate function push-pull */
 	  if(provide_mco)
 		  gpio_config( GPIOA, 8 , GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP);
+	  //Configure interrupt PHY port
+	  gpio_config( PHY_INT_EXTI_XGPIO(PHY_INT_GPIO_PORT), PHY_INT_EXTI_NUM, GPIO_MODE_INPUT, GPIO_CNF_IN_FLOAT );
 }
 
 /* ------------------------------------------------------------------ */
@@ -1122,7 +1212,6 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool con
 	pomarańczowa - speed: on = 100 Mb/s, off = 10 Mb/s
    */
   {
-	  enum { PHYIDR1 = 0x02, PHYIDR2 = 0x03, PHYCR =  0x19 };
 	  enum { LED_CNFG0 = 0x0020 };
 	  enum { LED_CNFG1 = 0x0040 };
 	  enum { DP83848_ID = 0x080017 };
@@ -1135,13 +1224,24 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool con
 		  eth_write_phy_register( phy_addr, PHYCR, phyreg);
 	  }
   }
+  /* Configure PHY for link status interrupt gen */
+  {
+	  if( eth_write_phy_register( phy_addr, PHYMICR,  MICR_INTEN | MICR_INTOE ) )
+	  {
+		  return ERR_IF;
+	  }
+	  if( eth_write_phy_register( phy_addr, PHYMICSR,  MICSR_LINK_INT_EN ) )
+	  {
+	  	 return ERR_IF;
+	  }
+  }
   return ERR_OK;
 }
 /* ------------------------------------------------------------------ */
 
 /** Input packet handling */
 struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, uint32_t hclk,
-        bool is_rmii, bool configure_mco )
+        bool is_rmii, bool configure_mco, uint8_t irq_prio, uint8_t irq_sub )
 {
 	//Create NETIF interface
 	ethernet_init( hclk, phy_addr, is_rmii ,configure_mco );
@@ -1152,6 +1252,7 @@ struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, ui
 	    return NULL;
 	}
 	memset(nifc, 0, sizeof(struct netif));
+	g_phy_address = phy_addr;
 	eth_mac_address_config(ETH_MAC_Address0, hw_addr);
 	/* set MAC hardware address length */
 	nifc->hwaddr_len = ETHARP_HWADDR_LEN;
@@ -1161,6 +1262,9 @@ struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, ui
 	{
 		mem_free( nifc );
 	}
+	//Set NVIC priority
+	nvic_set_priority( ETH_IRQn ,irq_prio, irq_sub );
+	nvic_set_priority( PHY_INT_EXTI_LINE_IRQ_N, irq_prio, irq_sub );
 	return nifc;
 }
 /* ------------------------------------------------------------------ */

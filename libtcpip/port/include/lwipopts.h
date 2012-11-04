@@ -196,7 +196,7 @@
  * If the application sends a lot of data out of ROM (or other static memory),
  * this should be set high.
  */
-#define MEMP_NUM_PBUF                   10
+#define MEMP_NUM_PBUF                   16
 
 /**
  * MEMP_NUM_RAW_PCB: Number of raw connection PCBs
@@ -379,7 +379,7 @@
  * PBUF_POOL_SIZE: the number of buffers in the pbuf pool. 
  */
 
-#define PBUF_POOL_SIZE                  8
+#define PBUF_POOL_SIZE                  12
 
 
 /*
@@ -1055,7 +1055,7 @@
  * whenever the link changes (i.e., link down)
  */
 
-//#define LWIP_NETIF_LINK_CALLBACK        0
+#define LWIP_NETIF_LINK_CALLBACK        1
 
 
 /**
