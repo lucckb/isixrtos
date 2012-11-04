@@ -226,7 +226,7 @@ void sys_mbox_post(sys_mbox_t *mbox,  message_t msg)
 u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, message_t *msg)
 {
 	message_t m;
-	int reason = isix_fifo_read( *mbox, &m, 1 );
+	int reason = isix_fifo_read_isr( *mbox, &m );
 	if( msg && reason==ISIX_EOK) *msg = m;
 	return ( reason==ISIX_EOK )?( 0 ):( SYS_MBOX_EMPTY );
 }
@@ -237,7 +237,7 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, message_t *msg)
  * @param msg message to post (ATTENTION: can be NULL) */
 err_t sys_mbox_trypost(sys_mbox_t *mbox, message_t msg)
 {
-	int reason = isix_fifo_write( *mbox, &msg, 1 );
+	int reason = isix_fifo_write_isr( *mbox, &msg );
 	return ( reason==ISIX_EOK )?( 0 ):( SYS_MBOX_EMPTY );
 }
 
