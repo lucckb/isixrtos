@@ -415,7 +415,7 @@ static int eth_init_0_phy( uint16_t phy_addr, uint32_t hclk, uint32_t link_cfg )
 
 			if( eth_read_phy_register(phy_addr, PHY_BSR) & PHY_Linked_Status )
 				break;
-			isix_wait( 100 );
+			isix_wait_ms( 100 );
 		}
 		if( to == C_timeout )
 		{
@@ -438,7 +438,7 @@ static int eth_init_0_phy( uint16_t phy_addr, uint32_t hclk, uint32_t link_cfg )
 
 		  	if( eth_read_phy_register(phy_addr, PHY_BSR) & PHY_AutoNego_Complete )
 		  		break;
-		  	isix_wait( 100 );
+		  	isix_wait_ms( 100 );
 		  }
 		  if( to == C_timeout )
 		  {
