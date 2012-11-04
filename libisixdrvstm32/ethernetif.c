@@ -18,6 +18,7 @@
 #include "ethernetif.h"
 
 /* ------------------------------------------------------------------ */
+/**************************** DRIVER CONFIGURATION ********************/
 //Use interrupt instead of polling
 #define PHY_INT_USE_INTERRUPT 1
 //Exti interrupt
@@ -26,12 +27,18 @@
 #define PHY_INT_EXTI_NUM 13
 //Exti port
 #define PHY_INT_GPIO_PORT D
+//Does use RMII interface
+#define ETH_DRV_USE_RMII 0
+//Configure clock for provide MCO
+#define ETH_DRV_CONFIGURE_MCO_OUTPUT 0
 //Driver interrupt priority and subpriority
 #define ETH_DRV_IRQ_PRIO 1
 #define ETH_DRV_IRQ_SUBPRIO 7
-
+//Operating system driver copy data priority
+#define ETH_DRV_ISIX_THREAD_PRIORITY (isix_get_min_priority() - 1)
 
 /* ------------------------------------------------------------------ */
+//Macros
 #define PHY_INT_EXTI_CAT(x, y) x##y
 #define PHY_INT_EXTI_XGPIO(X)PHY_INT_EXTI_CAT(GPIO, X)
 #define PHY_INT_EXTI_XGPIOCAT(x, y) x##GPIO##y
@@ -865,7 +872,7 @@ static int low_level_init(struct netif *netif)
   {
 	  return ERR_MEM;
   }
-  netif_task_id = isix_task_create( netif_task, netif, C_netif_task_stack_size, isix_get_min_priority() );
+  netif_task_id = isix_task_create( netif_task, netif, C_netif_task_stack_size, ETH_DRV_ISIX_THREAD_PRIORITY );
   if(!netif_task_id)
   {
 	  isix_sem_destroy(netif_sem);
@@ -1102,7 +1109,7 @@ static void eth_deinit(void)
 
 /* ------------------------------------------------------------------ */
 //GPIO initialize
-static void eth_gpio_mii_init(bool provide_mco)
+static void eth_gpio_mii_init(void)
 {
     //Enable gpios
 	rcc_apb2_periph_clock_cmd( RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
@@ -1154,8 +1161,9 @@ static void eth_gpio_mii_init(bool provide_mco)
 
 	  /* MCO pin configuration */
 	  /* Configure MCO (PA8) as alternate function push-pull */
-	  if(provide_mco)
-		  gpio_config( GPIOA, 8 , GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP);
+#if  ETH_DRV_CONFIGURE_MCO_OUTPUT
+	  gpio_config( GPIOA, 8 , GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP);
+#endif
 	  //Configure interrupt PHY port
 	  gpio_config( PHY_INT_EXTI_XGPIO(PHY_INT_GPIO_PORT), PHY_INT_EXTI_NUM, GPIO_MODE_INPUT, GPIO_CNF_IN_FLOAT );
 }
@@ -1164,22 +1172,20 @@ static void eth_gpio_mii_init(bool provide_mco)
 /**
   * @brief  Configures the Ethernet Interface
   */
-static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool configure_mco)
+static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
 {
     //Enable eth stuff
   rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
 			RCC_AHBPeriph_ETH_MAC_Rx, true );
 
   /* MII/RMII Media interface selection */
-  if( !is_rmii )
-  {
-	 eth_gpio_mii_init(configure_mco);
+#if ETH_DRV_USE_RMII
+  	 gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_RMII);
+#error RMII mode not implemented YET
+#else
+	 eth_gpio_mii_init();
 	 gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_MII);
-  }
-  else
-  {
-	 gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_RMII);
-  }
+#endif
 
   /* Reset ETHERNET on AHB Bus */
   eth_deinit();
@@ -1261,11 +1267,10 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool con
 /* ------------------------------------------------------------------ */
 
 /** Input packet handling */
-struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, uint32_t hclk,
-        bool is_rmii, bool configure_mco )
+struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, uint32_t hclk )
 {
 	//Create NETIF interface
-	if( ethernet_init( hclk, phy_addr, is_rmii ,configure_mco ) )
+	if( ethernet_init( hclk, phy_addr ) )
 	{
 		return NULL;
 	}
