@@ -20,11 +20,15 @@
 /* ------------------------------------------------------------------ */
 //Use interrupt instead of polling
 #define PHY_INT_USE_INTERRUPT 1
-//PHY Interrupt configuration
+//Exti interrupt
 #define PHY_INT_EXTI_LINE_IRQ_N EXTI15_10_IRQn
+//Exti line num
 #define PHY_INT_EXTI_NUM 13
+//Exti port
 #define PHY_INT_GPIO_PORT D
-
+//Driver interrupt priority and subpriority
+#define ETH_DRV_IRQ_PRIO 1
+#define ETH_DRV_IRQ_SUBPRIO 7
 
 
 /* ------------------------------------------------------------------ */
@@ -77,7 +81,10 @@ enum { MICR_INTEN = (1<<1),  MICR_INTOE = (1<<0 ) };
 enum { MICSR_ANC_INT_EN=(1<<2), MICSR_DUP_INT_EN=(1<<3), MICSR_SPD_INT_EN=(1<<4),
 		MICSR_LINK_INT_EN=(1<<5), MICSR_LINK_INT=(1<<13) };
 
-enum { BMSR_LINK_STATUS=(1<<2), BMSR_LINK_AUTONEG_COMPLETE=(1<<5) };
+enum { BMSR_LINK_STATUS=(1<<2), BMSR_LINK_AUTONEG_COMPLETE=(1<<5),
+	   BMSR_100M_FULL=(1<<14), BMSR_100M_HALF=(1<<13), BMSR_10M_FULL=(1<<12),
+	   BMSR_10M_HALF=(1<<11)
+     };
 
 enum { PHYBMSR=0x01, PHYIDR1=0x02, PHYIDR2=0x03, PHYMICR=0x11,PHYMICSR=0x12, PHYCR=0x19 };
 /* ------------------------------------------------------------------ */
@@ -390,17 +397,7 @@ static void eth_mac_address_config(uint32_t MacAddr, const uint8_t *Addr)
 }
 
 /* ------------------------------------------------------------------ */
-/**
-  * @brief  Initializes the ETHERNET peripheral according to the specified
-  *   parameters in the ETH_InitStruct .
-  * @param ETH_InitStruct: pointer to a ETH_InitTypeDef structure that contains
-  *   the configuration information for the specified ETHERNET peripheral.
-  * @param PHYAddress: external PHY address
-  * @retval ETH_ERROR: Ethernet initialization failed
-  *         ETH_SUCCESS: Ethernet successfully initialized
-  */
-
-static int eth_init_0_phy( uint16_t phy_addr, uint32_t hclk, uint32_t link_cfg )
+static int eth_init_0_no_autonegotiate(uint16_t phy_addr, uint32_t hclk )
 {
 	static const uint32_t MACMIIAR_CR_MASK  = 0xFFFFFFE3;
 	/* Get the ETHERNET MACMIIAR value */
@@ -434,8 +431,17 @@ static int eth_init_0_phy( uint16_t phy_addr, uint32_t hclk, uint32_t link_cfg )
 	}
 
 	/* Delay to assure PHY reset */
-	isix_wait_ms( 100 );
+	isix_wait_ms( 50 );
+	return ERR_OK;
+}
+/* ------------------------------------------------------------------ */
 
+static int eth_init_0_phy( uint16_t phy_addr, uint32_t hclk, uint32_t link_cfg )
+{
+	if( eth_init_0_no_autonegotiate( phy_addr, hclk ) )
+	{
+		return ERR_IF;
+	}
 	if( link_cfg & ETH_AutoNegotiation_Enable )
 	{
 	  /* We wait for linked status... */
@@ -460,7 +466,6 @@ static int eth_init_0_phy( uint16_t phy_addr, uint32_t hclk, uint32_t link_cfg )
 	    /* Return ERROR in case of write timeout */
 	    return ERR_IF;
 	  }
-
 	  /* Wait until the autonegotiation will be completed */
 	  {
 		  enum { C_timeout = 20 };
@@ -547,6 +552,7 @@ static inline void eth_init_1_mac_cr( uint32_t watchdog, uint32_t jabber, uint32
 	  ETH->MACCR = (uint32_t)tmpreg;
 }
 
+/* SET MAC speed according to the parameters */
 static inline void eth_cr_set_speed_mode( bool is_100mbps, bool is_full_duplex )
 {
 	uint32_t tmpreg = ETH->MACCR;
@@ -554,6 +560,7 @@ static inline void eth_cr_set_speed_mode( bool is_100mbps, bool is_full_duplex )
 	else tmpreg &= ~ETH_Speed_100M;
 	if( is_full_duplex ) tmpreg |= ETH_Mode_FullDuplex;
 	else  tmpreg &= ~ETH_Mode_FullDuplex;
+	ETH->MACCR = tmpreg;
 }
 
 static inline void eth_init_2_mac_ffr( uint32_t receive_all, uint32_t source_addr_filter,
@@ -782,12 +789,12 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 					const uint16_t bmsr = eth_read_phy_register( g_phy_address,  PHYBMSR  );
 					if(bmsr & BMSR_LINK_AUTONEG_COMPLETE )
 					{
-						dbprintf("LInku UP");
+						eth_cr_set_speed_mode( (bmsr&BMSR_100M_FULL)||(bmsr&BMSR_100M_HALF),
+								(bmsr&BMSR_10M_FULL)||(bmsr&BMSR_100M_FULL) );
 						tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_up, netif, 0 );
 					}
 					else
 					{
-						dbprintf("LInku DOWN");
 						tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_down, netif, 0 );
 					}
 				}
@@ -810,7 +817,7 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
  * @param netif the already initialized lwip network interface structure
  *        for this ethernetif
  */
-static void low_level_init(struct netif *netif)
+static int low_level_init(struct netif *netif)
 {
 
   /* Configure TX descriptors */
@@ -854,9 +861,25 @@ static void low_level_init(struct netif *netif)
   /* Create task and sem */
   enum { C_netif_task_stack_size = 384 };
   netif_sem = isix_sem_create_limited( NULL, 0, 1 );
-  LWIP_ASSERT("Unable to create netif semaphore", netif_sem);
+  if(!netif_sem)
+  {
+	  return ERR_MEM;
+  }
   netif_task_id = isix_task_create( netif_task, netif, C_netif_task_stack_size, isix_get_min_priority() );
-  LWIP_ASSERT("Unable to create netif task", netif_task_id);
+  if(!netif_task_id)
+  {
+	  isix_sem_destroy(netif_sem);
+	  return ERR_MEM;
+  }
+  /* Enable Auto-Negotiation */
+  if(eth_write_phy_register(g_phy_address, PHY_BCR, PHY_AutoNegotiation) != ERR_OK)
+  {
+  	  /* Return ERROR in case of write timeout */
+  	  isix_task_delete(netif_task_id);
+  	  isix_sem_destroy(netif_sem);
+	  return ERR_IF;
+  }
+  return ERR_OK;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1052,11 +1075,12 @@ err_t stm32_emac_if_init_callback(struct netif *netif)
   netif->hwaddr_len  = ETHARP_HWADDR_LEN;
 
   /* initialize the hardware */
-  low_level_init(netif);
-
+  if( low_level_init(netif) )
+  {
+	  return ERR_IF;
+  }
   /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
-  netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
-
+  netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
   return ERR_OK;
 }
 
@@ -1167,14 +1191,13 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool con
   while (eth_get_software_reset_status() ) nop();
 
   /* Configure Ethernet */
-  const int mode = eth_init_0_phy( phy_addr, hclk, ETH_AutoNegotiation_Enable );
-  if( mode < ERR_OK )
+  if( eth_init_0_no_autonegotiate( phy_addr, hclk ) )
   {
 	  return ERR_IF;
   }
   eth_init_1_mac_cr(ETH_Watchdog_Enable, ETH_Jabber_Enable, ETH_InterFrameGap_96Bit,
-		  ETH_CarrierSense_Enable, mode&ETH_Speed_100M, ETH_ReceiveOwn_Enable,
-		  ETH_LoopbackMode_Disable, mode&ETH_Mode_FullDuplex,
+		  ETH_CarrierSense_Enable, ETH_Speed_10M, ETH_ReceiveOwn_Enable,
+		  ETH_LoopbackMode_Disable, ETH_Mode_HalfDuplex,
 #ifdef ISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE
 		  ETH_ChecksumOffload_Enable,
 #else
@@ -1239,10 +1262,13 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr, bool is_rmii ,bool con
 
 /** Input packet handling */
 struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, uint32_t hclk,
-        bool is_rmii, bool configure_mco, uint8_t irq_prio, uint8_t irq_sub )
+        bool is_rmii, bool configure_mco )
 {
 	//Create NETIF interface
-	ethernet_init( hclk, phy_addr, is_rmii ,configure_mco );
+	if( ethernet_init( hclk, phy_addr, is_rmii ,configure_mco ) )
+	{
+		return NULL;
+	}
 	struct netif* nifc = (struct netif*)mem_malloc(sizeof(struct netif));
 	if (nifc == NULL)
 	{
@@ -1261,8 +1287,8 @@ struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, ui
 		mem_free( nifc );
 	}
 	//Set NVIC priority
-	nvic_set_priority( ETH_IRQn ,irq_prio, irq_sub );
-	nvic_set_priority( PHY_INT_EXTI_LINE_IRQ_N, irq_prio, irq_sub );
+	nvic_set_priority( ETH_IRQn ,ETH_DRV_IRQ_PRIO, ETH_DRV_IRQ_SUBPRIO );
+	nvic_set_priority( PHY_INT_EXTI_LINE_IRQ_N, ETH_DRV_IRQ_PRIO, ETH_DRV_IRQ_SUBPRIO  );
 	return nifc;
 }
 /* ------------------------------------------------------------------ */
