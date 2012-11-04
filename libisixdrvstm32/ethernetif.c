@@ -110,13 +110,13 @@ static int eth_write_phy_register(uint16_t phy_addr, uint16_t phy_reg, uint16_t 
   /* Write the result value into the MII Address register */
   ETH->MACMIIAR = tmpreg;
   /* Check for the Busy flag */
-  for(int tout=0; tout<10; tout++)
+  for(int tout=0; tout<10000; tout++)
   {
     if( !(ETH->MACMIIAR & ETH_MACMIIAR_MB) )
     {
     	return ERR_OK;
     }
-    isix_wait( 1 );
+    isix_yield();
   }
   /* Return failed */
   return ERR_IF;
@@ -150,13 +150,13 @@ static int eth_read_phy_register(uint16_t phy_address, uint16_t phy_reg )
   /* Write the result value into the MII Address register */
   ETH->MACMIIAR = tmpreg;
   /* Check for the Busy flag */
-  for(int tout=0; tout<10; tout++)
+  for(int tout=0; tout<10000; tout++)
   {
     if( !(ETH->MACMIIAR & ETH_MACMIIAR_MB) )
     {
     	return ETH->MACMIIDR;
     }
-    isix_wait( 1 );
+    isix_yield();
   }
   return ERR_IF;
 }
@@ -777,20 +777,18 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 			if( phy_event )
 			{
 				const uint16_t sr = eth_read_phy_register(g_phy_address, PHYMICSR);
-				dbprintf("Change state %04x", sr);
 				if( sr & MICSR_LINK_INT )
 				{
-					const uint16_t bmsr = eth_read_phy_register( g_phy_address,  PHYBMSR );
-					dbprintf("BMSR L=%d A=%d", !!(bmsr&0x04), !!(bmsr&0x20));
+					const uint16_t bmsr = eth_read_phy_register( g_phy_address,  PHYBMSR  );
 					if(bmsr & BMSR_LINK_AUTONEG_COMPLETE )
 					{
 						dbprintf("LInku UP");
-						tcpip_callback_with_block( netif_set_link_up, netif, 0 );
+						tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_up, netif, 0 );
 					}
 					else
 					{
 						dbprintf("LInku DOWN");
-						tcpip_callback_with_block( netif_set_link_down, netif, 0 );
+						tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_down, netif, 0 );
 					}
 				}
 			}
