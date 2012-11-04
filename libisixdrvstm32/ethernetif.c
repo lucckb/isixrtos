@@ -84,7 +84,7 @@ static int eth_write_phy_register(uint16_t phy_addr, uint16_t phy_reg, uint16_t 
     {
     	return ERR_OK;
     }
-    isix_wait_ms( 10 );
+    isix_wait( 1 );
   }
   /* Return failed */
   return ERR_IF;
@@ -124,7 +124,7 @@ static int eth_read_phy_register(uint16_t phy_address, uint16_t phy_reg )
     {
     	return ETH->MACMIIDR;
     }
-    isix_wait_ms( 10 );
+    isix_wait( 1 );
   }
   return ERR_IF;
 }
