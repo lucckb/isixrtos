@@ -21,8 +21,12 @@ typedef uint8_t prio_t;
 /*-----------------------------------------------------------------------*/
 
 //! Yield the current process
-static inline void isix_yield() { port_yield(); }
-
+static inline void isix_yield()
+{
+	extern volatile bool isix_scheduler_running;
+	if(isix_scheduler_running)
+		port_yield();
+}
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 static const unsigned ISIX_HZ = ISIX_CONFIG_HZ;
