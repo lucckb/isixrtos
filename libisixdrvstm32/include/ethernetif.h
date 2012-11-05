@@ -19,13 +19,17 @@ err_t stm32_emac_if_init_callback(struct netif *netif);
 /* ------------------------------------------------------------------ */
 /** Create and setup ethernet if interface
  * @param [in] hw_addr Hardware ethernet addresss
- * @param [in] phy_addr Device phy address
- * @param [in] hclk HCLK core frequency
  */
-struct netif* stm32_emac_if_setup( const uint8_t *hw_addr );
+struct netif* stm32_emac_netif_create( const uint8_t *hw_addr );
 
 /* ------------------------------------------------------------------ */
+/* Destroy the netif stm32 interface
+ * @param[in] netif interface shudown
+ * @note allocated netif struct must be deleted manualy,
+ * netif interface must be deassert using LWIP netif API */
+int stm32_emac_netif_shutdown( struct netif *netif);
 
+/* ------------------------------------------------------------------ */
 #ifdef __cplusplus
 }
 #endif

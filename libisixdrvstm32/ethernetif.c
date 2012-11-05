@@ -1204,7 +1204,7 @@ static void eth_gpio_mii_init(void)
   */
 static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
 {
-    //Enable eth stuff
+  //Enable eth stuff
   rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
 			RCC_AHBPeriph_ETH_MAC_Rx, true );
 
@@ -1297,7 +1297,7 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
 /* ------------------------------------------------------------------ */
 
 /** Input packet handling */
-struct netif* stm32_emac_if_setup( const uint8_t *hw_addr )
+struct netif* stm32_emac_netif_create( const uint8_t *hw_addr )
 {
 	//Create NETIF interface
 	if( ethernet_init( ETH_DRV_HCLK_HZ, ETH_DRV_PHY_ADDR ) )
@@ -1326,3 +1326,47 @@ struct netif* stm32_emac_if_setup( const uint8_t *hw_addr )
 	return nifc;
 }
 /* ------------------------------------------------------------------ */
+/* Destroy the netif stm32 interface */
+int stm32_emac_netif_shutdown( struct netif *netif )
+{
+	if( !netif )
+	{
+		return ERR_MEM;
+	}
+	//Stop the hardware first
+	/* Enable the Ethernet Rx Interrupt */
+	eth_dma_it_config(ETH_DMA_IT_NIS | ETH_DMA_IT_R, DISABLE);
+	/* Enable interrupt in NVIC */
+	nvic_irq_enable( ETH_IRQn, false );
+#if PHY_INT_USE_INTERRUPT
+	 //Disable only phy line NVIC IRQ can be shared with other pins
+	 exti_init( PHY_INT_EXTI_LINENUM(PHY_INT_EXTI_NUM), EXTI_Mode_Interrupt, EXTI_Trigger_Falling, false );
+#endif
+	 int ret_code = ERR_OK;
+	 if( netif_task_id )
+	 {
+		 if ( isix_task_delete( netif_task_id ) )
+		 {
+			 ret_code = ERR_IF;
+		 }
+		 netif_task_id = NULL;
+	 }
+	 else
+	 {
+		 ret_code =  ERR_IF;
+	 }
+	 if( netif_sem )
+	 {
+		 if( isix_sem_destroy( netif_sem ) )
+		 {
+			 ret_code = ERR_IF;
+		 }
+		 netif_sem = NULL;
+	 }
+	 //Reset the ethernet controler using RST signal
+	 eth_deinit();
+	 //Disable ETH clocks
+	 rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
+	 		RCC_AHBPeriph_ETH_MAC_Rx, false );
+	 return ret_code;
+}
