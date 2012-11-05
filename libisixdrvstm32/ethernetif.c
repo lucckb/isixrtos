@@ -36,6 +36,10 @@
 #define ETH_DRV_IRQ_SUBPRIO 7
 //Operating system driver copy data priority
 #define ETH_DRV_ISIX_THREAD_PRIORITY (isix_get_min_priority() - 1)
+//SYSTEM HCLK for PHY emac speed calculation
+#define ETH_DRV_HCLK_HZ 72000000
+//PHY Address 1 for DP83848
+#define ETH_DRV_PHY_ADDR 1
 
 /* ------------------------------------------------------------------ */
 //Macros
@@ -78,8 +82,7 @@ static sem_t *netif_sem;
 static volatile bool phy_event;
 //Net interface copy task
 static task_t *netif_task_id;
-// Phy addresss
-static uint16_t g_phy_address;
+
 
 /* ------------------------------------------------------------------ */
 //PHY registers and bits
@@ -790,10 +793,10 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 		{
 			if( phy_event )
 			{
-				const uint16_t sr = eth_read_phy_register(g_phy_address, PHYMICSR);
+				const uint16_t sr = eth_read_phy_register(ETH_DRV_PHY_ADDR, PHYMICSR);
 				if( sr & MICSR_LINK_INT )
 				{
-					const uint16_t bmsr = eth_read_phy_register( g_phy_address,  PHYBMSR  );
+					const uint16_t bmsr = eth_read_phy_register( ETH_DRV_PHY_ADDR,  PHYBMSR  );
 					if(bmsr & BMSR_LINK_AUTONEG_COMPLETE )
 					{
 						eth_cr_set_speed_mode( (bmsr&BMSR_100M_FULL)||(bmsr&BMSR_100M_HALF),
@@ -863,7 +866,7 @@ static int low_level_init(struct netif *netif)
   exti_init( PHY_INT_EXTI_LINENUM(PHY_INT_EXTI_NUM), EXTI_Mode_Interrupt, EXTI_Trigger_Falling, true );
   exti_clear_it_pending_bit( PHY_INT_EXTI_LINENUM(PHY_INT_EXTI_NUM) );
   nvic_irq_enable( PHY_INT_EXTI_LINE_IRQ_N, true );
-  eth_read_phy_register( g_phy_address, PHYMICSR );
+  eth_read_phy_register( ETH_DRV_PHY_ADDR, PHYMICSR );
 #endif
   /* Create task and sem */
   enum { C_netif_task_stack_size = 384 };
@@ -879,7 +882,7 @@ static int low_level_init(struct netif *netif)
 	  return ERR_MEM;
   }
   /* Enable Auto-Negotiation */
-  if(eth_write_phy_register(g_phy_address, PHY_BCR, PHY_AutoNegotiation) != ERR_OK)
+  if(eth_write_phy_register(ETH_DRV_PHY_ADDR, PHY_BCR, PHY_AutoNegotiation) != ERR_OK)
   {
   	  /* Return ERROR in case of write timeout */
   	  isix_task_delete(netif_task_id);
@@ -1267,10 +1270,10 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
 /* ------------------------------------------------------------------ */
 
 /** Input packet handling */
-struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, uint32_t hclk )
+struct netif* stm32_emac_if_setup( const uint8_t *hw_addr )
 {
 	//Create NETIF interface
-	if( ethernet_init( hclk, phy_addr ) )
+	if( ethernet_init( ETH_DRV_HCLK_HZ, ETH_DRV_PHY_ADDR ) )
 	{
 		return NULL;
 	}
@@ -1281,7 +1284,6 @@ struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, ui
 	    return NULL;
 	}
 	memset(nifc, 0, sizeof(struct netif));
-	g_phy_address = phy_addr;
 	eth_mac_address_config(ETH_MAC_Address0, hw_addr);
 	/* set MAC hardware address length */
 	nifc->hwaddr_len = ETHARP_HWADDR_LEN;

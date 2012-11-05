@@ -22,7 +22,7 @@ err_t stm32_emac_if_init_callback(struct netif *netif);
  * @param [in] phy_addr Device phy address
  * @param [in] hclk HCLK core frequency
  */
-struct netif* stm32_emac_if_setup( const uint8_t *hw_addr, uint16_t phy_addr, uint32_t hclk);
+struct netif* stm32_emac_if_setup( const uint8_t *hw_addr );
 
 /* ------------------------------------------------------------------ */
 
