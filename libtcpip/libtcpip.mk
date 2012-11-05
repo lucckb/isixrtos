@@ -7,6 +7,8 @@ LWIPDIR := $(LIBTCPIP_DIR)/lwip-$(LWIP_VERSION)/src
 #Architecture dependend dir
 LWIPPORTDIR := $(LIBTCPIP_DIR)/port
 
+#Export TCPIPlib is enabled
+ISIX_TCPIPLIB_ENABLED=y
 
 #CFLAGS for hardware checksum
 CFLAGS 	 += -DISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE

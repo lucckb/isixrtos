@@ -1,8 +1,8 @@
-
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/adc_converter.cpp
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/usart_buffered.cpp
+ifeq ($(ISIX_TCPIPLIB_ENABLED),y)
 ISIXDRV_SRC    += $(ISIXDRV_DIR)/ethernetif.c
-
+endif
 ISIXDRV_INC += -I$(ISIXDRV_DIR)/include
 
 ISIXDRV_LIB = $(ISIXDRV_DIR)/libisixdrv-stm32.a
@@ -15,5 +15,3 @@ $(ISIXDRV_LIB): $(ISIXDRV_OBJS)
 
 LIBS += $(ISIXDRV_LIB)
 LIBS_OBJS += $(ISIXDRV_OBJS)
-
-
