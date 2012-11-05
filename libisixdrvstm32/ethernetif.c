@@ -1299,6 +1299,20 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
 /** Input packet handling */
 struct netif* stm32_emac_netif_create( const uint8_t *hw_addr )
 {
+
+#ifdef STM32MCU_MAJOR_TYPE_F1
+	/*
+	 * Description
+		If a WFI/WFE instruction is executed to put the system in sleep mode while the Ethernet
+		MAC master clock on the AHB bus matrix is ON and all remaining masters clocks are OFF,
+		the Ethernet DMA will be not able to perform any AHB master accesses during sleep mode.
+		Workaround
+		Enable DMA1 or DMA2 clocks in the RCC_AHBENR register before executing the
+		WFI/WFE instruction.
+	 *
+	 */
+	rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_DMA1 | RCC_AHBPeriph_DMA2, true );
+#endif
 	//Create NETIF interface
 	if( ethernet_init( ETH_DRV_HCLK_HZ, ETH_DRV_PHY_ADDR ) )
 	{
