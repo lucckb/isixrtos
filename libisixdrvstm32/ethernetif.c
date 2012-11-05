@@ -1251,7 +1251,7 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
   eth_init_3_hash_table_fltr( 0, 0 );
 
   eth_init_4_mac_fcr( 0, ETH_ZeroQuantaPause_Disable, ETH_PauseLowThreshold_Minus4,
-		  ETH_UnicastPauseFrameDetect_Disable, ETH_ReceiveFlowControl_Disable, ETH_TransmitFlowControl_Disable );
+		  ETH_UnicastPauseFrameDetect_Disable, ETH_ReceiveFlowControl_Enable, ETH_TransmitFlowControl_Enable );
 
   eth_init_5_mac_vlantr(ETH_VLANTagComparison_16Bit, 0 );
 
