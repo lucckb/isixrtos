@@ -79,7 +79,9 @@ static volatile size_t dma_rx_idx;
 //Lock semaphore for the driver
 static sem_t *netif_sem;
 //Detect event type
+#if PHY_INT_USE_INTERRUPT
 static volatile bool phy_event;
+#endif
 //Net interface copy task
 static task_t *netif_task_id;
 
@@ -445,7 +447,7 @@ static int eth_init_0_no_autonegotiate(uint16_t phy_addr, uint32_t hclk )
 	return ERR_OK;
 }
 /* ------------------------------------------------------------------ */
-
+#if 0
 static int eth_init_0_phy( uint16_t phy_addr, uint32_t hclk, uint32_t link_cfg )
 {
 	if( eth_init_0_no_autonegotiate( phy_addr, hclk ) )
@@ -531,7 +533,7 @@ static int eth_init_0_phy( uint16_t phy_addr, uint32_t hclk, uint32_t link_cfg )
 	}
 	return link_cfg;
 }
-
+#endif
 static inline void eth_init_1_mac_cr( uint32_t watchdog, uint32_t jabber, uint32_t inter_frame_gap,
 		uint32_t carrier_sense, uint32_t speed,  uint32_t receive_own, uint32_t loopback_mode,
 		uint32_t mode, uint32_t checksum_offload, uint32_t retry_transmission, uint32_t automatic_pad_crc_strip,
@@ -754,8 +756,9 @@ static err_t  ethernetif_input(struct netif *netif);
 void eth_isr_vector(void) __attribute__((__interrupt__));
 void eth_isr_vector(void)
 {
-
+#if PHY_INT_USE_INTERRUPT
 	phy_event = false;
+#endif
 	isix_sem_signal_isr( netif_sem );
 	/* Clear the Eth DMA Rx IT pending bits */
 	eth_dma_clear_it_pending_bit(ETH_DMA_IT_R);
@@ -766,7 +769,7 @@ void eth_isr_vector(void)
 /**
  *  Interrupt handler for MAC dervice
  */
-#ifdef PHY_INT_USE_INTERRUPT
+#if PHY_INT_USE_INTERRUPT
 #define DO_EXTI_HANLDLER(x) void  __attribute__((__interrupt__)) exti ## x ## _isr_vector(void)
 #define EXTI_HANDLER(x) DO_EXTI_HANLDLER( x )
 
@@ -781,41 +784,65 @@ EXTI_HANDLER(PHY_INT_EXTI_NUM)
 #undef EXTI_HANDLER
 #endif
 /* ------------------------------------------------------------------ */
+//Check the ethernet link status
+static void check_link_status( struct netif *netif )
+{
+	const uint16_t sr = eth_read_phy_register(ETH_DRV_PHY_ADDR, PHYMICSR);
+	if( sr & MICSR_LINK_INT )
+	{
+		const uint16_t bmsr = eth_read_phy_register( ETH_DRV_PHY_ADDR,  PHYBMSR  );
+		if(bmsr & BMSR_LINK_AUTONEG_COMPLETE )
+		{
+			eth_cr_set_speed_mode( (bmsr&BMSR_100M_FULL)||(bmsr&BMSR_100M_HALF),
+					(bmsr&BMSR_10M_FULL)||(bmsr&BMSR_100M_FULL) );
+			tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_up, netif, 0 );
+		}
+		else
+		{
+			tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_down, netif, 0 );
+		}
+	}
+}
+/* ------------------------------------------------------------------ */
 /* Network interrupt bottom half Linux concept of bottom halfes */
 static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 {
 	/* Enable MAC and DMA transmission and reception */
 	eth_start();
 	struct netif *netif = (struct netif*)(ifc);
+#if !PHY_INT_USE_INTERRUPT
+	tick_t link_last_call_time = 0;
+#endif
 	for(;;)
 	{
-		if( isix_sem_wait( netif_sem, ISIX_TIME_INFINITE ) == ISIX_EOK )
+#if PHY_INT_USE_INTERRUPT
+		const int rcode = isix_sem_wait( netif_sem, ISIX_TIME_INFINITE );
+#else
+		enum { LINK_CHECK_INTERVAL = 2000 };
+		const int rcode = isix_sem_wait( netif_sem, isix_ms2tick(LINK_CHECK_INTERVAL) );
+#endif
+		if( rcode == ISIX_EOK )
 		{
+#if PHY_INT_USE_INTERRUPT
 			if( phy_event )
 			{
-				const uint16_t sr = eth_read_phy_register(ETH_DRV_PHY_ADDR, PHYMICSR);
-				if( sr & MICSR_LINK_INT )
-				{
-					const uint16_t bmsr = eth_read_phy_register( ETH_DRV_PHY_ADDR,  PHYBMSR  );
-					if(bmsr & BMSR_LINK_AUTONEG_COMPLETE )
-					{
-						eth_cr_set_speed_mode( (bmsr&BMSR_100M_FULL)||(bmsr&BMSR_100M_HALF),
-								(bmsr&BMSR_10M_FULL)||(bmsr&BMSR_100M_FULL) );
-						tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_up, netif, 0 );
-					}
-					else
-					{
-						tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_down, netif, 0 );
-					}
-				}
+				check_link_status( netif );
 			}
 			else
+#endif
 			while (!(dma_rx_ring[dma_rx_idx].Status & ETH_DMARxDesc_OWN))
 			{
 				ethernetif_input( netif );
 				realloc_rx_pbufs();
 			}
 		}
+#if !PHY_INT_USE_INTERRUPT
+		if( link_last_call_time - isix_get_jiffies() > LINK_CHECK_INTERVAL )
+		{
+			check_link_status( netif );
+			link_last_call_time = isix_get_jiffies();
+		}
+#endif
 	}
 }
 /* ------------------------------------------------------------------ */
