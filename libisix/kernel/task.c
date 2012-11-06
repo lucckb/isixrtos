@@ -152,7 +152,35 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     isix_printk("New prio %d\n",new_prio);
     return ISIX_EOK;
 }
-
+/*-----------------------------------------------------------------------*/
+/* Get isix structure private data */
+void* isix_get_task_private_data( task_t *task )
+{
+	if( !task )
+		return NULL;
+	isixp_enter_critical();
+	void* d = task->prv;
+	isixp_exit_critical();
+	return d;
+}
+/*-----------------------------------------------------------------------*/
+/* Isix set private data task */
+int isix_set_task_private_data( task_t *task, void *data )
+{
+	if( !task )
+	{
+		return ISIX_EINVARG;
+	}
+	isixp_enter_critical();
+	if( task->prv )
+	{
+		isixp_exit_critical();
+		return ISIX_EINVARG;
+	}
+	task->prv = data;
+	isixp_exit_critical();
+	return ISIX_EOK;
+}
 /*-----------------------------------------------------------------------*/
 //Delete task pointed by struct task
 int isix_task_delete(task_t *task)

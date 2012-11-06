@@ -45,8 +45,8 @@ typedef struct fifo_struct *sys_mbox_t;
 
 /* ------------------------------------------------------------------ */
 /* Declare system thread structure */
-struct sys_thread;
-typedef struct sys_thread *sys_thread_t;
+struct task_struct;
+typedef struct task_struct* sys_thread_t;
 
 /* ------------------------------------------------------------------ */
 /*Declare system protect structure */

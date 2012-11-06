@@ -13,60 +13,26 @@
 #include "lwip/timers.h"
 
 /* ------------------------------------------------------------------ */
-
-//Default task structure
-static struct sys_thread *threads = NULL;
-
 //Semaphore for locking the mempool
 static sem_t* arch_protect_sem;
 
-/* ------------------------------------------------------------------ */
-struct sys_thread
-{
-  struct sys_thread *next;
-  struct sys_timeo timeouts;
-  task_t *task;
-};
 
 /* ------------------------------------------------------------------ */
 //Create basic thread structure for LWIP
-static struct sys_thread* introduce_thread(task_t *task)
+static task_t* introduce_thread(task_t *task)
 {
-	struct sys_thread *thread;
-    thread = isix_alloc(sizeof(struct sys_thread));
-    if(thread)
+	struct sys_timeo *sto = isix_alloc(sizeof(struct sys_timeo));
+    if(sto)
     {
-        thread->next = NULL;
-        thread->timeouts.next = NULL;
-        thread->task = task;
+        memset(sto, 0, sizeof(struct sys_timeo));
     }
-    if(threads==NULL)
+    if( isix_set_task_private_data( task, sto ) != ISIX_EOK )
     {
-        threads = thread;
+    	isix_free( sto );
+    	return NULL;
     }
-    else
-    {
-        struct sys_thread *st;
-        for(st=threads;st->next!=NULL;st=st->next);
-        st->next = thread;
-    }
-    return thread;
+    return task;
 }
-
-/* ------------------------------------------------------------------ */
-/* Return current thread with per process timeouts */
-static struct sys_thread * current_thread(void)
-{
-    struct sys_thread *st;
-    task_t *t;
-    t = isix_task_self();
-    for(st=threads;st!=NULL;st=st->next)
-    {
-        if(st->task==t) return st;
-    }
-    LWIP_ASSERT(st,"st==NULL");
-    return st;
-} 
 
 /* ------------------------------------------------------------------ */
 /** The only thread function:
@@ -79,13 +45,12 @@ static struct sys_thread * current_thread(void)
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize, int prio)
 {
     (void)name;
-	struct sys_thread *st = NULL;
     task_t* task = isix_task_create( thread, arg, stacksize, prio);
     if(task != NULL )
     {
-        st = introduce_thread(task);
+        task = introduce_thread(task);
     }
-    return st;
+    return task;
 }
 
 
@@ -149,11 +114,9 @@ u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 */
 struct sys_timeo* sys_arch_timeouts(void)
 {
-    struct sys_thread *thread;
-    thread = current_thread();
-    if(thread==NULL) return NULL;
-    return &thread->timeouts;
+    return (struct sys_timeo*)isix_get_task_private_data( isix_task_self() );
 }
+
 /* ------------------------------------------------------------------ */
 /*
 Blocks the thread until a message arrives in the mailbox, but does

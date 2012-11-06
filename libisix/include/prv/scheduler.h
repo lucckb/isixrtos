@@ -40,6 +40,7 @@ struct task_struct
     task_ready_t *prio_elem;    	//Pointer to own prio list
     list_t inode_sem;           	//Inode of semaphore
     sem_t   *sem;               	//Pointer to waiting sem
+    void    *prv;					//Private data pointer for extra data
     list_t inode;               	//List of tasks
 };
 /*-----------------------------------------------------------------------*/

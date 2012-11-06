@@ -9,7 +9,7 @@ namespace isix {
 /*-----------------------------------------------------------------------*/
 #include <isix/types.h>
 #include <isix/scheduler.h>
-
+#include <isix/memory.h>
 /*-----------------------------------------------------------------------*/
 #ifndef __cplusplus
 //!Definition of task function in C mode
@@ -57,6 +57,25 @@ int isix_task_delete(task_t *task);
  */
 task_t* isix_task_self(void);
 
+
+/*-----------------------------------------------------------------------*/
+/* Isix set private data task
+ * This function assign private data to the current task control block
+ * The data can be assigned only once. The memory is managed manualy
+ * and it should be deletede before task deletion
+ * @param [in] task Task control object
+ * @param [in] data Private data pointer assigned to the task
+ * @return ISIX_EOK if success, ISIX_EINVAL when pointer is already assigned */
+int isix_set_task_private_data( task_t *task, void *data );
+
+/*-----------------------------------------------------------------------*/
+/* Get isix structure private data
+ * Get the isix private data pointer asigned to the task
+ * @param [in] task Task control object
+ * @return private data pointer
+ * */
+void* isix_get_task_private_data( task_t *task );
+
 /*-----------------------------------------------------------------------*/
 /** Check of the available stack space
  * @param[in] task Task control block
@@ -67,6 +86,24 @@ size_t isix_free_stack_space(const task_t *task);
 #endif
 
 /*-----------------------------------------------------------------------*/
+
+#ifdef WITH_ISIX_TCPIP_LIB
+task_t* sys_thread_new(const char *name, task_func_ptr_t thread,  void *arg, int stacksize, int prio);
+/* Isix task create TCPIP version for usage with the TCPIP stack */
+static inline task_t* isix_task_create_tcpip(task_func_ptr_t task_func, void *func_param, unsigned long stack_depth, prio_t priority)
+{
+	return sys_thread_new( NULL, task_func, func_param, stack_depth, priority );
+}
+
+/* Isix task delete TCPIP version */
+static inline int isix_task_delete_tcpip(task_t *task)
+{
+	void *prv = isix_get_task_private_data( task );
+	int ret = isix_task_delete( task );
+	isix_free( prv );
+	return ret;
+}
+#endif
 
 #ifdef __cplusplus
 }	//end namespace
@@ -87,10 +124,20 @@ public:
 	 * @param[in] stack_depth Stack depth of the thread/task
 	 * @param[in] priority Thread/task priority
 	 */
+#ifdef WITH_ISIX_TCPIP_LIB
+	explicit task_base(std::size_t stack_depth, prio_t priority, bool tcpip=false)
+	{
+		if(tcpip)
+			task_id = isix_task_create_tcpip( start_task, this, stack_depth, priority );
+		else
+			task_id = isix_task_create( start_task, this, stack_depth, priority );
+	}
+#else
 	explicit task_base(std::size_t stack_depth, prio_t priority)
 	{
 		task_id = isix_task_create( start_task, this, stack_depth, priority );
 	}
+#endif
 	//! Destruct the task/thread object
 	virtual ~task_base()
 	{
@@ -120,7 +167,6 @@ private:
 private:
 	task_t *task_id;
 };
-
 
 /*-----------------------------------------------------------------------*/
 }
