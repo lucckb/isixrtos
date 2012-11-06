@@ -23,6 +23,7 @@
 //Create semaphore
 sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
 {
+	const bool static_mem = (sem!=NULL);
 	if(limit_val<0)
 	{
 		return NULL;
@@ -33,7 +34,7 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
         if(sem==NULL) return NULL;
     }
     memset(sem,0,sizeof(sem_t));
-    sem->static_mem = sem!=NULL?true:false;
+    sem->static_mem = static_mem;
     sem->value = val;
     sem->limit_value = limit_val;
     //Set sem type
