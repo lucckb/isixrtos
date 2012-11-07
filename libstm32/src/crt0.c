@@ -616,7 +616,11 @@ void reset_handler(void)
 
 /*----------------------------------------------------------*/
 //EXTI pending register for route interrupt
+#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#define EXTI_PR (*((volatile unsigned long*)(0x40000000 + 0x00010000 + 0x3C00 + 0x14)))
+#else
 #define EXTI_PR (*((volatile unsigned long*)(0x40010400+0x14)))
+#endif
 #define EXTI_PEND( flags, inp ) ((flags) & (1<<(inp)))
 
 /************* EMULATED EXTI HANDLERS ***********************/
