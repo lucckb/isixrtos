@@ -630,7 +630,7 @@ static inline bool eth_get_software_reset_status(void)
 
 /* ------------------------------------------------------------------ */
 /** Reallocat receive buffers */
-static void realloc_rx_pbufs(void)
+static int realloc_rx_pbufs(void)
 {
   static int idx = 0;
 
@@ -643,8 +643,8 @@ static void realloc_rx_pbufs(void)
        *	Allocate PBUF RX buffer PBUF_POOL as single part
        */
     	rx_buff[idx].pbuf = pbuf_alloc(PBUF_RAW, PBUF_POOL_BUFSIZE,PBUF_POOL );
-      if ( rx_buff[idx].pbuf == NULL )
-        return;
+    	if ( rx_buff[idx].pbuf == NULL )
+    		return ERR_MEM;
     }
     rx_buff[idx].used = false;
     dma_rx_buffer_set(&dma_rx_ring[idx], rx_buff[idx].pbuf);
@@ -653,6 +653,7 @@ static void realloc_rx_pbufs(void)
     else
       ++idx;
   }
+  return ERR_OK;
 }
 
 
@@ -746,7 +747,12 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 			while (!(dma_rx_ring[dma_rx_idx].Status & ETH_DMARxDesc_OWN))
 			{
 				ethernetif_input( netif );
-				realloc_rx_pbufs();
+				while( realloc_rx_pbufs() )
+				{
+					//If no more pbufs wait for  release it by stack
+					//LWIP doesn't provide any signaling in this case
+					isix_wait_ms( 10 );
+				}
 			}
 		}
 #if !PHY_INT_USE_INTERRUPT
