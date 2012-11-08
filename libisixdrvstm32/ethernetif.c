@@ -15,6 +15,7 @@
 #include <stm32system.h>
 #include <stm32rcc.h>
 #include <stm32exti.h>
+#include <stm32bitbang.h>
 #include "ethernetif.h"
 
 /* ------------------------------------------------------------------ */
@@ -53,8 +54,8 @@
 /* ------------------------------------------------------------------ */
 
 enum { ETH_RXBUFNB = 4 };
-enum { ETH_TXBUFNB = 2 };
-enum { TX_BUFFER_SIZE = ETH_MAX_PACKET_SIZE + VLAN_TAG - ETH_CRC };
+enum { ETH_TXBUFNB = 16 };
+
 
 /* ------------------------------------------------------------------ */
 struct drv_rx_buff_s
@@ -69,7 +70,7 @@ static ETH_DMADESCTypeDef  dma_rx_ring[ETH_RXBUFNB];
 static ETH_DMADESCTypeDef  dma_tx_ring[ETH_TXBUFNB];
 
 //Global buffers for trx frames
-static uint8_t tx_buff[ETH_TXBUFNB][TX_BUFFER_SIZE];
+static struct pbuf* 		tx_buff[ETH_TXBUFNB];
 static struct drv_rx_buff_s rx_buff[ETH_RXBUFNB];
 
 //Ring descriptor identifier
@@ -78,13 +79,20 @@ static volatile size_t dma_rx_idx;
 
 //Lock semaphore for the driver
 static sem_t *netif_sem;
-//Detect event type
-#if PHY_INT_USE_INTERRUPT
-static volatile bool phy_event;
-#endif
+
+//TCPIP task event type
+static unsigned ethif_events;
+
 //Net interface copy task
 static task_t *netif_task_id;
-
+/* ------------------------------------------------------------------ */
+//Ethernet if task event
+enum ethif_events_e
+{
+	ETHIF_EVENT_PHY_BIT,
+	ETHIF_EVENT_EMAC_RX_BIT,
+	ETHIF_EVENT_EMAC_TX_BIT
+};
 
 /* ------------------------------------------------------------------ */
 //PHY registers and bits
@@ -180,26 +188,7 @@ static int eth_read_phy_register(uint16_t phy_address, uint16_t phy_reg )
   return ERR_IF;
 }
 
-/* ------------------------------------------------------------------ */
-/* Initialize allocation of RX buffers in the ethernet driver */
-static int alloc_rx_pbufs(void)
-{
-  for (int i = 0; i < ETH_RXBUFNB; ++i)
-  {
-    rx_buff[i].used = false;
-    /*
-     *  Initial allocation of rx buff
-     */
-    rx_buff[i].pbuf = pbuf_alloc(PBUF_RAW, PBUF_POOL_BUFSIZE, PBUF_POOL);
-    if (rx_buff[i].pbuf == NULL)
-    {
-      for (int j = i - 1; j >= 0; --j)
-        pbuf_free(rx_buff[i].pbuf);
-      return ERR_MEM;
-    }
-  }
-  return ERR_OK;
-}
+
 /* ------------------------------------------------------------------ */
 /**
   * @brief  Clears the ETHERNETs DMA IT pending bit.
@@ -376,6 +365,35 @@ static inline void eth_dma_it_config(uint32_t ETH_DMA_IT, bool enable )
     /* Disable the selected ETHERNET DMA interrupts */
     ETH->DMAIER &=(~(uint32_t)ETH_DMA_IT);
   }
+}
+/* ------------------------------------------------------------------ */
+/**
+  * @brief  Checks whether the specified ETHERNET DMA interrupt has occured or not.
+  * @param  ETH_DMA_IT: specifies the interrupt source to check.
+  *   This parameter can be one of the following values:
+  *     @arg ETH_DMA_IT_TST : Time-stamp trigger interrupt
+  *     @arg ETH_DMA_IT_PMT : PMT interrupt
+  *     @arg ETH_DMA_IT_MMC : MMC interrupt
+  *     @arg ETH_DMA_IT_NIS : Normal interrupt summary
+  *     @arg ETH_DMA_IT_AIS : Abnormal interrupt summary
+  *     @arg ETH_DMA_IT_ER  : Early receive interrupt
+  *     @arg ETH_DMA_IT_FBE : Fatal bus error interrupt
+  *     @arg ETH_DMA_IT_ET  : Early transmit interrupt
+  *     @arg ETH_DMA_IT_RWT : Receive watchdog timeout interrupt
+  *     @arg ETH_DMA_IT_RPS : Receive process stopped interrupt
+  *     @arg ETH_DMA_IT_RBU : Receive buffer unavailable interrupt
+  *     @arg ETH_DMA_IT_R   : Receive interrupt
+  *     @arg ETH_DMA_IT_TU  : Underflow interrupt
+  *     @arg ETH_DMA_IT_RO  : Overflow interrupt
+  *     @arg ETH_DMA_IT_TJT : Transmit jabber timeout interrupt
+  *     @arg ETH_DMA_IT_TBU : Transmit buffer unavailable interrupt
+  *     @arg ETH_DMA_IT_TPS : Transmit process stopped interrupt
+  *     @arg ETH_DMA_IT_T   : Transmit interrupt
+  * @retval The new state of ETH_DMA_IT (SET or RESET).
+  */
+static inline bool eth_get_dma_it_status(uint32_t ETH_DMA_IT)
+{
+  return (ETH->DMASR & ETH_DMA_IT)?true:false;
 }
 
 /* ------------------------------------------------------------------ */
@@ -656,7 +674,61 @@ static int realloc_rx_pbufs(void)
   return ERR_OK;
 }
 
-
+/* ------------------------------------------------------------------ */
+/* Initialize allocation of RX buffers in the ethernet driver */
+static int alloc_rx_pbufs(void)
+{
+  for (int i = 0; i < ETH_RXBUFNB; ++i)
+  {
+    rx_buff[i].used = false;
+    /*
+     *  Initial allocation of rx buff
+     */
+    rx_buff[i].pbuf = pbuf_alloc(PBUF_RAW, PBUF_POOL_BUFSIZE, PBUF_POOL);
+    if (rx_buff[i].pbuf == NULL)
+    {
+      for (int j = i - 1; j >= 0; --j)
+        pbuf_free(rx_buff[i].pbuf);
+      return ERR_MEM;
+    }
+  }
+  return ERR_OK;
+}
+/* ------------------------------------------------------------------ */
+/* Free Tx buffers */
+static void free_tx_pbufs(void)
+{
+  for (int i = 0; i < ETH_TXBUFNB; ++i)
+  {
+    if (tx_buff[i] && (dma_tx_ring[i].Status & ETH_DMATxDesc_OWN) == 0)
+    {
+      //if (DMAtxRing[i].Status & ETH_DMATxDesc_ES)
+       // ((struct ethnetif *)netif->state)->TX_errors++;
+      pbuf_free(tx_buff[i]);
+      tx_buff[i] = NULL;
+    }
+  }
+}
+/* ------------------------------------------------------------------ */
+static void dma_tx_pbuf_set(ETH_DMADESCTypeDef *tx_desc, struct pbuf *p) {
+  /* Zakładamy, że łańcuch buforów ma długość co najwyżej dwa i dane
+     do wysłania można opisać w jednym deskryptorze, więc jest to
+     pierwszy (bit FS) i ostatni segment (bit LS). Poinformuj
+     przerwaniem o zakończeniu transmisji - ustaw bit IC. Zwróć bufor
+     do DMA - ustaw bit OWN. */
+  tx_desc->ControlBufferSize = (uint32_t)p->len & ETH_DMATxDesc_TBS1;
+  tx_desc->Buffer1Addr = (uint32_t)p->payload;
+  if (p->tot_len > p->len)
+  {
+    p = p->next;
+    tx_desc->ControlBufferSize |= ((uint32_t)p->len << 16) & ETH_DMATxDesc_TBS2;
+    tx_desc->Buffer2NextDescAddr = (uint32_t)(p->payload);
+  }
+  else
+	  tx_desc->Buffer2NextDescAddr = 0;
+  tx_desc->Status |= ETH_DMATxDesc_IC | ETH_DMATxDesc_FS |
+                    ETH_DMATxDesc_LS | ETH_DMATxDesc_OWN;
+}
 /* ------------------------------------------------------------------ */
 /* Forward declarations. */
 static err_t  ethernetif_input(struct netif *netif);
@@ -670,12 +742,22 @@ static err_t  ethernetif_input(struct netif *netif);
 void eth_isr_vector(void) __attribute__((__interrupt__));
 void eth_isr_vector(void)
 {
-#if PHY_INT_USE_INTERRUPT
-	phy_event = false;
-#endif
-	isix_sem_signal_isr( netif_sem );
-	/* Clear the Eth DMA Rx IT pending bits */
-	eth_dma_clear_it_pending_bit(ETH_DMA_IT_R);
+	if( eth_get_dma_it_status(ETH_DMA_IT_R ) )
+	{
+		/* Signal thread driver */
+		setBit_BB( &ethif_events, ETHIF_EVENT_EMAC_RX_BIT);
+		isix_sem_signal_isr( netif_sem );
+		/* Clear the Eth DMA Rx IT pending bits */
+		eth_dma_clear_it_pending_bit(ETH_DMA_IT_R);
+	}
+	if( eth_get_dma_it_status(ETH_DMA_IT_T ) )
+	{
+		/* Signal thread driver */
+		setBit_BB( &ethif_events, ETHIF_EVENT_EMAC_TX_BIT);
+		isix_sem_signal_isr( netif_sem );
+		/* Clear the Eth DMA Rx IT pending bits */
+		eth_dma_clear_it_pending_bit(ETH_DMA_IT_T);
+	}
 	eth_dma_clear_it_pending_bit(ETH_DMA_IT_NIS);
 }
 
@@ -689,7 +771,7 @@ void eth_isr_vector(void)
 
 EXTI_HANDLER(PHY_INT_EXTI_NUM)
 {
-	phy_event = true;
+	setBit_BB( &ethif_events, ETHIF_EVENT_PHY_BIT );
 	isix_sem_signal_isr( netif_sem );
 	exti_clear_it_pending_bit( PHY_INT_EXTI_LINENUM(PHY_INT_EXTI_NUM) );
 }
@@ -738,12 +820,18 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 		if( rcode == ISIX_EOK )
 		{
 #if PHY_INT_USE_INTERRUPT
-			if( phy_event )
+			if( getBit_BB(&ethif_events, ETHIF_EVENT_PHY_BIT) )
 			{
 				check_link_status( netif );
 			}
-			else
 #endif
+			//If TX int
+			if( getBit_BB(&ethif_events, ETHIF_EVENT_EMAC_TX_BIT) )
+			{
+				free_tx_pbufs();
+			}
+			//If RX int
+			if( getBit_BB(&ethif_events, ETHIF_EVENT_EMAC_RX_BIT) )
 			while (!(dma_rx_ring[dma_rx_idx].Status & ETH_DMARxDesc_OWN))
 			{
 				ethernetif_input( netif );
@@ -754,6 +842,8 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 					isix_wait_ms( 10 );
 				}
 			}
+			//Clear ethif events
+			resetBitsAll_BB( &ethif_events );
 		}
 #if !PHY_INT_USE_INTERRUPT
 		if( link_last_call_time - isix_get_jiffies() > LINK_CHECK_INTERVAL )
@@ -776,7 +866,7 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 static int low_level_init(struct netif *netif)
 {
 
-  /* Configure TX descriptors */
+  /* ---------------------> Configure TX descriptors */
   dma_tx_idx = 0;
   for (int i = 0; i < ETH_TXBUFNB; ++i)
   {
@@ -786,13 +876,13 @@ static int low_level_init(struct netif *netif)
     dma_tx_ring[i].Status = 0;
 #endif
     dma_tx_ring[i].ControlBufferSize = 0;
-    dma_tx_ring[i].Buffer1Addr = (uint32_t)tx_buff[i];
+    dma_tx_ring[i].Buffer1Addr = 0;
     dma_tx_ring[i].Buffer2NextDescAddr = 0;
   }
   dma_tx_ring[ETH_TXBUFNB - 1].Status |= ETH_DMATxDesc_TER;
   ETH->DMATDLAR = (uint32_t)dma_tx_ring;
 
-  /* Initialize Rx Descriptors list: Chain Mode  */
+  /*-------------> Initialize Rx Descriptors list: Chain Mode  */
   for (int i = 0; i < ETH_RXBUFNB; ++i)
   {
      /* Zeruj bit ETH_DMARxDesc_DIC, aby uaktywnić przerwanie.
@@ -803,8 +893,8 @@ static int low_level_init(struct netif *netif)
   dma_rx_ring[ETH_RXBUFNB - 1].ControlBufferSize |= ETH_DMARxDesc_RER;
   ETH->DMARDLAR = (uint32_t)dma_rx_ring;
 
-  /* Enable the Ethernet Rx Interrupt */
-  eth_dma_it_config(ETH_DMA_IT_NIS | ETH_DMA_IT_R, ENABLE);
+  /* Enable the Ethernet Rx Tx Interrupt */
+  eth_dma_it_config(ETH_DMA_IT_NIS | ETH_DMA_IT_R | ETH_DMA_IT_T, ENABLE);
   /* Enable interrupt in NVIC */
   nvic_irq_enable( ETH_IRQn, true );
 #if PHY_INT_USE_INTERRUPT
@@ -862,38 +952,26 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	  {
 	    return ERR_ARG;
 	  }
-	  if (p->tot_len > TX_BUFFER_SIZE)
+
+	  if (pbuf_clen(p) > 2 || /* Czy wystarczy jeden deskryptor? */
+	      tx_buff[dma_tx_idx] ||
+	      dma_tx_ring[dma_tx_idx].Status & ETH_DMATxDesc_OWN)
 	  {
-	    return ERR_BUF; /* Frame not fit in dma buff */
+	    return ERR_IF;
 	  }
 
-	  if ( dma_tx_ring[dma_tx_idx].Status & ETH_DMATxDesc_OWN )
-	  {
-	    return ERR_IF; /* Descriptor is busy */
-	  }
-#if STM32_ETHERNET_USE_PARTIAL_COPY
-	  pbuf_copy_partial(p, (void *)dma_tx_ring[dma_tx_idx].Buffer1Addr, TX_BUFFER_SIZE, 0);
-#else
-	  {
-		  struct pbuf *q;
-		  int l = 0;
-		  u8 *buffer = (u8*)dma_tx_ring[dma_tx_idx].Buffer1Addr;
-		  for(q = p; q != NULL; q = q->next)
-		  {
-			  memcpy((u8_t*)&buffer[l], q->payload, q->len);
-			  l = l + q->len;
-		  }
-	  }
-#endif
-	  dma_tx_ring[dma_tx_idx].ControlBufferSize = p->tot_len & ETH_DMATxDesc_TBS1;
-	  dma_tx_ring[dma_tx_idx].Status |= ETH_DMATxDesc_FS | ETH_DMATxDesc_LS | ETH_DMATxDesc_OWN;
+	  /* To będzie działać pod warunkiem, że nie wysyłamy danych
+	     z pamięci FLASH. */
+	  pbuf_ref(p);
+	  tx_buff[dma_tx_idx] = p;
+	  dma_tx_pbuf_set(&dma_tx_ring[dma_tx_idx], p);
+
 	  /* Start trasmission again if it is interrupted */
 	  if (ETH->DMASR & ETH_DMASR_TBUS)
-	  {
-	    ETH->DMASR = ETH_DMASR_TBUS;
-	    ETH->DMATPDR = 0;
-	  }
-
+	 {
+	 	 ETH->DMASR = ETH_DMASR_TBUS;
+	 	 ETH->DMATPDR = 0;
+	 }
 	  /* Zmień deskryptor nadawczy DMA na następny w pierścieniu. */
 	  if (dma_tx_ring[dma_tx_idx].Status & ETH_DMATxDesc_TER)
 	    dma_tx_idx = 0;
@@ -1268,7 +1346,7 @@ int stm32_emac_netif_shutdown( struct netif *netif )
 	}
 	//Stop the hardware first
 	/* Enable the Ethernet Rx Interrupt */
-	eth_dma_it_config(ETH_DMA_IT_NIS | ETH_DMA_IT_R, DISABLE);
+	eth_dma_it_config(ETH_DMA_IT_NIS | ETH_DMA_IT_R | ETH_DMA_IT_T, DISABLE);
 	/* Enable interrupt in NVIC */
 	nvic_irq_enable( ETH_IRQn, false );
 #if PHY_INT_USE_INTERRUPT
