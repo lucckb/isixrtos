@@ -254,7 +254,7 @@
  * LWIP_NETIF_TX_SINGLE_PBUF==0 and only has to be > 1 with DMA-enabled MACs
  * where the packet is not yet sent when netif->output returns.
  */
-#define MEMP_NUM_FRAG_PBUF              15
+#define MEMP_NUM_FRAG_PBUF              16
 
 
 /**
@@ -282,7 +282,7 @@
  * (requires NO_SYS==0)
  */
 
-#define MEMP_NUM_SYS_TIMEOUT            8
+#define MEMP_NUM_SYS_TIMEOUT            10
 
 
 /**
@@ -379,7 +379,7 @@
  * PBUF_POOL_SIZE: the number of buffers in the pbuf pool. 
  */
 
-#define PBUF_POOL_SIZE                  12
+#define PBUF_POOL_SIZE                  14
 
 
 /*

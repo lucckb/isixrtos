@@ -710,24 +710,24 @@ static void free_tx_pbufs(void)
   }
 }
 /* ------------------------------------------------------------------ */
-static void dma_tx_pbuf_set(ETH_DMADESCTypeDef *tx_desc, struct pbuf *p) {
-  /* Zakładamy, że łańcuch buforów ma długość co najwyżej dwa i dane
-     do wysłania można opisać w jednym deskryptorze, więc jest to
-     pierwszy (bit FS) i ostatni segment (bit LS). Poinformuj
-     przerwaniem o zakończeniu transmisji - ustaw bit IC. Zwróć bufor
-     do DMA - ustaw bit OWN. */
+//DMA pbuf set
+static struct pbuf* dma_tx_pbuf_set(ETH_DMADESCTypeDef *tx_desc, struct pbuf *p, bool fs)
+{
+
   tx_desc->ControlBufferSize = (uint32_t)p->len & ETH_DMATxDesc_TBS1;
   tx_desc->Buffer1Addr = (uint32_t)p->payload;
-  if (p->tot_len > p->len)
+  if (p->next)
   {
     p = p->next;
     tx_desc->ControlBufferSize |= ((uint32_t)p->len << 16) & ETH_DMATxDesc_TBS2;
     tx_desc->Buffer2NextDescAddr = (uint32_t)(p->payload);
   }
   else
-	  tx_desc->Buffer2NextDescAddr = 0;
-  tx_desc->Status |= ETH_DMATxDesc_IC | ETH_DMATxDesc_FS |
-                    ETH_DMATxDesc_LS | ETH_DMATxDesc_OWN;
+      tx_desc->Buffer2NextDescAddr = 0;
+
+  tx_desc->Status |= ETH_DMATxDesc_IC | (fs?ETH_DMATxDesc_FS:0) |
+          (p->next?0:ETH_DMATxDesc_LS) | ETH_DMATxDesc_OWN;
+  return p->next;
 }
 /* ------------------------------------------------------------------ */
 /* Forward declarations. */
@@ -927,7 +927,20 @@ static int low_level_init(struct netif *netif)
   }
   return ERR_OK;
 }
-
+/* ------------------------------------------------------------------ */
+//Check if pbuf packet is DMA safe
+static bool is_pbuf_dma_safe( const struct pbuf *p )
+{
+	enum {SRAM_BEGIN=0x20000000, SRAM_END=0x3fffffff };
+	for ( ;p != NULL; p = p->next)
+	{
+		if(p->payload<(void*)SRAM_BEGIN || p->payload>(void*)SRAM_END )
+		{
+			return false;
+		}
+	}
+	return true;
+}
 /* ------------------------------------------------------------------ */
 /**
  * This function should do the actual transmission of the packet. The packet is
@@ -952,33 +965,45 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	  {
 	    return ERR_ARG;
 	  }
-
-	  if (pbuf_clen(p) > 2 || /* Czy wystarczy jeden deskryptor? */
-	      tx_buff[dma_tx_idx] ||
-	      dma_tx_ring[dma_tx_idx].Status & ETH_DMATxDesc_OWN)
+	  const int req_descs = pbuf_clen( p ) / 2 + 1;
+	  for(int s=0,idx=dma_tx_idx; s<req_descs; s++,idx++)
 	  {
-	    return ERR_IF;
+	     if( tx_buff[idx] || dma_tx_ring[idx].Status & ETH_DMATxDesc_OWN)
+	     {
+	    	 return ERR_IF;
+	     }
+	     if(dma_tx_ring[idx].Status & ETH_DMATxDesc_TER)
+	         idx = 0;
 	  }
-
 	  /* To będzie działać pod warunkiem, że nie wysyłamy danych
-	     z pamięci FLASH. */
-	  pbuf_ref(p);
-	  tx_buff[dma_tx_idx] = p;
-	  dma_tx_pbuf_set(&dma_tx_ring[dma_tx_idx], p);
-
-	  /* Start trasmission again if it is interrupted */
-	  if (ETH->DMASR & ETH_DMASR_TBUS)
-	 {
-	 	 ETH->DMASR = ETH_DMASR_TBUS;
-	 	 ETH->DMATPDR = 0;
-	 }
-	  /* Zmień deskryptor nadawczy DMA na następny w pierścieniu. */
-	  if (dma_tx_ring[dma_tx_idx].Status & ETH_DMATxDesc_TER)
-	    dma_tx_idx = 0;
+	      z pamięci FLASH. */
+	  if( is_pbuf_dma_safe(p) )
+	  {
+		  pbuf_ref(p);
+	  }
 	  else
-	    ++dma_tx_idx;
-
-	  return ERR_OK;
+	  {
+		  struct pbuf* np = pbuf_alloc(PBUF_RAW, p->tot_len, PBUF_RAM);
+		  pbuf_copy( np, p );
+		  p = np;
+	  }
+	  for( bool first=true; p; first=false )
+	  {
+	      tx_buff[dma_tx_idx] = p;
+	      p = dma_tx_pbuf_set(&dma_tx_ring[dma_tx_idx], p, first );
+	      /* Zmień deskryptor nadawczy DMA na następny w pierścieniu. */
+	      if (dma_tx_ring[dma_tx_idx].Status & ETH_DMATxDesc_TER)
+	         dma_tx_idx = 0;
+	      else
+	         ++dma_tx_idx;
+	  }
+	  /* Start trasmission again if it is interrupted */
+	 if (ETH->DMASR & ETH_DMASR_TBUS)
+	 {
+	     ETH->DMASR = ETH_DMASR_TBUS;
+	     ETH->DMATPDR = 0;
+	 }
+	 return ERR_OK;
 }
 
 /* ------------------------------------------------------------------ */
