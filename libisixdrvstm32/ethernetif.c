@@ -975,8 +975,10 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	     if(dma_tx_ring[idx].Status & ETH_DMATxDesc_TER)
 	         idx = 0;
 	  }
-	  /* To będzie działać pod warunkiem, że nie wysyłamy danych
-	      z pamięci FLASH. */
+	  /* This is the flash safe version. DMA can access only RAM memory
+	   * so if the PBUF packet is in ROM memory, PBUF must be copied to
+	   * the RAM
+	   */
 	  if( is_pbuf_dma_safe(p) )
 	  {
 		  pbuf_ref(p);
