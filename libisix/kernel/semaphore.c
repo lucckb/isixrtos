@@ -246,7 +246,7 @@ int isix_sem_setval(sem_t *sem, int val)
          if(sem->value > sem->limit_value)
          {
            isix_printk("Limit value to %d",sem->value);
-            sem->value = sem->limit_value;
+           sem->value = sem->limit_value;
          }
     }
     isixp_exit_critical();
