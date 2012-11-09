@@ -745,7 +745,7 @@ void eth_isr_vector(void)
 	if( eth_get_dma_it_status(ETH_DMA_IT_R ) )
 	{
 		/* Signal thread driver */
-		setBit_BB( &ethif_events, ETHIF_EVENT_EMAC_RX_BIT);
+		setBit_BB( &ethif_events, ETHIF_EVENT_EMAC_RX_BIT );
 		isix_sem_signal_isr( netif_sem );
 		/* Clear the Eth DMA Rx IT pending bits */
 		eth_dma_clear_it_pending_bit(ETH_DMA_IT_R);
@@ -753,7 +753,7 @@ void eth_isr_vector(void)
 	if( eth_get_dma_it_status(ETH_DMA_IT_T ) )
 	{
 		/* Signal thread driver */
-		setBit_BB( &ethif_events, ETHIF_EVENT_EMAC_TX_BIT);
+		setBit_BB( &ethif_events, ETHIF_EVENT_EMAC_TX_BIT );
 		isix_sem_signal_isr( netif_sem );
 		/* Clear the Eth DMA Rx IT pending bits */
 		eth_dma_clear_it_pending_bit(ETH_DMA_IT_T);
@@ -942,6 +942,12 @@ static bool is_pbuf_dma_safe( const struct pbuf *p )
 	return true;
 }
 /* ------------------------------------------------------------------ */
+//Convert puf to req desc
+static inline size_t pbuf_chains_to_dma_descs_num(int pbuf_chains)
+{
+	return pbuf_chains / 2 + pbuf_chains % 2;
+}
+/* ------------------------------------------------------------------ */
 /**
  * This function should do the actual transmission of the packet. The packet is
  * contained in the pbuf that is passed to the function. This pbuf
@@ -965,7 +971,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	  {
 	    return ERR_ARG;
 	  }
-	  const int req_descs = pbuf_clen( p ) / 2 + 1;
+	  const int req_descs = pbuf_chains_to_dma_descs_num( pbuf_clen( p ) );
 	  for(int s=0,idx=dma_tx_idx; s<req_descs; s++,idx++)
 	  {
 	     if( tx_buff[idx] || dma_tx_ring[idx].Status & ETH_DMATxDesc_OWN)
