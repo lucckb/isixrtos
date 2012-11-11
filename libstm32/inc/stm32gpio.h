@@ -177,7 +177,7 @@ static inline int gpio_abstract_config(GPIO_TypeDef* port, uint8_t bit, enum e_a
  * @param[in] conf Current port configuration
  * @param[in] speed Port speed in output mode
  * @result success or failure */
-static inline int gpio_abstract_config_ext(GPIO_TypeDef* port, uint8_t bit, enum e_abstract_gpio_config conf,
+static inline int gpio_abstract_config_ext(GPIO_TypeDef* port, uint16_t bit, enum e_abstract_gpio_config conf,
 		enum e_abstract_gpio_speed speed  )
 {
 	for(unsigned i=0; i<16; i++)
