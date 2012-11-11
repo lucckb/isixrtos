@@ -89,59 +89,18 @@ static const uint8_t  *USBD_cdc_GetCfgDesc (uint8_t speed, uint16_t *length);
 #ifdef USE_USB_OTG_HS  
 static uint8_t  *USBD_cdc_GetOtherCfgDesc (uint8_t speed, uint16_t *length);
 #endif
-/**
-  * @}
-  */ 
 
-/** @defgroup usbd_cdc_Private_Variables
-  * @{
-  */ 
+/* ------------------------------------------------------------------ */
 static const CDC_IF_Prop_TypeDef  *app_pfops;
 
 #define APP_FOPS (*app_pfops)
 
-
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-__ALIGN_BEGIN  static const uint8_t usbd_cdc_CfgDesc  [USB_CDC_CONFIG_DESC_SIZ] __ALIGN_END ;
-
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
+/* ------------------------------------------------------------------ */
+__ALIGN_BEGIN static const uint8_t usbd_cdc_CfgDesc  [USB_CDC_CONFIG_DESC_SIZ] __ALIGN_END ;
 __ALIGN_BEGIN static const uint8_t usbd_cdc_OtherCfgDesc  [USB_CDC_CONFIG_DESC_SIZ] __ALIGN_END ;
-
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 __ALIGN_BEGIN static __IO uint32_t  usbd_cdc_AltSet  __ALIGN_END = 0;
-
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 __ALIGN_BEGIN static uint8_t USB_Rx_Buffer   [CDC_DATA_MAX_PACKET_SIZE] __ALIGN_END ;
-
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 __ALIGN_BEGIN static uint8_t APP_Rx_Buffer   [APP_RX_DATA_SIZE] __ALIGN_END ;
-
-
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 __ALIGN_BEGIN static uint8_t CmdBuff[CDC_CMD_PACKET_SZE] __ALIGN_END ;
 
 static uint32_t APP_Rx_ptr_in  = 0;
@@ -153,6 +112,7 @@ static uint8_t  USB_Tx_State = 0;
 static uint32_t cdcCmd = 0xFF;
 static uint32_t cdcLen = 0;
 
+/* ------------------------------------------------------------------ */
 /* CDC interface class callbacks structure */
 static const USBD_Class_cb_TypeDef  USBD_CDC_cb =
 {
@@ -171,19 +131,15 @@ static const USBD_Class_cb_TypeDef  USBD_CDC_cb =
   USBD_cdc_GetOtherCfgDesc, /* use same cobfig as per FS */
 #endif /* USE_USB_OTG_HS  */
 };
+/*---------------------------------------------------------------------------*/
 
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 /* USB CDC device Configuration Descriptor */
 __ALIGN_BEGIN static const uint8_t usbd_cdc_CfgDesc[USB_CDC_CONFIG_DESC_SIZ]  __ALIGN_END =
 {
   /*Configuration Descriptor*/
   0x09,   /* bLength: Configuration Descriptor size */
   USB_CONFIGURATION_DESCRIPTOR_TYPE,      /* bDescriptorType: Configuration */
-  USB_CDC_CONFIG_DESC_SIZ,                /* wTotalLength:no of retuAPP_FOPSrned bytes */
+  USB_CDC_CONFIG_DESC_SIZ,                /* wTotalLength:no of returned bytes */
   0x00,
   0x02,   /* bNumInterfaces: 2 interface */
   0x01,   /* bConfigurationValue: Configuration value */
@@ -191,7 +147,6 @@ __ALIGN_BEGIN static const uint8_t usbd_cdc_CfgDesc[USB_CDC_CONFIG_DESC_SIZ]  __
   0xC0,   /* bmAttributes: self powered */
   0x32,   /* MaxPower 0 mA */
   
-  /*---------------------------------------------------------------------------*/
   
   /*Interface Descriptor */
   0x09,   /* bLength: Interface Descriptor size */
@@ -378,14 +333,14 @@ __ALIGN_BEGIN static const uint8_t usbd_cdc_OtherCfgDesc[USB_CDC_CONFIG_DESC_SIZ
 
 
 
-
+/*---------------------------------------------------------------------------*/
 const USBD_Class_cb_TypeDef* cdc_class_init( const CDC_IF_Prop_TypeDef  *app_fops )
 {
 	app_pfops = app_fops;
 	return &USBD_CDC_cb;
 }
 
-
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  usbd_cdc_Init
   *         Initilaize the CDC interface
@@ -432,6 +387,7 @@ static uint8_t  usbd_cdc_Init (void  *pdev, uint8_t cfgidx)
   return USBD_OK;
 }
 
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  usbd_cdc_Init
   *         DeInitialize the CDC layer
@@ -460,6 +416,7 @@ static uint8_t  usbd_cdc_DeInit (void  *pdev, uint8_t cfgidx)
   return USBD_OK;
 }
 
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  usbd_cdc_Setup
   *         Handle the CDC specific requests
@@ -475,7 +432,7 @@ static uint8_t  usbd_cdc_Setup (void  *pdev,
   
   switch (req->bmRequest & USB_REQ_TYPE_MASK)
   {
-    /* CDC Class Requests -------------------------------*/
+    /* CDC Class Requests */
   case USB_REQ_TYPE_CLASS :
       /* Check if the request is a data setup packet */
       if (req->wLength)
@@ -519,7 +476,7 @@ static uint8_t  usbd_cdc_Setup (void  *pdev,
     
       
       
-    /* Standard Requests -------------------------------*/
+    /* Standard Requests */
   case USB_REQ_TYPE_STANDARD:
     switch (req->bRequest)
     {
@@ -561,6 +518,7 @@ static uint8_t  usbd_cdc_Setup (void  *pdev,
   return USBD_OK;
 }
 
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  usbd_cdc_EP0_RxReady
   *         Data received on control endpoint
@@ -582,6 +540,7 @@ static uint8_t  usbd_cdc_EP0_RxReady (void  *pdev)
   return USBD_OK;
 }
 
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  usbd_audio_DataIn
   *         Data sent on non-control IN endpoint
@@ -630,6 +589,7 @@ static uint8_t  usbd_cdc_DataIn (void *pdev, uint8_t epnum)
   return USBD_OK;
 }
 
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  usbd_cdc_DataOut
   *         Data received on non-control Out endpoint
@@ -657,6 +617,7 @@ static uint8_t  usbd_cdc_DataOut (void *pdev, uint8_t epnum)
   return USBD_OK;
 }
 
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  usbd_audio_SOF
   *         Start Of Frame event management
@@ -680,6 +641,7 @@ static uint8_t  usbd_cdc_SOF (void *pdev)
   return USBD_OK;
 }
 
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  Handle_USBAsynchXfer
   *         Send data to USB
@@ -742,7 +704,7 @@ static void Handle_USBAsynchXfer (void *pdev)
                USB_Tx_length);
   }  
 }
-
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  USBD_cdc_GetCfgDesc 
   *         Return configuration descriptor
@@ -756,7 +718,7 @@ static const uint8_t  *USBD_cdc_GetCfgDesc (uint8_t speed, uint16_t *length)
   *length = sizeof (usbd_cdc_CfgDesc);
   return usbd_cdc_CfgDesc;
 }
-
+/*---------------------------------------------------------------------------*/
 /**
   * @brief  USBD_cdc_GetCfgDesc 
   *         Return configuration descriptor
@@ -772,3 +734,4 @@ static uint8_t  *USBD_cdc_GetOtherCfgDesc (uint8_t speed, uint16_t *length)
 }
 #endif
 
+/*---------------------------------------------------------------------------*/

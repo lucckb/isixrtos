@@ -11,6 +11,7 @@
 #include <usbd_req.h>
 #include <usb_dcd_int.h>
 #include <dbglog.h>
+#include <isix.h>
 /* ------------------------------------------------------------------ */
 
 #define USBD_VID                        0x0483
@@ -47,15 +48,16 @@ static void device_connected_cb(void);
 static void device_disconnected_cb(void);
 /* ------------------------------------------------------------------ */
 //CDC class callbacks
-static uint16_t cdc_init_cb(void);
-static uint16_t cdc_deinit_cb(void);
-static uint16_t cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len);
-static uint16_t cdc_data_tx (const uint8_t* buf, uint32_t len);
-static uint16_t cdc_data_rx (uint8_t* buf, uint32_t len);
+static int cdc_init_cb(void);
+static int cdc_deinit_cb(void);
+static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len);
+static int cdc_data_tx (const uint8_t* buf, uint32_t len);
+static int cdc_data_rx (uint8_t* buf, uint32_t len);
 /* ------------------------------------------------------------------ */
 //USB dev core handle
 static USB_OTG_CORE_HANDLE    usb_otg_dev;
 
+/* ------------------------------------------------------------------ */
 //USB Device descriptor structure
 static const USBD_DEVICE usr_desc =
 {
@@ -67,7 +69,7 @@ static const USBD_DEVICE usr_desc =
 	get_configuration_str_descriptor,
 	get_interface_str_descriptor
 };
-
+/* ------------------------------------------------------------------ */
 //User device callbacks
 static const USBD_Usr_cb_TypeDef usr_cb =
 {
@@ -80,7 +82,7 @@ static const USBD_Usr_cb_TypeDef usr_cb =
 	device_disconnected_cb
 };
 
-
+/* ------------------------------------------------------------------ */
 // CDC specific class operation
 static const CDC_IF_Prop_TypeDef cdc_if_ops =
 {
@@ -91,6 +93,7 @@ static const CDC_IF_Prop_TypeDef cdc_if_ops =
 	cdc_data_rx
 };
 
+/* ------------------------------------------------------------------ */
 //Str desc buffer
 static uint8_t str_desc[USB_MAX_STR_DESC_SIZ];
 
@@ -238,33 +241,33 @@ static void device_disconnected_cb(void)
 	dbprintf("Device disconnected");
 }
 /* ------------------------------------------------------------------ */
-static uint16_t cdc_init_cb(void)
+static int cdc_init_cb(void)
 {
 	dbprintf("cdc init");
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
-static uint16_t cdc_deinit_cb(void)
+static int cdc_deinit_cb(void)
 {
 	dbprintf("cdc deinit");
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
-static uint16_t cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len)
+static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len)
 {
 	(void)buf;
 	dbprintf("cdc control %d l=%d", cmd, len);
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
-static uint16_t cdc_data_tx (const uint8_t* buf, uint32_t len)
+static int cdc_data_tx (const uint8_t* buf, uint32_t len)
 {
 	(void)buf;
 	dbprintf("cdc tx = %d", len );
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
-static uint16_t cdc_data_rx (uint8_t* buf, uint32_t len)
+static int cdc_data_rx (uint8_t* buf, uint32_t len)
 {
 	(void)buf;
 	dbprintf("cdc rx = %d", len );
@@ -275,6 +278,8 @@ static uint16_t cdc_data_rx (uint8_t* buf, uint32_t len)
 /* Initialize the USB serial module */
 int stm32_usbdev_serial_init( size_t rx_fifo_len, size_t tx_fifo_len  )
 {
+	(void)rx_fifo_len;
+	(void)tx_fifo_len;
 	USBD_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usr_desc,
 			cdc_class_init(&cdc_if_ops), &usr_cb);
 	return 0;
