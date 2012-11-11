@@ -28,47 +28,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usb_dcd_int.h"
 #include "usbd_core.h"
-/** @addtogroup USB_OTG_DRIVER
-* @{
-*/
-
-/** @defgroup USB_DCD_INT 
-* @brief This file contains the interrupt subroutines for the Device mode.
-* @{
-*/
 
 
-/** @defgroup USB_DCD_INT_Private_Defines
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USB_DCD_INT_Private_TypesDefinitions
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-
-/** @defgroup USB_DCD_INT_Private_Macros
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USB_DCD_INT_Private_Variables
-* @{
-*/ 
-/**
-* @}
-*/ 
 
 #define USBD_DCD_INT_fops USBD_Get_Device_INT_fops()
 
@@ -855,18 +816,3 @@ static uint32_t DCD_ReadDevInEP (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum)
   return v;
 }
 
-
-
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

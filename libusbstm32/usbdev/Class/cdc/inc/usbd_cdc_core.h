@@ -32,9 +32,9 @@
 
 #include  "usbd_ioreq.h"
 
-#ifndef APP_RX_DATA_SIZE
-#define APP_RX_DATA_SIZE               1024
-#endif
+//#ifndef APP_RX_DATA_SIZE
+//#define APP_RX_DATA_SIZE               1024
+//#endif
 
 #ifndef CDC_IN_EP
 #define CDC_IN_EP                       0x81  /* EP1 for data IN */
@@ -126,9 +126,9 @@ typedef struct _CDC_IF_PROP
 {
   int (*pIf_Init)     (void);
   int (*pIf_DeInit)   (void);
-  int (*pIf_Ctrl)     (uint32_t Cmd, uint8_t* Buf, uint32_t Len);
-  int (*pIf_DataTx)   (const uint8_t* Buf, uint32_t Len);
-  int (*pIf_DataRx)   (uint8_t* Buf, uint32_t Len);
+  int (*pIf_Ctrl)     (uint32_t cmd, uint8_t* buf, uint32_t len);
+  int (*pIf_DataTx)   (const uint8_t** buf, uint32_t len);
+  int (*pIf_DataRx)   (const uint8_t* buf, uint32_t len);
 }
 CDC_IF_Prop_TypeDef;
 

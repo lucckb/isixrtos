@@ -51,8 +51,8 @@ static void device_disconnected_cb(void);
 static int cdc_init_cb(void);
 static int cdc_deinit_cb(void);
 static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len);
-static int cdc_data_tx (const uint8_t* buf, uint32_t len);
-static int cdc_data_rx (uint8_t* buf, uint32_t len);
+static int cdc_data_tx (const uint8_t** buf, uint32_t len);
+static int cdc_data_rx (const uint8_t* buf, uint32_t len);
 /* ------------------------------------------------------------------ */
 //USB dev core handle
 static USB_OTG_CORE_HANDLE    usb_otg_dev;
@@ -96,7 +96,6 @@ static const CDC_IF_Prop_TypeDef cdc_if_ops =
 /* ------------------------------------------------------------------ */
 //Str desc buffer
 static uint8_t str_desc[USB_MAX_STR_DESC_SIZ];
-
 
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_device_descriptor( uint8_t speed , uint16_t *length )
@@ -260,21 +259,21 @@ static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len)
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
-static int cdc_data_tx (const uint8_t* buf, uint32_t len)
+static int cdc_data_tx (const uint8_t** buf, uint32_t len)
 {
-	(void)buf;
-	dbprintf("cdc tx = %d", len );
+	*buf = NULL;
+	//dbprintf("cdc tx = %d", len );
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
-static int cdc_data_rx (uint8_t* buf, uint32_t len)
+static int cdc_data_rx (const uint8_t* buf, uint32_t len)
 {
 	(void)buf;
 	dbprintf("cdc rx = %d", len );
 	return USBD_OK;
 }
-/* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
 /* Initialize the USB serial module */
 int stm32_usbdev_serial_init( size_t rx_fifo_len, size_t tx_fifo_len  )
 {
@@ -284,10 +283,10 @@ int stm32_usbdev_serial_init( size_t rx_fifo_len, size_t tx_fifo_len  )
 			cdc_class_init(&cdc_if_ops), &usr_cb);
 	return 0;
 }
-
 /* ------------------------------------------------------------------ */
 //OTG interrupt ISR vector
 void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 {
 	USBD_OTG_ISR_Handler(&usb_otg_dev);
 }
+/* ------------------------------------------------------------------ */

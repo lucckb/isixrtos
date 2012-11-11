@@ -809,17 +809,5 @@ static uint32_t USB_OTG_USBH_handle_IncompletePeriodicXfer_ISR (USB_OTG_CORE_HAN
   return 1;
 }
 
-/**
-* @}
-*/ 
 
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

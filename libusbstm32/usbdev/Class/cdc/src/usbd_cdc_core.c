@@ -96,19 +96,21 @@ static const CDC_IF_Prop_TypeDef  *app_pfops;
 #define APP_FOPS (*app_pfops)
 
 /* ------------------------------------------------------------------ */
-__ALIGN_BEGIN static const uint8_t usbd_cdc_CfgDesc  [USB_CDC_CONFIG_DESC_SIZ] __ALIGN_END ;
-__ALIGN_BEGIN static const uint8_t usbd_cdc_OtherCfgDesc  [USB_CDC_CONFIG_DESC_SIZ] __ALIGN_END ;
+
 __ALIGN_BEGIN static __IO uint32_t  usbd_cdc_AltSet  __ALIGN_END = 0;
 __ALIGN_BEGIN static uint8_t USB_Rx_Buffer   [CDC_DATA_MAX_PACKET_SIZE] __ALIGN_END ;
-__ALIGN_BEGIN static uint8_t APP_Rx_Buffer   [APP_RX_DATA_SIZE] __ALIGN_END ;
+//__ALIGN_BEGIN static uint8_t APP_Rx_Buffer   [APP_RX_DATA_SIZE] __ALIGN_END ;
 __ALIGN_BEGIN static uint8_t CmdBuff[CDC_CMD_PACKET_SZE] __ALIGN_END ;
 
+
+/*
 static uint32_t APP_Rx_ptr_in  = 0;
 static uint32_t APP_Rx_ptr_out = 0;
 static uint32_t APP_Rx_length  = 0;
 
 static uint8_t  USB_Tx_State = 0;
 
+*/
 static uint32_t cdcCmd = 0xFF;
 static uint32_t cdcLen = 0;
 
@@ -233,11 +235,7 @@ __ALIGN_BEGIN static const uint8_t usbd_cdc_CfgDesc[USB_CDC_CONFIG_DESC_SIZ]  __
 } ;
 
 #ifdef USE_USB_OTG_HS
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */ 
+
 __ALIGN_BEGIN static const uint8_t usbd_cdc_OtherCfgDesc[USB_CDC_CONFIG_DESC_SIZ]  __ALIGN_END =
 { 
   0x09,   /* bLength: Configuation Descriptor size */
@@ -550,42 +548,18 @@ static uint8_t  usbd_cdc_EP0_RxReady (void  *pdev)
   */
 static uint8_t  usbd_cdc_DataIn (void *pdev, uint8_t epnum)
 {
-  (void)epnum;
-  uint16_t USB_Tx_ptr;
-  uint16_t USB_Tx_length;
-
-  if (USB_Tx_State == 1)
-  {
-    if (APP_Rx_length == 0) 
-    {
-      USB_Tx_State = 0;
-    }
-    else 
-    {
-      if (APP_Rx_length > CDC_DATA_IN_PACKET_SIZE){
-        USB_Tx_ptr = APP_Rx_ptr_out;
-        USB_Tx_length = CDC_DATA_IN_PACKET_SIZE;
-        
-        APP_Rx_ptr_out += CDC_DATA_IN_PACKET_SIZE;
-        APP_Rx_length -= CDC_DATA_IN_PACKET_SIZE;    
-      }
-      else 
-      {
-        USB_Tx_ptr = APP_Rx_ptr_out;
-        USB_Tx_length = APP_Rx_length;
-        
-        APP_Rx_ptr_out += APP_Rx_length;
-        APP_Rx_length = 0;
-      }
-      
-      /* Prepare the available data buffer to be sent on IN endpoint */
-      DCD_EP_Tx (pdev,
-                 CDC_IN_EP,
-                 (uint8_t*)&APP_Rx_Buffer[USB_Tx_ptr],
-                 USB_Tx_length);
-    }
-  }  
-  
+	(void)epnum;
+	const uint8_t* tx_ptr;
+	int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr, CDC_DATA_IN_PACKET_SIZE );
+	if( tx_len >0 && tx_ptr )
+	{
+		if( tx_len > CDC_DATA_IN_PACKET_SIZE )
+			tx_len = CDC_DATA_IN_PACKET_SIZE;
+#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
+     tx_len &= ~0x03;
+#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
+		DCD_EP_Tx (pdev, CDC_IN_EP, tx_ptr, tx_len );
+	 }
   return USBD_OK;
 }
 
@@ -650,59 +624,17 @@ static uint8_t  usbd_cdc_SOF (void *pdev)
   */
 static void Handle_USBAsynchXfer (void *pdev)
 {
-  uint16_t USB_Tx_ptr;
-  uint16_t USB_Tx_length;
-  
-  if(USB_Tx_State != 1)
+  const uint8_t* tx_ptr;
+  int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr, CDC_DATA_IN_PACKET_SIZE );
+  if( tx_len >0 && tx_ptr )
   {
-    if (APP_Rx_ptr_out == APP_RX_DATA_SIZE)
-    {
-      APP_Rx_ptr_out = 0;
-    }
-    
-    if(APP_Rx_ptr_out == APP_Rx_ptr_in) 
-    {
-      USB_Tx_State = 0; 
-      return;
-    }
-    
-    if(APP_Rx_ptr_out > APP_Rx_ptr_in) /* rollback */
-    { 
-      APP_Rx_length = APP_RX_DATA_SIZE - APP_Rx_ptr_out;
-    
-    }
-    else 
-    {
-      APP_Rx_length = APP_Rx_ptr_in - APP_Rx_ptr_out;
-     
-    }
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-     APP_Rx_length &= ~0x03;
+     tx_len &= ~0x03;
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-    
-    if (APP_Rx_length > CDC_DATA_IN_PACKET_SIZE)
-    {
-      USB_Tx_ptr = APP_Rx_ptr_out;
-      USB_Tx_length = CDC_DATA_IN_PACKET_SIZE;
-      
-      APP_Rx_ptr_out += CDC_DATA_IN_PACKET_SIZE;	
-      APP_Rx_length -= CDC_DATA_IN_PACKET_SIZE;
-    }
-    else
-    {
-      USB_Tx_ptr = APP_Rx_ptr_out;
-      USB_Tx_length = APP_Rx_length;
-      
-      APP_Rx_ptr_out += APP_Rx_length;
-      APP_Rx_length = 0;
-    }
-    USB_Tx_State = 1; 
-
-    DCD_EP_Tx (pdev,
-               CDC_IN_EP,
-               (uint8_t*)&APP_Rx_Buffer[USB_Tx_ptr],
-               USB_Tx_length);
-  }  
+	  if( tx_len > CDC_DATA_IN_PACKET_SIZE )
+		  tx_len = CDC_DATA_IN_PACKET_SIZE;
+	  DCD_EP_Tx (pdev, CDC_IN_EP, tx_ptr, tx_len );
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
