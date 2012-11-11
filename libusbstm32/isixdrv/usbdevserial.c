@@ -94,15 +94,6 @@ static const CDC_IF_Prop_TypeDef cdc_if_ops =
 //Str desc buffer
 static uint8_t str_desc[USB_MAX_STR_DESC_SIZ];
 
-/* ------------------------------------------------------------------ */
-
-/* Initialize the USB serial module */
-int stm32_usbdev_serial_init( size_t rx_fifo_len, size_t tx_fifo_len  )
-{
-	USBD_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usr_desc,
-			cdc_class_init(&cdc_if_ops), &usr_cb);
-	return 0;
-}
 
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_device_descriptor( uint8_t speed , uint16_t *length )
@@ -279,6 +270,16 @@ static uint16_t cdc_data_rx (uint8_t* buf, uint32_t len)
 	dbprintf("cdc rx = %d", len );
 	return USBD_OK;
 }
+/* ------------------------------------------------------------------ */
+
+/* Initialize the USB serial module */
+int stm32_usbdev_serial_init( size_t rx_fifo_len, size_t tx_fifo_len  )
+{
+	USBD_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usr_desc,
+			cdc_class_init(&cdc_if_ops), &usr_cb);
+	return 0;
+}
+
 /* ------------------------------------------------------------------ */
 //OTG interrupt ISR vector
 void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
