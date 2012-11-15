@@ -19,7 +19,7 @@ namespace dev {
 
 /* ------------------------------------------------------------------ */
 /* Initialize the USB serial module */
-int stm32_usbdev_serial_init( size_t rx_fifo_len, size_t tx_fifo_len  );
+int stm32_usbdev_serial_init( void  );
 
 /* ------------------------------------------------------------------ */
 /* USB serial putchar */
@@ -30,8 +30,8 @@ int stm32_usbdev_serial_putc( int c );
 int stm32_usbdev_serial_getc( );
 
 /* ------------------------------------------------------------------ */
-
-
+/* Write data to the stm32 device */
+int stm32_usbdev_write( const void *buf, size_t buf_len );
 /* ------------------------------------------------------------------ */
 #ifdef __cplusplus
 }

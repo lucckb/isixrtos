@@ -12,8 +12,11 @@
 #include <usb_dcd_int.h>
 #include <dbglog.h>
 #include <isix.h>
+#include <prv/list.h>
+#include <string.h>
 /* ------------------------------------------------------------------ */
-
+#define USB_PACKET_TX_BUF_NBUFS			4
+#define USB_PACKET_RX_BUF_NBUFS			4
 #define USBD_VID                        0x0483
 #define USBD_PID                        0x5740
 #define USB_SIZ_STRING_LANGID            4
@@ -95,7 +98,57 @@ static const CDC_IF_Prop_TypeDef cdc_if_ops =
 
 /* ------------------------------------------------------------------ */
 //Str desc buffer
-static uint8_t str_desc[USB_MAX_STR_DESC_SIZ];
+static uint8_t str_desc[USB_MAX_STR_DESC_SIZ*2];
+
+/* ------------------------------------------------------------------ */
+struct usbpkt_buf
+{
+	uint8_t usb_pkt[CDC_DATA_MAX_PACKET_SIZE];
+	uint32_t pkt_len;
+	list_t inode;
+};
+typedef struct usbpkt_buf usbpkt_buf_t;
+
+/* ------------------------------------------------------------------ */
+static usbpkt_buf_t usb_bufs[USB_PACKET_TX_BUF_NBUFS ];
+static list_entry_t free_buf_list;
+static fifo_t* tx_fifo;
+/* ------------------------------------------------------------------ */
+//Mem pool init
+static void mem_pool_init(void)
+{
+	list_init( &free_buf_list );
+	for(int e = 0; e < USB_PACKET_TX_BUF_NBUFS; e++ )
+	{
+		list_insert_end(&free_buf_list, &usb_bufs[e].inode );
+	}
+}
+/* ------------------------------------------------------------------ */
+void isixp_enter_critical(void);
+void isixp_exit_critical(void);
+/* ------------------------------------------------------------------ */
+//mem pool alloc
+usbpkt_buf_t* mem_pool_alloc(void)
+{
+	usbpkt_buf_t *p;
+	isixp_enter_critical();
+	if( list_isempty(&free_buf_list) )
+	{
+		isixp_exit_critical();
+		return NULL;
+	}
+	p = list_get_first( &free_buf_list, inode, usbpkt_buf_t );
+	list_delete( &p->inode );
+	isixp_exit_critical();
+	return p;
+}
+/* ------------------------------------------------------------------ */
+static void mem_pool_free( usbpkt_buf_t *e )
+{
+	isixp_enter_critical();
+	list_insert_end( &free_buf_list, &e->inode );
+	isixp_exit_critical();
+}
 
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_device_descriptor( uint8_t speed , uint16_t *length )
@@ -259,26 +312,57 @@ static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len)
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
+
 static int cdc_data_tx (const uint8_t** buf, uint32_t len)
 {
-	*buf = NULL;
-	//dbprintf("cdc tx = %d", len );
-	return USBD_OK;
+	usbpkt_buf_t *pkt;
+	if( isix_fifo_read_isr(tx_fifo, &pkt ) != ISIX_EOK )
+	{
+		*buf = NULL;
+		return 0;
+	}
+	*buf = pkt->usb_pkt;
+	len = pkt->pkt_len;
+	mem_pool_free( pkt );
+	return len;
+}
+
+/* ------------------------------------------------------------------ */
+int  stm32_usbdev_write( const void *buf, size_t buf_len )
+{
+	int ret = 0;
+	while( buf_len > 0 )
+	{
+		usbpkt_buf_t* p = mem_pool_alloc();
+		dbprintf("Alloc buf %08x", p);
+		if( !p )
+			break;
+		const int pwr = buf_len>sizeof(p->usb_pkt)?sizeof(p->usb_pkt):buf_len;
+		memcpy( &p->usb_pkt, buf, pwr );
+		p->pkt_len = pwr;
+		int is = isix_fifo_write( tx_fifo, &p, ISIX_TIME_INFINITE );
+		if( is != ISIX_EOK )
+		{
+			mem_pool_free( p );
+			return is;
+		}
+		buf_len -= pwr;
+		ret += pwr;
+	}
+	return ret;
 }
 /* ------------------------------------------------------------------ */
 static int cdc_data_rx (const uint8_t* buf, uint32_t len)
 {
-	(void)buf;
-	dbprintf("cdc rx = %d", len );
 	return USBD_OK;
 }
-
 /* ------------------------------------------------------------------ */
 /* Initialize the USB serial module */
-int stm32_usbdev_serial_init( size_t rx_fifo_len, size_t tx_fifo_len  )
+int stm32_usbdev_serial_init( void )
 {
-	(void)rx_fifo_len;
-	(void)tx_fifo_len;
+	mem_pool_init();
+	tx_fifo = isix_fifo_create(USB_PACKET_TX_BUF_NBUFS, sizeof(void*));
+	if( !tx_fifo ) return ISIX_ENOMEM;
 	USBD_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usr_desc,
 			cdc_class_init(&cdc_if_ops), &usr_cb);
 	return 0;

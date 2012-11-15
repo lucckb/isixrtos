@@ -67,7 +67,7 @@
 #include "usbd_cdc_core.h"
 #include "usbd_desc.h"
 #include "usbd_req.h"
-
+#include <stdbool.h>
 
 
 /*********************************************
@@ -102,15 +102,9 @@ __ALIGN_BEGIN static uint8_t USB_Rx_Buffer   [CDC_DATA_MAX_PACKET_SIZE] __ALIGN_
 //__ALIGN_BEGIN static uint8_t APP_Rx_Buffer   [APP_RX_DATA_SIZE] __ALIGN_END ;
 __ALIGN_BEGIN static uint8_t CmdBuff[CDC_CMD_PACKET_SZE] __ALIGN_END ;
 
+/* ------------------------------------------------------------------ */
 
-/*
-static uint32_t APP_Rx_ptr_in  = 0;
-static uint32_t APP_Rx_ptr_out = 0;
-static uint32_t APP_Rx_length  = 0;
-
-static uint8_t  USB_Tx_State = 0;
-
-*/
+static volatile bool is_tx = false;
 static uint32_t cdcCmd = 0xFF;
 static uint32_t cdcLen = 0;
 
@@ -363,11 +357,12 @@ static uint8_t  usbd_cdc_Init (void  *pdev, uint8_t cfgidx)
               USB_OTG_EP_BULK);
   
   /* Open Command IN EP */
+
   DCD_EP_Open(pdev,
               CDC_CMD_EP,
               CDC_CMD_PACKET_SZE,
               USB_OTG_EP_INT);
-  
+
  // pbuf = (uint8_t *)USBD_DeviceDesc;
 
  // pbuf[4] = DEVICE_CLASS_CDC;
@@ -549,17 +544,24 @@ static uint8_t  usbd_cdc_EP0_RxReady (void  *pdev)
 static uint8_t  usbd_cdc_DataIn (void *pdev, uint8_t epnum)
 {
 	(void)epnum;
-	const uint8_t* tx_ptr;
-	int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr, CDC_DATA_IN_PACKET_SIZE );
-	if( tx_len >0 && tx_ptr )
+	if( is_tx )
 	{
-		if( tx_len > CDC_DATA_IN_PACKET_SIZE )
-			tx_len = CDC_DATA_IN_PACKET_SIZE;
+		const uint8_t* tx_ptr;
+		int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr, CDC_DATA_IN_PACKET_SIZE );
+		if( tx_len >0 && tx_ptr )
+		{
+			if( tx_len > CDC_DATA_IN_PACKET_SIZE )
+				tx_len = CDC_DATA_IN_PACKET_SIZE;
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-     tx_len &= ~0x03;
+			tx_len &= ~0x03;
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-		DCD_EP_Tx (pdev, CDC_IN_EP, tx_ptr, tx_len );
-	 }
+			DCD_EP_Tx (pdev, CDC_IN_EP, tx_ptr, tx_len );
+		}
+		else
+		{
+			is_tx = false;
+		}
+	}
   return USBD_OK;
 }
 
@@ -625,15 +627,19 @@ static uint8_t  usbd_cdc_SOF (void *pdev)
 static void Handle_USBAsynchXfer (void *pdev)
 {
   const uint8_t* tx_ptr;
-  int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr, CDC_DATA_IN_PACKET_SIZE );
-  if( tx_len >0 && tx_ptr )
+  if( !is_tx )
   {
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-     tx_len &= ~0x03;
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-	  if( tx_len > CDC_DATA_IN_PACKET_SIZE )
-		  tx_len = CDC_DATA_IN_PACKET_SIZE;
-	  DCD_EP_Tx (pdev, CDC_IN_EP, tx_ptr, tx_len );
+	  int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr, CDC_DATA_IN_PACKET_SIZE );
+	  if( tx_len >0 && tx_ptr )
+	  {
+	#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
+		 tx_len &= ~0x03;
+	#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
+		  if( tx_len > CDC_DATA_IN_PACKET_SIZE )
+			  tx_len = CDC_DATA_IN_PACKET_SIZE;
+		  DCD_EP_Tx (pdev, CDC_IN_EP, tx_ptr, tx_len );
+		  is_tx = true;
+	  }
   }
 }
 /*---------------------------------------------------------------------------*/
