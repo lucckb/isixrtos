@@ -326,7 +326,7 @@ static int cdc_data_tx (const uint8_t** buf, uint32_t len)
 	mem_pool_free( pkt );
 	return len;
 }
-
+//__attribute__((optimize("-O3")))
 /* ------------------------------------------------------------------ */
 int  stm32_usbdev_write( const void *buf, size_t buf_len )
 {
@@ -348,6 +348,7 @@ int  stm32_usbdev_write( const void *buf, size_t buf_len )
 		}
 		buf_len -= pwr;
 		ret += pwr;
+		buf += pwr;
 	}
 	return ret;
 }
