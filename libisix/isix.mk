@@ -16,6 +16,7 @@ ISIX_SRC += $(ISIX_DIR)/kernel/semaphore.c
 ISIX_SRC += $(ISIX_DIR)/kernel/task.c 
 ISIX_SRC += $(ISIX_DIR)/kernel/irqtimers.c
 ISIX_SRC += $(ISIX_DIR)/kernel/multiple_objects.c
+ISIX_SRC += $(ISIX_DIR)/kernel/mempool.c
 #Architecture specific sources
 ISIX_SRC += $(ISIX_DIR)/arch/$(ISIX_ARCH)/port_scheduler.c
 
