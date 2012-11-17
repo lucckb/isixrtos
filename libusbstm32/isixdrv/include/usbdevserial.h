@@ -47,6 +47,11 @@ enum stm32_usbdev_serial_timeout_mode			//STM32 block timeout mode
 int stm32_usbdev_serial_read( void *buf, size_t buf_len, int tout_mode);
 
 /* ------------------------------------------------------------------ */
+/**  Close the USB serial module
+ */
+void stm32_usbdev_serial_close(void);
+
+/* ------------------------------------------------------------------ */
 
 #ifdef __cplusplus
 }}}

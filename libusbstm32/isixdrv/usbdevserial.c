@@ -415,6 +415,18 @@ int stm32_usbdev_serial_open( void )
 	return 0;
 }
 /* ------------------------------------------------------------------ */
+/**  Close the USB serial module
+ */
+void stm32_usbdev_serial_close(void)
+{
+	/* Deinitialize the USB stuff */
+	USBD_DeInit( &usb_otg_dev );
+	if( rx_mempool ) isix_mempool_destroy( rx_mempool );
+	if( tx_mempool ) isix_mempool_destroy( tx_mempool );
+	if( rx_fifo ) isix_fifo_destroy( rx_fifo );
+	if( tx_fifo ) isix_fifo_destroy( tx_fifo );
+}
+/* ------------------------------------------------------------------ */
 //OTG interrupt ISR vector
 void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 {
