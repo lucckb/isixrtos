@@ -123,7 +123,8 @@ static isix_mempool_t tx_mempool;
 static fifo_t* rx_fifo;
 //RX mempool
 static isix_mempool_t rx_mempool;
-
+//API lock sem
+static sem_t * lock_sem;
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_device_descriptor( uint8_t speed , uint16_t *length )
 {
@@ -282,7 +283,9 @@ static int cdc_deinit_cb(void)
 static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len)
 {
 	(void)buf;
-	dbprintf("cdc control %d l=%d", cmd, len);
+	(void)cmd;
+	(void)len;
+	//dbprintf("cdc control %d l=%d", cmd, len);
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
@@ -313,6 +316,11 @@ static int cdc_data_tx (const uint8_t** buf)
  */
 int stm32_usbdev_serial_write( const void *buf, size_t buf_len, unsigned timeout )
 {
+	if( usb_otg_dev.dev.device_status != USB_OTG_CONFIGURED )
+		return STM32_USBDEV_ERR_NOT_CONNECTED;
+	int is = isix_sem_wait( lock_sem, ISIX_TIME_INFINITE );
+	if( is != ISIX_EOK )
+		return is;
 	int ret = 0;
 	while( buf_len > 0 )
 	{
@@ -322,16 +330,19 @@ int stm32_usbdev_serial_write( const void *buf, size_t buf_len, unsigned timeout
 		const int pwr = buf_len>sizeof(p->usb_pkt)?sizeof(p->usb_pkt):buf_len;
 		memcpy( &p->usb_pkt, &_buf[ret], pwr );
 		p->pkt_len = pwr;
-		int is = isix_fifo_write( tx_fifo, &p, timeout );
+		is = isix_fifo_write( tx_fifo, &p, timeout );
 		if( is != ISIX_EOK )
 		{
 			isix_mempool_free( tx_mempool, p );
-			return (is==ISIX_ETIMEOUT)?(ret):(is);
+			if (is!=ISIX_ETIMEOUT) ret = is;
+			break;
 		}
 		buf_len -= pwr;
 		ret += pwr;
 	}
-	return ret;
+	if( (is = isix_sem_signal( lock_sem )) != ISIX_EOK )
+		return is;
+	else return ret;
 }
 /* ------------------------------------------------------------------ */
 //Receive data called from USB irq context
@@ -357,6 +368,11 @@ static void* cdc_data_rx (const void* buf, uint32_t len)
  */
 int stm32_usbdev_serial_read( void *buf, const size_t buf_len, int tout_mode )
 {
+	if( usb_otg_dev.dev.device_status != USB_OTG_CONFIGURED )
+		return STM32_USBDEV_ERR_NOT_CONNECTED;
+	int is = isix_sem_wait( lock_sem, ISIX_TIME_INFINITE );
+	if( is != ISIX_EOK )
+		return is;
 	int rd = 0;
 	uint8_t *_buf = buf;
 	while( rd < (int)buf_len )
@@ -367,60 +383,72 @@ int stm32_usbdev_serial_read( void *buf, const size_t buf_len, int tout_mode )
 			if( isix_fifo_count(rx_fifo) == 0 )
 				break;
 		}
-		const int is = isix_fifo_read( rx_fifo, &p, tout_mode>0?tout_mode:ISIX_TIME_INFINITE );
+		int is = isix_fifo_read( rx_fifo, &p, tout_mode>0?tout_mode:ISIX_TIME_INFINITE );
 		if( is != ISIX_EOK )
 		{
-			return (is==ISIX_ETIMEOUT)?(rd):(is);
+			if( is != ISIX_ETIMEOUT ) rd = is;
+			break;
 		}
 		memcpy( &_buf[rd], p->usb_pkt, p->pkt_len<=buf_len?p->pkt_len:buf_len );
 		rd += p->pkt_len;
 		isix_mempool_free( rx_mempool, p );
-		if(tout_mode == USBDEV_SERIAL_BLOCK_TO_DATA_AVAIL )
+		if(tout_mode == USBDEV_SERIAL_BLOCK_TO_DATA_AVAIL || tout_mode > 0)
 		{
 			//Break when no data avail
 			if( rd > 0 && isix_fifo_count(rx_fifo)==0 )
-				return rd;
+				break;
 		}
 	}
-	return rd;
+	if( (is = isix_sem_signal( lock_sem )) != ISIX_EOK )
+		return is;
+	else return rd;
 }
 /* ------------------------------------------------------------------ */
 /* Initialize the USB serial module */
 int stm32_usbdev_serial_open( void )
 {
-	//Allocate TX stuff
-	tx_mempool = isix_mempool_create( USB_PACKET_TX_BUF_NBUFS , sizeof(usbpkt_buf_t) );
-	if( !tx_mempool )
-		return ISIX_ENOMEM;
-	tx_fifo = isix_fifo_create(USB_PACKET_TX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*));
-	if( !tx_fifo )
+	if( lock_sem )
+		return ISIX_EINVARG;
+	int ret = ISIX_EOK;
+	do
 	{
-		isix_mempool_destroy( tx_mempool );
-		return ISIX_ENOMEM;
-	}
-	//Allocate RX stuff
-	rx_mempool = isix_mempool_create( USB_PACKET_RX_BUF_NBUFS, sizeof(usbpkt_buf_t) );
-	if( !rx_mempool )
+		if( !(lock_sem = isix_sem_create_limited(NULL,1,1)) )
+			{ ret=ISIX_ENOMEM; break; }
+		if(!(tx_mempool = isix_mempool_create(USB_PACKET_TX_BUF_NBUFS,sizeof(usbpkt_buf_t))) )
+			{ ret=ISIX_ENOMEM; break; }
+		if( !(tx_fifo = isix_fifo_create(USB_PACKET_TX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*))) )
+			{ ret=ISIX_ENOMEM; break; }
+		if( !(rx_mempool = isix_mempool_create( USB_PACKET_RX_BUF_NBUFS, sizeof(usbpkt_buf_t) )) )
+			{ ret=ISIX_ENOMEM; break; }
+		if( !(rx_fifo = isix_fifo_create(USB_PACKET_RX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*))) )
+			{ ret=ISIX_ENOMEM; break; }
+	} while(0);
+	if( ret != ISIX_EOK )
 	{
-		return ISIX_ENOMEM;
+		if( lock_sem ) 	 isix_sem_destroy( lock_sem );
+		if( rx_mempool ) isix_mempool_destroy( rx_mempool );
+		if( tx_mempool ) isix_mempool_destroy( tx_mempool );
+		if( rx_fifo )    isix_fifo_destroy( rx_fifo );
+		if( tx_fifo )    isix_fifo_destroy( tx_fifo );
+		lock_sem = NULL;
 	}
-	rx_fifo = isix_fifo_create(USB_PACKET_RX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*));
-	if( !tx_fifo )
+	else
 	{
-		isix_mempool_destroy( rx_mempool );
-		return ISIX_ENOMEM;
+		USBD_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usr_desc,
+				cdc_class_init(&cdc_if_ops), &usr_cb);
 	}
-	USBD_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usr_desc,
-			cdc_class_init(&cdc_if_ops), &usr_cb);
-	return 0;
+	return ret;
 }
 /* ------------------------------------------------------------------ */
 /**  Close the USB serial module
  */
 void stm32_usbdev_serial_close(void)
 {
+	if( !lock_sem ) return;
+	isix_sem_wait( lock_sem, ISIX_TIME_INFINITE );
 	/* Deinitialize the USB stuff */
 	USBD_DeInit( &usb_otg_dev );
+	isix_sem_destroy( lock_sem );
 	if( rx_mempool ) isix_mempool_destroy( rx_mempool );
 	if( tx_mempool ) isix_mempool_destroy( tx_mempool );
 	if( rx_fifo ) isix_fifo_destroy( rx_fifo );

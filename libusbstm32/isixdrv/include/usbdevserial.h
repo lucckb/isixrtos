@@ -38,6 +38,11 @@ enum stm32_usbdev_serial_timeout_mode			//STM32 block timeout mode
 	USBDEV_SERIAL_BLOCK_TO_DATA_AVAIL = -2,		//!Block to first data avail
 };
 /* ------------------------------------------------------------------ */
+enum stm32_usbdev_error
+{
+	STM32_USBDEV_ERR_NOT_CONNECTED = -5000
+};
+/* ------------------------------------------------------------------ */
 /* read data from the virtual serial com port
  * @param[out] buf Pointer to data buffer
  * @param[in] buf_len Buffer length
