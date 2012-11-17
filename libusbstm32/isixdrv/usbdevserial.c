@@ -16,7 +16,7 @@
 #include <string.h>
 /* ------------------------------------------------------------------ */
 #define USB_PACKET_TX_BUF_NBUFS			4
-#define USB_PACKET_RX_BUF_NBUFS			4
+#define USB_PACKET_RX_BUF_NBUFS			8
 #define USBD_VID                        0x0483
 #define USBD_PID                        0x5740
 #define USB_SIZ_STRING_LANGID            4
@@ -30,7 +30,13 @@
 #define USBD_INTERFACE_HS_STRING        "VCP Interface"
 #define USBD_CONFIGURATION_FS_STRING    "VCP Config"
 #define USBD_INTERFACE_FS_STRING        "VCP Interface"
-
+/* ------------------------------------------------------------------ */
+#if USB_PACKET_TX_BUF_NBUFS < 4
+#error Minimum 4 TX packet buffers are required
+#endif
+#if USB_PACKET_RX_BUF_NBUFS < 4
+#error Minimum 4 RX packet buffers are required
+#endif
 /* ------------------------------------------------------------------ */
 //Callbacks get descs
 static const uint8_t* get_device_descriptor( uint8_t speed , uint16_t *length );
@@ -55,7 +61,7 @@ static int cdc_init_cb(void);
 static int cdc_deinit_cb(void);
 static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len);
 static int cdc_data_tx (const uint8_t** buf);
-static int cdc_data_rx (const uint8_t* buf, uint32_t len);
+static void* cdc_data_rx (const void* buf, uint32_t len);
 /* ------------------------------------------------------------------ */
 //USB dev core handle
 static USB_OTG_CORE_HANDLE    usb_otg_dev;
@@ -113,6 +119,10 @@ typedef struct usbpkt_buf usbpkt_buf_t;
 static fifo_t* tx_fifo;
 //TX mempool
 static isix_mempool_t tx_mempool;
+//RX fifo packet hdr
+static fifo_t* rx_fifo;
+//RX mempool
+static isix_mempool_t rx_mempool;
 
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_device_descriptor( uint8_t speed , uint16_t *length )
@@ -276,7 +286,7 @@ static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len)
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
-//Transmit data
+//Transmit data called from USB irq context
 static int cdc_data_tx (const uint8_t** buf)
 {
 	static usbpkt_buf_t *proc_pkt;
@@ -295,40 +305,90 @@ static int cdc_data_tx (const uint8_t** buf)
 }
 //__attribute__((optimize("-O3")))
 /* ------------------------------------------------------------------ */
-int  stm32_usbdev_write( const void *buf, size_t buf_len )
+/* Write data to the virtual serial com port
+ * @param[in] buf Pointer to data buffer
+ * @param[in] buf_len Buffer length
+ * @param[in] timeout Timeout or ISIX_TIME_INFINITE
+ * @return Number of bytes written or negative error code if fail
+ */
+int stm32_usbdev_serial_write( const void *buf, size_t buf_len, unsigned timeout )
 {
 	int ret = 0;
 	while( buf_len > 0 )
 	{
+		const uint8_t *_buf = buf;
 		usbpkt_buf_t* p = isix_mempool_alloc(tx_mempool);
-		dbprintf("Alloc buf %08x", p);
-		if( !p )
-			break;
+		if( !p ) break;
 		const int pwr = buf_len>sizeof(p->usb_pkt)?sizeof(p->usb_pkt):buf_len;
-		memcpy( &p->usb_pkt, buf, pwr );
+		memcpy( &p->usb_pkt, &_buf[ret], pwr );
 		p->pkt_len = pwr;
-		int is = isix_fifo_write( tx_fifo, &p, ISIX_TIME_INFINITE );
+		int is = isix_fifo_write( tx_fifo, &p, timeout );
 		if( is != ISIX_EOK )
 		{
 			isix_mempool_free( tx_mempool, p );
-			return is;
+			return (is==ISIX_ETIMEOUT)?(ret):(is);
 		}
 		buf_len -= pwr;
 		ret += pwr;
-		buf += pwr;
 	}
 	return ret;
 }
 /* ------------------------------------------------------------------ */
-static int cdc_data_rx (const uint8_t* buf, uint32_t len)
+//Receive data called from USB irq context
+static void* cdc_data_rx (const void* buf, uint32_t len)
 {
-	return USBD_OK;
+	if( len > 0 )
+	{
+		//Update pkt len
+		((usbpkt_buf_t*)buf)->pkt_len = len;
+		if( isix_fifo_write_isr( rx_fifo, &buf ) != ISIX_EOK )
+		{
+			return NULL;
+		}
+	}
+	return isix_mempool_alloc( rx_mempool );
+}
+/* ------------------------------------------------------------------ */
+/* read data from the virtual serial com port
+ * @param[out] buf Pointer to data buffer
+ * @param[in] buf_len Buffer length
+ * @param[in] timeout Timeout or ISIX_TIME_INFINITE
+ * @return Number of bytes read or negative error code if fail
+ */
+int stm32_usbdev_serial_read( void *buf, const size_t buf_len, int tout_mode )
+{
+	int rd = 0;
+	uint8_t *_buf = buf;
+	while( rd < (int)buf_len )
+	{
+		usbpkt_buf_t* p = NULL;
+		if( tout_mode==USBDEV_SERIAL_NONBLOCK )
+		{
+			if( isix_fifo_count(rx_fifo) == 0 )
+				break;
+		}
+		const int is = isix_fifo_read( rx_fifo, &p, tout_mode>0?tout_mode:ISIX_TIME_INFINITE );
+		if( is != ISIX_EOK )
+		{
+			return (is==ISIX_ETIMEOUT)?(rd):(is);
+		}
+		memcpy( &_buf[rd], p->usb_pkt, p->pkt_len<=buf_len?p->pkt_len:buf_len );
+		rd += p->pkt_len;
+		isix_mempool_free( rx_mempool, p );
+		if(tout_mode == USBDEV_SERIAL_BLOCK_TO_DATA_AVAIL )
+		{
+			//Break when no data avail
+			if( rd > 0 && isix_fifo_count(rx_fifo)==0 )
+				return rd;
+		}
+	}
+	return rd;
 }
 /* ------------------------------------------------------------------ */
 /* Initialize the USB serial module */
-int stm32_usbdev_serial_init( void )
+int stm32_usbdev_serial_open( void )
 {
-	//Allocate tx mempool
+	//Allocate TX stuff
 	tx_mempool = isix_mempool_create( USB_PACKET_TX_BUF_NBUFS , sizeof(usbpkt_buf_t) );
 	if( !tx_mempool )
 		return ISIX_ENOMEM;
@@ -336,6 +396,18 @@ int stm32_usbdev_serial_init( void )
 	if( !tx_fifo )
 	{
 		isix_mempool_destroy( tx_mempool );
+		return ISIX_ENOMEM;
+	}
+	//Allocate RX stuff
+	rx_mempool = isix_mempool_create( USB_PACKET_RX_BUF_NBUFS, sizeof(usbpkt_buf_t) );
+	if( !rx_mempool )
+	{
+		return ISIX_ENOMEM;
+	}
+	rx_fifo = isix_fifo_create(USB_PACKET_RX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*));
+	if( !tx_fifo )
+	{
+		isix_mempool_destroy( rx_mempool );
 		return ISIX_ENOMEM;
 	}
 	USBD_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usr_desc,

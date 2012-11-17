@@ -19,24 +19,36 @@ namespace dev {
 
 /* ------------------------------------------------------------------ */
 /* Initialize the USB serial module */
-int stm32_usbdev_serial_init( void  );
+int stm32_usbdev_serial_open( void );
 
 /* ------------------------------------------------------------------ */
-/* USB serial putchar */
-int stm32_usbdev_serial_putc( int c );
+/* Write data to the virtual serial com port
+ * @param[in] buf Pointer to data buffer
+ * @param[in] buf_len Buffer length
+ * @param[in] timeout Timeout or ISIX_TIME_INFINITE
+ * @return Number of bytes written or negative error code if fail
+ */
+int stm32_usbdev_serial_write( const void *buf, size_t buf_len, unsigned timeout );
+/* ------------------------------------------------------------------ */
+enum stm32_usbdev_serial_timeout_mode			//STM32 block timeout mode
+{
+	USBDEV_SERIAL_NONBLOCK			  =  0,      //Nonblock mode
+	USBDEV_SERIAL_BLOCK_TO_LEN 		  = -1,		//!Block to request length
+	USBDEV_SERIAL_BLOCK_TO_DATA_AVAIL = -2,		//!Block to first data avail
+};
+/* ------------------------------------------------------------------ */
+/* read data from the virtual serial com port
+ * @param[out] buf Pointer to data buffer
+ * @param[in] buf_len Buffer length
+ * @param[in] timeout Positive timeout or @see stm32_usbdev_serial_timeout_mode
+ * @return Number of bytes read or negative error code if fail
+ */
+int stm32_usbdev_serial_read( void *buf, size_t buf_len, int tout_mode);
 
 /* ------------------------------------------------------------------ */
-/* USB serial get char */
-int stm32_usbdev_serial_getc( );
 
-/* ------------------------------------------------------------------ */
-/* Write data to the stm32 device */
-int stm32_usbdev_write( const void *buf, size_t buf_len );
-/* ------------------------------------------------------------------ */
 #ifdef __cplusplus
-}
-}
-}
+}}}
 #endif
 
 /* ------------------------------------------------------------------ */

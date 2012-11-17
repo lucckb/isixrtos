@@ -92,20 +92,22 @@ static uint8_t  *USBD_cdc_GetOtherCfgDesc (uint8_t speed, uint16_t *length);
 
 /* ------------------------------------------------------------------ */
 static const CDC_IF_Prop_TypeDef  *app_pfops;
-
 #define APP_FOPS (*app_pfops)
 
 /* ------------------------------------------------------------------ */
 
 __ALIGN_BEGIN static __IO uint32_t  usbd_cdc_AltSet  __ALIGN_END = 0;
-__ALIGN_BEGIN static uint8_t USB_Rx_Buffer   [CDC_DATA_MAX_PACKET_SIZE] __ALIGN_END ;
 //__ALIGN_BEGIN static uint8_t APP_Rx_Buffer   [APP_RX_DATA_SIZE] __ALIGN_END ;
 __ALIGN_BEGIN static uint8_t CmdBuff[CDC_CMD_PACKET_SZE] __ALIGN_END ;
 
 /* ------------------------------------------------------------------ */
-
+//During tx state
 static volatile bool is_tx = false;
+//Rx transfer need resume
+static volatile bool rx_need_resume = false;
+//Current cdc cmd
 static uint32_t cdcCmd = 0xFF;
+//Current cdc len
 static uint32_t cdcLen = 0;
 
 /* ------------------------------------------------------------------ */
@@ -372,11 +374,15 @@ static uint8_t  usbd_cdc_Init (void  *pdev, uint8_t cfgidx)
   APP_FOPS.pIf_Init();
 
   /* Prepare Out endpoint to receive next packet */
-  DCD_EP_PrepareRx(pdev,
-                   CDC_OUT_EP,
-                   (uint8_t*)(USB_Rx_Buffer),
-                   CDC_DATA_OUT_PACKET_SIZE);
-  
+  void *rx_ptr = APP_FOPS.pIf_DataRx( NULL, 0 );
+  if( rx_ptr )
+  {
+	  DCD_EP_PrepareRx(pdev, CDC_OUT_EP, rx_ptr, CDC_DATA_OUT_PACKET_SIZE);
+  }
+  else
+  {
+	  rx_need_resume = true;
+  }
   return USBD_OK;
 }
 
@@ -575,21 +581,22 @@ static uint8_t  usbd_cdc_DataIn (void *pdev, uint8_t epnum)
   */
 static uint8_t  usbd_cdc_DataOut (void *pdev, uint8_t epnum)
 {      
-  uint16_t USB_Rx_Cnt;
-  
+
   /* Get the received data buffer and update the counter */
-  USB_Rx_Cnt = ((USB_OTG_CORE_HANDLE*)pdev)->dev.out_ep[epnum].xfer_count;
-  
+  uint16_t USB_Rx_Cnt = ((USB_OTG_CORE_HANDLE*)pdev)->dev.out_ep[epnum].xfer_count;
+  void *pptr = ((USB_OTG_CORE_HANDLE*)pdev)->dev.out_ep[epnum].xfer_buff - USB_Rx_Cnt;
   /* USB data will be immediately processed, this allow next USB traffic being 
      NAKed till the end of the application Xfer */
-  APP_FOPS.pIf_DataRx(USB_Rx_Buffer, USB_Rx_Cnt);
-  
-  /* Prepare Out endpoint to receive next packet */
-  DCD_EP_PrepareRx(pdev,
-                   CDC_OUT_EP,
-                   (uint8_t*)(USB_Rx_Buffer),
-                   CDC_DATA_OUT_PACKET_SIZE);
-
+  void *ptr = APP_FOPS.pIf_DataRx(pptr, USB_Rx_Cnt );
+  if( !ptr )
+  {
+	  rx_need_resume = true;
+  }
+  else
+  {
+ 	  /* Prepare Out endpoint to receive next packet */
+	  DCD_EP_PrepareRx(pdev,CDC_OUT_EP, ptr ,CDC_DATA_OUT_PACKET_SIZE);
+  }
   return USBD_OK;
 }
 
@@ -640,6 +647,13 @@ static void Handle_USBAsynchXfer (void *pdev)
 		  DCD_EP_Tx (pdev, CDC_IN_EP, tx_ptr, tx_len );
 		  is_tx = true;
 	  }
+  }
+  if( rx_need_resume )
+  {
+	  void *ptr = APP_FOPS.pIf_DataRx( NULL, 0 );
+	  /* Prepare Out endpoint to receive next packet */
+	  DCD_EP_PrepareRx( pdev, CDC_OUT_EP, ptr ,CDC_DATA_OUT_PACKET_SIZE);
+	  rx_need_resume = false;
   }
 }
 /*---------------------------------------------------------------------------*/
