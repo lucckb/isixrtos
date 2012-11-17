@@ -29,6 +29,7 @@ int stm32_usbdev_serial_open( void );
  * @return Number of bytes written or negative error code if fail
  */
 int stm32_usbdev_serial_write( const void *buf, size_t buf_len, unsigned timeout );
+
 /* ------------------------------------------------------------------ */
 enum stm32_usbdev_serial_timeout_mode			//STM32 block timeout mode
 {
