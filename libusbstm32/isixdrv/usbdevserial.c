@@ -54,7 +54,7 @@ static void device_disconnected_cb(void);
 static int cdc_init_cb(void);
 static int cdc_deinit_cb(void);
 static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len);
-static int cdc_data_tx (const uint8_t** buf, uint32_t len);
+static int cdc_data_tx (const uint8_t** buf);
 static int cdc_data_rx (const uint8_t* buf, uint32_t len);
 /* ------------------------------------------------------------------ */
 //USB dev core handle
@@ -101,54 +101,18 @@ static const CDC_IF_Prop_TypeDef cdc_if_ops =
 static uint8_t str_desc[USB_MAX_STR_DESC_SIZ*2];
 
 /* ------------------------------------------------------------------ */
+//USB packet buffer
 struct usbpkt_buf
 {
 	uint8_t usb_pkt[CDC_DATA_MAX_PACKET_SIZE];
-	uint32_t pkt_len;
-	list_t inode;
+	uint8_t pkt_len;
 };
 typedef struct usbpkt_buf usbpkt_buf_t;
-
 /* ------------------------------------------------------------------ */
-static usbpkt_buf_t usb_bufs[USB_PACKET_TX_BUF_NBUFS ];
-static list_entry_t free_buf_list;
+//TX fifo packet hdr
 static fifo_t* tx_fifo;
-/* ------------------------------------------------------------------ */
-//Mem pool init
-static void mem_pool_init(void)
-{
-	list_init( &free_buf_list );
-	for(int e = 0; e < USB_PACKET_TX_BUF_NBUFS; e++ )
-	{
-		list_insert_end(&free_buf_list, &usb_bufs[e].inode );
-	}
-}
-/* ------------------------------------------------------------------ */
-void isixp_enter_critical(void);
-void isixp_exit_critical(void);
-/* ------------------------------------------------------------------ */
-//mem pool alloc
-usbpkt_buf_t* mem_pool_alloc(void)
-{
-	usbpkt_buf_t *p;
-	isixp_enter_critical();
-	if( list_isempty(&free_buf_list) )
-	{
-		isixp_exit_critical();
-		return NULL;
-	}
-	p = list_get_first( &free_buf_list, inode, usbpkt_buf_t );
-	list_delete( &p->inode );
-	isixp_exit_critical();
-	return p;
-}
-/* ------------------------------------------------------------------ */
-static void mem_pool_free( usbpkt_buf_t *e )
-{
-	isixp_enter_critical();
-	list_insert_end( &free_buf_list, &e->inode );
-	isixp_exit_critical();
-}
+//TX mempool
+static isix_mempool_t tx_mempool;
 
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_device_descriptor( uint8_t speed , uint16_t *length )
@@ -312,19 +276,22 @@ static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len)
 	return USBD_OK;
 }
 /* ------------------------------------------------------------------ */
-
-static int cdc_data_tx (const uint8_t** buf, uint32_t len)
+//Transmit data
+static int cdc_data_tx (const uint8_t** buf)
 {
-	usbpkt_buf_t *pkt;
-	if( isix_fifo_read_isr(tx_fifo, &pkt ) != ISIX_EOK )
+	static usbpkt_buf_t *proc_pkt;
+	if( proc_pkt )
+	{
+		isix_mempool_free( tx_mempool, proc_pkt );
+		proc_pkt = NULL;
+	}
+	if( isix_fifo_read_isr(tx_fifo, &proc_pkt ) != ISIX_EOK )
 	{
 		*buf = NULL;
 		return 0;
 	}
-	*buf = pkt->usb_pkt;
-	len = pkt->pkt_len;
-	mem_pool_free( pkt );
-	return len;
+	*buf = proc_pkt->usb_pkt;
+	return proc_pkt->pkt_len;
 }
 //__attribute__((optimize("-O3")))
 /* ------------------------------------------------------------------ */
@@ -333,7 +300,7 @@ int  stm32_usbdev_write( const void *buf, size_t buf_len )
 	int ret = 0;
 	while( buf_len > 0 )
 	{
-		usbpkt_buf_t* p = mem_pool_alloc();
+		usbpkt_buf_t* p = isix_mempool_alloc(tx_mempool);
 		dbprintf("Alloc buf %08x", p);
 		if( !p )
 			break;
@@ -343,7 +310,7 @@ int  stm32_usbdev_write( const void *buf, size_t buf_len )
 		int is = isix_fifo_write( tx_fifo, &p, ISIX_TIME_INFINITE );
 		if( is != ISIX_EOK )
 		{
-			mem_pool_free( p );
+			isix_mempool_free( tx_mempool, p );
 			return is;
 		}
 		buf_len -= pwr;
@@ -361,9 +328,16 @@ static int cdc_data_rx (const uint8_t* buf, uint32_t len)
 /* Initialize the USB serial module */
 int stm32_usbdev_serial_init( void )
 {
-	mem_pool_init();
-	tx_fifo = isix_fifo_create(USB_PACKET_TX_BUF_NBUFS, sizeof(void*));
-	if( !tx_fifo ) return ISIX_ENOMEM;
+	//Allocate tx mempool
+	tx_mempool = isix_mempool_create( USB_PACKET_TX_BUF_NBUFS , sizeof(usbpkt_buf_t) );
+	if( !tx_mempool )
+		return ISIX_ENOMEM;
+	tx_fifo = isix_fifo_create(USB_PACKET_TX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*));
+	if( !tx_fifo )
+	{
+		isix_mempool_destroy( tx_mempool );
+		return ISIX_ENOMEM;
+	}
 	USBD_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usr_desc,
 			cdc_class_init(&cdc_if_ops), &usr_cb);
 	return 0;

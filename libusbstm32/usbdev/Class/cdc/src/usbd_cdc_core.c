@@ -547,7 +547,7 @@ static uint8_t  usbd_cdc_DataIn (void *pdev, uint8_t epnum)
 	if( is_tx )
 	{
 		const uint8_t* tx_ptr;
-		int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr, CDC_DATA_IN_PACKET_SIZE );
+		int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr );
 		if( tx_len >0 && tx_ptr )
 		{
 			if( tx_len > CDC_DATA_IN_PACKET_SIZE )
@@ -629,7 +629,7 @@ static void Handle_USBAsynchXfer (void *pdev)
   const uint8_t* tx_ptr;
   if( !is_tx )
   {
-	  int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr, CDC_DATA_IN_PACKET_SIZE );
+	  int tx_len = APP_FOPS.pIf_DataTx( &tx_ptr );
 	  if( tx_len >0 && tx_ptr )
 	  {
 	#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED

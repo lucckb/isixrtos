@@ -118,7 +118,6 @@
 
 
 /*---------------------------------------------------------------------*/
-
 /** @defgroup USBD_CORE_Exported_TypesDefinitions
   * @{
   */
@@ -127,7 +126,7 @@ typedef struct _CDC_IF_PROP
   int (*pIf_Init)     (void);
   int (*pIf_DeInit)   (void);
   int (*pIf_Ctrl)     (uint32_t cmd, uint8_t* buf, uint32_t len);
-  int (*pIf_DataTx)   (const uint8_t** buf, uint32_t len);
+  int (*pIf_DataTx)   (const uint8_t** buf);
   int (*pIf_DataRx)   (const uint8_t* buf, uint32_t len);
 }
 CDC_IF_Prop_TypeDef;
