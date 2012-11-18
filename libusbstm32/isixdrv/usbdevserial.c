@@ -351,8 +351,9 @@ int stm32_usbdev_serial_read( void *buf, const size_t buf_len, int tout_mode )
 			if( is != ISIX_ETIMEOUT ) rd = is;
 			break;
 		}
-		memcpy( &_buf[rd], p->usb_pkt, p->pkt_len<=buf_len?p->pkt_len:buf_len );
-		rd += p->pkt_len;
+		const size_t real_len = p->pkt_len<=buf_len?p->pkt_len:buf_len;
+		memcpy( &_buf[rd], p->usb_pkt, real_len );
+		rd += real_len;
 		isix_mempool_free( rx_mempool, p );
 		if(tout_mode == USBDEV_SERIAL_BLOCK_TO_DATA_AVAIL || tout_mode > 0)
 		{
