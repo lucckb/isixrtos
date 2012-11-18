@@ -48,18 +48,18 @@ static const uint8_t* get_configuration_str_descriptor( uint8_t speed , uint16_t
 static const uint8_t* get_interface_str_descriptor( uint8_t speed , uint16_t *length );
 /* ------------------------------------------------------------------ */
 // Device callbacks family
-static void device_init_cb(void);
-static void device_reset_cb(uint8_t speed);
+static void device_init_cb(void) {}
+static void device_reset_cb(uint8_t speed) { (void)speed; }
 static void device_configured_cb(void);
 static void device_suspended_cb(void);
 static void device_resumed_cb(void);
-static void device_connected_cb(void);
+static void device_connected_cb(void) {}
 static void device_disconnected_cb(void);
 /* ------------------------------------------------------------------ */
 //CDC class callbacks
-static int cdc_init_cb(void);
-static int cdc_deinit_cb(void);
-static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len);
+static int cdc_init_cb(void) { return USBD_OK; }
+static int cdc_deinit_cb(void) { return USBD_OK; }
+static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len)  { (void)cmd; (void)buf; (void)len; return USBD_OK; }
 static int cdc_data_tx (const uint8_t** buf);
 static void* cdc_data_rx (const void* buf, uint32_t len);
 /* ------------------------------------------------------------------ */
@@ -124,7 +124,9 @@ static fifo_t* rx_fifo;
 //RX mempool
 static isix_mempool_t rx_mempool;
 //API lock sem
-static sem_t * lock_sem;
+static sem_t* lock_sem;
+//Sem for wait for activate USB device
+static sem_t *usb_ready_sem;
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_device_descriptor( uint8_t speed , uint16_t *length )
 {
@@ -181,14 +183,10 @@ static const uint8_t* get_product_str_descriptor( uint8_t speed , uint16_t *leng
 	if( speed == 0 )
 	{
 		USBD_GetString (USBD_PRODUCT_HS_STRING, str_desc, length);
-		//*length = sizeof(USBD_PRODUCT_HS_STRING)/sizeof(USBD_PRODUCT_HS_STRING[0]);
-		//return (const uint8_t*)USBD_PRODUCT_HS_STRING;
 	}
 	else
 	{
 		USBD_GetString (USBD_PRODUCT_FS_STRING, str_desc, length);
-		//*length = sizeof(USBD_PRODUCT_FS_STRING)/sizeof(USBD_PRODUCT_FS_STRING[0]);
-		//return (const uint8_t*)USBD_PRODUCT_FS_STRING;
 	}
 	return str_desc;
 }
@@ -231,63 +229,28 @@ static const uint8_t* get_interface_str_descriptor( uint8_t speed , uint16_t *le
 	}
 	return str_desc;
 }
-/* ------------------------------------------------------------------ */
-// Device callbacks family
-static void device_init_cb(void)
-{
-	dbprintf("Device initialized");
-}
-/* ------------------------------------------------------------------ */
-static void device_reset_cb(uint8_t speed)
-{
-	dbprintf("device reset speed=%d", speed);
-}
+
 /* ------------------------------------------------------------------ */
 static void device_configured_cb(void)
 {
-	dbprintf("Device configured");
+	isix_sem_signal_isr( usb_ready_sem );
 }
 /* ------------------------------------------------------------------ */
 static void device_suspended_cb(void)
 {
-	dbprintf("Device supspedned");
+	isix_sem_get_isr( usb_ready_sem );
 }
 /* ------------------------------------------------------------------ */
 static void device_resumed_cb(void)
 {
-	dbprintf("device resumed");
-}
-/* ------------------------------------------------------------------ */
-static void device_connected_cb(void)
-{
-	dbprintf("Device connected");
+	isix_sem_signal_isr( usb_ready_sem );
 }
 /* ------------------------------------------------------------------ */
 static void device_disconnected_cb(void)
 {
-	dbprintf("Device disconnected");
+	isix_sem_get_isr( usb_ready_sem );
 }
-/* ------------------------------------------------------------------ */
-static int cdc_init_cb(void)
-{
-	dbprintf("cdc init");
-	return USBD_OK;
-}
-/* ------------------------------------------------------------------ */
-static int cdc_deinit_cb(void)
-{
-	dbprintf("cdc deinit");
-	return USBD_OK;
-}
-/* ------------------------------------------------------------------ */
-static int cdc_control_cb(uint32_t cmd, uint8_t* buf, uint32_t len)
-{
-	(void)buf;
-	(void)cmd;
-	(void)len;
-	//dbprintf("cdc control %d l=%d", cmd, len);
-	return USBD_OK;
-}
+
 /* ------------------------------------------------------------------ */
 //Transmit data called from USB irq context
 static int cdc_data_tx (const uint8_t** buf)
@@ -306,7 +269,6 @@ static int cdc_data_tx (const uint8_t** buf)
 	*buf = proc_pkt->usb_pkt;
 	return proc_pkt->pkt_len;
 }
-//__attribute__((optimize("-O3")))
 /* ------------------------------------------------------------------ */
 /* Write data to the virtual serial com port
  * @param[in] buf Pointer to data buffer
@@ -422,14 +384,17 @@ int stm32_usbdev_serial_open( void )
 			{ ret=ISIX_ENOMEM; break; }
 		if( !(rx_fifo = isix_fifo_create(USB_PACKET_RX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*))) )
 			{ ret=ISIX_ENOMEM; break; }
+		if( !(usb_ready_sem = isix_sem_create_limited(NULL,0,1)) )
+			{ ret=ISIX_ENOMEM; break; }
 	} while(0);
 	if( ret != ISIX_EOK )
 	{
-		if( lock_sem ) 	 isix_sem_destroy( lock_sem );
-		if( rx_mempool ) isix_mempool_destroy( rx_mempool );
-		if( tx_mempool ) isix_mempool_destroy( tx_mempool );
-		if( rx_fifo )    isix_fifo_destroy( rx_fifo );
-		if( tx_fifo )    isix_fifo_destroy( tx_fifo );
+		if( lock_sem ) 	 	isix_sem_destroy( lock_sem );
+		if( rx_mempool ) 	isix_mempool_destroy( rx_mempool );
+		if( tx_mempool ) 	isix_mempool_destroy( tx_mempool );
+		if( rx_fifo )    	isix_fifo_destroy( rx_fifo );
+		if( tx_fifo )    	isix_fifo_destroy( tx_fifo );
+		if( usb_ready_sem ) isix_sem_destroy( lock_sem );
 		lock_sem = NULL;
 	}
 	else
@@ -438,6 +403,15 @@ int stm32_usbdev_serial_open( void )
 				cdc_class_init(&cdc_if_ops), &usr_cb);
 	}
 	return ret;
+}
+/* ------------------------------------------------------------------ */
+/** Wait for device connected
+ * @param[in] timeout Positive value with timeout or isix time infinite */
+int stm32_usbdev_wait_for_device_connected( int timeout )
+{
+	if( usb_otg_dev.dev.device_status != USB_OTG_CONFIGURED )
+		return isix_sem_wait( usb_ready_sem, timeout );
+	else return ISIX_EOK;
 }
 /* ------------------------------------------------------------------ */
 /**  Close the USB serial module
@@ -453,6 +427,7 @@ void stm32_usbdev_serial_close(void)
 	if( tx_mempool ) isix_mempool_destroy( tx_mempool );
 	if( rx_fifo ) isix_fifo_destroy( rx_fifo );
 	if( tx_fifo ) isix_fifo_destroy( tx_fifo );
+	if( usb_ready_sem ) isix_sem_destroy( lock_sem );
 }
 /* ------------------------------------------------------------------ */
 //OTG interrupt ISR vector

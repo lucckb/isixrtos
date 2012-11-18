@@ -164,6 +164,7 @@ uint32_t USBD_OTG_EP1IN_ISR_Handler (USB_OTG_CORE_HANDLE *pdev)
 }
 #endif
 
+#include <dbglog.h>
 /**
 * @brief  STM32_USBF_OTG_ISR_Handler
 *         handles all USB Interrupts
@@ -248,10 +249,10 @@ uint32_t USBD_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *pdev)
     {
       retval |= DCD_SessionRequest_ISR(pdev);
     }
-
     if (gintr_status.b.otgintr)
     {
-      retval |= DCD_OTG_ISR(pdev);
+       dbprintf("IRQ TICK");
+       retval |= DCD_OTG_ISR(pdev);
     }   
 #endif    
   }

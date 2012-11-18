@@ -97,7 +97,6 @@ static const CDC_IF_Prop_TypeDef  *app_pfops;
 /* ------------------------------------------------------------------ */
 
 __ALIGN_BEGIN static __IO uint32_t  usbd_cdc_AltSet  __ALIGN_END = 0;
-//__ALIGN_BEGIN static uint8_t APP_Rx_Buffer   [APP_RX_DATA_SIZE] __ALIGN_END ;
 __ALIGN_BEGIN static uint8_t CmdBuff[CDC_CMD_PACKET_SZE] __ALIGN_END ;
 
 /* ------------------------------------------------------------------ */
@@ -364,17 +363,12 @@ static uint8_t  usbd_cdc_Init (void  *pdev, uint8_t cfgidx)
               CDC_CMD_EP,
               CDC_CMD_PACKET_SZE,
               USB_OTG_EP_INT);
-
- // pbuf = (uint8_t *)USBD_DeviceDesc;
-
- // pbuf[4] = DEVICE_CLASS_CDC;
- // pbuf[5] = DEVICE_SUBCLASS_CDC;
   
   /* Initialize the Interface physical components */
   APP_FOPS.pIf_Init();
-
-  /* Prepare Out endpoint to receive next packet */
-  void *rx_ptr = APP_FOPS.pIf_DataRx( NULL, 0 );
+  void *rx_ptr = ((USB_OTG_CORE_HANDLE*)pdev)->dev.out_ep[CDC_OUT_EP].xfer_buff;
+  if( !rx_ptr )
+	  rx_ptr = APP_FOPS.pIf_DataRx( NULL, 0 );
   if( rx_ptr )
   {
 	  DCD_EP_PrepareRx(pdev, CDC_OUT_EP, rx_ptr, CDC_DATA_OUT_PACKET_SIZE);

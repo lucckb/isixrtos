@@ -43,13 +43,19 @@ enum stm32_usbdev_error
 	STM32_USBDEV_ERR_NOT_CONNECTED = -5000
 };
 /* ------------------------------------------------------------------ */
-/* read data from the virtual serial com port
+/** read data from the virtual serial com port
  * @param[out] buf Pointer to data buffer
  * @param[in] buf_len Buffer length
  * @param[in] timeout Positive timeout or @see stm32_usbdev_serial_timeout_mode
  * @return Number of bytes read or negative error code if fail
  */
 int stm32_usbdev_serial_read( void *buf, size_t buf_len, int tout_mode);
+/* ------------------------------------------------------------------ */
+/** Wait for device connected
+ * @param[in] timeout Positive value with timeout or isix time infinite
+ * @return ISIX status
+ */
+int stm32_usbdev_wait_for_device_connected( int timeout );
 
 /* ------------------------------------------------------------------ */
 /**  Close the USB serial module
