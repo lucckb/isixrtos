@@ -30,7 +30,6 @@
 
 /* ------------------------------------------------------------------ */
 /* Declare static string USB descriptor*/
-
 #define _DEFINE_USB_STRING_DESC_prv(name, text ) \
 		static const struct { uint8_t slen; uint8_t desc_type; uint16_t str[sizeof(u##text)/sizeof(u##text[0])]; } \
 		__attribute((__packed__)) \
