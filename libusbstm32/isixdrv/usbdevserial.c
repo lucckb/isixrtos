@@ -22,14 +22,22 @@
 #define USB_SIZ_STRING_LANGID            4
 #define USBD_LANGID_STRING              0x409
 #define USBD_MANUFACTURER_STRING        "STMicroelectronics"
-#define USBD_PRODUCT_HS_STRING          "STM32 Virtual ComPort in HS mode"
 #define USBD_SERIALNUMBER_HS_STRING     "00000000050B"
 #define USBD_PRODUCT_FS_STRING          "STM32 Virtual ComPort in FS Mode"
 #define USBD_SERIALNUMBER_FS_STRING     "00000000050C"
-#define USBD_CONFIGURATION_HS_STRING    "VCP Config"
-#define USBD_INTERFACE_HS_STRING        "VCP Interface"
 #define USBD_CONFIGURATION_FS_STRING    "VCP Config"
 #define USBD_INTERFACE_FS_STRING        "VCP Interface"
+
+/* ------------------------------------------------------------------ */
+/* Declare static string USB descriptor*/
+
+#define _DEFINE_USB_STRING_DESC_prv(name, text ) \
+		static const struct { uint8_t slen; uint8_t desc_type; uint16_t str[sizeof(u##text)/sizeof(u##text[0])]; } \
+		__attribute((__packed__)) \
+		name = { sizeof(u##text), USB_DESC_TYPE_STRING, u##text }
+
+#define DEFINE_USB_STRING_DESC(name, text) _DEFINE_USB_STRING_DESC_prv(name, text)
+
 /* ------------------------------------------------------------------ */
 #if USB_PACKET_TX_BUF_NBUFS < 4
 #error Minimum 4 TX packet buffers are required
@@ -103,10 +111,6 @@ static const CDC_IF_Prop_TypeDef cdc_if_ops =
 };
 
 /* ------------------------------------------------------------------ */
-//Str desc buffer
-static uint8_t str_desc[USB_MAX_STR_DESC_SIZ*2];
-
-/* ------------------------------------------------------------------ */
 //USB packet buffer
 struct usbpkt_buf
 {
@@ -176,65 +180,46 @@ static const uint8_t* get_langid_str_descriptor( uint8_t speed , uint16_t *lengt
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_manufacturer_str_descriptor( uint8_t speed , uint16_t *length )
 {
+	DEFINE_USB_STRING_DESC( m_str, USBD_MANUFACTURER_STRING );
 	(void)speed;
-	USBD_GetString(USBD_MANUFACTURER_STRING, str_desc, length);
-	return str_desc;
+	*length = sizeof(m_str);
+	return (uint8_t*)&m_str;
 }
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_product_str_descriptor( uint8_t speed , uint16_t *length )
 {
-	if( speed == 0 )
-	{
-		USBD_GetString (USBD_PRODUCT_HS_STRING, str_desc, length);
-	}
-	else
-	{
-		USBD_GetString (USBD_PRODUCT_FS_STRING, str_desc, length);
-	}
-	return str_desc;
+	(void)speed; (void)length;
+	DEFINE_USB_STRING_DESC( str_desc, USBD_PRODUCT_FS_STRING );
+	*length = sizeof(str_desc);
+	return (uint8_t*)&str_desc;
 }
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_serial_str_descriptor( uint8_t speed , uint16_t *length )
 {
-	if(speed  == USB_OTG_SPEED_HIGH)
-	{
-	    USBD_GetString (USBD_SERIALNUMBER_HS_STRING, str_desc, length);
-	}
-	else
-	{
-	   USBD_GetString (USBD_SERIALNUMBER_FS_STRING, str_desc, length);
-	}
-	return str_desc;
+	(void)speed; (void)length;
+	DEFINE_USB_STRING_DESC( str_desc, USBD_SERIALNUMBER_FS_STRING );
+	*length = sizeof(str_desc);
+	return (uint8_t*)&str_desc;
 }
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_configuration_str_descriptor( uint8_t speed , uint16_t *length )
 {
-	if(speed  == USB_OTG_SPEED_HIGH)
-	{
-	   USBD_GetString (USBD_CONFIGURATION_HS_STRING, str_desc, length);
-	}
-	else
-	{
-	   USBD_GetString (USBD_CONFIGURATION_FS_STRING, str_desc, length);
-	}
-	return str_desc;
+	(void)speed; (void)length;
+	DEFINE_USB_STRING_DESC( str_desc, USBD_CONFIGURATION_FS_STRING );
+	*length = sizeof(str_desc);
+	return (uint8_t*)&str_desc;
 }
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_interface_str_descriptor( uint8_t speed , uint16_t *length )
 {
-	if(speed == 0)
-	{
-	   USBD_GetString (USBD_INTERFACE_HS_STRING, str_desc, length);
-	}
-	else
-	{
-	    USBD_GetString (USBD_INTERFACE_FS_STRING, str_desc, length);
-	}
-	return str_desc;
+	(void)speed; (void)length;
+	DEFINE_USB_STRING_DESC( str_desc, USBD_INTERFACE_FS_STRING);
+	*length = sizeof(str_desc);
+	return (uint8_t*)&str_desc;
 }
 
 /* ------------------------------------------------------------------ */
-//Init CDC callback
+//Flush data from TX queue
 static void flush_tx_data(void)
 {
 	if( tx_mempool && tx_proc_pkt )

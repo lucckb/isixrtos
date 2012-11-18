@@ -821,7 +821,7 @@ void USBD_GetString(const char *desc, uint8_t *unicode, uint16_t *len)
   
   if (desc != NULL) 
   {
-    *len =  USBD_GetLen(desc) * 2 + 2;    
+    *len =  USBD_GetLen(desc) * 2 + 2;
     unicode[idx++] = *len;
     unicode[idx++] =  USB_DESC_TYPE_STRING;
     
