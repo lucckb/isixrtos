@@ -645,9 +645,12 @@ static void Handle_USBAsynchXfer (void *pdev)
   if( rx_need_resume )
   {
 	  void *ptr = APP_FOPS.pIf_DataRx( NULL, 0 );
-	  /* Prepare Out endpoint to receive next packet */
-	  DCD_EP_PrepareRx( pdev, CDC_OUT_EP, ptr ,CDC_DATA_OUT_PACKET_SIZE);
-	  rx_need_resume = false;
+	  if( ptr )
+	  {
+		  /* Prepare Out endpoint to receive next packet */
+		  DCD_EP_PrepareRx( pdev, CDC_OUT_EP, ptr ,CDC_DATA_OUT_PACKET_SIZE);
+		  rx_need_resume = false;
+	  }
   }
 }
 /*---------------------------------------------------------------------------*/
