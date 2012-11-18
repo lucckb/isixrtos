@@ -127,6 +127,9 @@ static isix_mempool_t rx_mempool;
 static sem_t* lock_sem;
 //Sem for wait for activate USB device
 static sem_t *usb_ready_sem;
+//Actually processed packet
+static usbpkt_buf_t *tx_proc_pkt;
+
 /* ------------------------------------------------------------------ */
 static const uint8_t* get_device_descriptor( uint8_t speed , uint16_t *length )
 {
@@ -231,45 +234,64 @@ static const uint8_t* get_interface_str_descriptor( uint8_t speed , uint16_t *le
 }
 
 /* ------------------------------------------------------------------ */
+//Init CDC callback
+static void flush_tx_data(void)
+{
+	if( tx_mempool && tx_proc_pkt )
+	{
+		isix_mempool_free( tx_mempool, tx_proc_pkt );
+		tx_proc_pkt = NULL;
+	}
+	usbpkt_buf_t *p;
+	while( isix_fifo_read_isr(tx_fifo, &p) == ISIX_EOK )
+	{
+		isix_mempool_free( tx_mempool, p );
+	}
+}
+/* ------------------------------------------------------------------ */
 static void device_configured_cb(void)
 {
+	flush_tx_data();
 	isix_sem_signal_isr( usb_ready_sem );
 }
 /* ------------------------------------------------------------------ */
 static void device_suspended_cb(void)
 {
 	isix_sem_get_isr( usb_ready_sem );
+	flush_tx_data();
 }
 /* ------------------------------------------------------------------ */
 static void device_resumed_cb(void)
 {
+	flush_tx_data();
 	isix_sem_signal_isr( usb_ready_sem );
 }
 /* ------------------------------------------------------------------ */
 static void device_disconnected_cb(void)
 {
 	isix_sem_get_isr( usb_ready_sem );
+	flush_tx_data();
 }
 
 /* ------------------------------------------------------------------ */
 //Transmit data called from USB irq context
 static int cdc_data_tx (const uint8_t** buf)
 {
-	static usbpkt_buf_t *proc_pkt;
-	if( proc_pkt )
+	if( tx_proc_pkt )
 	{
-		isix_mempool_free( tx_mempool, proc_pkt );
-		proc_pkt = NULL;
+		isix_mempool_free( tx_mempool, tx_proc_pkt );
+		tx_proc_pkt = NULL;
 	}
-	if( isix_fifo_read_isr(tx_fifo, &proc_pkt ) != ISIX_EOK )
+	if( isix_fifo_read_isr(tx_fifo, &tx_proc_pkt ) != ISIX_EOK )
 	{
 		*buf = NULL;
 		return 0;
 	}
-	*buf = proc_pkt->usb_pkt;
-	return proc_pkt->pkt_len;
+	*buf = tx_proc_pkt->usb_pkt;
+	return tx_proc_pkt->pkt_len;
 }
 /* ------------------------------------------------------------------ */
+
 /* Write data to the virtual serial com port
  * @param[in] buf Pointer to data buffer
  * @param[in] buf_len Buffer length
@@ -290,13 +312,21 @@ int stm32_usbdev_serial_write( const void *buf, size_t buf_len, unsigned timeout
 		usbpkt_buf_t* p = isix_mempool_alloc(tx_mempool);
 		if( !p ) break;
 		const int pwr = buf_len>sizeof(p->usb_pkt)?sizeof(p->usb_pkt):buf_len;
-		memcpy( &p->usb_pkt, &_buf[ret], pwr );
+		memcpy( p->usb_pkt, &_buf[ret], pwr );
 		p->pkt_len = pwr;
 		is = isix_fifo_write( tx_fifo, &p, timeout );
+		if( usb_otg_dev.dev.device_status != USB_OTG_CONFIGURED )
+		{
+			/* Data from tx fifo can be read on the flush event so if
+			 * the space is available and device is not configured
+			 * it means that usb device was unplugged
+			 */
+			break;
+		}
 		if( is != ISIX_EOK )
 		{
 			isix_mempool_free( tx_mempool, p );
-			if (is!=ISIX_ETIMEOUT) ret = is;
+			if( is!=ISIX_ETIMEOUT ) ret = is;
 			break;
 		}
 		buf_len -= pwr;

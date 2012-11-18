@@ -332,7 +332,6 @@ const USBD_Class_cb_TypeDef* cdc_class_init( const CDC_IF_Prop_TypeDef  *app_fop
 	app_pfops = app_fops;
 	return &USBD_CDC_cb;
 }
-
 /*---------------------------------------------------------------------------*/
 /**
   * @brief  usbd_cdc_Init
@@ -343,27 +342,17 @@ const USBD_Class_cb_TypeDef* cdc_class_init( const CDC_IF_Prop_TypeDef  *app_fop
   */
 static uint8_t  usbd_cdc_Init (void  *pdev, uint8_t cfgidx)
 {
-
   (void)cfgidx;
   /* Open EP IN */
-  DCD_EP_Open(pdev,
-              CDC_IN_EP,
-              CDC_DATA_IN_PACKET_SIZE,
-              USB_OTG_EP_BULK);
-  
+  DCD_EP_Open( pdev, CDC_IN_EP, CDC_DATA_IN_PACKET_SIZE, USB_OTG_EP_BULK );
   /* Open EP OUT */
-  DCD_EP_Open(pdev,
-              CDC_OUT_EP,
-              CDC_DATA_OUT_PACKET_SIZE,
-              USB_OTG_EP_BULK);
-  
+  DCD_EP_Open( pdev, CDC_OUT_EP, CDC_DATA_OUT_PACKET_SIZE, USB_OTG_EP_BULK );
   /* Open Command IN EP */
-
-  DCD_EP_Open(pdev,
-              CDC_CMD_EP,
-              CDC_CMD_PACKET_SZE,
-              USB_OTG_EP_INT);
-  
+  DCD_EP_Open( pdev, CDC_CMD_EP, CDC_CMD_PACKET_SZE, USB_OTG_EP_INT);
+  /* Flush the endpoints */
+  DCD_EP_Flush( pdev, CDC_IN_EP );
+  DCD_EP_Flush( pdev, CDC_OUT_EP );
+  DCD_EP_Flush( pdev, CDC_CMD_EP );
   /* Initialize the Interface physical components */
   APP_FOPS.pIf_Init();
   void *rx_ptr = ((USB_OTG_CORE_HANDLE*)pdev)->dev.out_ep[CDC_OUT_EP].xfer_buff;
@@ -372,11 +361,13 @@ static uint8_t  usbd_cdc_Init (void  *pdev, uint8_t cfgidx)
   if( rx_ptr )
   {
 	  DCD_EP_PrepareRx(pdev, CDC_OUT_EP, rx_ptr, CDC_DATA_OUT_PACKET_SIZE);
+	  rx_need_resume = false;
   }
   else
   {
 	  rx_need_resume = true;
   }
+  is_tx = false;
   return USBD_OK;
 }
 
@@ -392,20 +383,13 @@ static uint8_t  usbd_cdc_DeInit (void  *pdev, uint8_t cfgidx)
 {
   (void)cfgidx;
   /* Open EP IN */
-  DCD_EP_Close(pdev,
-              CDC_IN_EP);
-  
+  DCD_EP_Close(pdev, CDC_IN_EP);
   /* Open EP OUT */
-  DCD_EP_Close(pdev,
-              CDC_OUT_EP);
-  
+  DCD_EP_Close(pdev, CDC_OUT_EP);
   /* Open Command IN EP */
-  DCD_EP_Close(pdev,
-              CDC_CMD_EP);
-
+  DCD_EP_Close(pdev, CDC_CMD_EP);
   /* Restore default state of the Interface physical components */
   APP_FOPS.pIf_DeInit();
-  
   return USBD_OK;
 }
 
