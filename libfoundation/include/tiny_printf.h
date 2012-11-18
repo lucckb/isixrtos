@@ -17,12 +17,12 @@ extern "C" {
 #endif
 
 /* ------------------------------------------------------------ */
-
-int tiny_printf(const char *format, ...);
+/** Printf replacement without floating point */
+int tiny_printf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 
 /* ------------------------------------------------------------ */
-
-int tiny_snprintf(char *out, unsigned long len,  const char *format, ...);
+/** Snprintf replacement without floating point aritmethic */
+int tiny_snprintf(char *out, unsigned long len,  const char *format, ...) __attribute__ ((format (printf, 3, 4)));
 
 
 /* ------------------------------------------------------------ */

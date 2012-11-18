@@ -113,7 +113,8 @@ static int printi(char **out, size_t len, int i, int b, int sg, int width, int p
 		u /= b;
 	}
 
-	if (neg) {
+	if (neg)
+	{
 		if( width && (pad & PAD_ZERO) )
 		{
 			range();
@@ -129,54 +130,106 @@ static int printi(char **out, size_t len, int i, int b, int sg, int width, int p
 
 	return pc + prints (out, len ,s, width, pad);
 }
-
 /*----------------------------------------------------------*/
+#define unsigned_cast() \
+	int val; \
+	switch( modf ) \
+	{ \
+	case m_hh: val = (unsigned char)va_arg( args, int ); break; \
+	case m_h:  val = (unsigned short)va_arg( args, int ); break; \
+	case m_l:  val =  va_arg( args, unsigned long ); break; \
+	default:   val =  va_arg( args, unsigned int ); break; \
+	} do {} while(0)
+
+
 static int print(char **out, size_t len, const char *format, va_list args )
 {
+	enum { m_hh, m_h, m_n, m_l };
 	register int width, pad;
 	register size_t pc = 0;
 	char scr[2];
-
-	for (; *format != 0; ++format) {
-		if (*format == '%') {
+	unsigned char modf = m_n;
+	for (; *format != 0; ++format)
+	{
+		if (*format == '%')
+		{
 			++format;
 			width = pad = 0;
 			if (*format == '\0') break;
 			if (*format == '%') goto out;
-			if (*format == '-') {
+			if (*format == '-')
+			{
 				++format;
 				pad = PAD_RIGHT;
 			}
-			while (*format == '0') {
+			while (*format == '0')
+			{
 				++format;
 				pad |= PAD_ZERO;
 			}
-			for ( ; *format >= '0' && *format <= '9'; ++format) {
+			for ( ; *format >= '0' && *format <= '9'; ++format)
+			{
 				width *= 10;
 				width += *format - '0';
 			}
-			if( *format == 's' ) {
+			if( *format == 'h' )
+			{
+				modf = m_h;
+				format++;
+			}
+			else if( *format == 'l')
+			{
+				modf = m_l;
+				format++;
+			}
+			if( *format == 'h' )
+			{
+				modf = m_hh;
+				format++;
+			}
+			if( *format == 's' )
+			{
 				register char *s = (char *)va_arg( args, int );
 				pc += prints (out,len, s?s:"(null)", width, pad);
 				continue;
 			}
-			if( *format == 'd' ) {
-				pc += printi (out,len, va_arg( args, int ), 10, 1, width, pad, 'a');
+			if( *format == 'd' || *format == 'i' )
+			{
+				int val;
+				switch( modf )
+				{
+				case m_hh: val = (signed char)va_arg( args, int ); break;
+				case m_h:  val = (signed short)va_arg( args, int ); break;
+				case m_l:  val =  va_arg( args, long ); break;
+				default:   val =  va_arg( args, int ); break;
+				}
+				pc += printi (out,len, val, 10, 1, width, pad, 'a');
 				continue;
 			}
-			if( *format == 'x' ) {
-				pc += printi (out,len, va_arg( args, int ), 16, 0, width, pad, 'a');
+			if( *format == 'x' )
+			{
+				unsigned_cast();
+				pc += printi (out,len, val, 16, 0, width, pad, 'a');
 				continue;
 			}
-			if( *format == 'X' ) {
-				pc += printi (out,len, va_arg( args, int ), 16, 0, width, pad, 'A');
+			if( *format == 'X' )
+			{
+				unsigned_cast();
+				pc += printi (out,len, val, 16, 0, width, pad, 'A');
 				continue;
 			}
-			if( *format == 'u' ) {
-				pc += printi (out,len, va_arg( args, int ), 10, 0, width, pad, 'a');
+			if( *format == 'u' )
+			{
+				unsigned_cast();
+				pc += printi (out,len, val, 10, 0, width, pad, 'a');
 				continue;
 			}
-			if( *format == 'c' ) {
+			else if( *format == 'p')
+			{
+				pc += printi (out,len, va_arg( args, int ), 16, 0, sizeof(void*)*2, PAD_ZERO, 'A');
+			}
+			if( *format == 'c' )
+			{
 				/* char are converted to int then pushed on the stack */
 				scr[0] = (char)va_arg( args, int );
 				scr[1] = '\0';
@@ -184,7 +237,8 @@ static int print(char **out, size_t len, const char *format, va_list args )
 				continue;
 			}
 		}
-		else {
+		else
+		{
 		out:
 			range();
 			printchar (out, *format);
