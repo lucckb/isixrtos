@@ -128,8 +128,7 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 		}
 		else
 		{
-			isix_printk("Obj is not fifo and it is not sem. Stack corrupted?");
-			isix_bug();
+			isix_bug("Obj is not fifo and it is not sem. Stack corrupted?");
 		}
 	}
     do {
@@ -182,8 +181,7 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 			}
 			else
 			{
-				isix_printk("Obj is not fifo and it is not sem. Stack corrupted?");
-				isix_bug();
+				isix_bug("Obj is not fifo and it is not sem. Stack corrupted?");
 			}
 		}
 	} while(0);
@@ -191,8 +189,7 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 	if( multiple_obj.inode.next ) list_delete( &multiple_obj.inode );
 	if( retval == ISIX_EOK )
 	{
-		isix_printk("Waiting task not found when it is excepted task_state %02x",isix_current_task->state);
-		isix_bug();
+		isix_bug("Waiting task not found when it is excepted");
 	}
 	//Exit critical section
 	isixp_exit_critical();
