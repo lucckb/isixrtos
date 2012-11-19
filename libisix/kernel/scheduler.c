@@ -13,6 +13,10 @@
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
 #endif
 
+/*-----------------------------------------------------------------------*/
+
+//! Kernel panic function callback
+static isix_panic_func_callback_t kernel_panic_fn_callback;
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
@@ -59,11 +63,12 @@ static volatile prio_t number_of_priorities;
 
 /*-----------------------------------------------------------------------*/
 //Isix bug report when isix_printk is defined
-void isix_bug(void)
+void isix_kernel_panic( const char *file, int line, const char *msg )
 {
     //Go to critical sections forever
 	isixp_enter_critical();
-	isix_printk("OOPS: Please reset board");
+#if ISIX_DEBUG_SCHEDULER
+	isix_printk("OOPS-PANIC: Please reset board %s:%i [%s]", file, line, msg );
     task_ready_t *i;
     task_t *j;
     //TODO: Add interrupt blocking
@@ -81,15 +86,10 @@ void isix_bug(void)
     {
         isix_printk("\t->Task: %08x prio: %d state %d jiffies %d",j,j->prio,j->state,j->jiffies);
     }
+#endif
+    if( kernel_panic_fn_callback ) kernel_panic_fn_callback( file, line, msg );
     while(1);
 }
-/*-----------------------------------------------------------------------*/
-//After isix_bug function disable isix_printk
-#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_OFF
-#undef isix_printk
-#define isix_printk(...)
-#endif
-
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler
@@ -138,7 +138,7 @@ void isixp_schedule(void)
     isix_current_task->state |= TASK_RUNNING;
     if(isix_current_task->prio != current_prio->prio)
     {
-    	isix_bug();
+    	isix_bug("Task priority doesn't match to element priority");
     }
     isix_printk("Scheduler: new task %08x\n",isix_current_task);
     isixp_exit_critical();
@@ -176,8 +176,7 @@ void isixp_schedule_time(void)
         {
             if(!task_c->sem)
             {
-            	isix_printk("OOPS task waiting when not assigned to sem");
-            	isix_bug();
+            	isix_bug( "TASK waiting on empty sem");
             }
         	task_c->state &= ~TASK_SEM_WKUP;
             task_c->sem = NULL;
@@ -193,8 +192,7 @@ void isixp_schedule_time(void)
 #endif
         if(isixp_add_task_to_ready_list(task_c)<0)
         {
-            isix_printk("SchedulerTime: Error in add task to ready list\n");
-            isix_bug();
+            isix_bug("Add task to ready list fail");
         }
     }
     //Handle time from vtimers
@@ -207,7 +205,7 @@ static task_ready_t *alloc_task_ready_t(void)
    task_ready_t *prio = NULL;
    if(list_isempty(&free_prio_elem)==true)
    {
-       isix_bug();
+       isix_bug("Priority list not available");
    }
    else
    {
@@ -412,8 +410,10 @@ tick_t isix_get_jiffies(void)
 
 /*-----------------------------------------------------------------------*/
 /* Number of priorites assigned when OS start */
-void isix_init(prio_t num_priorities)
+void isix_init(prio_t num_priorities, isix_panic_func_callback_t panic_callback)
 {
+	//Setup panic callback
+	kernel_panic_fn_callback = panic_callback;
 	//Copy priority
 	number_of_priorities = num_priorities;
 	//Init heap

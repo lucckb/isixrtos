@@ -14,6 +14,9 @@ namespace isix {
 /*-----------------------------------------------------------------------*/
 //! Pointer to task function
 typedef void (*task_func_ptr_t)(void*);
+/*-----------------------------------------------------------------------*/
+//! Fatal panic function callback
+typedef void (*isix_panic_func_callback_t)(const char*, int, const char*);
 
 /*-----------------------------------------------------------------------*/
 //! Priority type
@@ -43,7 +46,11 @@ typedef struct task_struct task_t;
 
 /*-----------------------------------------------------------------------*/
 //! Halt system when critical error is found
-void isix_bug(void);
+void isix_kernel_panic( const char *file, int line, const char *msg );
+
+/*-----------------------------------------------------------*/
+//ISIX BUG macro
+#define isix_bug( msg ) isix_kernel_panic(__FILE__,__LINE__, (msg) )
 
 /*-----------------------------------------------------------*/
 /** Get current sytem ticks
@@ -59,8 +66,10 @@ void isix_start_scheduler(void) __attribute__((noreturn));
 /*-----------------------------------------------------------------------*/
 
 /** Initialize base OS structure before call main
- * @param[in] num_priorities Number of available tasks priorities*/
-void isix_init(prio_t num_priorities);
+ * @param[in] num_priorities Number of available tasks priorities
+ * @param[in] panic_callback Callback function called when kernel panic
+ */
+void isix_init(prio_t num_priorities, isix_panic_func_callback_t panic_callback);
 
 /*-----------------------------------------------------------------------*/
 /** Function return the minimal available priority

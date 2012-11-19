@@ -88,8 +88,7 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     {
     	if(isix_current_task->sem)
     	{
-    	   isix_printk("OOPS task assigned to not empty sem %08x",isix_current_task->sem);
-    	   isix_bug();
+    	   isix_bug("Task assigned to non empty sem");
     	}
     	isixp_add_task_to_sem_list(&sem->sem_task,isix_current_task);
         isix_current_task->state |= TASK_WAITING;
@@ -181,13 +180,11 @@ int isixp_sem_signal( sem_t *sem, bool isr )
     //Reschedule is needed wakeup task have higer prio then current prio
     if(!task_wake->sem)
     {
-    	isix_printk("OOPS sem is empty when sem is required");
-    	isix_bug();
+    	isix_bug("Sem is empty");
     }
     if(task_wake->sem != sem)
     {
-    	isix_printk("This task is not assigned to valid sem");
-    	isix_bug();
+    	isix_bug("Task is not assigned to semaphore");
     }
     task_wake->state &= ~TASK_WAITING;
     task_wake->state |= TASK_READY | TASK_SEM_WKUP;

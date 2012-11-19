@@ -30,7 +30,7 @@
 
 #define foundation_alloc isix::isix_alloc
 #define foundation_free isix::isix_free
-#define terminate_process() isix::isix_bug()
+#define terminate_process() isix::isix_bug("new::nothrow - No memory")
 
 #endif /*COMPILED_UNDER_ISIX*/
 

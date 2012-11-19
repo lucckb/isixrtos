@@ -94,7 +94,7 @@ static inline void* _calloc_from_isix_(size_t nmemb, size_t size)
 #define LWIP_PLATFORM_DIAG(x)	do {dbprintf x;} while(0)
 
 #define LWIP_PLATFORM_ASSERT(x) do {dbprintf("Assertion \"%s\" failed at line %d in %s\n", \
-                                     x, __LINE__, __FILE__); isix_bug(); } while(0)
+                                     x, __LINE__, __FILE__); isix_bug("Assert"); } while(0)
 #define LWIP_RAND() ((u32_t)rand())
 
 
