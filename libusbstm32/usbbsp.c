@@ -10,6 +10,9 @@
 #include <stm32system.h>
 #include <stm32gpio.h>
 #include <stm32rcc.h>
+#ifdef _HAVE_CONFIG_H
+#include "config.h"
+#endif
 /* ------------------------------------------------------------------ */
 /* Stack define config */
 

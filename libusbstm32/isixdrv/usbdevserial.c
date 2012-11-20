@@ -14,19 +14,43 @@
 #include <isix.h>
 #include <prv/list.h>
 #include <string.h>
+#ifdef _HAVE_CONFIG_H
+#include "config.h"
+#endif
 /* ------------------------------------------------------------------ */
+#ifndef USB_PACKET_TX_BUF_NBUFS
 #define USB_PACKET_TX_BUF_NBUFS			4
+#endif
+#ifndef USB_PACKET_RX_BUF_NBUFS
 #define USB_PACKET_RX_BUF_NBUFS			8
+#endif
+#ifndef USBD_VID
 #define USBD_VID                        0x0483
+#endif
+#ifndef USBD_PID
 #define USBD_PID                        0x5740
+#endif
+#ifndef USB_SIZ_STRING_LANGID
 #define USB_SIZ_STRING_LANGID            4
+#endif
+#ifndef USBD_LANGID_STRING
 #define USBD_LANGID_STRING              0x409
+#endif
+#ifndef USBD_MANUFACTURER_STRING
 #define USBD_MANUFACTURER_STRING        "STMicroelectronics"
-#define USBD_SERIALNUMBER_HS_STRING     "00000000050B"
+#endif
+#ifndef USBD_PRODUCT_FS_STRING
 #define USBD_PRODUCT_FS_STRING          "STM32 Virtual ComPort in FS Mode"
+#endif
+#ifndef USBD_SERIALNUMBER_FS_STRING
 #define USBD_SERIALNUMBER_FS_STRING     "00000000050C"
+#endif
+#ifndef USBD_CONFIGURATION_FS_STRING
 #define USBD_CONFIGURATION_FS_STRING    "VCP Config"
+#endif
+#ifndef USBD_INTERFACE_FS_STRING
 #define USBD_INTERFACE_FS_STRING        "VCP Interface"
+#endif
 
 /* ------------------------------------------------------------------ */
 /* Declare static string USB descriptor*/
