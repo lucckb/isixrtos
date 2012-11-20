@@ -58,18 +58,15 @@ void isix_kernel_panic( const char *file, int line, const char *msg );
  */
 tick_t isix_get_jiffies(void);
 
-
 /*-----------------------------------------------------------------------*/
 //!Start the scheduler
 void isix_start_scheduler(void) __attribute__((noreturn));
 
 /*-----------------------------------------------------------------------*/
-
 /** Initialize base OS structure before call main
  * @param[in] num_priorities Number of available tasks priorities
- * @param[in] panic_callback Callback function called when kernel panic
  */
-void isix_init(prio_t num_priorities, isix_panic_func_callback_t panic_callback);
+void isix_init( prio_t num_priorities );
 
 /*-----------------------------------------------------------------------*/
 /** Function return the minimal available priority

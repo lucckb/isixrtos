@@ -14,10 +14,11 @@
 #endif
 
 /*-----------------------------------------------------------------------*/
-
-//! Kernel panic function callback
-static isix_panic_func_callback_t kernel_panic_fn_callback;
-
+//! Kernel panic callback function definition
+void __attribute__((weak)) isix_kernel_panic_callback( const char* file, int line, const char *msg )
+{
+	(void)file; (void)line; (void)msg;
+}
 /*-----------------------------------------------------------------------*/
 //Current task pointer
 volatile bool isix_scheduler_running;
@@ -87,7 +88,7 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
         isix_printk("\t->Task: %08x prio: %d state %d jiffies %d",j,j->prio,j->state,j->jiffies);
     }
 #endif
-    if( kernel_panic_fn_callback ) kernel_panic_fn_callback( file, line, msg );
+    isix_kernel_panic_callback( file, line, msg );
     while(1);
 }
 
@@ -410,10 +411,8 @@ tick_t isix_get_jiffies(void)
 
 /*-----------------------------------------------------------------------*/
 /* Number of priorites assigned when OS start */
-void isix_init(prio_t num_priorities, isix_panic_func_callback_t panic_callback)
+void isix_init(prio_t num_priorities)
 {
-	//Setup panic callback
-	kernel_panic_fn_callback = panic_callback;
 	//Copy priority
 	number_of_priorities = num_priorities;
 	//Init heap
