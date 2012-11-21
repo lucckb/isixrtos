@@ -18,11 +18,11 @@
 #include "config.h"
 #endif
 /* ------------------------------------------------------------------ */
-#ifndef USB_PACKET_TX_BUF_NBUFS
-#define USB_PACKET_TX_BUF_NBUFS			4
+#ifndef USBD_ISIX_CDCSERIAL_PACKET_TX_BUF_NBUFS
+#define USBD_ISIX_CDCSERIAL_PACKET_TX_BUF_NBUFS			4
 #endif
-#ifndef USB_PACKET_RX_BUF_NBUFS
-#define USB_PACKET_RX_BUF_NBUFS			8
+#ifndef USBD_ISIX_CDCSERIAL_PACKET_RX_BUF_NBUFS
+#define USBD_ISIX_CDCSERIAL_PACKET_RX_BUF_NBUFS			8
 #endif
 #ifndef USBD_VID
 #define USBD_VID                        0x0483
@@ -62,10 +62,10 @@
 #define DEFINE_USB_STRING_DESC(name, text) _DEFINE_USB_STRING_DESC_prv(name, text)
 
 /* ------------------------------------------------------------------ */
-#if USB_PACKET_TX_BUF_NBUFS < 4
+#if USBD_ISIX_CDCSERIAL_PACKET_TX_BUF_NBUFS < 4
 #error Minimum 4 TX packet buffers are required
 #endif
-#if USB_PACKET_RX_BUF_NBUFS < 4
+#if USBD_ISIX_CDCSERIAL_PACKET_RX_BUF_NBUFS < 4
 #error Minimum 4 RX packet buffers are required
 #endif
 /* ------------------------------------------------------------------ */
@@ -415,13 +415,13 @@ int stm32_usbdev_serial_open( void )
 	{
 		if( !(lock_sem = isix_sem_create_limited(NULL,1,1)) )
 			{ ret=ISIX_ENOMEM; break; }
-		if(!(tx_mempool = isix_mempool_create(USB_PACKET_TX_BUF_NBUFS,sizeof(usbpkt_buf_t))) )
+		if(!(tx_mempool = isix_mempool_create(USBD_ISIX_CDCSERIAL_PACKET_TX_BUF_NBUFS,sizeof(usbpkt_buf_t))) )
 			{ ret=ISIX_ENOMEM; break; }
-		if( !(tx_fifo = isix_fifo_create(USB_PACKET_TX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*))) )
+		if( !(tx_fifo = isix_fifo_create(USBD_ISIX_CDCSERIAL_PACKET_TX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*))) )
 			{ ret=ISIX_ENOMEM; break; }
-		if( !(rx_mempool = isix_mempool_create( USB_PACKET_RX_BUF_NBUFS, sizeof(usbpkt_buf_t) )) )
+		if( !(rx_mempool = isix_mempool_create( USBD_ISIX_CDCSERIAL_PACKET_RX_BUF_NBUFS, sizeof(usbpkt_buf_t) )) )
 			{ ret=ISIX_ENOMEM; break; }
-		if( !(rx_fifo = isix_fifo_create(USB_PACKET_RX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*))) )
+		if( !(rx_fifo = isix_fifo_create( USBD_ISIX_CDCSERIAL_PACKET_RX_BUF_NBUFS - 2, sizeof(usbpkt_buf_t*))) )
 			{ ret=ISIX_ENOMEM; break; }
 		if( !(usb_ready_sem = isix_sem_create_limited(NULL,0,1)) )
 			{ ret=ISIX_ENOMEM; break; }
