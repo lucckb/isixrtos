@@ -8,6 +8,7 @@ ifeq ($(MCU_MAJOR_TYPE),f2)
 ISIX_ARCH ?= arm-cm3
 endif
 
+
 #Kernel source 
 ISIX_SRC += $(ISIX_DIR)/kernel/fifo.c 
 ISIX_SRC += $(ISIX_DIR)/kernel/memory.c 
@@ -38,4 +39,4 @@ $(ISIX_LIB): $(ISIX_OBJS)
 
 LIBS += $(ISIX_LIB)
 LIBS_OBJS += $(ISIX_OBJS)
-
+COMMON_FLAGS += $(ISIX_INC) -DCOMPILED_UNDER_ISIX -DISIX_CONFIG_STACK_GROWTH

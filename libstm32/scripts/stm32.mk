@@ -143,10 +143,9 @@ OCDSCRIPT_FILE=stm32f2x.cfg
 endif
 ifeq ($(MCU_MAJOR_TYPE),f1)
 OCDSCRIPT_FILE=stm32.cfg
-else	#If major type not defined (old scripts)
-OCDSCRIPT_FILE=stm32.cfg
 endif
 endif
+OCDSCRIPT_FILE ?= stm32.cfg
 
 ifdef MCU_SYSTEM_STACK_SIZE
 LDFLAGS += -Wl,--defsym=_sys_stack_size=$(MCU_SYSTEM_STACK_SIZE)
