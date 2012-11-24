@@ -11,8 +11,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stm32rcc.h>
 #include "stm32lib.h"
-
+#include "stm32fxxx_sdio.h"
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 namespace stm32 {
@@ -555,6 +556,16 @@ static inline void sdio_clear_it_pending_bit(uint32_t SDIO_IT)
 
   SDIO->ICR = SDIO_IT;
 }
+/*----------------------------------------------------------*/
+/**
+  * @brief  Returns command index of last command for which response received.
+  * @param  None
+  * @retval Returns the command index of the last command response received.
+  */
+static inline uint8_t sdio_get_command_response(void)
+{
+  return (SDIO->RESPCMD);
+}
 
 /*----------------------------------------------------------*/
 //Undef section
@@ -589,6 +600,8 @@ static inline void sdio_clear_it_pending_bit(uint32_t SDIO_IT)
 #undef SDIO_RESP_ADDR
 
 /*----------------------------------------------------------*/
+#ifdef __cplusplus
 }
+#endif
 /*----------------------------------------------------------*/
 #endif /* STM32SDIO_H_ */

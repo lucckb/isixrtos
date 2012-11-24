@@ -39,6 +39,12 @@ enum e_abstract_gpio_config
 	AGPIO_MODE_ANALOG
 };
 /*----------------------------------------------------------*/
+/* GPIO pin to bit */
+static inline unsigned short gpioPIN(int no)
+{
+	return 1<<no;
+}
+/*----------------------------------------------------------*/
 /** Set the output speed for F1 F2 F4 devices */
 enum e_abstract_gpio_speed
 {
