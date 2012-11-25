@@ -30,7 +30,7 @@
 
 //Normal transfer CLK divider
 #ifndef SDDRV_TRANSFER_CLK_DIV
-#define SDDRV_TRANSFER_CLK_DIV            0x2
+#define SDDRV_TRANSFER_CLK_DIV            0x1
 #endif
 
 //Detect GPIO port
@@ -2426,10 +2426,15 @@ unsigned isix_sdio_card_driver_status(void)
 			return SDCARD_DRVSTAT_NOINIT;
 	}
 	unsigned flags = 0;
-	if( sd_detect() == SD_NOT_PRESENT )
-		flags |= SDCARD_DRVSTAT_NODISK;
-	if( !tlock_sem || sd_get_status() == SD_TRANSFER_ERROR )
-		flags |= SDCARD_DRVSTAT_NOINIT;
+	do {
+		if( sd_detect() == SD_NOT_PRESENT )
+		{
+			flags |= SDCARD_DRVSTAT_NODISK;
+			break;
+		}
+		if( !tlock_sem || sd_get_status() == SD_TRANSFER_ERROR )
+			flags |= SDCARD_DRVSTAT_NOINIT;
+	} while(0);
 	if( tlock_sem ) isix_sem_signal( tlock_sem );
 	return flags;
 }

@@ -107,7 +107,13 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	(void)drv; (void)ctrl; (void)buff;
-	return RES_OK;
+	(void)drv; (void)buff;
+	switch( ctrl )
+	{
+	case CTRL_SYNC:
+		return RES_OK;
+	default:
+		return RES_ERROR;
+	}
 }
 #endif
