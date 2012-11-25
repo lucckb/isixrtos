@@ -24,7 +24,7 @@ int ff_cre_syncobj (	/* TRUE:Function succeeded, FALSE:Could not create due to a
 )
 {
 	(void)vol;
-	*sobj = isix_sem_create_limited( NULL, 0, 0 );
+	*sobj = isix_sem_create_limited( NULL, 1, 1 );
 	return *sobj != NULL;
 }
 

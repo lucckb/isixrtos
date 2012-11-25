@@ -8,6 +8,17 @@
 /*-----------------------------------------------------------------------*/
 
 #include "diskio.h"		/* FatFs lower layer API */
+#ifdef _HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifndef LIBISIX_FAT_USE_SDIO
+#define LIBISIX_FAT_USE_SDIO
+#endif
+
+#ifdef LIBISIX_FAT_USE_SDIO
+#include "sdio_sdcard_driver.h"
+#endif
 
 /*-----------------------------------------------------------------------*/
 DWORD get_fattime(void)
@@ -23,7 +34,11 @@ DSTATUS disk_initialize (
 		BYTE drv				/* Physical drive nmuber (0..) */
 )
 {
-	return STA_NOINIT;
+	(void)drv;
+	if( isix_sdio_card_driver_init() )
+		return STA_NOINIT;
+	else
+		return 0;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -34,7 +49,8 @@ DSTATUS disk_status (
 	BYTE drv		/* Physical drive nmuber (0..) */
 )
 {
-	return STA_NOINIT;
+	(void)drv;
+	return isix_sdio_card_driver_status();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -48,7 +64,13 @@ DRESULT disk_read (
 	BYTE count		/* Number of sectors to read (1..128) */
 )
 {
-	return RES_PARERR;
+	(void)drv;
+	if( isix_sdio_card_driver_read(buff, sector, count) )
+	{
+		return RES_ERROR;
+	}
+	else
+		return RES_OK;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -63,7 +85,13 @@ DRESULT disk_write (
 	BYTE count			/* Number of sectors to write (1..128) */
 )
 {
-	return RES_PARERR;
+	(void)drv;
+	if( isix_sdio_card_driver_write( buff, sector, count) )
+	{
+		return RES_ERROR;
+	}
+	else
+		return RES_OK;
 }
 #endif
 
@@ -79,5 +107,7 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
+	(void)drv; (void)ctrl; (void)buff;
+	return RES_OK;
 }
 #endif

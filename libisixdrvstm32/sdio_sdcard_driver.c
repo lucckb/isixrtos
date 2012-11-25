@@ -63,10 +63,20 @@
 #endif
 
 
+//USE dma stream number valid no are 3 or 6
+#ifndef SDDRV_DMA_STREAM_NO
+#define SDDRV_DMA_STREAM_NO 3
+#endif
+
 /* ------------------------------------------------------------------ */
+//Extra advanced API can be anabled
 //#define  SDDRV_ADVANCED_SD_API
+
 #define SD_RDWR_BLOCK_SIZE 512
 
+#if (SDDRV_DMA_STREAM_NO != 3 && SDDRV_DMA_STREAM_NO!=6) && (defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2) )
+#error Only Stream3 or Stream6 is connected to SDIO irq
+#endif
 /* ------------------------------------------------------------------ */
 
 static uint32_t card_type =  SDIO_STD_CAPACITY_SD_CARD_V1_1;
@@ -204,15 +214,27 @@ static sdcard_err sd_init(sdcard_info *cardinfo)
 
 #if (defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2))
 
-#define SD_SDIO_DMA_FLAG_TCIF         DMA_FLAG_TCIF3
-#define SD_SDIO_DMA_FLAG_FEIF         DMA_FLAG_FEIF3
-#define SD_SDIO_DMA_STREAM            DMA2_Stream3
-#define SD_SDIO_DMA_FLAG_HTIF         DMA_FLAG_HTIF3
-#define SD_SDIO_DMA_FLAG_DMEIF        DMA_FLAG_DMEIF3
-#define SD_SDIO_DMA_FLAG_TEIF         DMA_FLAG_TEIF3
-#define SD_SDIO_DMA_CHANNEL           DMA_Channel_4
-#define SDIO_FIFO_ADDRESS             ((void*)0x40012C80)
+#define _SD_SDIO_cat(x, y) x##y
+#define _SD_SDIO_cat3(x, y, z) x##y##z
+#define _SD_SDIO_STREAM_prv(x, y)  _SD_SDIO_cat(x, y)
+#define _SD_SDIO_STREAM_prv3(x, y, z)  _SD_SDIO_cat3(x, y, z)
+#define _SD_SDIO_ISR_VECT_expand(x, y, z ) _SD_SDIO_cat3(x, y, z)
+#define _SD_SDIO_isr_dma_vector _SD_SDIO_ISR_VECT_expand(dma2_stream,SDDRV_DMA_STREAM_NO,_isr_vector)
 
+#define SD_SDIO_DMA_FLAG_TCIF         _SD_SDIO_STREAM_prv( DMA_FLAG_TCIF, SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_FLAG_FEIF         _SD_SDIO_STREAM_prv( DMA_FLAG_FEIF, SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_STREAM            _SD_SDIO_STREAM_prv( DMA2_Stream, SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_FLAG_HTIF         _SD_SDIO_STREAM_prv( DMA_FLAG_HTIF, SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_FLAG_DMEIF        _SD_SDIO_STREAM_prv( DMA_FLAG_DMEIF, SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_FLAG_TEIF         _SD_SDIO_STREAM_prv( DMA_FLAG_TEIF, SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_CHANNEL           DMA_Channel_4
+#define SD_SDIO_DMA_IRQn              _SD_SDIO_STREAM_prv3(DMA2_Stream,SDDRV_DMA_STREAM_NO,_IRQn)
+#define SDIO_FIFO_ADDRESS             ((void*)0x40012C80)
+#if (SDDRV_DMA_STREAM_NO<=3)
+#define SD_SDIO_DMA_SR DMA2->LISR
+#else
+#define SD_SDIO_DMA_SR DMA2->HISR
+#endif
 /**
   * @brief  Configures the DMA2 Channel4 for SDIO Tx request.
   * @param  BufferSRC: pointer to the source buffer
@@ -231,7 +253,7 @@ static void sd_lowlevel_dma_tx_config(const uint32_t *buffer_src, uint32_t buf_s
   dma_deinit( SD_SDIO_DMA_STREAM );
   dma_init( SD_SDIO_DMA_STREAM , DMA_DIR_MemoryToPeripheral | DMA_PeripheralInc_Disable |
 		    SD_SDIO_DMA_CHANNEL |DMA_MemoryInc_Enable | DMA_PeripheralDataSize_Word | DMA_MemoryDataSize_Word |
-		  	DMA_Mode_Normal | DMA_Priority_VeryHigh | DMA_MemoryBurst_INC4 | DMA_PeripheralBurst_INC4,
+		  	DMA_Mode_Normal | DMA_Priority_Medium | DMA_MemoryBurst_INC4 | DMA_PeripheralBurst_INC4,
 		  	DMA_FIFOMode_Enable | DMA_FIFOThreshold_Full, 0, SDIO_FIFO_ADDRESS, (uint32_t*)buffer_src );
   dma_it_config(SD_SDIO_DMA_STREAM, DMA_IT_TC, ENABLE);
   dma_flow_controller_config(SD_SDIO_DMA_STREAM, DMA_FlowCtrl_Peripheral);
@@ -256,7 +278,7 @@ static void sd_lowlevel_dma_rx_config(uint32_t *buf_dst, uint32_t buf_size)
   dma_deinit(SD_SDIO_DMA_STREAM);
   dma_init(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_CHANNEL | DMA_DIR_PeripheralToMemory | DMA_PeripheralInc_Disable |
 		  DMA_MemoryInc_Enable | DMA_PeripheralDataSize_Word | DMA_MemoryDataSize_Word |
-		  DMA_Mode_Normal | DMA_Priority_VeryHigh | DMA_MemoryBurst_INC4 | DMA_PeripheralBurst_INC4 ,
+		  DMA_Mode_Normal | DMA_Priority_Medium | DMA_MemoryBurst_INC4 | DMA_PeripheralBurst_INC4 ,
 		  DMA_FIFOMode_Enable | DMA_FIFOThreshold_Full, 0, SDIO_FIFO_ADDRESS,  buf_dst );
 
   dma_it_config(SD_SDIO_DMA_STREAM, DMA_IT_TC, ENABLE);
@@ -266,7 +288,7 @@ static void sd_lowlevel_dma_rx_config(uint32_t *buf_dst, uint32_t buf_size)
 }
 
 /*--------------------------------------------------------------------*/
-void __attribute__((__interrupt__)) dma2_stream3_isr_vector( void )
+void __attribute__((__interrupt__)) _SD_SDIO_isr_dma_vector( void )
 {
 	sd_process_dma_irq();
 }
@@ -1590,7 +1612,7 @@ static sdcard_err sd_process_irq_src(void)
   */
 static void sd_process_dma_irq(void)
 {
-  if(DMA2->LISR & SD_SDIO_DMA_FLAG_TCIF)
+  if(SD_SDIO_DMA_SR & SD_SDIO_DMA_FLAG_TCIF)
   {
     dma_end_of_transfer = 0x01;
     dma_clear_flag(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF|SD_SDIO_DMA_FLAG_FEIF);
@@ -2242,8 +2264,8 @@ int isix_sdio_card_driver_init(void)
 #if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 	nvic_set_priority( SDIO_IRQn, SDDRV_IRQ_PRIO, SDDRV_IRQ_SUBPRIO );
 	nvic_irq_enable( SDIO_IRQn, true );
-	nvic_set_priority( DMA2_Stream3_IRQn, SDDRV_IRQ_PRIO, SDDRV_IRQ_SUBPRIO );
-	nvic_irq_enable( DMA2_Stream3_IRQn, true );
+	nvic_set_priority( SD_SDIO_DMA_IRQn , SDDRV_IRQ_PRIO, SDDRV_IRQ_SUBPRIO );
+	nvic_irq_enable( SD_SDIO_DMA_IRQn , true );
 	//Initialize the complete SEM
 	tcomplete_sem = isix_sem_create_limited( NULL, 0, 1);
 	if( !tcomplete_sem )
@@ -2253,6 +2275,7 @@ int isix_sdio_card_driver_init(void)
 	}
 	//Initialize the lock sem
 #endif
+	dbprintf("DISKINIT");
 	sdcard_info ci;
 	return sd_init( &ci );
 }
@@ -2261,7 +2284,7 @@ int isix_sdio_card_driver_init(void)
 void isix_sdio_card_driver_destroy(void)
 {
 	nvic_irq_enable( SDIO_IRQn, false );
-	nvic_irq_enable( DMA2_Stream3_IRQn, false );
+	nvic_irq_enable( SD_SDIO_DMA_IRQn, false );
 	sd_power_off();
 	sd_deinit();
 	if( tlock_sem ) isix_sem_destroy( tlock_sem );
@@ -2296,6 +2319,7 @@ int isix_sdio_card_driver_read( void *buf, unsigned long LBA, size_t count )
 	}
 	err = sd_wait_read_operation();
 	isix_sem_signal( tlock_sem );
+	dbprintf("DREAD(%lu %u)=%d", LBA, count, err);
 	return err;
 #elif (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
 	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
@@ -2353,6 +2377,7 @@ int isix_sdio_card_driver_write( const void *buf, unsigned long LBA, size_t coun
 	}
 	err = sd_wait_write_operation();
 	isix_sem_signal( tlock_sem );
+	dbprintf("DWRITE(%lu %u)=%d", LBA, count, err);
 	return err;
 #elif (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
 	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
