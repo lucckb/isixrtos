@@ -23,7 +23,6 @@
 #define SDDRV_TRANSFER_MODE SDDRV_DMA_MODE
 #endif
 
-
 //Config section
 #ifndef SDDRV_INIT_CLK_DIV
 #define SDDRV_INIT_CLK_DIV                0x76
@@ -148,15 +147,47 @@ static void sd_deinit(void)
 #endif
 }
 /*--------------------------------------------------------------------*/
+/* Initialize the card in slot */
+static sdcard_err sd_card_init(sdcard_info *cardinfo)
+{
+	 sdcard_err errorstatus = SD_OK;
+	 errorstatus = sd_power_on();
+	 if (errorstatus != SD_OK)
+	 {
+	   /*!< CMD Response TimeOut (wait for CMDSENT flag) */
+	   return(errorstatus);
+	 }
+	 errorstatus = sd_initialize_cards();
+	 if (errorstatus != SD_OK)
+	 {
+	   /*!< CMD Response TimeOut (wait for CMDSENT flag) */
+	   return(errorstatus);
+	 }
+	  /*!< Configure the SDIO peripheral */
+	  /*!< SDIO_CK = SDIOCLK / (SDDRV_TRANSFER_CLK_DIV + 2) */
+	  /*!< on STM32F4xx devices, SDIOCLK is fixed to 48MHz */
+	 sdio_init(SDIO_ClockEdge_Rising, SDIO_ClockBypass_Disable, SDIO_ClockPowerSave_Disable,
+		  SDIO_BusWide_1b, SDIO_HardwareFlowControl_Disable, SDDRV_TRANSFER_CLK_DIV );
+	 errorstatus = sd_get_card_info(cardinfo);
+	 if (errorstatus == SD_OK)
+	 {
+	   errorstatus = sd_select_deselect((uint32_t) (cardinfo->RCA << 16));
+	 }
+	 if (errorstatus == SD_OK)
+	 {
+	   errorstatus = sd_enable_wide_bus_operation(SDIO_BusWide_4b);
+	 }
+	 return(errorstatus);
+}
+/*--------------------------------------------------------------------*/
 /**
   * @brief  Initializes the SD Card and put it into StandBy State (Ready for data
   *         transfer).
   * @param  None
   * @retval sdcard_err: SD Card Error code.
   */
-static sdcard_err sd_init(sdcard_info *cardinfo)
+static void sd_hw_init(void)
 {
-  sdcard_err errorstatus = SD_OK;
   /* SDIO Peripheral Low Level Init */
   rcc_ahb1_periph_clock_cmd(RCC_AHB1Periph_GPIOC | RCC_AHB1Periph_GPIOD, ENABLE);
   gpio_clock_enable( SDDRV_DETECT_GPIO_PORT, true );
@@ -181,33 +212,7 @@ static sdcard_err sd_init(sdcard_info *cardinfo)
   rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SDIO, true );
   /* SDIO Peripheral Low Level Init END*/
   sdio_deinit();
-  errorstatus = sd_power_on();
-  if (errorstatus != SD_OK)
-  {
-    /*!< CMD Response TimeOut (wait for CMDSENT flag) */
-    return(errorstatus);
-  }
-  errorstatus = sd_initialize_cards();
-  if (errorstatus != SD_OK)
-  {
-    /*!< CMD Response TimeOut (wait for CMDSENT flag) */
-    return(errorstatus);
-  }
-  /*!< Configure the SDIO peripheral */
-  /*!< SDIO_CK = SDIOCLK / (SDDRV_TRANSFER_CLK_DIV + 2) */
-  /*!< on STM32F4xx devices, SDIOCLK is fixed to 48MHz */
-  sdio_init(SDIO_ClockEdge_Rising, SDIO_ClockBypass_Disable, SDIO_ClockPowerSave_Disable,
-		  SDIO_BusWide_1b, SDIO_HardwareFlowControl_Disable, SDDRV_TRANSFER_CLK_DIV );
-  errorstatus = sd_get_card_info(cardinfo);
-  if (errorstatus == SD_OK)
-  {
-    errorstatus = sd_select_deselect((uint32_t) (cardinfo->RCA << 16));
-  }
-  if (errorstatus == SD_OK)
-  {
-    errorstatus = sd_enable_wide_bus_operation(SDIO_BusWide_4b);
-  }
-  return(errorstatus);
+
 }
 /*--------------------------------------------------------------------*/
 #if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
@@ -2276,15 +2281,18 @@ int isix_sdio_card_driver_init(void)
 	//Initialize the lock sem
 #endif
 	dbprintf("DISKINIT");
+	sd_hw_init();
 	sdcard_info ci;
-	return sd_init( &ci );
+	return sd_card_init( &ci );
 }
 /*--------------------------------------------------------------------*/
 /* Destroy card driver and disable interrupt */
 void isix_sdio_card_driver_destroy(void)
 {
 	nvic_irq_enable( SDIO_IRQn, false );
+#if (SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE)
 	nvic_irq_enable( SD_SDIO_DMA_IRQn, false );
+#endif
 	sd_power_off();
 	sd_deinit();
 	if( tlock_sem ) isix_sem_destroy( tlock_sem );
@@ -2301,7 +2309,8 @@ int isix_sdio_card_driver_read( void *buf, unsigned long LBA, size_t count )
 		LBA *= SD_RDWR_BLOCK_SIZE;
 #if (SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE)
 	int err;
-	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
+	if ((err=isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE )) != ISIX_EOK )
+		return err;
 	while ( (err = sd_get_status()) == SD_TRANSFER_BUSY )
 	{
 		isix_yield();
@@ -2322,8 +2331,9 @@ int isix_sdio_card_driver_read( void *buf, unsigned long LBA, size_t count )
 	dbprintf("DREAD(%lu %u)=%d", LBA, count, err);
 	return err;
 #elif (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
-	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
 	int err;
+	if ((err=isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE )) != ISIX_EOK )
+		return err;
 	uint8_t *pb = buf;
 	while ( (err = sd_get_status()) == SD_TRANSFER_BUSY )
 	{
@@ -2358,8 +2368,9 @@ int isix_sdio_card_driver_write( const void *buf, unsigned long LBA, size_t coun
 	if( card_type != SDIO_HIGH_CAPACITY_SD_CARD )
 		LBA *= SD_RDWR_BLOCK_SIZE;
 #if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
-	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
 	int err;
+	if( (err=isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE )) != ISIX_EOK)
+		return err;
 	while ( (err = sd_get_status()) == SD_TRANSFER_BUSY )
 	{
 		isix_yield();
@@ -2409,7 +2420,11 @@ int isix_sdio_card_driver_write( const void *buf, unsigned long LBA, size_t coun
 //Card driver status
 unsigned isix_sdio_card_driver_status(void)
 {
-	if( tlock_sem ) isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
+	if( tlock_sem )
+	{
+		if( isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE ) != ISIX_EOK )
+			return SDCARD_DRVSTAT_NOINIT;
+	}
 	unsigned flags = 0;
 	if( sd_detect() == SD_NOT_PRESENT )
 		flags |= SDCARD_DRVSTAT_NODISK;
@@ -2434,8 +2449,23 @@ int isix_sdio_card_driver_get_info( sdcard_info * sdinfo )
 		isix_sem_signal( tlock_sem );
 		return SD_ERROR;
 	}
-	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
+	if( (err=isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE )) != ISIX_EOK )
+		return err;
 	err = sd_get_card_info( sdinfo );
+	isix_sem_signal( tlock_sem );
+	return err;
+}
+/*--------------------------------------------------------------------*/
+//SD CARD initialize again
+int isix_sdio_card_driver_reinitialize( void )
+{
+	int err;
+	if((err=isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE )) != ISIX_EOK )
+	{
+		return err;
+	}
+	sdcard_info ci;
+	err =  sd_card_init( &ci );
 	isix_sem_signal( tlock_sem );
 	return err;
 }

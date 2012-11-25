@@ -177,9 +177,12 @@ int isix_sdio_card_driver_write( const void *buf, unsigned long LBA, size_t coun
 void isix_sdio_card_driver_destroy(void);
 
 /* ------------------------------------------------------------------ */
-
 //Get SD card info
 int isix_sdio_card_driver_get_info( sdcard_info * sdinfo );
+
+/* ------------------------------------------------------------------ */
+//SD CARD initialize again
+int isix_sdio_card_driver_reinitialize( void );
 
 /* ------------------------------------------------------------------ */
 #ifdef __cplusplus
