@@ -4,12 +4,17 @@
  *  Created on: 22-11-2012
  *      Author: lucck
  */
-
+/* ------------------------------------------------------------------ */
 #ifndef SDCARD_DEFS_H_
 #define SDCARD_DEFS_H_
-
+/* ------------------------------------------------------------------ */
 #include <stdint.h>
 
+/* ------------------------------------------------------------------ */
+#define SDDRV_POLLING_MODE 1	/* Polling mode */
+#define SDDRV_DMA_MODE 2		/* DAM mode */
+
+/* ------------------------------------------------------------------ */
 
 /**
   * @brief  SDIO Transfer state
@@ -21,6 +26,7 @@ typedef enum
   SD_TRANSFER_ERROR
 } SDTransferState;
 
+/* ------------------------------------------------------------------ */
 /**
   * @brief  SD Card States
   */
@@ -37,8 +43,7 @@ typedef enum
   SD_CARD_ERROR                  = ((uint32_t)0x000000FF)
 } sdcard_state;
 
-
-
+/* ------------------------------------------------------------------ */
 
 /**
   * @brief SD Card Status
@@ -57,7 +62,7 @@ typedef struct
  uint8_t ERASE_OFFSET;
 } sdcard_status;
 
-
+/* ------------------------------------------------------------------ */
 
 #define SD_CMD_GO_IDLE_STATE                       ((uint8_t)0)
 #define SD_CMD_SEND_OP_COND                        ((uint8_t)1)

@@ -18,9 +18,11 @@
 #include <isix.h>
 #include <dbglog.h>
 /* ------------------------------------------------------------------ */
-/* Configure driver mode */
-#define SDDRV_DMA_MODE
-//#define SDDRV_POLLING_MODE
+/* Configure driver model */
+#ifndef SDDRV_TRANSFER_MODE
+#define SDDRV_TRANSFER_MODE SDDRV_DMA_MODE
+#endif
+
 
 //Config section
 #ifndef SDDRV_INIT_CLK_DIV
@@ -29,7 +31,7 @@
 
 //Normal transfer CLK divider
 #ifndef SDDRV_TRANSFER_CLK_DIV
-#define SDDRV_TRANSFER_CLK_DIV            0x10
+#define SDDRV_TRANSFER_CLK_DIV            0x2
 #endif
 
 //Detect GPIO port
@@ -64,9 +66,7 @@
 /* ------------------------------------------------------------------ */
 //#define  SDDRV_ADVANCED_SD_API
 #define SD_RDWR_BLOCK_SIZE 512
-#if !defined(SDDRV_DMA_MODE) && !defined(SDDRV_POLLING_MODE)
-#error please define SDDRV_DMA_MODE or SDDRV_POLLING_MODE
-#endif
+
 /* ------------------------------------------------------------------ */
 
 static uint32_t card_type =  SDIO_STD_CAPACITY_SD_CARD_V1_1;
@@ -100,7 +100,7 @@ static sdcard_err is_card_programming(uint8_t *pstatus);
 static SDTransferState sd_get_transfer_state(void);
 static sdcard_err sd_send_sd_status(uint32_t *psdstatus);
 #endif
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 static sdcard_err sd_stop_transfer(void);
 static void sd_process_dma_irq(void);
 static sdcard_err sd_process_irq_src(void);
@@ -122,6 +122,7 @@ static void sd_deinit(void)
 	/* Disable the SDIO APB2 Clock */
 	rcc_apb2_periph_clock_cmd(RCC_APB2Periph_SDIO, DISABLE);
 #if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+	rcc_ahb1_periph_clock_cmd( RCC_AHB1Periph_DMA2, DISABLE );
 	/* Deactivate the GPIO ports */
 	gpio_pin_AF_config( GPIOC, GPIO_PinSource8,  GPIO_AF_MCO );
 	gpio_pin_AF_config( GPIOC, GPIO_PinSource9,  GPIO_AF_MCO );
@@ -161,7 +162,7 @@ static sdcard_err sd_init(sdcard_info *cardinfo)
   gpio_config( GPIOD, 2, GPIO_MODE_ALTERNATE, GPIO_PUPD_PULLUP, GPIO_SPEED_25MHZ, GPIO_OTYPE_PP );
   gpio_config( GPIOC, 12, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, GPIO_SPEED_25MHZ, GPIO_OTYPE_PP );
   gpio_config( SDDRV_DETECT_GPIO_PORT, SDDRV_DETECT_PIN, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, 0, 0 );
-#ifdef  SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
   rcc_ahb1_periph_clock_cmd( RCC_AHB1Periph_DMA2, true );
 #endif
 #else
@@ -199,7 +200,7 @@ static sdcard_err sd_init(sdcard_info *cardinfo)
   return(errorstatus);
 }
 /*--------------------------------------------------------------------*/
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 
 #if (defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2))
 
@@ -904,11 +905,11 @@ static sdcard_err sd_select_deselect(uint32_t addr)
   * @param  BlockSize: the SD card Data block size. The Block size should be 512.
   * @retval sdcard_err: SD Card Error code.
   */
-#ifndef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE
 static sdcard_err sd_read_block(uint8_t *readbuff, uint32_t readaddr,  uint16_t blocksize)
 {
   sdcard_err errorstatus = SD_OK;
-#if defined (SDDRV_POLLING_MODE)
+#if (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
   uint32_t count = 0, *tempbuff = (uint32_t *)readbuff;
 #endif
   transfer_error = SD_OK;
@@ -941,7 +942,7 @@ static sdcard_err sd_read_block(uint8_t *readbuff, uint32_t readaddr,  uint16_t 
   {
     return(errorstatus);
   }
-#if defined (SDDRV_POLLING_MODE)
+#if (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
   /*!< In case of single block transfer, no need of stop transfer at all.*/
   /*!< Polling mode */
   while (!(SDIO->STA &(SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND | SDIO_FLAG_STBITERR)))
@@ -991,17 +992,19 @@ static sdcard_err sd_read_block(uint8_t *readbuff, uint32_t readaddr,  uint16_t 
   /*!< Clear all the static flags */
   sdio_clear_flag(SDIO_STATIC_FLAGS);
 
-#elif defined (SDDRV_DMA_MODE)
+#elif (SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE)
     sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR, ENABLE);
     sdio_dma_cmd(ENABLE);
     sd_lowlevel_dma_rx_config((uint32_t *)readbuff, blocksize);
+#else
+#error Unknown mode
 #endif
 
   return(errorstatus);
 }
 #endif
 /*--------------------------------------------------------------------*/
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 /**
   * @brief  Allows to read blocks from a specified address  in a card.  The Data
   *         transfer can be managed by DMA mode or Polling mode.
@@ -1053,7 +1056,7 @@ static sdcard_err sd_read_multi_blocks(uint8_t *readbuff, uint32_t readaddress, 
 }
 #endif
 /*--------------------------------------------------------------------*/
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 /**
   * @brief  This function waits until the SDIO DMA data transfer is finished.
   *         This function should be called after SDIO_ReadMultiBlocks() function
@@ -1110,7 +1113,7 @@ static sdcard_err sd_wait_read_operation(void)
 }
 #endif
 /*--------------------------------------------------------------------*/
-#ifndef SDDRV_DMA_MODE
+#if (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
 /**
   * @brief  Allows to write one block starting from a specified address in a card.
   *         The Data transfer can be managed by DMA mode or Polling mode.
@@ -1129,7 +1132,7 @@ static sdcard_err sd_write_block(const uint8_t *writebuff, uint32_t writeaddr, u
 {
   sdcard_err errorstatus = SD_OK;
 
-#if defined (SDDRV_POLLING_MODE)
+#if (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
   uint32_t bytestransferred = 0, count = 0, restwords = 0;
   uint32_t *tempbuff = (uint32_t *)writebuff;
 #endif
@@ -1159,7 +1162,7 @@ static sdcard_err sd_write_block(const uint8_t *writebuff, uint32_t writeaddr, u
   sdio_data_config( SDDRV_HW_DATATIMEOUT, blocksize, 9 << 4, SDIO_TransferDir_ToCard,
 		  SDIO_TransferMode_Block, SDIO_DPSM_Enable );
   /*!< In case of single data block transfer no need of stop command at all */
-#if defined (SDDRV_POLLING_MODE)
+#if (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
   while (!(SDIO->STA & (SDIO_FLAG_DBCKEND | SDIO_FLAG_TXUNDERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_STBITERR)))
   {
     if (sdio_get_flag_status(SDIO_FLAG_TXFIFOHE) != RESET)
@@ -1207,7 +1210,7 @@ static sdcard_err sd_write_block(const uint8_t *writebuff, uint32_t writeaddr, u
     errorstatus = SD_START_BIT_ERR;
     return(errorstatus);
   }
-#elif defined (SDDRV_DMA_MODE)
+#elif SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
   sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR, ENABLE);
   sd_lowlevel_dma_tx_config((uint32_t*)writebuff, blocksize);
   sdio_dma_cmd(ENABLE);
@@ -1217,7 +1220,7 @@ static sdcard_err sd_write_block(const uint8_t *writebuff, uint32_t writeaddr, u
 }
 #endif
 /*--------------------------------------------------------------------*/
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 /**
   * @brief  Allows to write blocks starting from a specified address in a card.
   *         The Data transfer can be managed by DMA mode only.
@@ -1283,7 +1286,7 @@ static sdcard_err sd_write_multi_blocks(const uint8_t *writebuff, uint32_t write
 }
 #endif
 
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 /*--------------------------------------------------------------------*/
 /**
   * @brief  This function waits until the SDIO DMA data transfer is finished.
@@ -1335,7 +1338,7 @@ static sdcard_err sd_wait_write_operation(void)
 }
 #endif
 /*--------------------------------------------------------------------*/
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 /**
   * @brief  Aborts an ongoing data transfer.
   * @param  None
@@ -1532,7 +1535,7 @@ static sdcard_err sd_send_sd_status(uint32_t *psdstatus)
 }
 #endif
 /*--------------------------------------------------------------------*/
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 /**
   * @brief  Allows to process all the interrupts that are high.
   * @param  None
@@ -1579,7 +1582,7 @@ static sdcard_err sd_process_irq_src(void)
 }
 #endif
 /*--------------------------------------------------------------------*/
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 /**
   * @brief  This function waits until the SDIO DMA data transfer is finished.
   * @param  None.
@@ -2236,7 +2239,7 @@ int isix_sdio_card_driver_init(void)
 	{
 		return ISIX_ENOMEM;
 	}
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 	nvic_set_priority( SDIO_IRQn, SDDRV_IRQ_PRIO, SDDRV_IRQ_SUBPRIO );
 	nvic_irq_enable( SDIO_IRQn, true );
 	nvic_set_priority( DMA2_Stream3_IRQn, SDDRV_IRQ_PRIO, SDDRV_IRQ_SUBPRIO );
@@ -2273,7 +2276,7 @@ int isix_sdio_card_driver_read( void *buf, unsigned long LBA, size_t count )
 		 return SD_LIB_NOT_INITIALIZED;
 	if( card_type != SDIO_HIGH_CAPACITY_SD_CARD )
 		LBA *= SD_RDWR_BLOCK_SIZE;
-#ifdef SDDRV_DMA_MODE
+#if (SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE)
 	int err;
 	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
 	while ( (err = sd_get_status()) == SD_TRANSFER_BUSY )
@@ -2294,7 +2297,7 @@ int isix_sdio_card_driver_read( void *buf, unsigned long LBA, size_t count )
 	err = sd_wait_read_operation();
 	isix_sem_signal( tlock_sem );
 	return err;
-#else
+#elif (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
 	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
 	int err;
 	uint8_t *pb = buf;
@@ -2318,6 +2321,8 @@ int isix_sdio_card_driver_read( void *buf, unsigned long LBA, size_t count )
 	}
 	isix_sem_signal( tlock_sem );
 	return err;
+#else
+#error "unknown SDDRV_TRANSFER_MODE"
 #endif
 }
 /*--------------------------------------------------------------------*/
@@ -2328,7 +2333,7 @@ int isix_sdio_card_driver_write( const void *buf, unsigned long LBA, size_t coun
 		return SD_LIB_NOT_INITIALIZED;
 	if( card_type != SDIO_HIGH_CAPACITY_SD_CARD )
 		LBA *= SD_RDWR_BLOCK_SIZE;
-#ifdef SDDRV_DMA_MODE
+#if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
 	int err;
 	while ( (err = sd_get_status()) == SD_TRANSFER_BUSY )
@@ -2349,7 +2354,7 @@ int isix_sdio_card_driver_write( const void *buf, unsigned long LBA, size_t coun
 	err = sd_wait_write_operation();
 	isix_sem_signal( tlock_sem );
 	return err;
-#else
+#elif (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
 	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
 	int err;
 	while ( (err = sd_get_status()) == SD_TRANSFER_BUSY )
