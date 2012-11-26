@@ -87,7 +87,7 @@ typedef enum sdcard_drvstat
 /**
   * @brief  Card Specific Data: CSD Register
   */
-typedef struct
+typedef struct sd_csd
 {
   uint8_t  CSDStruct;            /*!< CSD structure */
   uint8_t  SysSpecVersion;       /*!< System specification version */
@@ -132,7 +132,7 @@ typedef struct
 /**
   * @brief  Card Identification Data: CID Register
   */
-typedef struct
+typedef struct sd_cid
 {
  uint8_t  ManufacturerID;       /*!< ManufacturerID */
  uint16_t OEM_AppliID;          /*!< OEM/Application ID */
@@ -148,13 +148,19 @@ typedef struct
 
 
 /* ------------------------------------------------------------------ */
+typedef enum scard_info_field
+{
+	sdcard_info_f_info = 1,	//Get Info struct
+	sdcard_info_f_cid,		//Get CID
+	sdcard_info_f_csd		//Get CSD
+}  scard_info_field;
+
+/* ------------------------------------------------------------------ */
 /**
   * @brief SD Card information
   */
-typedef struct
+typedef struct sdcard_info
 {
-  sd_csd SD_csd;
-  sd_cid SD_cid;
   uint64_t CardCapacity;  /*!< Card Capacity */
   uint32_t CardBlockSize; /*!< Card Block Size */
   uint16_t RCA;
@@ -183,7 +189,7 @@ void isix_sdio_card_driver_destroy(void);
 
 /* ------------------------------------------------------------------ */
 //Get SD card info
-int isix_sdio_card_driver_get_info( sdcard_info * sdinfo );
+int isix_sdio_card_driver_get_info( void *cardinfo, scard_info_field req );
 
 /* ------------------------------------------------------------------ */
 //SD CARD initialize again
