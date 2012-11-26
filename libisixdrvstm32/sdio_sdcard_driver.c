@@ -339,7 +339,7 @@ static SDTransferState sd_get_status(void)
   * @param  None
   * @retval  sdcard_state: SD Card Error or SD Card Current State.
   */
-static  sdcard_state sd_get_state(void)
+static sdcard_state sd_get_state(void)
 {
   uint32_t resp1 = 0;
 
@@ -2280,7 +2280,6 @@ int isix_sdio_card_driver_init(void)
 	}
 	//Initialize the lock sem
 #endif
-	dbprintf("DISKINIT");
 	sd_hw_init();
 	sdcard_info ci;
 	return sd_card_init( &ci );
@@ -2328,7 +2327,6 @@ int isix_sdio_card_driver_read( void *buf, unsigned long LBA, size_t count )
 	}
 	err = sd_wait_read_operation();
 	isix_sem_signal( tlock_sem );
-	dbprintf("DREAD(%lu %u)=%d", LBA, count, err);
 	return err;
 #elif (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
 	int err;
@@ -2418,25 +2416,39 @@ int isix_sdio_card_driver_write( const void *buf, unsigned long LBA, size_t coun
 }
 /* ------------------------------------------------------------------ */
 //Card driver status
-unsigned isix_sdio_card_driver_status(void)
+sdcard_drvstat isix_sdio_card_driver_status(void)
 {
 	if( tlock_sem )
 	{
 		if( isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE ) != ISIX_EOK )
-			return SDCARD_DRVSTAT_NOINIT;
+			return SDCARD_DRVSTAT_INTERNAL;
 	}
-	unsigned flags = 0;
+	sdcard_drvstat cstat = SDCARD_DRVSTAT_OK;
 	do {
 		if( sd_detect() == SD_NOT_PRESENT )
 		{
-			flags |= SDCARD_DRVSTAT_NODISK;
+			cstat = SDCARD_DRVSTAT_NODISK;
 			break;
 		}
-		if( !tlock_sem || sd_get_status() == SD_TRANSFER_ERROR )
-			flags |= SDCARD_DRVSTAT_NOINIT;
+		if( !tlock_sem )
+			cstat = SDCARD_DRVSTAT_NOINIT;
+		else
+		{
+			switch( sd_get_status() )
+			{
+			case SD_TRANSFER_BUSY:
+				cstat = SDCARD_DRVSTAT_BUSY;
+				break;
+			case SD_TRANSFER_OK:
+				break;
+			default:
+				cstat = SDCARD_DRVSTAT_NODISK;
+				break;
+			}
+		}
 	} while(0);
 	if( tlock_sem ) isix_sem_signal( tlock_sem );
-	return flags;
+	return cstat;
 }
 /*--------------------------------------------------------------------*/
 //Get SD card info
@@ -2473,5 +2485,13 @@ int isix_sdio_card_driver_reinitialize( void )
 	err =  sd_card_init( &ci );
 	isix_sem_signal( tlock_sem );
 	return err;
+}
+
+
+/*--------------------------------------------------------------------*/
+//IS card present
+bool isix_sdio_card_driver_is_card_in_slot( void )
+{
+	return (sd_detect() == SD_PRESENT);
 }
 /*--------------------------------------------------------------------*/

@@ -11,6 +11,7 @@
 /* ------------------------------------------------------------------ */
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 /* ------------------------------------------------------------------ */
 #ifdef __cplusplus
 extern "C" {
@@ -71,11 +72,15 @@ typedef enum sdcard_err
 } sdcard_err;
 
 /* ------------------------------------------------------------------ */
+/* SDCARD drv status */
 typedef enum sdcard_drvstat
 {
-	SDCARD_DRVSTAT_NOINIT =  0x01,
-	SDCARD_DRVSTAT_NODISK =  0x02,
-	SDCARD_DRVSTAT_PROTECT = 0x04
+	SDCARD_DRVSTAT_OK,				//OK
+	SDCARD_DRVSTAT_INTERNAL,		//Internal error
+	SDCARD_DRVSTAT_NOINIT,			//Not initialized
+	SDCARD_DRVSTAT_NODISK,			//No disk
+	SDCARD_DRVSTAT_PROTECT,			//Protect
+	SDCARD_DRVSTAT_BUSY				//Busy
 } sdcard_drvstat;
 
 /* ------------------------------------------------------------------ */
@@ -162,7 +167,7 @@ int isix_sdio_card_driver_init(void);
 
 /* ------------------------------------------------------------------ */
 //Card driver status
-unsigned isix_sdio_card_driver_status(void);
+sdcard_drvstat isix_sdio_card_driver_status(void);
 
 /* ------------------------------------------------------------------ */
 //SDIO card driver read
@@ -183,6 +188,10 @@ int isix_sdio_card_driver_get_info( sdcard_info * sdinfo );
 /* ------------------------------------------------------------------ */
 //SD CARD initialize again
 int isix_sdio_card_driver_reinitialize( void );
+
+/* ------------------------------------------------------------------ */
+//IS card present
+bool isix_sdio_card_driver_is_card_in_slot( void );
 
 /* ------------------------------------------------------------------ */
 #ifdef __cplusplus

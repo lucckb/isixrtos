@@ -35,10 +35,18 @@ DSTATUS disk_initialize (
 )
 {
 	(void)drv;
-	if( isix_sdio_card_driver_init() )
-		return STA_NOINIT;
-	else
-		return 0;
+	switch ( isix_sdio_card_driver_init() )
+	{
+	case SD_LIB_ALREADY_INITIALIZED:
+		if( isix_sdio_card_driver_reinitialize() )
+			return RES_OK;
+		else
+			return RES_ERROR;
+	case SD_OK:
+			return RES_OK;
+	default:
+		return RES_ERROR;
+	}
 }
 
 /*-----------------------------------------------------------------------*/
@@ -50,7 +58,17 @@ DSTATUS disk_status (
 )
 {
 	(void)drv;
-	return isix_sdio_card_driver_status();
+	if( !isix_sdio_card_driver_is_card_in_slot() )
+		return STA_NODISK;
+	switch( isix_sdio_card_driver_status() )
+	{
+	case SDCARD_DRVSTAT_NOINIT:
+		return STA_NOINIT;
+	case SDCARD_DRVSTAT_OK:
+		return 0;
+	default:
+		return STA_NOINIT;
+	}
 }
 
 /*-----------------------------------------------------------------------*/
