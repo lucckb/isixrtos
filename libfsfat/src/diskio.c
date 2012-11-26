@@ -39,9 +39,9 @@ DSTATUS disk_initialize (
 	{
 	case SD_LIB_ALREADY_INITIALIZED:
 		if( isix_sdio_card_driver_reinitialize() )
-			return RES_OK;
-		else
 			return RES_ERROR;
+		else
+			return RES_OK;
 	case SD_OK:
 			return RES_OK;
 	default:
@@ -65,9 +65,10 @@ DSTATUS disk_status (
 	case SDCARD_DRVSTAT_NOINIT:
 		return STA_NOINIT;
 	case SDCARD_DRVSTAT_OK:
+	case SDCARD_DRVSTAT_BUSY:
 		return 0;
 	default:
-		return STA_NOINIT;
+		return 0;
 	}
 }
 

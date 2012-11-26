@@ -151,6 +151,7 @@ static void sd_deinit(void)
 static sdcard_err sd_card_init(sdcard_info *cardinfo)
 {
 	 sdcard_err errorstatus = SD_OK;
+	 sdio_deinit();
 	 errorstatus = sd_power_on();
 	 if (errorstatus != SD_OK)
 	 {
@@ -210,10 +211,8 @@ static void sd_hw_init(void)
 #error F1 not implemented yet
 #endif
   rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SDIO, true );
-  /* SDIO Peripheral Low Level Init END*/
-  sdio_deinit();
-
 }
+
 /*--------------------------------------------------------------------*/
 #if SDDRV_TRANSFER_MODE==SDDRV_DMA_MODE
 
@@ -2386,7 +2385,6 @@ int isix_sdio_card_driver_write( const void *buf, unsigned long LBA, size_t coun
 	}
 	err = sd_wait_write_operation();
 	isix_sem_signal( tlock_sem );
-	dbprintf("DWRITE(%lu %u)=%d", LBA, count, err);
 	return err;
 #elif (SDDRV_TRANSFER_MODE==SDDRV_POLLING_MODE)
 	isix_sem_wait( tlock_sem, ISIX_TIME_INFINITE );
