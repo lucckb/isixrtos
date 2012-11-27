@@ -1331,7 +1331,7 @@ static const unsigned PRE1Div_Offset = 1;
 		uint32_t best_div = 0, best_mul = 0;
 #if defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) || \
 	defined(STM32F10X_HD_VL) || defined(STM32F10X_CL)
-		for (div = 2; div <= 16; div++)			// PLL divider
+		for (div = 1; div <= 16; div++)			// PLL divider
 		{
 #elif defined(STM32F10X_LD) || defined(STM32F10X_MD) || \
 	  defined(STM32F10X_HD) || defined(STM32F10X_XL)
