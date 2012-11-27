@@ -19,7 +19,6 @@ namespace stm32 {
 namespace drv {
 #endif
 
-
 /* ------------------------------------------------------------------ */
 typedef enum sdcard_err
 {

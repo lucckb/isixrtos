@@ -12,14 +12,43 @@
 #include "config.h"
 #endif
 
-#ifndef LIBISIX_FAT_USE_SDIO
-#define LIBISIX_FAT_USE_SDIO
+/*-----------------------------------------------------------------------*/
+#define ISIX_FATFS_USE_SPI_MODE 1
+#define ISIX_FATFS_USE_SDIO_MODE 2
+
+/*-----------------------------------------------------------------------*/
+#ifndef ISIX_FATFS_MODE
+#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#define ISIX_FATFS_MODE ISIX_FATFS_USE_SDIO_MODE
+#else
+#define ISIX_FATFS_MODE ISIX_FATFS_USE_SPI_MODE
+#endif
 #endif
 
-#ifdef LIBISIX_FAT_USE_SDIO
+/*-----------------------------------------------------------------------*/
+#if (ISIX_FATFS_MODE==ISIX_FATFS_USE_SDIO_MODE)
 #include "sdio_sdcard_driver.h"
+#elif (ISIX_FATFS_MODE==ISIX_FATFS_USE_SPI_MODE)
+#include "spi_sdcard_driver.h"
+#else
+#error "Unknown SPI driver mode"
 #endif
-
+/*-----------------------------------------------------------------------*/
+#if (ISIX_FATFS_MODE==ISIX_FATFS_USE_SDIO_MODE)
+#define _sdcard_init isix_sdio_card_driver_init
+#define _scard_reinitialize isix_sdio_card_driver_reinitialize
+#define _sdcard_is_card_in_slot isix_sdio_card_driver_is_card_in_slot
+#define _sdcard_card_driver_status isix_sdio_card_driver_status
+#define _sdcard_read isix_sdio_card_driver_read
+#define _sdcard_write isix_sdio_card_driver_write
+#elif (ISIX_FATFS_MODE==ISIX_FATFS_USE_SPI_MODE)
+#define _sdcard_init isix_spisd_card_driver_init
+#define _scard_reinitialize isix_spisd_card_driver_reinitialize
+#define _sdcard_is_card_in_slot isix_spisd_card_driver_is_card_in_slot
+#define _sdcard_card_driver_status isix_spisd_card_driver_status
+#define _sdcard_read isix_spisd_card_driver_read
+#define _sdcard_write isix_spisd_card_driver_write
+#endif
 /*-----------------------------------------------------------------------*/
 DWORD get_fattime(void)
 {
@@ -27,18 +56,18 @@ DWORD get_fattime(void)
 }
 
 /*-----------------------------------------------------------------------*/
-/* Inidialize a Drive                                                    */
-/*-----------------------------------------------------------------------*/
+/* Initialize a Drive                                                    */
 
+/*-----------------------------------------------------------------------*/
 DSTATUS disk_initialize (
 		BYTE drv				/* Physical drive nmuber (0..) */
 )
 {
 	(void)drv;
-	switch ( isix_sdio_card_driver_init() )
+	switch ( _sdcard_init() )
 	{
 	case SD_LIB_ALREADY_INITIALIZED:
-		if( isix_sdio_card_driver_reinitialize() )
+		if( _scard_reinitialize() )
 			return RES_ERROR;
 		else
 			return RES_OK;
@@ -58,9 +87,9 @@ DSTATUS disk_status (
 )
 {
 	(void)drv;
-	if( !isix_sdio_card_driver_is_card_in_slot() )
+	if( !_sdcard_is_card_in_slot() )
 		return STA_NODISK;
-	switch( isix_sdio_card_driver_status() )
+	switch( _sdcard_card_driver_status() )
 	{
 	case SDCARD_DRVSTAT_NOINIT:
 		return STA_NOINIT;
@@ -84,7 +113,7 @@ DRESULT disk_read (
 )
 {
 	(void)drv;
-	if( isix_sdio_card_driver_read(buff, sector, count) )
+	if( _sdcard_read(buff, sector, count) )
 	{
 		return RES_ERROR;
 	}
@@ -105,7 +134,7 @@ DRESULT disk_write (
 )
 {
 	(void)drv;
-	if( isix_sdio_card_driver_write( buff, sector, count) )
+	if( _sdcard_write( buff, sector, count) )
 	{
 		return RES_ERROR;
 	}

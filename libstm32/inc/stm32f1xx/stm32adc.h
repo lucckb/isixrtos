@@ -8,8 +8,8 @@
 #ifndef STM32F1ADC_H_
 #define STM32F1ADC_H_
 /* ---------------------------------------------------------------------------- */
-#include <stm32f10x_lib.h>
-#include <stm32f10x_adc.h>
+#include "stm32f10x_lib.h"
+#include "stm32f10x_adc.h"
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>

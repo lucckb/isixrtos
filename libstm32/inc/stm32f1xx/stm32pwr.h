@@ -5,7 +5,7 @@
  *
  */
 /* ---------------------------------------------------------------------------- */
-#include <stm32f10x_lib.h>
+#include "stm32f10x_lib.h"
 #include <stddef.h>
 #include "stm32f10x_pwr.h"
 
