@@ -6,6 +6,10 @@
  */
 /* ------------------------------------------------------------------ */
 #include "spi_sdcard_driver.h"
+#ifdef _HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /* ------------------------------------------------------------------ */
 
 //Initialize the SDIO card driver
