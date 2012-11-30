@@ -72,7 +72,6 @@ typedef struct
 #define SD_CMD_SDIO_SEN_OP_COND                    ((uint8_t)5)
 #define SD_CMD_HS_SWITCH                           ((uint8_t)6)
 #define SD_CMD_SEL_DESEL_CARD                      ((uint8_t)7)
-#define SD_CMD_HS_SEND_EXT_CSD                     ((uint8_t)8)
 #define SD_CMD_SEND_CSD                            ((uint8_t)9)
 #define SD_CMD_SEND_CID                            ((uint8_t)10)
 #define SD_CMD_READ_DAT_UNTIL_STOP                 ((uint8_t)11) /*!< SD Card doesn't support it */
@@ -110,7 +109,7 @@ typedef struct
 #define SD_CMD_APP_CMD                             ((uint8_t)55)
 #define SD_CMD_GEN_CMD                             ((uint8_t)56)
 #define SD_CMD_NO_CMD                              ((uint8_t)64)
-
+#define SD_CMD_CRC_ON_OFF						   ((uint8_t)59)
 /**
   * @brief Following commands are SD Card Specific commands.
   *        SDIO_APP_CMD should be sent before sending these commands.
@@ -123,7 +122,7 @@ typedef struct
 #define SD_CMD_SD_APP_SEND_SCR                     ((uint8_t)51) /*!< For SD Card only */
 #define SD_CMD_SDIO_RW_DIRECT                      ((uint8_t)52) /*!< For SD I/O Card only */
 #define SD_CMD_SDIO_RW_EXTENDED                    ((uint8_t)53) /*!< For SD I/O Card only */
-
+#define SD_CMD_SDIO_READ_OCR					   ((uint8_t)58)
 /**
   * @brief Following commands are SD Card Specific security commands.
   *        SDIO_APP_CMD should be sent before sending these commands.

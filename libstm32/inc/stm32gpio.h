@@ -74,8 +74,8 @@ static inline int _gpio_speed_to_value(enum e_abstract_gpio_speed vspeed )
 	{
 	case AGPIO_SPEED_VLOW:  return GPIO_MODE_2MHZ;
 	case AGPIO_SPEED_LOW:   return GPIO_MODE_10MHZ;
-	case AGPIO_SPEED_HALF:  return GPIO_MODE_10MHZ;
-	case AGPIO_SPEED_FULL:  return GPIO_MODE_10MHZ;
+	case AGPIO_SPEED_HALF:  return GPIO_MODE_50MHZ;
+	case AGPIO_SPEED_FULL:  return GPIO_MODE_50MHZ;
 	}
 	return GPIO_MODE_2MHZ;
 #elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)

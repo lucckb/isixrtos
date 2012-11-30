@@ -47,25 +47,25 @@ static inline void spi_i2s_deinit(SPI_TypeDef* SPIx)
   if (SPIx == SPI1)
   {
     /* Enable SPI1 reset state */
-    rcc_apb2_periph_clock_cmd(RCC_APB2Periph_SPI1, ENABLE);
+    rcc_apb2_periph_reset_cmd(RCC_APB2Periph_SPI1, ENABLE);
     /* Release SPI1 from reset state */
-    rcc_apb2_periph_clock_cmd(RCC_APB2Periph_SPI1, DISABLE);
+    rcc_apb2_periph_reset_cmd(RCC_APB2Periph_SPI1, DISABLE);
   }
   else if (SPIx == SPI2)
   {
      /* Enable SPI2 reset state */
-	 rcc_apb1_periph_clock_cmd(RCC_APB1Periph_SPI2, ENABLE);
+	 rcc_apb1_periph_reset_cmd(RCC_APB1Periph_SPI2, ENABLE);
      /* Release SPI2 from reset state */
-	 rcc_apb1_periph_clock_cmd(RCC_APB1Periph_SPI2, DISABLE);
+	 rcc_apb1_periph_reset_cmd(RCC_APB1Periph_SPI2, DISABLE);
   }
   else
   {
     if (SPIx == SPI3)
     {
       /* Enable SPI3 reset state */
-      rcc_apb1_periph_clock_cmd(RCC_APB1Periph_SPI3, ENABLE);
+      rcc_apb1_periph_reset_cmd(RCC_APB1Periph_SPI3, ENABLE);
       /* Release SPI3 from reset state */
-      rcc_apb1_periph_clock_cmd(RCC_APB1Periph_SPI3, DISABLE);
+      rcc_apb1_periph_reset_cmd(RCC_APB1Periph_SPI3, DISABLE);
     }
   }
 }
