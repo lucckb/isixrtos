@@ -402,7 +402,6 @@ static inline int systick_config(uint32_t ticks)
                    SysTick_CTRL_ENABLE_Msk;                    /* Enable SysTick IRQ and SysTick Timer */
   return (0);                                                  /* Function successful */
 }
-/*----------------------------------------------------------*/
 
 /*----------------------------------------------------------*/
 #ifdef __cplusplus

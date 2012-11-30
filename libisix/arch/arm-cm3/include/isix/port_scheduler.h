@@ -40,7 +40,24 @@ static inline void port_idle_cpu( void )
 	asm volatile("wfi\t\n");
 #endif
 }
+/*-----------------------------------------------------------------------*/
+#define SYST_CVR (*((volatile unsigned long*)0xE000E018))
+#define SYST_RVR (*((volatile unsigned long*)0xE000E014))
 
+//Get HI resolution timer (must be inline)
+static inline unsigned long port_get_hres_jiffies_timer_value(void)
+{
+	return SYST_RVR - SYST_CVR;
+}
+/*-----------------------------------------------------------------------*/
+//Get hres timer max value
+static inline unsigned long port_get_hres_jiffies_timer_max_value(void)
+{
+	return SYST_RVR;
+}
+
+#undef SYST_CVR
+#undef SYST_RVR
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }	//end namespace

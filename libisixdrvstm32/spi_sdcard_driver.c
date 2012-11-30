@@ -13,6 +13,7 @@
 #include <stm32spi.h>
 #include <stm32gpio.h>
 #include <stm32rcc.h>
+#include <isix.h>
 #include <dbglog.h>
 /* ------------------------------------------------------------------ */
 #ifndef SDDRV_SPI_DEVICE
@@ -362,6 +363,8 @@ static int mmcWrite(const uint8_t* buffer, unsigned sector)
 {
 	uint8_t r1;
 	int i;
+
+	utick_t xxm1 =  isix_get_ujiffies();
 	// Uruchom CS
 	CS(0);
 	// Wyslij komende odczytu
@@ -391,8 +394,11 @@ static int mmcWrite(const uint8_t* buffer, unsigned sector)
 		CS(1);
 		return r1;
 	}
+	dbprintf("TICK #2 %u", (unsigned)(isix_get_ujiffies()-xxm1));
+	xxm1 =  isix_get_ujiffies();
 	// Czekaj az karta bedzie wolna
 	while(!sd_transfer_byte(0xFF));
+	dbprintf("TICK #3 %u", (unsigned)(isix_get_ujiffies()-xxm1));
 	// Zwolnij CS
 	CS(1);
 	// Zwroc OK

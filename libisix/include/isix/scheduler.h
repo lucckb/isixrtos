@@ -30,6 +30,7 @@ static inline void isix_yield()
 	if(isix_scheduler_running)
 		port_yield();
 }
+
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 static const unsigned ISIX_HZ = ISIX_CONFIG_HZ;
@@ -78,7 +79,17 @@ prio_t isix_get_min_priority(void);
  @return True if scheduler is running
  */
 bool isix_is_scheduler_active(void);
-
+/*-----------------------------------------------------------------------*/
+/** Get current sytem ticks
+ * @return Number of system tick from system startup in usec resolution
+ */
+static inline utick_t isix_get_ujiffies(void)
+{
+	utick_t t = (utick_t)isix_get_jiffies() * ((utick_t)1000000/((utick_t)ISIX_HZ));
+    t += (((utick_t)port_get_hres_jiffies_timer_value()) * ((utick_t)1000000/((utick_t)ISIX_HZ)))
+    	/  (utick_t)port_get_hres_jiffies_timer_max_value();
+    return t;
+}
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }	//end namespace
