@@ -13,7 +13,6 @@
 #include <stm32spi.h>
 #include <stm32gpio.h>
 #include <stm32rcc.h>
-#include <isix.h>
 #include <dbglog.h>
 /* ------------------------------------------------------------------ */
 #ifndef SDDRV_SPI_DEVICE
@@ -35,7 +34,7 @@
 
 //Normal transfer CLK divider
 #ifndef SDDRV_TRANSFER_CLK_DIV
-#define SDDRV_TRANSFER_CLK_DIV            SPI_BaudRatePrescaler_8
+#define SDDRV_TRANSFER_CLK_DIV            SPI_BaudRatePrescaler_4
 #endif
 
 /* ------------------------------------------------------------------ */
@@ -343,14 +342,13 @@ static int mmcRead(uint8_t* buffer,unsigned long sector)
 			return -(int)r1;
 		}
 	}
-
 	// Odczytuj dane
 	for(i=0; i<0x200; i++)
 	{
 		*buffer++ = sd_transfer_byte(0xFF);
 	}
 	// Nie sprawdzaj CRC
-	 sd_transfer_byte(0xFF);  sd_transfer_byte(0xFF);
+	sd_transfer_byte(0xFF);  sd_transfer_byte(0xFF);
 	// Zwolnij CS
 	CS(1);
 	// Wszystko OK
@@ -363,8 +361,6 @@ static int mmcWrite(const uint8_t* buffer, unsigned sector)
 {
 	uint8_t r1;
 	int i;
-
-	utick_t xxm1 =  isix_get_ujiffies();
 	// Uruchom CS
 	CS(0);
 	// Wyslij komende odczytu
@@ -394,11 +390,8 @@ static int mmcWrite(const uint8_t* buffer, unsigned sector)
 		CS(1);
 		return r1;
 	}
-	dbprintf("TICK #2 %u", (unsigned)(isix_get_ujiffies()-xxm1));
-	xxm1 =  isix_get_ujiffies();
 	// Czekaj az karta bedzie wolna
 	while(!sd_transfer_byte(0xFF));
-	dbprintf("TICK #3 %u", (unsigned)(isix_get_ujiffies()-xxm1));
 	// Zwolnij CS
 	CS(1);
 	// Zwroc OK
@@ -451,7 +444,6 @@ void isix_spisd_card_driver_destroy(void)
 {
 
 }
-
 /* ------------------------------------------------------------------ */
 //Get SD card info
 int isix_spisd_card_driver_get_info( void *cardinfo, scard_info_field req )
