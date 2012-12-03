@@ -80,7 +80,7 @@ static inline void spi_i2s_deinit(SPI_TypeDef* SPIx)
   */
 static inline void spi_init(SPI_TypeDef* SPIx, uint16_t direction, uint16_t mode ,
 		uint16_t data_size, uint16_t cpol, uint16_t cpha, uint16_t nss,
-		uint16_t baudrate_prescaler, uint16_t first_bit, uint16_t crc_polynomial )
+		uint16_t baudrate_prescaler, uint16_t first_bit, int crc_polynomial )
 {
 	  uint16_t tmpreg = 0;
 	  /* Get the SPIx CR1 value */
@@ -103,7 +103,8 @@ static inline void spi_init(SPI_TypeDef* SPIx, uint16_t direction, uint16_t mode
 	  /* Activate the SPI mode (Reset I2SMOD bit in I2SCFGR register) */
 	  SPIx->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD);
 	  /* Write to SPIx CRCPOLY */
-	  SPIx->CRCPR = crc_polynomial;
+	  if(crc_polynomial > 0)
+		  SPIx->CRCPR = crc_polynomial;
 }
 /*----------------------------------------------------------*/
 #if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4)
@@ -395,6 +396,13 @@ static inline void spi_cmd(SPI_TypeDef* SPIx, bool enable)
   }
 }
 /*----------------------------------------------------------*/
+/** Check if SPI is enabled */
+static inline bool spi_is_enabled( SPI_TypeDef* SPIx )
+{
+	return !!(SPIx->CR1 & SPI_CR1_SPE);
+}
+
+/*----------------------------------------------------------*/
 /**
   * @brief  Enables or disables the specified SPI peripheral (in I2S mode).
   * @param  SPIx: where x can be 2 or 3 to select the SPI peripheral (or I2Sxext
@@ -677,6 +685,18 @@ static inline uint16_t spi_get_crc_polynomial(SPI_TypeDef* SPIx)
   /* Return the CRC polynomial register */
   return SPIx->CRCPR;
 }
+/*----------------------------------------------------------*/
+/**
+  * @brief  Returns the CRC Polynomial register value for the specified SPI.
+  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @retval The CRC Polynomial register value.
+  */
+static inline void spi_set_crc_polynomial(SPI_TypeDef* SPIx, uint16_t polynomial )
+{
+  /* Return the CRC polynomial register */
+  SPIx->CRCPR = polynomial;
+}
+
 /*----------------------------------------------------------*/
 /**
   * @brief  Enables or disables the SPIx/I2Sx DMA interface.

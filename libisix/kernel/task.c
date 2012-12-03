@@ -113,7 +113,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
 	isixp_enter_critical();
     task_t *taskc = task?task:isix_current_task;
     //Save task prio
-    prio_t prio = taskc->prio;
+    const prio_t prio = taskc->prio;
     if(prio==new_prio)
     {
         isixp_exit_critical();
@@ -150,7 +150,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
         isix_yield();
     }
     isix_printk("New prio %d\n",new_prio);
-    return ISIX_EOK;
+    return prio;
 }
 /*-----------------------------------------------------------------------*/
 /* Get isix structure private data */

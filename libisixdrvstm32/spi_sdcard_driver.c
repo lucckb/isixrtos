@@ -247,7 +247,6 @@ static int sd_init_card(void)
 	}
 	else	//Standard capacity
 	{
-
 			// SEND_APP_CMD
 		if((sd_command(SD_CMD_APP_CMD ,0) & SD_R1_ILLEGAL_COMMAND) == 0 ) // SD card V1.xx
 		{

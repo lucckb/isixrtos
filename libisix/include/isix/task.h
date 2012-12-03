@@ -35,7 +35,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield);
 /** Change the task/thread priority
  * @param[in] task Task pointer structure if NULL change the current prio
  * @param[in] new_prio New task priority
- * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ * @return old priority if the operation is completed successfully otherwise return an error code
  */
 static inline int isix_task_change_prio( task_t* task, prio_t new_prio )
 {

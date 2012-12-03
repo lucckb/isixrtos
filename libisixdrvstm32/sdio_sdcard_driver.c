@@ -923,7 +923,6 @@ static sdcard_err sd_enable_wide_bus_operation(uint32_t WideMode)
     else if (SDIO_BusWide_4b == WideMode)
     {
       errorstatus = sd_en_wide_bus(ENABLE);
-
       if (SD_OK == errorstatus)
       {
         /*!< Configure the SDIO peripheral */
