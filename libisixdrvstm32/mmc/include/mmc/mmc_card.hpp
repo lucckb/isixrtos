@@ -16,6 +16,7 @@
 #include <cstddef>
 
 namespace drv {
+namespace mmc {
 /*----------------------------------------------------------*/
 class mmc_host;
 
@@ -24,9 +25,18 @@ class mmc_host;
 class mmc_card :  public fnd::noncopyable
 {
 public:
+	enum card_type
+	{
+		type_none,		//Card not initialized
+		type_mmc,		//MMC card
+		type_sd_v1,		//SD V1
+		type_sd_v2,		//SD V2
+		type_sdhc		//SDHC
+	};
+public:
 	/* Constructor */
 	mmc_card( mmc_host &host )
-		: m_host(host) {}
+		: m_host(host) , m_type(type_none) {}
 	/** Write the block */
 	int write( const void* buf, unsigned long sector,  std::size_t count );
 	/** Read the block */
@@ -35,11 +45,12 @@ public:
 	int initialize();
 private:
 	mmc_host& m_host;
+	card_type m_type;
 };
 
 /*----------------------------------------------------------*/
 } /* namespace drv */
-
+}
 /*----------------------------------------------------------*/
 
 #endif /* MMC_CARD_HPP_ */

@@ -13,7 +13,7 @@
 #include "mmc/mmc_error_codes.hpp"
 /*----------------------------------------------------------*/
 namespace drv {
-
+namespace mmc {
 /*----------------------------------------------------------*/
 class mmc_command: public fnd::noncopyable
 {
@@ -32,6 +32,8 @@ private:	/* Private response codes */
 		bR1_ADDRESS_ERROR   = 1<<5,
 		bR1_PARAMETER_ERROR = 1<<6
 	};
+	static const uint32_t OCR_VOLTRANGE_MASK = 0xff8000;
+	static const uint32_t OCR_CCS_MASK = 1<<30;
 public:
 	enum op
 	{
@@ -97,13 +99,19 @@ public:
 			OP_SD_APP_CHANGE_SECURE_AREA           =  49, /*!< For SD Card only */
 			OP_SD_APP_SECURE_WRITE_MKB             =  48  /*!< For SD Card only */
 	};
+	static const uint32_t ARG_IFCOND_3V3_SUPPLY = 0x122;
+	static const uint32_t ARG_OPCOND_HCS = ( 1<<30 );
 private:
 	void set_flags( op opcode)
 	{
 		switch( opcode )
 		{
 			case OP_GO_IDLE_STATE: 		m_flags = resp_R1B|resp_spi_R1B; break;
-			case OP_SEND_IF_COND:		m_flags = resp_R1|resp_spi_R1; break;
+			case OP_SEND_IF_COND:		m_flags = resp_R7|resp_spi_R7; break;
+			case OP_SDIO_READ_OCR:		m_flags = resp_R3|resp_spi_R3; break;
+			case OP_APP_CMD:			m_flags = resp_R1|resp_spi_R1; break;
+			case OP_SD_APP_OP_COND:		m_flags = resp_R3|resp_spi_R1; break;
+			case OP_SEND_OP_COND:		m_flags = resp_R3|resp_spi_R1; break;
 			default: 					m_flags = resp_none;
 		}
 	}
@@ -183,7 +191,7 @@ public:
 		(static_cast<uint32_t>(b2) << 16 ) | (static_cast<uint32_t>(b3) << 8 ) | b4;
 		m_flags |=resp_ans_spi|resp_ans;
 	}
-	mmc::err get_err() const
+	err get_err() const
 	{
 		if( !(m_flags & resp_ans) )
 		{
@@ -222,7 +230,7 @@ public:
 				{
 					return mmc::MMC_IN_IDLE_STATE;
 				}
-				else if( m_resp == 0 )
+				else if( m_resp[0] == 0 )
 				{
 					return mmc::MMC_OK;
 				}
@@ -236,7 +244,31 @@ public:
 				return mmc::MMC_INTERNAL_ERROR;
 			}
 		}
+		return mmc::MMC_INTERNAL_ERROR;
 	}
+	err validate_r7() const
+	{
+		if( get_type() != rR7t )
+			return MMC_CMD_MISMATCH_RESPONSE;
+		if( (m_resp[1] & 0xf00) != (ARG_IFCOND_3V3_SUPPLY & 0xf00) )
+			return MMC_INVALID_VOLTRANGE;
+		if( (m_resp[1] & 0xff) != (ARG_IFCOND_3V3_SUPPLY & 0xff) )
+			return MMC_CMD_MISMATCH_RESPONSE;
+		return MMC_OK;
+	}
+	err validate_r3() const
+	{
+		if( get_type() != rR3t )
+			return MMC_CMD_MISMATCH_RESPONSE;
+		if( !(m_resp[1] & OCR_VOLTRANGE_MASK) )
+			return MMC_INVALID_VOLTRANGE;
+		return MMC_OK;
+	}
+	bool get_r3_ccs() const
+	{
+		return m_resp[1] & OCR_CCS_MASK;
+	}
+	uint32_t get() const { return m_resp[1]; }
 private:
 	uint32_t m_arg;					//Command argument
 	uint32_t m_resp[4];				//Data in response
@@ -245,7 +277,7 @@ private:
 };
 
 /*----------------------------------------------------------*/
-
+}
 } /* namespace drv */
 /*----------------------------------------------------------*/
 #endif /* MMC_COMMAND_HPP_ */

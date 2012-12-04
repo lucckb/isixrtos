@@ -13,6 +13,7 @@
 #include <dbglog.h>
 /*--------------------------------------------------------------*/
 namespace drv {
+namespace mmc {
 /*--------------------------------------------------------------*/
 namespace
 {
@@ -64,7 +65,7 @@ mmc_card* mmc_host::get_card( int timeout )
 		if( m_card_init_req )
 		{
 			m_card_init_req = false;
-			m_card->initialize();
+			dbprintf("Initialize code=%i",m_card->initialize());
 		}
 		return m_card;
 	}
@@ -77,7 +78,7 @@ mmc_card* mmc_host::get_card( int timeout )
 			if( m_card_init_req )
 			{
 				m_card_init_req = false;
-				m_card->initialize();
+				dbprintf("Initialize code #2=%i", m_card->initialize());
 			}
 			return m_card;
 		}
@@ -86,3 +87,4 @@ mmc_card* mmc_host::get_card( int timeout )
 
 /*--------------------------------------------------------------*/
 } /* namespace drv */
+}
