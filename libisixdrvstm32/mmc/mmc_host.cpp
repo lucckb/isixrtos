@@ -65,7 +65,7 @@ mmc_card* mmc_host::get_card( int timeout )
 		if( m_card_init_req )
 		{
 			m_card_init_req = false;
-			dbprintf("Initialize code=%i",m_card->initialize());
+			dbprintf("Initialize code=%i",m_card->detect());
 		}
 		return m_card;
 	}
@@ -78,7 +78,7 @@ mmc_card* mmc_host::get_card( int timeout )
 			if( m_card_init_req )
 			{
 				m_card_init_req = false;
-				dbprintf("Initialize code #2=%i", m_card->initialize());
+				dbprintf("Initialize code #2=%i", m_card->detect());
 			}
 			return m_card;
 		}

@@ -71,7 +71,9 @@ public:
 	//Destructor
 	virtual ~mmc_host();
 	//Get current allocated card
-	mmc_card* get_card( int timeout = isix::ISIX_TIME_INFINITE);
+	mmc_card* get_card( int timeout );
+	//wait for insertion
+        int wait_for_card_present( isix::tick_t wait_time=isix::ISIX_TIME_INFINITE );
 	//Get card detect switch
 	bool get_cd() const
 	{
@@ -105,11 +107,6 @@ private:
 	{
 		static_cast<mmc_host*>(instance)->det_card_insertion_callback();
 	}
-	//Reinitialize the card
-	int reinitialize_card();
-private:
-	//Detect and allocate card
-	mmc_card* mmc_allocate_card();
 private:
 	//MMC card
 	mmc_card *m_card;

@@ -21,7 +21,7 @@ namespace {
 }
 /*----------------------------------------------------------*/
 //** Initialize the card on request
-int mmc_card::initialize()
+int mmc_card::detect()
 {
 	dbprintf("Initialize called ");
 	m_host.set_ios( mmc_host::ios_pwr_on, 0 );
