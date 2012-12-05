@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <isix.h>
 #include "mmc/immc_det_pin.hpp"
+#include "mmc/mmc_command.hpp"
 /*----------------------------------------------------------*/
 namespace isix
 {
@@ -23,7 +24,6 @@ namespace drv {
 namespace mmc {
 /*----------------------------------------------------------*/
 class mmc_card;
-class mmc_command;
 
 /*----------------------------------------------------------*/
 /* MMC host controler */
@@ -76,6 +76,14 @@ public:
 	bool get_cd() const
 	{
 		return m_det_pin.get();
+	}
+	//Execute command and response check 
+	int execute_command_resp_check(  mmc_command &req, unsigned timeout )
+	{
+	      int res; 
+	      if( (res=execute_command(req,timeout)) ) return res;
+	      res = req.get_err();
+	      return res;
 	}
 	//Execute MMC command
 	virtual int execute_command( mmc_command &req, unsigned timeout ) = 0;

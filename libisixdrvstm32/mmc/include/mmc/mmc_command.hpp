@@ -20,9 +20,9 @@ class mmc_command: public fnd::noncopyable
 private:	/* Private response codes */
 	enum resp_code
 	{
-		rR1t = 1, rR2t, rR3t, rR4t, rR5t, rR6t, rR7t
+	    rR1t = 1, rR2t, rR3t, rR4t, rR5t, rR6t, rR7t
 	};
-	enum r1_bits
+	enum r1_spi_bits
 	{
 		bR1_IN_IDLE_STATE 	= 1<<0,
 		bR1_ERASE_RESET   	= 1<<1,
@@ -32,9 +32,46 @@ private:	/* Private response codes */
 		bR1_ADDRESS_ERROR   = 1<<5,
 		bR1_PARAMETER_ERROR = 1<<6
 	};
+	enum r1_sd_bits
+	{
+	  sR1E_AKE_SEQ_ERROR	= 	1<<3,
+	  sR1_APP_CMD		=       1<<5,
+	  sR1_READY_FOR_DATA	=	1<<8,
+	  sR1_CURRENT_STATE     = 	0x1E00,
+	  sR1_ERASE_RESET 	=	1<<13,
+	  sR1_CARD_ECC_DISABLED =	1<<14,
+	  sR1E_WP_ERASE_SKIP	= 	1<<15,
+	  sR1E_CSD_OVERWRITE	=	1<<16,
+	  sR1E_ERROR		=	1<<19,
+	  sR1E_CC_ERROR		=	1<<20,
+	  sR1E_CARD_ECC_FAILED	=	1<<21,
+	  sR1E_ILLEGAL_COMMAND	=	1<<22,
+	  sR1E_COM_CRC_ERROR	=	1<<23,
+	  sR1E_LOCK_UNLOCK_FAILED =	1<<24,
+	  sR1_CARD_IS_LOCKED	=	1<<25,
+	  sR1E_WP_VIOLATION	=       1<<26,
+	  sR1E_ERASE_PARAM	= 	1<<27,
+	  sR1E_ERASE_SEQ_ERROR  =	1<<28,
+	  sR1E_BLOCK_LEN_ERROR	=	1<<29,
+	  sR1E_ADDRESS_ERROR	=       1<<30,
+	  sR1E_OUT_OF_RANGE	= 	1<<31
+	};
 	static const uint32_t OCR_VOLTRANGE_MASK = 0xff8000;
 	static const uint32_t OCR_CCS_MASK = 1<<30;
 public:
+  	//Card state
+	enum card_state
+	{
+	  card_state_IDLE,
+	  card_state_READY,
+	  card_state_IDENT,
+	  card_state_STBY,
+	  card_state_TRAN,
+	  card_state_DATA,
+	  card_state_RCV,
+	  card_state_PRG,
+	  card_state_DIS
+	};
 	enum op
 	{
 			OP_GO_IDLE_STATE                       =  0,
@@ -45,7 +82,7 @@ public:
 			OP_SDIO_SEN_OP_COND                    =  5,
 			OP_HS_SWITCH                           =  6,
 			OP_SEL_DESEL_CARD                      =  7,
-			OP_SEND_IF_COND						   =  8,
+			OP_SEND_IF_COND			       =  8,
 			OP_SEND_CSD                            =  9,
 			OP_SEND_CID                            =  10,
 			OP_READ_DAT_UNTIL_STOP                 =  11, /*!< SD Card doesn't support it */
@@ -137,7 +174,7 @@ public:
 	enum resp_type
 	{
 		resp_none	  = 0,			//! Dont except the response
-		resp_present  = 1 << 0,		//! Response present
+		resp_present  	  = 1 << 0,		//! Response present
 		resp_136	  = 1 << 1,		//! Response 136 bit
 		resp_crc	  = 1 << 2,		//! Excepted valid CRC
 		resp_busy	  = 1 << 3,		//! Card can send busy
@@ -148,7 +185,7 @@ public:
 		resp_spi_busy = 1 << 8,		//! Wait for response
 		resp_spi_nocs = 1 << 9,		//! Don't disable CS
 		resp_ans_spi  = 1 << 10,	//! SPI answer
-		resp_ans  	  = 1 << 11,	//! SPI answer
+		resp_ans      = 1 << 11,	//! answer
 		/* Standard responses */
 		resp_R1   = (resp_present |resp_crc|resp_opcode|(1<<24)),
 		resp_R1B  = (resp_R1|resp_busy|(1<<24)),
@@ -195,7 +232,7 @@ public:
 	{
 		if( !(m_flags & resp_ans) )
 		{
-			return mmc::MMC_CMD_RSP_TIMEOUT;
+			return MMC_CMD_RSP_TIMEOUT;
 		}
 		if( is_spi_type() )
 		{
@@ -204,48 +241,145 @@ public:
 
 				if( m_resp[0] & bR1_ERASE_RESET )
 				{
-					return mmc::MMC_ERASE_SEQ_ERR;
+					return MMC_ERASE_SEQ_ERR;
 				}
-				else if( m_resp[0] & bR1_ILLEGAL_COMMAND )
+				if( m_resp[0] & bR1_ILLEGAL_COMMAND )
 				{
-					return mmc::MMC_ILLEGAL_CMD;
+					return MMC_ILLEGAL_CMD;
+				}				
+				if( m_resp[0] & bR1_COM_CRC_ERROR )
+				{
+				        return MMC_CMD_CRC_FAIL;
 				}
-				else if( m_resp[0] & bR1_COM_CRC_ERROR )
+				if( m_resp[0] & bR1_ADDRESS_ERROR )
 				{
-					return mmc::MMC_CMD_CRC_FAIL;
+					return MMC_ADDR_MISALIGNED;
 				}
-				else if( m_resp[0] & bR1_ADDRESS_ERROR )
+				if( m_resp[0] & bR1_PARAMETER_ERROR )
 				{
-					return mmc::MMC_ADDR_MISALIGNED;
+					return MMC_INVALID_PARAMETER;
 				}
-				else if( m_resp[0] & bR1_PARAMETER_ERROR )
+				if( m_resp[0] & bR1_ERASE_SEQ_ERROR )
 				{
-					return mmc::MMC_INVALID_PARAMETER;
+					return MMC_ERASE_SEQ_ERR;
 				}
-				else if( m_resp[0] & bR1_ERASE_SEQ_ERROR )
+				if( m_resp[0] == 0 || (m_resp[0]&bR1_IN_IDLE_STATE) )
 				{
-					return mmc::MMC_ERASE_SEQ_ERR;
-				}
-				else if(m_resp[0] & bR1_IN_IDLE_STATE)
-				{
-					return mmc::MMC_IN_IDLE_STATE;
-				}
-				else if( m_resp[0] == 0 )
-				{
-					return mmc::MMC_OK;
+					return MMC_OK;
 				}
 				else
 				{
-					return mmc::MMC_INTERNAL_ERROR;
+				    return MMC_CMD_MISMATCH_RESPONSE;
 				}
 			}
 			else
 			{
-				return mmc::MMC_INTERNAL_ERROR;
+			    return MMC_CMD_MISMATCH_RESPONSE;
 			}
 		}
-		return mmc::MMC_INTERNAL_ERROR;
+		else
+		{
+		      if( (m_flags & resp_present) && get_type()==rR1t )
+		      {
+			  if( m_resp[0] & sR1E_OUT_OF_RANGE )
+			  {
+				return MMC_ADDR_OUT_OF_RANGE;
+			  }
+			  if( m_resp[0] & sR1E_ADDRESS_ERROR )
+			  {
+				return MMC_ADDR_MISALIGNED;
+			  }
+			  if( m_resp[0] & sR1E_BLOCK_LEN_ERROR )
+			  {
+				return MMC_BLOCK_LEN_ERR;
+			  }
+			  if( m_resp[0] & sR1E_ERASE_SEQ_ERROR )
+			  {
+				return MMC_ERASE_SEQ_ERR;
+			  }
+			  if( m_resp[0] & sR1E_ERASE_PARAM )
+			  {
+				return MMC_BAD_ERASE_PARAM;
+			  }
+			  if( m_resp[0] & sR1E_WP_VIOLATION )
+			  {
+				return MMC_WRITE_PROT_VIOLATION;
+			  }
+			  if( m_resp[0] & sR1E_LOCK_UNLOCK_FAILED )
+			  {
+				return MMC_LOCK_UNLOCK_FAILED;
+			  }
+			  if( m_resp[0] & sR1E_COM_CRC_ERROR )
+			  {
+				return MMC_CMD_CRC_FAIL;
+			  }
+			  if( m_resp[0] & sR1E_ILLEGAL_COMMAND )
+			  {
+				return MMC_ILLEGAL_CMD;
+			  }
+			  if( m_resp[0] & sR1E_CARD_ECC_FAILED )
+			  {
+				return MMC_CARD_ECC_FAILED;
+			  }
+			  if( m_resp[0] & sR1E_CC_ERROR )
+			  {
+				return MMC_CC_ERROR;
+			  }
+			  if( m_resp[0] & sR1E_ERROR )
+			  {
+				return  MMC_GENERAL_UNKNOWN_ERROR;
+			  }
+			  if( m_resp[0] & sR1E_CSD_OVERWRITE )
+			  {
+				return MMC_CID_CSD_OVERWRITE;
+			  }
+			  if( m_resp[0] &  sR1E_WP_ERASE_SKIP )
+			  {
+				return MMC_WP_ERASE_SKIP;
+			  }
+			  if( m_resp[0] &  sR1E_AKE_SEQ_ERROR )
+			  {
+				return MMC_AKE_SEQ_ERROR;
+			  }
+		      }
+		}
+		return MMC_INTERNAL_ERROR;
 	}
+	//Get card status
+	int get_card_state() const
+	{
+	    if( !(m_flags & resp_ans) )
+	    {
+		return MMC_CMD_RSP_TIMEOUT;
+	    }
+	    if( is_spi_type() )
+	    {
+	        if( (m_flags&resp_spi_s1) && !(m_flags&resp_spi_s2) )
+		{
+		    if( m_resp[0] & bR1_IN_IDLE_STATE)
+			return card_state_IDLE;
+		    else
+			return card_state_READY;
+		}
+		else
+		{
+		     return MMC_CMD_MISMATCH_RESPONSE;
+		}
+	    }
+	    else
+	    {
+		if( get_type() == rR1t )
+		{
+		    return ((m_resp[0] & sR1_CURRENT_STATE ) >> 9) & 0x0f;
+		}
+		else
+		{
+		    return MMC_CMD_MISMATCH_RESPONSE;
+		}
+	    }
+	    
+	}
+	//Validate R7
 	err validate_r7() const
 	{
 		if( get_type() != rR7t )
@@ -272,7 +406,7 @@ public:
 private:
 	uint32_t m_arg;					//Command argument
 	uint32_t m_resp[4];				//Data in response
-	unsigned long m_flags;			//Flags
+	unsigned long m_flags;				//Flags
 	uint8_t m_opcode;				//Opcode
 };
 

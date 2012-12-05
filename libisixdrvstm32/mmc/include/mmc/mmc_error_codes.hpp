@@ -43,7 +43,6 @@ namespace drv
 			MMC_AKE_SEQ_ERROR,                  /*!< Error in sequence of authentication. */
 			MMC_INVALID_VOLTRANGE,
 			MMC_ADDR_OUT_OF_RANGE,
-			MMC_IN_IDLE_STATE,
 			MMC_SWITCH_ERROR,
 			MMC_SDIO_DISABLED,
 			MMC_SDIO_FUNCTION_BUSY,
