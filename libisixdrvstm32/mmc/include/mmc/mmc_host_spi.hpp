@@ -18,8 +18,8 @@ class mmc_host_spi : public mmc_host
 {
 public:
 	//Constructor
-	mmc_host_spi( immc_det_pin &det_gpio, spi_device &spi_dev )
-		: mmc_host( det_gpio ), m_spi( spi_dev )
+	mmc_host_spi( spi_device &spi_dev )
+		: m_spi( spi_dev )
 	{}
 	//Execute MMC command
 	virtual int execute_command( mmc_command &req, unsigned timeout );

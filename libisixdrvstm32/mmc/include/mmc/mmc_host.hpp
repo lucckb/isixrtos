@@ -66,19 +66,8 @@ public:
 	};
 	static const unsigned C_power_off = 0;
 public:
-	//Constructor
-	mmc_host( immc_det_pin &detect_pin );
 	//Destructor
-	virtual ~mmc_host();
-	//Get current allocated card
-	mmc_card* get_card( int timeout );
-	//wait for insertion
-        int wait_for_card_present( isix::tick_t wait_time=isix::ISIX_TIME_INFINITE );
-	//Get card detect switch
-	bool get_cd() const
-	{
-		return m_det_pin.get();
-	}
+	virtual ~mmc_host() {};
 	//Execute command and response check 
 	int execute_command_resp_check(  mmc_command &req, unsigned timeout )
 	{
@@ -99,25 +88,6 @@ public:
 	virtual unsigned get_capabilities() const = 0;
 	//Is SPI host
 	bool is_spi() const { return get_capabilities() & cap_spi; }
-private:
-	//Raw insertion handler
-	void det_card_insertion_callback();
-	//Detect class insertion hander executed in interrupt content
-	static void det_card_insertion_raw_callback( void* instance )
-	{
-		static_cast<mmc_host*>(instance)->det_card_insertion_callback();
-	}
-private:
-	//MMC card
-	mmc_card *m_card;
-	//Card insertion removal PIN
-	immc_det_pin& m_det_pin;
-	//Virtual timer handler
-	isix::vtimer_struct* m_det_timer;
-	volatile bool m_card_init_req;
-	volatile bool m_p_card_inserted;
-	//Wait for card semaphore
-	isix::semaphore m_card_sem;
 };
 /*----------------------------------------------------------*/
 } /* namespace drv */

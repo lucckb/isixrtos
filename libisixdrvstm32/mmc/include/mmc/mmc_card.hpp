@@ -33,10 +33,18 @@ public:
 		type_sd_v2,		//SD V2
 		type_sdhc		//SDHC
 	};
+	static int detect( mmc_host &host, mmc_card* &old_card );
+private:
+	//Finalize initialization
+	int finalize_initialization() { return 0; }
 	/* Constructor */
-	explicit mmc_card( mmc_host &host )
-	  : m_host(host) , m_type(type_none) {}
-	int detect( );
+	explicit mmc_card( mmc_host &host, card_type type )
+	  : m_host(host) , m_type(type)
+	{
+		finalize_initialization();
+	}
+	//Hardware probe the card and init it
+	static int probe( mmc_host &host, card_type &type );
 public:
 	/** Write the block */
 	int write( const void* buf, unsigned long sector,  std::size_t count );

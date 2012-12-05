@@ -94,6 +94,7 @@ else
 COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F1
 endif
 endif
+#CXXFLAGS += -std=gnu++11
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb
 LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
 CPFLAGS =  -S
