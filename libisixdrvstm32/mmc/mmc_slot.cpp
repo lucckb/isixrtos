@@ -22,7 +22,7 @@ namespace
 mmc_slot::mmc_slot( mmc_host &host, immc_det_pin &det_pin  )
 	: m_det_pin(det_pin), m_host( host ), m_card(NULL),
 	  m_det_timer(isix::isix_vtimer_create(det_card_insertion_raw_callback, this)),
-	  m_card_init_req(true), m_p_card_inserted(0), m_card_sem(0, 1)
+	  m_event(0), m_p_card_inserted(0), m_init_req(true), m_card_sem(0, 1)
 {
 	if( m_det_timer )
 	{
@@ -33,13 +33,19 @@ mmc_slot::mmc_slot( mmc_host &host, immc_det_pin &det_pin  )
 //Raw insertion handler
 void mmc_slot::det_card_insertion_callback()
 {
-	bool card_inserted = m_det_pin.get();
-	if( !m_p_card_inserted && card_inserted )
+	bool inserted = m_det_pin.get();
+	if( !m_p_card_inserted && inserted )
 	{
-		m_card_init_req = true;
+		m_event = card_inserted;
+		m_init_req = true;
 		m_card_sem.signal_isr();
 	}
-	m_p_card_inserted = card_inserted;
+	else if( m_p_card_inserted && !inserted )
+	{
+		m_event = card_removed;
+		m_card_sem.signal_isr();
+	}
+	m_p_card_inserted = inserted;
 }
 /*--------------------------------------------------------------*/
 //Destructor
@@ -56,34 +62,37 @@ mmc_slot::~mmc_slot()
 }
 /*--------------------------------------------------------------*/
 //Get current allocated card
-int mmc_slot::get_card( mmc_card* &card, int timeout )
+int mmc_slot::get_card( mmc_card* &card )
 {
-	int ret = MMC_OK;
+	int ret = MMC_CARD_NOT_PRESENT;
 	if( m_det_pin.get() )
 	{
-		if( !m_card || m_card_init_req )
+		if( !m_card  || m_init_req )
 		{
-			m_card_init_req = false;
 			ret = mmc_card::detect( m_host, m_card );
+			m_init_req = false;
 			card = m_card;
 		}
-		return ret;
+	}
+	return ret;
+}
+
+/*--------------------------------------------------------------*/
+//Wait for change status
+int mmc_slot::check( int timeout )
+{
+	if( timeout < 0 )
+	{
+		return m_det_pin.get()?card_inserted:card_removed;
 	}
 	else
 	{
-		if( timeout < 0 )
-			return MMC_CARD_NOT_PRESENT;
-		ret = m_card_sem.wait( timeout );
-		if( ret == isix::ISIX_ETIMEOUT )
-			return MMC_CARD_NOT_PRESENT;
-		else if( ret )
-			return ret;
-		ret = mmc_card::detect( m_host, m_card );
-		card = m_card;
-			return ret;
+		int ret = m_card_sem.wait( timeout );
+		if( ret ) return ret;
+		ret = m_event;
+		return ret;
 	}
 }
-
 /*--------------------------------------------------------------*/
 } /* namespace drv */
 } /* namespace stm32 */

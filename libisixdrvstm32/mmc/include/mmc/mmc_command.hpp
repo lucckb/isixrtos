@@ -58,6 +58,7 @@ private:	/* Private response codes */
 	};
 	static const uint32_t OCR_VOLTRANGE_MASK = 0xff8000;
 	static const uint32_t OCR_CCS_MASK = 1<<30;
+	static const uint32_t OCR_BUSY_MASK = 1<<31;
 public:
   	//Card state
 	enum card_state
@@ -279,68 +280,75 @@ public:
 		}
 		else
 		{
-		      if( (m_flags & resp_present) && get_type()==rR1t )
+		      if( m_flags & resp_present )
 		      {
-			  if( m_resp[0] & sR1E_OUT_OF_RANGE )
-			  {
-				return MMC_ADDR_OUT_OF_RANGE;
-			  }
-			  if( m_resp[0] & sR1E_ADDRESS_ERROR )
-			  {
-				return MMC_ADDR_MISALIGNED;
-			  }
-			  if( m_resp[0] & sR1E_BLOCK_LEN_ERROR )
-			  {
-				return MMC_BLOCK_LEN_ERR;
-			  }
-			  if( m_resp[0] & sR1E_ERASE_SEQ_ERROR )
-			  {
-				return MMC_ERASE_SEQ_ERR;
-			  }
-			  if( m_resp[0] & sR1E_ERASE_PARAM )
-			  {
-				return MMC_BAD_ERASE_PARAM;
-			  }
-			  if( m_resp[0] & sR1E_WP_VIOLATION )
-			  {
-				return MMC_WRITE_PROT_VIOLATION;
-			  }
-			  if( m_resp[0] & sR1E_LOCK_UNLOCK_FAILED )
-			  {
-				return MMC_LOCK_UNLOCK_FAILED;
-			  }
-			  if( m_resp[0] & sR1E_COM_CRC_ERROR )
-			  {
-				return MMC_CMD_CRC_FAIL;
-			  }
-			  if( m_resp[0] & sR1E_ILLEGAL_COMMAND )
-			  {
-				return MMC_ILLEGAL_CMD;
-			  }
-			  if( m_resp[0] & sR1E_CARD_ECC_FAILED )
-			  {
-				return MMC_CARD_ECC_FAILED;
-			  }
-			  if( m_resp[0] & sR1E_CC_ERROR )
-			  {
-				return MMC_CC_ERROR;
-			  }
-			  if( m_resp[0] & sR1E_ERROR )
-			  {
-				return  MMC_GENERAL_UNKNOWN_ERROR;
-			  }
-			  if( m_resp[0] & sR1E_CSD_OVERWRITE )
-			  {
-				return MMC_CID_CSD_OVERWRITE;
-			  }
-			  if( m_resp[0] &  sR1E_WP_ERASE_SKIP )
-			  {
-				return MMC_WP_ERASE_SKIP;
-			  }
-			  if( m_resp[0] &  sR1E_AKE_SEQ_ERROR )
-			  {
-				return MMC_AKE_SEQ_ERROR;
-			  }
+		    	  if( get_type()==rR1t )
+		    	  {
+					  if( m_resp[0] & sR1E_OUT_OF_RANGE )
+					  {
+						return MMC_ADDR_OUT_OF_RANGE;
+					  }
+					  if( m_resp[0] & sR1E_ADDRESS_ERROR )
+					  {
+						return MMC_ADDR_MISALIGNED;
+					  }
+					  if( m_resp[0] & sR1E_BLOCK_LEN_ERROR )
+					  {
+						return MMC_BLOCK_LEN_ERR;
+					  }
+					  if( m_resp[0] & sR1E_ERASE_SEQ_ERROR )
+					  {
+						return MMC_ERASE_SEQ_ERR;
+					  }
+					  if( m_resp[0] & sR1E_ERASE_PARAM )
+					  {
+						return MMC_BAD_ERASE_PARAM;
+					  }
+					  if( m_resp[0] & sR1E_WP_VIOLATION )
+					  {
+						return MMC_WRITE_PROT_VIOLATION;
+					  }
+					  if( m_resp[0] & sR1E_LOCK_UNLOCK_FAILED )
+					  {
+						return MMC_LOCK_UNLOCK_FAILED;
+					  }
+					  if( m_resp[0] & sR1E_COM_CRC_ERROR )
+					  {
+						return MMC_CMD_CRC_FAIL;
+					  }
+					  if( m_resp[0] & sR1E_ILLEGAL_COMMAND )
+					  {
+						return MMC_ILLEGAL_CMD;
+					  }
+					  if( m_resp[0] & sR1E_CARD_ECC_FAILED )
+					  {
+						return MMC_CARD_ECC_FAILED;
+					  }
+					  if( m_resp[0] & sR1E_CC_ERROR )
+					  {
+						return MMC_CC_ERROR;
+					  }
+					  if( m_resp[0] & sR1E_ERROR )
+					  {
+						return  MMC_GENERAL_UNKNOWN_ERROR;
+					  }
+					  if( m_resp[0] & sR1E_CSD_OVERWRITE )
+					  {
+						return MMC_CID_CSD_OVERWRITE;
+					  }
+					  if( m_resp[0] &  sR1E_WP_ERASE_SKIP )
+					  {
+						return MMC_WP_ERASE_SKIP;
+					  }
+					  if( m_resp[0] &  sR1E_AKE_SEQ_ERROR )
+					  {
+						return MMC_AKE_SEQ_ERROR;
+					  }
+				  }
+		    	  else if( get_type()==rR3t )
+		    	  {
+		    		  return MMC_OK;
+		    	  }
 		      }
 		}
 		return MMC_INTERNAL_ERROR;
@@ -350,44 +358,50 @@ public:
 	{
 	    if( !(m_flags & resp_ans) )
 	    {
-		return MMC_CMD_RSP_TIMEOUT;
+	    	return MMC_CMD_RSP_TIMEOUT;
 	    }
 	    if( is_spi_type() )
 	    {
-	        if( (m_flags&resp_spi_s1) && !(m_flags&resp_spi_s2) )
-		{
-		    if( m_resp[0] & bR1_IN_IDLE_STATE)
-			return card_state_IDLE;
-		    else
-			return card_state_READY;
-		}
-		else
-		{
-		     return MMC_CMD_MISMATCH_RESPONSE;
-		}
+			if( (m_flags&resp_spi_s1) && !(m_flags&resp_spi_s2) )
+			{
+				if( m_resp[0] & bR1_IN_IDLE_STATE)
+					return card_state_IDLE;
+				else
+					return card_state_READY;
+			}
+			else
+			{
+				 return MMC_CMD_MISMATCH_RESPONSE;
+			}
 	    }
 	    else
 	    {
-		if( get_type() == rR1t )
-		{
-		    return ((m_resp[0] & sR1_CURRENT_STATE ) >> 9) & 0x0f;
-		}
-		else
-		{
-		    return MMC_CMD_MISMATCH_RESPONSE;
-		}
+			if( get_type() == rR1t )
+			{
+				return ((m_resp[0] & sR1_CURRENT_STATE ) >> 9) & 0x0f;
+			}
+			else if( get_type() == rR3t )
+			{
+				return (!(m_resp[0]&OCR_BUSY_MASK))?(card_state_IDLE):(card_state_READY);
+			}
+			else
+			{
+				return MMC_CMD_MISMATCH_RESPONSE;
+			}
 	    }
-	    
 	}
 	//Validate R7
 	err validate_r7() const
 	{
 		if( get_type() != rR7t )
 			return MMC_CMD_MISMATCH_RESPONSE;
-		if( (m_resp[1] & 0xf00) != (ARG_IFCOND_3V3_SUPPLY & 0xf00) )
-			return MMC_INVALID_VOLTRANGE;
-		if( (m_resp[1] & 0xff) != (ARG_IFCOND_3V3_SUPPLY & 0xff) )
-			return MMC_CMD_MISMATCH_RESPONSE;
+		if( is_spi_type() )
+		{
+			if( (m_resp[1] & 0xf00) != (ARG_IFCOND_3V3_SUPPLY & 0xf00) )
+				return MMC_INVALID_VOLTRANGE;
+			if( (m_resp[1] & 0xff) != (ARG_IFCOND_3V3_SUPPLY & 0xff) )
+				return MMC_CMD_MISMATCH_RESPONSE;
+		}
 		return MMC_OK;
 	}
 	err validate_r3() const

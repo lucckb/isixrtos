@@ -45,10 +45,13 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 		if( (res=cmd.validate_r7()) ) return res;
 		dbprintf( "IF_COND state %i", cmd.get_err() );
 		//Read OCR command
-		cmd( mmc_command::OP_SDIO_READ_OCR, 0 );
-		if( (res=host.execute_command(cmd, C_card_timeout)) )  return res;
-		if( (res=cmd.get_err()) || (res=cmd.validate_r3()) ) return res;
-		dbprintf( "READ_OCR state %i %08lx", cmd.get_err(), cmd.get() );
+		if( host.is_spi() )
+		{
+			cmd( mmc_command::OP_SDIO_READ_OCR, 0 );
+			if( (res=host.execute_command(cmd, C_card_timeout)) )  return res;
+			if( (res=cmd.get_err()) || (res=cmd.validate_r3()) ) return res;
+			dbprintf("SPIMODE READ_OCR state %i %08lx", cmd.get_err(), cmd.get() );
+		}
 		//Downgrade the task priority (card pooling)
 		int pprio = isix::isix_task_change_prio(NULL, isix::isix_get_min_priority());
 		if( !pprio ) return pprio;
@@ -69,9 +72,12 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 		if(cmd.get_card_state()==mmc_command::card_state_IDLE) return MMC_CMD_RSP_TIMEOUT;
 		dbprintf("OP_COND code %i", cmd.get_err());
 		//Read OCR check HI capacity card
-		cmd( mmc_command::OP_SDIO_READ_OCR, 0 );
-		if( (res = host.execute_command_resp_check(cmd, C_card_timeout)) )
-		    return res;
+		if( host.is_spi() )
+		{
+			cmd( mmc_command::OP_SDIO_READ_OCR, 0 );
+			if( (res = host.execute_command_resp_check(cmd, C_card_timeout)) )
+				return res;
+		}
 		if( cmd.get_r3_ccs() ) type = type_sdhc;
 		else type = type_sd_v2;
 		dbprintf("CCS bit=%d", cmd.get_r3_ccs());
