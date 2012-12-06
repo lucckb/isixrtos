@@ -19,6 +19,31 @@ namespace mmc {
 namespace {
 	const unsigned C_card_timeout = 1000;
 	const unsigned C_go_idle_retries = 2;
+	const int C_block_len = 512;
+	const int C_spi_mode_freq_KHz = 12000;
+}
+/*----------------------------------------------------------*/
+/* Constructor */
+mmc_card::mmc_card( mmc_host &host, card_type type )
+  : m_host(host) , m_type(type), m_error(0), m_rca(0)
+{
+	if( !m_host.is_spi() )
+	{
+		m_error = sd_mode_initialize();
+		//TODO: Enable wide bus operation
+	}
+	else
+	{
+		mmc_command cmd( mmc_command::OP_CRC_ON_OFF, 0 );
+		m_error = m_host.execute_command_resp_check( cmd, C_card_timeout );
+		dbprintf("CRCON_OFF ret=%i", m_error );
+	}
+	if( !m_error )
+	{
+		mmc_command cmd( mmc_command::OP_SET_BLOCKLEN, C_block_len );
+		m_error = m_host.execute_command_resp_check( cmd, C_card_timeout );
+		dbprintf("BLOCKLEN ret=%i", m_error );
+	}
 }
 /*----------------------------------------------------------*/
 //** Initialize the card on request
@@ -153,6 +178,46 @@ int mmc_card::detect( mmc_host &host, mmc_card* &old_card )
 		ret = old_card->get_error();
 	}
 	return ret;
+}
+/*----------------------------------------------------------*/
+//initialize card in SD mode
+int mmc_card::sd_mode_initialize()
+{
+	return 0;
+}
+
+/*----------------------------------------------------------*/
+/** Write the block */
+int mmc_card::write( const void* buf, unsigned long sector, std::size_t count )
+{
+	int ret;
+	if( m_error ) return m_error;
+	if( m_type != type_sdhc ) sector *= C_block_len;
+	do
+	{
+		mmc_command cmd;
+		if( !m_host.is_spi() )
+		{
+			/* Set Block Size for Card */
+			cmd( mmc_command::OP_APP_CMD, unsigned(m_rca)<<16 );
+			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+			cmd( mmc_command::OP_SET_BLOCK_COUNT, count );
+			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+		}
+		cmd( mmc_command::OP_WRITE_MULT_BLOCK, sector );
+		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+		dbprintf("WRite mb cmd %i", ret );
+		if( (ret=m_host.send_data( buf, C_block_len*count, C_card_timeout ))) break;
+		dbprintf("WRite_transfer %i", ret );
+	} while(0);
+	dbprintf("WRITE=%i", ret);
+	return ret;
+}
+/*----------------------------------------------------------*/
+/** Read the block */
+int mmc_card::read ( void* buf, unsigned long sector, std::size_t count )
+{
+
 }
 /*----------------------------------------------------------*/
 } /* namespace drv */

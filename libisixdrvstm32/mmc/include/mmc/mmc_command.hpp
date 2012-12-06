@@ -83,7 +83,7 @@ public:
 			OP_SDIO_SEN_OP_COND                    =  5,
 			OP_HS_SWITCH                           =  6,
 			OP_SEL_DESEL_CARD                      =  7,
-			OP_SEND_IF_COND			       =  8,
+			OP_SEND_IF_COND			       		   =  8,
 			OP_SEND_CSD                            =  9,
 			OP_SEND_CID                            =  10,
 			OP_READ_DAT_UNTIL_STOP                 =  11, /*!< SD Card doesn't support it */
@@ -145,12 +145,16 @@ private:
 		switch( opcode )
 		{
 			case OP_GO_IDLE_STATE: 		m_flags = resp_R1B|resp_spi_R1B; break;
-			case OP_SEND_IF_COND:		m_flags = resp_R7|resp_spi_R7; break;
-			case OP_SDIO_READ_OCR:		m_flags = resp_R3|resp_spi_R3; break;
-			case OP_APP_CMD:			m_flags = resp_R1|resp_spi_R1; break;
-			case OP_SD_APP_OP_COND:		m_flags = resp_R3|resp_spi_R1; break;
-			case OP_SEND_OP_COND:		m_flags = resp_R3|resp_spi_R1; break;
-			default: 					m_flags = resp_none;
+			case OP_SEND_IF_COND:		m_flags = resp_R7|resp_spi_R7;   break;
+			case OP_SDIO_READ_OCR:		m_flags = resp_R3|resp_spi_R3;   break;
+			case OP_APP_CMD:			m_flags = resp_R1|resp_spi_R1;   break;
+			case OP_SD_APP_OP_COND:		m_flags = resp_R3|resp_spi_R1;   break;
+			case OP_SEND_OP_COND:		m_flags = resp_R3|resp_spi_R1;   break;
+			case OP_CRC_ON_OFF:			m_flags = resp_spi_R1; 		     break;
+			case OP_SET_BLOCKLEN:		m_flags = resp_R1|resp_spi_R1;   break;
+			case OP_SET_BLOCK_COUNT:	m_flags = resp_R1;				 break;
+			case OP_WRITE_MULT_BLOCK:   m_flags = resp_R1|resp_spi_R1|resp_spi_nocs;   break;
+			default: 					m_flags = resp_none;			 break;
 		}
 	}
 public:
@@ -158,6 +162,10 @@ public:
 	: m_arg(arg), m_opcode(opcode)
 	{
 		set_flags( opcode );
+	}
+	mmc_command()
+		: m_arg(0), m_flags(0), m_opcode(0)
+	{
 	}
 	void operator()( op opcode, uint32_t arg )
 	{

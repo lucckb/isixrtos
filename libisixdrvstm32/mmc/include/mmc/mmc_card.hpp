@@ -14,6 +14,7 @@
 /*----------------------------------------------------------*/
 #include "noncopyable.hpp"
 #include <cstddef>
+#include <stdint.h>
 
 namespace drv {
 namespace mmc {
@@ -35,11 +36,10 @@ public:
 	};
 	static int detect( mmc_host &host, mmc_card* &old_card );
 private:
+	//initialize card in SD mode
+	int sd_mode_initialize();
 	/* Constructor */
-	explicit mmc_card( mmc_host &host, card_type type )
-	  : m_host(host) , m_type(type), m_error(0)
-	{
-	}
+	explicit mmc_card( mmc_host &host, card_type type );
 	//Hardware probe the card and init it
 	static int probe( mmc_host &host, card_type &type );
 	//Get error code
@@ -51,11 +51,12 @@ public:
 	/** Write the block */
 	int write( const void* buf, unsigned long sector,  std::size_t count );
 	/** Read the block */
-	int read ( void* buf, unsigned long sector,  std::size_t count );
+	int read( void* buf, unsigned long sector, std::size_t count );
 private:
 	mmc_host& m_host;
 	card_type m_type;
 	int m_error;
+	uint16_t m_rca;
 };
 
 /*----------------------------------------------------------*/

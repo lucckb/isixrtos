@@ -104,6 +104,8 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 //Execute MMC data transfer
 int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 {
+	m_spi.transfer(0xFF);
+	m_spi.transfer(  MMC_STARTBLOCK_MWRITE );
 	// Zapisz dane z bufora
 	m_spi.write( buf, len, timeout );
 	// zapisz 16-bitowy CRC - nieistotny
