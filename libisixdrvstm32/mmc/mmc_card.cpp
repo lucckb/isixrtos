@@ -11,6 +11,7 @@
 #include <dbglog.h>
 #include "mmc/mmc_host_spi.hpp"
 #include "spi_device.hpp"
+#include <new>
 /*----------------------------------------------------------*/
 namespace drv {
 namespace mmc {
@@ -140,9 +141,10 @@ int mmc_card::detect( mmc_host &host, mmc_card* &old_card )
 	 * example previous was SDIO but now MMC_SD card*/
 	else
 	{
-		//Reinitialize again
-		old_card->m_type = ctype;
-		ret = old_card->finalize_initialization();
+		//Placement new
+		old_card->~mmc_card();
+		old_card = new(old_card) mmc_card( host, ctype );
+		ret = old_card->get_error();
 	}
 	return ret;
 }

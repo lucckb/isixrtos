@@ -35,16 +35,18 @@ public:
 	};
 	static int detect( mmc_host &host, mmc_card* &old_card );
 private:
-	//Finalize initialization
-	int finalize_initialization() { return 0; }
 	/* Constructor */
 	explicit mmc_card( mmc_host &host, card_type type )
-	  : m_host(host) , m_type(type)
+	  : m_host(host) , m_type(type), m_error(0)
 	{
-		finalize_initialization();
 	}
 	//Hardware probe the card and init it
 	static int probe( mmc_host &host, card_type &type );
+	//Get error code
+	int get_error() const
+	{
+		return m_error;
+	}
 public:
 	/** Write the block */
 	int write( const void* buf, unsigned long sector,  std::size_t count );
@@ -53,6 +55,7 @@ public:
 private:
 	mmc_host& m_host;
 	card_type m_type;
+	int m_error;
 };
 
 /*----------------------------------------------------------*/
