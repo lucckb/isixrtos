@@ -144,16 +144,21 @@ private:
 	{
 		switch( opcode )
 		{
-			case OP_GO_IDLE_STATE: 		m_flags = resp_R1B|resp_spi_R1B; break;
-			case OP_SEND_IF_COND:		m_flags = resp_R7|resp_spi_R7;   break;
-			case OP_SDIO_READ_OCR:		m_flags = resp_R3|resp_spi_R3;   break;
-			case OP_APP_CMD:			m_flags = resp_R1|resp_spi_R1;   break;
-			case OP_SD_APP_OP_COND:		m_flags = resp_R3|resp_spi_R1;   break;
-			case OP_SEND_OP_COND:		m_flags = resp_R3|resp_spi_R1;   break;
-			case OP_CRC_ON_OFF:			m_flags = resp_spi_R1; 		     break;
-			case OP_SET_BLOCKLEN:		m_flags = resp_R1|resp_spi_R1;   break;
+			case OP_GO_IDLE_STATE: 		m_flags = resp_R1|resp_spi_R1|resp_spi_cs;   break;
+			case OP_SEND_IF_COND:		m_flags = resp_R7|resp_spi_R7|resp_spi_cs;   break;
+			case OP_SDIO_READ_OCR:		m_flags = resp_R3|resp_spi_R3|resp_spi_cs;   break;
+			case OP_APP_CMD:			m_flags = resp_R1|resp_spi_R1|resp_spi_cs;   break;
+			case OP_SD_APP_OP_COND:		m_flags = resp_R3|resp_spi_R1|resp_spi_cs;   break;
+			case OP_SEND_OP_COND:		m_flags = resp_R3|resp_spi_R1|resp_spi_cs;   break;
+			case OP_CRC_ON_OFF:			m_flags = resp_spi_R1|resp_spi_cs; 		     break;
+			case OP_SET_BLOCKLEN:		m_flags = resp_R1|resp_spi_R1|resp_spi_cs;   break;
 			case OP_SET_BLOCK_COUNT:	m_flags = resp_R1;				 break;
-			case OP_WRITE_MULT_BLOCK:   m_flags = resp_R1|resp_spi_R1|resp_spi_nocs;   break;
+			case OP_WRITE_MULT_BLOCK:   m_flags = resp_R1|resp_spi_R1;    break;
+			case OP_WRITE_SINGLE_BLOCK: m_flags = resp_R1|resp_spi_R1;    break;
+			case OP_READ_MULT_BLOCK:	m_flags = resp_R1|resp_spi_R1;    break;
+			case OP_READ_SINGLE_BLOCK:  m_flags = resp_R1|resp_spi_R1;    break;
+			case OP_STOP_TRANSMISSION:	m_flags = resp_R1B|resp_spi_R1B|resp_spi_cs; break;
+			case OP_SEND_STATUS:		m_flags = resp_R1|resp_spi_R2|resp_spi_cs;   break;
 			default: 					m_flags = resp_none;			 break;
 		}
 	}
@@ -192,7 +197,7 @@ public:
 		resp_spi_s2	  = 1 << 6,		//! Second byte
 		resp_spi_b4	  = 1 << 7,		//! Four data bytes
 		resp_spi_busy = 1 << 8,		//! Wait for response
-		resp_spi_nocs = 1 << 9,		//! Don't disable CS
+		resp_spi_cs = 1 << 9,		//! Disable CS
 		resp_ans_spi  = 1 << 10,	//! SPI answer
 		resp_ans      = 1 << 11,	//! answer
 		/* Standard responses */
@@ -237,167 +242,10 @@ public:
 		(static_cast<uint32_t>(b2) << 16 ) | (static_cast<uint32_t>(b3) << 8 ) | b4;
 		m_flags |=resp_ans_spi|resp_ans;
 	}
-	err get_err() const
-	{
-		if( !(m_flags & resp_ans) )
-		{
-			return MMC_CMD_RSP_TIMEOUT;
-		}
-		if( is_spi_type() )
-		{
-			if( (m_flags&resp_spi_s1) && !(m_flags&resp_spi_s2) )
-			{
-
-				if( m_resp[0] & bR1_ERASE_RESET )
-				{
-					return MMC_ERASE_SEQ_ERR;
-				}
-				if( m_resp[0] & bR1_ILLEGAL_COMMAND )
-				{
-					return MMC_ILLEGAL_CMD;
-				}				
-				if( m_resp[0] & bR1_COM_CRC_ERROR )
-				{
-				        return MMC_CMD_CRC_FAIL;
-				}
-				if( m_resp[0] & bR1_ADDRESS_ERROR )
-				{
-					return MMC_ADDR_MISALIGNED;
-				}
-				if( m_resp[0] & bR1_PARAMETER_ERROR )
-				{
-					return MMC_INVALID_PARAMETER;
-				}
-				if( m_resp[0] & bR1_ERASE_SEQ_ERROR )
-				{
-					return MMC_ERASE_SEQ_ERR;
-				}
-				if( m_resp[0] == 0 || (m_resp[0]&bR1_IN_IDLE_STATE) )
-				{
-					return MMC_OK;
-				}
-				else
-				{
-				    return MMC_CMD_MISMATCH_RESPONSE;
-				}
-			}
-			else
-			{
-			    return MMC_CMD_MISMATCH_RESPONSE;
-			}
-		}
-		else
-		{
-		      if( m_flags & resp_present )
-		      {
-		    	  if( get_type()==rR1t )
-		    	  {
-					  if( m_resp[0] & sR1E_OUT_OF_RANGE )
-					  {
-						return MMC_ADDR_OUT_OF_RANGE;
-					  }
-					  if( m_resp[0] & sR1E_ADDRESS_ERROR )
-					  {
-						return MMC_ADDR_MISALIGNED;
-					  }
-					  if( m_resp[0] & sR1E_BLOCK_LEN_ERROR )
-					  {
-						return MMC_BLOCK_LEN_ERR;
-					  }
-					  if( m_resp[0] & sR1E_ERASE_SEQ_ERROR )
-					  {
-						return MMC_ERASE_SEQ_ERR;
-					  }
-					  if( m_resp[0] & sR1E_ERASE_PARAM )
-					  {
-						return MMC_BAD_ERASE_PARAM;
-					  }
-					  if( m_resp[0] & sR1E_WP_VIOLATION )
-					  {
-						return MMC_WRITE_PROT_VIOLATION;
-					  }
-					  if( m_resp[0] & sR1E_LOCK_UNLOCK_FAILED )
-					  {
-						return MMC_LOCK_UNLOCK_FAILED;
-					  }
-					  if( m_resp[0] & sR1E_COM_CRC_ERROR )
-					  {
-						return MMC_CMD_CRC_FAIL;
-					  }
-					  if( m_resp[0] & sR1E_ILLEGAL_COMMAND )
-					  {
-						return MMC_ILLEGAL_CMD;
-					  }
-					  if( m_resp[0] & sR1E_CARD_ECC_FAILED )
-					  {
-						return MMC_CARD_ECC_FAILED;
-					  }
-					  if( m_resp[0] & sR1E_CC_ERROR )
-					  {
-						return MMC_CC_ERROR;
-					  }
-					  if( m_resp[0] & sR1E_ERROR )
-					  {
-						return  MMC_GENERAL_UNKNOWN_ERROR;
-					  }
-					  if( m_resp[0] & sR1E_CSD_OVERWRITE )
-					  {
-						return MMC_CID_CSD_OVERWRITE;
-					  }
-					  if( m_resp[0] &  sR1E_WP_ERASE_SKIP )
-					  {
-						return MMC_WP_ERASE_SKIP;
-					  }
-					  if( m_resp[0] &  sR1E_AKE_SEQ_ERROR )
-					  {
-						return MMC_AKE_SEQ_ERROR;
-					  }
-				  }
-		    	  else if( get_type()==rR3t )
-		    	  {
-		    		  return MMC_OK;
-		    	  }
-		      }
-		}
-		return MMC_INTERNAL_ERROR;
-	}
+	//Get card error
+	err get_err() const;
 	//Get card status
-	int get_card_state() const
-	{
-	    if( !(m_flags & resp_ans) )
-	    {
-	    	return MMC_CMD_RSP_TIMEOUT;
-	    }
-	    if( is_spi_type() )
-	    {
-			if( (m_flags&resp_spi_s1) && !(m_flags&resp_spi_s2) )
-			{
-				if( m_resp[0] & bR1_IN_IDLE_STATE)
-					return card_state_IDLE;
-				else
-					return card_state_READY;
-			}
-			else
-			{
-				 return MMC_CMD_MISMATCH_RESPONSE;
-			}
-	    }
-	    else
-	    {
-			if( get_type() == rR1t )
-			{
-				return ((m_resp[0] & sR1_CURRENT_STATE ) >> 9) & 0x0f;
-			}
-			else if( get_type() == rR3t )
-			{
-				return (!(m_resp[0]&OCR_BUSY_MASK))?(card_state_IDLE):(card_state_READY);
-			}
-			else
-			{
-				return MMC_CMD_MISMATCH_RESPONSE;
-			}
-	    }
-	}
+	int get_card_state() const;
 	//Validate R7
 	err validate_r7() const
 	{
@@ -425,6 +273,7 @@ public:
 		return m_resp[1] & OCR_CCS_MASK;
 	}
 	uint32_t get() const { return m_resp[1]; }
+	uint32_t getr2() const { return m_resp[0]; }
 private:
 	uint32_t m_arg;					//Command argument
 	uint32_t m_resp[4];				//Data in response

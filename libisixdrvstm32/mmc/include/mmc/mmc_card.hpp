@@ -57,6 +57,8 @@ private:
 	card_type m_type;
 	int m_error;
 	uint16_t m_rca;
+	unsigned m_block_count_avail : 1;
+	unsigned m_bus_width : 2;
 };
 
 /*----------------------------------------------------------*/

@@ -10,6 +10,7 @@
 /*----------------------------------------------------------*/
 #include "mmc/mmc_host.hpp"
 #include "spi_device.hpp"
+#include <stdint.h>
 /*----------------------------------------------------------*/
 namespace drv {
 namespace mmc {
@@ -19,7 +20,7 @@ class mmc_host_spi : public mmc_host
 public:
 	//Constructor
 	mmc_host_spi( spi_device &spi_dev )
-		: m_spi( spi_dev )
+		: m_spi( spi_dev ), m_proc_cmd(0)
 	{}
 	//Execute MMC command
 	virtual int execute_command( mmc_command &req, unsigned timeout );
@@ -42,6 +43,7 @@ private:
 private:
 	//SPI device
 	spi_device &m_spi;
+	uint8_t m_proc_cmd;
 };
 /*----------------------------------------------------------*/
 } /* namespace drv */

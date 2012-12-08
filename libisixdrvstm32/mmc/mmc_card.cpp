@@ -17,15 +17,16 @@ namespace drv {
 namespace mmc {
 /*----------------------------------------------------------*/
 namespace {
-	const unsigned C_card_timeout = 1000;
-	const unsigned C_go_idle_retries = 2;
+	const unsigned C_card_timeout = 2000;
+	const unsigned C_go_idle_retries = 10;
 	const int C_block_len = 512;
 	const int C_spi_mode_freq_KHz = 12000;
 }
 /*----------------------------------------------------------*/
 /* Constructor */
 mmc_card::mmc_card( mmc_host &host, card_type type )
-  : m_host(host) , m_type(type), m_error(0), m_rca(0)
+  : m_host(host) , m_type(type), m_error(0), m_rca(0),
+    m_block_count_avail(false), m_bus_width(mmc_host::bus_width_1b)
 {
 	if( !m_host.is_spi() )
 	{
@@ -65,6 +66,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 	//Send IF cond
 	cmd( mmc_command::OP_SEND_IF_COND, mmc_command::ARG_IFCOND_3V3_SUPPLY );
 	if( (res=host.execute_command(cmd, C_card_timeout)) ) return res;
+	dbprintf( "OP_SEND_IF_COND %i %i", res, cmd.get_err() );
 	if( cmd.get_err() == MMC_OK ) //SD card version 2.0
 	{
 		if( (res=cmd.validate_r7()) ) return res;
@@ -109,6 +111,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 	}
 	else if( cmd.get_err() == MMC_ILLEGAL_CMD )	//Not version 2
 	{
+		dbprintf("Type 1 card");
 		//Check the type of the SD card
 		cmd( mmc_command::OP_APP_CMD, 0 );
 		if( (res=host.execute_command( cmd, C_card_timeout ) ) )
@@ -156,6 +159,11 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 			type = type_mmc;
 		}
 	}
+	else
+	{
+		dbprintf("Fatal error %02x", cmd.get_err() );
+		return MMC_CMD_MISMATCH_RESPONSE;
+	}
 	//Continue
 	return res;
 }
@@ -196,7 +204,7 @@ int mmc_card::write( const void* buf, unsigned long sector, std::size_t count )
 	do
 	{
 		mmc_command cmd;
-		if( !m_host.is_spi() )
+		if( m_block_count_avail )
 		{
 			/* Set Block Size for Card */
 			cmd( mmc_command::OP_APP_CMD, unsigned(m_rca)<<16 );
@@ -209,6 +217,12 @@ int mmc_card::write( const void* buf, unsigned long sector, std::size_t count )
 		dbprintf("WRite mb cmd %i", ret );
 		if( (ret=m_host.send_data( buf, C_block_len*count, C_card_timeout ))) break;
 		dbprintf("WRite_transfer %i", ret );
+		if( !m_block_count_avail && !m_host.is_spi())
+		{
+			dbprintf("OP_STOP_TRAN on write");
+			cmd( mmc_command::OP_STOP_TRANSMISSION, 0 );
+			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+		}
 	} while(0);
 	dbprintf("WRITE=%i", ret);
 	return ret;
@@ -217,7 +231,36 @@ int mmc_card::write( const void* buf, unsigned long sector, std::size_t count )
 /** Read the block */
 int mmc_card::read ( void* buf, unsigned long sector, std::size_t count )
 {
-
+	int ret;
+	if( m_error ) return m_error;
+	if( m_type != type_sdhc ) sector *= C_block_len;
+	dbprintf("Card type %i", m_type);
+	do
+	{
+		mmc_command cmd;
+		if( m_block_count_avail )
+		{
+			/* Set Block Size for Card */
+			cmd( mmc_command::OP_APP_CMD, unsigned(m_rca)<<16 );
+			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+			cmd( mmc_command::OP_SET_BLOCK_COUNT, count );
+			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+		}
+		dbprintf("RD sect %li", sector);
+		cmd( mmc_command::OP_READ_MULT_BLOCK, sector);
+		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+		dbprintf("RD mb cmd %i", ret );
+		if( (ret=m_host.receive_data( buf, C_block_len*count, C_card_timeout ))) break;
+		dbprintf("RD_transfer %i", ret );
+		if( !m_block_count_avail )
+		{
+			cmd( mmc_command::OP_STOP_TRANSMISSION, 0 );
+			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+		}
+	}
+	while(0);
+	dbprintf("READ=%i", ret);
+	return ret;
 }
 /*----------------------------------------------------------*/
 } /* namespace drv */
