@@ -52,7 +52,7 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 	short mpos = 0;
 	int ret = mmc_host::err_OK;
 	qbuf[mpos++] = 0xff;
-	qbuf[mpos++] = req.get_op()|0x40;
+	qbuf[mpos++] = (req.get_op()|0x40) & 0x7f;
 	qbuf[mpos++] = static_cast<uint8_t>(req.get_arg()>>24);
 	qbuf[mpos++] = static_cast<uint8_t>(req.get_arg()>>16);
 	qbuf[mpos++] = static_cast<uint8_t>(req.get_arg()>>8);
@@ -98,6 +98,7 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 		req.set_resp_spi_b4(r1, m_spi.transfer(0xff),
 			m_spi.transfer(0xff), m_spi.transfer(0xff), m_spi.transfer(0xff));
 	}
+	//Extra busy flag
 	if ( req.get_flags()&mmc_command::resp_spi_busy )
 	{
 		isix::tick_t t_start = isix::isix_get_jiffies();
@@ -113,6 +114,16 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 			  );
 		if( prio >= 0 )
 			isix::isix_task_change_prio( NULL, prio );
+	}
+	//Extra data CSD or CID for SD card simulation
+	if( req.get_flags() & mmc_command::resp_spi_d16b )
+	{
+		dbprintf("EXTRA DATA ERR %d", req.get_err() );
+		if( (ret=req.get_err()) ) return ret;
+		ret = receive_data( req.get_resp_buffer(), 16, timeout );
+		dbprintf("EXTRA DATA read ERR %d", ret );
+		if( !ret )
+			req.set_resp_status();
 	}
 	//Check chip select flags
 	if( req.get_flags() & mmc_command::resp_spi_cs )
@@ -148,7 +159,6 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		}
 		//TODO: TImeout Czekaj az karta bedzie wolna
 		while( (r1=m_spi.transfer(0xff))==0 ) {}
-		dbprintf("!!! WAIT !!!!!! (R1=%02hx)",r1);
 	}
 	if( m_proc_cmd == mmc_command::OP_WRITE_MULT_BLOCK )
 	{
@@ -157,7 +167,6 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		//TODO: TImeout Czekaj az karta bedzie wolna
 		uint8_t r1;
 		while( (r1=m_spi.transfer(0xff))==0 ) {}
-		dbprintf("!!! WAIT !!!!!! (R1=%02hx)",r1);
 	}
 	// Zwolnij CS
 	CS(1);
@@ -172,7 +181,6 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 	for(;;)
 	{
 		uint8_t r1 = m_spi.transfer(0xFF);
-		dbprintf("R1XXX=%i", r1 );
 		if( r1 == MMC_STARTBLOCK_READ) break;
 		else if((r1&MMC_DE_CHECK_MASK)==MMC_DE_ERROR)
 		{
@@ -182,7 +190,6 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 	}
 	for(size_t packet=0; packet<len; packet+=C_block_len)
 	{
-		dbprintf("SPI_READ(%i %i %i)", bbuf+packet, len>C_block_len?C_block_len:len, timeout);
 		m_spi.read( bbuf+packet, len>C_block_len?C_block_len:len, timeout );
 		// Nie sprawdzaj CRC
 		m_spi.flush(2);

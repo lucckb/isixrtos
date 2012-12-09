@@ -15,7 +15,7 @@
 #include "noncopyable.hpp"
 #include <cstddef>
 #include <stdint.h>
-
+#include "mmc/mmc_defs.hpp"
 namespace drv {
 namespace mmc {
 /*----------------------------------------------------------*/
@@ -25,6 +25,8 @@ class mmc_host;
 /* MMC card component */
 class mmc_card :  public fnd::noncopyable
 {
+private:
+		static const size_t C_sector_size = 512;
 public:
 	enum card_type
 	{
@@ -52,13 +54,33 @@ public:
 	int write( const void* buf, unsigned long sector,  std::size_t count );
 	/** Read the block */
 	int read( void* buf, unsigned long sector, std::size_t count );
+	/* Get card capacity */
+	int get_sectors_count(uint32_t &sectors) const;
+	/* Get card CID */
+	int get_cid( cid &c ) const;
+	/* Get sector size */
+	size_t get_sector_size() const
+	{
+		return C_sector_size;
+	}
+	/* Get erase size */
+	int get_erase_size(uint32_t &sectors) const;
 private:
-	mmc_host& m_host;
-	card_type m_type;
-	int m_error;
-	uint16_t m_rca;
-	unsigned m_block_count_avail : 1;
-	unsigned m_bus_width : 2;
+	/* Write multiple block */
+	inline int write_multi_blocks( const void* buf, unsigned long laddr,  std::size_t count );
+	/* Read multiple block */
+	inline int read_multi_blocks( void* buf, unsigned long laddr, std::size_t count );
+	/* Write single block */
+	inline int write_single_block( const void* buf, unsigned long laddr );
+	/* Read multiple block */
+	inline int read_single_block( void* buf, unsigned long laddr );
+private:
+	mmc_host& m_host;		//Host
+	card_type m_type;		//Card type
+	int m_error;			//Init error code
+	uint16_t m_rca;			//RCA
+	unsigned m_block_count_avail : 1;		//Block count avail
+	unsigned m_bus_width : 2;				//Bus width
 };
 
 /*----------------------------------------------------------*/

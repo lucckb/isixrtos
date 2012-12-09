@@ -19,9 +19,9 @@ namespace mmc {
 namespace {
 	const unsigned C_card_timeout = 2000;
 	const unsigned C_go_idle_retries = 10;
-	const int C_block_len = 512;
 	const int C_spi_mode_freq_KHz = 12000;
 }
+
 /*----------------------------------------------------------*/
 /* Constructor */
 mmc_card::mmc_card( mmc_host &host, card_type type )
@@ -41,19 +41,20 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 	}
 	if( !m_error )
 	{
-		mmc_command cmd( mmc_command::OP_SET_BLOCKLEN, C_block_len );
+		mmc_command cmd( mmc_command::OP_SET_BLOCKLEN, C_sector_size );
 		m_error = m_host.execute_command_resp_check( cmd, C_card_timeout );
 		dbprintf("BLOCKLEN ret=%i", m_error );
 	}
+	//Set maximum speed
+	m_host.set_ios( mmc_host::ios_set_speed, C_spi_mode_freq_KHz );
 }
 /*----------------------------------------------------------*/
 //** Initialize the card on request
 int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 {
-	dbprintf("Initialize called ");
-	host.set_ios( mmc_host::ios_pwr_on, 0 );
 	int res = mmc_host::err_OK;
 	unsigned retry = C_go_idle_retries;
+	host.set_ios( mmc_host::ios_pwr_on, 0 );
 	//Send GO IDLE state few times
 	mmc_command cmd( mmc_command::OP_GO_IDLE_STATE, 0 );
 	do
@@ -77,7 +78,6 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 			cmd( mmc_command::OP_SDIO_READ_OCR, 0 );
 			if( (res=host.execute_command(cmd, C_card_timeout)) )  return res;
 			if( (res=cmd.get_err()) || (res=cmd.validate_r3()) ) return res;
-			dbprintf("SPIMODE READ_OCR state %i %08lx", cmd.get_err(), cmd.get() );
 		}
 		//Downgrade the task priority (card pooling)
 		int pprio = isix::isix_task_change_prio(NULL, isix::isix_get_min_priority());
@@ -195,12 +195,10 @@ int mmc_card::sd_mode_initialize()
 }
 
 /*----------------------------------------------------------*/
-/** Write the block */
-int mmc_card::write( const void* buf, unsigned long sector, std::size_t count )
+/* Write multi sectors */
+int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::size_t count )
 {
 	int ret;
-	if( m_error ) return m_error;
-	if( m_type != type_sdhc ) sector *= C_block_len;
 	do
 	{
 		mmc_command cmd;
@@ -212,14 +210,11 @@ int mmc_card::write( const void* buf, unsigned long sector, std::size_t count )
 			cmd( mmc_command::OP_SET_BLOCK_COUNT, count );
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		}
-		cmd( mmc_command::OP_WRITE_MULT_BLOCK, sector );
+		cmd( mmc_command::OP_WRITE_MULT_BLOCK, laddr );
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
-		dbprintf("WRite mb cmd %i", ret );
-		if( (ret=m_host.send_data( buf, C_block_len*count, C_card_timeout ))) break;
-		dbprintf("WRite_transfer %i", ret );
+		if( (ret=m_host.send_data( buf, C_sector_size*count, C_card_timeout ))) break;
 		if( !m_block_count_avail && !m_host.is_spi())
 		{
-			dbprintf("OP_STOP_TRAN on write");
 			cmd( mmc_command::OP_STOP_TRANSMISSION, 0 );
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		}
@@ -228,13 +223,10 @@ int mmc_card::write( const void* buf, unsigned long sector, std::size_t count )
 	return ret;
 }
 /*----------------------------------------------------------*/
-/** Read the block */
-int mmc_card::read ( void* buf, unsigned long sector, std::size_t count )
+/* Read multi sectors */
+int mmc_card::read_multi_blocks( void* buf, unsigned long laddr, std::size_t count )
 {
 	int ret;
-	if( m_error ) return m_error;
-	if( m_type != type_sdhc ) sector *= C_block_len;
-	dbprintf("Card type %i", m_type);
 	do
 	{
 		mmc_command cmd;
@@ -246,12 +238,9 @@ int mmc_card::read ( void* buf, unsigned long sector, std::size_t count )
 			cmd( mmc_command::OP_SET_BLOCK_COUNT, count );
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		}
-		dbprintf("RD sect %li", sector);
-		cmd( mmc_command::OP_READ_MULT_BLOCK, sector);
+		cmd( mmc_command::OP_READ_MULT_BLOCK, laddr);
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
-		dbprintf("RD mb cmd %i", ret );
-		if( (ret=m_host.receive_data( buf, C_block_len*count, C_card_timeout ))) break;
-		dbprintf("RD_transfer %i", ret );
+		if( (ret=m_host.receive_data( buf, C_sector_size*count, C_card_timeout ))) break;
 		if( !m_block_count_avail )
 		{
 			cmd( mmc_command::OP_STOP_TRANSMISSION, 0 );
@@ -260,6 +249,116 @@ int mmc_card::read ( void* buf, unsigned long sector, std::size_t count )
 	}
 	while(0);
 	dbprintf("READ=%i", ret);
+	return ret;
+}
+
+/*----------------------------------------------------------*/
+/* Write single block */
+int mmc_card::write_single_block( const void* buf, unsigned long laddr )
+{
+	int ret;
+	mmc_command cmd( mmc_command::OP_WRITE_SINGLE_BLOCK, laddr );
+	do
+	{
+		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+		if( (ret=m_host.send_data( buf, C_sector_size, C_card_timeout ))) break;
+
+	} while(0);
+	dbprintf("SingleWR = %i", ret);
+	return ret;
+}
+/*----------------------------------------------------------*/
+/* Read single block */
+int mmc_card::read_single_block( void* buf, unsigned long laddr )
+{
+	int ret;
+	mmc_command cmd( mmc_command::OP_READ_SINGLE_BLOCK, laddr );
+	do
+	{
+		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+		if( (ret=m_host.receive_data( buf, C_sector_size, C_card_timeout ))) break;
+
+	} while(0);
+	dbprintf("SingleRD = %i", ret);
+	return ret;
+}
+/*----------------------------------------------------------*/
+/** Write the block */
+int mmc_card::write( const void* buf, unsigned long sector, std::size_t count )
+{
+	if( m_error ) return m_error;
+	if( m_type != type_sdhc ) sector *= C_sector_size;
+	if( count == 1 )
+		return write_single_block( buf, sector );
+	else
+		return write_multi_blocks( buf, sector, count );
+}
+/*----------------------------------------------------------*/
+/** Read the block */
+int mmc_card::read ( void* buf, unsigned long sector, std::size_t count )
+{
+	if( m_error ) return m_error;
+	if( m_type != type_sdhc ) sector *= C_sector_size;
+	if( count == 1)
+		return read_single_block( buf, sector );
+	else
+		return read_multi_blocks( buf, sector, count );
+}
+/*----------------------------------------------------------*/
+/* Get card CID */
+int mmc_card::get_cid( cid &c ) const
+{
+	int ret;
+	mmc_command cmd( mmc_command::OP_SEND_CID, m_rca<<16 );
+	do
+	{
+		if( (ret=m_host.execute_command(cmd, C_card_timeout))) break;
+		if( (ret=cmd.decode_cid( c,m_type==type_mmc )) ) break;
+	} while(0);
+	dbprintf("DECODE CID %i", ret);
+	return ret;
+}
+/*----------------------------------------------------------*/
+/* Get card capacity */
+int mmc_card::get_sectors_count(uint32_t &sectors) const
+{
+	int ret;
+	mmc_command cmd( mmc_command::OP_SEND_CSD, m_rca<<16 );
+	do
+	{
+		if( (ret=m_host.execute_command(cmd, C_card_timeout))) break;
+		if( (ret=cmd.decode_csd_sectors(sectors,m_type==type_mmc) ) ) break;
+	} while(0);
+	return ret;
+}
+/*----------------------------------------------------------*/
+/* Get erase size */
+int mmc_card::get_erase_size(uint32_t &sectors) const
+{
+	int ret;
+	mmc_command cmd;
+	//Decode from CSD
+	if( m_type == type_mmc || m_type == type_sd_v1  )
+	{
+		cmd( mmc_command::OP_SEND_CSD, m_rca<<16 );
+		do {
+			if( (ret=m_host.execute_command(cmd, C_card_timeout))) break;
+			if( (ret=cmd.decode_csd_erase(sectors,m_type==type_mmc)) ) break;
+		} while(0);
+	}
+	else
+	{
+		uint32_t sdbuf[16];
+		do {
+			cmd( mmc_command::OP_APP_CMD, m_rca << 16 );
+			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+			cmd( mmc_command::OP_SD_APP_STATUS, m_rca << 16 );
+			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+			if( (ret=m_host.receive_data( sdbuf, sizeof(sdbuf), C_card_timeout ))) break;
+		} while(0);
+		if( !ret )
+			sectors = mmc_command::decode_sdstat_erase( sdbuf );
+	}
 	return ret;
 }
 /*----------------------------------------------------------*/

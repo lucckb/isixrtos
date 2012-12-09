@@ -6,9 +6,34 @@
  */
 /*----------------------------------------------------------*/
 #include "mmc/mmc_command.hpp"
+#include <cstddef>
+#include "mmc/mmc_defs.hpp"
+#include <dbglog.h>
 /*----------------------------------------------------------*/
 namespace drv {
 namespace mmc {
+
+/*----------------------------------------------------------*/
+//Unstuff bits for decode card type
+namespace {
+	inline uint32_t UNSTUFF_BITS(const uint32_t resp[] , size_t start, const size_t size)
+	{
+		const uint32_t mask = (size < 32 ? 1 << size : 0) - 1;
+		const int off = 3 - ((start) / 32);
+		const int shft = (start) & 31;
+		uint32_t res = resp[off] >> shft;
+		if (size + shft > 32)
+			res |= resp[off-1] << ((32 - shft) % 32);
+		return res & mask;
+	}
+	inline void be32_to_cpu(uint32_t val[], size_t len )
+	{
+	#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+		for(size_t p=0; p<len; p++ )
+			val[p]=  __builtin_bswap32( val[p] );
+	#endif
+	}
+}
 /*----------------------------------------------------------*/
 err mmc_command::get_err() const
 {
@@ -20,7 +45,10 @@ err mmc_command::get_err() const
 	{
 		if( (m_flags&resp_spi_s1) && !(m_flags&resp_spi_s2) )
 		{
-
+			if( !(m_resp[0] & bR1_ERROR_MASK) )
+			{
+				return MMC_OK;
+			}
 			if( m_resp[0] & bR1_ERASE_RESET )
 			{
 				return MMC_ERASE_SEQ_ERR;
@@ -45,14 +73,67 @@ err mmc_command::get_err() const
 			{
 				return MMC_ERASE_SEQ_ERR;
 			}
-			if( m_resp[0] == 0 || (m_resp[0]&bR1_IN_IDLE_STATE) )
+			return MMC_CMD_MISMATCH_RESPONSE;
+		}
+		else if(  (m_flags&resp_spi_s1) && (m_flags&resp_spi_s2) )
+		{
+			if( !(m_resp[0] & bR2_ERROR_MASK) )
 			{
 				return MMC_OK;
 			}
-			else
+			if( m_resp[0] &	bR2_WP_ERASE_SKIP )
 			{
-			    return MMC_CMD_MISMATCH_RESPONSE;
+				return MMC_WP_ERASE_SKIP;
 			}
+			if( m_resp[0] & bR2_ERROR )
+			{
+				return MMC_GENERAL_UNKNOWN_ERROR;
+			}
+			if( m_resp[0] & bR2_CC_ERROR )
+			{
+				return MMC_CC_ERROR;
+			}
+			if( m_resp[0] & bR2_ECC_FAILED )
+			{
+				return MMC_CARD_ECC_FAILED;
+			}
+			if( m_resp[0] & bR2_WP_VIOLATION )
+			{
+				return MMC_WRITE_PROT_VIOLATION;
+			}
+			if( m_resp[0] & bR2_ERASE_PARAM )
+			{
+				return MMC_BAD_ERASE_PARAM;
+			}
+			if( m_resp[0] & bR2_OUT_OF_RANGE )
+			{
+				return MMC_CMD_OUT_OF_RANGE;
+			}
+			if( m_resp[0] &	bR2_ERASE_RESET )
+			{
+				return MMC_ERASE_RESET;
+			}
+			if( m_resp[0] &	bR2_ILLEGAL_COMMAND )
+			{
+				return MMC_ILLEGAL_CMD;
+			}
+			if( m_resp[0] &	bR2_COM_CRC_ERROR )
+			{
+				return MMC_COM_CRC_FAILED;
+			}
+			if( m_resp[0] & bR2_ERASE_SEQ_ERROR )
+			{
+				return MMC_ERASE_SEQ_ERR;
+			}
+			if( m_resp[0] &	bR2_ADDRESS_ERROR )
+			{
+				return MMC_ADDR_OUT_OF_RANGE;
+			}
+			if( m_resp[0] & bR2_PARAMETER_ERROR )
+			{
+				return MMC_INVALID_PARAMETER;
+			}
+			return MMC_CMD_MISMATCH_RESPONSE;
 		}
 		else
 		{
@@ -65,7 +146,11 @@ err mmc_command::get_err() const
 	      {
 	    	  if( get_type()==rR1t )
 	    	  {
-				  if( m_resp[0] & sR1E_OUT_OF_RANGE )
+	    		  if( !(m_resp[0] & sR1_ERROR_MASK) )
+	    		  {
+	    			  return MMC_OK;
+	    		  }
+	    		  if( m_resp[0] & sR1E_OUT_OF_RANGE )
 				  {
 					return MMC_ADDR_OUT_OF_RANGE;
 				  }
@@ -125,6 +210,7 @@ err mmc_command::get_err() const
 				  {
 					return MMC_AKE_SEQ_ERROR;
 				  }
+				  return MMC_CMD_MISMATCH_RESPONSE;
 			  }
 	    	  else if( get_type()==rR3t )
 	    	  {
@@ -171,6 +257,144 @@ int mmc_command::get_card_state() const
 			return MMC_CMD_MISMATCH_RESPONSE;
 		}
     }
+}
+/*----------------------------------------------------------*/
+void mmc_command::set_resp_status()
+{
+	m_flags |=resp_ans_spi|resp_ans;
+	be32_to_cpu( m_resp, sizeof(m_resp)/sizeof(m_resp[0]) );
+}
+/*----------------------------------------------------------*/
+//Decode card CID
+int mmc_command::decode_cid( cid &c , bool mmc ) const
+{
+	if( !(m_flags & resp_ans) )
+	{
+	    dbprintf("decode MMC_CMD_RSP_TIMEOUT");
+		return MMC_CMD_RSP_TIMEOUT;
+	}
+	if( !(m_flags & resp_spi_d16b) || !(m_flags &resp_136))
+	{
+		dbprintf("decode MMC_CMD_MISMATCH_RESPONSE");
+		return MMC_CMD_MISMATCH_RESPONSE;
+	}
+	if( !mmc )
+	{
+		c.manfid        = UNSTUFF_BITS(m_resp, 120, 8);
+		c.oemid         = UNSTUFF_BITS(m_resp, 104, 16);
+		c.prod_name[0]  = UNSTUFF_BITS(m_resp, 96, 8);
+		c.prod_name[1]  = UNSTUFF_BITS(m_resp, 88, 8);
+		c.prod_name[2]  = UNSTUFF_BITS(m_resp, 80, 8);
+		c.prod_name[3]  = UNSTUFF_BITS(m_resp, 72, 8);
+		c.prod_name[4]  = UNSTUFF_BITS(m_resp, 64, 8);
+		c.prod_name[5]  = 0;
+		c.hwrev         = UNSTUFF_BITS(m_resp, 60, 4);
+		c.fwrev         = UNSTUFF_BITS(m_resp, 56, 4);
+		c.serial        = UNSTUFF_BITS(m_resp, 24, 32);
+		c.year          = UNSTUFF_BITS(m_resp, 12, 8);
+		c.month         = UNSTUFF_BITS(m_resp, 8, 4);
+		c.year += 2000; /* SD cards year offset */
+	}
+	else
+	{
+		 c.manfid        = UNSTUFF_BITS(m_resp, 120, 8);
+		 c.oemid         = UNSTUFF_BITS(m_resp, 104, 16);
+		 c.prod_name[0]  = UNSTUFF_BITS(m_resp, 96, 8);
+		 c.prod_name[1]  = UNSTUFF_BITS(m_resp, 88, 8);
+		 c.prod_name[2]  = UNSTUFF_BITS(m_resp, 80, 8);
+		 c.prod_name[3]  = UNSTUFF_BITS(m_resp, 72, 8);
+		 c.prod_name[4]  = UNSTUFF_BITS(m_resp, 64, 8);
+		 c.prod_name[5]  = 0;
+		 c.hwrev     = UNSTUFF_BITS(m_resp, 44, 4);
+		 c.fwrev     = UNSTUFF_BITS(m_resp, 40, 4);
+		 c.serial    = UNSTUFF_BITS(m_resp, 16, 24);
+		 c.month     = UNSTUFF_BITS(m_resp, 12, 4);
+		 c.year      = UNSTUFF_BITS(m_resp, 8, 4) + 1997;
+	}
+	return MMC_OK;
+}
+/*----------------------------------------------------------*/
+//Get sectors count from CSD struct
+int mmc_command::decode_csd_sectors(uint32_t &nsectors, bool mmc ) const
+{
+	if( !(m_flags & resp_ans) )
+	{
+	    dbprintf("decode MMC_CMD_RSP_TIMEOUT");
+		return MMC_CMD_RSP_TIMEOUT;
+	}
+	if( !(m_flags & resp_spi_d16b) || !(m_flags & resp_136))
+	{
+		dbprintf("decode MMC_CMD_MISMATCH_RESPONSE");
+		return MMC_CMD_MISMATCH_RESPONSE;
+	}
+	unsigned csd_struct = UNSTUFF_BITS(m_resp, 126, 2);
+	if( csd_struct == 0 || mmc)
+	{
+	     unsigned e = UNSTUFF_BITS(m_resp, 47, 3);
+	     unsigned m = UNSTUFF_BITS(m_resp, 62, 12);
+	     unsigned bl =  1<< UNSTUFF_BITS(m_resp, 80, 4);
+	     nsectors     = ((1 + m) << (e + 2)) * (bl / 512);
+	}
+	else if( csd_struct == 1 )
+	{
+		 uint32_t m = UNSTUFF_BITS(m_resp, 48, 22);
+		 nsectors = (1 + m) << 10;
+	}
+	else
+	{
+		dbprintf("CSD_VER=%i", csd_struct);
+		return MMC_UNRECOGNIZED_CSD;
+	}
+	return MMC_OK;
+}
+/*----------------------------------------------------------*/
+//Decode csd_erase
+int mmc_command::decode_csd_erase( uint32_t &erase_sects, bool mmc )
+{
+	if( !(m_flags & resp_ans) )
+	{
+		return MMC_CMD_RSP_TIMEOUT;
+	}
+	if( !(m_flags & resp_spi_d16b) || !(m_flags & resp_136))
+	{
+		return MMC_CMD_MISMATCH_RESPONSE;
+	}
+	if( !mmc )
+	{
+		uint32_t write_blkbits = UNSTUFF_BITS(m_resp, 22, 4);
+		if( UNSTUFF_BITS( m_resp, 46, 1) )
+		{
+			erase_sects = 1;
+		}
+		else if( write_blkbits >=9)
+		{
+			erase_sects = UNSTUFF_BITS(m_resp, 39, 7) + 1;
+			erase_sects <<= write_blkbits - 9;
+		}
+	}
+	else
+	{
+		uint32_t write_blkbits = UNSTUFF_BITS(m_resp, 22, 4);
+		if (write_blkbits >= 9)
+		{
+			uint32_t a = UNSTUFF_BITS(m_resp, 42, 5);
+			uint32_t b = UNSTUFF_BITS(m_resp, 37, 5);
+			erase_sects = (a + 1) * (b + 1);
+			erase_sects <<= write_blkbits - 9;
+		}
+	}
+	return MMC_OK;
+}
+
+/*----------------------------------------------------------*/
+//Decode ststats erase
+uint32_t mmc_command::decode_sdstat_erase( uint32_t buf[] )
+{
+	be32_to_cpu( buf, 16 );
+	uint32_t au = UNSTUFF_BITS(buf, 428 - 384, 4);
+	if( au > 0 )
+		au = (16384<<(au-1)) / 512;
+	return au;
 }
 /*----------------------------------------------------------*/
 }

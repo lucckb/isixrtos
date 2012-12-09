@@ -15,6 +15,8 @@
 namespace drv {
 namespace mmc {
 /*----------------------------------------------------------*/
+struct cid;
+/*----------------------------------------------------------*/
 class mmc_command: public fnd::noncopyable
 {
 private:	/* Private response codes */
@@ -56,9 +58,37 @@ private:	/* Private response codes */
 	  sR1E_ADDRESS_ERROR	=       1<<30,
 	  sR1E_OUT_OF_RANGE	= 	1<<31
 	};
+	enum r2_spi_bits
+	{
+		bR2_CARD_IS_LOCKED  = (1<<0),
+		bR2_WP_ERASE_SKIP   = (1<<1),
+		bR2_ERROR		    = (1<<2),
+		bR2_CC_ERROR	    = (1<<3),
+		bR2_ECC_FAILED      = (1<<4),
+		bR2_WP_VIOLATION    = (1<<5),
+		bR2_ERASE_PARAM	    = (1<<6),
+		bR2_OUT_OF_RANGE    = (1<<7),
+		bR2_IN_IDLE_STATE   = (1<<8),
+		bR2_ERASE_RESET	    = (1<<9),
+		bR2_ILLEGAL_COMMAND = (1<<10),
+		bR2_COM_CRC_ERROR	= (1<<11),
+		bR2_ERASE_SEQ_ERROR = (1<<12),
+		bR2_ADDRESS_ERROR   = (1<<13),
+		bR2_PARAMETER_ERROR = (1<<14)
+	};
+	static const uint32_t bR1_ERROR_MASK = bR1_ERASE_RESET|bR1_ILLEGAL_COMMAND|bR1_COM_CRC_ERROR|
+			bR1_ERASE_SEQ_ERROR|bR1_ADDRESS_ERROR|bR1_PARAMETER_ERROR;
+	static const uint32_t bR2_ERROR_MASK = bR2_WP_ERASE_SKIP|bR2_ERROR|
+			bR2_ECC_FAILED|bR2_WP_VIOLATION|bR2_ERASE_PARAM|bR2_OUT_OF_RANGE|bR2_ERASE_RESET|
+			bR2_ILLEGAL_COMMAND|bR2_COM_CRC_ERROR|bR2_ERASE_SEQ_ERROR|bR2_ADDRESS_ERROR|bR2_PARAMETER_ERROR;
+	static const uint32_t sR1_ERROR_MASK = sR1E_AKE_SEQ_ERROR|sR1E_WP_ERASE_SKIP|sR1E_CSD_OVERWRITE|
+			sR1E_ERROR|sR1E_CC_ERROR|sR1E_CARD_ECC_FAILED|sR1E_ILLEGAL_COMMAND|sR1E_COM_CRC_ERROR|
+			sR1E_LOCK_UNLOCK_FAILED|sR1E_WP_VIOLATION|sR1E_ERASE_PARAM|sR1E_ERASE_SEQ_ERROR|
+			sR1E_BLOCK_LEN_ERROR| sR1E_ADDRESS_ERROR|sR1E_OUT_OF_RANGE;
 	static const uint32_t OCR_VOLTRANGE_MASK = 0xff8000;
 	static const uint32_t OCR_CCS_MASK = 1<<30;
 	static const uint32_t OCR_BUSY_MASK = 1<<31;
+	static const uint32_t APP_FLAG = 0x80;
 public:
   	//Card state
 	enum card_state
@@ -116,26 +146,26 @@ public:
 			OP_GEN_CMD                             =  56,
 			OP_NO_CMD                              =  64,
 			OP_CRC_ON_OFF						   =  59,
-			OP_APP_SD_SET_BUSWIDTH                 =  6 , /*!< For SD Card only */
-			OP_SD_APP_STAUS                        =  13, /*!< For SD Card only */
-			OP_SD_APP_SEND_NUM_WRITE_BLOCKS        =  22, /*!< For SD Card only */
-			OP_SD_APP_OP_COND                      =  41, /*!< For SD Card only */
-			OP_SD_APP_SET_CLR_CARD_DETECT          =  42, /*!< For SD Card only */
-			OP_SD_APP_SEND_SCR                     =  51, /*!< For SD Card only */
+			OP_APP_SD_SET_BUSWIDTH                 =  6 |APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_STATUS                       =  13|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_SEND_NUM_WRITE_BLOCKS        =  22|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_OP_COND                      =  41|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_SET_CLR_CARD_DETECT          =  42|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_SEND_SCR                     =  51|APP_FLAG, /*!< For SD Card only */
 			OP_SDIO_RW_DIRECT                      =  52, /*!< For SD I/O Card only */
 			OP_SDIO_RW_EXTENDED                    =  53, /*!< For SD I/O Card only */
 			OP_SDIO_READ_OCR					   =  58,
-			OP_SD_APP_GET_MKB                      =  43, /*!< For SD Card only */
-			OP_SD_APP_GET_MID                      =  44, /*!< For SD Card only */
-			OP_SD_APP_SET_CER_RN1                  =  45, /*!< For SD Card only */
-			OP_SD_APP_GET_CER_RN2                  =  46, /*!< For SD Card only */
-			OP_SD_APP_SET_CER_RES2                 =  47, /*!< For SD Card only */
-			OP_SD_APP_GET_CER_RES1                 =  48, /*!< For SD Card only */
-			OP_SD_APP_SECURE_READ_MULTIPLE_BLOCK   =  18, /*!< For SD Card only */
-			OP_SD_APP_SECURE_WRITE_MULTIPLE_BLOCK  =  25, /*!< For SD Card only */
-			OP_SD_APP_SECURE_ERASE                 =  38, /*!< For SD Card only */
-			OP_SD_APP_CHANGE_SECURE_AREA           =  49, /*!< For SD Card only */
-			OP_SD_APP_SECURE_WRITE_MKB             =  48  /*!< For SD Card only */
+			OP_SD_APP_GET_MKB                      =  43|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_GET_MID                      =  44|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_SET_CER_RN1                  =  45|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_GET_CER_RN2                  =  46|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_SET_CER_RES2                 =  47|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_GET_CER_RES1                 =  48|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_SECURE_READ_MULTIPLE_BLOCK   =  18|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_SECURE_WRITE_MULTIPLE_BLOCK  =  25|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_SECURE_ERASE                 =  38|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_CHANGE_SECURE_AREA           =  49|APP_FLAG, /*!< For SD Card only */
+			OP_SD_APP_SECURE_WRITE_MKB             =  48|APP_FLAG  /*!< For SD Card only */
 	};
 	static const uint32_t ARG_IFCOND_3V3_SUPPLY = 0x122;
 	static const uint32_t ARG_OPCOND_HCS = ( 1<<30 );
@@ -159,6 +189,9 @@ private:
 			case OP_READ_SINGLE_BLOCK:  m_flags = resp_R1|resp_spi_R1;    break;
 			case OP_STOP_TRANSMISSION:	m_flags = resp_R1B|resp_spi_R1B|resp_spi_cs; break;
 			case OP_SEND_STATUS:		m_flags = resp_R1|resp_spi_R2|resp_spi_cs;   break;
+			case OP_SEND_CID:			m_flags = resp_R2|resp_spi_R1D|resp_spi_cs;   break;
+			case OP_SEND_CSD:			m_flags = resp_R2|resp_spi_R1D|resp_spi_cs;   break;
+			case OP_SD_APP_STATUS:		m_flags = resp_R1|resp_spi_R2;    break;
 			default: 					m_flags = resp_none;			 break;
 		}
 	}
@@ -188,7 +221,7 @@ public:
 	enum resp_type
 	{
 		resp_none	  = 0,			//! Dont except the response
-		resp_present  	  = 1 << 0,		//! Response present
+		resp_present  = 1 << 0,		//! Response present
 		resp_136	  = 1 << 1,		//! Response 136 bit
 		resp_crc	  = 1 << 2,		//! Excepted valid CRC
 		resp_busy	  = 1 << 3,		//! Card can send busy
@@ -197,9 +230,10 @@ public:
 		resp_spi_s2	  = 1 << 6,		//! Second byte
 		resp_spi_b4	  = 1 << 7,		//! Four data bytes
 		resp_spi_busy = 1 << 8,		//! Wait for response
-		resp_spi_cs = 1 << 9,		//! Disable CS
+		resp_spi_cs   = 1 << 9,		//! Disable CS
 		resp_ans_spi  = 1 << 10,	//! SPI answer
 		resp_ans      = 1 << 11,	//! answer
+		resp_spi_d16b = 1 << 12,	//! Transfer extra 16bytes as data after R1
 		/* Standard responses */
 		resp_R1   = (resp_present |resp_crc|resp_opcode|(1<<24)),
 		resp_R1B  = (resp_R1|resp_busy|(1<<24)),
@@ -209,13 +243,14 @@ public:
 		resp_R5   =  (resp_present|resp_crc|resp_opcode|(5<<24)),
 		resp_R6   =  (resp_present|resp_crc|resp_opcode|(6<<24)),
 		resp_R7   =  (resp_present|resp_crc|resp_opcode| resp_spi_busy|(7<<24)),
-		resp_spi_R1  =  resp_spi_s1|(1<<24),
-		resp_spi_R1B = (resp_spi_s1|resp_spi_busy|(1<<24)),
-		resp_spi_R2  = (resp_spi_s1|resp_spi_s2|(2<<24)),
-		resp_spi_R3  = (resp_spi_s1|resp_spi_b4|(3<<24)),
-		resp_spi_R4  = (resp_spi_s1|resp_spi_b4|(4<<24)),
-		resp_spi_R5  = (resp_spi_s1|resp_spi_s2|(5<<24)),
-		resp_spi_R7  = (resp_spi_s1|resp_spi_b4|(7<<24))
+		resp_spi_R1   =  resp_spi_s1|(1<<24),
+		resp_spi_R1B  = (resp_spi_s1|resp_spi_busy|(1<<24)),
+		resp_spi_R1D  = resp_spi_s1|resp_spi_d16b|(1<<24),		//! Extra version transfer 16b data as csd
+		resp_spi_R2   = (resp_spi_s1|resp_spi_s2|(2<<24)),
+		resp_spi_R3   = (resp_spi_s1|resp_spi_b4|(3<<24)),
+		resp_spi_R4   = (resp_spi_s1|resp_spi_b4|(4<<24)),
+		resp_spi_R5   = (resp_spi_s1|resp_spi_s2|(5<<24)),
+		resp_spi_R7   = (resp_spi_s1|resp_spi_b4|(7<<24))
 	};
 	int get_type() const
 	{
@@ -272,8 +307,17 @@ public:
 	{
 		return m_resp[1] & OCR_CCS_MASK;
 	}
-	uint32_t get() const { return m_resp[1]; }
-	uint32_t getr2() const { return m_resp[0]; }
+	uint32_t* get_resp_buffer(){ return m_resp; }
+	//Set response status
+	void set_resp_status();
+	//Decode card CID
+	int decode_cid (cid &c, bool mmc) const;
+	//Get sectors count
+	int decode_csd_sectors(uint32_t &nsectors, bool mmc) const;
+	//Decode csd_erase
+	int decode_csd_erase( uint32_t &erase_sects, bool mmc );
+	//Decode ststats
+	static uint32_t decode_sdstat_erase( uint32_t buf[] );
 private:
 	uint32_t m_arg;					//Command argument
 	uint32_t m_resp[4];				//Data in response
