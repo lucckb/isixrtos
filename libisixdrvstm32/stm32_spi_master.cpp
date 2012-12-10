@@ -12,6 +12,11 @@
 #include "config.h"
 #endif
 #include <dbglog.h>
+
+#ifndef CONFIG_ISIX_DRV_SPI_DEV_PCLK_HZ
+#define CONFIG_ISIX_DRV_SPI_DEV_PCLK_HZ 8000000
+#warning CONFIG_ISIX_DRV_SPI_DEV_PCLK_HZ default 8MHz is used
+#endif
 /*----------------------------------------------------------*/
 namespace stm32 {
 namespace drv {
@@ -26,7 +31,6 @@ namespace spi1 {
 }
 
 }
-
 /*----------------------------------------------------------*/
 #if(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 namespace
@@ -43,8 +47,8 @@ namespace
 /*----------------------------------------------------------*/
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 /* Constructor */
-spi_master::spi_master( SPI_TypeDef *spi )
-	: m_spi( spi )
+spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2 )
+	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1)
 #else
 	spi_master::spi_master()
 #endif
@@ -187,7 +191,11 @@ int spi_master::transfer( const void *inbuf, void *outbuf, size_t len, unsigned 
 int spi_master::set_mode( unsigned mode, unsigned khz )
 {
 	using namespace stm32;
-	int divide = ((m_spi==SPI1)?(CONFIG_PCLK2_HZ/1000):(CONFIG_PCLK1_HZ/1000)) / khz;
+#if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
+	int divide = (m_pclk/1000) / khz;
+#else
+	int divide = (CONFIG_ISIX_DRV_SPI_DEV_PCLK_HZ/1000)/khz;
+#endif
 	if( divide <= 2 )
 	{
 		divide = SPI_BaudRatePrescaler_2;

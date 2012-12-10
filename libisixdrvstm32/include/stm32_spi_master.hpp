@@ -34,7 +34,7 @@ class spi_master : public ::drv::spi_device
 public:
 	/* Constructor */
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
-	explicit spi_master( SPI_TypeDef *spi );
+	explicit spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2 );
 #else
 	 spi_master();
 #endif
@@ -59,6 +59,7 @@ public:
 private:
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	SPI_TypeDef* const m_spi;
+	uint32_t m_pclk;
 #endif
 };
 /*----------------------------------------------------------*/
