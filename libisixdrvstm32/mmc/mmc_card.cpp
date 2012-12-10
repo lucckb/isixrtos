@@ -318,7 +318,7 @@ int mmc_card::read ( void* buf, unsigned long sector, std::size_t count )
 {
 	if( m_error ) return m_error;
 	if( m_type != type_sdhc ) sector *= C_sector_size;
-	if( count == 1)
+	if( count == 1 )
 		return read_single_block( buf, sector );
 	else
 		return read_multi_blocks( buf, sector, count );

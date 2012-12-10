@@ -155,7 +155,7 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		if( (r1&MMC_DR_MASK) != MMC_DR_ACCEPT)
 		{
 			m_spi.CS(true, 0);
-			return r1;
+			return MMC_DATA_NOT_ACCEPTED;
 		}
 		//TODO: TImeout Czekaj az karta bedzie wolna
 		while( (r1=m_spi.transfer(0xff))==0 ) {}
@@ -168,10 +168,14 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		uint8_t r1;
 		while( (r1=m_spi.transfer(0xff))==0 ) {}
 	}
+	//Wait for free
+	while( m_spi.transfer(0xff)==0 )
+	{
+	}
 	// Zwolnij CS
 	CS(1);
 	// Zwroc OK
-	return 0;
+	return MMC_OK;
 }
 /*----------------------------------------------------------*/
 	//Execute MMC data transfer
@@ -185,7 +189,9 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 		else if((r1&MMC_DE_CHECK_MASK)==MMC_DE_ERROR)
 		{
 			m_spi.CS( true, 0 );
-			return r1;
+			dbprintf("Data token error 0x%02x", r1);
+			//TODO fix it
+			return MMC_DATA_NOT_ACCEPTED+1;
 		}
 	}
 	for(size_t packet=0; packet<len; packet+=C_block_len)
@@ -200,7 +206,7 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 		m_spi.CS( true, 0 );
 	else
 	dbprintf("DONT DEASERT CS!!!");
-	return 0;
+	return MMC_OK;
 }
 /*----------------------------------------------------------*/
 	//Execute IO config
