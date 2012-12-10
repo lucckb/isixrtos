@@ -55,7 +55,10 @@ public:
 	/** Read the block */
 	int read( void* buf, unsigned long sector, std::size_t count );
 	/* Get card capacity */
-	int get_sectors_count(uint32_t &sectors) const;
+	uint32_t get_sectors_count() const
+	{
+		return m_nr_sectors;
+	}
 	/* Get card CID */
 	int get_cid( cid &c ) const;
 	/* Get sector size */
@@ -74,13 +77,16 @@ private:
 	inline int write_single_block( const void* buf, unsigned long laddr );
 	/* Read multiple block */
 	inline int read_single_block( void* buf, unsigned long laddr );
+	//Update card parameters
+	uint32_t read_base_card_info();
 private:
-	mmc_host& m_host;		//Host
-	card_type m_type;		//Card type
-	int m_error;			//Init error code
-	uint16_t m_rca;			//RCA
+	mmc_host& m_host;						//Host
+	card_type m_type;						//Card type
+	int m_error;							//Init error code
+	uint16_t m_rca;							//RCA
 	unsigned m_block_count_avail : 1;		//Block count avail
 	unsigned m_bus_width : 2;				//Bus width
+	uint32_t m_nr_sectors;					//Number of sectors on card
 };
 
 /*----------------------------------------------------------*/

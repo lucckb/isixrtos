@@ -318,6 +318,8 @@ public:
 	int decode_csd_erase( uint32_t &erase_sects, bool mmc );
 	//Decode ststats
 	static uint32_t decode_sdstat_erase( uint32_t buf[] );
+	//Decode tran speed
+	int decode_csd_tran_speed( uint32_t &tran_speed );
 private:
 	uint32_t m_arg;					//Command argument
 	uint32_t m_resp[4];				//Data in response

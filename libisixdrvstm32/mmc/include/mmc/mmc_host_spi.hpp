@@ -19,8 +19,8 @@ class mmc_host_spi : public mmc_host
 {
 public:
 	//Constructor
-	mmc_host_spi( spi_device &spi_dev )
-		: m_spi( spi_dev ), m_proc_cmd(0)
+	mmc_host_spi( spi_device &spi_dev, int spi_speed_limit_khz=0 )
+		: m_spi( spi_dev ), m_proc_cmd(0), m_spi_speed_limit_khz(spi_speed_limit_khz)
 	{}
 	//Execute MMC command
 	virtual int execute_command( mmc_command &req, unsigned timeout );
@@ -44,6 +44,7 @@ private:
 	//SPI device
 	spi_device &m_spi;
 	uint8_t m_proc_cmd;
+	const int m_spi_speed_limit_khz;
 };
 /*----------------------------------------------------------*/
 } /* namespace drv */

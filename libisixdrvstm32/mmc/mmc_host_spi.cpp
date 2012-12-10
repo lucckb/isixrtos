@@ -219,6 +219,8 @@ int mmc_host_spi::set_ios( ios_cmd cmd, int param )
 		dbprintf("Power on");
 		break;
 	case mmc_host::ios_set_speed:
+		if( m_spi_speed_limit_khz && param > m_spi_speed_limit_khz )
+			param = m_spi_speed_limit_khz;
 		m_spi.set_mode( C_spi_mode, param );
 		break;
 	case mmc_host::ios_set_bus_with:

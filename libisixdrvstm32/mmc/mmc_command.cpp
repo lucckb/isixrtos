@@ -16,6 +16,7 @@ namespace mmc {
 /*----------------------------------------------------------*/
 //Unstuff bits for decode card type
 namespace {
+	//Unstu
 	inline uint32_t UNSTUFF_BITS(const uint32_t resp[] , size_t start, const size_t size)
 	{
 		const uint32_t mask = (size < 32 ? 1 << size : 0) - 1;
@@ -345,6 +346,32 @@ int mmc_command::decode_csd_sectors(uint32_t &nsectors, bool mmc ) const
 		dbprintf("CSD_VER=%i", csd_struct);
 		return MMC_UNRECOGNIZED_CSD;
 	}
+	return MMC_OK;
+}
+/*----------------------------------------------------------*/
+//Decode tran speed
+int mmc_command::decode_csd_tran_speed( uint32_t &tran_speed )
+{
+	static const unsigned int tran_exp[] = {
+	    10000,      100000,     1000000,    10000000,
+	    0,      0,      0,      0
+	};
+
+	static const unsigned char tran_mant[] = {
+	    0,  10, 12, 13, 15, 20, 25, 30,
+	    35, 40, 45, 50, 55, 60, 70, 80,
+	};
+	if( !(m_flags & resp_ans) )
+	{
+		return MMC_CMD_RSP_TIMEOUT;
+	}
+	if( !(m_flags & resp_spi_d16b) || !(m_flags & resp_136))
+	{
+		return MMC_CMD_MISMATCH_RESPONSE;
+	}
+	unsigned m = UNSTUFF_BITS(m_resp, 99, 4);
+	unsigned e = UNSTUFF_BITS(m_resp, 96, 3);
+	tran_speed = tran_exp[e] * tran_mant[m];
 	return MMC_OK;
 }
 /*----------------------------------------------------------*/

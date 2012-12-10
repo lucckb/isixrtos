@@ -19,14 +19,14 @@ namespace mmc {
 namespace {
 	const unsigned C_card_timeout = 2000;
 	const unsigned C_go_idle_retries = 10;
-	const int C_spi_mode_freq_KHz = 12000;
 }
 
 /*----------------------------------------------------------*/
 /* Constructor */
 mmc_card::mmc_card( mmc_host &host, card_type type )
   : m_host(host) , m_type(type), m_error(0), m_rca(0),
-    m_block_count_avail(false), m_bus_width(mmc_host::bus_width_1b)
+    m_block_count_avail(false), m_bus_width(mmc_host::bus_width_1b),
+    m_nr_sectors(0)
 {
 	if( !m_host.is_spi() )
 	{
@@ -45,8 +45,14 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 		m_error = m_host.execute_command_resp_check( cmd, C_card_timeout );
 		dbprintf("BLOCKLEN ret=%i", m_error );
 	}
-	//Set maximum speed
-	m_host.set_ios( mmc_host::ios_set_speed, C_spi_mode_freq_KHz );
+	//Update card parameters
+	uint32_t tran_speed = read_base_card_info();
+	if( !m_error )
+	{
+		dbprintf("SET tran speed to %lu ", tran_speed );
+		//Set maximum speed
+		m_host.set_ios( mmc_host::ios_set_speed, tran_speed/1000 );
+	}
 }
 /*----------------------------------------------------------*/
 //** Initialize the card on request
@@ -193,7 +199,20 @@ int mmc_card::sd_mode_initialize()
 {
 	return 0;
 }
-
+/*----------------------------------------------------------*/
+//Update card parameters
+uint32_t mmc_card::read_base_card_info()
+{
+	uint32_t tran_speed;
+	mmc_command cmd( mmc_command::OP_SEND_CSD, m_rca<<16 );
+	do
+	{
+		if( (m_error=m_host.execute_command(cmd, C_card_timeout))) break;
+		if( (m_error=cmd.decode_csd_sectors(m_nr_sectors, m_type==type_mmc) ) ) break;
+		if( (m_error=cmd.decode_csd_tran_speed(tran_speed)) ) break;
+	} while(0);
+	return tran_speed;
+}
 /*----------------------------------------------------------*/
 /* Write multi sectors */
 int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::size_t count )
@@ -318,19 +337,7 @@ int mmc_card::get_cid( cid &c ) const
 	dbprintf("DECODE CID %i", ret);
 	return ret;
 }
-/*----------------------------------------------------------*/
-/* Get card capacity */
-int mmc_card::get_sectors_count(uint32_t &sectors) const
-{
-	int ret;
-	mmc_command cmd( mmc_command::OP_SEND_CSD, m_rca<<16 );
-	do
-	{
-		if( (ret=m_host.execute_command(cmd, C_card_timeout))) break;
-		if( (ret=cmd.decode_csd_sectors(sectors,m_type==type_mmc) ) ) break;
-	} while(0);
-	return ret;
-}
+
 /*----------------------------------------------------------*/
 /* Get erase size */
 int mmc_card::get_erase_size(uint32_t &sectors) const
