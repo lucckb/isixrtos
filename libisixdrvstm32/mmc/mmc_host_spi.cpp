@@ -204,8 +204,8 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 	}
 	if( m_proc_cmd != mmc_command::OP_READ_MULT_BLOCK )
 		m_spi.CS( true, 0 );
-	else
-	dbprintf("DONT DEASERT CS!!!");
+	//else
+	//dbprintf("DONT DEASERT CS!!!");
 	return MMC_OK;
 }
 /*----------------------------------------------------------*/

@@ -267,7 +267,7 @@ int mmc_card::read_multi_blocks( void* buf, unsigned long laddr, std::size_t cou
 		}
 	}
 	while(0);
-	dbprintf("READ=%i", ret);
+//	dbprintf("READ=%i", ret);
 	return ret;
 }
 
@@ -298,7 +298,7 @@ int mmc_card::read_single_block( void* buf, unsigned long laddr )
 		if( (ret=m_host.receive_data( buf, C_sector_size, C_card_timeout ))) break;
 
 	} while(0);
-	dbprintf("SingleRD = %i", ret);
+	//dbprintf("SingleRD = %i", ret);
 	return ret;
 }
 /*----------------------------------------------------------*/

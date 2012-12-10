@@ -281,12 +281,14 @@ uint16_t spi_master::transfer( uint16_t val )
 	 /*!< Wait until the transmit buffer is empty */
 	 while(!spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_TXE) )
 	 {
-		 isix::isix_yield();
+		 //TODO: Slow down speed
+		 // isix::isix_yield();
 	 }
 	 spi_i2s_send_data(m_spi, val );
 	 while(!spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
 	 {
-		 isix::isix_yield();
+		//TODO: Slow down speed
+		 // isix::isix_yield();
 	 }
 	 /*!< Return the byte read from the SPI bus */
 	 return spi_i2s_receive_data(m_spi);
