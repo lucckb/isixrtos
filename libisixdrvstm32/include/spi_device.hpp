@@ -57,24 +57,12 @@ protected:
 	//Global timeout for device
 	static const unsigned C_spi_timeout = 5000;
 public:
-	spi_device()
-		: m_lksem( 1, 1 )
-	{}
+	virtual ~spi_device() {}
 	/* Flush bytes */
 	void flush(size_t elems)
 	{
 		for(size_t e = 0; e<elems; ++e )
 			transfer(0xFFFF);
-	}
-	/* Lock SPI bus */
-	int lock( unsigned timeout )
-	{
-		return m_lksem.wait( timeout );
-	}
-	/* Unlock SPI BUS */
-	int unlock()
-	{
-		return m_lksem.signal();
 	}
 	/* Write to the device */
 	virtual int write( const void *buf, size_t len ) = 0;
@@ -95,27 +83,8 @@ public:
 	virtual void CS( bool val, int cs_no ) = 0;
 	/* Transfer data (nodma) */
 	virtual uint16_t transfer( uint16_t val ) = 0;
-private:
-	isix::semaphore m_lksem;	//Lock semaphore
 };
 
-/*----------------------------------------------------------*/
-//SPI device locker
-class spi_device_autolock
-{
-public:
-	spi_device_autolock( spi_device &dev )
-		: m_dev(dev)
-	{
-		m_dev.lock(isix::ISIX_TIME_INFINITE);
-	}
-	~spi_device_autolock()
-	{
-		m_dev.unlock();
-	}
-private:
-	spi_device& m_dev;
-};
 /*----------------------------------------------------------*/
 }
 /*----------------------------------------------------------*/
