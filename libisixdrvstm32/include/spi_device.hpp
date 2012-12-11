@@ -53,6 +53,9 @@ public:
 		cs_software = 0x00,
 		cs_hardware = 0x10
 	};
+protected:
+	//Global timeout for device
+	static const unsigned C_spi_timeout = 5000;
 public:
 	spi_device()
 		: m_lksem( 1, 1 )
@@ -74,11 +77,11 @@ public:
 		return m_lksem.signal();
 	}
 	/* Write to the device */
-	virtual int write( const void *buf, size_t len, unsigned timeout ) = 0;
+	virtual int write( const void *buf, size_t len ) = 0;
 	/* Read from the device */
-	virtual int read ( void *buf, size_t len , unsigned timeout) = 0;
+	virtual int read ( void *buf, size_t len ) = 0;
 	/* Transfer (BIDIR) */
-	virtual int transfer( const void *inbuf, void *outbuf, size_t len, unsigned timeout ) = 0;
+	virtual int transfer( const void *inbuf, void *outbuf, size_t len ) = 0;
 	/* Disable enable the device */
 	virtual void enable( bool en ) = 0;
 	/* Set work mode */

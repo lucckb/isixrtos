@@ -41,11 +41,11 @@ public:
 	/* Destructor */
 	virtual ~spi_master();
 	/* Write to the device */
-	virtual int write( const void *buf, size_t len, unsigned timeout);
+	virtual int write( const void *buf, size_t len);
 	/* Read from the device */
-	virtual int read ( void *buf, size_t len, unsigned timeout);
+	virtual int read ( void *buf, size_t len);
 	/* Transfer (BIDIR) */
-	virtual int transfer( const void *inbuf, void *outbuf, size_t len , unsigned timeout );
+	virtual int transfer( const void *inbuf, void *outbuf, size_t len  );
 	/* Set work mode */
 	virtual int set_mode( unsigned mode, unsigned khz );
 	/* Setup CRC */

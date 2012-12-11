@@ -109,7 +109,7 @@ spi_master::~spi_master()
 }
 /*----------------------------------------------------------*/
 /* Write to the device */
-int spi_master::write( const void *buf, size_t len, unsigned timeout)
+int spi_master::write( const void *buf, size_t len)
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
@@ -136,7 +136,7 @@ int spi_master::write( const void *buf, size_t len, unsigned timeout)
 }
 /*----------------------------------------------------------*/
 /* Read from the device */
-int spi_master::read ( void *buf, size_t len, unsigned timeout)
+int spi_master::read ( void *buf, size_t len)
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
@@ -161,7 +161,7 @@ int spi_master::read ( void *buf, size_t len, unsigned timeout)
 }
 /*----------------------------------------------------------*/
 /* Transfer (BIDIR) */
-int spi_master::transfer( const void *inbuf, void *outbuf, size_t len, unsigned timeout )
+int spi_master::transfer( const void *inbuf, void *outbuf, size_t len )
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
