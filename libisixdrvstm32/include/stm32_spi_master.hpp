@@ -56,12 +56,17 @@ public:
 	virtual uint16_t transfer( uint16_t val );
 	/* Disable enable the device */
 	virtual void enable( bool en );
-private:
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
+protected:
 	SPI_TypeDef* const m_spi;
+private:
 	uint32_t m_pclk;
+#else
+protected:
+	static SPI_TypeDef * const m_spi;
 #endif
 };
+
 /*----------------------------------------------------------*/
 } /* namespace drv */
 } /* namespace stm32 */

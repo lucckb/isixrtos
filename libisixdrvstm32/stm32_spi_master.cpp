@@ -33,16 +33,15 @@ namespace spi1 {
 }
 /*----------------------------------------------------------*/
 #if(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
-namespace
-{
+
 #if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE)
-	SPI_TypeDef * const m_spi = SPI1;
+	SPI_TypeDef * const spi_master::m_spi = SPI1;
 #elif (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI2_ENABLE)
-	SPI_TypeDef * const m_spi = SPI2;
+	SPI_TypeDef * const spi_master::m_spi = SPI2;
 #elif (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI3_ENABLE)
-	SPI_TypeDef * const m_spi = SPI3;
+	SPI_TypeDef * const spi_master::m_spi = SPI3;
 #endif
-}
+
 #endif
 /*----------------------------------------------------------*/
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
