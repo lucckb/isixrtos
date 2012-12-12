@@ -10,7 +10,9 @@
 #include <stm32system.h>
 #include <stm32dma.h>
 #include <stm32spi.h>
+#include <stm32bitbang.h>
 #include <dbglog.h>
+
 /*----------------------------------------------------------*/
 #if defined(CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK) && (CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK!=0)
 
@@ -51,12 +53,14 @@ extern "C" {
 	// Interrupt handlers SPI1 RX
 	void __attribute__((__interrupt__)) dma1_channel2_isr_vector(void)
 	{
-		if( p_spi1 ) p_spi1->handle_dma_rx_isr();
+		if( p_spi1 ) p_spi1->handle_isr( stm32::dma_get_flag_status(DMA1_FLAG_TE2)?(spi_master_dma::irqs_te_rx):(spi_master_dma::irqs_tc_rx) );
+		stm32::dma_clear_flag( DMA1_FLAG_TC2|DMA1_FLAG_TE2 );
 	}
 	// Interrupt handlers SPI1 TX
 	void __attribute__((__interrupt__)) dma1_channel3_isr_vector(void)
 	{
-		if( p_spi1 ) p_spi1->handle_dma_tx_isr();
+		if( p_spi1 ) p_spi1->handle_isr( stm32::dma_get_flag_status(DMA1_FLAG_TE2)?(spi_master_dma::irqs_te_tx):(spi_master_dma::irqs_tc_tx) );
+		stm32::dma_clear_flag( DMA1_FLAG_TC3|DMA1_FLAG_TE3 );
 	}
 #endif
 }
@@ -64,10 +68,10 @@ extern "C" {
 /*----------------------------------------------------------*/
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	spi_master_dma::spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2)
-		: spi_master(spi, pclk1, pclk2), m_notify_sem(0, 1)
+		: spi_master(spi, pclk1, pclk2), m_notify_sem(0, 1), m_irq_flags(0)
 #else
 	spi_master_dma::spi_master_dma()
-		: m_notify_sem(0, 1)
+		: m_notify_sem(0, 1), m_irq_flags(0)
 #endif
 {
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
@@ -91,8 +95,8 @@ extern "C" {
 	{
 		stm32::nvic_set_priority( DMA1_Channel2_IRQn, IRQPRIO, IRQSUB );
 		stm32::nvic_set_priority( DMA1_Channel3_IRQn, IRQPRIO, IRQSUB );
-		//stm32::nvic_irq_enable( DMA1_Channel2_IRQn, true );
-		//stm32::nvic_irq_enable( DMA1_Channel3_IRQn, true );
+		stm32::nvic_irq_enable( DMA1_Channel2_IRQn, true );
+		stm32::nvic_irq_enable( DMA1_Channel3_IRQn, true );
 		//Enable channel3 for TX
 		stm32::dma_channel_config( DMA1_Channel3,
 				DMA_MemoryInc_Enable|DMA_PeripheralInc_Disable|DMA_PeripheralDataSize_Byte|
@@ -103,10 +107,13 @@ extern "C" {
 			DMA_MemoryInc_Enable|DMA_PeripheralInc_Disable|DMA_PeripheralDataSize_Byte|
 			DMA_MemoryDataSize_Byte| DMA_Mode_Normal | DMA_Priority_High |
 			DMA_M2M_Disable |DMA_DIR_PeripheralSRC,  0, &m_spi->DR, 0 );
+		//Enable interrupts
+		stm32::spi_i2s_dma_cmd( m_spi, SPI_I2S_DMAReq_Rx| SPI_I2S_DMAReq_Tx, true );
+		stm32::dma_irq_enable ( DMA1_Channel2, DMA_IT_TE | DMA_IT_TC );
+		stm32::dma_irq_enable ( DMA1_Channel3, DMA_IT_TE | DMA_IT_TC );
 	}
 #endif
 #endif
-	stm32::spi_i2s_dma_cmd( m_spi, SPI_I2S_DMAReq_Rx| SPI_I2S_DMAReq_Tx, true );
 }
 /*----------------------------------------------------------*/
 /* Destructor */
@@ -126,6 +133,8 @@ spi_master_dma::~spi_master_dma()
 /* Write to the device */
 int spi_master_dma::write( const void *buf, size_t len)
 {
+	m_irq_flags = 0;
+	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
 	if( m_spi == SPI1 )
 	{
@@ -134,16 +143,19 @@ int spi_master_dma::write( const void *buf, size_t len)
 		stm32::dma_set_curr_data_counter( DMA1_Channel3, len );
 		stm32::dma_clear_flag( DMA1_FLAG_GL3|DMA1_FLAG_TC3|DMA1_FLAG_HT3|DMA1_FLAG_TE3);
 		stm32::dma_channel_enable(DMA1_Channel3);
-        while(!stm32::dma_get_flag_status(DMA1_FLAG_TC3|DMA1_FLAG_TE3));
+        if( m_notify_sem.wait( spi_device::C_spi_timeout ) )
+        {
+        	return spi_device::err_dma;
+        }
+        if( m_irq_flags&irqs_err_msk )
+        {
+        		return spi_device::err_dma;
+        }
 	}
-	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
 		spi_i2s_receive_data( m_spi );
 	stm32::dma_channel_disable(DMA1_Channel3);
-	if( stm32::dma_get_flag_status(DMA1_FLAG_TE3) )
-	{
-		return spi_device::err_dma;
-	}
+
 #endif
 	return spi_device::err_ok;
 }
@@ -151,6 +163,8 @@ int spi_master_dma::write( const void *buf, size_t len)
 /* Read from the device */
 int spi_master_dma::read ( void *buf, size_t len)
 {
+	m_irq_flags = 1<<irqs_rxmode;
+	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
 	if( m_spi == SPI1 )
 	{
@@ -167,6 +181,7 @@ int spi_master_dma::read ( void *buf, size_t len)
 		stm32::dma_clear_flag( DMA1_FLAG_GL2|DMA1_FLAG_TC2|DMA1_FLAG_HT2|DMA1_FLAG_TE2);
 		stm32::dma_channel_enable(DMA1_Channel2);
 		stm32::dma_channel_enable(DMA1_Channel3);
+		/*
 		while(!(stm32::dma_get_flag_status(DMA1_FLAG_TC3) &&  stm32::dma_get_flag_status(DMA1_FLAG_TC2)))
 		{
 			if( stm32::dma_get_flag_status(DMA1_FLAG_TE3|DMA1_FLAG_TE2) )
@@ -174,8 +189,20 @@ int spi_master_dma::read ( void *buf, size_t len)
 				return spi_device::err_dma;
 			}
 		}
+		*/
 	}
-	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
+	int ret;
+	do
+	{
+		if( m_notify_sem.wait( spi_device::C_spi_timeout ) )
+		{
+			return spi_device::err_dma;
+		}
+		if( m_irq_flags&irqs_err_msk )
+		{
+			return spi_device::err_dma;
+		}
+	} while(0);
 	stm32::dma_channel_disable(DMA1_Channel3);
 	stm32::dma_channel_disable(DMA1_Channel2);
 #endif
@@ -189,14 +216,18 @@ int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 }
 /*----------------------------------------------------------*/
 //Handle DMA TX IRQ
-void spi_master_dma::handle_dma_tx_isr()
+void spi_master_dma::handle_isr( spi_master_dma::irqs_no reason )
 {
-
-}
-/*----------------------------------------------------------*/
-//Handle DMA RX IRQ
-void spi_master_dma::handle_dma_rx_isr()
-{
+	using namespace stm32;
+	//dbprintf("IRQ %i", reason);
+	setBit_BB( &m_irq_flags, reason );
+	if( (m_irq_flags&irqs_err_msk) ||
+		( getBit_BB(&m_irq_flags, irqs_rxmode) && ((m_irq_flags&irqs_rxtc_msk)==irqs_rxtc_msk ) ) ||
+		( !getBit_BB(&m_irq_flags, irqs_rxmode) && ((m_irq_flags&irqs_txtc_msk)==irqs_txtc_msk) )
+	)
+	{
+		m_notify_sem.signal_isr();
+	}
 }
 /*----------------------------------------------------------*/
 } /* namespace drv */

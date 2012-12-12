@@ -43,6 +43,17 @@ class spi_master_dma : public spi_master
 #endif
 	static const int IRQPRIO = 1;
 	static const int IRQSUB =  7;
+	enum irqs_no
+	{
+		irqs_tc_rx,
+		irqs_tc_tx,
+		irqs_te_rx,
+		irqs_te_tx,
+		irqs_rxmode
+	};
+	static const uint32_t irqs_err_msk =  (1<<irqs_te_rx)|(1<<irqs_te_tx);
+	static const uint32_t irqs_rxtc_msk = (1<<irqs_tc_rx)|(1<<irqs_tc_tx);
+	static const uint32_t irqs_txtc_msk = (1<<irqs_tc_tx);
 public:
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2);
@@ -59,11 +70,10 @@ public:
 	virtual int transfer( const void *inbuf, void *outbuf, size_t len  );
 private:
 	//Handle DMA TX IRQ
-	void handle_dma_tx_isr();
-	//Handle DMA RX IRQ
-	void handle_dma_rx_isr();
+	void handle_isr( irqs_no reason );
 private:
 	isix::semaphore m_notify_sem;
+	uint32_t m_irq_flags;
 };
 /*----------------------------------------------------------*/
 } /* namespace drv */

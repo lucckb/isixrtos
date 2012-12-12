@@ -118,7 +118,7 @@
 #define DMA_IT_TC                          ((uint32_t)0x00000002)
 #define DMA_IT_HT                          ((uint32_t)0x00000004)
 #define DMA_IT_TE                          ((uint32_t)0x00000008)
-#define IS_DMA_CONFIG_IT(IT) ((((IT) & 0xFFFFFFF1) == 0x00) && ((IT) != 0x00))
+
 
 #define DMA1_IT_GL1                        ((uint32_t)0x00000001)
 #define DMA1_IT_TC1                        ((uint32_t)0x00000002)
