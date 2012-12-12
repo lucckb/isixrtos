@@ -424,6 +424,37 @@ uint32_t mmc_command::decode_sdstat_erase( uint32_t buf[] )
 	return au;
 }
 /*----------------------------------------------------------*/
+//Validate R6 response
+int mmc_command::validate_r6(uint16_t &rca)
+{
+    if( !(m_flags & resp_ans) )
+	{
+		return MMC_CMD_RSP_TIMEOUT;
+	}
+    if( is_spi_type() )
+    {
+        return MMC_CMD_RESP_MISMATCH;
+    }
+    if( !(m_resp[0]&sdR6_ERROR_MASK) )
+    {
+        rca = m_resp[0] >> 16;
+        return MMC_OK;
+    }
+    if( m_resp[0] & sdR6_GENERAL_UNKNOWN_ERROR )
+    {
+        return MMC_GENERAL_UNKNOWN_ERROR;
+    }
+    if( m_resp[0] & sdR6_ILLEGAL_CMD )
+    {
+        return MMC_ILLEGAL_CMD;
+    }
+    if( m_resp[0] & sdR6_COM_CRC_FAILED )
+    {
+        return MMC_COM_CRC_FAILED;
+    }
+    return MMC_OK;
+}
+/*----------------------------------------------------------*/
 }
 }
 /*----------------------------------------------------------*/

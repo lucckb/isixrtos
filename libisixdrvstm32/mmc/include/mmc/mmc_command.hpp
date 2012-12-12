@@ -76,6 +76,13 @@ private:	/* Private response codes */
 		bR2_ADDRESS_ERROR   = (1<<13),
 		bR2_PARAMETER_ERROR = (1<<14)
 	};
+    enum sd_r6_bits
+    {
+        sdR6_GENERAL_UNKNOWN_ERROR = 0x00002000,
+        sdR6_ILLEGAL_CMD           = 0x00004000,
+        sdR6_COM_CRC_FAILED        = 0x00008000,
+        sdR6_ERROR_MASK = sdR6_GENERAL_UNKNOWN_ERROR|sdR6_ILLEGAL_CMD|sdR6_COM_CRC_FAILED
+    };
 	static const uint32_t bR1_ERROR_MASK = bR1_ERASE_RESET|bR1_ILLEGAL_COMMAND|bR1_COM_CRC_ERROR|
 			bR1_ERASE_SEQ_ERROR|bR1_ADDRESS_ERROR|bR1_PARAMETER_ERROR;
 	static const uint32_t bR2_ERROR_MASK = bR2_WP_ERASE_SKIP|bR2_ERROR|
@@ -182,7 +189,7 @@ private:
 			case OP_SEND_OP_COND:		m_flags = resp_R3|resp_spi_R1|resp_spi_cs;   break;
 			case OP_CRC_ON_OFF:			m_flags = resp_spi_R1|resp_spi_cs; 		     break;
 			case OP_SET_BLOCKLEN:		m_flags = resp_R1|resp_spi_R1|resp_spi_cs;   break;
-			case OP_SET_BLOCK_COUNT:	m_flags = resp_R1;				 break;
+			case OP_SET_BLOCK_COUNT:	m_flags = resp_R1;				  break;
 			case OP_WRITE_MULT_BLOCK:   m_flags = resp_R1|resp_spi_R1;    break;
 			case OP_WRITE_SINGLE_BLOCK: m_flags = resp_R1|resp_spi_R1;    break;
 			case OP_READ_MULT_BLOCK:	m_flags = resp_R1|resp_spi_R1;    break;
@@ -192,7 +199,10 @@ private:
 			case OP_SEND_CID:			m_flags = resp_R2|resp_spi_R1D|resp_spi_cs;   break;
 			case OP_SEND_CSD:			m_flags = resp_R2|resp_spi_R1D|resp_spi_cs;   break;
 			case OP_SD_APP_STATUS:		m_flags = resp_R1|resp_spi_R2;    break;
-			default: 					m_flags = resp_none;			 break;
+            case OP_ALL_SEND_CID:       m_flags = resp_R2;                break; 
+            case OP_SET_REL_ADDR:       m_flags = resp_R6;                break;
+            case OP_SEL_DESEL_CARD:     m_flagd = resp_R1B;               break;
+			default: 					m_flags = resp_none;			  break;
 		}
 	}
 public:
@@ -295,6 +305,7 @@ public:
 		}
 		return MMC_OK;
 	}
+    //Vaildate R3 response
 	err validate_r3() const
 	{
 		if( get_type() != rR3t )
@@ -303,10 +314,14 @@ public:
 			return MMC_INVALID_VOLTRANGE;
 		return MMC_OK;
 	}
+    //Get R3 CCS
 	bool get_r3_ccs() const
 	{
 		return m_resp[1] & OCR_CCS_MASK;
 	}
+    //Validate R6 response
+    int validate_r6(uint16_t &rca);
+    //Get response buffer
 	uint32_t* get_resp_buffer(){ return m_resp; }
 	//Set response status
 	void set_resp_status();

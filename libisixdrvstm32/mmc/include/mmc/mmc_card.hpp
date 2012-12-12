@@ -79,6 +79,8 @@ private:
 	inline int read_single_block( void* buf, unsigned long laddr );
 	//Update card parameters
 	uint32_t read_base_card_info();
+    //Enable wide bus
+    int sd_enable_wide_bus();
 private:
 	mmc_host& m_host;						//Host
 	card_type m_type;						//Card type

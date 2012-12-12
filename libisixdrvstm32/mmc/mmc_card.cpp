@@ -31,7 +31,11 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 	if( !m_host.is_spi() )
 	{
 		m_error = sd_mode_initialize();
-		//TODO: Enable wide bus operation
+		if( !m_error && (m_host.get_capabilities()&card_4bit) && 
+            (m_bus_width >= mmc_host::bus_width_4b) )
+        {
+            m_error = sd_enable_wide_bus();
+        }
 	}
 	else
 	{
@@ -53,6 +57,21 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 		//Set maximum speed
 		m_host.set_ios( mmc_host::ios_set_speed, tran_speed/1000 );
 	}
+}
+/*----------------------------------------------------------*/
+//Enable wide bus operation
+int mmc_card::sd_enable_wide_bus()
+{
+    int ret = MMC_OK;
+    if( m_type != type_mmc )
+    {
+        do
+        {
+            
+        }
+        while(0);
+    }
+    return ret;
 }
 /*----------------------------------------------------------*/
 //** Initialize the card on request
@@ -197,7 +216,22 @@ int mmc_card::detect( mmc_host &host, mmc_card* &old_card )
 //initialize card in SD mode
 int mmc_card::sd_mode_initialize()
 {
-	return 0;
+	mmc_command cmd;
+    int ret;
+    do
+    {
+        //send all cid
+        cmd( mmc_command::OP_ALL_SEND_CID, 0 );
+        if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;
+        //set relative addr and check it 
+        cmd( mmc_command::OP_SET_REL_ADDR, 0 );
+        if( (ret=m_host.execute_command(cmd, C_card_timeout)) ) break;
+        if( (ret=cmd.validate_r6( m_rca ) ) break;
+        //Select deselect card
+        cmd( mmc_command::OP_SEL_DESEL_CARD, unsigned(m_rca)<<16 );
+        if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;
+    } while(0);
+    return ret;
 }
 /*----------------------------------------------------------*/
 //Update card parameters
@@ -232,7 +266,7 @@ int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::si
 		cmd( mmc_command::OP_WRITE_MULT_BLOCK, laddr );
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.send_data( buf, C_sector_size*count, C_card_timeout ))) break;
-		if( !m_block_count_avail && !m_host.is_spi())
+		if( !m_block_count_avail && !m_host.is_spi() )
 		{
 			cmd( mmc_command::OP_STOP_TRANSMISSION, 0 );
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
@@ -328,7 +362,7 @@ int mmc_card::read ( void* buf, unsigned long sector, std::size_t count )
 int mmc_card::get_cid( cid &c ) const
 {
 	int ret;
-	mmc_command cmd( mmc_command::OP_SEND_CID, m_rca<<16 );
+	mmc_command cmd( mmc_command::OP_SEND_CID, unsigned(m_rca)<<16 );
 	do
 	{
 		if( (ret=m_host.execute_command(cmd, C_card_timeout))) break;
@@ -347,7 +381,7 @@ int mmc_card::get_erase_size(uint32_t &sectors) const
 	//Decode from CSD
 	if( m_type == type_mmc || m_type == type_sd_v1  )
 	{
-		cmd( mmc_command::OP_SEND_CSD, m_rca<<16 );
+		cmd( mmc_command::OP_SEND_CSD, unsigned(m_rca)<<16 );
 		do {
 			if( (ret=m_host.execute_command(cmd, C_card_timeout))) break;
 			if( (ret=cmd.decode_csd_erase(sectors,m_type==type_mmc)) ) break;
@@ -357,9 +391,9 @@ int mmc_card::get_erase_size(uint32_t &sectors) const
 	{
 		uint32_t sdbuf[16];
 		do {
-			cmd( mmc_command::OP_APP_CMD, m_rca << 16 );
+			cmd( mmc_command::OP_APP_CMD, unsigned(m_rca) << 16 );
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
-			cmd( mmc_command::OP_SD_APP_STATUS, m_rca << 16 );
+			cmd( mmc_command::OP_SD_APP_STATUS, unsigned(m_rca) << 16 );
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 			if( (ret=m_host.receive_data( sdbuf, sizeof(sdbuf), C_card_timeout ))) break;
 		} while(0);
