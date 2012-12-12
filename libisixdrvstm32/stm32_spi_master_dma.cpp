@@ -165,9 +165,6 @@ int spi_master_dma::read ( void *buf, size_t len)
 		dma_set_memory_address(DMA1_Channel2, buf );
 		stm32::dma_set_curr_data_counter( DMA1_Channel2, len );
 		stm32::dma_clear_flag( DMA1_FLAG_GL2|DMA1_FLAG_TC2|DMA1_FLAG_HT2|DMA1_FLAG_TE2);
-		while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
-				spi_i2s_receive_data( m_spi );
-
 		stm32::dma_channel_enable(DMA1_Channel2);
 		stm32::dma_channel_enable(DMA1_Channel3);
 		while(!(stm32::dma_get_flag_status(DMA1_FLAG_TC3) &&  stm32::dma_get_flag_status(DMA1_FLAG_TC2)))
