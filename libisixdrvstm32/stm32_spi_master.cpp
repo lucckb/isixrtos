@@ -227,7 +227,7 @@ int spi_master::set_mode( unsigned mode, unsigned khz )
 	{
 		divide = SPI_BaudRatePrescaler_256;
 	}
-	dbprintf("SET MODE divider %04x", divide);
+	dbprintf("SET MODE divider %04x (%i)", divide, khz);
 	spi_cmd( m_spi, false );
 	spi_init( m_spi,  SPI_Direction_2Lines_FullDuplex, SPI_Mode_Master,
 		(mode&spi_device::data_16b)?(SPI_DataSize_16b):(SPI_DataSize_8b),

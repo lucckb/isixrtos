@@ -33,12 +33,18 @@ static inline bool getBit_BB(void *VarAddr, unsigned BitNumber)
 {
      return (*(vu32 *) (RAM_BB_BASE | ((((u32)VarAddr) - RAM_BASE) << 5) | ((BitNumber) << 2)));
 }
-
+static inline unsigned getBitsAll_BB(void *VarAddr )
+{
+	return (*(vu32 *)(VarAddr));
+}
 static inline void resetBitsAll_BB(void *VarAddr )
 {
 	(*(vu32 *)(VarAddr)) = 0;
 }
-
+static inline void setBitsAll_BB(void *VarAddr, unsigned val )
+{
+	(*(vu32 *)(VarAddr)) = val;
+}
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
