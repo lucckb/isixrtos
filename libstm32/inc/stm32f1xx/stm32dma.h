@@ -10,7 +10,9 @@
 /* ---------------------------------------------------------------------------- */
 #include "stm32f10x_lib.h"
 #include <cstddef>
+#include <stdbool.h>
 /* ---------------------------------------------------------------------------- */
+#define DMA2_FLAG 0x10000000
 
 #ifdef __cplusplus
  namespace stm32 {
@@ -89,21 +91,72 @@ static inline void dma_irq_disable( DMA_Channel_TypeDef* DMAchx, unsigned it)
 /* ---------------------------------------------------------------------------- */
 static inline void dma_clear_flag(uint32_t flag)
 {
-  if ((flag & 0x10000000) != 0)
+  if ((flag & DMA2_FLAG) != 0)
   {
     /* Clear the selected DMA flags */
-    DMA2->IFCR = flag;
+    DMA2->IFCR = flag & (~DMA2_FLAG);
   }
   else
   {
     /* Clear the selected DMA flags */
-    DMA1->IFCR = flag;
+    DMA1->IFCR = flag & (~DMA2_FLAG);
   }
 }
 /* ---------------------------------------------------------------------------- */
+/**
+  * @brief  Sets the number of data units in the current DMAy Channelx transfer.
+  * @param  DMAy_Channelx: where y can be 1 or 2 to select the DMA and 
+  *         x can be 1 to 7 for DMA1 and 1 to 5 for DMA2 to select the DMA Channel.
+  * @param  DataNumber: The number of data units in the current DMAy Channelx
+  *         transfer.   
+  * @note   This function can only be used when the DMAy_Channelx is disabled.                 
+  * @retval None.
+  */
+static inline void dma_set_curr_data_counter(DMA_Channel_TypeDef* DMAchx, uint16_t ncnt)
+{
+ 
+   /* Write to DMAy Channelx CNDTR */
+   DMAchx->CNDTR = ncnt;  
+}
+/* ---------------------------------------------------------------------------- */
+/**
+  * @brief  Returns the number of remaining data units in the current
+  *         DMAy Channelx transfer.
+  * @param  DMAy_Channelx: where y can be 1 or 2 to select the DMA and 
+  *   x can be 1 to 7 for DMA1 and 1 to 5 for DMA2 to select the DMA Channel.
+  * @retval The number of remaining data units in the current DMAy Channelx
+  *         transfer.
+  */
+static inline uint16_t dma_get_curr_data_counter(DMA_Channel_TypeDef* DMAchx)
+{
+  /* Return the number of remaining data units for DMAy Channelx */
+  return DMAchx->CNDTR;
+}
 
+/* ---------------------------------------------------------------------------- */
+static inline bool dma_get_flag_status(uint32_t DMAy_FLAG)
+{
+  uint32_t tmpreg;
+  
+  /* Calculate the used DMAy */
+  if (DMAy_FLAG & DMA2_FLAG )
+  {
+    /* Get DMA2 ISR register value */
+    tmpreg = DMA2->ISR;
+  }
+  else
+  {
+    /* Get DMA1 ISR register value */
+    tmpreg = DMA1->ISR;
+  }
+  /* Check the status of the specified DMAy flag */
+  return(tmpreg & DMAy_FLAG & ~(DMA2_FLAG))?(true):(false);
+}
+/* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus
 }
 #endif
 /* ---------------------------------------------------------------------------- */
+
+#undef DMA2_FLAG 
 #endif /* STM32DMA_H_ */

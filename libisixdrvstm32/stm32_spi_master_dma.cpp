@@ -125,12 +125,13 @@ int spi_master_dma::write( const void *buf, size_t len)
 			DMA_MemoryInc_Enable|DMA_PeripheralInc_Disable|DMA_PeripheralDataSize_Byte|
 			 DMA_MemoryDataSize_Byte| DMA_Mode_Normal | DMA_Priority_High | DMA_M2M_Disable |DMA_DIR_PeripheralDST,
 			 (void*)buf, &m_spi->DR, len );
-			DMA1->IFCR = (1<<9);
+			stm32::dma_clear_flag( DMA1_FLAG_GL3|DMA1_FLAG_TC3|DMA1_FLAG_HT3|DMA1_FLAG_TE3);
 			stm32::dma_channel_enable(DMA1_Channel3);
 			//dbprintf("TRansfered %08x", DMA1->ISR);
-			while( !(DMA1->ISR & (1<<9)) );
+            while(!stm32::dma_get_flag_status(DMA1_FLAG_TC3|DMA1_FLAG_TE3));
 			//dbprintf("TRansfered %08x", DMA1->ISR);
 			stm32::dma_channel_disable(DMA1_Channel3);
+            dbprintf("DMA_ERR_STAT=%d", stm32::dma_get_flag_status(DMA1_FLAG_TE3));
 		}
 		while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
 			 spi_i2s_receive_data( m_spi );
