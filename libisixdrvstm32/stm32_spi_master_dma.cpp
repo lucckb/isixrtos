@@ -93,6 +93,16 @@ extern "C" {
 		stm32::nvic_set_priority( DMA1_Channel3_IRQn, IRQPRIO, IRQSUB );
 		//stm32::nvic_irq_enable( DMA1_Channel2_IRQn, true );
 		//stm32::nvic_irq_enable( DMA1_Channel3_IRQn, true );
+		//Enable channel3 for TX
+		stm32::dma_channel_config( DMA1_Channel3,
+				DMA_MemoryInc_Enable|DMA_PeripheralInc_Disable|DMA_PeripheralDataSize_Byte|
+				 DMA_MemoryDataSize_Byte| DMA_Mode_Normal | DMA_Priority_High |
+				 DMA_M2M_Disable |DMA_DIR_PeripheralDST,  0, &m_spi->DR, 0 );
+		//Enable channel2 for RX
+		stm32::dma_channel_config( DMA1_Channel2,
+			DMA_MemoryInc_Enable|DMA_PeripheralInc_Disable|DMA_PeripheralDataSize_Byte|
+			DMA_MemoryDataSize_Byte| DMA_Mode_Normal | DMA_Priority_High |
+			DMA_M2M_Disable |DMA_DIR_PeripheralSRC,  0, &m_spi->DR, 0 );
 	}
 #endif
 #endif
@@ -119,33 +129,60 @@ int spi_master_dma::write( const void *buf, size_t len)
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
 	if( m_spi == SPI1 )
 	{
-		//for(;;)
-		{
-			stm32::dma_channel_config( DMA1_Channel3,
-			DMA_MemoryInc_Enable|DMA_PeripheralInc_Disable|DMA_PeripheralDataSize_Byte|
-			 DMA_MemoryDataSize_Byte| DMA_Mode_Normal | DMA_Priority_High | DMA_M2M_Disable |DMA_DIR_PeripheralDST,
-			 (void*)buf, &m_spi->DR, len );
-			stm32::dma_clear_flag( DMA1_FLAG_GL3|DMA1_FLAG_TC3|DMA1_FLAG_HT3|DMA1_FLAG_TE3);
-			stm32::dma_channel_enable(DMA1_Channel3);
-			//dbprintf("TRansfered %08x", DMA1->ISR);
-            while(!stm32::dma_get_flag_status(DMA1_FLAG_TC3|DMA1_FLAG_TE3));
-			//dbprintf("TRansfered %08x", DMA1->ISR);
-			stm32::dma_channel_disable(DMA1_Channel3);
-            dbprintf("DMA_ERR_STAT=%d", stm32::dma_get_flag_status(DMA1_FLAG_TE3));
-		}
-		while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
-			 spi_i2s_receive_data( m_spi );
-		while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
+		dma_set_memory_address(DMA1_Channel3, buf );
+		DMA1_Channel3->CCR |= DMA_MemoryInc_Enable;
+		stm32::dma_set_curr_data_counter( DMA1_Channel3, len );
+		stm32::dma_clear_flag( DMA1_FLAG_GL3|DMA1_FLAG_TC3|DMA1_FLAG_HT3|DMA1_FLAG_TE3);
+		stm32::dma_channel_enable(DMA1_Channel3);
+        while(!stm32::dma_get_flag_status(DMA1_FLAG_TC3|DMA1_FLAG_TE3));
+	}
+	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
+	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
+		spi_i2s_receive_data( m_spi );
+	stm32::dma_channel_disable(DMA1_Channel3);
+	if( stm32::dma_get_flag_status(DMA1_FLAG_TE3) )
+	{
+		return spi_device::err_dma;
 	}
 #endif
-	return 0;
-	//return spi_master::write( buf, len );
+	return spi_device::err_ok;
 }
 /*----------------------------------------------------------*/
 /* Read from the device */
 int spi_master_dma::read ( void *buf, size_t len)
 {
-	return spi_master::read( buf, len );
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
+	if( m_spi == SPI1 )
+	{
+		const unsigned char dummy = 0xff;
+		/* Setup empty TX trn */
+		DMA1_Channel3->CCR &= ~DMA_MemoryInc_Enable;
+		dma_set_memory_address(DMA1_Channel3, &dummy );
+		stm32::dma_set_curr_data_counter( DMA1_Channel3, len );
+		stm32::dma_clear_flag( DMA1_FLAG_GL3|DMA1_FLAG_TC3|DMA1_FLAG_HT3|DMA1_FLAG_TE3);
+
+		/* RX tran */
+		dma_set_memory_address(DMA1_Channel2, buf );
+		stm32::dma_set_curr_data_counter( DMA1_Channel2, len );
+		stm32::dma_clear_flag( DMA1_FLAG_GL2|DMA1_FLAG_TC2|DMA1_FLAG_HT2|DMA1_FLAG_TE2);
+		while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
+				spi_i2s_receive_data( m_spi );
+
+		stm32::dma_channel_enable(DMA1_Channel2);
+		stm32::dma_channel_enable(DMA1_Channel3);
+		while(!(stm32::dma_get_flag_status(DMA1_FLAG_TC3) &&  stm32::dma_get_flag_status(DMA1_FLAG_TC2)))
+		{
+			if( stm32::dma_get_flag_status(DMA1_FLAG_TE3|DMA1_FLAG_TE2) )
+			{
+				return spi_device::err_dma;
+			}
+		}
+	}
+	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
+	stm32::dma_channel_disable(DMA1_Channel3);
+	stm32::dma_channel_disable(DMA1_Channel2);
+#endif
+	return spi_device::err_ok;
 }
 /*----------------------------------------------------------*/
 /* Transfer (BIDIR) */

@@ -119,6 +119,11 @@ static inline void dma_set_curr_data_counter(DMA_Channel_TypeDef* DMAchx, uint16
    DMAchx->CNDTR = ncnt;  
 }
 /* ---------------------------------------------------------------------------- */
+static inline void dma_set_memory_address(DMA_Channel_TypeDef* DMAchx, const void *mem )
+{
+	DMAchx->CMAR = (unsigned long)mem;
+}
+/* ---------------------------------------------------------------------------- */
 /**
   * @brief  Returns the number of remaining data units in the current
   *         DMAy Channelx transfer.
