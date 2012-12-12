@@ -31,7 +31,7 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 	if( !m_host.is_spi() )
 	{
 		m_error = sd_mode_initialize();
-		if( !m_error && (m_host.get_capabilities()&card_4bit) && 
+		if( !m_error && (m_host.get_capabilities()&mmc_host::cap_4bit) &&
             (m_bus_width >= mmc_host::bus_width_4b) )
         {
             m_error = sd_enable_wide_bus();
@@ -226,7 +226,7 @@ int mmc_card::sd_mode_initialize()
         //set relative addr and check it 
         cmd( mmc_command::OP_SET_REL_ADDR, 0 );
         if( (ret=m_host.execute_command(cmd, C_card_timeout)) ) break;
-        if( (ret=cmd.validate_r6( m_rca ) ) break;
+        if( (ret=cmd.validate_r6( m_rca)) ) break;
         //Select deselect card
         cmd( mmc_command::OP_SEL_DESEL_CARD, unsigned(m_rca)<<16 );
         if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;

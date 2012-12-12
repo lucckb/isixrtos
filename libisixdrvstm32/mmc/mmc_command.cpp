@@ -433,7 +433,7 @@ int mmc_command::validate_r6(uint16_t &rca)
 	}
     if( is_spi_type() )
     {
-        return MMC_CMD_RESP_MISMATCH;
+        return MMC_CMD_MISMATCH_RESPONSE;
     }
     if( !(m_resp[0]&sdR6_ERROR_MASK) )
     {
