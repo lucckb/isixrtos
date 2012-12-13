@@ -10,12 +10,6 @@
 /*----------------------------------------------------------*/
 #include "stm32_spi_master.hpp"
 
-/*----------------------------------------------------------*/
-
-#define ISIX_DRV_SPI_DMAIRQ_SPI1_ENABLE (1<<0)
-#define ISIX_DRV_SPI_DMAIRQ_SPI2_ENABLE (1<<1)
-#define ISIX_DRV_SPI_DMAIRQ_SPI3_ENABLE (1<<2)
-
 
 /*----------------------------------------------------------*/
 namespace stm32 {
@@ -25,7 +19,7 @@ namespace drv {
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 extern "C" {
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK==ISIX_DRV_SPI_DMAIRQ_SPI1_ENABLE
+#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE) && CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
 	void dma1_channel2_isr_vector(void) __attribute__((__interrupt__));
 	void dma1_channel3_isr_vector(void) __attribute__((__interrupt__));
 #endif
@@ -37,7 +31,7 @@ class spi_master_dma : public spi_master
 {
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK==ISIX_DRV_SPI_DMAIRQ_SPI1_ENABLE
+#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE) && CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
 	friend void dma1_channel2_isr_vector(void);
 	friend void dma1_channel3_isr_vector(void);
 #endif
@@ -56,11 +50,8 @@ class spi_master_dma : public spi_master
 	static const uint32_t irqs_rxtc_msk = (1<<irqs_tc_rx)|(1<<irqs_tc_tx);
 	static const uint32_t irqs_txtc_msk = (1<<irqs_tc_tx);
 public:
-#if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
+	//Constructor
 	spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2);
-#else
-	spi_master_dma();
-#endif
 	/* Destructor */
 	virtual ~spi_master_dma();
 	/* Write to the device */

@@ -15,10 +15,9 @@
 #include "config.h"
 #endif
 /*----------------------------------------------------------*/
-#define ISIX_DRV_SPI_SPI_ALL_ENABLE 0
-#define ISIX_DRV_SPI_SPI1_ENABLE 1
-#define ISIX_DRV_SPI_SPI2_ENABLE 2
-#define ISIX_DRV_SPI_SPI3_ENABLE 3
+#define ISIX_DRV_SPI_SPI1_ENABLE (1<<0)
+#define ISIX_DRV_SPI_SPI2_ENABLE (1<<1)
+#define ISIX_DRV_SPI_SPI3_ENABLE (1<<2)
 /*----------------------------------------------------------*/
 #ifndef CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS
 #define CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS  ISIX_DRV_SPI_SPI1_ENABLE
@@ -33,11 +32,7 @@ class spi_master : public ::drv::spi_device
 {
 public:
 	/* Constructor */
-#if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	explicit spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2 );
-#else
-	 spi_master();
-#endif
 	/* Destructor */
 	virtual ~spi_master();
 	/* Write to the device */
@@ -56,15 +51,10 @@ public:
 	virtual uint16_t transfer( uint16_t val );
 	/* Disable enable the device */
 	virtual void enable( bool en );
-#if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 protected:
 	SPI_TypeDef* const m_spi;
 private:
 	uint32_t m_pclk;
-#else
-protected:
-	static SPI_TypeDef * const m_spi;
-#endif
 };
 
 /*----------------------------------------------------------*/

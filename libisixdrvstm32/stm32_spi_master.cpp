@@ -13,10 +13,6 @@
 #endif
 #include <dbglog.h>
 
-#ifndef CONFIG_ISIX_DRV_SPI_DEV_PCLK_HZ
-#define CONFIG_ISIX_DRV_SPI_DEV_PCLK_HZ 8000000
-#warning CONFIG_ISIX_DRV_SPI_DEV_PCLK_HZ default 8MHz is used
-#endif
 /*----------------------------------------------------------*/
 namespace stm32 {
 namespace drv {
@@ -29,28 +25,11 @@ namespace spi1 {
 	const uint16_t SD_SPI_CS_PIN 	= 4;
 	GPIO_TypeDef* const SPI_PORT = GPIOA;
 }
-
 }
 /*----------------------------------------------------------*/
-#if(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
-
-#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE)
-	SPI_TypeDef * const spi_master::m_spi = SPI1;
-#elif (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI2_ENABLE)
-	SPI_TypeDef * const spi_master::m_spi = SPI2;
-#elif (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI3_ENABLE)
-	SPI_TypeDef * const spi_master::m_spi = SPI3;
-#endif
-
-#endif
-/*----------------------------------------------------------*/
-#if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 /* Constructor */
 spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2 )
 	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1)
-#else
-	spi_master::spi_master()
-#endif
 {
 	using namespace stm32;
 	if( m_spi == SPI1 )
@@ -192,11 +171,7 @@ int spi_master::set_mode( unsigned mode, unsigned khz )
 	using namespace stm32;
 	if( !khz )
 		return spi_device::err_inval;
-#if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	int divide = (m_pclk/1000) / khz;
-#else
-	int divide = (CONFIG_ISIX_DRV_SPI_DEV_PCLK_HZ/1000)/khz;
-#endif
 	if( divide <= 2 )
 	{
 		divide = SPI_BaudRatePrescaler_2;
