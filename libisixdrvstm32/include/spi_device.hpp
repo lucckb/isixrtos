@@ -27,7 +27,8 @@ public:
 		err_not_supported,
 		err_hw,
 		err_noinit,
-		err_dma
+		err_dma,
+		err_inval
 	};
 	enum data_with
 	{

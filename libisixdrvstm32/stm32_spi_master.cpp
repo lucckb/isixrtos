@@ -190,6 +190,8 @@ int spi_master::transfer( const void *inbuf, void *outbuf, size_t len )
 int spi_master::set_mode( unsigned mode, unsigned khz )
 {
 	using namespace stm32;
+	if( !khz )
+		return spi_device::err_inval;
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	int divide = (m_pclk/1000) / khz;
 #else
