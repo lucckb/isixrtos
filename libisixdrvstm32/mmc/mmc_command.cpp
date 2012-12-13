@@ -462,6 +462,31 @@ int mmc_command::decode_scr( scr &scr_reg )
 	{
 		return MMC_CMD_RSP_TIMEOUT;
 	}
+    if( UNSTUFF_BITS(m_resp, 60, 4) != 0)
+    {
+    	return MMC_UNRECOGNIZED_SCR;
+    }
+    const uint32_t sd_spec = UNSTUFF_BITS(m_resp, 59, 4 );
+    const uint32_t sd_spec3 = UNSTUFF_BITS(m_resp, 47, 1);
+    if( sd_spec > 2 )
+    	return MMC_UNRECOGNIZED_SCR;
+    if(sd_spec3)
+    	scr_reg.spec = 0x30;
+    else
+    {
+    	switch(sd_spec)
+    	{
+    	case 0: scr_reg.spec = 0x10;
+    	case 1: scr_reg.spec = 0x11;
+    	case 2: scr_reg.spec = 0x20;
+    	}
+    }
+    const uint32_t bus_width = UNSTUFF_BITS(m_resp, 48, 4 );
+    scr_reg.bus_width_1b = bus_width&0x01;
+    scr_reg.bus_width_4b = (bus_width>>2)&0x01;
+    scr_reg.is_set_block_count = UNSTUFF_BITS(m_resp, 33, 1 );
+    scr_reg.is_speed_class = UNSTUFF_BITS(m_resp, 32, 1 );
+    return MMC_OK;
 }
 /*----------------------------------------------------------*/
 }
