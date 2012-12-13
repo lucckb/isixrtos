@@ -109,6 +109,25 @@ namespace
 		}
 	#endif
 	}
+	inline void dma_rx_disable(SPI_TypeDef *spi)
+	{
+	#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
+		if( spi == SPI1 )
+		{
+			stm32::dma_channel_disable(DMA1_Channel3);
+			stm32::dma_channel_disable(DMA1_Channel2);
+		}
+	#endif
+	}
+	inline void dma_tx_disable(SPI_TypeDef *spi)
+	{
+	#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
+		if( spi == SPI1 )
+		{
+			stm32::dma_channel_disable(DMA1_Channel3);
+		}
+	#endif
+	}
 }
 
 /*----------------------------------------------------------*/
@@ -223,12 +242,7 @@ int spi_master_dma::write( const void *buf, size_t len)
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
 		spi_i2s_receive_data( m_spi );
-#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
-	if( m_spi == SPI1 )
-	{
-		stm32::dma_channel_disable(DMA1_Channel3);
-	}
-#endif
+	dma_tx_disable( m_spi );
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -266,13 +280,7 @@ int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 #endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK & ISIX_DRV_SPI_DMAIRQ_SPI1_ENABLE */
 #endif /*ISIX_DRV_SPI_DMA_WITH_IRQ*/
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
-#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
-	if( m_spi == SPI1 )
-	{
-		stm32::dma_channel_disable(DMA1_Channel3);
-		stm32::dma_channel_disable(DMA1_Channel2);
-	}
-#endif
+	dma_rx_disable(m_spi);
 	return ret;
 }
 /*----------------------------------------------------------*/
