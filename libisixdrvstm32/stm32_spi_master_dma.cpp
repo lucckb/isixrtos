@@ -28,7 +28,7 @@
 namespace stm32 {
 namespace drv {
 /*----------------------------------------------------------*/
-
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 /* Interrupt handler section */
 namespace {
 #if CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_ALL_ENABLE
@@ -46,8 +46,9 @@ namespace {
 #error Unknown SPI
 #endif
 }
-
+#endif
 /*----------------------------------------------------------*/
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 extern "C" {
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
 	// Interrupt handlers SPI1 RX
@@ -64,23 +65,30 @@ extern "C" {
 	}
 #endif
 }
-
+#endif /*ISIX_DRV_SPI_DMA_WITH_IRQ */
 /*----------------------------------------------------------*/
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	spi_master_dma::spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2)
-		: spi_master(spi, pclk1, pclk2), m_notify_sem(0, 1), m_irq_flags(0)
+		: spi_master(spi, pclk1, pclk2)
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
+	,m_notify_sem(0, 1), m_irq_flags(0)
+#endif /*ISIX_DRV_SPI_DMA_WITH_IRQ */
 #else
 	spi_master_dma::spi_master_dma()
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 		: m_notify_sem(0, 1), m_irq_flags(0)
-#endif
+#endif /*ISIX_DRV_SPI_DMA_WITH_IRQ*/
+#endif /*CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS*/
 {
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	if(spi == SPI1 ) p_spi1 = this;
 	else if(spi == SPI2) p_spi2 = this;
 	else if(spi == SPI3) p_spi3 = this;
-#else
+#else /*CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS*/
 	p_spi = this;
-#endif
+#endif /*CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS*/
+#endif /* ISIX_DRV_SPI_DMA_WITH_IRQ */
 #ifdef STM32MCU_MAJOR_TYPE_F1
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & (ISIX_DRV_SPI_DMA_SPI1_ENABLE|ISIX_DRV_SPI_DMA_SPI2_ENABLE)
 	if( m_spi == SPI1 || m_spi == SPI2 )
@@ -93,10 +101,12 @@ extern "C" {
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
 	if( m_spi == SPI1 )
 	{
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 		stm32::nvic_set_priority( DMA1_Channel2_IRQn, IRQPRIO, IRQSUB );
 		stm32::nvic_set_priority( DMA1_Channel3_IRQn, IRQPRIO, IRQSUB );
 		stm32::nvic_irq_enable( DMA1_Channel2_IRQn, true );
 		stm32::nvic_irq_enable( DMA1_Channel3_IRQn, true );
+#endif /* ISIX_DRV_SPI_DMA_WITH_IRQ */
 		//Enable channel3 for TX
 		stm32::dma_channel_config( DMA1_Channel3,
 				DMA_MemoryInc_Enable|DMA_PeripheralInc_Disable|DMA_PeripheralDataSize_Byte|
@@ -109,8 +119,10 @@ extern "C" {
 			DMA_M2M_Disable |DMA_DIR_PeripheralSRC,  0, &m_spi->DR, 0 );
 		//Enable interrupts
 		stm32::spi_i2s_dma_cmd( m_spi, SPI_I2S_DMAReq_Rx| SPI_I2S_DMAReq_Tx, true );
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 		stm32::dma_irq_enable ( DMA1_Channel2, DMA_IT_TE | DMA_IT_TC );
 		stm32::dma_irq_enable ( DMA1_Channel3, DMA_IT_TE | DMA_IT_TC );
+#endif
 	}
 #endif
 #endif
@@ -127,13 +139,23 @@ spi_master_dma::~spi_master_dma()
 	stm32::rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_DMA2, false);
 #endif
 #endif
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
+#if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
+	if(spi == SPI1 ) p_spi1 = 0;
+	else if(spi == SPI2) p_spi2 = 0;
+	else if(spi == SPI3) p_spi3 = 0;
+#else /*CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS*/
 	p_spi = 0;
+#endif /*CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS*/
+#endif /* ISIX_DRV_SPI_DMA_WITH_IRQ */
 }
 /*----------------------------------------------------------*/
 /* Write to the device */
 int spi_master_dma::write( const void *buf, size_t len)
 {
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 	stm32::resetBitsAll_BB(&m_irq_flags);
+#endif
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
 	if( m_spi == SPI1 )
 	{
@@ -144,7 +166,8 @@ int spi_master_dma::write( const void *buf, size_t len)
 		stm32::dma_channel_enable(DMA1_Channel3);
 	}
 #endif
-    int ret = spi_device::err_ok;
+	int ret = spi_device::err_ok;
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 	do {
 		if( (ret=m_notify_sem.wait( spi_device::C_spi_timeout )) )
 			break;
@@ -154,6 +177,18 @@ int spi_master_dma::write( const void *buf, size_t len)
 	       break;
 	    }
 	} while(0);
+#else
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
+	if( m_spi == SPI1 )
+	{
+		 while(!stm32::dma_get_flag_status(DMA1_FLAG_TC3|DMA1_FLAG_TE3));
+		 if( stm32::dma_get_flag_status(DMA1_FLAG_TE3) )
+		 {
+			 ret = spi_device::err_dma;
+		 }
+	}
+#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE*/
+#endif /*ISIX_DRV_SPI_DMA_WITH_IRQ*/
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
 		spi_i2s_receive_data( m_spi );
@@ -169,8 +204,10 @@ int spi_master_dma::write( const void *buf, size_t len)
 /* Read from the device */
 int spi_master_dma::read ( void *buf, size_t len)
 {
-	const unsigned char dummy = 0xff;
+	static const unsigned char dummy = 0xff;
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 	stm32::setBitsAll_BB(&m_irq_flags, 1<<irqs_rxmode );
+#endif
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
 	if( m_spi == SPI1 )
 	{
@@ -188,6 +225,7 @@ int spi_master_dma::read ( void *buf, size_t len)
 	}
 #endif
 	int ret;
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 	do
 	{
 		if( (ret=m_notify_sem.wait( spi_device::C_spi_timeout )) )
@@ -198,6 +236,20 @@ int spi_master_dma::read ( void *buf, size_t len)
 			break;
 		}
 	} while(0);
+#else
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
+	if( m_spi == SPI1 )
+	{
+		while(!(stm32::dma_get_flag_status(DMA1_FLAG_TC3) &&  stm32::dma_get_flag_status(DMA1_FLAG_TC2)))
+		{
+			if( stm32::dma_get_flag_status(DMA1_FLAG_TE3|DMA1_FLAG_TE2) )
+			{
+				ret = spi_device::err_dma;
+			}
+		}
+	}
+#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE */
+#endif /*ISIX_DRV_SPI_DMA_WITH_IRQ*/
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK & ISIX_DRV_SPI_DMA_SPI1_ENABLE
 	if( m_spi == SPI1 )
@@ -215,6 +267,7 @@ int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 	return spi_master::transfer( inbuf, outbuf, len );
 }
 /*----------------------------------------------------------*/
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 //Handle DMA TX IRQ
 void spi_master_dma::handle_isr( spi_master_dma::irqs_no reason )
 {
@@ -228,6 +281,7 @@ void spi_master_dma::handle_isr( spi_master_dma::irqs_no reason )
 		m_notify_sem.signal_isr();
 	}
 }
+#endif
 /*----------------------------------------------------------*/
 } /* namespace drv */
 } /* namespace stm32 */

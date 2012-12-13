@@ -15,6 +15,10 @@
 #define ISIX_DRV_SPI_DMA_SPI1_ENABLE (1<<0)
 #define ISIX_DRV_SPI_DMA_SPI2_ENABLE (1<<1)
 #define ISIX_DRV_SPI_DMA_SPI3_ENABLE (1<<2)
+#ifndef ISIX_DRV_SPI_DMA_WITH_IRQ
+#define ISIX_DRV_SPI_DMA_WITH_IRQ 1
+#endif
+
 /*----------------------------------------------------------*/
 #if defined(CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK) && (CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK!=0)
 
@@ -23,6 +27,7 @@ namespace stm32 {
 namespace drv {
 
 /*----------------------------------------------------------*/
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 extern "C" {
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK==ISIX_DRV_SPI_DMA_SPI1_ENABLE
@@ -31,10 +36,11 @@ extern "C" {
 #endif
 }
 #endif
-
+#endif
 /*----------------------------------------------------------*/
 class spi_master_dma : public spi_master
 {
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMA_MASK==ISIX_DRV_SPI_DMA_SPI1_ENABLE
 	friend void dma1_channel2_isr_vector(void);
@@ -54,6 +60,7 @@ class spi_master_dma : public spi_master
 	static const uint32_t irqs_err_msk =  (1<<irqs_te_rx)|(1<<irqs_te_tx);
 	static const uint32_t irqs_rxtc_msk = (1<<irqs_tc_rx)|(1<<irqs_tc_tx);
 	static const uint32_t irqs_txtc_msk = (1<<irqs_tc_tx);
+#endif
 public:
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2);
@@ -69,11 +76,13 @@ public:
 	/* Transfer (BIDIR) */
 	virtual int transfer( const void *inbuf, void *outbuf, size_t len  );
 private:
+#if ISIX_DRV_SPI_DMA_WITH_IRQ
 	//Handle DMA TX IRQ
 	void handle_isr( irqs_no reason );
 private:
 	isix::semaphore m_notify_sem;
 	uint32_t m_irq_flags;
+#endif
 };
 /*----------------------------------------------------------*/
 } /* namespace drv */
