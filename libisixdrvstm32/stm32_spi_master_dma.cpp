@@ -201,8 +201,8 @@ int spi_master_dma::write( const void *buf, size_t len)
 	return ret;
 }
 /*----------------------------------------------------------*/
-/* Read from the device */
-int spi_master_dma::read ( void *buf, size_t len)
+/* Transfer from the device */
+int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 {
 	static const unsigned char dummy = 0xff;
 #if ISIX_DRV_SPI_DMA_WITH_IRQ
@@ -212,12 +212,20 @@ int spi_master_dma::read ( void *buf, size_t len)
 	if( m_spi == SPI1 )
 	{
 		/* Setup empty TX trn */
-		DMA1_Channel3->CCR &= (~DMA_MemoryInc_Enable);
-		dma_set_memory_address(DMA1_Channel3, &dummy );
+		if(outbuf)
+		{
+			DMA1_Channel3->CCR |= DMA_MemoryInc_Enable;
+			dma_set_memory_address(DMA1_Channel3, outbuf );
+		}
+		else
+		{
+			DMA1_Channel3->CCR &= ~DMA_MemoryInc_Enable;
+			dma_set_memory_address(DMA1_Channel3, &dummy );
+		}
 		stm32::dma_set_curr_data_counter( DMA1_Channel3, len );
 		stm32::dma_clear_flag( DMA1_FLAG_GL3 );
 		/* RX tran */
-		dma_set_memory_address(DMA1_Channel2, buf );
+		dma_set_memory_address(DMA1_Channel2, inbuf );
 		stm32::dma_set_curr_data_counter( DMA1_Channel2, len );
 		stm32::dma_clear_flag( DMA1_FLAG_GL2 );
 		stm32::dma_channel_enable(DMA1_Channel2);
@@ -259,12 +267,6 @@ int spi_master_dma::read ( void *buf, size_t len)
 	}
 #endif
 	return ret;
-}
-/*----------------------------------------------------------*/
-/* Transfer (BIDIR) */
-int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
-{
-	return spi_master::transfer( inbuf, outbuf, len );
 }
 /*----------------------------------------------------------*/
 #if ISIX_DRV_SPI_DMA_WITH_IRQ

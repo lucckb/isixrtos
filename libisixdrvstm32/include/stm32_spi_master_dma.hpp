@@ -72,9 +72,12 @@ public:
 	/* Write to the device */
 	virtual int write( const void *buf, size_t len);
 	/* Read from the device */
-	virtual int read ( void *buf, size_t len);
+	virtual int read ( void *buf, size_t len)
+	{
+		return spi_master_dma::transfer( buf, NULL, len );
+	}
 	/* Transfer (BIDIR) */
-	virtual int transfer( const void *inbuf, void *outbuf, size_t len  );
+	virtual int transfer( const void *inbuf, void *outbuf, size_t len );
 private:
 #if ISIX_DRV_SPI_DMA_WITH_IRQ
 	//Handle DMA TX IRQ
