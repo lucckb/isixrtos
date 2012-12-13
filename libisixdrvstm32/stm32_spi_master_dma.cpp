@@ -64,7 +64,7 @@ extern "C" {
 /*----------------------------------------------------------*/
 namespace
 {
-	//Wait for dma complete
+	//Wait for tx dma complete
 	inline void dma_tx_config(SPI_TypeDef *spi, const void* buf, std::size_t len )
 	{
 	#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)
@@ -78,6 +78,7 @@ namespace
 		}
 	#endif
 	}
+	//Wait for rx dma complete
 	inline void dma_rx_config(SPI_TypeDef *spi, const void* inbuf, void *outbuf, std::size_t len )
 	{
 		static const unsigned char dummy = 0xff;
@@ -106,6 +107,7 @@ namespace
 		}
 	#endif
 	}
+	/* Dma disable */
 	inline void dma_rx_disable(SPI_TypeDef *spi)
 	{
 	#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)
@@ -116,6 +118,7 @@ namespace
 		}
 	#endif
 	}
+	/* Dma Disable */
 	inline void dma_tx_disable(SPI_TypeDef *spi)
 	{
 	#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)
@@ -124,6 +127,38 @@ namespace
 			stm32::dma_channel_disable(DMA1_Channel3);
 		}
 	#endif
+	}
+	/* Busy wait */
+	inline int dma_tx_busy_wait(SPI_TypeDef *spi)
+	{
+	#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)
+		if( spi == SPI1 )
+		{
+			 while(!stm32::dma_get_flag_status(DMA1_FLAG_TC3|DMA1_FLAG_TE3));
+			 if( stm32::dma_get_flag_status(DMA1_FLAG_TE3) )
+			 {
+				 return ::drv::spi_device::err_dma;
+			 }
+		}
+	#endif /*(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)*/
+		return ::drv::spi_device::err_ok;
+	}
+	inline int dma_rx_busy_wait(SPI_TypeDef *spi)
+	{
+	#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)
+		/* Busy wait */
+		if( spi == SPI1 )
+		{
+			while(!(stm32::dma_get_flag_status(DMA1_FLAG_TC3) &&  stm32::dma_get_flag_status(DMA1_FLAG_TC2)))
+			{
+				if( stm32::dma_get_flag_status(DMA1_FLAG_TE3|DMA1_FLAG_TE2) )
+				{
+					 return ::drv::spi_device::err_dma;
+				}
+			}
+		}
+	#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ & ISIX_DRV_SPI_DMAIRQ_SPI1_ENABLE */
+		return ::drv::spi_device::err_ok;
 	}
 }
 
@@ -220,16 +255,7 @@ int spi_master_dma::write( const void *buf, size_t len)
 	    }
 	} while(0);
 #else
-#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)
-	if( m_spi == SPI1 )
-	{
-		 while(!stm32::dma_get_flag_status(DMA1_FLAG_TC3|DMA1_FLAG_TE3));
-		 if( stm32::dma_get_flag_status(DMA1_FLAG_TE3) )
-		 {
-			 ret = spi_device::err_dma;
-		 }
-	}
-#endif /*(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)*/
+	ret = dma_tx_busy_wait(m_spi);
 #endif /*ISIX_DRV_SPI_DMA_WITH_IRQ*/
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
@@ -258,18 +284,7 @@ int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 		}
 	} while(0);
 #else
-#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)
-	if( m_spi == SPI1 )
-	{
-		while(!(stm32::dma_get_flag_status(DMA1_FLAG_TC3) &&  stm32::dma_get_flag_status(DMA1_FLAG_TC2)))
-		{
-			if( stm32::dma_get_flag_status(DMA1_FLAG_TE3|DMA1_FLAG_TE2) )
-			{
-				ret = spi_device::err_dma;
-			}
-		}
-	}
-#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ & ISIX_DRV_SPI_DMAIRQ_SPI1_ENABLE */
+	ret = dma_rx_busy_wait(m_spi);
 #endif /*ISIX_DRV_SPI_DMA_WITH_IRQ*/
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
 	dma_rx_disable(m_spi);
