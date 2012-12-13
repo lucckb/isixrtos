@@ -61,10 +61,10 @@ namespace drv
 			MMC_CMD_MISMATCH_RESPONSE  = 8235,
 			MMC_CARD_NOT_PRESENT  = 8236,
 			MMC_UNRECOGNIZED_CSD  = 8237,
-			MMC_DATA_NOT_ACCEPTED = 8238
+			MMC_DATA_NOT_ACCEPTED = 8238,
+            MMC_UNRECOGNIZED_SCR  = 8239
 		};
-	}
-}
+}}
 /* ------------------------------------------------------------------ */
 #endif /* MMC_ERROR_CODES_HPP_ */
 /* ------------------------------------------------------------------ */

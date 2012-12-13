@@ -16,7 +16,7 @@ namespace mmc {
 /*----------------------------------------------------------*/
 //Unstuff bits for decode card type
 namespace {
-	//Unstu
+	//Unstuff bits
 	inline uint32_t UNSTUFF_BITS(const uint32_t resp[] , size_t start, const size_t size)
 	{
 		const uint32_t mask = (size < 32 ? 1 << size : 0) - 1;
@@ -453,6 +453,15 @@ int mmc_command::validate_r6(uint16_t &rca)
         return MMC_COM_CRC_FAILED;
     }
     return MMC_OK;
+}
+/*----------------------------------------------------------*/
+//Decode SCR bus width
+int mmc_command::decode_scr( scr &scr_reg )
+{
+    if( !(m_flags & resp_ans) )
+	{
+		return MMC_CMD_RSP_TIMEOUT;
+	}
 }
 /*----------------------------------------------------------*/
 }

@@ -31,11 +31,6 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 	if( !m_host.is_spi() )
 	{
 		m_error = sd_mode_initialize();
-		if( !m_error && (m_host.get_capabilities()&mmc_host::cap_4bit) &&
-            (m_bus_width >= mmc_host::bus_width_4b) )
-        {
-            m_error = sd_enable_wide_bus();
-        }
 	}
 	else
 	{
@@ -49,14 +44,49 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 		m_error = m_host.execute_command_resp_check( cmd, C_card_timeout );
 		dbprintf("BLOCKLEN ret=%i", m_error );
 	}
+    if ( !m_host.is_spi() )
+    {
+        m_error = read_ocr_card_info();
+    }
+    m_error = read_ocr_card_info();
 	//Update card parameters
-	uint32_t tran_speed = read_base_card_info();
+	uint32_t tran_speed = read_csd_card_info();
 	if( !m_error )
 	{
 		dbprintf("SET tran speed to %lu ", tran_speed );
 		//Set maximum speed
 		m_host.set_ios( mmc_host::ios_set_speed, tran_speed/1000 );
 	}
+    if( !m_host.is_spi() )
+    {
+   		if( !m_error && (m_host.get_capabilities()&mmc_host::cap_4bit) &&
+            (m_bus_width >= mmc_host::bus_width_4b) )
+        {
+            m_error = sd_enable_wide_bus();
+        }
+    }
+}
+/*----------------------------------------------------------*/
+//Read extended card info
+int mmc_card::read_ocr_card_info()
+{
+    int ret = MMC_OK;
+    mmc_command cmd( mmc_command::OP_SD_APP_SEND_SCR, 0 );
+    scr scr;
+    do {
+        
+        if(( ret=m_host.execute_command_resp_check( cmd, C_card_timeout ))) break;
+       	if( (ret=m_host.receive_data( cmd.get_resp_buffer(), 8, C_card_timeout ))) break;
+        if( (ret=cmd.decode_scr(scr)) ) break;
+    } while(0);
+    if( !ret )
+    {
+        m_block_count_avail = scr.is_set_block_count;
+        m_bus_width = (scr.bus_width_4b)?(mmc_host::bus_width_4b):(mmc_host::bus_width_1b);
+        if( !scr.bus_width_1b )
+            ret = MMC_UNRECOGNIZED_SCR;
+    }
+    return ret;
 }
 /*----------------------------------------------------------*/
 //Enable wide bus operation
@@ -67,7 +97,7 @@ int mmc_card::sd_enable_wide_bus()
     {
         do
         {
-            
+
         }
         while(0);
     }
@@ -146,7 +176,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 			//Downgrade the task priority (card pooling)
 			int pprio = isix::isix_task_change_prio(NULL, isix::isix_get_min_priority());
 			if( !pprio ) return pprio;
-			//WAIT for SDV1 initialization
+		    //WAIT for SDV1 initialization
 			static const int Cond_retries = 100;
 			for(int retry=0; retry<Cond_retries; retry++ )
 			{
@@ -235,7 +265,7 @@ int mmc_card::sd_mode_initialize()
 }
 /*----------------------------------------------------------*/
 //Update card parameters
-uint32_t mmc_card::read_base_card_info()
+uint32_t mmc_card::read_csd_card_info()
 {
 	uint32_t tran_speed;
 	mmc_command cmd( mmc_command::OP_SEND_CSD, m_rca<<16 );

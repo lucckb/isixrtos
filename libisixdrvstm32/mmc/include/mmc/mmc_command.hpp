@@ -11,6 +11,7 @@
 #include "noncopyable.hpp"
 #include <stdint.h>
 #include "mmc/mmc_error_codes.hpp"
+#include "mmc/mmc_defs.hpp"
 /*----------------------------------------------------------*/
 namespace drv {
 namespace mmc {
@@ -194,14 +195,15 @@ private:
 			case OP_WRITE_SINGLE_BLOCK: m_flags = resp_R1|resp_spi_R1;    break;
 			case OP_READ_MULT_BLOCK:	m_flags = resp_R1|resp_spi_R1;    break;
 			case OP_READ_SINGLE_BLOCK:  m_flags = resp_R1|resp_spi_R1;    break;
-			case OP_STOP_TRANSMISSION:	m_flags = resp_R1B|resp_spi_R1B|resp_spi_cs; break;
-			case OP_SEND_STATUS:		m_flags = resp_R1|resp_spi_R2|resp_spi_cs;   break;
+			case OP_STOP_TRANSMISSION:	m_flags = resp_R1B|resp_spi_R1B|resp_spi_cs;  break;
+			case OP_SEND_STATUS:		m_flags = resp_R1|resp_spi_R2|resp_spi_cs;    break;
 			case OP_SEND_CID:			m_flags = resp_R2|resp_spi_R1D|resp_spi_cs;   break;
 			case OP_SEND_CSD:			m_flags = resp_R2|resp_spi_R1D|resp_spi_cs;   break;
 			case OP_SD_APP_STATUS:		m_flags = resp_R1|resp_spi_R2;    break;
             case OP_ALL_SEND_CID:       m_flags = resp_R2;                break; 
             case OP_SET_REL_ADDR:       m_flags = resp_R6;                break;
             case OP_SEL_DESEL_CARD:     m_flags = resp_R1B;               break;
+            case OP_SD_APP_SEND_SCR:    m_flags = resp_R1|resp_spi_R1|resp_spi_cs;    break;
 			default: 					m_flags = resp_none;			  break;
 		}
 	}
@@ -333,6 +335,8 @@ public:
 	int decode_csd_erase( uint32_t &erase_sects, bool mmc );
 	//Decode ststats
 	static uint32_t decode_sdstat_erase( uint32_t buf[] );
+    //Decode SCR bus width
+    int decode_scr( scr &scr_reg );
 	//Decode tran speed
 	int decode_csd_tran_speed( uint32_t &tran_speed );
 private:

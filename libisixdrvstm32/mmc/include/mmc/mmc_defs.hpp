@@ -24,7 +24,15 @@ struct cid
     unsigned char       fwrev;
     unsigned char       month;
 };
-
+/*----------------------------------------------------------*/
+struct scr
+{
+    unsigned char spec;
+    unsigned char bus_width_1b : 1;
+    unsigned char bus_width_4b : 1;
+    unsigned char is_set_block_count: 1;
+    unsigned char is_speed_class: 1;
+};
 /*----------------------------------------------------------*/
 }}
 /*----------------------------------------------------------*/
