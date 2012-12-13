@@ -25,7 +25,7 @@
 namespace stm32 {
 namespace drv {
 /*----------------------------------------------------------*/
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 /* Interrupt handler section */
 namespace {
 #if CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE
@@ -43,7 +43,7 @@ namespace {
 /*----------------------------------------------------------*/
 
 extern "C" {
-#if  CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if  CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 #if CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE
 	// Interrupt handlers SPI1 RX
 	void __attribute__((__interrupt__)) dma1_channel2_isr_vector(void)
@@ -130,11 +130,11 @@ namespace
 /*----------------------------------------------------------*/
 spi_master_dma::spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2)
 		: spi_master(spi, pclk1, pclk2)
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 	,m_notify_sem(0, 1), m_irq_flags(0)
-#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK */
+#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ */
 {
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 #if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)
 	if(spi == SPI1 ) p_spi1 = this;
 #endif
@@ -145,7 +145,7 @@ spi_master_dma::spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2)
 	if(spi == SPI3) p_spi3 = this;
 #endif
 
-#endif /* CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK */
+#endif /* CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ */
 #ifdef STM32MCU_MAJOR_TYPE_F1
 	if( m_spi == SPI1 || m_spi == SPI2 )
 		stm32::rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_DMA1, true);
@@ -156,12 +156,12 @@ spi_master_dma::spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2)
 #if CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE
 	if( m_spi == SPI1 )
 	{
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 		stm32::nvic_set_priority( DMA1_Channel2_IRQn, IRQPRIO, IRQSUB );
 		stm32::nvic_set_priority( DMA1_Channel3_IRQn, IRQPRIO, IRQSUB );
 		stm32::nvic_irq_enable( DMA1_Channel2_IRQn, true );
 		stm32::nvic_irq_enable( DMA1_Channel3_IRQn, true );
-#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK*/
+#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ*/
 		//Enable channel3 for TX
 		stm32::dma_channel_config( DMA1_Channel3,
 				DMA_MemoryInc_Enable|DMA_PeripheralInc_Disable|DMA_PeripheralDataSize_Byte|
@@ -174,10 +174,10 @@ spi_master_dma::spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2)
 			DMA_M2M_Disable |DMA_DIR_PeripheralSRC,  0, &m_spi->DR, 0 );
 		//Enable interrupts
 		stm32::spi_i2s_dma_cmd( m_spi, SPI_I2S_DMAReq_Rx| SPI_I2S_DMAReq_Tx, true );
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 		stm32::dma_irq_enable ( DMA1_Channel2, DMA_IT_TE | DMA_IT_TC );
 		stm32::dma_irq_enable ( DMA1_Channel3, DMA_IT_TE | DMA_IT_TC );
-#endif /* CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK */
+#endif /* CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ */
 	}
 #endif /*(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS) */
 #endif /* STM32MCU_MAJOR_TYPE_F1 */
@@ -188,7 +188,7 @@ spi_master_dma::~spi_master_dma()
 {
 	dma_rx_disable(m_spi);
 
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 #if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE)
 	if( m_spi == SPI1 )  p_spi1 = 0;
 #endif
@@ -198,18 +198,18 @@ spi_master_dma::~spi_master_dma()
 #if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI3_ENABLE)
 	if( m_spi == SPI3 )  p_spi3 = 0;
 #endif
-#endif /* CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK */
+#endif /* CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ */
 }
 /*----------------------------------------------------------*/
 /* Write to the device */
 int spi_master_dma::write( const void *buf, size_t len)
 {
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 	stm32::resetBitsAll_BB(&m_irq_flags);
 #endif
 	dma_tx_config( m_spi, buf, len );
 	int ret = spi_device::err_ok;
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 	do {
 		if( (ret=m_notify_sem.wait( spi_device::C_spi_timeout )) )
 			break;
@@ -241,12 +241,12 @@ int spi_master_dma::write( const void *buf, size_t len)
 /* Transfer from the device */
 int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 {
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 	stm32::setBitsAll_BB(&m_irq_flags, 1<<irqs_rxmode );
 #endif
 	dma_rx_config( m_spi, inbuf, outbuf, len );
 	int ret;
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 	do
 	{
 		if( (ret=m_notify_sem.wait( spi_device::C_spi_timeout )) )
@@ -269,14 +269,14 @@ int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 			}
 		}
 	}
-#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK & ISIX_DRV_SPI_DMAIRQ_SPI1_ENABLE */
+#endif /*CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ & ISIX_DRV_SPI_DMAIRQ_SPI1_ENABLE */
 #endif /*ISIX_DRV_SPI_DMA_WITH_IRQ*/
 	while(spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_BSY));
 	dma_rx_disable(m_spi);
 	return ret;
 }
 /*----------------------------------------------------------*/
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 //Handle DMA TX IRQ
 void spi_master_dma::handle_isr( spi_master_dma::irqs_no reason )
 {

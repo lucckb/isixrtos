@@ -19,7 +19,7 @@ namespace drv {
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 extern "C" {
-#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE) && CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE) && CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 	void dma1_channel2_isr_vector(void) __attribute__((__interrupt__));
 	void dma1_channel3_isr_vector(void) __attribute__((__interrupt__));
 #endif
@@ -31,7 +31,7 @@ class spi_master_dma : public spi_master
 {
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
-#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE) && CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS & ISIX_DRV_SPI_SPI1_ENABLE) && CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 	friend void dma1_channel2_isr_vector(void);
 	friend void dma1_channel3_isr_vector(void);
 #endif
@@ -64,7 +64,7 @@ public:
 	/* Transfer (BIDIR) */
 	virtual int transfer( const void *inbuf, void *outbuf, size_t len );
 private:
-#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
+#if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 	//Handle DMA TX IRQ
 	void handle_isr( irqs_no reason );
 private:
