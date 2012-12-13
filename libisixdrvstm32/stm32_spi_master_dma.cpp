@@ -194,8 +194,7 @@ namespace
 spi_master_dma::~spi_master_dma()
 {
 #ifdef STM32MCU_MAJOR_TYPE_F1
-	stm32::rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_DMA1, false);
-	stm32::rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_DMA2, false);
+	dma_rx_disable(m_spi);
 #endif
 
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
