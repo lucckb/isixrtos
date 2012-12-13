@@ -65,6 +65,53 @@ extern "C" {
 }
 
 /*----------------------------------------------------------*/
+namespace
+{
+	//Wait for dma complete
+	inline void dma_tx_config(SPI_TypeDef *spi, const void* buf, std::size_t len )
+	{
+	#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
+		if( spi == SPI1 )
+		{
+			dma_set_memory_address(DMA1_Channel3, buf );
+			DMA1_Channel3->CCR |= DMA_MemoryInc_Enable;
+			stm32::dma_set_curr_data_counter( DMA1_Channel3, len );
+			stm32::dma_clear_flag( DMA1_FLAG_GL3|DMA1_FLAG_TC3|DMA1_FLAG_HT3|DMA1_FLAG_TE3);
+			stm32::dma_channel_enable(DMA1_Channel3);
+		}
+	#endif
+	}
+	inline void dma_rx_config(SPI_TypeDef *spi, const void* inbuf, void *outbuf, std::size_t len )
+	{
+		static const unsigned char dummy = 0xff;
+	#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
+		if( spi == SPI1 )
+		{
+			/* Setup empty TX trn */
+			if(outbuf)
+			{
+				DMA1_Channel3->CCR |= DMA_MemoryInc_Enable;
+				dma_set_memory_address(DMA1_Channel3, outbuf );
+			}
+			else
+			{
+				DMA1_Channel3->CCR &= ~DMA_MemoryInc_Enable;
+				dma_set_memory_address(DMA1_Channel3, &dummy );
+			}
+			stm32::dma_set_curr_data_counter( DMA1_Channel3, len );
+			stm32::dma_clear_flag( DMA1_FLAG_GL3 );
+			/* RX tran */
+			dma_set_memory_address(DMA1_Channel2, inbuf );
+			stm32::dma_set_curr_data_counter( DMA1_Channel2, len );
+			stm32::dma_clear_flag( DMA1_FLAG_GL2 );
+			stm32::dma_channel_enable(DMA1_Channel2);
+			stm32::dma_channel_enable(DMA1_Channel3);
+		}
+	#endif
+	}
+}
+
+/*----------------------------------------------------------*/
 #if(!CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
 	spi_master_dma::spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2)
 		: spi_master(spi, pclk1, pclk2)
@@ -149,18 +196,7 @@ int spi_master_dma::write( const void *buf, size_t len)
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
 	stm32::resetBitsAll_BB(&m_irq_flags);
 #endif
-#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
-	if( m_spi == SPI1 )
-	{
-#ifdef STM32MCU_MAJOR_TYPE_F1
-		dma_set_memory_address(DMA1_Channel3, buf );
-		DMA1_Channel3->CCR |= DMA_MemoryInc_Enable;
-		stm32::dma_set_curr_data_counter( DMA1_Channel3, len );
-		stm32::dma_clear_flag( DMA1_FLAG_GL3|DMA1_FLAG_TC3|DMA1_FLAG_HT3|DMA1_FLAG_TE3);
-		stm32::dma_channel_enable(DMA1_Channel3);
-#endif /*STM32MCU_MAJOR_TYPE_F1 */
-	}
-#endif
+	dma_tx_config( m_spi, buf, len );
 	int ret = spi_device::err_ok;
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
 	do {
@@ -199,34 +235,10 @@ int spi_master_dma::write( const void *buf, size_t len)
 /* Transfer from the device */
 int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 {
-	static const unsigned char dummy = 0xff;
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
 	stm32::setBitsAll_BB(&m_irq_flags, 1<<irqs_rxmode );
 #endif
-#if (CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS)
-	if( m_spi == SPI1 )
-	{
-		/* Setup empty TX trn */
-		if(outbuf)
-		{
-			DMA1_Channel3->CCR |= DMA_MemoryInc_Enable;
-			dma_set_memory_address(DMA1_Channel3, outbuf );
-		}
-		else
-		{
-			DMA1_Channel3->CCR &= ~DMA_MemoryInc_Enable;
-			dma_set_memory_address(DMA1_Channel3, &dummy );
-		}
-		stm32::dma_set_curr_data_counter( DMA1_Channel3, len );
-		stm32::dma_clear_flag( DMA1_FLAG_GL3 );
-		/* RX tran */
-		dma_set_memory_address(DMA1_Channel2, inbuf );
-		stm32::dma_set_curr_data_counter( DMA1_Channel2, len );
-		stm32::dma_clear_flag( DMA1_FLAG_GL2 );
-		stm32::dma_channel_enable(DMA1_Channel2);
-		stm32::dma_channel_enable(DMA1_Channel3);
-	}
-#endif
+	dma_rx_config( m_spi, inbuf, outbuf, len );
 	int ret;
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ_MASK
 	do
