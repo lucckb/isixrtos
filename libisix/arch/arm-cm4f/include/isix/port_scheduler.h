@@ -35,7 +35,27 @@ static inline void port_cleanup_task(void */*sp*/) {}
 #else
 #define port_cleanup_task(p) do {} while(0)
 #endif
+
 /*-----------------------------------------------------------------------*/
+#define SYST_CVR (*((volatile unsigned long*)0xE000E018))
+#define SYST_RVR (*((volatile unsigned long*)0xE000E014))
+
+//Get HI resolution timer (must be inline)
+static inline unsigned long port_get_hres_jiffies_timer_value(void)
+{
+	return SYST_RVR - SYST_CVR;
+}
+/*-----------------------------------------------------------------------*/
+//Get hres timer max value
+static inline unsigned long port_get_hres_jiffies_timer_max_value(void)
+{
+	return SYST_RVR;
+}
+
+#undef SYST_CVR
+#undef SYST_RVR
+/*-----------------------------------------------------------------------*/
+
 //Idle task additional
 static inline void port_idle_cpu( void )
 {
