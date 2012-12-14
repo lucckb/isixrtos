@@ -24,6 +24,16 @@ namespace
 	const unsigned C_low_clk_khz_host = 400;
 	//C block size
 	const size_t C_block_len = 512;
+
+	//Check for timer elapsed
+	inline bool timer_elapsed(isix::tick_t t1, isix::tick_t timeout)
+	{
+	    isix::tick_t t2 = isix::isix_get_jiffies();
+	    if( t2 >= t1) 	//Not overflow
+		    return t2 - t1 > timeout;
+	    else   	       //Overflow
+		    return t1 - t2 > timeout;
+	}
 }
 
 /*----------------------------------------------------------*/
@@ -110,9 +120,7 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 		{
 			r1 = m_spi.transfer(0xff);
 		}
-		while(  r1 == 0x00 &&
-				(isix::isix_get_jiffies()-t_start<timeout)
-			  );
+		while( r1==0x00 && timer_elapsed(t_start, timeout) );
 		if( prio >= 0 )
 			isix::isix_task_change_prio( NULL, prio );
 	}
@@ -162,7 +170,7 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		//TODO: TImeout Czekaj az karta bedzie wolna
 		while( (r1=m_spi.transfer(0xff))==0 )
 		{
-			if( isix::isix_get_jiffies() > t_start + timeout )
+			if( timer_elapsed(t_start, timeout) )
 			{
 				CS(1);
 				return MMC_DATA_TIMEOUT;
@@ -177,7 +185,7 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		uint8_t r1;
 		while( (r1=m_spi.transfer(0xff))==0 )
 		{
-			if( isix::isix_get_jiffies() > t_start + timeout )
+			if( timer_elapsed(t_start, timeout) )
 			{
 				CS(1);
 				return MMC_DATA_TIMEOUT;
@@ -187,9 +195,9 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 	//Wait for free
 	while( m_spi.transfer(0xff)==0 )
 	{
-		if( isix::isix_get_jiffies() > t_start + timeout )
+		if( timer_elapsed(t_start, timeout) )
 		{
-			m_spi.CS(true, 0);
+			CS(1);
 			return MMC_DATA_TIMEOUT;
 		}
 	}
@@ -213,10 +221,9 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 		{
 			CS(1);
 			dbprintf("Data token error 0x%02x", r1);
-			//TODO fix it
-			return MMC_DATA_NOT_ACCEPTED+1;
+			return MMC_DATA_ERROR;
 		}
-		if( isix::isix_get_jiffies() > t_start + timeout )
+		if( timer_elapsed(t_start, timeout) )
 		{
 			CS(1);
 			return MMC_DATA_TIMEOUT;

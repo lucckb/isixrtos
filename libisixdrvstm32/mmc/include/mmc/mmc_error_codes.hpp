@@ -62,7 +62,8 @@ namespace drv
 			MMC_CARD_NOT_PRESENT  = 8236,
 			MMC_UNRECOGNIZED_CSD  = 8237,
 			MMC_DATA_NOT_ACCEPTED = 8238,
-            MMC_UNRECOGNIZED_SCR  = 8239
+            MMC_UNRECOGNIZED_SCR  = 8239,
+            MMC_DATA_ERROR =		8240
 		};
 }}
 /* ------------------------------------------------------------------ */
