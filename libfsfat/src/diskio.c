@@ -29,7 +29,7 @@
 #if (ISIX_FATFS_MODE==ISIX_FATFS_USE_SDIO_MODE)
 #include "sdio_sdcard_driver.h"
 #elif (ISIX_FATFS_MODE==ISIX_FATFS_USE_SPI_MODE)
-#include "spi_sdcard_driver.h"
+//#include "spi_sdcard_driver.h"
 #else
 #error "Unknown SPI driver mode"
 #endif
@@ -42,12 +42,12 @@
 #define _sdcard_read isix_sdio_card_driver_read
 #define _sdcard_write isix_sdio_card_driver_write
 #elif (ISIX_FATFS_MODE==ISIX_FATFS_USE_SPI_MODE)
-#define _sdcard_init isix_spisd_card_driver_init
-#define _scard_reinitialize isix_spisd_card_driver_reinitialize
-#define _sdcard_is_card_in_slot isix_spisd_card_driver_is_card_in_slot
-#define _sdcard_card_driver_status isix_spisd_card_driver_status
-#define _sdcard_read isix_spisd_card_driver_read
-#define _sdcard_write isix_spisd_card_driver_write
+#define _sdcard_init(a) (1)
+#define _scard_reinitialize(a) (1)
+#define _sdcard_is_card_in_slot() (1)
+#define _sdcard_card_driver_status() (1)
+#define _sdcard_read(a, b, c) (1)
+#define _sdcard_write(a, b, c) (1)
 #endif
 /*-----------------------------------------------------------------------*/
 DWORD get_fattime(void)
@@ -63,6 +63,7 @@ DSTATUS disk_initialize (
 		BYTE drv				/* Physical drive nmuber (0..) */
 )
 {
+#if 0
 	(void)drv;
 	switch ( _sdcard_init() )
 	{
@@ -76,6 +77,7 @@ DSTATUS disk_initialize (
 	default:
 		return RES_ERROR;
 	}
+#endif
 }
 
 /*-----------------------------------------------------------------------*/
@@ -86,6 +88,7 @@ DSTATUS disk_status (
 	BYTE drv		/* Physical drive nmuber (0..) */
 )
 {
+#if 0
 	(void)drv;
 	if( !_sdcard_is_card_in_slot() )
 		return STA_NODISK;
@@ -99,6 +102,7 @@ DSTATUS disk_status (
 	default:
 		return 0;
 	}
+#endif
 }
 
 /*-----------------------------------------------------------------------*/
@@ -112,6 +116,7 @@ DRESULT disk_read (
 	BYTE count		/* Number of sectors to read (1..128) */
 )
 {
+#if 0
 	(void)drv;
 	if( _sdcard_read(buff, sector, count) )
 	{
@@ -119,6 +124,7 @@ DRESULT disk_read (
 	}
 	else
 		return RES_OK;
+#endif
 }
 
 /*-----------------------------------------------------------------------*/
@@ -133,6 +139,7 @@ DRESULT disk_write (
 	BYTE count			/* Number of sectors to write (1..128) */
 )
 {
+#if 0
 	(void)drv;
 	if( _sdcard_write( buff, sector, count) )
 	{
@@ -140,6 +147,7 @@ DRESULT disk_write (
 	}
 	else
 		return RES_OK;
+#endif
 }
 #endif
 
@@ -155,6 +163,7 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
+#if 0
 	(void)drv; (void)buff;
 	switch( ctrl )
 	{
@@ -163,5 +172,6 @@ DRESULT disk_ioctl (
 	default:
 		return RES_ERROR;
 	}
+#endif
 }
 #endif
