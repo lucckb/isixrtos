@@ -177,6 +177,7 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 			}
 		}
 	}
+	const int prio = isix::isix_task_change_prio( NULL, isix::isix_get_min_priority() );
 	if( m_proc_cmd == mmc_command::OP_WRITE_MULT_BLOCK )
 	{
 		//dbprintf("STOP TRAN WRITE");
@@ -188,6 +189,8 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 			if( timer_elapsed(t_start, timeout) )
 			{
 				CS(1);
+				if( prio >= 0 )
+					isix::isix_task_change_prio( NULL, prio );
 				return MMC_DATA_TIMEOUT;
 			}
 		}
@@ -198,11 +201,15 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		if( timer_elapsed(t_start, timeout) )
 		{
 			CS(1);
+			if( prio >= 0 )
+				isix::isix_task_change_prio( NULL, prio );
 			return MMC_DATA_TIMEOUT;
 		}
 	}
 	// Zwolnij CS
 	CS(1);
+	if( prio >= 0 )
+		isix::isix_task_change_prio( NULL, prio );
 	// Zwroc OK
 	return MMC_OK;
 }
@@ -213,6 +220,8 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 	const isix::tick_t t_start = isix::isix_get_jiffies();
 	timeout = isix::isix_ms2tick( timeout * (len/C_block_len+1));
 	char* bbuf = static_cast<char*>(buf);
+	//Downgrade priority during pool
+	const int prio = isix::isix_task_change_prio( NULL, isix::isix_get_min_priority() );
 	for(;;)
 	{
 		uint8_t r1 = m_spi.transfer(0xFF);
@@ -220,15 +229,21 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 		else if((r1&MMC_DE_CHECK_MASK)==MMC_DE_ERROR)
 		{
 			CS(1);
+			if( prio >= 0 )
+				isix::isix_task_change_prio( NULL, prio );
 			dbprintf("Data token error 0x%02x", r1);
 			return MMC_DATA_ERROR;
 		}
 		if( timer_elapsed(t_start, timeout) )
 		{
 			CS(1);
+			if( prio >= 0 )
+				isix::isix_task_change_prio( NULL, prio );
 			return MMC_DATA_TIMEOUT;
 		}
 	}
+	if( prio >= 0 )
+		isix::isix_task_change_prio( NULL, prio );
 	for(size_t packet=0; packet<len; packet+=C_block_len)
 	{
 		m_spi.read( bbuf+packet, len>C_block_len?C_block_len:len );
