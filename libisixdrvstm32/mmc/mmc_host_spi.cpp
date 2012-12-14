@@ -247,27 +247,33 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 	//Execute IO config
 int mmc_host_spi::set_ios( ios_cmd cmd, int param )
 {
+	int ret = err_OK;
 	switch( cmd )
 	{
+	//PWR OFF
 	case mmc_host::ios_pwr_off:
 		m_spi.enable( false );
 		break;
+	//PWR ON
 	case mmc_host::ios_pwr_on:
 		isix::isix_wait_ms( 5 );
-		m_spi.set_mode( C_spi_mode, C_low_clk_khz_host );
+		ret = m_spi.set_mode( C_spi_mode, C_low_clk_khz_host );
 		CS(1);
 		m_spi.flush( 10 );
 		dbprintf("Power on");
 		break;
+	//SET SPEED
 	case mmc_host::ios_set_speed:
 		if( m_spi_speed_limit_khz && param > m_spi_speed_limit_khz )
 			param = m_spi_speed_limit_khz;
-		m_spi.set_mode( C_spi_mode, param );
+		ret = m_spi.set_mode( C_spi_mode, param );
 		break;
-	case mmc_host::ios_set_bus_with:
-		return err_not_supported;
+	//UNSUPORTED FEATURE
+	default:
+		ret = err_not_supported;
+		break;
 	}
-	return err_OK;
+	return ret;
 }
 /*----------------------------------------------------------*/
 } /* namespace drv */
