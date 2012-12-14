@@ -22,6 +22,8 @@ public:
 	mmc_host_spi( spi_device &spi_dev, int spi_speed_limit_khz=0 )
 		: m_spi( spi_dev ), m_proc_cmd(0), m_spi_speed_limit_khz(spi_speed_limit_khz)
 	{}
+	virtual ~mmc_host_spi()
+	{}
 	//Execute MMC command
 	virtual int execute_command( mmc_command &req, unsigned timeout );
 	//Execute MMC data transfer
