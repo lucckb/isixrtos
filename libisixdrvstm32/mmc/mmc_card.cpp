@@ -313,7 +313,7 @@ int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::si
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		}
 	} while(0);
-	dbprintf("WRITE=%i", ret);
+	//dbprintf("WRITE=%i", ret);
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -358,7 +358,7 @@ int mmc_card::write_single_block( const void* buf, unsigned long laddr )
 		if( (ret=m_host.send_data( buf, C_sector_size, C_card_timeout ))) break;
 
 	} while(0);
-	dbprintf("SingleWR = %i", ret);
+	//dbprintf("SingleWR = %i", ret);
 	return ret;
 }
 /*----------------------------------------------------------*/

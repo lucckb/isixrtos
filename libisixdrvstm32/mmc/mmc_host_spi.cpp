@@ -179,7 +179,7 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 	}
 	if( m_proc_cmd == mmc_command::OP_WRITE_MULT_BLOCK )
 	{
-		dbprintf("STOP TRAN WRITE");
+		//dbprintf("STOP TRAN WRITE");
 		m_spi.transfer( MMC_STOPTRAN_WRITE );
 		// Wait for card release
 		uint8_t r1;
