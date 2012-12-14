@@ -80,9 +80,9 @@ private:
 	//Update card parameters
 	uint32_t read_csd_card_info();
     //Enable wide bus
-    int sd_enable_wide_bus();
+    int sd_enable_wide_bus( int width );
     //Read extended card info
-    int read_ocr_card_info();
+    int read_scr_card_info();
 private:
 	mmc_host& m_host;						//Host
 	card_type m_type;						//Card type

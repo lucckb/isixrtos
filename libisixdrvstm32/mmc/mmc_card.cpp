@@ -46,29 +46,39 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 	}
     if ( !m_host.is_spi() )
     {
-        m_error = read_ocr_card_info();
+        m_error = read_scr_card_info();
     }
-    m_error = read_ocr_card_info();
 	//Update card parameters
 	uint32_t tran_speed = read_csd_card_info();
 	if( !m_error )
 	{
 		dbprintf("SET tran speed to %lu ", tran_speed );
 		//Set maximum speed
-		m_host.set_ios( mmc_host::ios_set_speed, tran_speed/1000 );
+		m_error = m_host.set_ios( mmc_host::ios_set_speed, tran_speed/1000 );
 	}
-    if( !m_host.is_spi() )
+    if( !m_host.is_spi() && m_type!=type_mmc && !m_error )
     {
-   		if( !m_error && (m_host.get_capabilities()&mmc_host::cap_4bit) &&
+   		if( (m_host.get_capabilities()&mmc_host::cap_4bit) &&
             (m_bus_width >= mmc_host::bus_width_4b) )
         {
-            m_error = sd_enable_wide_bus();
+            m_error = sd_enable_wide_bus( mmc_host::bus_width_4b );
+            dbprintf("Try to enable wide bus4b OP %i", m_error );
         }
+   		else
+   		{
+   			m_error = sd_enable_wide_bus( mmc_host::bus_width_1b );
+   			dbprintf("Try to enable wide bus4b OP %i", m_error );
+   		}
+   		if( !m_error )
+   		{
+   			m_error = m_host.set_ios( mmc_host::ios_set_bus_with, m_bus_width);
+   			dbprintf("Switch SD bus to %i mode", m_error );
+   		}
     }
 }
 /*----------------------------------------------------------*/
 //Read extended card info
-int mmc_card::read_ocr_card_info()
+int mmc_card::read_scr_card_info()
 {
     int ret = MMC_OK;
     mmc_command cmd( mmc_command::OP_SD_APP_SEND_SCR, 0 );
@@ -90,17 +100,18 @@ int mmc_card::read_ocr_card_info()
 }
 /*----------------------------------------------------------*/
 //Enable wide bus operation
-int mmc_card::sd_enable_wide_bus()
+int mmc_card::sd_enable_wide_bus( int width )
 {
     int ret = MMC_OK;
-    if( m_type != type_mmc )
+    mmc_command cmd;
+    do
     {
-        do
-        {
-
-        }
-        while(0);
+        cmd( mmc_command::OP_APP_CMD, unsigned(m_rca)<<16 );
+    	if(( ret=m_host.execute_command_resp_check( cmd, C_card_timeout ))) break;
+    	cmd( mmc_command::OP_APP_SD_SET_BUSWIDTH, (width==mmc_host::bus_width_4b)?(0x02):(0x00) );
+    	if(( ret=m_host.execute_command_resp_check( cmd, C_card_timeout ))) break;
     }
+    while(0);
     return ret;
 }
 /*----------------------------------------------------------*/
