@@ -38,7 +38,7 @@ namespace {
 /*----------------------------------------------------------*/
 err mmc_command::get_err() const
 {
-	if( !(m_flags & resp_ans) )
+	if( !(m_flags & resp_ans) && (m_flags & resp_present) )
 	{
 		return MMC_CMD_RSP_TIMEOUT;
 	}
@@ -60,7 +60,7 @@ err mmc_command::get_err() const
 			}
 			if( m_resp[0] & bR1_COM_CRC_ERROR )
 			{
-			        return MMC_CMD_CRC_FAIL;
+			    return MMC_CMD_CRC_FAIL;
 			}
 			if( m_resp[0] & bR1_ADDRESS_ERROR )
 			{
@@ -219,7 +219,7 @@ err mmc_command::get_err() const
 	    	  }
 	      }
 	}
-	return MMC_INTERNAL_ERROR;
+	return MMC_OK;
 }
 /*----------------------------------------------------------*/
 //Get card status
@@ -260,7 +260,7 @@ int mmc_command::get_card_state() const
     }
 }
 /*----------------------------------------------------------*/
-void mmc_command::set_resp_status()
+void mmc_command::set_resp_spi_status()
 {
 	m_flags |=resp_ans_spi|resp_ans;
 	be32_to_cpu( m_resp, sizeof(m_resp)/sizeof(m_resp[0]) );
@@ -458,18 +458,21 @@ int mmc_command::validate_r6(uint16_t &rca)
 //Decode SCR bus width
 int mmc_command::decode_scr( scr &scr_reg )
 {
-    if( !(m_flags & resp_ans) )
+	if( !(m_flags & resp_ans) )
 	{
 		return MMC_CMD_RSP_TIMEOUT;
 	}
-    if( UNSTUFF_BITS(m_resp, 60, 4) != 0)
+	be32_to_cpu( &m_resp[2], 2 );
+	if( UNSTUFF_BITS(m_resp, 60, 4) != 0)
     {
     	return MMC_UNRECOGNIZED_SCR;
     }
     const uint32_t sd_spec = UNSTUFF_BITS(m_resp, 59, 4 );
     const uint32_t sd_spec3 = UNSTUFF_BITS(m_resp, 47, 1);
     if( sd_spec > 2 )
+    {
     	return MMC_UNRECOGNIZED_SCR;
+    }
     if(sd_spec3)
     	scr_reg.spec = 0x30;
     else
@@ -484,8 +487,9 @@ int mmc_command::decode_scr( scr &scr_reg )
     const uint32_t bus_width = UNSTUFF_BITS(m_resp, 48, 4 );
     scr_reg.bus_width_1b = bus_width&0x01;
     scr_reg.bus_width_4b = (bus_width>>2)&0x01;
-    scr_reg.is_set_block_count = UNSTUFF_BITS(m_resp, 33, 1 );
-    scr_reg.is_speed_class = UNSTUFF_BITS(m_resp, 32, 1 );
+    const uint32_t cmd_class = UNSTUFF_BITS(m_resp, 32, 2 );
+    scr_reg.is_set_block_count = (cmd_class >> 1)&1;
+    scr_reg.is_speed_class = cmd_class & 1;
     return MMC_OK;
 }
 /*----------------------------------------------------------*/

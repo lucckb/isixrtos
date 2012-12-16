@@ -10,6 +10,7 @@
 /*----------------------------------------------------------*/
 #include "noncopyable.hpp"
 #include <stdint.h>
+#include <cstddef>
 #include "mmc/mmc_error_codes.hpp"
 #include "mmc/mmc_defs.hpp"
 /*----------------------------------------------------------*/
@@ -177,12 +178,13 @@ public:
 	};
 	static const uint32_t ARG_IFCOND_3V3_SUPPLY = 0x122;
 	static const uint32_t ARG_OPCOND_HCS = ( 1<<30 );
+	static const uint32_t ARG_OPCOND_VOLT_ALL = 0x008F8000;
 private:
-	void set_flags( op opcode)
+	void set_flags( op opcode, uint32_t arg )
 	{
 		switch( opcode )
 		{
-			case OP_GO_IDLE_STATE: 		m_flags = resp_R1|resp_spi_R1|resp_spi_cs;   break;
+			case OP_GO_IDLE_STATE: 		m_flags = resp_spi_R1|resp_spi_cs;   break;
 			case OP_SEND_IF_COND:		m_flags = resp_R7|resp_spi_R7|resp_spi_cs;   break;
 			case OP_SDIO_READ_OCR:		m_flags = resp_R3|resp_spi_R3|resp_spi_cs;   break;
 			case OP_APP_CMD:			m_flags = resp_R1|resp_spi_R1|resp_spi_cs;   break;
@@ -202,7 +204,7 @@ private:
 			case OP_SD_APP_STATUS:		m_flags = resp_R1|resp_spi_R2;    break;
             case OP_ALL_SEND_CID:       m_flags = resp_R2;                break; 
             case OP_SET_REL_ADDR:       m_flags = resp_R6;                break;
-            case OP_SEL_DESEL_CARD:     m_flags = resp_R1B;               break;
+            case OP_SEL_DESEL_CARD:     m_flags = arg?resp_R1B:resp_none;   break;
             case OP_SD_APP_SEND_SCR:    m_flags = resp_R1|resp_spi_R1|resp_spi_cs;    break;
             case OP_APP_SD_SET_BUSWIDTH: m_flags = resp_R1; 		      break;
 			default: 					m_flags = resp_none;			  break;
@@ -212,7 +214,7 @@ public:
 	mmc_command( op opcode, uint32_t arg )
 	: m_arg(arg), m_opcode(opcode)
 	{
-		set_flags( opcode );
+		set_flags( opcode, arg );
 	}
 	mmc_command()
 		: m_arg(0), m_flags(0), m_opcode(0)
@@ -222,7 +224,7 @@ public:
 	{
 		m_opcode = opcode;
 		m_arg = arg;
-		set_flags(opcode);
+		set_flags(opcode, arg);
 	}
 	//Get opcode
 	uint8_t get_op() const { return m_opcode; }
@@ -248,17 +250,17 @@ public:
 		resp_ans      = 1 << 11,	//! answer
 		resp_spi_d16b = 1 << 12,	//! Transfer extra 16bytes as data after R1
 		/* Standard responses */
-		resp_R1   = (resp_present |resp_crc|resp_opcode|(1<<24)),
+		resp_R1   = (resp_present|resp_crc|resp_opcode|(1<<24)),
 		resp_R1B  = (resp_R1|resp_busy|(1<<24)),
 		resp_R2   = (resp_present|resp_136|resp_crc|(2<<24)),
 		resp_R3   =  resp_present|(3<<24),
 		resp_R4   =  resp_present|(4<<24),
 		resp_R5   =  (resp_present|resp_crc|resp_opcode|(5<<24)),
 		resp_R6   =  (resp_present|resp_crc|resp_opcode|(6<<24)),
-		resp_R7   =  (resp_present|resp_crc|resp_opcode| resp_spi_busy|(7<<24)),
+		resp_R7   =  (resp_present|resp_crc|resp_opcode|resp_spi_busy|(7<<24)),
 		resp_spi_R1   =  resp_spi_s1|(1<<24),
 		resp_spi_R1B  = (resp_spi_s1|resp_spi_busy|(1<<24)),
-		resp_spi_R1D  = resp_spi_s1|resp_spi_d16b|(1<<24),		//! Extra version transfer 16b data as csd
+		resp_spi_R1D  =  resp_spi_s1|resp_spi_d16b|(1<<24),		//! Extra version transfer 16b data as csd
 		resp_spi_R2   = (resp_spi_s1|resp_spi_s2|(2<<24)),
 		resp_spi_R3   = (resp_spi_s1|resp_spi_b4|(3<<24)),
 		resp_spi_R4   = (resp_spi_s1|resp_spi_b4|(4<<24)),
@@ -277,6 +279,17 @@ public:
 	{
 		m_resp[0] = r1;
 		m_flags |=resp_ans_spi|resp_ans;
+	}
+	void set_resp_short( uint32_t r1 )
+	{
+		m_resp[0] = r1;
+		m_resp[1] = r1;
+		m_flags |= resp_ans;
+	}
+	void set_resp_long( uint32_t r1, uint32_t r2, uint32_t r3, uint32_t r4 )
+	{
+		m_resp[0] = r1; m_resp[1] = r2; m_resp[2] = r3; m_resp[3] = r4;
+		m_flags |= resp_ans;
 	}
 	void set_resp_spi_r2(uint8_t r1, uint8_t r2 )
 	{
@@ -325,9 +338,9 @@ public:
     //Validate R6 response
     int validate_r6(uint16_t &rca);
     //Get response buffer
-	uint32_t* get_resp_buffer(){ return m_resp; }
+	uint32_t* get_resp_buffer(size_t pos = 0 ) { return &m_resp[pos]; }
 	//Set response status
-	void set_resp_status();
+	void set_resp_spi_status();
 	//Decode card CID
 	int decode_cid (cid &c, bool mmc) const;
 	//Get sectors count

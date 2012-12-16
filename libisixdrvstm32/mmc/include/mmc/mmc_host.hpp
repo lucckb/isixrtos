@@ -34,7 +34,8 @@ public:
 	enum err
 	{
 		err_OK,
-		err_not_supported=1000
+		err_not_supported=1000,
+		err_invalid_parameter
 	};
 	//!Host capabilities
 	enum mmc_host_cap
@@ -80,6 +81,11 @@ public:
 	virtual int execute_command( mmc_command &req, unsigned timeout ) = 0;
 	//Execute MMC data transfer
 	virtual int send_data( const void *buf, size_t len, unsigned timeout ) = 0;
+	//Prepare for receive data
+	virtual int receive_data_prep( size_t /*len*/, unsigned /*timeout*/ )
+	{
+		return 0;
+	}
 	//Execute MMC data transfer
 	virtual int receive_data( void *buf, size_t len, unsigned timeout ) = 0;
 	//Execute IO config

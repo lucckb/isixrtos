@@ -74,6 +74,7 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 	if( (ret=m_spi.write(qbuf, mpos)) )
 	{
 		m_proc_cmd = 0;
+		CS(1);
 		return ret;
 	}
 	//FIXME temporary busy waiting
@@ -97,7 +98,8 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 		{
 			dbprintf("Timeout error R1=0xFF");
 			m_proc_cmd = 0;
-			return mmc::MMC_CMD_RSP_TIMEOUT;
+			CS(1);
+			return MMC_CMD_RSP_TIMEOUT;
 		}
 	}
 	if( req.get_flags() & mmc_command::resp_spi_s2 )
@@ -123,19 +125,21 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 		while( r1==0x00 && timer_elapsed(t_start, timeout) );
 		if( prio >= 0 )
 			isix::isix_task_change_prio( NULL, prio );
+		if( r1==0x00 )
+			ret = MMC_CMD_RSP_TIMEOUT;
 	}
 	//Extra data CSD or CID for SD card simulation
-	if( req.get_flags() & mmc_command::resp_spi_d16b )
+	if( (req.get_flags()&mmc_command::resp_spi_d16b) && (!ret))
 	{
 		dbprintf("EXTRA DATA ERR %d", req.get_err() );
 		if( (ret=req.get_err()) ) return ret;
 		ret = receive_data( req.get_resp_buffer(), 16, timeout );
 		dbprintf("EXTRA DATA read ERR %d", ret );
 		if( !ret )
-			req.set_resp_status();
+			req.set_resp_spi_status();
 	}
 	//Check chip select flags
-	if( req.get_flags() & mmc_command::resp_spi_cs )
+	if( (req.get_flags()&mmc_command::resp_spi_cs) || ret )
 	{
 		CS(1);
 		m_proc_cmd = 0;

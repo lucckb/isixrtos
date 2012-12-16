@@ -47,9 +47,15 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
     if ( !m_host.is_spi() )
     {
         m_error = read_scr_card_info();
+        dbprintf("read_scr_card_info %i", m_error );
     }
-	//Update card parameters
-	uint32_t tran_speed = read_csd_card_info();
+    uint32_t tran_speed;
+    if( !m_error )
+    {
+		//Update card parameters
+		tran_speed = read_csd_card_info();
+		dbprintf("read_csd_card_info %i", m_error );
+    }
 	if( !m_error )
 	{
 		dbprintf("SET tran speed to %lu ", tran_speed );
@@ -67,7 +73,7 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
    		else
    		{
    			m_error = sd_enable_wide_bus( mmc_host::bus_width_1b );
-   			dbprintf("Try to enable wide bus4b OP %i", m_error );
+   			dbprintf("Try to enable wide bus1b OP %i", m_error );
    		}
    		if( !m_error )
    		{
@@ -81,12 +87,16 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 int mmc_card::read_scr_card_info()
 {
     int ret = MMC_OK;
-    mmc_command cmd( mmc_command::OP_SD_APP_SEND_SCR, 0 );
+    mmc_command cmd;
     scr scr;
+    static const size_t C_scr_size = 8;
     do {
-        
-        if(( ret=m_host.execute_command_resp_check( cmd, C_card_timeout ))) break;
-       	if( (ret=m_host.receive_data( cmd.get_resp_buffer(), 8, C_card_timeout ))) break;
+    	cmd( mmc_command::OP_APP_CMD, unsigned(m_rca)<<16 );
+    	if(( ret=m_host.execute_command_resp_check( cmd, C_card_timeout ))) break;
+    	cmd( mmc_command::OP_SD_APP_SEND_SCR, 0 );
+     	if( (ret=m_host.receive_data_prep( C_scr_size , C_card_timeout ))) break;
+    	if(( ret=m_host.execute_command_resp_check( cmd, C_card_timeout ))) break;
+       	if( (ret=m_host.receive_data( cmd.get_resp_buffer(2), C_scr_size, C_card_timeout ))) break;
         if( (ret=cmd.decode_scr(scr)) ) break;
     } while(0);
     if( !ret )
@@ -126,15 +136,16 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 	do
 	{
 	    res = host.execute_command_resp_check( cmd, C_card_timeout );
+	    dbprintf("IDLE_STATE %u", res );
 	}
 	while( res != MMC_OK && --retry>0);
 	if( res != MMC_OK) return MMC_CMD_RSP_TIMEOUT;
 	dbprintf( "GO idle state %i", res );
 	//Send IF cond
 	cmd( mmc_command::OP_SEND_IF_COND, mmc_command::ARG_IFCOND_3V3_SUPPLY );
-	if( (res=host.execute_command(cmd, C_card_timeout)) ) return res;
+	res = host.execute_command(cmd, C_card_timeout);
 	dbprintf( "OP_SEND_IF_COND %i %i", res, cmd.get_err() );
-	if( cmd.get_err() == MMC_OK ) //SD card version 2.0
+	if(!res && cmd.get_err() == MMC_OK ) //SD card version 2.0
 	{
 		if( (res=cmd.validate_r7()) ) return res;
 		dbprintf( "IF_COND state %i", cmd.get_err() );
@@ -154,7 +165,8 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 		{
 			cmd( mmc_command::OP_APP_CMD, 0 );
 			if( (res=host.execute_command_resp_check( cmd, C_card_timeout ) ) ) break;
-			cmd( mmc_command::OP_SD_APP_OP_COND,  mmc_command::ARG_OPCOND_HCS );
+			cmd( mmc_command::OP_SD_APP_OP_COND,
+				mmc_command::ARG_OPCOND_HCS|(host.is_spi()?0:mmc_command::ARG_OPCOND_VOLT_ALL) );
 			if( (res=host.execute_command_resp_check(cmd,C_card_timeout)) ) break;
 			if( cmd.get_card_state()!=mmc_command::card_state_IDLE ) break;
 			isix::isix_wait_ms(10);
@@ -175,7 +187,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 		else type = type_sd_v2;
 		dbprintf("CCS bit=%d", cmd.get_r3_ccs());
 	}
-	else if( cmd.get_err() == MMC_ILLEGAL_CMD )	//Not version 2
+	else if( cmd.get_err() != MMC_OK )	//Not version 2
 	{
 		dbprintf("Type 1 card");
 		//Check the type of the SD card
@@ -230,6 +242,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 		dbprintf("Fatal error %02x", cmd.get_err() );
 		return MMC_CMD_MISMATCH_RESPONSE;
 	}
+	dbprintf(">>>>>>>> TYPE %i RET %i >>>>>>>>>>>>>", type, res );
 	//Continue
 	return res;
 }
@@ -264,13 +277,17 @@ int mmc_card::sd_mode_initialize()
         //send all cid
         cmd( mmc_command::OP_ALL_SEND_CID, 0 );
         if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;
+        dbprintf("OP_ALL_SEND_CID [%i]", ret );
         //set relative addr and check it 
         cmd( mmc_command::OP_SET_REL_ADDR, 0 );
         if( (ret=m_host.execute_command(cmd, C_card_timeout)) ) break;
-        if( (ret=cmd.validate_r6( m_rca)) ) break;
+        dbprintf("OP_SET_REL_ADDR [%i]", ret );
+        if( (ret=cmd.validate_r6(m_rca)) ) break;
+        dbprintf("Validate R6 %i", ret);
         //Select deselect card
         cmd( mmc_command::OP_SEL_DESEL_CARD, unsigned(m_rca)<<16 );
         if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;
+        dbprintf("OP_SEL_DESEL_CARD [%i]", ret );
     } while(0);
     return ret;
 }
@@ -279,12 +296,28 @@ int mmc_card::sd_mode_initialize()
 uint32_t mmc_card::read_csd_card_info()
 {
 	uint32_t tran_speed;
-	mmc_command cmd( mmc_command::OP_SEND_CSD, m_rca<<16 );
+	mmc_command cmd;
 	do
 	{
+		if(!m_host.is_spi())
+		{
+			//Select deselect card
+			cmd( mmc_command::OP_SEL_DESEL_CARD, 0 );
+			if( (m_error=m_host.execute_command(cmd, C_card_timeout)) ) break;
+			dbprintf("OP_SEL_DESEL_CARD [%i]", m_error );
+		}
+		cmd( mmc_command::OP_SEND_CSD, unsigned(m_rca)<<16 );
 		if( (m_error=m_host.execute_command(cmd, C_card_timeout))) break;
+		dbprintf("OP_SEND_CSD [%i]", m_error );
 		if( (m_error=cmd.decode_csd_sectors(m_nr_sectors, m_type==type_mmc) ) ) break;
 		if( (m_error=cmd.decode_csd_tran_speed(tran_speed)) ) break;
+		if(!m_host.is_spi())
+		{
+			//Select deselect card
+			cmd( mmc_command::OP_SEL_DESEL_CARD, unsigned(m_rca)<<16 );
+			if( (m_error=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;
+			dbprintf("OP_SEL_DESEL_CARD [%i]", m_error );
+		}
 	} while(0);
 	return tran_speed;
 }
@@ -313,7 +346,7 @@ int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::si
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		}
 	} while(0);
-	//dbprintf("WRITE=%i", ret);
+	dbprintf("WRITE=%i count=%i addr=%i", ret, count, laddr);
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -333,6 +366,7 @@ int mmc_card::read_multi_blocks( void* buf, unsigned long laddr, std::size_t cou
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		}
 		cmd( mmc_command::OP_READ_MULT_BLOCK, laddr);
+		if( (ret=m_host.receive_data_prep( C_sector_size*count, C_card_timeout ))) break;
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.receive_data( buf, C_sector_size*count, C_card_timeout ))) break;
 		if( !m_block_count_avail )
@@ -369,6 +403,7 @@ int mmc_card::read_single_block( void* buf, unsigned long laddr )
 	mmc_command cmd( mmc_command::OP_READ_SINGLE_BLOCK, laddr );
 	do
 	{
+		if( (ret=m_host.receive_data_prep( C_sector_size, C_card_timeout ))) break;
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.receive_data( buf, C_sector_size, C_card_timeout ))) break;
 
@@ -403,11 +438,27 @@ int mmc_card::read ( void* buf, unsigned long sector, std::size_t count )
 int mmc_card::get_cid( cid &c ) const
 {
 	int ret;
-	mmc_command cmd( mmc_command::OP_SEND_CID, unsigned(m_rca)<<16 );
+	mmc_command cmd;
+	if( m_error ) return m_error;
 	do
 	{
+		if(!m_host.is_spi())
+		{
+			//Select deselect card
+			cmd( mmc_command::OP_SEL_DESEL_CARD, 0 );
+			if( (ret=m_host.execute_command(cmd, C_card_timeout)) ) break;
+			dbprintf("OP_SEL_DESEL_CARD [%i]", m_error );
+		}
+		cmd( mmc_command::OP_SEND_CID, unsigned(m_rca)<<16 );
 		if( (ret=m_host.execute_command(cmd, C_card_timeout))) break;
 		if( (ret=cmd.decode_cid( c,m_type==type_mmc )) ) break;
+		if(!m_host.is_spi())
+		{
+			//Select deselect card
+			cmd( mmc_command::OP_SEL_DESEL_CARD, unsigned(m_rca)<<16 );
+			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;
+			dbprintf("OP_SEL_DESEL_CARD [%i]", m_error );
+		}
 	} while(0);
 	dbprintf("DECODE CID %i", ret);
 	return ret;
@@ -419,6 +470,7 @@ int mmc_card::get_erase_size(uint32_t &sectors) const
 {
 	int ret;
 	mmc_command cmd;
+	if( m_error ) return m_error;
 	//Decode from CSD
 	if( m_type == type_mmc || m_type == type_sd_v1  )
 	{
@@ -435,6 +487,7 @@ int mmc_card::get_erase_size(uint32_t &sectors) const
 			cmd( mmc_command::OP_APP_CMD, unsigned(m_rca) << 16 );
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 			cmd( mmc_command::OP_SD_APP_STATUS, unsigned(m_rca) << 16 );
+			if( (ret=m_host.receive_data_prep( sizeof(sdbuf), C_card_timeout ))) break;
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 			if( (ret=m_host.receive_data( sdbuf, sizeof(sdbuf), C_card_timeout ))) break;
 		} while(0);
