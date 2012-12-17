@@ -100,7 +100,7 @@ namespace
 	  dma_deinit( SD_SDIO_DMA_STREAM );
 	  dma_init( SD_SDIO_DMA_STREAM , DMA_DIR_MemoryToPeripheral | DMA_PeripheralInc_Disable |
 				SD_SDIO_DMA_CHANNEL |DMA_MemoryInc_Enable | DMA_PeripheralDataSize_Word | DMA_MemoryDataSize_Word |
-				DMA_Mode_Normal | DMA_Priority_Medium | DMA_MemoryBurst_Single| DMA_PeripheralBurst_Single,
+				DMA_Mode_Normal | DMA_Priority_VeryHigh | DMA_MemoryBurst_INC4| DMA_PeripheralBurst_INC4,
 				DMA_FIFOMode_Enable | DMA_FIFOThreshold_Full, 0, SDIO_FIFO_ADDRESS, (uint32_t*)buffer_src );
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	  dma_it_config(SD_SDIO_DMA_STREAM, DMA_IT_TC, ENABLE);
@@ -162,7 +162,11 @@ void mmc_host_sdio::process_irq()
 {
 	 using namespace ::drv::mmc;
 	 using namespace stm32;
-	 if (sdio_get_it_status(SDIO_IT_DATAEND) != RESET)
+	 if( sdio_get_it_status(SDIO_IT_CEATAEND) != RESET )
+	 {
+		 setBit_BB( &m_flags, bf_cmd_end );
+	 }
+	 else if (sdio_get_it_status(SDIO_IT_DATAEND) != RESET)
 	 {
 	    m_transfer_error = MMC_OK;
 	    sdio_clear_it_pending_bit(SDIO_IT_DATAEND);
@@ -253,6 +257,7 @@ mmc_host_sdio::mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz )
 	  nvic_set_priority( SD_SDIO_DMA_IRQn , IRQ_PRIO, IRQ_SUB );
 	  nvic_irq_enable( SD_SDIO_DMA_IRQn , true );
 #endif
+	 sdio_dma_cmd(ENABLE);
 }
 /*----------------------------------------------------------*/
 //Destructor
@@ -309,8 +314,11 @@ int mmc_host_sdio::execute_command( ::drv::mmc::mmc_command &req, unsigned timeo
 		}
 	}
 	//Send command
+	uint32_t fwait=  SDIO_Wait_No;
+	if(req.get_flags() & mmc_command::resp_busy ) fwait = SDIO_Wait_IT;
+
 	stm32::sdio_send_command( req.get_arg(), req.get_op()&0x7f,
-			resp, SDIO_Wait_No, SDIO_CPSM_Enable );
+			resp, fwait, SDIO_CPSM_Enable );
 	uint32_t stat;
 	if( req.get_flags() & mmc_command::resp_present )
 		stat = SDIO_FLAG_CMDREND | SDIO_FLAG_CTIMEOUT|SDIO_FLAG_CCRCFAIL;
@@ -377,7 +385,7 @@ int mmc_host_sdio::execute_command( ::drv::mmc::mmc_command &req, unsigned timeo
 		}
 	} while(0);
 	sdio_clear_flag(SDIO_STATIC_FLAGS & stat );
-	dbprintf("Exec cmd ret: %i op: %i arg: %08x", ret, req.get_op()&(~0x80), req.get_arg());
+	//dbprintf("Exec cmd ret: %i op: %i arg: %08x CEA %02x", ret, req.get_op()&(~0x80), req.get_arg(),m_flags);
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -400,15 +408,16 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 		block_size = (__builtin_ffs(len) - 1)  << 4;
 	}
 	m_transfer_error = MMC_OK;
-	dbprintf("Timeout %d", timeout);
+	//dbprintf("Timeout %d", timeout);
 	timeout = (m_pclk2/2/8/10000) * timeout;
-	dbprintf("DataWR config Tout=%u len=%u bs=0x%02lX", timeout, len, block_size);
-	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToCard,
-			SDIO_TransferMode_Block, SDIO_DPSM_Enable );
+	//dbprintf("DataWR config Tout=%u len=%u bs=0x%02lX", timeout, len, block_size);
+
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	 sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR, ENABLE);
+	 sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR
+			 |SDIO_IT_CEATAEND, ENABLE);
 #endif
-	sdio_dma_cmd(ENABLE);
+	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToCard,
+					SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 	sd_lowlevel_dma_tx_config(buf, len);
 	/* Wait for RCV DATA
 	 *
@@ -418,22 +427,21 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 		{
 			//Wait for complete sem
 			if ((ret = m_complete.wait( timeout ))) break;
-			if (SDIO->STA & SDIO_FLAG_TXACT)
+			while (SDIO->STA & SDIO_FLAG_TXACT)
 			{
-				dbprintf("Tutaj chujnia");
-				ret = MMC_DATA_TIMEOUT;
-				break;
+				//dbprintf("Tutaj chujnia");
+				//ret = MMC_DATA_TIMEOUT;
+			//	break;
 			}
 		} while(0);
+
 		sdio_clear_flag( SDIO_STATIC_FLAGS );
 		if( !ret )
 		{
-			dbprintf("Przepisuje flagi!");
 			ret = m_transfer_error;
 		}
-		dbprintf("WRITE data STAT %i", ret);
+		//dbprintf("WRITE data STAT %i", ret);
 		return ret;
-	return MMC_OK;
 }
 /*----------------------------------------------------------*/
 //Prepare for receive data
@@ -457,10 +465,11 @@ int mmc_host_sdio::receive_data_prep( void* buf, size_t len, unsigned timeout)
 	m_transfer_error = MMC_OK;
 	//dbprintf("Timeout %d", timeout);
 	timeout = (m_pclk2/2/8/10000) * timeout;
-	dbprintf("Data config Tout=%u len=%u bs=0x%02lX", timeout, len, block_size);
+	//dbprintf("Data config Tout=%u len=%u bs=0x%02lX", timeout, len, block_size);
 	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToSDIO, SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR, ENABLE);
+	sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR
+			 |SDIO_IT_CEATAEND, ENABLE);
 #endif
 	sdio_dma_cmd(ENABLE);
 	sd_lowlevel_dma_rx_config( buf, len );
@@ -478,11 +487,10 @@ int mmc_host_sdio::receive_data( void *buf, size_t len, unsigned timeout )
 	{
 		//Wait for complete sem
 		if ((ret = m_complete.wait( timeout ))) break;
-		if (SDIO->STA & SDIO_FLAG_RXACT)
+		while (SDIO->STA & SDIO_FLAG_RXACT)
 		{
-			dbprintf("Tutaj chujnia");
-			ret = MMC_DATA_TIMEOUT;
-			break;
+			//ret = MMC_DATA_TIMEOUT;
+			//break;
 		}
 	} while(0);
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
@@ -490,7 +498,7 @@ int mmc_host_sdio::receive_data( void *buf, size_t len, unsigned timeout )
 	{
 		ret = m_transfer_error;
 	}
-	dbprintf("Receive data STAT %i", ret);
+	//dbprintf("Receive data STAT %i", ret);
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -548,6 +556,7 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 	}
 	return ret;
 }
+
 /*----------------------------------------------------------*/
 }}
 /*----------------------------------------------------------*/

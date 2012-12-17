@@ -77,7 +77,8 @@ private:
 	enum
 	{
 		bf_transfer_end,
-		bf_dma_complete
+		bf_dma_complete,
+		bf_cmd_end
 	};
 	uint32_t m_flags;
 	int m_transfer_error;

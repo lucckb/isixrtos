@@ -307,6 +307,8 @@ public:
 	err get_err() const;
 	//Get card status
 	int get_card_state() const;
+	//Check if ready for data
+	int get_busy_r1() const;
 	//Validate R7
 	err validate_r7() const
 	{

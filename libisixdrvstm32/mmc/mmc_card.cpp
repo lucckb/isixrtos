@@ -345,8 +345,10 @@ int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::si
 			cmd( mmc_command::OP_STOP_TRANSMISSION, 0 );
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		}
+		if(!m_host.is_spi())
+			if((ret=wait_for_transfer_ready(C_card_timeout))) break;
 	} while(0);
-	dbprintf("WRITE=%i count=%i addr=%i", ret, count, laddr);
+	//dbprintf("WRITE=%i count=%i addr=%i", ret, count, laddr);
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -390,7 +392,8 @@ int mmc_card::write_single_block( const void* buf, unsigned long laddr )
 	{
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.send_data( buf, C_sector_size, C_card_timeout ))) break;
-
+		if(!m_host.is_spi())
+			if((ret=wait_for_transfer_ready(C_card_timeout))) break;
 	} while(0);
 	//dbprintf("SingleWR = %i", ret);
 	return ret;
@@ -406,7 +409,6 @@ int mmc_card::read_single_block( void* buf, unsigned long laddr )
 		if( (ret=m_host.receive_data_prep( buf, C_sector_size, C_card_timeout ))) break;
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.receive_data( buf, C_sector_size, C_card_timeout ))) break;
-
 	} while(0);
 	//dbprintf("SingleRD = %i", ret);
 	return ret;
@@ -496,6 +498,22 @@ int mmc_card::get_erase_size(uint32_t &sectors) const
 	}
 	return ret;
 }
+/*----------------------------------------------------------*/
+//Wait for card rdy
+int mmc_card::wait_for_transfer_ready( unsigned timeout )
+{
+	int bsy;
+	mmc_command cmd;
+	do
+	{
+		cmd( mmc_command::OP_SEND_STATUS, unsigned(m_rca)<<16 );
+		if( (bsy=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+		bsy = cmd.get_busy_r1();
+	}
+	while( bsy == MMC_CARD_BUSY );
+	return bsy;
+}
+
 /*----------------------------------------------------------*/
 } /* namespace drv */
 }

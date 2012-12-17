@@ -221,6 +221,28 @@ err mmc_command::get_err() const
 	}
 	return MMC_OK;
 }
+
+/*----------------------------------------------------------*/
+int mmc_command::get_busy_r1() const
+{
+	if( !(m_flags & resp_ans) && (m_flags & resp_present) )
+		return MMC_CMD_RSP_TIMEOUT;
+	if( is_spi_type() )
+		return MMC_INTERNAL_ERROR;
+	//if( get_type() != rR1t )
+	//{
+	//	dbprintf("IVALID TYPE %i",get_type());
+	//	return MMC_CMD_MISMATCH_RESPONSE;
+	//}
+	if( m_resp[0] & sR1_READY_FOR_DATA )
+	{
+		return MMC_OK;
+	}
+	else
+	{
+		return MMC_CARD_BUSY;
+	}
+}
 /*----------------------------------------------------------*/
 //Get card status
 int mmc_command::get_card_state() const
