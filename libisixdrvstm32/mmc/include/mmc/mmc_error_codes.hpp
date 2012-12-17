@@ -20,7 +20,7 @@ namespace drv
 			MMC_CMD_RSP_TIMEOUT = 8194,                /*!< Command response timeout */
 			MMC_DATA_TIMEOUT = 8195,                   /*!< Data time out */
 			MMC_TX_UNDERRUN = 8196,                   /*!< Transmit FIFO under-run */
-			MMC_RX_OVERRUN= 8197,                     /*!< Receive FIFO over-run */
+			MMC_RX_OVERRUN = 8197,                     /*!< Receive FIFO over-run */
 			MMC_START_BIT_ERR = 8198,                  /*!< Start bit not detected on all data signals in widE bus mode */
 			MMC_CMD_OUT_OF_RANGE = 8199,               /*!< CMD's argument was out of range.*/
 			MMC_ADDR_MISALIGNED = 8200,                /*!< Misaligned address */

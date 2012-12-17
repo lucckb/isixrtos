@@ -94,7 +94,7 @@ int mmc_card::read_scr_card_info()
     	cmd( mmc_command::OP_APP_CMD, unsigned(m_rca)<<16 );
     	if(( ret=m_host.execute_command_resp_check( cmd, C_card_timeout ))) break;
     	cmd( mmc_command::OP_SD_APP_SEND_SCR, 0 );
-     	if( (ret=m_host.receive_data_prep( C_scr_size , C_card_timeout ))) break;
+     	if( (ret=m_host.receive_data_prep(cmd.get_resp_buffer(2), C_scr_size , C_card_timeout ))) break;
     	if(( ret=m_host.execute_command_resp_check( cmd, C_card_timeout ))) break;
        	if( (ret=m_host.receive_data( cmd.get_resp_buffer(2), C_scr_size, C_card_timeout ))) break;
         if( (ret=cmd.decode_scr(scr)) ) break;
@@ -366,7 +366,7 @@ int mmc_card::read_multi_blocks( void* buf, unsigned long laddr, std::size_t cou
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		}
 		cmd( mmc_command::OP_READ_MULT_BLOCK, laddr);
-		if( (ret=m_host.receive_data_prep( C_sector_size*count, C_card_timeout ))) break;
+		if( (ret=m_host.receive_data_prep( buf, C_sector_size*count, C_card_timeout ))) break;
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.receive_data( buf, C_sector_size*count, C_card_timeout ))) break;
 		if( !m_block_count_avail )
@@ -403,7 +403,7 @@ int mmc_card::read_single_block( void* buf, unsigned long laddr )
 	mmc_command cmd( mmc_command::OP_READ_SINGLE_BLOCK, laddr );
 	do
 	{
-		if( (ret=m_host.receive_data_prep( C_sector_size, C_card_timeout ))) break;
+		if( (ret=m_host.receive_data_prep( buf, C_sector_size, C_card_timeout ))) break;
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.receive_data( buf, C_sector_size, C_card_timeout ))) break;
 
@@ -487,7 +487,7 @@ int mmc_card::get_erase_size(uint32_t &sectors) const
 			cmd( mmc_command::OP_APP_CMD, unsigned(m_rca) << 16 );
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 			cmd( mmc_command::OP_SD_APP_STATUS, unsigned(m_rca) << 16 );
-			if( (ret=m_host.receive_data_prep( sizeof(sdbuf), C_card_timeout ))) break;
+			if( (ret=m_host.receive_data_prep( sdbuf, sizeof(sdbuf), C_card_timeout ))) break;
 			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 			if( (ret=m_host.receive_data( sdbuf, sizeof(sdbuf), C_card_timeout ))) break;
 		} while(0);

@@ -11,20 +11,37 @@
 #include "mmc/mmc_host.hpp"
 #include "spi_device.hpp"
 #include <stdint.h>
+#include <isix.h>
 #ifdef _HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+/*----------------------------------------------------------*/
+#define ISIX_SDDRV_TRANSFER_USE_IRQ (1<<0)
+
 /*----------------------------------------------------------*/
 #ifndef ISIX_SDDRV_TRANSFER_MODE
-#define ISIX_SDDRV_TRANSFER_MODE 0
-//ISIX_SDDRV_TRANSFER_USE_IRQ
+#define ISIX_SDDRV_TRANSFER_MODE ISIX_SDDRV_TRANSFER_USE_IRQ
 #endif
 /*----------------------------------------------------------*/
 namespace stm32 {
 namespace drv {
 /*----------------------------------------------------------*/
+
+#if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+extern "C" {
+	void __attribute__((__interrupt__)) sdio_isr_vector( void );
+	void __attribute__((__interrupt__)) dma2_stream3_isr_vector( void );
+}
+#endif
+/*----------------------------------------------------------*/
 class mmc_host_sdio : public ::drv::mmc::mmc_host
 {
+#if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+	friend void sdio_isr_vector(void);
+	friend void dma2_stream3_isr_vector(void);
+	friend void dma2_stream6_isr_vector(void);
+#endif
 public:
 	//Constructor
 	mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz=0 );
@@ -44,12 +61,27 @@ public:
 		return mmc_host::cap_1bit|mmc_host::cap_4bit|mmc_host::cap_hs;
 	}
 	//Prepare for receive data
-	virtual int receive_data_prep( size_t /*len*/, unsigned /*timeout*/ );
+	virtual int receive_data_prep(void* /*buf*/,  size_t /*len*/, unsigned /*timeout*/ );
 private:
 	inline void sdio_reinit( mmc_host::bus_width bus_width, int khz );
 private:
+	static const unsigned IRQ_PRIO = 1;
+	static const unsigned IRQ_SUB  = 7;
+private:
 	const unsigned m_pclk2;
 	const unsigned short m_spi_speed_limit_khz;
+#if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+	void process_dma_irq();
+	void process_irq();
+	isix::semaphore m_complete;
+	enum
+	{
+		bf_transfer_end,
+		bf_dma_complete
+	};
+	uint32_t m_flags;
+	int m_transfer_error;
+#endif
 };
 /*----------------------------------------------------------*/
 } /* namespace drv */

@@ -82,7 +82,7 @@ public:
 	//Execute MMC data transfer
 	virtual int send_data( const void *buf, size_t len, unsigned timeout ) = 0;
 	//Prepare for receive data
-	virtual int receive_data_prep( size_t /*len*/, unsigned /*timeout*/ )
+	virtual int receive_data_prep(void* /*buf*/, size_t /*len*/, unsigned /*timeout*/ )
 	{
 		return 0;
 	}
