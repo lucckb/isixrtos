@@ -275,12 +275,21 @@ int mmc_card::sd_mode_initialize()
         cmd( mmc_command::OP_ALL_SEND_CID, 0 );
         if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;
         dbprintf("OP_ALL_SEND_CID [%i]", ret );
-        //set relative addr and check it 
-        cmd( mmc_command::OP_SET_REL_ADDR, 0 );
-        if( (ret=m_host.execute_command(cmd, C_card_timeout)) ) break;
-        dbprintf("OP_SET_REL_ADDR [%i]", ret );
-        if( (ret=cmd.validate_r6(m_rca)) ) break;
-        dbprintf("VALIDATE_R6 [%i] RCA [%04x]", ret, m_rca);
+        //Ask relative addr
+        if( m_type != type_mmc)
+        {
+			cmd( mmc_command::OP_SET_REL_ADDR, 0 );
+			if( (ret=m_host.execute_command(cmd, C_card_timeout)) ) break;
+			dbprintf("OP_SET_REL_ADDR [%i]", ret );
+			if( (ret=cmd.validate_r6(m_rca)) ) break;
+			dbprintf("VALIDATE_R6 [%i] RCA [%04x]", ret, m_rca);
+        }
+        else //MMC push relative addr
+        {
+        	m_rca = 1;
+        	cmd( mmc_command::OP_SET_REL_ADDR, unsigned(m_rca)<<16 );
+        	if( (ret=m_host.execute_command(cmd, C_card_timeout)) ) break;
+        }
         //Select deselect card
         cmd( mmc_command::OP_SEL_DESEL_CARD, unsigned(m_rca)<<16 );
         if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;

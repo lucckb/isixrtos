@@ -204,7 +204,7 @@ private:
 			case OP_SD_APP_STATUS:		m_flags = resp_R1|resp_spi_R2;    break;
             case OP_ALL_SEND_CID:       m_flags = resp_R2;                break; 
             case OP_SET_REL_ADDR:       m_flags = resp_R6;                break;
-            case OP_SEL_DESEL_CARD:     m_flags = arg?resp_R1B:resp_none;   break;
+            case OP_SEL_DESEL_CARD:     m_flags = arg?resp_R1B:resp_none; break;
             case OP_SD_APP_SEND_SCR:    m_flags = resp_R1|resp_spi_R1|resp_spi_cs;    break;
             case OP_APP_SD_SET_BUSWIDTH: m_flags = resp_R1; 		      break;
 			default: 					m_flags = resp_none;			  break;
