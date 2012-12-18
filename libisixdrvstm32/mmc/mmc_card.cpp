@@ -409,7 +409,6 @@ int mmc_card::write_single_block( const void* buf, unsigned long laddr )
 		if(!m_host.is_spi())
 			if((ret=wait_for_transfer_ready(C_card_timeout))) break;
 	} while(0);
-	//dbprintf("SingleWR = %i", ret);
 	return ret;
 }
 /*----------------------------------------------------------*/
