@@ -331,10 +331,10 @@ uint32_t mmc_card::read_csd_card_info()
 /* Write multi sectors */
 int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::size_t count )
 {
-	int ret;
+	int ret, ret2;
+	mmc_command cmd;
 	do
 	{
-		mmc_command cmd;
 		if( m_block_count_avail )
 		{
 			/* Set Block Size for Card */
@@ -346,14 +346,18 @@ int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::si
 		cmd( mmc_command::OP_WRITE_MULT_BLOCK, laddr );
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.send_data( buf, C_sector_size*count, C_card_timeout ))) break;
+	} while(0);
+	do
+	{
 		if( !m_block_count_avail && !m_host.is_spi() )
 		{
 			cmd( mmc_command::OP_STOP_TRANSMISSION, 0 );
-			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
+			if( (ret2=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		}
 		if(!m_host.is_spi())
-			if((ret=wait_for_transfer_ready(C_card_timeout))) break;
+			if((ret2=wait_for_transfer_ready(C_card_timeout))) break;
 	} while(0);
+	if( !ret ) ret = ret2;
 	//dbprintf("WRITE=%i count=%i addr=%i", ret, count, laddr);
 	return ret;
 }
@@ -362,9 +366,9 @@ int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::si
 int mmc_card::read_multi_blocks( void* buf, unsigned long laddr, std::size_t count )
 {
 	int ret;
+	mmc_command cmd;
 	do
 	{
-		mmc_command cmd;
 		if( m_block_count_avail )
 		{
 			/* Set Block Size for Card */
@@ -377,13 +381,15 @@ int mmc_card::read_multi_blocks( void* buf, unsigned long laddr, std::size_t cou
 		if( (ret=m_host.receive_data_prep( buf, C_sector_size*count, C_card_timeout ))) break;
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.receive_data( buf, C_sector_size*count, C_card_timeout ))) break;
-		if( !m_block_count_avail )
-		{
-			cmd( mmc_command::OP_STOP_TRANSMISSION, 0 );
-			if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
-		}
 	}
 	while(0);
+	//Always send stop command after the error also
+	if( !m_block_count_avail )
+	{
+		cmd( mmc_command::OP_STOP_TRANSMISSION, 0 );
+		const int rstop = m_host.execute_command_resp_check(cmd, C_card_timeout);
+		if(!ret) ret = rstop;
+	}
 //	dbprintf("READ=%i", ret);
 	return ret;
 }
