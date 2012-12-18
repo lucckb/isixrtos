@@ -314,7 +314,7 @@ int mmc_host_sdio::execute_command( ::drv::mmc::mmc_command &req, unsigned timeo
 		}
 	}
 	//Send command
-	uint32_t fwait=  SDIO_Wait_No;
+	uint32_t fwait = SDIO_Wait_No;
 	if(req.get_flags() & mmc_command::resp_busy ) fwait = SDIO_Wait_IT;
 
 	stm32::sdio_send_command( req.get_arg(), req.get_op()&0x7f,
