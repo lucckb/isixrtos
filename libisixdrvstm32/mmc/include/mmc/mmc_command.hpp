@@ -250,26 +250,29 @@ public:
 		resp_ans      = 1 << 11,	//! answer
 		resp_spi_d16b = 1 << 12,	//! Transfer extra 16bytes as data after R1
 		/* Standard responses */
-		resp_R1   = (resp_present|resp_crc|resp_opcode|(1<<24)),
-		resp_R1B  = (resp_R1|resp_busy|(1<<24)),
-		resp_R2   = (resp_present|resp_136|resp_crc|(2<<24)),
-		resp_R3   =  resp_present|(3<<24),
-		resp_R4   =  resp_present|(4<<24),
-		resp_R5   =  (resp_present|resp_crc|resp_opcode|(5<<24)),
-		resp_R6   =  (resp_present|resp_crc|resp_opcode|(6<<24)),
-		resp_R7   =  (resp_present|resp_crc|resp_opcode|resp_spi_busy|(7<<24)),
+		resp_R1   = (resp_present|resp_crc|resp_opcode|(1<<29)),
+		resp_R1B  = (resp_R1|resp_busy|(1<<29)),
+		resp_R2   = (resp_present|resp_136|resp_crc|(2<<29)),
+		resp_R3   =  resp_present|(3<<29),
+		resp_R4   =  resp_present|(4<<29),
+		resp_R5   =  (resp_present|resp_crc|resp_opcode|(5<<29)),
+		resp_R6   =  (resp_present|resp_crc|resp_opcode|(6<<29)),
+		resp_R7   =  (resp_present|resp_crc|resp_opcode|resp_spi_busy|(7<<29)),
 		resp_spi_R1   =  resp_spi_s1|(1<<24),
-		resp_spi_R1B  = (resp_spi_s1|resp_spi_busy|(1<<24)),
-		resp_spi_R1D  =  resp_spi_s1|resp_spi_d16b|(1<<24),		//! Extra version transfer 16b data as csd
-		resp_spi_R2   = (resp_spi_s1|resp_spi_s2|(2<<24)),
-		resp_spi_R3   = (resp_spi_s1|resp_spi_b4|(3<<24)),
-		resp_spi_R4   = (resp_spi_s1|resp_spi_b4|(4<<24)),
-		resp_spi_R5   = (resp_spi_s1|resp_spi_s2|(5<<24)),
-		resp_spi_R7   = (resp_spi_s1|resp_spi_b4|(7<<24))
+		resp_spi_R1B  = (resp_spi_s1|resp_spi_busy|(1<<26)),
+		resp_spi_R1D  =  resp_spi_s1|resp_spi_d16b|(1<<26),		//! Extra version transfer 16b data as csd
+		resp_spi_R2   = (resp_spi_s1|resp_spi_s2|(2<<26)),
+		resp_spi_R3   = (resp_spi_s1|resp_spi_b4|(3<<26)),
+		resp_spi_R4   = (resp_spi_s1|resp_spi_b4|(4<<26)),
+		resp_spi_R5   = (resp_spi_s1|resp_spi_s2|(5<<26)),
+		resp_spi_R7   = (resp_spi_s1|resp_spi_b4|(7<<26))
 	};
 	int get_type() const
 	{
-		return (m_flags >> 24)&0xff;
+		if( is_spi_type() )
+			return (m_flags >> 26)&0xff;
+		else
+			return (m_flags >> 29)&0xff;
 	}
 	bool is_spi_type() const
 	{

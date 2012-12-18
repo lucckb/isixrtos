@@ -229,11 +229,10 @@ int mmc_command::get_busy_r1() const
 		return MMC_CMD_RSP_TIMEOUT;
 	if( is_spi_type() )
 		return MMC_INTERNAL_ERROR;
-	//if( get_type() != rR1t )
-	//{
-	//	dbprintf("IVALID TYPE %i",get_type());
-	//	return MMC_CMD_MISMATCH_RESPONSE;
-	//}
+	if( get_type() != rR1t )
+	{
+		return MMC_CMD_MISMATCH_RESPONSE;
+	}
 	if( m_resp[0] & sR1_READY_FOR_DATA )
 	{
 		return MMC_OK;
