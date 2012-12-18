@@ -473,10 +473,24 @@ int mmc_card::get_erase_size(uint32_t &sectors) const
 	//Decode from CSD
 	if( m_type == type_mmc || m_type == type_sd_v1  )
 	{
-		cmd( mmc_command::OP_SEND_CSD, unsigned(m_rca)<<16 );
 		do {
+			if(!m_host.is_spi())
+			{
+				//Select deselect card
+				cmd( mmc_command::OP_SEL_DESEL_CARD, 0 );
+				if( (ret=m_host.execute_command(cmd, C_card_timeout)) ) break;
+				dbprintf("OP_SEL_DESEL_CARD [%i]", m_error );
+			}
+			cmd( mmc_command::OP_SEND_CSD, unsigned(m_rca)<<16 );
 			if( (ret=m_host.execute_command(cmd, C_card_timeout))) break;
 			if( (ret=cmd.decode_csd_erase(sectors,m_type==type_mmc)) ) break;
+			if(!m_host.is_spi())
+			{
+				//Select deselect card
+				cmd( mmc_command::OP_SEL_DESEL_CARD, unsigned(m_rca)<<16 );
+				if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;
+				dbprintf("OP_SEL_DESEL_CARD [%i]", m_error );
+			}
 		} while(0);
 	}
 	else
