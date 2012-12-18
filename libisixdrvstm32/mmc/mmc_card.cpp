@@ -8,10 +8,15 @@
 #include "mmc/mmc_card.hpp"
 #include "mmc/mmc_host.hpp"
 #include "mmc/mmc_command.hpp"
-#include <dbglog.h>
 #include "mmc/mmc_host_spi.hpp"
 #include "spi_device.hpp"
 #include <new>
+/*----------------------------------------------------------*/
+#ifdef DEBUG_MMC_MMC_CARD_CPP
+#include <dbglog.h>
+#else
+#define dbprintf(...) do {} while(0)
+#endif
 /*----------------------------------------------------------*/
 namespace drv {
 namespace mmc {
@@ -240,7 +245,6 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 			type = type_mmc;
 		}
 	}
-	dbprintf("<<<<<<<<<<<< CODE %i, type %i >>>>>>>>>>", res, type);
 	return res;
 }
 
@@ -358,7 +362,6 @@ int mmc_card::write_multi_blocks( const void* buf, unsigned long laddr,  std::si
 			if((ret2=wait_for_transfer_ready(C_card_timeout))) break;
 	} while(0);
 	if( !ret ) ret = ret2;
-	//dbprintf("WRITE=%i count=%i addr=%i", ret, count, laddr);
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -390,7 +393,6 @@ int mmc_card::read_multi_blocks( void* buf, unsigned long laddr, std::size_t cou
 		const int rstop = m_host.execute_command_resp_check(cmd, C_card_timeout);
 		if(!ret) ret = rstop;
 	}
-//	dbprintf("READ=%i", ret);
 	return ret;
 }
 
@@ -422,7 +424,6 @@ int mmc_card::read_single_block( void* buf, unsigned long laddr )
 		if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout))) break;
 		if( (ret=m_host.receive_data( buf, C_sector_size, C_card_timeout ))) break;
 	} while(0);
-	//dbprintf("SingleRD = %i", ret);
 	return ret;
 }
 /*----------------------------------------------------------*/
