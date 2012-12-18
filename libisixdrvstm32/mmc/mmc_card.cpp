@@ -31,6 +31,7 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 	if( !m_host.is_spi() )
 	{
 		m_error = sd_mode_initialize();
+		dbprintf("SD mode init code %i", m_error);
 	}
 	else
 	{
@@ -44,7 +45,7 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
 		m_error = m_host.execute_command_resp_check( cmd, C_card_timeout );
 		dbprintf("BLOCKLEN ret=%i", m_error );
 	}
-    if ( !m_host.is_spi() )
+    if ( !m_host.is_spi() && m_type != type_mmc )
     {
         m_error = read_scr_card_info();
         dbprintf("read_scr_card_info %i", m_error );
@@ -192,9 +193,9 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 		dbprintf("Type 1 card");
 		//Check the type of the SD card
 		cmd( mmc_command::OP_APP_CMD, 0 );
-		if( (res=host.execute_command( cmd, C_card_timeout ) ) )
-			return res;
-		if( cmd.get_err() == MMC_OK )	//SD card
+		res = host.execute_command( cmd, C_card_timeout );
+		if( !res && ((host.is_spi()&&cmd.get_err()==MMC_OK) ||
+		  (!host.is_spi() && cmd.get_err()==MMC_ILLEGAL_CMD))  )	//SD card
 		{
 			//Downgrade the task priority (card pooling)
 			int pprio = isix::isix_task_change_prio(NULL, isix::isix_get_min_priority());
@@ -203,7 +204,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 			static const int Cond_retries = 100;
 			for(int retry=0; retry<Cond_retries; retry++ )
 			{
-				cmd( mmc_command::OP_SD_APP_OP_COND,  0 );
+				cmd( mmc_command::OP_SD_APP_OP_COND, host.is_spi()?0:mmc_command::ARG_OPCOND_VOLT_ALL );
 				if( (res=host.execute_command_resp_check(cmd,C_card_timeout)) ) break;
 				if( cmd.get_card_state()!=mmc_command::card_state_IDLE ) break;
 				isix::isix_wait_ms(10);
@@ -217,17 +218,19 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 			dbprintf("OP_COND code %i", cmd.get_err());
 			type = type_sd_v1;
 		}
-		else if( cmd.get_err() == MMC_ILLEGAL_CMD )	//MMC card
+		else	//MMC card
 		{
 			//Downgrade the task priority (card pooling)
 			int pprio = isix::isix_task_change_prio(NULL, isix::isix_get_min_priority());
 			if( !pprio ) return pprio;
 			//WAIT for MMC initialization
 			static const int Cond_retries = 100;
+			cmd( mmc_command::OP_SEND_OP_COND,  host.is_spi()?0:mmc_command::ARG_OPCOND_VOLT_ALL );
 			for(int retry=0; retry<Cond_retries; retry++ )
 			{
-				cmd( mmc_command::OP_SEND_OP_COND,  0 );
-				if( (res=host.execute_command_resp_check(cmd, C_card_timeout)) ) break;
+				if( (res=host.execute_command_resp_check(cmd,C_card_timeout)) ) break;
+				if( cmd.get_card_state()!=mmc_command::card_state_IDLE ) break;
+				isix::isix_wait_ms(10);
 			}
 			//Restore isix prio
 			if( (pprio = isix::isix_task_change_prio(NULL, pprio))<0 )
@@ -237,13 +240,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 			type = type_mmc;
 		}
 	}
-	else
-	{
-		dbprintf("Fatal error %02x", cmd.get_err() );
-		return MMC_CMD_MISMATCH_RESPONSE;
-	}
-	dbprintf(">>>>>>>> TYPE %i RET %i >>>>>>>>>>>>>", type, res );
-	//Continue
+	dbprintf("<<<<<<<<<<<< CODE %i, type %i >>>>>>>>>>", res, type);
 	return res;
 }
 
@@ -283,7 +280,7 @@ int mmc_card::sd_mode_initialize()
         if( (ret=m_host.execute_command(cmd, C_card_timeout)) ) break;
         dbprintf("OP_SET_REL_ADDR [%i]", ret );
         if( (ret=cmd.validate_r6(m_rca)) ) break;
-        dbprintf("Validate R6 %i", ret);
+        dbprintf("VALIDATE_R6 [%i] RCA [%04x]", ret, m_rca);
         //Select deselect card
         cmd( mmc_command::OP_SEL_DESEL_CARD, unsigned(m_rca)<<16 );
         if( (ret=m_host.execute_command_resp_check(cmd, C_card_timeout)) ) break;

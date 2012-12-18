@@ -348,7 +348,7 @@ int mmc_host_sdio::execute_command( ::drv::mmc::mmc_command &req, unsigned timeo
 		if( (sreg & stat) & SDIO_FLAG_CTIMEOUT )
 		{
 			ret =  MMC_CMD_RSP_TIMEOUT;
-			dbprintf("HW timeout");
+			dbprintf("HW timeout cmd %i arg %08x", req.get_op(), req.get_arg());
 			break;
 		}
 		if( (sreg & stat) & SDIO_FLAG_CCRCFAIL )

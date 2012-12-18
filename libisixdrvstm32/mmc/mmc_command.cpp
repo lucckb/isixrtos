@@ -266,9 +266,9 @@ int mmc_command::get_card_state() const
     }
     else
     {
-		if( get_type() == rR1t )
+    	if( get_type() == rR1t )
 		{
-			return ((m_resp[0] & sR1_CURRENT_STATE ) >> 9) & 0x0f;
+    		return ((m_resp[0] & sR1_CURRENT_STATE ) >> 9) & 0x0f;
 		}
 		else if( get_type() == rR3t )
 		{
