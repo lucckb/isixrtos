@@ -18,10 +18,10 @@
 
 /*----------------------------------------------------------*/
 #define ISIX_SDDRV_TRANSFER_USE_IRQ (1<<0)
-
+#define ISIX_SDDRV_WAIT_USE_IRQ (1<<1)
 /*----------------------------------------------------------*/
 #ifndef ISIX_SDDRV_TRANSFER_MODE
-#define ISIX_SDDRV_TRANSFER_MODE ISIX_SDDRV_TRANSFER_USE_IRQ
+#define ISIX_SDDRV_TRANSFER_MODE (ISIX_SDDRV_TRANSFER_USE_IRQ|ISIX_SDDRV_WAIT_USE_IRQ)
 #endif
 /*----------------------------------------------------------*/
 namespace stm32 {
@@ -34,6 +34,11 @@ extern "C" {
 	void __attribute__((__interrupt__)) dma2_stream3_isr_vector( void );
 }
 #endif
+#if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
+extern "C" {
+void __attribute__((__interrupt__)) exti8_isr_vector(void);
+}
+#endif
 /*----------------------------------------------------------*/
 class mmc_host_sdio : public ::drv::mmc::mmc_host
 {
@@ -41,6 +46,9 @@ class mmc_host_sdio : public ::drv::mmc::mmc_host
 	friend void sdio_isr_vector(void);
 	friend void dma2_stream3_isr_vector(void);
 	friend void dma2_stream6_isr_vector(void);
+#endif
+#if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
+	friend void exti8_isr_vector(void);
 #endif
 public:
 	//Constructor
@@ -73,18 +81,11 @@ private:
 	const unsigned m_pclk2;
 	const unsigned short m_spi_speed_limit_khz;
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	void process_dma_irq();
 	void process_irq();
 	isix::semaphore m_complete;
-	enum
-	{
-		bf_transfer_end,
-		bf_dma_complete,
-		bf_cmd_end
-	};
-	uint32_t m_flags;
 	int m_transfer_error;
 #endif
+	void process_irq_exti();
 };
 /*----------------------------------------------------------*/
 } /* namespace drv */

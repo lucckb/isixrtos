@@ -13,6 +13,7 @@
 #include <stm32gpio.h>
 #include <stm32system.h>
 #include <stm32bitbang.h>
+#include <stm32exti.h>
 /*----------------------------------------------------------*/
 namespace stm32 {
 namespace drv {
@@ -45,9 +46,7 @@ namespace
 	static const uint32_t SDIO_STATIC_FLAGS = 0x000005FF;
 	//C block size
 	const size_t C_block_len = 512;
-
 }
-
 /*----------------------------------------------------------*/
 #if (defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2))
 // Config defs
@@ -62,8 +61,7 @@ namespace
 #define _SD_SDIO_cat3(x, y, z) x##y##z
 #define _SD_SDIO_STREAM_prv(x, y)  _SD_SDIO_cat(x, y)
 #define _SD_SDIO_STREAM_prv3(x, y, z)  _SD_SDIO_cat3(x, y, z)
-#define _SD_SDIO_ISR_VECT_expand(x, y, z ) _SD_SDIO_cat3(x, y, z)
-#define _SD_SDIO_isr_dma_vector _SD_SDIO_ISR_VECT_expand(dma2_stream,SDDRV_DMA_STREAM_NO,_isr_vector)
+
 
 #define SD_SDIO_DMA_FLAG_TCIF         _SD_SDIO_STREAM_prv( DMA_FLAG_TCIF, SDDRV_DMA_STREAM_NO )
 #define SD_SDIO_DMA_FLAG_FEIF         _SD_SDIO_STREAM_prv( DMA_FLAG_FEIF, SDDRV_DMA_STREAM_NO )
@@ -103,7 +101,7 @@ namespace
 				DMA_Mode_Normal | DMA_Priority_VeryHigh | DMA_MemoryBurst_INC4| DMA_PeripheralBurst_INC4,
 				DMA_FIFOMode_Enable | DMA_FIFOThreshold_Full, 0, SDIO_FIFO_ADDRESS, (uint32_t*)buffer_src );
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	  dma_it_config(SD_SDIO_DMA_STREAM, DMA_IT_TC, ENABLE);
+	  //dma_it_config(SD_SDIO_DMA_STREAM, DMA_IT_TC, ENABLE);
 #endif
 	  dma_flow_controller_config(SD_SDIO_DMA_STREAM, DMA_FlowCtrl_Peripheral);
 	  /* DMA2 Stream3  or Stream6 enable */
@@ -130,7 +128,7 @@ namespace
 			  DMA_Mode_Normal | DMA_Priority_Medium | DMA_MemoryBurst_INC4 | DMA_PeripheralBurst_INC4 ,
 			  DMA_FIFOMode_Enable | DMA_FIFOThreshold_Full, 0, SDIO_FIFO_ADDRESS,  buf_dst );
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	  dma_it_config(SD_SDIO_DMA_STREAM, DMA_IT_TC, ENABLE);
+	 // dma_it_config(SD_SDIO_DMA_STREAM, DMA_IT_TC, ENABLE);
 #endif
 	  dma_flow_controller_config(SD_SDIO_DMA_STREAM, DMA_FlowCtrl_Peripheral);
 	  /* DMA2 Stream3 or Stream6 enable */
@@ -148,29 +146,15 @@ namespace		//Private namespace for IRQ handling
 
 /*----------------------------------------------------------*/
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-//Process dma IRQ
-void mmc_host_sdio::process_dma_irq()
-{
-	setBit_BB( &m_flags, bf_dma_complete );
-	m_complete.signal_isr();
-}
-#endif
-/*----------------------------------------------------------*/
-#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 //Process irq
 void mmc_host_sdio::process_irq()
 {
 	 using namespace ::drv::mmc;
 	 using namespace stm32;
-	 if( sdio_get_it_status(SDIO_IT_CEATAEND) != RESET )
-	 {
-		 setBit_BB( &m_flags, bf_cmd_end );
-	 }
-	 else if (sdio_get_it_status(SDIO_IT_DATAEND) != RESET)
+	 if (sdio_get_it_status(SDIO_IT_DATAEND) != RESET)
 	 {
 	    m_transfer_error = MMC_OK;
 	    sdio_clear_it_pending_bit(SDIO_IT_DATAEND);
-	    setBit_BB( &m_flags, bf_transfer_end );
 	 }
 	 else if (sdio_get_it_status(SDIO_IT_DCRCFAIL) != RESET)
 	 {
@@ -205,20 +189,31 @@ void mmc_host_sdio::process_irq()
 #endif
 /*----------------------------------------------------------*/
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+void mmc_host_sdio::process_irq_exti()
+{
+    m_complete.signal_isr();
+}
+#endif
+/*----------------------------------------------------------*/
+#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 extern "C"
 {
-	void __attribute__((__interrupt__)) _SD_SDIO_isr_dma_vector( void )
-	{
-		if(SD_SDIO_DMA_SR & SD_SDIO_DMA_FLAG_TCIF)
-		{
-		    dma_clear_flag(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF|SD_SDIO_DMA_FLAG_FEIF);
-		    if(p_sdio) p_sdio->process_dma_irq();
-		}
-	}
 	void __attribute__((__interrupt__)) sdio_isr_vector( void )
 	{
 		if(p_sdio) p_sdio->process_irq();
 	}
+}
+#endif
+
+/*----------------------------------------------------------*/
+#if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
+extern "C" {
+    void __attribute__((__interrupt__)) exti8_isr_vector(void)
+    {
+        stm32::exti_clear_it_pending_bit( EXTI_Line8 );
+        exti_init( EXTI_Line8, EXTI_Mode_Interrupt, EXTI_Trigger_Rising, false );
+        if(p_sdio) p_sdio->process_irq_exti();
+    }
 }
 #endif
 /*----------------------------------------------------------*/
@@ -226,7 +221,7 @@ extern "C"
 mmc_host_sdio::mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz )
 	: m_pclk2(pclk2), m_spi_speed_limit_khz(spi_speed_limit_khz)
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	, m_complete( 0, 1 ), m_flags(0), m_transfer_error(0)
+	, m_complete( 0, 1 ), m_transfer_error(0)
 #endif
 {
 	  using namespace stm32;
@@ -254,10 +249,14 @@ mmc_host_sdio::mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz )
 	  p_sdio = this;
 	  nvic_set_priority( SDIO_IRQn, IRQ_PRIO, IRQ_SUB );
 	  nvic_irq_enable( SDIO_IRQn, true );
-	  nvic_set_priority( SD_SDIO_DMA_IRQn , IRQ_PRIO, IRQ_SUB );
-	  nvic_irq_enable( SD_SDIO_DMA_IRQn , true );
 #endif
 	 sdio_dma_cmd(ENABLE);
+#if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
+     rcc_apb2_periph_clock_cmd(RCC_APB2Periph_SYSCFG, true );
+     gpio_exti_line_config( GPIO_PortSourceGPIOC, GPIO_PinSource8 );
+     nvic_set_priority( EXTI9_5_IRQn, IRQ_PRIO, IRQ_SUB );
+     nvic_irq_enable( EXTI9_5_IRQn, true );
+#endif
 }
 /*----------------------------------------------------------*/
 //Destructor
@@ -288,7 +287,6 @@ mmc_host_sdio::~mmc_host_sdio()
 #endif
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	 nvic_irq_enable( SDIO_IRQn, false );
-	 nvic_irq_enable( SD_SDIO_DMA_IRQn, false );
 	 p_sdio = NULL;
 #endif
 }
@@ -420,28 +418,15 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 					SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 	sd_lowlevel_dma_tx_config(buf, len);
 	/* Wait for RCV DATA
-	 *
 	 */
 	int ret = MMC_OK;
-		do
-		{
-			//Wait for complete sem
-			if ((ret = m_complete.wait( timeout ))) break;
-			while (SDIO->STA & SDIO_FLAG_TXACT)
-			{
-				//dbprintf("Tutaj chujnia");
-				//ret = MMC_DATA_TIMEOUT;
-			//	break;
-			}
-		} while(0);
 
-		sdio_clear_flag( SDIO_STATIC_FLAGS );
-		if( !ret )
-		{
-			ret = m_transfer_error;
-		}
-		//dbprintf("WRITE data STAT %i", ret);
-		return ret;
+	//Wait for complete sem
+	ret = m_complete.wait( timeout );
+	//while (SDIO->STA & SDIO_FLAG_TXACT) {}
+	sdio_clear_flag( SDIO_STATIC_FLAGS );
+	//dbprintf("WRITE data STAT %i", ret);
+	return ret;
 }
 /*----------------------------------------------------------*/
 //Prepare for receive data
@@ -487,11 +472,7 @@ int mmc_host_sdio::receive_data( void *buf, size_t len, unsigned timeout )
 	{
 		//Wait for complete sem
 		if ((ret = m_complete.wait( timeout ))) break;
-		while (SDIO->STA & SDIO_FLAG_RXACT)
-		{
-			//ret = MMC_DATA_TIMEOUT;
-			//break;
-		}
+		//while (SDIO->STA & SDIO_FLAG_RXACT){}
 	} while(0);
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
 	if( !ret )
@@ -561,9 +542,21 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 //Wait for data will be ready
 int mmc_host_sdio::wait_data_ready( unsigned timeout )
 {
+	/*
 	while( stm32::gpio_get(GPIOC,8) == 0 );
 	using namespace ::drv::mmc;
 	return MMC_OK;
+	*/
+	using namespace ::drv::mmc;
+	int ret = MMC_OK;
+	if( stm32::gpio_get(GPIOC,8) == 0)
+	{
+		exti_clear_it_pending_bit( EXTI_Line8 );
+		exti_init( EXTI_Line8, EXTI_Mode_Interrupt, EXTI_Trigger_Rising, true );
+		ret = m_complete.wait( timeout );
+	}
+	//while( stm32::gpio_get(GPIOC,8) == 0 );
+	return ret;
 }
 /*----------------------------------------------------------*/
 }}

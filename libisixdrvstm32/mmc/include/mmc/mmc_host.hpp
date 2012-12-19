@@ -84,7 +84,7 @@ public:
 	//Prepare for receive data
 	virtual int receive_data_prep(void* /*buf*/, size_t /*len*/, unsigned /*timeout*/ )
 	{
-		return 0;
+		return err_OK;
 	}
 	//Execute MMC data transfer
 	virtual int receive_data( void *buf, size_t len, unsigned timeout ) = 0;
@@ -97,7 +97,7 @@ public:
 	//Wait for card ready
 	virtual int wait_data_ready(unsigned /*timeout*/ )
 	{
-		return err_not_supported;
+		return err_OK;
 	}
 };
 /*----------------------------------------------------------*/
