@@ -46,6 +46,9 @@ namespace
 	static const uint32_t SDIO_STATIC_FLAGS = 0x000005FF;
 	//C block size
 	const size_t C_block_len = 512;
+	//DAT LIne port and dat line PIN
+	GPIO_TypeDef * const DATA0_PORT = GPIOC;
+	const unsigned DATA0_PIN = 8;
 }
 /*----------------------------------------------------------*/
 #if (defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2))
@@ -549,13 +552,12 @@ int mmc_host_sdio::wait_data_ready( unsigned timeout )
 	*/
 	using namespace ::drv::mmc;
 	int ret = MMC_OK;
-	if( stm32::gpio_get(GPIOC,8) == 0)
+	if( !gpio_get(DATA0_PORT,DATA0_PIN) )
 	{
 		exti_clear_it_pending_bit( EXTI_Line8 );
 		exti_init( EXTI_Line8, EXTI_Mode_Interrupt, EXTI_Trigger_Rising, true );
 		ret = m_complete.wait( timeout );
 	}
-	//while( stm32::gpio_get(GPIOC,8) == 0 );
 	return ret;
 }
 /*----------------------------------------------------------*/

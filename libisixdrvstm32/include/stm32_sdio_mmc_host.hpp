@@ -31,7 +31,6 @@ namespace drv {
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 extern "C" {
 	void __attribute__((__interrupt__)) sdio_isr_vector( void );
-	void __attribute__((__interrupt__)) dma2_stream3_isr_vector( void );
 }
 #endif
 #if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
@@ -44,8 +43,6 @@ class mmc_host_sdio : public ::drv::mmc::mmc_host
 {
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	friend void sdio_isr_vector(void);
-	friend void dma2_stream3_isr_vector(void);
-	friend void dma2_stream6_isr_vector(void);
 #endif
 #if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
 	friend void exti8_isr_vector(void);
