@@ -558,5 +558,13 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 }
 
 /*----------------------------------------------------------*/
+//Wait for data will be ready
+int mmc_host_sdio::wait_data_ready( unsigned timeout )
+{
+	while( stm32::gpio_get(GPIOC,8) == 0 );
+	using namespace ::drv::mmc;
+	return MMC_OK;
+}
+/*----------------------------------------------------------*/
 }}
 /*----------------------------------------------------------*/

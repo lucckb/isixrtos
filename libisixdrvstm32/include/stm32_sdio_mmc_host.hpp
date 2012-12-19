@@ -61,7 +61,9 @@ public:
 		return mmc_host::cap_1bit|mmc_host::cap_4bit|mmc_host::cap_hs;
 	}
 	//Prepare for receive data
-	virtual int receive_data_prep(void* /*buf*/,  size_t /*len*/, unsigned /*timeout*/ );
+	virtual int receive_data_prep(void* buf,  size_t len, unsigned timeout );
+	//Wait for data will be ready
+	virtual int wait_data_ready( unsigned timeout );
 private:
 	inline void sdio_reinit( mmc_host::bus_width bus_width, int khz );
 private:

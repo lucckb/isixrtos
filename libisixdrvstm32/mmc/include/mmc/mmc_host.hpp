@@ -50,7 +50,7 @@ public:
 		cap_uhs_sdr12   = 1 << 7,		//! UHS sdr 12
 		cap_uhs_sdr25   = 1 << 8,		//! UHS sdr 25
 		cap_uhs_sdr50   = 1 << 9,		//! UHS sdr 50
-		cap_uhs_sdr104  = 1 << 10		//! UHS sdr 50
+		cap_uhs_sdr104  = 1 << 10		//! UHS sdr 50,
 	};
 	enum bus_width
 	{
@@ -94,6 +94,11 @@ public:
 	virtual unsigned get_capabilities() const = 0;
 	//Is SPI host
 	bool is_spi() const { return get_capabilities() & cap_spi; }
+	//Wait for card ready
+	virtual int wait_data_ready(unsigned /*timeout*/ )
+	{
+		return err_not_supported;
+	}
 };
 /*----------------------------------------------------------*/
 } /* namespace drv */
