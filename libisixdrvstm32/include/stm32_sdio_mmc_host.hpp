@@ -78,7 +78,7 @@ private:
 	const unsigned m_pclk2;
 	const unsigned short m_spi_speed_limit_khz;
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	void process_irq();
+	void process_irq_sdio();
 	isix::semaphore m_complete;
 	int m_transfer_error;
 #endif

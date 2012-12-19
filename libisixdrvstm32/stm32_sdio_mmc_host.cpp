@@ -150,7 +150,7 @@ namespace		//Private namespace for IRQ handling
 /*----------------------------------------------------------*/
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 //Process irq
-void mmc_host_sdio::process_irq()
+void mmc_host_sdio::process_irq_sdio()
 {
 	 using namespace ::drv::mmc;
 	 using namespace stm32;
@@ -203,7 +203,7 @@ extern "C"
 {
 	void __attribute__((__interrupt__)) sdio_isr_vector( void )
 	{
-		if(p_sdio) p_sdio->process_irq();
+		if(p_sdio) p_sdio->process_irq_sdio();
 	}
 }
 #endif
