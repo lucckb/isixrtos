@@ -35,7 +35,8 @@ public:
 	{
 		err_OK,
 		err_not_supported=1000,
-		err_invalid_parameter
+		err_invalid_parameter,
+		err_hwdma_fail
 	};
 	//!Host capabilities
 	enum mmc_host_cap

@@ -411,8 +411,14 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 					SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 	sd_lowlevel_dma_tx_config(buf, len);
 	//Wait for complete sem
-	const int ret = m_complete.wait( timeout );
+	int ret = m_complete.wait( timeout );
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
+	/* Check the status of the DMA transfer */
+	if ( !dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF ) ||
+		  dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TEIF ) )
+	{
+		ret = mmc_host::err_hwdma_fail;
+	}
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -453,8 +459,14 @@ int mmc_host_sdio::receive_data( void* /*buf */, size_t /*len*/, unsigned timeou
 	using namespace stm32;
 	using namespace ::drv::mmc;
 	//Wait for complete sem
-	const int ret = m_complete.wait( timeout );
+	int ret = m_complete.wait( timeout );
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
+	/* Check the status of the DMA transfer */
+	if ( !dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF ) ||
+		  dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TEIF ) )
+	{
+		ret = mmc_host::err_hwdma_fail;
+	}
 	return ret;
 }
 /*----------------------------------------------------------*/
