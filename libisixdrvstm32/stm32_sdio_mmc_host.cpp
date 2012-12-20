@@ -422,7 +422,7 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 		block_size = (__builtin_ffs(len) - 1)  << 4;
 	}
 	m_transfer_error = MMC_OK;
-	timeout = (m_pclk2/2/8/10000) * timeout;
+	timeout = (m_pclk2/2/8/1000) * timeout;
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	 sdio_it_config( SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND
 		 | SDIO_IT_RXOVERR | SDIO_IT_STBITERR , ENABLE );
@@ -452,7 +452,7 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 	if ( !ret && (!dma_get_flag_status(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF) ||
 		  dma_get_flag_status(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TEIF)) )
 	{
-		//ret = mmc_host::err_hwdma_fail;
+		ret = mmc_host::err_hwdma_fail;
 	}
 	return ret;
 }
@@ -476,7 +476,7 @@ int mmc_host_sdio::receive_data_prep( void* buf, size_t len, unsigned timeout)
 		block_size = (__builtin_ffs(len) - 1)  << 4;
 	}
 	m_transfer_error = MMC_OK;
-	timeout = (m_pclk2/2/8/10000) * timeout;
+	timeout = (m_pclk2/2/8/1000) * timeout;
 	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToSDIO, SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR, ENABLE);
@@ -514,7 +514,7 @@ int mmc_host_sdio::receive_data( void* /*buf */, size_t /*len*/, unsigned timeou
 	if ( !ret && (!dma_get_flag_status(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF) ||
 		  dma_get_flag_status(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TEIF)) )
 	{
-			ret = mmc_host::err_hwdma_fail;
+		ret = mmc_host::err_hwdma_fail;
 	}
 	return ret;
 }
