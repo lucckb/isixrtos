@@ -21,8 +21,7 @@
 #define ISIX_SDDRV_WAIT_USE_IRQ (1<<1)
 /*----------------------------------------------------------*/
 #ifndef ISIX_SDDRV_TRANSFER_MODE
-#define ISIX_SDDRV_TRANSFER_MODE (ISIX_SDDRV_TRANSFER_USE_IRQ )
-//|ISIX_SDDRV_WAIT_USE_IRQ)
+#define ISIX_SDDRV_TRANSFER_MODE (ISIX_SDDRV_TRANSFER_USE_IRQ|ISIX_SDDRV_WAIT_USE_IRQ)
 #endif
 /*----------------------------------------------------------*/
 namespace stm32 {
@@ -78,9 +77,7 @@ private:
 private:
 	const unsigned m_pclk2;
 	const unsigned short m_spi_speed_limit_khz;
-#if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	void process_irq_sdio();
-#endif
 #if(ISIX_SDDRV_TRANSFER_MODE)
 	isix::semaphore m_complete;
 #endif

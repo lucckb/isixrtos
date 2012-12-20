@@ -102,9 +102,6 @@ namespace
 				SD_SDIO_DMA_CHANNEL |DMA_MemoryInc_Enable | DMA_PeripheralDataSize_Word | DMA_MemoryDataSize_Word |
 				DMA_Mode_Normal | DMA_Priority_VeryHigh | DMA_MemoryBurst_INC4| DMA_PeripheralBurst_INC4,
 				DMA_FIFOMode_Enable | DMA_FIFOThreshold_Full, 0, SDIO_FIFO_ADDRESS, (uint32_t*)buffer_src );
-#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	  //dma_it_config(SD_SDIO_DMA_STREAM, DMA_IT_TC, ENABLE);
-#endif
 	  dma_flow_controller_config(SD_SDIO_DMA_STREAM, DMA_FlowCtrl_Peripheral);
 	  /* DMA2 Stream3  or Stream6 enable */
 	  dma_cmd(SD_SDIO_DMA_STREAM, ENABLE);
@@ -129,9 +126,6 @@ namespace
 			  DMA_MemoryInc_Enable | DMA_PeripheralDataSize_Word | DMA_MemoryDataSize_Word |
 			  DMA_Mode_Normal | DMA_Priority_Medium | DMA_MemoryBurst_INC4 | DMA_PeripheralBurst_INC4 ,
 			  DMA_FIFOMode_Enable | DMA_FIFOThreshold_Full, 0, SDIO_FIFO_ADDRESS,  buf_dst );
-#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	 // dma_it_config(SD_SDIO_DMA_STREAM, DMA_IT_TC, ENABLE);
-#endif
 	  dma_flow_controller_config(SD_SDIO_DMA_STREAM, DMA_FlowCtrl_Peripheral);
 	  /* DMA2 Stream3 or Stream6 enable */
 	  dma_cmd(SD_SDIO_DMA_STREAM, ENABLE);
@@ -145,9 +139,32 @@ namespace		//Private namespace for IRQ handling
 	mmc_host_sdio *p_sdio;
 }
 #endif
-
 /*----------------------------------------------------------*/
-#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+#if !(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+namespace
+{
+	//Used in polling mode only
+	static bool wait_for_trx_complete( unsigned timeout, unsigned wait_flags )
+	{
+		uint32_t sreg;
+		bool ret = false;
+		isix::tick_t t_start = isix::isix_get_jiffies();
+		timeout = isix::isix_ms2tick( timeout );
+		do
+		{
+			sreg = SDIO->STA;
+			if(timer_elapsed( t_start, timeout) )
+			{
+				ret = true;
+				break;
+			}
+		}
+		while( !(sreg & wait_flags) );
+		return ret;
+	}
+}
+#endif
+/*----------------------------------------------------------*/
 //Process irq
 void mmc_host_sdio::process_irq_sdio()
 {
@@ -183,12 +200,13 @@ void mmc_host_sdio::process_irq_sdio()
 		sdio_clear_it_pending_bit(SDIO_IT_STBITERR);
 		m_transfer_error = MMC_START_BIT_ERR;
 	 }
+#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	 sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND |
 	               SDIO_IT_TXFIFOHE | SDIO_IT_RXFIFOHF | SDIO_IT_TXUNDERR |
 	               SDIO_IT_RXOVERR | SDIO_IT_STBITERR, DISABLE);
 	 m_complete.signal_isr();
-}
 #endif
+}
 /*----------------------------------------------------------*/
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ)
 void mmc_host_sdio::process_irq_exti()
@@ -405,13 +423,26 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 	timeout = (m_pclk2/2/8/10000) * timeout;
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	 sdio_it_config( SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND
-		 | SDIO_IT_RXOVERR | SDIO_IT_STBITERR  |SDIO_IT_CEATAEND, ENABLE );
+		 | SDIO_IT_RXOVERR | SDIO_IT_STBITERR , ENABLE );
 #endif
 	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToCard,
 					SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 	sd_lowlevel_dma_tx_config(buf, len);
+	int ret;
 	//Wait for complete sem
-	int ret = m_complete.wait( timeout );
+#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+	ret = m_complete.wait( timeout );
+#else
+	if(wait_for_trx_complete( timeout, SDIO_FLAG_DCRCFAIL|SDIO_FLAG_DTIMEOUT|SDIO_FLAG_DATAEND|
+				SDIO_FLAG_RXOVERR|SDIO_FLAG_STBITERR ) )
+	{
+		ret = MMC_DATA_TIMEOUT;
+	}
+	else
+	{
+		process_irq_sdio();
+	}
+#endif
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
 	/* Check the status of the DMA transfer */
 	if ( !dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF ) ||
@@ -419,6 +450,8 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 	{
 		ret = mmc_host::err_hwdma_fail;
 	}
+	if( !ret )
+		ret = m_transfer_error;
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -444,8 +477,7 @@ int mmc_host_sdio::receive_data_prep( void* buf, size_t len, unsigned timeout)
 	timeout = (m_pclk2/2/8/10000) * timeout;
 	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToSDIO, SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR
-			 |SDIO_IT_CEATAEND, ENABLE);
+	sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR, ENABLE);
 #endif
 	sdio_dma_cmd(ENABLE);
 	sd_lowlevel_dma_rx_config( buf, len );
@@ -458,8 +490,21 @@ int mmc_host_sdio::receive_data( void* /*buf */, size_t /*len*/, unsigned timeou
 {
 	using namespace stm32;
 	using namespace ::drv::mmc;
+	int ret;
 	//Wait for complete sem
-	int ret = m_complete.wait( timeout );
+#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+	ret = m_complete.wait( timeout );
+#else
+	if(wait_for_trx_complete( timeout, SDIO_FLAG_DCRCFAIL|SDIO_FLAG_DTIMEOUT|SDIO_FLAG_DATAEND|
+			SDIO_FLAG_RXOVERR|SDIO_FLAG_STBITERR ) )
+	{
+		ret = MMC_DATA_TIMEOUT;
+	}
+	else
+	{
+		process_irq_sdio();
+	}
+#endif
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
 	/* Check the status of the DMA transfer */
 	if ( !dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF ) ||
@@ -467,6 +512,8 @@ int mmc_host_sdio::receive_data( void* /*buf */, size_t /*len*/, unsigned timeou
 	{
 		ret = mmc_host::err_hwdma_fail;
 	}
+	if( !ret )
+		ret = m_transfer_error;
 	return ret;
 }
 /*----------------------------------------------------------*/
