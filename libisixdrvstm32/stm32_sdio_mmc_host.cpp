@@ -7,13 +7,19 @@
 /*----------------------------------------------------------*/
 #include "mmc/mmc_command.hpp"
 #include "stm32_sdio_mmc_host.hpp"
-#include <dbglog.h>
 #include <stm32dma.h>
 #include <stm32sdio.h>
 #include <stm32gpio.h>
 #include <stm32system.h>
 #include <stm32bitbang.h>
 #include <stm32exti.h>
+
+/*----------------------------------------------------------*/
+#ifdef DEBUG_STM32_SDIO_MMC_HOST_CPP
+#include <dbglog.h>
+#else
+#define dbprintf(...) do {} while(0)
+#endif
 /*----------------------------------------------------------*/
 namespace stm32 {
 namespace drv {
