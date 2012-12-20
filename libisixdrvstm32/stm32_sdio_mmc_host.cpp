@@ -446,14 +446,14 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 	}
 #endif
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
-	/* Check the status of the DMA transfer */
-	if ( !dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF ) ||
-		  dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TEIF ) )
-	{
-		ret = mmc_host::err_hwdma_fail;
-	}
 	if( !ret )
 		ret = m_transfer_error;
+	/* Check the status of the DMA transfer */
+	if ( !ret && (!dma_get_flag_status(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF) ||
+		  dma_get_flag_status(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TEIF)) )
+	{
+		//ret = mmc_host::err_hwdma_fail;
+	}
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -508,14 +508,14 @@ int mmc_host_sdio::receive_data( void* /*buf */, size_t /*len*/, unsigned timeou
 	}
 #endif
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
-	/* Check the status of the DMA transfer */
-	if ( !dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF ) ||
-		  dma_get_flag_status( SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TEIF ) )
-	{
-		ret = mmc_host::err_hwdma_fail;
-	}
 	if( !ret )
 		ret = m_transfer_error;
+	/* Check the status of the DMA transfer */
+	if ( !ret && (!dma_get_flag_status(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TCIF) ||
+		  dma_get_flag_status(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_TEIF)) )
+	{
+			ret = mmc_host::err_hwdma_fail;
+	}
 	return ret;
 }
 /*----------------------------------------------------------*/
