@@ -144,10 +144,12 @@ namespace		//Private namespace for IRQ handling
 namespace
 {
 	//Used in polling mode only
-	static bool wait_for_trx_complete( unsigned timeout, unsigned wait_flags )
+	static bool wait_for_trx_complete( unsigned timeout )
 	{
 		uint32_t sreg;
 		bool ret = false;
+		static const uint32_t wait_flags = SDIO_FLAG_DCRCFAIL|SDIO_FLAG_DTIMEOUT|SDIO_FLAG_DATAEND|
+				SDIO_FLAG_RXOVERR|SDIO_FLAG_STBITERR;
 		isix::tick_t t_start = isix::isix_get_jiffies();
 		timeout = isix::isix_ms2tick( timeout );
 		do
@@ -433,14 +435,14 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	ret = m_complete.wait( timeout );
 #else
-	if(wait_for_trx_complete( timeout, SDIO_FLAG_DCRCFAIL|SDIO_FLAG_DTIMEOUT|SDIO_FLAG_DATAEND|
-				SDIO_FLAG_RXOVERR|SDIO_FLAG_STBITERR ) )
+	if( wait_for_trx_complete(timeout) )
 	{
 		ret = MMC_DATA_TIMEOUT;
 	}
 	else
 	{
 		process_irq_sdio();
+		ret = MMC_OK;
 	}
 #endif
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
@@ -495,14 +497,14 @@ int mmc_host_sdio::receive_data( void* /*buf */, size_t /*len*/, unsigned timeou
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	ret = m_complete.wait( timeout );
 #else
-	if(wait_for_trx_complete( timeout, SDIO_FLAG_DCRCFAIL|SDIO_FLAG_DTIMEOUT|SDIO_FLAG_DATAEND|
-			SDIO_FLAG_RXOVERR|SDIO_FLAG_STBITERR ) )
+	if( wait_for_trx_complete(timeout) )
 	{
 		ret = MMC_DATA_TIMEOUT;
 	}
 	else
 	{
 		process_irq_sdio();
+		ret = MMC_OK;
 	}
 #endif
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
