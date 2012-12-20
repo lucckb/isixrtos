@@ -28,7 +28,6 @@ namespace
 		else div = ((pclk2/2) / (1000*khz) )  - 2;
 		if( div > 0xff) div = 0xff;
 		else if( div < 0 ) div = 0;
-		dbprintf("clkdiv khz: %u div: %u", khz, div);
 		return div;
 	}
 	//Check for timer elapsed
@@ -140,7 +139,7 @@ namespace
 }	/* Unnamed namespace */
 #endif
 /*----------------------------------------------------------*/
-#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+#if (ISIX_SDDRV_TRANSFER_MODE )
 namespace		//Private namespace for IRQ handling
 {
 	mmc_host_sdio *p_sdio;
@@ -191,7 +190,7 @@ void mmc_host_sdio::process_irq_sdio()
 }
 #endif
 /*----------------------------------------------------------*/
-#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ)
 void mmc_host_sdio::process_irq_exti()
 {
     m_complete.signal_isr();
@@ -209,7 +208,7 @@ extern "C"
 #endif
 
 /*----------------------------------------------------------*/
-#if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
+#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ)
 extern "C" {
     void __attribute__((__interrupt__)) exti8_isr_vector(void)
     {
@@ -223,9 +222,10 @@ extern "C" {
 //Constructor
 mmc_host_sdio::mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz )
 	: m_pclk2(pclk2), m_spi_speed_limit_khz(spi_speed_limit_khz)
-#if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	, m_complete( 0, 1 ), m_transfer_error(0)
+#if(ISIX_SDDRV_TRANSFER_MODE)
+	, m_complete( 0, 1 )
 #endif
+	, m_transfer_error(0)
 {
 	  using namespace stm32;
 	  /* SDIO Peripheral Low Level Init */
@@ -248,8 +248,10 @@ mmc_host_sdio::mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz )
 #endif
 	  sdio_deinit();
 	  rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SDIO, true );
-#if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
+#if(ISIX_SDDRV_TRANSFER_MODE)
 	  p_sdio = this;
+#endif
+#if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	  nvic_set_priority( SDIO_IRQn, IRQ_PRIO, IRQ_SUB );
 	  nvic_irq_enable( SDIO_IRQn, true );
 #endif
@@ -304,15 +306,9 @@ int mmc_host_sdio::execute_command( ::drv::mmc::mmc_command &req, unsigned timeo
 	if( req.get_flags() & mmc_command::resp_present )
 	{
 		if( req.get_flags() & mmc_command::resp_136 )
-		{
-			//dbprintf("SDIO_Response_Long");
 			resp = SDIO_Response_Long;
-		}
 		else
-		{
-			//dbprintf("SDIO_Response_Short");
 			resp = SDIO_Response_Short;
-		}
 	}
 	//Send command
 	uint32_t fwait = SDIO_Wait_No;
@@ -336,20 +332,18 @@ int mmc_host_sdio::execute_command( ::drv::mmc::mmc_command &req, unsigned timeo
 			break;
 	}
 	while( !(sreg & stat) );
-	//dbprintf("FLAG ERROR %08lx", SDIO->STA );
 	//Check the response
 	do {
 		//Check the errors
 		if( !(sreg & stat) )
 		{
 			ret =  MMC_CMD_RSP_TIMEOUT;
-			dbprintf("timeout #1");
 			break;
 		}
 		if( (sreg & stat) & SDIO_FLAG_CTIMEOUT )
 		{
 			ret =  MMC_CMD_RSP_TIMEOUT;
-			dbprintf("HW timeout cmd %i arg %08x", req.get_op(), req.get_arg());
+			dbprintf("HW timeout cmd %i arg %08lx", req.get_op(), req.get_arg());
 			break;
 		}
 		if( (sreg & stat) & SDIO_FLAG_CCRCFAIL )
@@ -386,7 +380,6 @@ int mmc_host_sdio::execute_command( ::drv::mmc::mmc_command &req, unsigned timeo
 		}
 	} while(0);
 	sdio_clear_flag(SDIO_STATIC_FLAGS & stat );
-	//dbprintf("Exec cmd ret: %i op: %i arg: %08x CEA %02x", ret, req.get_op()&(~0x80), req.get_arg(),m_flags);
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -409,26 +402,17 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 		block_size = (__builtin_ffs(len) - 1)  << 4;
 	}
 	m_transfer_error = MMC_OK;
-	//dbprintf("Timeout %d", timeout);
 	timeout = (m_pclk2/2/8/10000) * timeout;
-	//dbprintf("DataWR config Tout=%u len=%u bs=0x%02lX", timeout, len, block_size);
-
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	 sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR
-			 |SDIO_IT_CEATAEND, ENABLE);
+	 sdio_it_config( SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND
+		 | SDIO_IT_RXOVERR | SDIO_IT_STBITERR  |SDIO_IT_CEATAEND, ENABLE );
 #endif
 	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToCard,
 					SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 	sd_lowlevel_dma_tx_config(buf, len);
-	/* Wait for RCV DATA
-	 */
-	int ret = MMC_OK;
-
 	//Wait for complete sem
-	ret = m_complete.wait( timeout );
-	//while (SDIO->STA & SDIO_FLAG_TXACT) {}
+	const int ret = m_complete.wait( timeout );
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
-	//dbprintf("WRITE data STAT %i", ret);
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -451,9 +435,7 @@ int mmc_host_sdio::receive_data_prep( void* buf, size_t len, unsigned timeout)
 		block_size = (__builtin_ffs(len) - 1)  << 4;
 	}
 	m_transfer_error = MMC_OK;
-	//dbprintf("Timeout %d", timeout);
 	timeout = (m_pclk2/2/8/10000) * timeout;
-	//dbprintf("Data config Tout=%u len=%u bs=0x%02lX", timeout, len, block_size);
 	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToSDIO, SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR
@@ -466,23 +448,13 @@ int mmc_host_sdio::receive_data_prep( void* buf, size_t len, unsigned timeout)
 }
 /*----------------------------------------------------------*/
 //Execute MMC data transfer
-int mmc_host_sdio::receive_data( void *buf, size_t len, unsigned timeout )
+int mmc_host_sdio::receive_data( void* /*buf */, size_t /*len*/, unsigned timeout )
 {
 	using namespace stm32;
 	using namespace ::drv::mmc;
-	int ret = MMC_OK;
-	do
-	{
-		//Wait for complete sem
-		if ((ret = m_complete.wait( timeout ))) break;
-		//while (SDIO->STA & SDIO_FLAG_RXACT){}
-	} while(0);
+	//Wait for complete sem
+	const int ret = m_complete.wait( timeout );
 	sdio_clear_flag( SDIO_STATIC_FLAGS );
-	if( !ret )
-	{
-		ret = m_transfer_error;
-	}
-	//dbprintf("Receive data STAT %i", ret);
 	return ret;
 }
 /*----------------------------------------------------------*/
@@ -497,6 +469,7 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 	case mmc_host::ios_pwr_off:
 	{
 		sdio_set_power_state(SDIO_PowerState_OFF);
+		dbprintf("Command power OFF");
 		break;
 	}
 	//PWR ON
@@ -512,7 +485,7 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 		for(int w=0; w<16; w++ ) nop();
 		/*!< Enable SDIO Clock */
 		sdio_clock_cmd(ENABLE);
-		dbprintf("Power on");
+		dbprintf("Command power ON");
 		break;
 	}
 	//SET SPEED
@@ -523,6 +496,7 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 		uint32_t cr = SDIO->CLKCR;
 		cr = (cr & ~0xff) | khz_to_sdio_div(param, m_pclk2);
 		SDIO->CLKCR = cr;
+		dbprintf("Command setSpeed to %u", param );
 		break;
 	}
 	//SET bus wide
@@ -531,6 +505,7 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 		uint32_t cr = SDIO->CLKCR;
 		cr = (cr & ~0x1800) | (param==mmc_host::bus_width_4b?SDIO_BusWide_4b:SDIO_BusWide_1b);
 		SDIO->CLKCR = cr;
+		dbprintf("Command setBusWidth to %u", param );
 		break;
 	}
 	//UNSUPORTED FEATURE
@@ -545,13 +520,9 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 //Wait for data will be ready
 int mmc_host_sdio::wait_data_ready( unsigned timeout )
 {
-	/*
-	while( stm32::gpio_get(GPIOC,8) == 0 );
-	using namespace ::drv::mmc;
-	return MMC_OK;
-	*/
 	using namespace ::drv::mmc;
 	int ret = MMC_OK;
+#if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
 	if( !gpio_get(DATA0_PORT,DATA0_PIN) )
 	{
 		exti_clear_it_pending_bit( EXTI_Line8 );
@@ -559,6 +530,19 @@ int mmc_host_sdio::wait_data_ready( unsigned timeout )
 		ret = m_complete.wait( timeout );
 	}
 	return ret;
+#else
+	isix::tick_t t_start = isix::isix_get_jiffies();
+	timeout = isix::isix_ms2tick( timeout );
+	while( !gpio_get(DATA0_PORT,DATA0_PIN) )
+	{
+		if( timer_elapsed(t_start,timeout) )
+		{
+			ret = MMC_DATA_TIMEOUT;
+			break;
+		}
+	}
+	return ret;
+#endif
 }
 /*----------------------------------------------------------*/
 }}

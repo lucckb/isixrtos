@@ -21,7 +21,8 @@
 #define ISIX_SDDRV_WAIT_USE_IRQ (1<<1)
 /*----------------------------------------------------------*/
 #ifndef ISIX_SDDRV_TRANSFER_MODE
-#define ISIX_SDDRV_TRANSFER_MODE (ISIX_SDDRV_TRANSFER_USE_IRQ|ISIX_SDDRV_WAIT_USE_IRQ)
+#define ISIX_SDDRV_TRANSFER_MODE (ISIX_SDDRV_TRANSFER_USE_IRQ )
+//|ISIX_SDDRV_WAIT_USE_IRQ)
 #endif
 /*----------------------------------------------------------*/
 namespace stm32 {
@@ -44,7 +45,7 @@ class mmc_host_sdio : public ::drv::mmc::mmc_host
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	friend void sdio_isr_vector(void);
 #endif
-#if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
+#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ)
 	friend void exti8_isr_vector(void);
 #endif
 public:
@@ -79,10 +80,14 @@ private:
 	const unsigned short m_spi_speed_limit_khz;
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	void process_irq_sdio();
-	isix::semaphore m_complete;
-	int m_transfer_error;
 #endif
+#if(ISIX_SDDRV_TRANSFER_MODE)
+	isix::semaphore m_complete;
+#endif
+	int m_transfer_error;
+#if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ)
 	void process_irq_exti();
+#endif
 };
 /*----------------------------------------------------------*/
 } /* namespace drv */
