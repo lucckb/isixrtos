@@ -11,7 +11,7 @@
 #ifdef _HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include <dbglog.h>
+
 
 /*----------------------------------------------------------*/
 namespace stm32 {
@@ -42,7 +42,6 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2 )
 		gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
 		gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
 		gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_HALF );
-		dbprintf("SPI initialized");
 	}
 #ifdef SPI2
 	else if( m_spi == SPI2 )
@@ -204,7 +203,6 @@ int spi_master::set_mode( unsigned mode, unsigned khz )
 	{
 		divide = SPI_BaudRatePrescaler_256;
 	}
-	dbprintf("SET MODE divider %04x (%i)", divide, khz);
 	spi_cmd( m_spi, false );
 	spi_init( m_spi,  SPI_Direction_2Lines_FullDuplex, SPI_Mode_Master,
 		(mode&spi_device::data_16b)?(SPI_DataSize_16b):(SPI_DataSize_8b),

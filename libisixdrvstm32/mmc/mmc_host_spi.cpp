@@ -9,7 +9,7 @@
 #include "mmc/mmc_host_spi.hpp"
 #include "mmc/mmc_command.hpp"
 #include "spi_device.hpp"
-#include <dbglog.h>
+
 /*----------------------------------------------------------*/
 namespace drv {
 namespace mmc {
@@ -91,12 +91,10 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 		}
 		if( !(r1 & 0x80) )
 		{
-			//dbprintf("RRR1=%02x CMD=%02x", r1, req.get_op());
 			req.set_resp_spi_r1( r1 );
 		}
 		else
 		{
-			dbprintf("Timeout error R1=0xFF");
 			m_proc_cmd = 0;
 			CS(1);
 			return MMC_CMD_RSP_TIMEOUT;
@@ -131,10 +129,8 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 	//Extra data CSD or CID for SD card simulation
 	if( (req.get_flags()&mmc_command::resp_spi_d16b) && (!ret))
 	{
-		dbprintf("EXTRA DATA ERR %d", req.get_err() );
 		if( (ret=req.get_err()) ) return ret;
 		ret = receive_data( req.get_resp_buffer(), 16, timeout );
-		dbprintf("EXTRA DATA read ERR %d", ret );
 		if( !ret )
 			req.set_resp_spi_status();
 	}
@@ -184,7 +180,6 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 	const int prio = isix::isix_task_change_prio( NULL, isix::isix_get_min_priority() );
 	if( m_proc_cmd == mmc_command::OP_WRITE_MULT_BLOCK )
 	{
-		//dbprintf("STOP TRAN WRITE");
 		m_spi.transfer( MMC_STOPTRAN_WRITE );
 		// Wait for card release
 		uint8_t r1;
@@ -235,7 +230,6 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 			CS(1);
 			if( prio >= 0 )
 				isix::isix_task_change_prio( NULL, prio );
-			dbprintf("Data token error 0x%02x", r1);
 			return MMC_DATA_ERROR;
 		}
 		if( timer_elapsed(t_start, timeout) )
@@ -279,7 +273,6 @@ int mmc_host_spi::set_ios( ios_cmd cmd, int param )
 		ret = m_spi.set_mode( C_spi_mode, C_low_clk_khz_host );
 		CS(1);
 		m_spi.flush( 10 );
-		dbprintf("Power on");
 		break;
 	//SET SPEED
 	case mmc_host::ios_set_speed:
