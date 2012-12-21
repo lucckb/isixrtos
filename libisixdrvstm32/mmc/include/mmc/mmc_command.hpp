@@ -270,9 +270,9 @@ public:
 	int get_type() const
 	{
 		if( is_spi_type() )
-			return (m_flags >> 26)&0xff;
+			return (m_flags >> 26)&0x07;
 		else
-			return (m_flags >> 29)&0xff;
+			return (m_flags >> 29)&0x07;
 	}
 	bool is_spi_type() const
 	{

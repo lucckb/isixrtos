@@ -11,6 +11,7 @@
 #include "mmc/mmc_host_spi.hpp"
 #include "spi_device.hpp"
 #include <new>
+
 /*----------------------------------------------------------*/
 #ifdef DEBUG_MMC_MMC_CARD_CPP
 #include <dbglog.h>
