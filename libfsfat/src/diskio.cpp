@@ -11,50 +11,27 @@
 #ifdef _HAVE_CONFIG_H
 #include "config.h"
 #endif
-
+#include "mmc/mmc_slot.hpp"
+#include "mmc/mmc_card.hpp"
 /*-----------------------------------------------------------------------*/
-#define ISIX_FATFS_USE_SPI_MODE 1
-#define ISIX_FATFS_USE_SDIO_MODE 2
-
+#define MAX_DISK_NUMB 2
+static drv::mmc::mmc_slot* g_slots[MAX_DISK_NUMB];
+static drv::mmc::mmc_card* g_cards[MAX_DISK_NUMB];
 /*-----------------------------------------------------------------------*/
-#ifndef ISIX_FATFS_MODE
-#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
-#define ISIX_FATFS_MODE ISIX_FATFS_USE_SDIO_MODE
-#else
-#define ISIX_FATFS_MODE ISIX_FATFS_USE_SPI_MODE
-#endif
-#endif
-
-/*-----------------------------------------------------------------------*/
-#if (ISIX_FATFS_MODE==ISIX_FATFS_USE_SDIO_MODE)
-#include "sdio_sdcard_driver.h"
-#elif (ISIX_FATFS_MODE==ISIX_FATFS_USE_SPI_MODE)
-//#include "spi_sdcard_driver.h"
-#else
-#error "Unknown SPI driver mode"
-#endif
-/*-----------------------------------------------------------------------*/
-#if (ISIX_FATFS_MODE==ISIX_FATFS_USE_SDIO_MODE)
-#define _sdcard_init isix_sdio_card_driver_init
-#define _scard_reinitialize isix_sdio_card_driver_reinitialize
-#define _sdcard_is_card_in_slot isix_sdio_card_driver_is_card_in_slot
-#define _sdcard_card_driver_status isix_sdio_card_driver_status
-#define _sdcard_read isix_sdio_card_driver_read
-#define _sdcard_write isix_sdio_card_driver_write
-#elif (ISIX_FATFS_MODE==ISIX_FATFS_USE_SPI_MODE)
-#define _sdcard_init(a) (1)
-#define _scard_reinitialize(a) (1)
-#define _sdcard_is_card_in_slot() (1)
-#define _sdcard_card_driver_status() (1)
-#define _sdcard_read(a, b, c) (1)
-#define _sdcard_write(a, b, c) (1)
-#endif
-/*-----------------------------------------------------------------------*/
-DWORD get_fattime(void)
+DRESULT disk_add( BYTE disk_id, drv::mmc::mmc_slot *slot )
 {
-	return 0;
+	if( disk_id >= MAX_DISK_NUMB ) return RES_PARERR;
+	g_slots[disk_id] = slot;
+	return RES_OK;
 }
-
+/*-----------------------------------------------------------------------*/
+extern "C"
+{
+	DWORD __attribute__ ((weak)) get_fattime(void)
+	{
+		return 0;
+	}
+}
 /*-----------------------------------------------------------------------*/
 /* Initialize a Drive                                                    */
 
@@ -63,23 +40,20 @@ DSTATUS disk_initialize (
 		BYTE drv				/* Physical drive nmuber (0..) */
 )
 {
-#if 0
-	(void)drv;
-	switch ( _sdcard_init() )
+	using namespace drv::mmc;
+	if( drv >= MAX_DISK_NUMB ) return RES_PARERR;
+	if( !g_slots[drv] ) return STA_NOINIT;
+	if( g_slots[drv]->check( mmc_slot::C_no_block ) & mmc_slot::card_removed )
 	{
-	case SD_LIB_ALREADY_INITIALIZED:
-		if( _scard_reinitialize() )
-			return RES_ERROR;
-		else
-			return RES_OK;
-	case SD_OK:
-			return RES_OK;
-	default:
-		return RES_ERROR;
+		return STA_NODISK;
 	}
-#endif
+	if( g_slots[drv]->get_card( g_cards[drv] ) != MMC_OK )
+	{
+		g_cards[drv] = NULL;
+		return STA_NOINIT;
+	}
+	return 0;
 }
-
 /*-----------------------------------------------------------------------*/
 /* Get Disk Status                                                       */
 /*-----------------------------------------------------------------------*/
@@ -88,21 +62,13 @@ DSTATUS disk_status (
 	BYTE drv		/* Physical drive nmuber (0..) */
 )
 {
-#if 0
-	(void)drv;
-	if( !_sdcard_is_card_in_slot() )
+	using namespace drv::mmc;
+	if( drv >= MAX_DISK_NUMB ) return RES_PARERR;
+	if( !g_slots[drv] ) return STA_NOINIT;
+
+	if( g_slots[drv]->check( mmc_slot::C_no_block ) & mmc_slot::card_removed )
 		return STA_NODISK;
-	switch( _sdcard_card_driver_status() )
-	{
-	case SDCARD_DRVSTAT_NOINIT:
-		return STA_NOINIT;
-	case SDCARD_DRVSTAT_OK:
-	case SDCARD_DRVSTAT_BUSY:
-		return 0;
-	default:
-		return 0;
-	}
-#endif
+	return 0;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -116,15 +82,19 @@ DRESULT disk_read (
 	BYTE count		/* Number of sectors to read (1..128) */
 )
 {
-#if 0
-	(void)drv;
-	if( _sdcard_read(buff, sector, count) )
+	using namespace drv::mmc;
+	if( drv >= MAX_DISK_NUMB ) return RES_PARERR;
+	if( !g_slots[drv]  ) return RES_ERROR;
+	if( !g_cards[drv] )  return RES_NOTRDY;
+	switch( g_cards[drv]->read( buff, sector, count ) )
 	{
+	case MMC_CARD_NOT_PRESENT:
+		return RES_NOTRDY;
+	case MMC_OK:
+		return RES_OK;
+	default:
 		return RES_ERROR;
 	}
-	else
-		return RES_OK;
-#endif
 }
 
 /*-----------------------------------------------------------------------*/
@@ -139,15 +109,19 @@ DRESULT disk_write (
 	BYTE count			/* Number of sectors to write (1..128) */
 )
 {
-#if 0
-	(void)drv;
-	if( _sdcard_write( buff, sector, count) )
+	using namespace drv::mmc;
+	if( drv >= MAX_DISK_NUMB ) return RES_PARERR;
+	if( !g_slots[drv]  ) return RES_ERROR;
+	if( !g_cards[drv] )  return RES_NOTRDY;
+	switch( g_cards[drv]->write( buff, sector, count ) )
 	{
+	case MMC_CARD_NOT_PRESENT:
+		return RES_NOTRDY;
+	case MMC_OK:
+		return RES_OK;
+	default:
 		return RES_ERROR;
 	}
-	else
-		return RES_OK;
-#endif
 }
 #endif
 
@@ -163,7 +137,6 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-#if 0
 	(void)drv; (void)buff;
 	switch( ctrl )
 	{
@@ -172,6 +145,5 @@ DRESULT disk_ioctl (
 	default:
 		return RES_ERROR;
 	}
-#endif
 }
 #endif

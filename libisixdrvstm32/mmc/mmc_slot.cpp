@@ -71,6 +71,11 @@ int mmc_slot::get_card( mmc_card* &card )
 		{
 			ret = mmc_card::detect( m_host, m_card );
 			m_init_req = false;
+			if(!ret) card = m_card;
+		}
+		else
+		{
+			ret = MMC_OK;
 			card = m_card;
 		}
 	}

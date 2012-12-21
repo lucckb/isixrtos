@@ -1,4 +1,4 @@
-set tdesc filename gdb7.3-oldregs.xml
+#set tdesc filename gdb7.3-oldregs.xml
 target remote localhost:3333
 monitor reset
 monitor sleep 500

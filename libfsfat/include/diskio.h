@@ -14,7 +14,6 @@ extern "C" {
 
 #include "integer.h"
 
-
 /* Status of Disk Functions */
 typedef BYTE	DSTATUS;
 
@@ -79,8 +78,21 @@ DRESULT disk_ioctl (BYTE, BYTE, void*);
 #define CT_SD2		0x04		/* SD ver 2 */
 #define CT_SDC		(CT_SD1|CT_SD2)	/* SD */
 #define CT_BLOCK	0x08		/* Block addressing */
-
-
+/*---------------------------------------*/
+#ifdef __cplusplus
+namespace drv
+{
+namespace mmc {
+	class mmc_slot;
+}}
+#define drv_mmc_mmc_slot_class drv::mmc::mmc_slot
+#else
+typedef struct mmc_slot mmc_slot;
+#define drv_mmc_mmc_slot_class mmc_slot
+#endif
+DRESULT disk_add( BYTE disk_id, drv_mmc_mmc_slot_class *ops );
+#undef drv_mmc_mmc_slot_class
+/*---------------------------------------*/
 #ifdef __cplusplus
 }
 #endif

@@ -10,6 +10,7 @@
 
 #include "noncopyable.hpp"
 #include "mmc/immc_det_pin.hpp"
+#include "mmc/mmc_error_codes.hpp"
 #include <isix.h>
 
 
@@ -27,6 +28,7 @@ public:
 		card_removed =  0x1,
 		card_inserted = 0x2
 	};
+	static const int C_no_block = -1;
 public:
 	//Constructor
 	mmc_slot( mmc_host &host, immc_det_pin &det_pin );
