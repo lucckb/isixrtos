@@ -8,6 +8,10 @@
 #ifndef DSP_ARRAY_SINUS_HPP_
 #define DSP_ARRAY_SINUS_HPP_
 /* ------------------------------------------------------------------------- */
+#include <cstddef>
+#include <limits>
+#include <cmath>
+/* ------------------------------------------------------------------------- */
 namespace dsp {
 namespace integer {
   namespace _internal {
