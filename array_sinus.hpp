@@ -30,7 +30,7 @@ namespace integer {
 		static constexpr size_t elm = S -1;
 		constexpr int quad( const T phase )
 		{
-		    return phase / elm;
+		    return (phase / elm ) %4;
 		}
 		constexpr size_t angle( const T phase )
 		{
