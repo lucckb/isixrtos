@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 
-#ifndef NCO_MIXER_HPP_
-#define NCO_MIXER_HPP_
+#ifndef DSP_NCO_MIXER_HPP_
+#define DSP_NCO_MIXER_HPP_
 /* ------------------------------------------------------------------------- */
 #include <cstddef>
 #include <complex>
