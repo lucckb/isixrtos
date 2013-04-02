@@ -17,6 +17,10 @@ namespace dsp {
 template <typename R, typename P, int SHIFT, std::size_t SSIN_SIZE > class nco_mixer
 {
 public:
+	constexpr R max_angle( )
+	{
+		return dsp::integer::trig::sin_arg_max<R, SSIN_SIZE>();
+	}
 	std::complex<R> operator()(R signal, P phz_inc )
 	{
 		const std::complex<R> ret(
@@ -24,26 +28,18 @@ public:
 				(signal*isinus(m_vco_phz))   >> SHIFT
 			);
 		m_vco_phz += phz_inc;
-		if( m_vco_phz > isinmax() )		//handle 2 Pi wrap around
-			m_vco_phz -= isinmax();
+		if( m_vco_phz > max_angle() )		//handle 2 Pi wrap around
+			m_vco_phz -= max_angle();
 		return ret;
-	}
-	constexpr R max_angle( )
-	{
-		return dsp::integer::trig::sin_arg_max<R, SSIN_SIZE>();
 	}
 private:
 	inline int isinus( short value )
 	{
 		return dsp::integer::trig::sin<R, SSIN_SIZE>( value );
 	}
-	constexpr short isinmax( )
-	{
-		return dsp::integer::trig::sin_arg_max<R, SSIN_SIZE>();
-	}
 	inline int icosinus( short value )
 	{
-		return dsp::integer::trig::sin<R, SSIN_SIZE>( isinmax()/4 + value );
+		return dsp::integer::trig::sin<R, SSIN_SIZE>( max_angle()/4 + value );
 	}
 private:
 	P m_vco_phz {};
