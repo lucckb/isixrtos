@@ -15,9 +15,19 @@ namespace dsp {
  * CT - coefficient type
  * N  - decimate length
  */
-template<typename DT, typename CT, typename N> class fir_decimate
+template<typename DT, typename CT, size_t LEN> class fir_decimate
 {
+public:
+	fir_decimate( constexpr CT )
+	{
 
+	}
+	DT operator()( DT value )
+	{
+	}
+private:
+	DT m_filter[LEN];
+	constexpr CT m_coefs[];
 };
 
 /* ------------------------------------------------------------------------- */
