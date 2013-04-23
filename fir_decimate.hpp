@@ -27,7 +27,7 @@ public:
 	}
 private:
 	DT m_filter[LEN];
-	constexpr CT m_coefs[];
+	 constexpr CT m_coefs[];
 };
 
 /* ------------------------------------------------------------------------- */
