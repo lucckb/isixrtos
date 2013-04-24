@@ -21,8 +21,38 @@ namespace cpu
      {
     	 acc += x * y;
      }
-     template< typename T> inline T sat( T, int pos )
+     template< typename T>
+     typename std::enable_if<std::is_signed<typename std::complex<T>::value_type >::value, std::complex<T> >::type
+     inline sat( T x, int y )
      {
+    	  int32_t posMax, negMin;
+    	    uint32_t i;
+
+    	    posMax = 1;
+    	    for (i = 0; i < (y - 1); i++)
+    	      {
+    		posMax = posMax * 2;
+    	      }
+
+    	    if(x > 0)
+    	      {
+    		posMax = (posMax - 1);
+
+    		if(x > posMax)
+    		  {
+    		    x = posMax;
+    		  }
+    	      }
+    	    else
+    	      {
+    		negMin = -posMax;
+
+    		if(x < negMin)
+    		  {
+    		    x = negMin;
+    		  }
+    	      }
+    	    return (x);
 
      }
      template<typename T> inline void mac( std::complex<T> &acc, std::complex<T> x , T y )
