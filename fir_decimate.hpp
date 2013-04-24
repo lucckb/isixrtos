@@ -9,22 +9,33 @@
 #define DSP_FIR_DECIMATE_HPP_
 /* ------------------------------------------------------------------------- */
 #include <array>
-
+#include <cmath>
+#include <limits>
+#include <type_traits>
 /* ------------------------------------------------------------------------- */
 namespace dsp {
 /* ------------------------------------------------------------------------- */
 /**
  * DT - data type
  * CT - coefficient type
+ * MACT - multiply and accumulate data type
  * N  - decimate length
  */
-template<typename DT, typename CT, size_t TAPS> 
+template<typename DT, typename CT, size_t TAPS, typename ACC = DT>
 class fir_decimate
 {
 private:
-     void mac( DT &acc, DT x, DT y )
+	 template< typename T> static constexpr int cbits()
+	 {
+	    return std::log2(std::numeric_limits<T>::max()) + 0.5;
+	 }
+     void mac( ACC &acc, DT x, DT y )
      {
-        acc += x * y;
+    	 acc += x * y;
+     }
+     DT sat( DT, int pos )
+     {
+
      }
 public:
 	explicit constexpr fir_decimate( const CT * const coefs )
@@ -34,7 +45,7 @@ public:
     //Reset the filter
     void reset()
     {
-        m_state.fill(  DT() );
+        m_state.fill( DT() );
         m_last_idx = 0;
     }
     //Insert operator
@@ -46,7 +57,7 @@ public:
     //Calculate fir operator
     DT operator()()
     {
-          DT acc = 0;
+          ACC acc {};
           size_t index = m_last_idx;
           for(size_t i = 0; i < TAPS; ++i) 
           {

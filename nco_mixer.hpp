@@ -10,12 +10,20 @@
 /* ------------------------------------------------------------------------- */
 #include <cstddef>
 #include <complex>
+#include <cmath>
+#include <limits>
 #include "array_sinus.hpp"
 /* ------------------------------------------------------------------------- */
 namespace dsp {
 /* ------------------------------------------------------------------------- */
-template <typename R, typename P, int SHIFT, std::size_t SSIN_SIZE > class nco_mixer
+template <typename R, typename P, std::size_t SSIN_SIZE > class nco_mixer
 {
+private:
+	 template<typename T> static constexpr int cbits()
+	 {
+		 return std::log2(std::numeric_limits<T>::max()) + 0.5;
+	 }
+	 static const int SHIFT = cbits<R>();
 public:
 	constexpr R max_angle( )
 	{
@@ -33,11 +41,11 @@ public:
 		return ret;
 	}
 private:
-	inline int isinus( short value )
+	inline int isinus( P value )
 	{
 		return dsp::integer::trig::sin<R, SSIN_SIZE>( value );
 	}
-	inline int icosinus( short value )
+	inline int icosinus( P value )
 	{
 		return dsp::integer::trig::sin<R, SSIN_SIZE>( max_angle()/4 + value );
 	}
