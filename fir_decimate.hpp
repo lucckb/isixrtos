@@ -15,6 +15,54 @@
 /* ------------------------------------------------------------------------- */
 namespace dsp {
 /* ------------------------------------------------------------------------- */
+namespace cpu
+{
+	 template<typename R, typename T> inline void mac( R &acc, T x, T y )
+     {
+    	 acc += x * y;
+     }
+     template< typename T> inline T sat( T, int pos )
+     {
+
+     }
+     template<typename T> inline void mac( std::complex<T> &acc, std::complex<T> x , T y )
+     {
+    	 acc += x * y;
+     }
+}
+namespace integer
+{
+	 template<typename T> inline constexpr int cbits()
+	 {
+	    return std::log2(std::numeric_limits<T>::max()) + 0.5;
+	 }
+	 //Floating point type
+	 template<typename T>
+	 typename std::enable_if<std::is_floating_point<typename std::complex<T>::value_type >::value, std::complex<T> >::type
+	    inline scale(std::complex<T> t)
+	 {
+
+	     return t;
+	 }
+	 template<typename T>
+	 typename std::enable_if<std::is_floating_point<T>::value, T >::type
+	 	 inline scale(T t)
+	 {
+
+	 	 return t;
+	 }
+	 //Integral type
+	 template<typename T>
+	 typename std::enable_if<std::is_integral<typename std::complex<T>::value_type >::value, std::complex<T> >::type
+	 	  inline scale(std::complex<T> t)
+	 {
+		 return  std::complex<T>(
+			cpu::sat(t.real()>>cbits<T>(),  cbits<T>() + 1),
+			cpu::sat(t.imag()>>cbits<T>(),  cbits<T>() + 1)
+		 );
+	 }
+}
+/* ------------------------------------------------------------------------- */
 /**
  * DT - data type
  * CT - coefficient type
@@ -24,19 +72,7 @@ namespace dsp {
 template<typename DT, typename CT, size_t TAPS, typename ACC = DT>
 class fir_decimate
 {
-private:
-	 template< typename T> static constexpr int cbits()
-	 {
-	    return std::log2(std::numeric_limits<T>::max()) + 0.5;
-	 }
-     void mac( ACC &acc, DT x, DT y )
-     {
-    	 acc += x * y;
-     }
-     DT sat( DT, int pos )
-     {
 
-     }
 public:
 	explicit constexpr fir_decimate( const CT * const coefs )
         : m_coefs( coefs ), m_state()
@@ -57,7 +93,8 @@ public:
     //Calculate fir operator
     DT operator()()
     {
-          ACC acc {};
+          using namespace cpu;
+    	  ACC acc {};
           size_t index = m_last_idx;
           for(size_t i = 0; i < TAPS; ++i) 
           {
@@ -66,7 +103,7 @@ public:
             //acc += m_state[index] * m_coefs[i];
             mac( acc, m_state[index], m_coefs[i] );
           }
-          return acc;
+          return integer::scale(acc);
     }
 private:
    	const CT * const m_coefs;
