@@ -21,11 +21,22 @@ namespace dsp {
 template<typename DT, typename CT, size_t TAPS> 
 class fir_decimate
 {
+private:
+     void mac( DT &acc, DT x, DT y )
+     {
+        acc += x * y;
+     }
 public:
 	explicit constexpr fir_decimate( const CT * const coefs )
-        : m_coefs( coefs )
+        : m_coefs( coefs ), m_state()
 	{       
 	}
+    //Reset the filter
+    void reset()
+    {
+        m_state.fill(  DT() );
+        m_last_idx = 0;
+    }
     //Insert operator
 	void operator()( DT value )
 	{
@@ -40,13 +51,15 @@ public:
           for(size_t i = 0; i < TAPS; ++i) 
           {
             index = index != 0 ? index-1 : TAPS-1;
-            acc += m_state[index] * m_coefs[i];
+            //Multiply and accumulate
+            //acc += m_state[index] * m_coefs[i];
+            mac( acc, m_state[index], m_coefs[i] );
           }
           return acc;
     }
 private:
+   	const CT * const m_coefs;
     std::array<DT, TAPS> m_state {};
-	const CT * const m_coefs {};
     size_t m_last_idx {};
 };
 
