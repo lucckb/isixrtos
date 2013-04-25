@@ -103,7 +103,7 @@ public:
         if( m_last_idx == TAPS ) m_last_idx = 0;
     }
     //Calculate fir operator
-    DT operator()()
+    DT operator()() const
     {
           using namespace cpu;
     	  ACC acc {};
