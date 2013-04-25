@@ -17,14 +17,15 @@ namespace dsp {
 /* ------------------------------------------------------------------------- */
 namespace cpu
 {
-	 template<typename R, typename T> inline void mac( R &acc, T x, T y )
+	 template<typename R, typename T> inline R mac( R acc, T x, T y )
      {
     	 acc += x * y;
+    	 return acc;
      }
 
-     template<typename R, typename T> inline void mac( std::complex<R> &acc, std::complex<T> x , T y )
+     template<typename R, typename T> inline std::complex<R> mac( std::complex<R> acc, std::complex<T> x , T y )
      {
-    	 acc += x * y;
+    	 return std::complex<R>( mac(acc.real(), x.real(), y), mac(acc.imag(), x.imag(), y) );
      }
 
     template <typename RetT, typename ValT >
@@ -112,7 +113,7 @@ public:
             index = index != 0 ? index-1 : TAPS-1;
             //Multiply and accumulate
             //acc += m_state[index] * m_coefs[i];
-            mac( acc, m_state[index], m_coefs[i] );
+            acc = mac( acc, m_state[index], m_coefs[i] );
           }
           return integer::scale<DT>(acc);
     }
