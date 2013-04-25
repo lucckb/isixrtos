@@ -21,44 +21,19 @@ namespace cpu
      {
     	 acc += x * y;
      }
-     template< typename T>
-     typename std::enable_if<std::is_signed<typename std::complex<T>::value_type >::value, std::complex<T> >::type
-     inline sat( T x, int y )
-     {
-    	  int32_t posMax, negMin;
-    	    uint32_t i;
 
-    	    posMax = 1;
-    	    for (i = 0; i < (y - 1); i++)
-    	      {
-    		posMax = posMax * 2;
-    	      }
-
-    	    if(x > 0)
-    	      {
-    		posMax = (posMax - 1);
-
-    		if(x > posMax)
-    		  {
-    		    x = posMax;
-    		  }
-    	      }
-    	    else
-    	      {
-    		negMin = -posMax;
-
-    		if(x < negMin)
-    		  {
-    		    x = negMin;
-    		  }
-    	      }
-    	    return (x);
-
-     }
-     template<typename T> inline void mac( std::complex<T> &acc, std::complex<T> x , T y )
+     template<typename R, typename T> inline void mac( std::complex<R> &acc, std::complex<T> x , T y )
      {
     	 acc += x * y;
      }
+
+    template <typename RetT, typename ValT >
+        constexpr inline RetT saturated_cast( ValT val )
+        {
+            return (val>std::numeric_limits<RetT>::max() )?
+            (std::numeric_limits<RetT>::max()):
+            ( (std::numeric_limits<RetT>::min()>val)?(std::numeric_limits<RetT>::min()):(val) );
+        }
 }
 namespace integer
 {
@@ -67,30 +42,36 @@ namespace integer
 	    return std::log2(std::numeric_limits<T>::max()) + 0.5;
 	 }
 	 //Floating point type
-	 template<typename T>
-	 typename std::enable_if<std::is_floating_point<typename std::complex<T>::value_type >::value, std::complex<T> >::type
+	 template<typename R, typename T>
+	    typename std::enable_if<std::is_floating_point<typename std::complex<T>::value_type >::value, R >::type
 	    inline scale(std::complex<T> t)
-	 {
+	    {
 
-	     return t;
-	 }
-	 template<typename T>
-	 typename std::enable_if<std::is_floating_point<T>::value, T >::type
-	 	 inline scale(T t)
-	 {
-
-	 	 return t;
-	 }
-	 //Integral type
-	 template<typename T>
-	 typename std::enable_if<std::is_integral<typename std::complex<T>::value_type >::value, std::complex<T> >::type
-	 	  inline scale(std::complex<T> t)
-	 {
-		 return  std::complex<T>(
-			cpu::sat(t.real()>>cbits<T>(),  cbits<T>() + 1),
-			cpu::sat(t.imag()>>cbits<T>(),  cbits<T>() + 1)
-		 );
-	 }
+	         return t;
+	    }
+	 template<typename R, typename T>
+    	 typename std::enable_if<std::is_floating_point<T>::value, R >::type
+	 	    inline scale(T t)
+	        {
+	 	         return t;
+	        }
+     //Integral type
+     template<typename R, typename T>
+	 typename std::enable_if<std::is_integral<typename std::complex<T>::value_type >::value, R >::type
+	    inline scale(std::complex<T> t)
+	    {
+	        return R( cpu::saturated_cast<typename R::value_type>( t.real() >> cbits<typename R::value_type>()),
+                      cpu::saturated_cast<typename R::value_type>( t.imag() >> cbits<typename R::value_type>()) 
+                    );
+	    }
+    /*
+	 template<typename R, typename T>
+	    typename std::enable_if<std::is_integral<T>::value, R >::type
+	 	    inline scale(T t)
+	        {
+	 	        return cpu::saturated_cast<R>(t);
+	        }
+    */
 }
 /* ------------------------------------------------------------------------- */
 /**
@@ -133,7 +114,7 @@ public:
             //acc += m_state[index] * m_coefs[i];
             mac( acc, m_state[index], m_coefs[i] );
           }
-          return integer::scale(acc);
+          return integer::scale<DT>(acc);
     }
 private:
    	const CT * const m_coefs;
