@@ -16,7 +16,7 @@
 /* ------------------------------------------------------------------------- */
 namespace dsp {
 /* ------------------------------------------------------------------------- */
-template <typename R, typename P, std::size_t SSIN_SIZE > class nco_mixer
+template <typename R, typename P, std::size_t SSIN_SIZE, P PI2 > class nco_mixer
 {
 private:
 	 template<typename T> static constexpr int cbits()
@@ -35,7 +35,12 @@ public:
 				(signal*icosinus(m_vco_phz)) >> SHIFT ,
 				(signal*isinus(m_vco_phz))   >> SHIFT
 			);
-		m_vco_phz += phz_inc;
+		const auto ddiv = std::div( phz_inc * max_angle(), PI2 );
+		m_vco_phz_rem  += ddiv.rem;
+		const auto fdiv = m_vco_phz_rem/PI2;
+		m_vco_phz += ddiv.quot + fdiv;
+		if( fdiv ) m_vco_phz_rem %= PI2;
+
 		if( m_vco_phz > max_angle() )		//handle 2 Pi wrap around
 			m_vco_phz -= max_angle();
 		return ret;
@@ -51,6 +56,7 @@ private:
 	}
 private:
 	P m_vco_phz {};
+	P m_vco_phz_rem {};
 };
 
 
