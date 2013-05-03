@@ -12,30 +12,10 @@
 #include <cmath>
 #include <limits>
 #include <type_traits>
+#include "dsp_basic_ops.hpp"
 /* ------------------------------------------------------------------------- */
 namespace dsp {
-/* ------------------------------------------------------------------------- */
-namespace cpu
-{
-	 template<typename R, typename T> inline R mac( R acc, T x, T y )
-     {
-    	 acc += x * y;
-    	 return acc;
-     }
 
-     template<typename R, typename T> inline std::complex<R> mac( std::complex<R> acc, std::complex<T> x , T y )
-     {
-    	 return std::complex<R>( mac(acc.real(), x.real(), y), mac(acc.imag(), x.imag(), y) );
-     }
-
-    template <typename RetT, typename ValT >
-        constexpr inline RetT saturated_cast( ValT val )
-        {
-            return (val>std::numeric_limits<RetT>::max() )?
-            (std::numeric_limits<RetT>::max()):
-            ( (std::numeric_limits<RetT>::min()>val)?(std::numeric_limits<RetT>::min()):(val) );
-        }
-}
 namespace integer
 {
 	 template<typename T> inline constexpr int cbits()
