@@ -13,7 +13,7 @@ namespace dsp {
 namespace integer {
 /* ------------------------------------------------------------------------- */
 //Integer SQRT
-unsigned int inline sqrt(unsigned long n)
+unsigned int inline sqrt(unsigned int n)
 {
 	unsigned int c = 0x8000;
 	unsigned int g = 0x8000;
