@@ -8,9 +8,10 @@
 #ifndef DSP_NCO_MIXER_HPP_
 #define DSP_NCO_MIXER_HPP_
 /* ------------------------------------------------------------------------- */
+#include <cstdlib>
+#include <cmath>
 #include <cstddef>
 #include <complex>
-#include <cmath>
 #include <limits>
 #include "array_sinus.hpp"
 /* ------------------------------------------------------------------------- */
@@ -21,7 +22,7 @@ template <typename R, typename P, std::size_t SSIN_SIZE, P PI2 > class nco_mixer
 private:
 	 template<typename T> static constexpr int cbits()
 	 {
-		 return std::log2(std::numeric_limits<T>::max()) + 0.5;
+		 return __builtin_log2(std::numeric_limits<T>::max()) + 0.5;
 	 }
 	 static const int SHIFT = cbits<R>();
 public:

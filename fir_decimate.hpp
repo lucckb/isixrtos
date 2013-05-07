@@ -20,7 +20,7 @@ namespace integer
 {
 	 template<typename T> inline constexpr int cbits()
 	 {
-	    return std::log2(std::numeric_limits<T>::max()) + 0.5;
+	    return __builtin_log2(std::numeric_limits<T>::max()) + 0.5;
 	 }
 	 //Floating point type
 	 template<typename R, typename T>
