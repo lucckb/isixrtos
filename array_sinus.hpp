@@ -50,7 +50,7 @@ namespace integer {
 		  template <typename T>
 		  constexpr T genSin(T v, size_t s, T max_value)
 		  {
-			return std::sin( v * (2.0 * std::atan(1.0)) / double(s-1) ) * double(max_value);
+			return std::sin( v * (2.0 * std::atan(1.0)) / double(s-1) ) * double(max_value) + 0.5;
 		  }
 
 		  template<typename T, size_t S, unsigned... Is>
