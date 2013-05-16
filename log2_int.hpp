@@ -16,13 +16,13 @@ namespace integer {
     template <typename N, unsigned SC>
     inline unsigned log_1_2( N x )
     {
-	if( x == SC ) return 0;
-	const  N x1 = ( (x-N(SC)) * N(SC) ) / ( x+N(SC) );
-	const  N x2 = N( N(x1)  * N(x1)) / N(SC);
-	const  N x3 = N( N(x2)  * N(x1)) / N(SC);
-	const  N x5 = N( N(x3)  * N(x2)) / N(SC);
-	const  N x7 = N( N(x5)  * N(x2)) / N(SC);
-	return N(2) * N( x1 + x3/N(3) + x5/N(5) + x7/N(7) );
+		if( x == SC ) return 0;
+		const  N x1 = ( (x-N(SC)) * N(SC) ) / ( x+N(SC) );
+		const  N x2 = N( N(x1)  * N(x1)) / N(SC);
+		const  N x3 = N( N(x2)  * N(x1)) / N(SC);
+		const  N x5 = N( N(x3)  * N(x2)) / N(SC);
+		const  N x7 = N( N(x5)  * N(x2)) / N(SC);
+		return N(2) * N( x1 + x3/N(3) + x5/N(5) + x7/N(7) );
     }
 	/* Log2 without partials */
 	inline unsigned log2c( unsigned x )
