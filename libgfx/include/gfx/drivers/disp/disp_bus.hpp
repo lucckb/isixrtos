@@ -9,7 +9,7 @@
 #define ISIX_GFX_DISP_BUS_HPP_
 /* ------------------------------------------------------------------ */
 #include <cstddef>
-
+#include <cstdint>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace drv {
@@ -30,8 +30,9 @@ public:
 	virtual void read( void *buf, std::size_t len ) =   0;
 	/* Write transfer */
 	virtual void write( const void *buf, size_t len ) = 0;
+	virtual void write( uint16_t val ) = 0;
 	/* Wait ms long delay */
-	virtual void wait_ms( unsigned timeout ) = 0;
+	virtual void reset() = 0;
 };
 
 /* ------------------------------------------------------------------ */

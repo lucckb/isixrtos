@@ -53,7 +53,7 @@ public:
 		return -1;
 	}
 	/* Set PIXEL */
-	virtual int clear() = 0;
+	virtual int clear( color_t color ) = 0;
 	/* Fill area */
 	virtual int fill( coord_t x, coord_t y, coord_t cx, coord_t cy ) = 0;
 	/* Blit area */

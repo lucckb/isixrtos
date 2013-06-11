@@ -11,7 +11,7 @@
 #include "disp_base.hpp"
 #include "disp_bus.hpp"
 #include <cstdint>
-#include <utility>
+#include <initializer_list>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace drv {
@@ -21,7 +21,6 @@ class ili9341 : public disp_base
 {
 	static constexpr auto SCREEN_WIDTH = 240;
 	static constexpr auto SCREEN_HEIGHT = 320;
-	typedef uint8_t cmd_t;
 public:
 	//Constructor
 	ili9341( disp_bus &bus );
@@ -34,7 +33,7 @@ public:
 	/* Get PIXEL */
 	virtual color_t get_pixel();
 	/* Set PIXEL */
-	virtual int clear();
+	virtual int clear( color_t color );
 	/* Fill area */
 	virtual int fill( coord_t x, coord_t y, coord_t cx, coord_t cy );
 	/* Blit area */
@@ -47,28 +46,63 @@ public:
 	/* Rotate screen */
 	virtual int rotate( rotation_t rot );
 private:
+	enum class dcmd : uint8_t
+	{
+		POWERCTLB 	= 0xCF,
+		POWERONSEQCTL = 0xED,
+		DIVTIMCTLA 	= 0xE8,
+		POWERCTLA 	= 0xC8,
+		PUMPRATIOCTL = 0xF7,
+		DIVTIMCTLB 	= 0xEA,
+		FRAMECTLNOR = 0xB1,
+		POWERCTL1	= 0xC0,
+		POWERCTL2 	= 0xC1,
+		VCOMCTL1	= 0xC5,
+		VCOMCTL2	= 0xC7,
+		MEMACCESS	= 0x36,
+		FUNCTIONCTL = 0xB6,
+		ENABLE3GREG = 0xF2,
+		GAMMASET = 	  0x26,
+		POSGAMMACORRECTION  = 0xE0,
+		NEGGAMMACORRECTION  = 0xE1,
+		PIXFORMATSET = 0x3A,
+		INTERFCTL =   0xF6,
+		DISPLAYON =   0x29,
+		SLEEPOUT  =   0x11,
+		COLADDRSET =  0x2A,
+		PAGEADDRSET = 0x2B,
+		MEMORYWRITE = 0x2C,
+	};
+private:
 	static constexpr auto CSL_BIT_CMD = 0;
 	static constexpr auto RS_BIT_CMD = 1;
 	static constexpr auto RST_BIT_CMD = 2;
 	//Initialize display
 	int init_display();
 	//Command 
-	void command( cmd_t cmd )
+	void command( dcmd cmd )
 	{
 		m_bus.set_ctlbits( CSL_BIT_CMD, false );
 		m_bus.set_ctlbits( RS_BIT_CMD,  false );
-		m_bus.write( &cmd, sizeof(cmd) );
+		m_bus.write( &cmd, sizeof cmd );
+		m_bus.set_ctlbits( RS_BIT_CMD, true );
+	}
+	void command_()
+	{
 		m_bus.set_ctlbits( CSL_BIT_CMD, true );
 	}
-	template <typename T>
-		void command( cmd_t cmd, T arg )
+	template <typename ...ARGS>
+		void command_( uint8_t first, ARGS... args )
+	{
+		m_bus.write( &first, sizeof(first) );
+		command_( args...);
+	}
+	template <typename ...ARGS>
+		void command( dcmd cmd, ARGS... args )
 	{
 		command( cmd );
-		for(size_t s=0; s<sizeof(T); ++s)
-		{
-				
-		}
-	}		
+		command_( args... );
+	}
 private:
 	disp_bus &m_bus;
 };
