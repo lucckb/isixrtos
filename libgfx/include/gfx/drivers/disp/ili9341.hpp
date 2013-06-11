@@ -10,6 +10,8 @@
 /* ------------------------------------------------------------------ */
 #include "disp_base.hpp"
 #include "disp_bus.hpp"
+#include <cstdint>
+#include <utility>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace drv {
@@ -19,6 +21,7 @@ class ili9341 : public disp_base
 {
 	static constexpr auto SCREEN_WIDTH = 240;
 	static constexpr auto SCREEN_HEIGHT = 320;
+	typedef uint8_t cmd_t;
 public:
 	//Constructor
 	ili9341( disp_bus &bus );
@@ -44,8 +47,28 @@ public:
 	/* Rotate screen */
 	virtual int rotate( rotation_t rot );
 private:
+	static constexpr auto CSL_BIT_CMD = 0;
+	static constexpr auto RS_BIT_CMD = 1;
+	static constexpr auto RST_BIT_CMD = 2;
 	//Initialize display
 	int init_display();
+	//Command 
+	void command( cmd_t cmd )
+	{
+		m_bus.set_ctlbits( CSL_BIT_CMD, false );
+		m_bus.set_ctlbits( RS_BIT_CMD,  false );
+		m_bus.write( &cmd, sizeof(cmd) );
+		m_bus.set_ctlbits( CSL_BIT_CMD, true );
+	}
+	template <typename T>
+		void command( cmd_t cmd, T arg )
+	{
+		command( cmd );
+		for(size_t s=0; s<sizeof(T); ++s)
+		{
+				
+		}
+	}		
 private:
 	disp_bus &m_bus;
 };

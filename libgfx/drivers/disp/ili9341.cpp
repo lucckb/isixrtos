@@ -57,21 +57,21 @@ int ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int line
 }
 /* ------------------------------------------------------------------ */
 /* Power ctl */
-int ili9341::power_ctl( power_ctl_t mode )
+int ili9341::power_ctl( power_ctl_t /* mode */ )
 {
 
 }
 /* ------------------------------------------------------------------ */
 /* Rotate screen */
-int ili9341::rotate( rotation_t rot )
+int ili9341::rotate( rotation_t /* rot */)
 {
-
+	command( 0x10, 0x10203040 );
 }
 /* ------------------------------------------------------------------ */
 //Initialize display
 int ili9341::init_display()
 {
-
+	
 }
 /* ------------------------------------------------------------------ */
 }}
