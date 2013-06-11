@@ -30,7 +30,8 @@ public:
 	virtual void read( void *buf, std::size_t len ) =   0;
 	/* Write transfer */
 	virtual void write( const void *buf, size_t len ) = 0;
-	virtual void write( uint16_t val ) = 0;
+	/* Fill the value with native order */
+	virtual void fill( unsigned value, size_t nelms ) = 0;
 	/* Wait ms long delay */
 	virtual void reset() = 0;
 };

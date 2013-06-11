@@ -39,8 +39,7 @@ color_t ili9341::get_pixel()
 int ili9341::clear( color_t color )
 {
 	command( dcmd::MEMORYWRITE );
-	for( size_t p=0; p<(SCREEN_WIDTH*SCREEN_HEIGHT); ++p )
-		m_bus.write( color );
+	m_bus.fill( color, SCREEN_WIDTH*SCREEN_HEIGHT );
 	command_();
 }
 /* ------------------------------------------------------------------ */
