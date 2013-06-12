@@ -33,7 +33,7 @@ public:
 	/* Fill the value with native order */
 	virtual void fill( unsigned value, size_t nelms ) = 0;
 	/* Wait ms long delay */
-	virtual void reset() = 0;
+	virtual void delay( unsigned timeout ) = 0;
 };
 
 /* ------------------------------------------------------------------ */

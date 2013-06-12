@@ -29,7 +29,7 @@ public:
 	{
 	}
 	/* Set PIXEL */
-	virtual int set_pixel( coord_t x, coord_t y, color_t color );
+	virtual int line( coord_t x, coord_t y, coord_t cx, coord_t cy,color_t color );
 	/* Get PIXEL */
 	virtual color_t get_pixel();
 	/* Set PIXEL */
@@ -103,6 +103,10 @@ private:
 		command( cmd );
 		command_( args... );
 	}
+	//Reset device
+	void reset();
+	//Set area
+	void set_area( coord_t x, coord_t y, coord_t cx, coord_t cy );
 private:
 	disp_bus &m_bus;
 };
