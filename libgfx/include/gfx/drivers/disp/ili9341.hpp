@@ -28,23 +28,30 @@ public:
 	virtual ~ili9341()
 	{
 	}
-	/* Set PIXEL */
-	virtual int line( coord_t x, coord_t y, coord_t cx, coord_t cy,color_t color );
 	/* Get PIXEL */
-	virtual color_t get_pixel();
+	virtual color_t get_pixel( coord_t x, coord_t y );
 	/* Set PIXEL */
-	virtual int clear( color_t color );
-	/* Fill area */
-	virtual int fill( coord_t x, coord_t y, coord_t cx, coord_t cy );
+	virtual void set_pixel( coord_t x, coord_t y, color_t color );
+	/* Clear the screen */
+	virtual void clear( color_t color );
 	/* Blit area */
-	virtual int blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
+	virtual void blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 					   coord_t src_x, coord_t src_y, coord_t src_cx, const color_t *buf );
+
+	/* Fill area */
+	virtual void fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color );
+
 	/* Vertical scroll */
-	virtual int vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor );
+	virtual void vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor );
 	/* Power ctl */
-	virtual int power_ctl( power_ctl_t mode );
+	virtual void power_ctl( power_ctl_t mode );
 	/* Rotate screen */
-	virtual int rotate( rotation_t rot );
+	virtual void rotate( rotation_t rot );
+
+	static constexpr color_t rgb( uint8_t r, uint8_t g, uint8_t b )
+	{
+		return ((b>>3)<<(16-5)) | ((g>>2)<<(16-5-6) | (r>>3) );
+	}
 private:
 	enum class dcmd : uint8_t
 	{
@@ -72,13 +79,16 @@ private:
 		COLADDRSET =  0x2A,
 		PAGEADDRSET = 0x2B,
 		MEMORYWRITE = 0x2C,
+		MEMORYREAD  = 0x2E,
+		READSELFDIAG = 0x0F,
+		MADCTL = 0x36
 	};
 private:
 	static constexpr auto CSL_BIT_CMD = 0;
 	static constexpr auto RS_BIT_CMD = 1;
 	static constexpr auto RST_BIT_CMD = 2;
 	//Initialize display
-	int init_display();
+	void init_display();
 	//Command 
 	void command( dcmd cmd )
 	{
@@ -105,8 +115,8 @@ private:
 	}
 	//Reset device
 	void reset();
-	//Set area
-	void set_area( coord_t x, coord_t y, coord_t cx, coord_t cy );
+	//Set viewport
+	void set_viewport( coord_t x, coord_t y, coord_t cx, coord_t cy );
 private:
 	disp_bus &m_bus;
 };

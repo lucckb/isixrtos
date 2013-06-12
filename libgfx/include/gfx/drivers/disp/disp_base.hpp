@@ -45,35 +45,29 @@ public:
 	{
 	}
 	/* Set PIXEL */
-	virtual int set_pixel( coord_t x, coord_t y, color_t color ) = 0;
+	virtual void set_pixel( coord_t x, coord_t y, color_t color ) = 0;
 	/* Get PIXEL */
-	virtual color_t get_pixel()
-	{
-		//TODO: Fixme library error codes
-		return -1;
-	}
+	virtual color_t get_pixel( coord_t x, coord_t y ) = 0;
 	/* Set PIXEL */
-	virtual int clear( color_t color ) = 0;
+	virtual void clear( color_t color ) = 0;
 	/* Fill area */
-	virtual int fill( coord_t x, coord_t y, coord_t cx, coord_t cy ) = 0;
+	virtual void fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color ) = 0;
 	/* Blit area */
-	virtual int blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
+	virtual void blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 					   coord_t src_x, coord_t src_y, coord_t src_cx, const color_t *buf ) = 0;
 	/* Vertical scroll */
-	virtual int vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor ) = 0;
+	virtual void vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor ) = 0;
 	/* Power ctl */
-	virtual int power_ctl( power_ctl_t mode ) = 0;
+	virtual void power_ctl( power_ctl_t mode ) = 0;
 	/* Rotate screen */
-	virtual int rotate( rotation_t rot )
+	virtual void rotate( rotation_t rot )
 	{
 		//TODO: Fixme library error codes
-		return -1;
 	}
 	/* Set backlight percent */
-	virtual int backlight( int percent )
+	virtual void backlight( int percent )
 	{
 		//TODO: Fixme library error codes
-		return -1;
 	}
 	/* Get width */
 	coord_t get_width() const
