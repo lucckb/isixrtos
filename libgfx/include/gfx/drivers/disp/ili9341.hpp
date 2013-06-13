@@ -92,26 +92,31 @@ private:
 	//Command 
 	void command( dcmd cmd )
 	{
-		m_bus.set_ctlbits( CSL_BIT_CMD, false );
 		m_bus.set_ctlbits( RS_BIT_CMD,  false );
 		m_bus.write( &cmd, sizeof cmd );
 		m_bus.set_ctlbits( RS_BIT_CMD, true );
 	}
-	void command_()
+	class bus_lock
 	{
-		m_bus.set_ctlbits( CSL_BIT_CMD, true );
-	}
-	template <typename ...ARGS>
-		void command_( uint8_t first, ARGS... args )
-	{
-		m_bus.write( &first, sizeof(first) );
-		command_( args...);
-	}
+	public:
+		~bus_lock()
+		{
+			m_bus.set_ctlbits( CSL_BIT_CMD, true );
+		}
+		bus_lock( disp_bus &bus )
+			: m_bus( bus )
+		{
+			m_bus.set_ctlbits( CSL_BIT_CMD, false );
+		}
+	private:
+		disp_bus &m_bus;
+	};
 	template <typename ...ARGS>
 		void command( dcmd cmd, ARGS... args )
 	{
 		command( cmd );
-		command_( args... );
+		const uint8_t cmd_tab[ ] { uint8_t(args)... };
+		m_bus.write( cmd_tab, sizeof cmd_tab );
 	}
 	//Reset device
 	void reset();
