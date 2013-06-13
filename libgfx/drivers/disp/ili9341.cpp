@@ -53,29 +53,28 @@ void ili9341::set_pixel( coord_t x, coord_t y, color_t color )
 /* ------------------------------------------------------------------ */
 /* Blit area */
 void ili9341::blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
-			      coord_t src_x, coord_t src_y, coord_t src_cx, const color_t *buf )
+			        coord_t src_y, const color_t *buf )
 {
 	bus_lock lock(m_bus);
 	const auto end_y = y + cy;
-	const auto bi = src_cx - cx;
-	buf += src_x + src_y * src_cx;
+	buf +=  src_y * cx;
 	set_viewport( x, y, cx, cy );
 	command( dcmd::MEMORYWRITE );
-	if( cx != src_cx )
-	{
-		for(; y < end_y; y++, buf += (bi+cx))
-			m_bus.write( buf, sizeof(color_t)*cx );
-	}
-	else
-	{
-		m_bus.write( buf, sizeof(color_t)*cx*cy );
-	}
+	m_bus.write( buf, sizeof(color_t)*cx*cy );
 }
 /* ------------------------------------------------------------------ */
 /* Vertical scroll */
 void ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor )
 {
-
+	//coord_t tfa = 0;
+	//coord_t vsa = 220;
+	//coord_t bfa = 15;
+	//coord_t vsp = 60;
+	//bus_lock lock(m_bus);
+	//command( dcmd::VERTSCROLLDEF, tfa>>8, tfa, vsa>>8, vsa, bfa>>8, bfa );
+	//command( dcmd::VERTSCROLLSTART, vsp>>8, vsp );
+	//command( dcmd::NORMALMODEON );
+	//fill(100, 100, 20, 20, rgb(0,255,0));
 }
 /* ------------------------------------------------------------------ */
 void ili9341::power_ctl( power_ctl_t  mode  )

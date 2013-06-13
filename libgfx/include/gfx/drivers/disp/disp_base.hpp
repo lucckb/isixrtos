@@ -54,7 +54,7 @@ public:
 	virtual void fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color ) = 0;
 	/* Blit area */
 	virtual void blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
-					   coord_t src_x, coord_t src_y, coord_t src_cx, const color_t *buf ) = 0;
+	        coord_t src_y, const color_t *buf ) = 0;
 	/* Vertical scroll */
 	virtual void vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor ) = 0;
 	/* Power ctl */

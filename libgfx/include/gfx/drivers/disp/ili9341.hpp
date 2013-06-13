@@ -36,7 +36,7 @@ public:
 	virtual void clear( color_t color );
 	/* Blit area */
 	virtual void blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
-					   coord_t src_x, coord_t src_y, coord_t src_cx, const color_t *buf );
+	        coord_t src_y, const color_t *buf );
 
 	/* Fill area */
 	virtual void fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color );
@@ -81,7 +81,11 @@ private:
 		MEMORYWRITE = 0x2C,
 		MEMORYREAD  = 0x2E,
 		READSELFDIAG = 0x0F,
-		MADCTL = 0x36
+		MADCTL = 0x36,
+		VERTSCROLLDEF = 0x33,
+		VERTSCROLLSTART = 0x37,
+		NORMALMODEON    = 0x13
+
 	};
 private:
 	static constexpr auto CSL_BIT_CMD = 0;
@@ -124,6 +128,7 @@ private:
 	void set_viewport( coord_t x, coord_t y, coord_t cx, coord_t cy );
 private:
 	disp_bus &m_bus;
+	rotation_t m_orient { rotation_t::rot_0 };
 };
 
 /* ------------------------------------------------------------------ */
