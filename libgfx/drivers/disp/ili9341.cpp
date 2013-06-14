@@ -69,15 +69,52 @@ void ili9341::blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 #ifdef CONFIG_ILI9341_VERTICAL_SCROLL
 void ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor )
 {
-	//coord_t tfa = 0;
-	//coord_t vsa = 220;
-	//coord_t bfa = 15;
-	//coord_t vsp = 60;
-	//bus_lock lock(m_bus);
-	//command( dcmd::VERTSCROLLDEF, tfa>>8, tfa, vsa>>8, vsa, bfa>>8, bfa );
-	//command( dcmd::VERTSCROLLSTART, vsp>>8, vsp );
-	//command( dcmd::NORMALMODEON );
-	//fill(100, 100, 20, 20, rgb(0,255,0));
+	unsigned abslines = (lines<0)?(-lines):(lines);
+	bus_lock lock(m_bus);
+	unsigned gap;
+	if (abslines >= cy)
+	{
+		abslines = cy;
+		gap = 0;
+	}
+	else
+	{
+		gap = cy - abslines;
+		for(unsigned i = 0; i < gap; i++)
+		{
+			coord_t row0, row1;
+			if(lines > 0)
+			{
+				row0 = y + i + lines;
+				row1 = y + i;
+			}
+			else
+			{
+				dbprintf("y=%i i=%i lines=%i",y,i,lines);
+				row0 = (y - i - 1) + lines;
+				row1 = (y - i - 1);
+			}
+			/* read row0 into the buffer and then write at row1*/
+			dbprintf("MOVE FROM %u,%u TO %u,%u", unsigned(x), unsigned(row0), unsigned(x), unsigned(row1) );
+			set_viewport(x, row0, cx, 1);
+			command( dcmd::MEMORYREAD );
+			m_bus.read( m_scr_buf, (cx*3)+1);
+			set_viewport(x, row1, cx, 1);
+			command( dcmd::PIXFORMATSET, 0x66 );
+			command( dcmd::MEMORYWRITE );
+			m_bus.write( m_scr_buf+1, cx*3 );
+			command( dcmd::PIXFORMATSET, 0x55 );
+		}
+	}
+	dbprintf("FILL X,Y=%i,%i CX,CY=%i,%i", x, lines > 0 ? (y+(coord_t)gap):y ,  cx, abslines );
+	/* fill the remaining gap */
+	gap = cx*abslines;
+	if( gap > 0 )
+	{
+		set_viewport(x, (lines>0)?(y+gap):(y), cx, abslines);
+		command( dcmd::MEMORYWRITE );
+		m_bus.fill(bgcolor,gap);
+	}
 }
 #endif
 /* ------------------------------------------------------------------ */
