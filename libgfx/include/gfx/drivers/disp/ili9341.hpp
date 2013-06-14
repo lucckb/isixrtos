@@ -10,6 +10,7 @@
 /* ------------------------------------------------------------------ */
 #include "disp_base.hpp"
 #include "disp_bus.hpp"
+#include <gfx/types.hpp>
 #include <cstdint>
 #include <initializer_list>
 /* ------------------------------------------------------------------ */
@@ -40,20 +41,21 @@ public:
 
 	/* Fill area */
 	virtual void fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color );
-
+#ifdef CONFIG_ILI9341_VERTICAL_SCROLL
 	/* Vertical scroll */
 	virtual void vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor );
+#endif
 	/* Power ctl */
 	virtual bool power_ctl( power_ctl_t mode );
 	/* Rotate screen */
 	virtual void rotate( rotation_t rot );
-	static constexpr color_t rgb( uint8_t r, uint8_t g, uint8_t b )
-	{
-		return ((b>>3)<<(16-5)) | ((g>>2)<<(16-5-6) | (r>>3) );
-	}
 private:
 	//Colorspace
-	static constexpr auto MADREG_RGB = 0;	//(1<<3)
+#if CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_BGR565
+	static constexpr auto MADREG_RGB = (1<<3);
+#else
+	static constexpr auto MADREG_RGB = 0;
+#endif
 	//Display commands
 	enum class dcmd : uint8_t
 	{

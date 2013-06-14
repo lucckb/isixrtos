@@ -57,18 +57,18 @@ public:
 	virtual void blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 	        coord_t src_y, const color_t *buf ) = 0;
 	/* Vertical scroll */
-	virtual void vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor ) = 0;
+	virtual void vert_scroll( coord_t /*x*/, coord_t /*y*/, coord_t /*cx*/, coord_t /*cy*/, int /*lines*/, color_t /*bgcolor*/ )
+	{
+	}
 	/* Power ctl */
 	virtual bool power_ctl( power_ctl_t mode ) = 0;
 	/* Rotate screen */
-	virtual void rotate( rotation_t rot )
+	virtual void rotate( rotation_t /*rot*/ )
 	{
-		//TODO: Fixme library error codes
 	}
 	/* Set backlight percent */
-	virtual void backlight( int percent )
+	virtual void backlight( int /*percent*/ )
 	{
-		//TODO: Fixme library error codes
 	}
 	/* Get width */
 	coord_t get_width() const
@@ -79,6 +79,12 @@ public:
 	coord_t get_height() const
 	{
 		return m_height;
+	}
+protected:
+	void set_screen_size( coord_t w, coord_t h )
+	{
+		m_width =  w;
+		m_height = h;
 	}
 private:
 	coord_t m_width {}, m_height {};	//Disp width and height

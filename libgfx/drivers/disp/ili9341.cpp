@@ -19,9 +19,7 @@ namespace drv {
 ili9341::ili9341( disp_bus &bus ) :
 	disp_base( SCREEN_WIDTH, SCREEN_HEIGHT ), m_bus( bus )
 {
-
 }
-
 /* ------------------------------------------------------------------ */
 /* Get PIXEL */
 color_t ili9341::get_pixel( coord_t x, coord_t y )
@@ -40,6 +38,7 @@ void ili9341::clear( color_t color )
 	bus_lock lock(m_bus);
 	if( m_orient==rotation_t::rot_0 || m_orient==rotation_t::rot_180 )
 		set_viewport( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
+
 	else
 		set_viewport( 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH );
 	command( dcmd::MEMORYWRITE );
@@ -60,7 +59,6 @@ void ili9341::blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 			        coord_t src_y, const color_t *buf )
 {
 	bus_lock lock(m_bus);
-	const auto end_y = y + cy;
 	buf +=  src_y * cx;
 	set_viewport( x, y, cx, cy );
 	command( dcmd::MEMORYWRITE );
@@ -68,6 +66,7 @@ void ili9341::blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 }
 /* ------------------------------------------------------------------ */
 /* Vertical scroll */
+#ifdef CONFIG_ILI9341_VERTICAL_SCROLL
 void ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor )
 {
 	//coord_t tfa = 0;
@@ -80,6 +79,7 @@ void ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lin
 	//command( dcmd::NORMALMODEON );
 	//fill(100, 100, 20, 20, rgb(0,255,0));
 }
+#endif
 /* ------------------------------------------------------------------ */
 bool ili9341::power_ctl( power_ctl_t  mode )
 {
@@ -151,16 +151,21 @@ void ili9341::rotate( rotation_t rot )
 		uint8_t mad_reg = MADREG_RGB;
 		switch( rot )
 		{
+		case rotation_t::rot_0:
+			set_screen_size( SCREEN_WIDTH, SCREEN_HEIGHT );
+			break;
 		case rotation_t::rot_90:
 			mad_reg |= (MV|MX);
+			set_screen_size( SCREEN_HEIGHT, SCREEN_WIDTH );
 			break;
 		case rotation_t::rot_180:
 			mad_reg |= MY;
+			set_screen_size( SCREEN_WIDTH, SCREEN_HEIGHT );
 			break;
 		case rotation_t::rot_270:
+			set_screen_size( SCREEN_HEIGHT, SCREEN_WIDTH );
 			mad_reg |= (MV|MY) ;
 			break;
-		default:
 			break;
 		}
 		bus_lock lock(m_bus);
@@ -172,7 +177,6 @@ void ili9341::rotate( rotation_t rot )
 void ili9341::reset()
 {
 	m_bus.set_ctlbits( RST_BIT_CMD, true );
-	m_bus.delay( 10 );
 	m_bus.delay( 10 );
 	m_bus.set_ctlbits( RST_BIT_CMD, true );
 	m_bus.delay( 150 );
@@ -242,7 +246,6 @@ void ili9341::fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color 
 	command( dcmd::MEMORYWRITE );
 	m_bus.fill( color, cx * cy );
 }
-
 /* ------------------------------------------------------------------ */
 }}
 /* ------------------------------------------------------------------ */
