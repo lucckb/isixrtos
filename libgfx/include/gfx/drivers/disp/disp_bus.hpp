@@ -34,6 +34,8 @@ public:
 	virtual void fill( unsigned value, size_t nelms ) = 0;
 	/* Wait ms long delay */
 	virtual void delay( unsigned timeout ) = 0;
+	/* Set PWM value */
+	virtual void set_pwm( int percent ) = 0;
 };
 
 /* ------------------------------------------------------------------ */

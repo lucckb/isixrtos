@@ -52,6 +52,11 @@ public:
 	virtual bool power_ctl( power_ctl_t mode );
 	/* Rotate screen */
 	virtual void rotate( rotation_t rot );
+	/* Set backlight percent */
+	virtual void backlight( int percent )
+	{
+		m_bus.set_pwm( percent );
+	}
 private:
 	//Colorspace
 #if CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_BGR565
