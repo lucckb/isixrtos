@@ -81,7 +81,7 @@ void ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lin
 	//fill(100, 100, 20, 20, rgb(0,255,0));
 }
 /* ------------------------------------------------------------------ */
-void ili9341::power_ctl( power_ctl_t  mode )
+bool ili9341::power_ctl( power_ctl_t  mode )
 {
 	switch( mode )
 	{
@@ -89,7 +89,10 @@ void ili9341::power_ctl( power_ctl_t  mode )
 	{
 		if( m_pwrstate == power_ctl_t::unknown )
 		{
-			init_display();
+			if( !init_display() )
+			{
+				m_pwrstate = mode;
+			}
 		}
 		else if( m_pwrstate == power_ctl_t::sleep )
 		{
@@ -98,14 +101,15 @@ void ili9341::power_ctl( power_ctl_t  mode )
 			m_bus.delay( 150 );
 			command( dcmd::DISPLAYON );
 			m_bus.delay( 30 );
+			m_pwrstate = mode;
 		}
 		else if( m_pwrstate == power_ctl_t::off )
 		{
 			bus_lock lock(m_bus);
 			command( dcmd::DISPLAYON );
 			m_bus.delay( 30 );
+			m_pwrstate = mode;
 		}
-		m_pwrstate = mode;
 		break;
 	}
 	case power_ctl_t::off:
@@ -129,8 +133,11 @@ void ili9341::power_ctl( power_ctl_t  mode )
 		}
 		break;
 	}
+	default:
+		break;
 	//switchout
 	}
+	return !(m_pwrstate==mode);
 }
 /* ------------------------------------------------------------------ */
 /* Rotate screen */
@@ -172,7 +179,7 @@ void ili9341::reset()
 }
 /* ------------------------------------------------------------------ */
 //Initialize display
-void ili9341::init_display()
+bool ili9341::init_display()
 {
 	reset();
 	bus_lock lock(m_bus);
@@ -202,10 +209,19 @@ void ili9341::init_display()
 	command( dcmd::PIXFORMATSET, 0x55 );
 	command( dcmd::MEMACCESS, 0x00 );
 	command( dcmd::INTERFCTL, 0x01, 0x30, 1<<5 );
+	//Enable the Display
 	command( dcmd::SLEEPOUT );
 	m_bus.delay( 150 );
 	command( dcmd::DISPLAYON );
 	m_bus.delay( 30 );
+	//Check if the display is connected
+	{
+		uint8_t res[2];
+		command( dcmd::READPWRMODE );
+		m_bus.read( res, sizeof res );
+		if( !(res[1]&0x80) ) return true;
+	}
+	return false;
 }
 
 /* ------------------------------------------------------------------ */

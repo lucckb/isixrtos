@@ -44,7 +44,7 @@ public:
 	/* Vertical scroll */
 	virtual void vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor );
 	/* Power ctl */
-	virtual void power_ctl( power_ctl_t mode );
+	virtual bool power_ctl( power_ctl_t mode );
 	/* Rotate screen */
 	virtual void rotate( rotation_t rot );
 	static constexpr color_t rgb( uint8_t r, uint8_t g, uint8_t b )
@@ -59,6 +59,7 @@ private:
 	{
 		POWERCTLB 	= 0xCF,
 		POWERONSEQCTL = 0xED,
+		READPWRMODE   = 0x0A,
 		DIVTIMCTLA 	= 0xE8,
 		POWERCTLA 	= 0xC8,
 		PUMPRATIOCTL = 0xF7,
@@ -96,7 +97,7 @@ private:
 	static constexpr auto RS_BIT_CMD = 1;
 	static constexpr auto RST_BIT_CMD = 2;
 	//Initialize display
-	void init_display();
+	bool init_display();
 	//Command 
 	void command( dcmd cmd )
 	{

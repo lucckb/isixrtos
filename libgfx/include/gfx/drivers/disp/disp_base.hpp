@@ -59,7 +59,7 @@ public:
 	/* Vertical scroll */
 	virtual void vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor ) = 0;
 	/* Power ctl */
-	virtual void power_ctl( power_ctl_t mode ) = 0;
+	virtual bool power_ctl( power_ctl_t mode ) = 0;
 	/* Rotate screen */
 	virtual void rotate( rotation_t rot )
 	{
