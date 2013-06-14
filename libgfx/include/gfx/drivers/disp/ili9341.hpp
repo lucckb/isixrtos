@@ -141,6 +141,8 @@ private:
 	rotation_t m_orient { rotation_t::rot_0 };
 	power_ctl_t m_pwrstate {};
 #ifdef	CONFIG_ILI9341_VERTICAL_SCROLL
+	//Move line
+	void move_line( coord_t x, coord_t cx, coord_t row_from, coord_t row_to );
 	uint8_t m_scr_buf[ (SCREEN_WIDTH>SCREEN_HEIGHT?SCREEN_WIDTH:SCREEN_HEIGHT)*3 + 1];
 #endif
 };

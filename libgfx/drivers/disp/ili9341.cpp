@@ -7,7 +7,7 @@
 
 /* ------------------------------------------------------------------ */
 #include <gfx/drivers/disp/ili9341.hpp>
-#include <dbglog.h>
+#include <cstdlib>
 /* ------------------------------------------------------------------ */
 
 
@@ -67,56 +67,54 @@ void ili9341::blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 /* ------------------------------------------------------------------ */
 /* Vertical scroll */
 #ifdef CONFIG_ILI9341_VERTICAL_SCROLL
+/** Rotate screen
+ * @param x,y - source region
+ * @param cx,cy   - region length
+ * @param lines   - lines to scrol pos or neg
+ * @param bgcolor -background color
+ */
 void ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor )
 {
-	unsigned abslines = (lines<0)?(-lines):(lines);
-	bus_lock lock(m_bus);
-	unsigned gap;
-	if (abslines >= cy)
 	{
-		abslines = cy;
-		gap = 0;
-	}
-	else
-	{
-		gap = cy - abslines;
-		for(unsigned i = 0; i < gap; i++)
+		bus_lock lock(m_bus);
+		command( dcmd::PIXFORMATSET, 0x66 );	//Set pixel format like read format
+		if( lines > 0 )
 		{
-			coord_t row0, row1;
-			if(lines > 0)
+			for( unsigned l=0,le=(cy-lines); l<le; ++l )
 			{
-				row0 = y + i + lines;
-				row1 = y + i;
+				move_line( x, cx, y+lines+l, y+l  );
 			}
-			else
-			{
-				dbprintf("y=%i i=%i lines=%i",y,i,lines);
-				row0 = (y - i - 1) + lines;
-				row1 = (y - i - 1);
-			}
-			/* read row0 into the buffer and then write at row1*/
-			dbprintf("MOVE FROM %u,%u TO %u,%u", unsigned(x), unsigned(row0), unsigned(x), unsigned(row1) );
-			set_viewport(x, row0, cx, 1);
-			command( dcmd::MEMORYREAD );
-			m_bus.read( m_scr_buf, (cx*3)+1);
-			set_viewport(x, row1, cx, 1);
-			command( dcmd::PIXFORMATSET, 0x66 );
-			command( dcmd::MEMORYWRITE );
-			m_bus.write( m_scr_buf+1, cx*3 );
-			command( dcmd::PIXFORMATSET, 0x55 );
 		}
+		else
+		{
+			lines = -lines;
+			for( int l=cy-lines; l>=0; --l )
+			{
+				move_line( x, cx, y + l, y+lines+l );
+			}
+			lines = -lines;
+		}
+		command( dcmd::PIXFORMATSET, 0x55 ); 	// Restore previous pixel format
 	}
-	dbprintf("FILL X,Y=%i,%i CX,CY=%i,%i", x, lines > 0 ? (y+(coord_t)gap):y ,  cx, abslines );
-	/* fill the remaining gap */
-	gap = cx*abslines;
-	if( gap > 0 )
-	{
-		set_viewport(x, (lines>0)?(y+gap):(y), cx, abslines);
-		command( dcmd::MEMORYWRITE );
-		m_bus.fill(bgcolor,gap);
-	}
+	if( lines > 0 )
+		ili9341::fill( x, y+cy-lines, cx, lines, bgcolor );
+	else
+		ili9341::fill( x, y, cx, -lines, bgcolor );
 }
-#endif
+/* ------------------------------------------------------------------ */
+//Move line
+void ili9341::move_line( coord_t x, coord_t cx, coord_t row_from, coord_t row_to )
+{
+	/* read row0 into the buffer and then write at row1*/
+	set_viewport(x, row_from, cx, 1);
+	command( dcmd::MEMORYREAD );
+	m_bus.read( m_scr_buf, (cx*3)+1);
+	set_viewport(x, row_to, cx, 1);
+	command( dcmd::MEMORYWRITE );
+	m_bus.write( m_scr_buf+1, cx*3 );
+}
+
+#endif /* CONFIG_ILI9341_VERTICAL_SCROLL */
 /* ------------------------------------------------------------------ */
 bool ili9341::power_ctl( power_ctl_t  mode )
 {
