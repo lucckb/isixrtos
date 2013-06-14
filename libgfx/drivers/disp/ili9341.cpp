@@ -9,7 +9,7 @@
 #include <gfx/drivers/disp/ili9341.hpp>
 #include <cstdlib>
 /* ------------------------------------------------------------------ */
-
+//TODO: Setup better configuration for init Refresh/RADIO gamma correction etc
 
 namespace gfx {
 namespace drv {
