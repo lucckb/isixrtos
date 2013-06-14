@@ -47,12 +47,14 @@ public:
 	virtual void power_ctl( power_ctl_t mode );
 	/* Rotate screen */
 	virtual void rotate( rotation_t rot );
-
 	static constexpr color_t rgb( uint8_t r, uint8_t g, uint8_t b )
 	{
 		return ((b>>3)<<(16-5)) | ((g>>2)<<(16-5-6) | (r>>3) );
 	}
 private:
+	//Colorspace
+	static constexpr auto MADREG_RGB = 0;	//(1<<3)
+	//Display commands
 	enum class dcmd : uint8_t
 	{
 		POWERCTLB 	= 0xCF,
@@ -74,7 +76,9 @@ private:
 		NEGGAMMACORRECTION  = 0xE1,
 		PIXFORMATSET = 0x3A,
 		INTERFCTL =   0xF6,
+		DISPLAYOFF =  0x28,
 		DISPLAYON =   0x29,
+		SLEEPENTER	  =   0x10,
 		SLEEPOUT  =   0x11,
 		COLADDRSET =  0x2A,
 		PAGEADDRSET = 0x2B,
@@ -129,6 +133,7 @@ private:
 private:
 	disp_bus &m_bus;
 	rotation_t m_orient { rotation_t::rot_0 };
+	power_ctl_t m_pwrstate {};
 };
 
 /* ------------------------------------------------------------------ */

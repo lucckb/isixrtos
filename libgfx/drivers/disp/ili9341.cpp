@@ -38,6 +38,10 @@ color_t ili9341::get_pixel( coord_t x, coord_t y )
 void ili9341::clear( color_t color )
 {
 	bus_lock lock(m_bus);
+	if( m_orient==rotation_t::rot_0 || m_orient==rotation_t::rot_180 )
+		set_viewport( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
+	else
+		set_viewport( 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH );
 	command( dcmd::MEMORYWRITE );
 	m_bus.fill( color, SCREEN_WIDTH*SCREEN_HEIGHT );
 }
@@ -77,31 +81,94 @@ void ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lin
 	//fill(100, 100, 20, 20, rgb(0,255,0));
 }
 /* ------------------------------------------------------------------ */
-void ili9341::power_ctl( power_ctl_t  mode  )
+void ili9341::power_ctl( power_ctl_t  mode )
 {
 	switch( mode )
 	{
 	case power_ctl_t::on:
-		init_display();
+	{
+		if( m_pwrstate == power_ctl_t::unknown )
+		{
+			init_display();
+		}
+		else if( m_pwrstate == power_ctl_t::sleep )
+		{
+			bus_lock lock(m_bus);
+			command( dcmd::SLEEPOUT );
+			m_bus.delay( 150 );
+			command( dcmd::DISPLAYON );
+			m_bus.delay( 30 );
+		}
+		else if( m_pwrstate == power_ctl_t::off )
+		{
+			bus_lock lock(m_bus);
+			command( dcmd::DISPLAYON );
+			m_bus.delay( 30 );
+		}
+		m_pwrstate = mode;
 		break;
+	}
+	case power_ctl_t::off:
+	{
+		if( m_pwrstate == power_ctl_t::on )
+		{
+			bus_lock lock(m_bus);
+			command( dcmd::DISPLAYOFF );
+			m_pwrstate = mode;
+		}
+		break;
+	}
+	case power_ctl_t::sleep:
+	{
+		if( m_pwrstate != power_ctl_t::sleep )
+		{
+			bus_lock lock(m_bus);
+			command( dcmd::SLEEPENTER );
+			m_bus.delay( 10 );
+			m_pwrstate = mode;
+		}
+		break;
+	}
+	//switchout
 	}
 }
 /* ------------------------------------------------------------------ */
 /* Rotate screen */
-void ili9341::rotate( rotation_t /* rot */)
+void ili9341::rotate( rotation_t rot )
 {
-
+	static constexpr uint8_t MY = 1<<7;
+	static constexpr uint8_t MX = 1<<6;
+	static constexpr uint8_t MV = 1<<5;
+	if( m_orient != rot )
+	{
+		uint8_t mad_reg = MADREG_RGB;
+		switch( rot )
+		{
+		case rotation_t::rot_90:
+			mad_reg |= (MV|MX);
+			break;
+		case rotation_t::rot_180:
+			mad_reg |= MY;
+			break;
+		case rotation_t::rot_270:
+			mad_reg |= (MV|MY) ;
+			break;
+		default:
+			break;
+		}
+		bus_lock lock(m_bus);
+		command( dcmd::MADCTL, mad_reg );
+		m_orient = rot;
+	}
 }
 /* ------------------------------------------------------------------ */
 void ili9341::reset()
 {
 	m_bus.set_ctlbits( RST_BIT_CMD, true );
 	m_bus.delay( 10 );
-	m_bus.set_ctlbits( RST_BIT_CMD, false );
 	m_bus.delay( 10 );
 	m_bus.set_ctlbits( RST_BIT_CMD, true );
 	m_bus.delay( 150 );
-
 }
 /* ------------------------------------------------------------------ */
 //Initialize display
@@ -139,10 +206,6 @@ void ili9341::init_display()
 	m_bus.delay( 150 );
 	command( dcmd::DISPLAYON );
 	m_bus.delay( 30 );
-    command( dcmd::COLADDRSET,  0, 0,  SCREEN_WIDTH>>8, SCREEN_WIDTH );
-    command( dcmd::PAGEADDRSET, 0, 0, SCREEN_HEIGHT>>8, SCREEN_HEIGHT );
-    //REVERSE RGB
-    //command( dcmd::MADCTL, 1<<3);
 }
 
 /* ------------------------------------------------------------------ */

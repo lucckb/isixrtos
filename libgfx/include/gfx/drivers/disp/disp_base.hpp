@@ -18,6 +18,7 @@ namespace drv {
 //Display power control
 enum class power_ctl_t : short
 {
+	unknown,
 	off,
 	on,
 	sleep
