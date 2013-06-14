@@ -248,6 +248,9 @@ bool ili9341::init_display()
 	command( dcmd::PIXFORMATSET, 0x55 );
 	command( dcmd::MEMACCESS, 0x00 );
 	command( dcmd::INTERFCTL, 0x01, 0x30, 1<<5 );
+
+	command( dcmd::MADCTL, MADREG_RGB );
+
 	//Enable the Display
 	command( dcmd::SLEEPOUT );
 	m_bus.delay( 150 );
