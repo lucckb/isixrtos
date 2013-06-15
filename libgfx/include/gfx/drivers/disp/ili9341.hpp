@@ -57,6 +57,14 @@ public:
 	{
 		m_bus.set_pwm( percent );
 	}
+	//Optional rendeer buff (can be used if vert scrool is not required )
+	virtual std::pair<color_t*,size_t> get_rbuf()
+	{
+		return std::make_pair(
+				reinterpret_cast<color_t*>(m_scr_buf),
+				sizeof(m_scr_buf)/sizeof(color_t)
+		);
+	}
 private:
 	//Colorspace
 #if CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_BGR565

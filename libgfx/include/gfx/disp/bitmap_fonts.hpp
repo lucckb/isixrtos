@@ -9,7 +9,7 @@
 #define GFX_BITMAP_FONTS_HPP_
 /* ------------------------------------------------------------------ */
 namespace gfx {
-namespace fonts {
+namespace disp {
 
 /* ------------------------------------------------------------------ */
 /*
@@ -28,6 +28,12 @@ struct font_t {
         int             defaultchar;    /* default char (not glyph index)*/
         long            bits_size;      /* # words of bits*/
 };
+/* ------------------------------------------------------------------ */
+//Available font lists
+namespace fonts
+{
+	extern const font_t font_default;
+}
 /* ------------------------------------------------------------------ */
 }} //Namespace end
 /* ------------------------------------------------------------------ */

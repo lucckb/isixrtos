@@ -45,6 +45,11 @@ namespace gfx
 #else
 #error "Unknown CONFIG_GFX_PIXEL_FORMAT"
 #endif
+	//Error code
+	enum error : int
+	{
+		error_ok,
+	};
 }
 /* ------------------------------------------------------------------ */
 #endif /* TYPES_HPP_ */

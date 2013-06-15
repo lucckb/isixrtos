@@ -10,7 +10,8 @@
 #define ISIX_GFX_DISP_BASE_HPP_
 /* ------------------------------------------------------------------ */
 #include <gfx/types.hpp>
-
+#include <utility>
+#include <cstddef>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace drv {
@@ -70,6 +71,8 @@ public:
 	virtual void backlight( int /*percent*/ )
 	{
 	}
+	//Optional rendeer buff (can be used if vert scrool is not required )
+	virtual std::pair<color_t*,size_t> get_rbuf() = 0;
 	/* Get width */
 	coord_t get_width() const
 	{
