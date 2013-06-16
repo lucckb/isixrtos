@@ -26,6 +26,12 @@ public:
 		m_gdev( gdev )
 	{
 	}
+
+	/** Clear the screen using background color */
+	void clear()
+	{
+		m_gdev.clear( m_bg_color );
+	}
 	/** Draw text using current context and font
 	 * @param[in] x position on display
 	 * @param[in] y position on display
@@ -38,9 +44,18 @@ public:
 	 * @param[str] str string to display
 	 */
 	void draw_text( coord_t x, coord_t y, const char* str );
-	/** Set foreground color in GDI object
-	 * @param[in] color  foreground color
+
+	/* Draw line using current grephics context parameter
+	 * @param[in] x0 start line point horiz
+	 * @param[in] y0 start line point vert
+	 * @param[in] x1 end line point horiz
+	 * @param[in] y1 end line point vert
+	 *
 	 */
+	void draw_line( coord_t x0, coord_t y0, coord_t x1, coord_t y1 );
+	/** Set foreground color in GDI object
+	 * @param[in] color  foreground color	 */
+
 	void set_fg_color( color_t color )
 	{
 		m_color = color;
