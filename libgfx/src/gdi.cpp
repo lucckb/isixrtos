@@ -35,6 +35,8 @@ void gdi::draw_text(coord_t x, coord_t y, int ch )
 		ch = m_font->defaultchar;
 	const auto buf = m_gdev.get_rbuf();
 	const auto width = (m_font->width)?(m_font->width[ch]):(m_font->maxwidth);
+	if( x + width > m_gdev.get_width() )
+		return;
 	const auto bmpch = m_font->offset[ch];
 	const auto rows_in_buf = buf.second / width;
 	coord_t p_blit_cy = 0;
@@ -58,12 +60,14 @@ void gdi::draw_text(coord_t x, coord_t y, int ch )
 /* ------------------------------------------------------------------ */
 void gdi::draw_text( coord_t x, coord_t y, const char* str )
 {
+	const auto dwidth = m_gdev.get_width();
 	for( coord_t px=x; *str; ++str )
 	{
 		const int ch = ( *str >= m_font->size )?(m_font->defaultchar):(*str);
 		const auto width = (m_font->width)?(m_font->width[ch]):(m_font->maxwidth);
 		draw_text( px, y, ch );
 		px += width;
+		if( px > dwidth ) break;
 	}
 }
 /* ------------------------------------------------------------------ */
