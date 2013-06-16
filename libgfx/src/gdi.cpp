@@ -6,7 +6,7 @@
  */
 #include <gfx/disp/gdi.hpp>
 #include <dbglog.h>
-
+#include <cstring>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace disp {
@@ -69,6 +69,24 @@ void gdi::draw_text( coord_t x, coord_t y, const char* str )
 		draw_text( px, y, ch );
 		px += width;
 		if( px > dwidth ) break;
+	}
+}
+
+/* ------------------------------------------------------------------ */
+/** Get text width */
+coord_t gdi::get_text_width( const char *str )
+{
+	if( !m_font->width )
+		return std::strlen( str ) * m_font->maxwidth;
+	else
+	{
+		coord_t width;
+		for(width=0;*str; ++str )
+		{
+			const int ch = ( *str < m_font->firstchar || *str >= m_font->size )?(m_font->defaultchar):(*str);
+			width += m_font->width[ch];
+		}
+		return width;
 	}
 }
 /* ------------------------------------------------------------------ */

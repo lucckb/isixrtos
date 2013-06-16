@@ -45,11 +45,17 @@ public:
 	 */
 	void draw_text( coord_t x, coord_t y, const char* str );
 
+	/** Calculate and get text size
+	 * @param[in] str Input text
+	 * @return Text length
+	 */
+	coord_t get_text_width( const char *str );
+
 	/** Set PIXEL
 	 * @param[in] x position X
 	 * @param[in] y position Y
-	 * @param[in] bg use bg color
-	 */
+     * @param[in] bg use bg color
+    */
 	void set_pixel( coord_t x, coord_t y, bool bg=false)
 	{
 		m_gdev.set_pixel( x, y, bg?m_bg_color:m_color );
@@ -123,7 +129,7 @@ private:
 	const font_t *m_font { &fonts::font_default } ;
 	color_t m_color { rgb(255,255,255) };
 	color_t m_bg_color { rgb(0,0,0) };
-	bool m_bg_fill { true };	//Fill the background
+	bool m_bg_fill { false };	//Fill the background
 };
 /* ------------------------------------------------------------------ */
 }}
