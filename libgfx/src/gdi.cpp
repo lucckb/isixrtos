@@ -163,6 +163,81 @@ void gdi::draw_line( coord_t x0, coord_t y0, coord_t x1, coord_t y1 )
 }
 
 /* ------------------------------------------------------------------ */
+/** Draw circle */
+void gdi::draw_circle( coord_t x, coord_t y, coord_t radius )
+{
+
+	int a = 0;
+	int b = radius;
+	int p = 1 - radius;
+	do
+	{
+		if( !m_bg_fill )
+		{
+			set_pixel(x+a, y+b);
+			set_pixel(x+b, y+a);
+			set_pixel(x-a, y+b);
+			set_pixel(x-b, y+a);
+			set_pixel(x+b, y-a);
+			set_pixel(x+a, y-b);
+			set_pixel(x-a, y-b);
+			set_pixel(x-b, y-a);
+		}
+		else
+		{
+			draw_line(x-a, y+b, x+a, y+b);
+			draw_line(x-a, y-b, x+a, y-b);
+			draw_line(x-b, y+a, x+b, y+a);
+			draw_line(x-b, y-a, x+b, y-a);
+		}
+		if (p < 0)
+			p += 3 + 2*a++;
+		else
+			p += 5 + 2*(a++ - b--);
+	}
+	while(a <= b);
+}
+
+/* ------------------------------------------------------------------ */
+/** Draw ellipse */
+void gdi::draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b )
+{
+	int  dx = 0, dy = b;
+	int a2 = a*a, b2 = b*b;
+	int err = b2-(2*b-1)*a2, e2;
+	do
+	{
+			if( !m_bg_fill )
+			{
+				set_pixel(x+dx, y+dy); /* I. Quadrant */
+				set_pixel(x-dx, y+dy); /* II. Quadrant */
+				set_pixel(x-dx, y-dy); /* III. Quadrant */
+				set_pixel(x+dx, y-dy); /* IV. Quadrant */
+			}
+			else
+			{
+				draw_line(x-dx,y+dy,x+dx,y+dy);
+				draw_line(x-dx,y-dy,x+dx,y-dy);
+			}
+			e2 = 2*err;
+			if(e2 <  (2*dx+1)*b2) {
+				dx++;
+				err += (2*dx+1)*b2;
+			}
+			if(e2 > -(2*dy-1)*a2) {
+				dy--;
+				err -= (2*dy-1)*a2;
+			}
+	}
+	while(dy >= 0);
+
+	while(dx++ < a)
+	{
+		set_pixel(x+dx, y);
+		set_pixel(x-dx, y);
+	}
+}
+/* ------------------------------------------------------------------ */
 }}
 
 

@@ -45,22 +45,61 @@ public:
 	 */
 	void draw_text( coord_t x, coord_t y, const char* str );
 
+	/** Set PIXEL
+	 * @param[in] x position X
+	 * @param[in] y position Y
+	 * @param[in] bg use bg color
+	 */
+	void set_pixel( coord_t x, coord_t y, bool bg=false)
+	{
+		m_gdev.set_pixel( x, y, bg?m_bg_color:m_color );
+	}
 	/* Draw line using current grephics context parameter
 	 * @param[in] x0 start line point horiz
 	 * @param[in] y0 start line point vert
 	 * @param[in] x1 end line point horiz
 	 * @param[in] y1 end line point vert
 	 *
-	 */
+	*/
 	void draw_line( coord_t x0, coord_t y0, coord_t x1, coord_t y1 );
 	/** Set foreground color in GDI object
 	 * @param[in] color  foreground color	 */
 
+	/** Fill the area with selected color
+	 * @param[in] x Position X
+	 * @param[in] y Position Y
+	 * @param[in] cx Height
+	 * @param[in] cy Width
+	 */
+	void fill_area( coord_t x, color_t y, coord_t cx, coord_t cy )
+	{
+		m_gdev.fill( x, y, cx, cy, m_color );
+	}
+
+	/** Draw circle
+	 * @param[in] x Start point X
+	 * @param[in] y Start point Y
+	 * @param[in] radius Radius
+	 */
+	void draw_circle( coord_t x, coord_t y, coord_t radius );
+
+
+	/** Draw circle
+	  * @param[in] x Start point X
+	  * @param[in] y Start point Y
+	  * @param[in] a Radius A
+	  * @param[in] b Radius B
+	  */
+	void draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b );
+
+	/** Set foreground color in GDI object
+	   * @param[in] color  foreground color
+	*/
 	void set_fg_color( color_t color )
 	{
 		m_color = color;
 	}
-	/** Set foreground color in GDI object
+	/** Set background color in GDI object
 	   * @param[in] color  foreground color
 	*/
 	void set_bg_color( color_t color )
@@ -74,11 +113,17 @@ public:
 	{
 		m_font = &font;
 	}
+	/** Enable or disable background fill */
+	void set_fill_background( bool enable )
+	{
+		m_bg_fill = enable;
+	}
 private:
 	drv::disp_base &m_gdev;
 	const font_t *m_font { &fonts::font_default } ;
 	color_t m_color { rgb(255,255,255) };
 	color_t m_bg_color { rgb(0,0,0) };
+	bool m_bg_fill { true };	//Fill the background
 };
 /* ------------------------------------------------------------------ */
 }}
