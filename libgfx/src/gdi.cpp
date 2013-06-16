@@ -37,22 +37,21 @@ int gdi::draw_char(coord_t x, coord_t y, int ch, const font_t &font, color_t col
 	const auto width = (font.width)?(font.width[ch]):(font.maxwidth);
 	const auto bmpch = font.offset[ch];
 	const auto rows_in_buf = buf.second / width;
-	const auto blit_rows = font.height<rows_in_buf?font.height:rows_in_buf;
-	auto p_blit_y = y;
+	coord_t p_blit_cy = 0;
+	auto blit_rows = font.height<rows_in_buf?font.height:rows_in_buf;
 	for( unsigned row=0,bi=0; row<font.height; ++row )
 	{
 		const bit bits( font.bits + bmpch + row );
 		for( int col=0; col<width; ++col,++bi )
 		{
 			buf.first[bi] = bits[col]?color:bg_color;
-			//if( bits[col] )
-			//	m_gdev.set_pixel( x+col,y+row, color );
 		}
-		if( row+1 >= blit_rows )
+		if( row+1 >= (p_blit_cy+blit_rows) )
 		{
-			m_gdev.blit( x, p_blit_y, width, blit_rows, 0, buf.first );
+			m_gdev.blit( x, p_blit_cy + y, width, blit_rows, 0, buf.first );
 			bi = 0;
-			p_blit_y += blit_rows;
+			p_blit_cy += blit_rows;
+			blit_rows = (font.height-row)<rows_in_buf?(font.height-row):rows_in_buf;
 		}
 	}
 	return 0;
@@ -62,6 +61,3 @@ int gdi::draw_char(coord_t x, coord_t y, int ch, const font_t &font, color_t col
 
 
 /* ------------------------------------------------------------------ */
-
-
-
