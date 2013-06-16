@@ -29,32 +29,42 @@ namespace {
 }
 /* ------------------------------------------------------------------ */
 //Draw char
-int gdi::draw_char(coord_t x, coord_t y, int ch, const font_t &font, color_t color, color_t bg_color )
+void gdi::draw_text(coord_t x, coord_t y, int ch )
 {
-	if( ch < 0 || ch >= font.size )
-		ch = font.defaultchar;
+	if( ch < 0 || ch >= m_font->size )
+		ch = m_font->defaultchar;
 	const auto buf = m_gdev.get_rbuf();
-	const auto width = (font.width)?(font.width[ch]):(font.maxwidth);
-	const auto bmpch = font.offset[ch];
+	const auto width = (m_font->width)?(m_font->width[ch]):(m_font->maxwidth);
+	const auto bmpch = m_font->offset[ch];
 	const auto rows_in_buf = buf.second / width;
 	coord_t p_blit_cy = 0;
-	auto blit_rows = font.height<rows_in_buf?font.height:rows_in_buf;
-	for( unsigned row=0,bi=0; row<font.height; ++row )
+	auto blit_rows = m_font->height<rows_in_buf?m_font->height:rows_in_buf;
+	for( unsigned row=0,bi=0; row<m_font->height; ++row )
 	{
-		const bit bits( font.bits + bmpch + row );
+		const bit bits( m_font->bits + bmpch + row );
 		for( int col=0; col<width; ++col,++bi )
 		{
-			buf.first[bi] = bits[col]?color:bg_color;
+			buf.first[bi] = bits[col]?m_color:m_bg_color;
 		}
 		if( row+1 >= (p_blit_cy+blit_rows) )
 		{
 			m_gdev.blit( x, p_blit_cy + y, width, blit_rows, 0, buf.first );
 			bi = 0;
 			p_blit_cy += blit_rows;
-			blit_rows = (font.height-row)<rows_in_buf?(font.height-row):rows_in_buf;
+			blit_rows = (m_font->height-row)<rows_in_buf?(m_font->height-row):rows_in_buf;
 		}
 	}
-	return 0;
+}
+/* ------------------------------------------------------------------ */
+void gdi::draw_text( coord_t x, coord_t y, const char* str )
+{
+	for( coord_t px=x; *str; ++str )
+	{
+		const int ch = ( *str >= m_font->size )?(m_font->defaultchar):(*str);
+		const auto width = (m_font->width)?(m_font->width[ch]):(m_font->maxwidth);
+		draw_text( px, y, ch );
+		px += width;
+	}
 }
 /* ------------------------------------------------------------------ */
 }}
