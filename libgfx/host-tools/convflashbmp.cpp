@@ -5,12 +5,18 @@
  *      Author: lucck
  */
 
+#include <vector>
 #include <cstddef>
 #include <iostream>
 #include <IL/il.h>
 #include <IL/ilu.h>
 #include <stdexcept>
 #include "lz.h"
+/* ----------------------------------------------------------------------------- */
+namespace {
+    constexpr auto lz_line_size = 128;
+    constexpr auto lz_sub_size  = 3;
+}
 /* ----------------------------------------------------------------------------- */
 inline void il_abort( ILboolean error )
 {
@@ -105,6 +111,46 @@ private:
 };
 
 /* ----------------------------------------------------------------------------- */
+//Prepare image in rgb565 format
+void create_rgb16_bitmap( FILE *file )
+{
+    img_array img;
+    int cl = 0;
+    color_t line[lz_line_size];
+    color_t linec[lz_line_size*2];
+    const int width = ilGetInteger(IL_IMAGE_WIDTH);
+    const int height = ilGetInteger(IL_IMAGE_HEIGHT); 
+
+    for(int y=0; y<height; ++y)
+    for(int x=0; x<width; ++x)
+    {
+        line[cl++] = img[y][x];
+        if( cl == lz_line_size )
+        {
+            const int clen = LZ_Compress(line, linec, sizeof line );
+            cl = 0;
+            fprintf(file, "/*s*/ 0x%02hhx, ", clen - lz_sub_size );
+            bool new_line = false;
+            for( int i = 0; i< clen; i++ )
+            {
+                fprintf(file, "0x%02hhx, ", linec[i] );
+                if( (i % 25)==24 ) 
+                {
+                    fprintf(file, "\n" );
+                    new_line = true;
+                }
+                else
+                {
+                    new_line = false;
+                }
+            }
+            if( !new_line ) 
+                fprintf(file, "\n" );
+        }
+    }
+}
+
+/* ----------------------------------------------------------------------------- */
 int main()
 {
 	/* Init library */
@@ -115,23 +161,8 @@ int main()
     const int width = ilGetInteger(IL_IMAGE_WIDTH);
     const int height = ilGetInteger(IL_IMAGE_HEIGHT);
     std::cout << "Img size " << width << "x" << height << std::endl;
-    img_array img;
-    int cl = 0;
-    color_t line[128];
-    color_t linec[1024];
-    size_t ll = 0;
-    for(int y=0; y<height; ++y)
-    for(int x=0; x<width; ++x)
-    {
-        line[cl++] = img[y][x];
-        //std::cout << int(line[cl-1]) << " V "<< int(img[y][x]) << std::endl;
-        if( cl == 128 )
-        {
-            const int clen = LZ_Compress((unsigned char*)line, (unsigned char*)linec, 256 );
-            cl = 0;
-            ll += clen + 1;
-        }
-    }
-    std::cout << (width*height*2) << " " << ll << std::endl;
-   	return 0;
+    FILE *f = fopen("/tmp/test.cpp","wt");
+    create_rgb16_bitmap( f );
+    fclose(f);
+    return 0;
 }

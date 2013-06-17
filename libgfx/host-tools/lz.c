@@ -99,8 +99,8 @@
 * _LZ_StringCompare() - Return maximum length string match.
 *************************************************************************/
 
-static unsigned int _LZ_StringCompare( unsigned char * str1,
-  unsigned char * str2, unsigned int minlen, unsigned int maxlen )
+static unsigned int _LZ_StringCompare( const unsigned char * str1,
+  const unsigned char * str2, unsigned int minlen, unsigned int maxlen )
 {
     unsigned int len;
 
@@ -150,7 +150,7 @@ static int _LZ_WriteVarSize( unsigned int x, unsigned char * buf )
 * bytes depending on value.
 *************************************************************************/
 
-static int _LZ_ReadVarSize( unsigned int * x, unsigned char * buf )
+static int _LZ_ReadVarSize( unsigned int * x, const unsigned char * buf )
 {
     unsigned int y, b, num_bytes;
 
@@ -188,15 +188,17 @@ static int _LZ_ReadVarSize( unsigned int * x, unsigned char * buf )
 * The function returns the size of the compressed data.
 *************************************************************************/
 
-int LZ_Compress( unsigned char *in, unsigned char *out,
-    unsigned int insize )
+int LZ_Compress( const void *in_, void *out_, unsigned int insize )
 {
     unsigned char marker, symbol;
     unsigned int  inpos, outpos, bytesleft, i;
     unsigned int  maxoffset, offset, bestoffset;
     unsigned int  maxlength, length, bestlength;
     unsigned int  histogram[ 256 ];
-    unsigned char *ptr1, *ptr2;
+    const unsigned char *ptr1, *ptr2;
+
+    const unsigned char *in = in_;
+    unsigned char *out = out_;
 
     /* Do we have anything to compress? */
     if( insize < 1 )
@@ -326,7 +328,7 @@ int LZ_Compress( unsigned char *in, unsigned char *out,
 * The function returns the size of the compressed data.
 *************************************************************************/
 
-int LZ_CompressFast( unsigned char *in, unsigned char *out,
+int LZ_CompressFast( const void *in_, void *out_,
     unsigned int insize, unsigned int *work )
 {
     unsigned char marker, symbol;
@@ -334,7 +336,11 @@ int LZ_CompressFast( unsigned char *in, unsigned char *out,
     unsigned int  offset, bestoffset;
     unsigned int  maxlength, length, bestlength;
     unsigned int  histogram[ 256 ], *lastindex, *jumptable;
-    unsigned char *ptr1, *ptr2;
+    const unsigned char *ptr1, *ptr2;
+
+    const unsigned char *in = in_;
+    unsigned char *out = out_;
+
 
     /* Do we have anything to compress? */
     if( insize < 1 )
@@ -486,11 +492,14 @@ int LZ_CompressFast( unsigned char *in, unsigned char *out,
 *  insize  - Number of input bytes.
 *************************************************************************/
 
-void LZ_Uncompress( unsigned char *in, unsigned char *out,
+void LZ_Uncompress( const void *in_, void *out_,
     unsigned int insize )
 {
     unsigned char marker, symbol;
     unsigned int  i, inpos, outpos, length, offset;
+
+    const unsigned char *in = in_;
+    unsigned char *out = out_;
 
     /* Do we have anything to uncompress? */
     if( insize < 1 )
