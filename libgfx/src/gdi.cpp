@@ -28,6 +28,101 @@ namespace {
 	};
 }
 /* ------------------------------------------------------------------ */
+namespace
+{
+
+static int _LZ_ReadVarSize( unsigned int * x, const unsigned char * buf )
+{
+    unsigned int y, b, num_bytes;
+
+    /* Read complete value (stop when byte contains zero in 8:th bit) */
+    y = 0;
+    num_bytes = 0;
+    do
+    {
+        b = (unsigned int) (*buf ++);
+        y = (y << 7) | (b & 0x0000007f);
+        ++ num_bytes;
+    }
+    while( b & 0x00000080 );
+
+    /* Store value in x */
+    *x = y;
+
+    /* Return number of bytes read */
+    return num_bytes;
+}
+
+
+void lz_uncompress( const void *in_, void *out_,unsigned int insize )
+{
+    unsigned char marker, symbol;
+    unsigned int  i, inpos, outpos, length, offset;
+
+    const unsigned char *in = reinterpret_cast<const unsigned char*>(in_);
+    unsigned char *out = reinterpret_cast<unsigned char*>(out_);
+
+    /* Do we have anything to uncompress? */
+    if( insize < 1 )
+    {
+        return;
+    }
+
+    /* Get marker symbol from input stream */
+    marker = in[ 0 ];
+    inpos = 1;
+
+    /* Main decompression loop */
+    outpos = 0;
+    do
+    {
+    	dbprintf("%i -> %02X", inpos, in[ inpos] );
+    	symbol = in[ inpos ++ ];
+        if( symbol == marker )
+        {
+            /* We had a marker byte */
+            if( in[ inpos ] == 0 )
+            {
+                /* It was a single occurrence of the marker byte */
+                out[ outpos ++ ] = marker;
+                ++ inpos;
+            }
+            else
+            {
+            	/* Extract true length and offset */
+                inpos += _LZ_ReadVarSize( &length, &in[ inpos ] );
+                inpos += _LZ_ReadVarSize( &offset, &in[ inpos ] );
+
+                dbprintf("len %i offs %i", length, offset );
+
+                /* Copy corresponding data from history window */
+                for( i = 0; i < length; ++ i )
+                {
+                    out[ outpos ] = out[ outpos - offset ];
+                    ++ outpos;
+                }
+            }
+        }
+        else
+        {
+            /* No marker, plain copy */
+            out[ outpos ++ ] = symbol;
+        }
+    }
+    while( inpos < insize );
+}
+	constexpr auto chunk_diff = 3;
+
+	inline unsigned char get_bmpdata( const cmem_bitmap_t &bmp , size_t offset )
+	{
+		return *(reinterpret_cast<const unsigned char*>(bmp.img_data) + offset );
+	}
+	inline const void* get_bmpaddr( const cmem_bitmap_t &bmp , size_t offset )
+	{
+		return (reinterpret_cast<const unsigned char*>(bmp.img_data) + offset );
+	}
+}
+/* ------------------------------------------------------------------ */
 //Draw char
 void gdi::draw_text(coord_t x, coord_t y, int ch )
 {
@@ -253,6 +348,20 @@ void gdi::draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b )
 	{
 		set_pixel(x+dx, y);
 		set_pixel(x-dx, y);
+	}
+}
+
+/* ------------------------------------------------------------------ */
+//GDI draw image
+void gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
+{
+	const auto buf = m_gdev.get_rbuf();
+	for(int chunk=get_bmpdata(bitmap,0)+chunk_diff, pos=chunk+1;
+			chunk>chunk_diff;
+			chunk = get_bmpdata(bitmap,pos)+chunk_diff, pos+=chunk+1 )
+	{
+		dbprintf("CHUNK=%i %i %i", chunk, pos, pos - chunk );
+		lz_uncompress( get_bmpaddr(bitmap, pos-chunk), buf.first, chunk );
 	}
 }
 /* ------------------------------------------------------------------ */

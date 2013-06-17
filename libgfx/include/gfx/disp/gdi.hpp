@@ -11,6 +11,7 @@
 /* ------------------------------------------------------------------ */
 #include <gfx/drivers/disp/disp_base.hpp>
 #include <gfx/disp/bitmap_fonts.hpp>
+#include <gfx/disp/static_bitmap.hpp>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace disp {
@@ -98,6 +99,14 @@ public:
 	  * @param[in] b Radius B
 	  */
 	void draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b );
+
+
+	/** Draw static bitmap
+	 * @param[in] x Start point X
+	 * @param[in] y Start point Y
+	 * @param[in] bmp Static bitmap from memory
+	 */
+	void draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap );
 
 	/** Set foreground color in GDI object
 	   * @param[in] color  foreground color
