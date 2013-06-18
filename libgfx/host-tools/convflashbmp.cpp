@@ -148,7 +148,7 @@ size_t create_rgb16_bitmap( FILE *file, bool big_endian, bool reverse_colors )
     img_array img;
     int cl = 0;
     color_t line[lz_line_size];
-    color_t linec[lz_line_size*2];
+    uint8_t linec[lz_line_size*4];
     const int width = ilGetInteger(IL_IMAGE_WIDTH);
     const int height = ilGetInteger(IL_IMAGE_HEIGHT); 
     fprintf( file, "static constexpr unsigned char image_data[] = {\n" );
@@ -169,7 +169,7 @@ size_t create_rgb16_bitmap( FILE *file, bool big_endian, bool reverse_colors )
             cl = 0;
             fprintf(file, "\n/* LEN */ 0x%02hhx, \n", clen - lz_sub_size );
             line_cnt=0;
-            for( int i = 0; i< clen; i++ )
+            for( int i = 0; i<clen; i++ )
             {
                 fprintf(file, "0x%02hhx, ", linec[i] );
                 if( (line_cnt++ % vars_per_line == vars_per_line-1) && (clen-1!=i) )
@@ -217,7 +217,10 @@ void create_cpp_footer( FILE *file, size_t ns_cnt, const char* filename, img_fmt
         case img_fmt_t::rgb565: fmt_desc = "rgb565"; break;
         default: fmt_desc = "error"; break;
     }
-    fprintf(file,"\n\n const gfx::disp::cmem_bitmap_t %s = { \n",  fname.substr(found + 1).c_str() );
+    const auto struct_name = fname.substr(found + 1);
+    fputs("\n/* Exported structure */\n", file );
+    fprintf(file,"extern const gfx::disp::cmem_bitmap_t %s;\n", struct_name.c_str() );
+    fprintf(file,"\n\nconst gfx::disp::cmem_bitmap_t %s = { \n",   struct_name.c_str() );
     fprintf(file, "\tnullptr, \n");
     fprintf(file, "\t%i,\n", width );
     fprintf(file, "\t%i,\n",  height );
