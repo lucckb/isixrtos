@@ -157,11 +157,9 @@ size_t create_rgb16_bitmap( FILE *file, bool big_endian, bool reverse_colors )
     for(int y=0; y<height; ++y)
     for(int x=0; x<width; ++x)
     {
-        line[cl++] = (reverse_colors)?(img[y][x].bgr565()):(img[y][x].rgb565());
-        if( big_endian )
-            line[cl] = color_be(line[cl]);
-        else
-            line[cl] = color_le(line[cl]);
+        const auto pixel = (reverse_colors)?(img[y][x].bgr565()):(img[y][x].rgb565());
+        if( big_endian ) line[cl++] = color_be(pixel);
+        else line[cl++] = color_le(pixel);
         if( cl == lz_line_size )
         {
             const int clen = LZ_Compress(line, linec, sizeof line );
@@ -215,6 +213,7 @@ void create_cpp_footer( FILE *file, size_t ns_cnt, const char* filename, img_fmt
     switch(type)
     {
         case img_fmt_t::rgb565: fmt_desc = "rgb565"; break;
+        case img_fmt_t::bgr565: fmt_desc = "bgr565"; break;
         default: fmt_desc = "error"; break;
     }
     const auto struct_name = fname.substr(found + 1);
@@ -304,6 +303,10 @@ int main(int argc, const char * const * const argv)
                 {
                     format = img_fmt_t::rgb565;
                 }
+                else if( fmt=="BGR565")
+                {
+                    format = img_fmt_t::bgr565;
+                }
                 else
                 {
                     usage("Format not supported");
@@ -346,7 +349,9 @@ int main(int argc, const char * const * const argv)
         std::cerr << "Unable to create file" << std::endl;
     }
     create_cpp_header( outf , namespaces, in_filename, ilGetInteger(IL_IMAGE_SIZE_OF_DATA), fmt_string, big_endian );
-    const auto tot_len = create_rgb16_bitmap( outf, big_endian, format == img_fmt_t::bgr565 );
+    size_t tot_len = 0; 
+    if( format==img_fmt_t::rgb565 || format==img_fmt_t::bgr565 )
+        tot_len = create_rgb16_bitmap( outf, big_endian, format == img_fmt_t::bgr565 );
     create_cpp_footer( outf , namespaces.size(), in_filename, format );
     std::cout << "Dest image size: " << (tot_len/1024.0) << "KB" << std::endl;
     fclose(outf);
