@@ -7,6 +7,7 @@
 #include <gfx/disp/gdi.hpp>
 #include <dbglog.h>
 #include <cstring>
+
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace disp {
@@ -53,7 +54,7 @@ namespace
 		return num_bytes;
 	}
 	/* ----------------------------------------------------------------------- */
-	bool lz_uncompress( const void *in_, void *out_,unsigned int insize, unsigned int outsize )
+	int lz_uncompress( const void *in_, void *out_,unsigned int insize, unsigned int outsize )
 	{
 		unsigned char marker, symbol;
 		unsigned int  i, inpos, outpos, length, offset;
@@ -64,7 +65,7 @@ namespace
 		/* Do we have anything to uncompress? */
 		if( insize < 1 )
 		{
-			return true;
+			return -1;
 		}
 
 		/* Get marker symbol from input stream */
@@ -75,7 +76,6 @@ namespace
 		outpos = 0;
 		do
 		{
-			dbprintf("%i -> %02X", inpos, in[ inpos] );
 			symbol = in[ inpos ++ ];
 			if( symbol == marker )
 			{
@@ -93,12 +93,10 @@ namespace
 					inpos += _lz_read_var_size( &length, &in[ inpos ] );
 					inpos += _lz_read_var_size( &offset, &in[ inpos ] );
 
-					dbprintf("len %i offs %i", length, offset );
-
 					/* Copy corresponding data from history window */
 					for( i = 0; i < length; ++ i )
 					{
-						if( outpos >= outsize ) return true;
+						if( outpos >= outsize ) return -1;
 						out[ outpos ] = out[ outpos - offset ];
 						++ outpos;
 					}
@@ -106,13 +104,13 @@ namespace
 			}
 			else
 			{
-				if( outpos >= outsize ) return true;
+				if( outpos >= outsize ) return -1;
 				/* No marker, plain copy */
 				out[ outpos ++ ] = symbol;
 			}
 		}
 		while( inpos < insize );
-		return false;
+		return outpos;
 	}
 
 	/* ----------------------------------------------------------------------- */
@@ -360,18 +358,23 @@ void gdi::draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b )
 int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 {
 	const auto buf = m_gdev.get_rbuf();
-    static constexpr auto line_size = 256;
+    static constexpr auto max_size = 256;
 	static constexpr auto chunk_diff = 3;
+	dbprintf(" BMP WIDTH=%i HEIGHT=%i", bitmap.width, bitmap.height );
+	m_gdev.ll_blit( x, y, bitmap.width, bitmap.height );
 	for(int chunk=get_bmpdata(bitmap,0)+chunk_diff, pos=chunk+1;
 			chunk>chunk_diff;
 			chunk = get_bmpdata(bitmap,pos)+chunk_diff, pos+=chunk+1 )
 	{
-		if( lz_uncompress( get_bmpaddr(bitmap, pos-chunk), buf.first, chunk, line_size ) )
+		auto ulen = lz_uncompress( get_bmpaddr(bitmap, pos-chunk), buf.first, chunk, max_size );
+		if( ulen < 0 )
 		{
 			dbprintf("LZ uncompress failed");
 			return error_lz_compress;
 		}
-		dbprintf("CHUNK=%i %i %i", chunk, pos, pos - chunk);
+		ulen /= sizeof(color_t);
+		m_gdev.ll_blit( buf.first, ulen );
+		//dbprintf("CHUNK=%i DLEN %i", chunk, ulen );
 	}
 	return error_ok;
 }

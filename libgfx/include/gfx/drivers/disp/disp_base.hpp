@@ -54,6 +54,13 @@ public:
 	virtual void clear( color_t color ) = 0;
 	/* Fill area */
 	virtual void fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color ) = 0;
+
+	/* Set blit area (viewport) */
+	virtual void ll_blit( coord_t x, coord_t y, coord_t cx, coord_t cy ) = 0;
+
+	/* Push into the memory */
+	virtual void ll_blit( const color_t *buf, size_t len ) = 0;
+
 	/* Blit area */
 	virtual void blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 	        coord_t src_y, const color_t *buf ) = 0;

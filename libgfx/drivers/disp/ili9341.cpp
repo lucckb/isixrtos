@@ -66,7 +66,6 @@ void ili9341::blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 }
 /* ------------------------------------------------------------------ */
 /* Vertical scroll */
-#ifdef CONFIG_ILI9341_VERTICAL_SCROLL
 /** Rotate screen
  * @param x,y - source region
  * @param cx,cy   - region length
@@ -114,7 +113,6 @@ void ili9341::move_line( coord_t x, coord_t cx, coord_t row_from, coord_t row_to
 	m_bus.write( m_scr_buf+1, cx*3 );
 }
 
-#endif /* CONFIG_ILI9341_VERTICAL_SCROLL */
 /* ------------------------------------------------------------------ */
 bool ili9341::power_ctl( power_ctl_t  mode )
 {
@@ -284,6 +282,27 @@ void ili9341::fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color 
 	command( dcmd::MEMORYWRITE );
 	m_bus.fill( color, cx * cy );
 }
+
+/* ------------------------------------------------------------------ */
+/* Set blit area (viewport) */
+void ili9341::ll_blit( coord_t x, coord_t y, coord_t cx, coord_t cy )
+{
+	bus_lock lock(m_bus);
+	const auto x2 = x + cx - 1;
+	const auto y2 = y + cy - 1;
+	command( dcmd::COLADDRSET,  x>>8, x, x2>>8, x2 );
+	command( dcmd::PAGEADDRSET, y>>8, y, y2>>8, y2 );
+	command( dcmd::MEMORYWRITE );
+}
+
+/* ------------------------------------------------------------------ */
+/* Push into the memory */
+void ili9341::ll_blit( const color_t *buf, size_t len )
+{
+	bus_lock lock(m_bus);
+	m_bus.write( buf, sizeof(color_t)*len );
+}
+
 /* ------------------------------------------------------------------ */
 }}
 /* ------------------------------------------------------------------ */

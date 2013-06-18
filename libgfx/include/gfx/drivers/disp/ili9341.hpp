@@ -14,9 +14,6 @@
 #include <cstdint>
 #include <initializer_list>
 /* ------------------------------------------------------------------ */
-//TODO: Fixme testonly
-#define CONFIG_ILI9341_VERTICAL_SCROLL
-
 namespace gfx {
 namespace drv {
 /* ------------------------------------------------------------------ */
@@ -41,13 +38,14 @@ public:
 	/* Blit area */
 	virtual void blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 	        coord_t src_y, const color_t *buf );
-
+	/* Set blit area (viewport) */
+	virtual void ll_blit( coord_t x, coord_t y, coord_t cx, coord_t cy );
+	/* Push into the memory */
+	virtual void ll_blit( const color_t *buf, size_t len );
 	/* Fill area */
 	virtual void fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color );
-#ifdef CONFIG_ILI9341_VERTICAL_SCROLL
 	/* Vertical scroll */
 	virtual void vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor );
-#endif
 	/* Power ctl */
 	virtual bool power_ctl( power_ctl_t mode );
 	/* Rotate screen */
@@ -153,11 +151,9 @@ private:
 	disp_bus &m_bus;
 	rotation_t m_orient { rotation_t::rot_0 };
 	power_ctl_t m_pwrstate {};
-#ifdef	CONFIG_ILI9341_VERTICAL_SCROLL
 	//Move line
 	void move_line( coord_t x, coord_t cx, coord_t row_from, coord_t row_to );
 	uint8_t m_scr_buf[ (SCREEN_WIDTH>SCREEN_HEIGHT?SCREEN_WIDTH:SCREEN_HEIGHT)*3 + 1];
-#endif
 };
 
 /* ------------------------------------------------------------------ */

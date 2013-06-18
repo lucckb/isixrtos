@@ -48,8 +48,9 @@ namespace gfx
 	//Error code
 	enum error : int
 	{
-		error_ok,				/* Error OK */
-		error_lz_compress		/* LZMA compress failed */
+		error_ok,					/* Error OK */
+		error_lz_compress,			/* LZMA compress failed */
+		error_img_not_supported		/* Image type is not supported */
 	};
 }
 /* ------------------------------------------------------------------ */
