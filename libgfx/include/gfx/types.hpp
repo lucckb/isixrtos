@@ -9,6 +9,8 @@
 #ifndef ISIX_GFX_TYPES_HPP_
 #define ISIX_GFX_TYPES_HPP_
 /* ------------------------------------------------------------------ */
+#include <cstdint>
+/* ------------------------------------------------------------------ */
 #define CONFIG_GFX_PIXEL_FORMAT_RGB565 1
 #define CONFIG_GFX_PIXEL_FORMAT_BGR565 2
 #define CONFIG_GFX_PIXEL_FORMAT_RGB8   3
@@ -52,6 +54,22 @@ namespace gfx
 		error_lz_compress,			/* LZMA compress failed */
 		error_img_not_supported		/* Image type is not supported */
 	};
+	//Color space utilities
+	namespace colorspace
+	{
+		inline color_t rgb565( uint16_t value )
+		{
+			return rgb( (value&0x1f)<<3, ((value>>5)&0x3f)<<2, ((value>>11)&0x1f)<<3 );
+		}
+		inline color_t bgr565( uint16_t value )
+		{
+			return rgb( ((value>>11)&0x1f)<<3, ((value>>5)&0x3f)<<2, (value&0x1f)<<3 );
+		}
+		inline color_t bgr332( uint8_t value )
+		{
+			return rgb( (value&0x07)<<5, ((value>>3)&0x07)<<5, ((value>>6)&0x03)<<6 );
+		}
+	}
 }
 /* ------------------------------------------------------------------ */
 #endif /* TYPES_HPP_ */

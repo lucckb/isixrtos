@@ -352,7 +352,68 @@ void gdi::draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b )
 		set_pixel(x-dx, y);
 	}
 }
-
+/* ------------------------------------------------------------------ */
+namespace {
+	//Internal function convert to native format
+	inline size_t convert_buf_to_native( const void *ibuf,size_t size, color_t *obuf ,cmem_bitmap_t::img_type type )
+	{
+		switch( type )
+		{
+			case cmem_bitmap_t::rgb565:
+			{
+				size /= sizeof(uint16_t);
+#if CONFIG_GFX_PIXEL_FORMAT != CONFIG_GFX_PIXEL_FORMAT_RGB565
+				for( size_t p=0; p<size; ++p )
+				{
+					*obuf++ = colorspace::rgb565(*(reinterpret_cast<const uint16_t*>(ibuf)+p));
+				}
+#endif
+			}
+			break;
+			case cmem_bitmap_t::bgr565:
+			{
+				size /= sizeof(uint16_t);
+#if CONFIG_GFX_PIXEL_FORMAT != CONFIG_GFX_PIXEL_FORMAT_BGR565
+				for( size_t p=0; p<size; ++p )
+				{
+					*obuf++ = colorspace::bgr565(*(reinterpret_cast<const uint16_t*>(ibuf)+p));
+				}
+#endif
+			}
+			break;
+			case cmem_bitmap_t::bgr332:
+			{
+				size /= sizeof(uint8_t);
+				for( size_t p=0; p<size; ++p )
+				{
+					*obuf++ = colorspace::bgr332(*(reinterpret_cast<const uint8_t*>(ibuf)+p));
+				}
+			}
+			break;
+			case cmem_bitmap_t::bpp1:
+			{
+				dbprintf("BPP1 not implemented");
+			}
+			break;
+		}
+		return size;
+	}
+	//Colorspace to size
+	inline bool bmp_pixel_size_match( cmem_bitmap_t::img_type type )
+	{
+		switch( type )
+		{
+		case cmem_bitmap_t::rgb565:
+		case cmem_bitmap_t::bgr565:
+			return sizeof(color_t)==sizeof(uint16_t);
+		case cmem_bitmap_t::bgr332:
+		case cmem_bitmap_t::bpp1:
+			return sizeof(color_t)==sizeof(uint8_t);
+		default:
+			return 0;
+		}
+	}
+}
 /* ------------------------------------------------------------------ */
 //GDI draw image
 int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
@@ -360,19 +421,19 @@ int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 	const auto buf = m_gdev.get_rbuf();
     static constexpr auto max_size = 256;
 	static constexpr auto chunk_diff = 3;
-	dbprintf(" BMP WIDTH=%i HEIGHT=%i", bitmap.width, bitmap.height );
+	void* const lz_buf = bmp_pixel_size_match(bitmap.type)?(buf.first):( buf.first + buf.second - max_size );
 	m_gdev.ll_blit( x, y, bitmap.width, bitmap.height );
 	for(int chunk=get_bmpdata(bitmap,0)+chunk_diff, pos=chunk+1;
 			chunk>chunk_diff;
 			chunk = get_bmpdata(bitmap,pos)+chunk_diff, pos+=chunk+1 )
 	{
-		auto ulen = lz_uncompress( get_bmpaddr(bitmap, pos-chunk), buf.first, chunk, max_size );
+		auto ulen = lz_uncompress( get_bmpaddr(bitmap, pos-chunk), lz_buf, chunk, max_size );
 		if( ulen < 0 )
 		{
 			dbprintf("LZ uncompress failed");
 			return error_lz_compress;
 		}
-		ulen /= sizeof(color_t);
+		ulen = convert_buf_to_native( lz_buf, ulen, buf.first, bitmap.type );
 		m_gdev.ll_blit( buf.first, ulen );
 		//dbprintf("CHUNK=%i DLEN %i", chunk, ulen );
 	}
