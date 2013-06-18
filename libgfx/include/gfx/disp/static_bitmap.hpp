@@ -15,7 +15,7 @@ namespace disp {
 struct cmem_bitmap_t
 {
 	enum img_type {
-		bpp1, rgb332, rgb565, bgr565
+		bpp1, bgr332, rgb565, bgr565
 	};
 	const char *name;				/* Image name if presents */
 	unsigned short width;			/* Image width */

@@ -17,7 +17,7 @@
 #include "lz.h"
 /* ----------------------------------------------------------------------------- */
 namespace {
-    constexpr auto lz_line_size = 128;
+    constexpr auto lz_line_size_bytes = 256;
     constexpr auto lz_sub_size  = 3;
     constexpr auto vars_per_line = 20;
 }
@@ -32,6 +32,7 @@ inline void il_abort( ILboolean error )
 
 /* ----------------------------------------------------------------------------- */
 typedef unsigned short color_t;
+typedef unsigned char  color8_t;
 static inline constexpr color_t rgb565_f( unsigned char R, unsigned char G, unsigned char B )
 {
 		return ((B>>3)<<(16-5)) | ((G>>2)<<(16-5-6) | (R>>3) );
@@ -39,6 +40,11 @@ static inline constexpr color_t rgb565_f( unsigned char R, unsigned char G, unsi
 static inline constexpr color_t bgr565_f( unsigned char R, unsigned char G, unsigned char B )
 {
 		return ((R>>3)<<(16-5)) | ((G>>2)<<(16-5-6) | (B>>3) );
+}
+
+static inline constexpr color8_t bgr233_f( unsigned char R, unsigned char G, unsigned char B )
+{
+    return (R>>5) | ((G>>5)<<3) | (B>>6)<<6;
 }
 
 static inline color_t color_le( color_t color )
@@ -100,6 +106,14 @@ public:
       {
           return bgr565_f( R(), G(), B() );
       }
+      color8_t bgr233() const
+      {
+        return bgr233_f( R(), G(), B() );
+      }
+      color8_t grey8() const
+      {
+        return (int(R()) + int(G()) + int(B()))/3;
+      }
 private:
     unsigned char *m_data;
 };
@@ -142,32 +156,64 @@ private:
 };
 
 /* ----------------------------------------------------------------------------- */
+enum class img_fmt_t
+{
+    unknown,
+    rgb565,         //RGB 565
+    bgr565,         //BGR 565
+    bgr332,         //RGB 332
+    bw              //Monochrome
+};
+/* ----------------------------------------------------------------------------- */
+/* Add data to linebuffer */
+template <typename T>
+    void add_to_linebuf( void* addr, size_t index, T value )
+{
+    *(reinterpret_cast<T*>(addr) + index) = value;
+}
+/* ----------------------------------------------------------------------------- */
 //Prepare image in rgb565 format
-size_t create_rgb16_bitmap( FILE *file, bool big_endian, bool reverse_colors )
+size_t create_raw_bitmap( FILE *file, bool big_endian, img_fmt_t fmt, int bw_level )
 {
     img_array img;
-    int cl = 0;
-    color_t line[lz_line_size];
-    uint8_t linec[lz_line_size*4];
+    size_t cl = 0;
+    uint8_t ltmp_buf[ lz_line_size_bytes ];
+    uint8_t linec[lz_line_size_bytes*2];
     const int width = ilGetInteger(IL_IMAGE_WIDTH);
     const int height = ilGetInteger(IL_IMAGE_HEIGHT); 
     fprintf( file, "static constexpr unsigned char image_data[] = {\n" );
     size_t tot_len = 0;
     size_t line_cnt = 0;
+    const size_t lz_elem_size = ((fmt==img_fmt_t::rgb565||fmt==img_fmt_t::bgr565)?sizeof(uint16_t):sizeof(uint8_t));
+    const size_t lz_line_size = lz_line_size_bytes/lz_elem_size;
     for(int y=0; y<height; ++y)
     for(int x=0; x<width; ++x)
     {
-        const auto pixel = (reverse_colors)?(img[y][x].bgr565()):(img[y][x].rgb565());
-        if( big_endian ) line[cl++] = color_be(pixel);
-        else line[cl++] = color_le(pixel);
-        if( cl == lz_line_size )
+        if( fmt == img_fmt_t::rgb565 || fmt== img_fmt_t::bgr565 )
         {
-            const int clen = LZ_Compress(line, linec, sizeof line );
+            auto pixel = (fmt==img_fmt_t::bgr565)?(img[y][x].bgr565()):(img[y][x].rgb565());
+            if( big_endian ) pixel = color_be(pixel);
+            else pixel = color_le(pixel);
+            add_to_linebuf<color_t>( ltmp_buf, cl++, pixel );
+        }
+        else if( fmt == img_fmt_t::bgr332 )
+        {
+            const auto pixel = img[y][x].bgr233();
+            add_to_linebuf<color8_t>( ltmp_buf, cl++, pixel );
+        }
+        else
+        {
+           const auto pixel = img[y][x].grey8();
+        }
+        if( cl==lz_line_size || (y==height-1 && x==width-1) )
+        {
+            //std::cout << cl * lz_elem_size << std::endl;
+            const size_t clen = LZ_Compress(ltmp_buf, linec, cl*lz_elem_size);
             tot_len += clen + 1;
             cl = 0;
-            fprintf(file, "\n/* LEN */ 0x%02hhx, \n", clen - lz_sub_size );
+            fprintf(file, "\n/* LEN */ 0x%02lx, \n", clen - lz_sub_size );
             line_cnt=0;
-            for( int i = 0; i<clen; i++ )
+            for( size_t i = 0; i<clen; i++ )
             {
                 fprintf(file, "0x%02hhx, ", linec[i] );
                 if( (line_cnt++ % vars_per_line == vars_per_line-1) && (clen-1!=i) )
@@ -178,14 +224,7 @@ size_t create_rgb16_bitmap( FILE *file, bool big_endian, bool reverse_colors )
     fputs("/* EOF */ 0\n\n};\n", file);
     return tot_len;
 }
-/* ----------------------------------------------------------------------------- */
-enum class img_fmt_t
-{
-    unknown,
-    rgb565,         //RGB 565
-    bgr565,         //BGR 565
-    bw              //Monochrome
-};
+
 /* ----------------------------------------------------------------------------- */
 //Create CPP header
 void create_cpp_header( FILE *file, const std::vector<std::string> &namespaces,
@@ -214,6 +253,8 @@ void create_cpp_footer( FILE *file, size_t ns_cnt, const char* filename, img_fmt
     {
         case img_fmt_t::rgb565: fmt_desc = "rgb565"; break;
         case img_fmt_t::bgr565: fmt_desc = "bgr565"; break;
+        case img_fmt_t::bw: fmt_desc = "bpp1"; break;
+        case img_fmt_t::bgr332: fmt_desc = "bgr332"; break;
         default: fmt_desc = "error"; break;
     }
     const auto struct_name = fname.substr(found + 1);
@@ -274,6 +315,7 @@ int main(int argc, const char * const * const argv)
     std::vector< std::string > namespaces;
     bool big_endian = false;
     img_fmt_t format { img_fmt_t::unknown };
+    int bw_level = 127;
     for( int a=1; a<argc; ++a)
     {
         if(argv[a][0] != '-')
@@ -306,6 +348,18 @@ int main(int argc, const char * const * const argv)
                 else if( fmt=="BGR565")
                 {
                     format = img_fmt_t::bgr565;
+                }
+                else if( fmt[0]=='B' && fmt[1]=='W' )
+                {
+                    format = img_fmt_t::bw;
+                    const int val = std::atoi( &fmt[2] );
+                    if( val > 0 && val < 256 )
+                        bw_level = val;
+                    std::cout << "Black and wait trigger level: " << bw_level << std::endl;
+                }
+                else if( fmt=="BGR332")
+                {
+                    format = img_fmt_t::bgr332;
                 }
                 else
                 {
@@ -350,8 +404,9 @@ int main(int argc, const char * const * const argv)
     }
     create_cpp_header( outf , namespaces, in_filename, ilGetInteger(IL_IMAGE_SIZE_OF_DATA), fmt_string, big_endian );
     size_t tot_len = 0; 
-    if( format==img_fmt_t::rgb565 || format==img_fmt_t::bgr565 )
-        tot_len = create_rgb16_bitmap( outf, big_endian, format == img_fmt_t::bgr565 );
+    if( format==img_fmt_t::rgb565 || format==img_fmt_t::bgr565 || 
+        format==img_fmt_t::bgr332 || format==img_fmt_t::bw )
+        tot_len = create_raw_bitmap( outf, big_endian, format, bw_level );
     create_cpp_footer( outf , namespaces.size(), in_filename, format );
     std::cout << "Dest image size: " << (tot_len/1024.0) << "KB" << std::endl;
     fclose(outf);
