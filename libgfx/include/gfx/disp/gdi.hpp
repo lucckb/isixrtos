@@ -105,8 +105,9 @@ public:
 	 * @param[in] x Start point X
 	 * @param[in] y Start point Y
 	 * @param[in] bmp Static bitmap from memory
+	 * @return Error code
 	 */
-	void draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap );
+	int draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap );
 
 	/** Set foreground color in GDI object
 	   * @param[in] color  foreground color

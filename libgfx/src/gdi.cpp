@@ -30,97 +30,97 @@ namespace {
 /* ------------------------------------------------------------------ */
 namespace
 {
+	/* ----------------------------------------------------------------------- */
+	inline int _lz_read_var_size( unsigned int * x, const unsigned char * buf )
+	{
+		unsigned int y, b, num_bytes;
 
-static int _LZ_ReadVarSize( unsigned int * x, const unsigned char * buf )
-{
-    unsigned int y, b, num_bytes;
+		/* Read complete value (stop when byte contains zero in 8:th bit) */
+		y = 0;
+		num_bytes = 0;
+		do
+		{
+			b = (unsigned int) (*buf ++);
+			y = (y << 7) | (b & 0x0000007f);
+			++ num_bytes;
+		}
+		while( b & 0x00000080 );
 
-    /* Read complete value (stop when byte contains zero in 8:th bit) */
-    y = 0;
-    num_bytes = 0;
-    do
-    {
-        b = (unsigned int) (*buf ++);
-        y = (y << 7) | (b & 0x0000007f);
-        ++ num_bytes;
-    }
-    while( b & 0x00000080 );
+		/* Store value in x */
+		*x = y;
 
-    /* Store value in x */
-    *x = y;
+		/* Return number of bytes read */
+		return num_bytes;
+	}
+	/* ----------------------------------------------------------------------- */
+	bool lz_uncompress( const void *in_, void *out_,unsigned int insize, unsigned int outsize )
+	{
+		unsigned char marker, symbol;
+		unsigned int  i, inpos, outpos, length, offset;
 
-    /* Return number of bytes read */
-    return num_bytes;
-}
+		const unsigned char *in = reinterpret_cast<const unsigned char*>(in_);
+		unsigned char *out = reinterpret_cast<unsigned char*>(out_);
 
+		/* Do we have anything to uncompress? */
+		if( insize < 1 )
+		{
+			return true;
+		}
 
-bool lz_uncompress( const void *in_, void *out_,unsigned int insize, unsigned int outsize )
-{
-    unsigned char marker, symbol;
-    unsigned int  i, inpos, outpos, length, offset;
+		/* Get marker symbol from input stream */
+		marker = in[ 0 ];
+		inpos = 1;
 
-    const unsigned char *in = reinterpret_cast<const unsigned char*>(in_);
-    unsigned char *out = reinterpret_cast<unsigned char*>(out_);
+		/* Main decompression loop */
+		outpos = 0;
+		do
+		{
+			dbprintf("%i -> %02X", inpos, in[ inpos] );
+			symbol = in[ inpos ++ ];
+			if( symbol == marker )
+			{
+				/* We had a marker byte */
+				if( in[ inpos ] == 0 )
+				{
+					/* It was a single occurrence of the marker byte */
+					if( outpos >= outsize ) return true;
+					out[ outpos ++ ] = marker;
+					++ inpos;
+				}
+				else
+				{
+					/* Extract true length and offset */
+					inpos += _lz_read_var_size( &length, &in[ inpos ] );
+					inpos += _lz_read_var_size( &offset, &in[ inpos ] );
 
-    /* Do we have anything to uncompress? */
-    if( insize < 1 )
-    {
-        return true;
-    }
+					dbprintf("len %i offs %i", length, offset );
 
-    /* Get marker symbol from input stream */
-    marker = in[ 0 ];
-    inpos = 1;
+					/* Copy corresponding data from history window */
+					for( i = 0; i < length; ++ i )
+					{
+						if( outpos >= outsize ) return true;
+						out[ outpos ] = out[ outpos - offset ];
+						++ outpos;
+					}
+				}
+			}
+			else
+			{
+				if( outpos >= outsize ) return true;
+				/* No marker, plain copy */
+				out[ outpos ++ ] = symbol;
+			}
+		}
+		while( inpos < insize );
+		return false;
+	}
 
-    /* Main decompression loop */
-    outpos = 0;
-    do
-    {
-    	dbprintf("%i -> %02X", inpos, in[ inpos] );
-    	symbol = in[ inpos ++ ];
-        if( symbol == marker )
-        {
-            /* We had a marker byte */
-            if( in[ inpos ] == 0 )
-            {
-                /* It was a single occurrence of the marker byte */
-                if( outpos >= outsize ) return true;
-                out[ outpos ++ ] = marker;
-                ++ inpos;
-            }
-            else
-            {
-            	/* Extract true length and offset */
-                inpos += _LZ_ReadVarSize( &length, &in[ inpos ] );
-                inpos += _LZ_ReadVarSize( &offset, &in[ inpos ] );
-
-                dbprintf("len %i offs %i", length, offset );
-
-                /* Copy corresponding data from history window */
-                for( i = 0; i < length; ++ i )
-                {
-                    if( outpos >= outsize ) return true;
-                    out[ outpos ] = out[ outpos - offset ];
-                    ++ outpos;
-                }
-            }
-        }
-        else
-        {
-            if( outpos >= outsize ) return true;
-            /* No marker, plain copy */
-            out[ outpos ++ ] = symbol;
-        }
-    }
-    while( inpos < insize );
-    return false;
-}
-	constexpr auto chunk_diff = 3;
-
+	/* ----------------------------------------------------------------------- */
 	inline unsigned char get_bmpdata( const cmem_bitmap_t &bmp , size_t offset )
 	{
 		return *(reinterpret_cast<const unsigned char*>(bmp.img_data) + offset );
 	}
+	/* ----------------------------------------------------------------------- */
 	inline const void* get_bmpaddr( const cmem_bitmap_t &bmp , size_t offset )
 	{
 		return (reinterpret_cast<const unsigned char*>(bmp.img_data) + offset );
@@ -357,17 +357,23 @@ void gdi::draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b )
 
 /* ------------------------------------------------------------------ */
 //GDI draw image
-void gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
+int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 {
 	const auto buf = m_gdev.get_rbuf();
     static constexpr auto line_size = 256;
+	static constexpr auto chunk_diff = 3;
 	for(int chunk=get_bmpdata(bitmap,0)+chunk_diff, pos=chunk+1;
 			chunk>chunk_diff;
 			chunk = get_bmpdata(bitmap,pos)+chunk_diff, pos+=chunk+1 )
 	{
-		dbprintf("CHUNK=%i %i %i", chunk, pos, pos - chunk );
-		lz_uncompress( get_bmpaddr(bitmap, pos-chunk), buf.first, chunk, line_size );
+		if( lz_uncompress( get_bmpaddr(bitmap, pos-chunk), buf.first, chunk, line_size ) )
+		{
+			dbprintf("LZ uncompress failed");
+			return error_lz_compress;
+		}
+		dbprintf("CHUNK=%i %i %i", chunk, pos, pos - chunk);
 	}
+	return error_ok;
 }
 /* ------------------------------------------------------------------ */
 }}

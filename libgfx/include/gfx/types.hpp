@@ -48,7 +48,8 @@ namespace gfx
 	//Error code
 	enum error : int
 	{
-		error_ok,
+		error_ok,				/* Error OK */
+		error_lz_compress		/* LZMA compress failed */
 	};
 }
 /* ------------------------------------------------------------------ */
