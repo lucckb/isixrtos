@@ -355,7 +355,7 @@ void gdi::draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b )
 /* ------------------------------------------------------------------ */
 namespace {
 	//Internal function convert to native format
-	inline size_t convert_buf_to_native( const void *ibuf,size_t size, color_t *obuf ,cmem_bitmap_t::img_type type )
+	inline size_t convert_buf_to_native( const void *ibuf, size_t size, color_t *obuf, cmem_bitmap_t::img_type type )
 	{
 		switch( type )
 		{
@@ -390,11 +390,7 @@ namespace {
 				}
 			}
 			break;
-			case cmem_bitmap_t::bpp1:
-			{
-				dbprintf("BPP1 not implemented");
-			}
-			break;
+			default: break;
 		}
 		return size;
 	}
@@ -421,7 +417,8 @@ int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 	const auto buf = m_gdev.get_rbuf();
     static constexpr auto max_size = 256;
 	static constexpr auto chunk_diff = 3;
-	void* const lz_buf = bmp_pixel_size_match(bitmap.type)?(buf.first):( buf.first + buf.second - max_size );
+	const auto disp_width = m_gdev.get_width();
+	void* const lz_buf = bmp_pixel_size_match(bitmap.type)?(buf.first):( buf.first + buf.second - max_size/sizeof(color_t) );
 	m_gdev.ll_blit( x, y, bitmap.width, bitmap.height );
 	for(int chunk=get_bmpdata(bitmap,0)+chunk_diff, pos=chunk+1;
 			chunk>chunk_diff;
@@ -433,9 +430,31 @@ int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 			dbprintf("LZ uncompress failed");
 			return error_lz_compress;
 		}
-		ulen = convert_buf_to_native( lz_buf, ulen, buf.first, bitmap.type );
-		m_gdev.ll_blit( buf.first, ulen );
-		//dbprintf("CHUNK=%i DLEN %i", chunk, ulen );
+		if( bitmap.type != cmem_bitmap_t::bpp1 )
+		{
+			ulen = convert_buf_to_native( lz_buf, ulen, buf.first, bitmap.type );
+			m_gdev.ll_blit( buf.first, ulen );
+		}
+		else
+		{
+			//dbprintf("ULEN %i", ulen);
+			for( int p=0,pp=0; p<ulen; ++p,pp+=8 )
+			{
+				const uint8_t pb = *(reinterpret_cast<const uint8_t*>(lz_buf)+p);
+				//dbprintf("%i", pb);
+				if( pp >= disp_width )
+				{
+					m_gdev.ll_blit( buf.first, pp );
+					pp = 0;
+				}
+				for( int b=0; b<8; ++b )
+					buf.first[pp+b] = (pb&(1<<(7-b)))?(m_color):(m_bg_color);
+				if( p==ulen-1 )
+				{
+					m_gdev.ll_blit( buf.first, pp+8);
+				}
+			}
+		}
 	}
 	return error_ok;
 }
