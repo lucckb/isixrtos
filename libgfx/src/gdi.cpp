@@ -54,7 +54,7 @@ static int _LZ_ReadVarSize( unsigned int * x, const unsigned char * buf )
 }
 
 
-void lz_uncompress( const void *in_, void *out_,unsigned int insize )
+bool lz_uncompress( const void *in_, void *out_,unsigned int insize, unsigned int outsize )
 {
     unsigned char marker, symbol;
     unsigned int  i, inpos, outpos, length, offset;
@@ -65,7 +65,7 @@ void lz_uncompress( const void *in_, void *out_,unsigned int insize )
     /* Do we have anything to uncompress? */
     if( insize < 1 )
     {
-        return;
+        return true;
     }
 
     /* Get marker symbol from input stream */
@@ -84,6 +84,7 @@ void lz_uncompress( const void *in_, void *out_,unsigned int insize )
             if( in[ inpos ] == 0 )
             {
                 /* It was a single occurrence of the marker byte */
+                if( outpos >= outsize ) return true;
                 out[ outpos ++ ] = marker;
                 ++ inpos;
             }
@@ -98,6 +99,7 @@ void lz_uncompress( const void *in_, void *out_,unsigned int insize )
                 /* Copy corresponding data from history window */
                 for( i = 0; i < length; ++ i )
                 {
+                    if( outpos >= outsize ) return true;
                     out[ outpos ] = out[ outpos - offset ];
                     ++ outpos;
                 }
@@ -105,11 +107,13 @@ void lz_uncompress( const void *in_, void *out_,unsigned int insize )
         }
         else
         {
+            if( outpos >= outsize ) return true;
             /* No marker, plain copy */
             out[ outpos ++ ] = symbol;
         }
     }
     while( inpos < insize );
+    return false;
 }
 	constexpr auto chunk_diff = 3;
 
@@ -356,12 +360,13 @@ void gdi::draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b )
 void gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 {
 	const auto buf = m_gdev.get_rbuf();
+    static constexpr auto line_size = 256;
 	for(int chunk=get_bmpdata(bitmap,0)+chunk_diff, pos=chunk+1;
 			chunk>chunk_diff;
 			chunk = get_bmpdata(bitmap,pos)+chunk_diff, pos+=chunk+1 )
 	{
 		dbprintf("CHUNK=%i %i %i", chunk, pos, pos - chunk );
-		lz_uncompress( get_bmpaddr(bitmap, pos-chunk), buf.first, chunk );
+		lz_uncompress( get_bmpaddr(bitmap, pos-chunk), buf.first, chunk, line_size );
 	}
 }
 /* ------------------------------------------------------------------ */
