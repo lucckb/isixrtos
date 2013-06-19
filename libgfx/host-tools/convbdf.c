@@ -72,13 +72,16 @@ typedef struct {
 
 #define EXTRA   300             /* # bytes extra allocation for buggy .bdf files*/
 
+#define MAX_EXCLUDES 256
+
 int gen_c = 0;
 int gen_fnt = 0;
 int gen_map = 1;
 int start_char = 0;
 int default_char = 0;
-int exclude_start = 0;
-int exclude_end = 0;
+int exclude_start[MAX_EXCLUDES];
+int exclude_end[MAX_EXCLUDES];
+int exclude_num =0;
 int limit_char = 65535;
 int ascent_correction = 0;
 int descent_correction = 0;
@@ -117,6 +120,17 @@ usage(void)
         "    -n     Don't generate bitmaps as comments in .c file\n"
         );
 }
+
+int in_exclude_range( int encoding )
+{
+    for( int e=0; e<exclude_num;++e )
+    {
+        if (encoding >= exclude_start[e] && encoding <= exclude_end[e] )
+            return 1;
+    }
+    return 0;
+}
+
 
 /* parse command line options*/
 void
@@ -173,26 +187,26 @@ getopts(int *pac, char ***pav)
                 case 'x':                       /* exclude encoding range */
                         if (*p) {
                                 char *e;
-                                exclude_start = strtol (p, &e, 0);
+                                exclude_start[exclude_num] = strtol (p, &e, 0);
                                 if (*e != '-') {
                                         fprintf(stderr, "Invalud option ignored: %s\r\n", p);
-                                        exclude_start = 0;
+                                        //exclude_start = 0;
                                         break;
                                 }
-                                exclude_end = strtol (e+1, 0, 0);
+                                exclude_end[exclude_num++] = strtol (e+1, 0, 0);
                                 while (*p && *p != ' ')
                                         p++;
                         } else {
                                 av++; ac--;
                                 if (ac > 0) {
                                         char *e;
-                                        exclude_start = strtol (av[0], &e, 0);
+                                        exclude_start[exclude_num] = strtol (av[0], &e, 0);
                                         if (*e != '-') {
                                                 fprintf(stderr, "Invalud option ignored: %s\r\n", av[0]);
-                                                exclude_start = 0;
+                                                //exclude_start = 0;
                                                 break;
                                         }
-                                        exclude_end = strtol (e+1, 0, 0);
+                                        exclude_end[exclude_num++] = strtol (e+1, 0, 0);
                                 }
                         }
                         break;
@@ -310,12 +324,14 @@ main(int ac, char **av)
         ++av; --ac;             /* skip av[0]*/
         getopts(&ac, &av);      /* read command line options*/
 
-        if (ac < 1 || (!gen_c && !gen_fnt)) {
+        if (ac < 1 || (!gen_c && !gen_fnt)) 
+        {
                 usage();
                 exit(1);
         }
         if (oflag) {
-                if (ac > 1 || (gen_c && gen_fnt)) {
+                if (ac > 1 || (gen_c && gen_fnt)) 
+                {
                         usage();
                         exit(1);
                 }
@@ -473,7 +489,7 @@ bdf_read_header(FILE *fp, font_t *pf)
 //fprintf(stderr, "Got encoding %d\n", encoding);
                         if (encoding > limit_char || encoding < start_char)
                                 continue;
-                        if (exclude_start && encoding >= exclude_start && encoding <= exclude_end)
+                        if( in_exclude_range( encoding ) )
                                 continue;
                         if (firstchar > encoding)
                                 firstchar = encoding;
@@ -566,7 +582,7 @@ bdf_read_bitmaps(FILE *fp, font_t *pf)
                         }
                         if (encoding < start_char || encoding > limit_char)
                                 encoding = -1;
-                        if (exclude_start && encoding >= exclude_start && encoding <= exclude_end)
+                        if( in_exclude_range( encoding ) )
                                 encoding = -1;
                         continue;
                 }
