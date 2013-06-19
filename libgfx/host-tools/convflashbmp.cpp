@@ -309,7 +309,20 @@ void load_image( const char *filename )
 /* ----------------------------------------------------------------------------- */
 void usage( const char *reason )
 {
-    std::cerr << "FAILED! " << reason << std::endl;
+    std::cout << "Usage: convflashbmp -in FILEIN -out FILEOUT -fmt IMGFORMAT [-be] [-ns NAMESPACE1] ... [-ns NAMESPACEn] " << std::endl;
+    std::cout << "Convert image to the ixix gfx library source file format" << std::endl;
+    std::cout << "Copyright (c) Lucjan Bryndza BoFF 2008-2013" << std::endl;
+    std::cout << "Mandatory arguments: " << std::endl;
+    std::cout << "\t-in FILEIN\tInput image file to convert" << std::endl;
+    std::cout << "\t-out FILEOUT\tOutput image file name in C++ isix format" << std::endl;
+    std::cout << "\t-fmt IMGFORMAT\tOutput image isix format" << std::endl;
+    std::cout << "\tIMGFORMATS options:" << std::endl;
+    std::cout << "\t\tRGB565\tOutput image in 16-bit RGB565 format"  << std::endl;
+    std::cout << "\t\tBGR565\tOutput image in 16-bit BGR565 format"  << std::endl;
+    std::cout << "\t\tBGR332\tOutput image in 8-bit BGR332 format"  << std::endl;
+    std::cout << "\t\tBW[Level]\tMonochrome image 8-bit packed format with conversion level" << std::endl;
+    std::cout << "\t-ns NAMESPACE\tOptional namespace in image source file" << std::endl;
+    std::cout << "\t-be\tBig endian byte order (default is little)" << std::endl;
 }
 
 /* ----------------------------------------------------------------------------- */
