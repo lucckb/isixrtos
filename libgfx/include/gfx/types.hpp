@@ -67,7 +67,7 @@ namespace gfx
 		}
 		inline color_t bgr332( uint8_t value )
 		{
-			return rgb( (value&0x07)<<5, ((value>>3)&0x07)<<5, ((value>>6)&0x03)<<6 );
+			return (value==0xff)?(rgb(255,255,255)):(rgb( (value&0x07)<<5, ((value>>3)&0x07)<<5, ((value>>6)&0x03)<<6 ));
 		}
 	}
 }

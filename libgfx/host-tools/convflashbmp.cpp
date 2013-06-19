@@ -207,17 +207,15 @@ size_t create_raw_bitmap( FILE *file, bool big_endian, img_fmt_t fmt, int bw_lev
         {
            const auto pixel = img[y][x].grey8()>bw_level?(1):(0);
            pixel_byte |= pixel << ( 7 - bwcl++ );
-           if( bwcl == 8 || (y==height-1 && x==width-1 &&0) )
+           if( bwcl == 8 || (y==height-1 && x==width-1) )
            {
                bwcl = 0;
                add_to_linebuf<uint8_t>( ltmp_buf, cl++, pixel_byte );
-               std::cout << int(pixel_byte) << std::endl;
                pixel_byte = 0;
            }
         }
         if( cl==lz_line_size || (y==height-1 && x==width-1) )
         {
-            std::cout << "_____ES______"<< cl * lz_elem_size << std::endl;
             const size_t clen = LZ_Compress(ltmp_buf, linec, cl*lz_elem_size);
             tot_len += clen + 1;
             cl = 0;

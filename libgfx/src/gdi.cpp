@@ -420,7 +420,7 @@ int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 	const auto disp_width = m_gdev.get_width();
 	void* const lz_buf = bmp_pixel_size_match(bitmap.type)?(buf.first):( buf.first + buf.second - max_size/sizeof(color_t) );
 	m_gdev.ll_blit( x, y, bitmap.width, bitmap.height );
-	for(int chunk=get_bmpdata(bitmap,0)+chunk_diff, pos=chunk+1;
+	for(int chunk=get_bmpdata(bitmap,0)+chunk_diff, pos=chunk+1,disp_pos=0;
 			chunk>chunk_diff;
 			chunk = get_bmpdata(bitmap,pos)+chunk_diff, pos+=chunk+1 )
 	{
@@ -437,21 +437,26 @@ int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 		}
 		else
 		{
-			//dbprintf("ULEN %i", ulen);
 			for( int p=0,pp=0; p<ulen; ++p,pp+=8 )
 			{
 				const uint8_t pb = *(reinterpret_cast<const uint8_t*>(lz_buf)+p);
-				//dbprintf("%i", pb);
 				if( pp >= disp_width )
 				{
 					m_gdev.ll_blit( buf.first, pp );
+					disp_pos += pp;
 					pp = 0;
 				}
 				for( int b=0; b<8; ++b )
 					buf.first[pp+b] = (pb&(1<<(7-b)))?(m_color):(m_bg_color);
 				if( p==ulen-1 )
 				{
-					m_gdev.ll_blit( buf.first, pp+8);
+					if( chunk!=chunk_diff && disp_pos )
+					{
+						const auto rx = bitmap.width*bitmap.height-disp_pos;
+						const auto rr = (pp+8>rx)?(rx):(pp+8);
+						m_gdev.ll_blit( buf.first, rr );
+						disp_pos += rr;
+					}
 				}
 			}
 		}
