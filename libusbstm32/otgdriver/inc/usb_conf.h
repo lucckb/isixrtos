@@ -262,50 +262,12 @@
   #define __packed    __unaligned
 #endif /* __CC_ARM */
 
-/**
-  * @}
-  */ 
 
-
-/** @defgroup USB_CONF_Exported_Types
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_CONF_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USB_CONF_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USB_CONF_Exported_FunctionsPrototype
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
 
 #endif //__USB_CONF__H__
 
 
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

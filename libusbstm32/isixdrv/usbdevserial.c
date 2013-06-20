@@ -472,6 +472,7 @@ void stm32_usbdev_serial_close(void)
 //OTG interrupt ISR vector
 void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 {
-	USBD_OTG_ISR_Handler(&usb_otg_dev);
+
+	USBH_OTG_ISR_Handler(&usb_otg_dev);
 }
 /* ------------------------------------------------------------------ */

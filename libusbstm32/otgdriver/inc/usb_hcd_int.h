@@ -61,7 +61,7 @@ typedef struct _USBH_HCD_INT
   uint8_t (* DevConnected) (USB_OTG_CORE_HANDLE *pdev);
   uint8_t (* DevDisconnected) (USB_OTG_CORE_HANDLE *pdev);   
   
-}USBH_HCD_INT_cb_TypeDef;
+} USBH_HCD_INT_cb_TypeDef;
 
 
 /**

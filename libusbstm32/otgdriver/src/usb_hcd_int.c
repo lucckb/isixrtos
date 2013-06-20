@@ -81,7 +81,6 @@ static uint32_t USB_OTG_USBH_handle_IncompletePeriodicXfer_ISR (USB_OTG_CORE_HAN
 * @param  pdev: Selected device
 * @retval status 
 */
-
 uint32_t USBH_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *pdev)
 {
   USB_OTG_GINTSTS_TypeDef  gintsts;
@@ -95,48 +94,47 @@ uint32_t USBH_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *pdev)
     gintsts.d32 = USB_OTG_ReadCoreItr(pdev);
     if (!gintsts.d32)
     {
-      return 0;
+    	return 0;
     }
     
     if (gintsts.b.sofintr)
     {
-      retval |= USB_OTG_USBH_handle_sof_ISR (pdev);
+    	retval |= USB_OTG_USBH_handle_sof_ISR (pdev);
     }
     
     if (gintsts.b.rxstsqlvl)
     {
-      retval |= USB_OTG_USBH_handle_rx_qlvl_ISR (pdev);
+    	retval |= USB_OTG_USBH_handle_rx_qlvl_ISR (pdev);
     }
     
     if (gintsts.b.nptxfempty)
     {
-      retval |= USB_OTG_USBH_handle_nptxfempty_ISR (pdev);
+    	retval |= USB_OTG_USBH_handle_nptxfempty_ISR (pdev);
     }
     
     if (gintsts.b.ptxfempty)
     {
-      retval |= USB_OTG_USBH_handle_ptxfempty_ISR (pdev);
+    	retval |= USB_OTG_USBH_handle_ptxfempty_ISR (pdev);
     }    
     
     if (gintsts.b.hcintr)
     {
-      retval |= USB_OTG_USBH_handle_hc_ISR (pdev);
+    	retval |= USB_OTG_USBH_handle_hc_ISR (pdev);
     }
     
     if (gintsts.b.portintr)
     {
-      retval |= USB_OTG_USBH_handle_port_ISR (pdev);
+    	retval |= USB_OTG_USBH_handle_port_ISR (pdev);
     }
     
     if (gintsts.b.disconnect)
     {
-      retval |= USB_OTG_USBH_handle_Disconnect_ISR (pdev);  
-      
+    	retval |= USB_OTG_USBH_handle_Disconnect_ISR (pdev);
     }
     
     if (gintsts.b.incomplisoout)
     {
-      retval |= USB_OTG_USBH_handle_IncompletePeriodicXfer_ISR (pdev);
+    	retval |= USB_OTG_USBH_handle_IncompletePeriodicXfer_ISR (pdev);
     }
     
     
