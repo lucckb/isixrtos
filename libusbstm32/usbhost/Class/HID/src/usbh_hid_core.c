@@ -115,6 +115,8 @@ static USBH_Status USBH_Set_Protocol (USB_OTG_CORE_HANDLE *pdev,
                                       uint8_t protocol);
 
 
+
+
 const USBH_Class_cb_TypeDef  HID_cb =
 {
   USBH_HID_InterfaceInit,
@@ -122,6 +124,12 @@ const USBH_Class_cb_TypeDef  HID_cb =
   USBH_HID_ClassRequest,
   USBH_HID_Handle
 };
+
+const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback()
+{
+	return &HID_cb;
+}
+
 /**
 * @}
 */ 
@@ -154,11 +162,11 @@ static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
     /*Decode Bootclass Protocl: Mouse or Keyboard*/
     if(pphost->device_prop.Itf_Desc[0].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
     {
-      HID_Machine.cb = &HID_KEYBRD_cb;
+      HID_Machine.cb = USR_KEYBRD_Get_Callback();
     }
     else if(pphost->device_prop.Itf_Desc[0].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)		  
     {
-      HID_Machine.cb = &HID_MOUSE_cb;
+      HID_Machine.cb = USR_MOUSE_GetClassCallback();
     }
     
     HID_Machine.state     = HID_IDLE;

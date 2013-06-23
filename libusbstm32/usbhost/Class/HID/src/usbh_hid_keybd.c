@@ -31,45 +31,17 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_hid_keybd.h"
 
-/** @addtogroup USBH_LIB
-* @{
-*/
-
-/** @addtogroup USBH_CLASS
-* @{
-*/
-
-/** @addtogroup USBH_HID_CLASS
-* @{
-*/
-
-/** @defgroup USBH_HID_KEYBD 
-* @brief    This file includes HID Layer Handlers for USB Host HID class.
-* @{
-*/ 
-
-/** @defgroup USBH_HID_KEYBD_Private_TypesDefinitions
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USBH_HID_KEYBD_Private_Defines
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USBH_HID_KEYBD_Private_Macros
-* @{
-*/ 
-/**
-* @}
-*/ 
+#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
+ #if defined   (__CC_ARM) /*!< ARM Compiler */
+  __align(4)
+ #elif defined ( __ICCARM__ ) /*!< IAR Compiler */
+  #pragma data_alignment=4
+ #elif defined (__GNUC__) /*!< GNU Compiler */
+ #pragma pack(4)
+ #elif defined  (__TASKING__) /*!< TASKING Compiler */
+  __align(4)
+ #endif /* __CC_ARM */
+#endif
 
 /** @defgroup USBH_HID_KEYBD_Private_FunctionPrototypes
 * @{
@@ -77,31 +49,21 @@
 static void  KEYBRD_Init (void);
 static void  KEYBRD_Decode(uint8_t *data);
 
-/**
-* @}
-*/ 
 
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
- #if defined   (__CC_ARM) /*!< ARM Compiler */
-  __align(4) 
- #elif defined ( __ICCARM__ ) /*!< IAR Compiler */
-  #pragma data_alignment=4
- #elif defined (__GNUC__) /*!< GNU Compiler */
- #pragma pack(4) 
- #elif defined  (__TASKING__) /*!< TASKING Compiler */                           
-  __align(4) 
- #endif /* __CC_ARM */
-#endif
  
 /** @defgroup USBH_HID_KEYBD_Private_Variables
 * @{
 */
-const HID_cb_TypeDef HID_KEYBRD_cb=
+static const HID_cb_TypeDef HID_KEYBRD_cb=
 {
   KEYBRD_Init,
   KEYBRD_Decode
 };
 
+const HID_cb_TypeDef* USR_KEYBRD_Get_Callback()
+{
+	return &HID_KEYBRD_cb;
+}
 /*
 *******************************************************************************
 *                                             LOCAL CONSTANTS
@@ -266,79 +228,75 @@ static void KEYBRD_Decode(uint8_t *pbuf)
   error = FALSE;
   
   /* Check for the value of pressed key */
-  for (ix = 2; ix < 2 + KBR_MAX_NBR_PRESSED; ix++) {                       
+  for (ix = 2; ix < 2 + KBR_MAX_NBR_PRESSED; ix++)
+  {
     if ((pbuf[ix] == 0x01) ||
         (pbuf[ix] == 0x02) ||
-          (pbuf[ix] == 0x03)) {
-            error = TRUE;
-          }
+          (pbuf[ix] == 0x03))
+    {
+        error = TRUE;
+    }
   }
   
-  if (error == TRUE) {
+  if (error == TRUE)
+  {
     return;
   }
   
   nbr_keys     = 0;
   nbr_keys_new = 0;
-  for (ix = 2; ix < 2 + KBR_MAX_NBR_PRESSED; ix++) {
-    if (pbuf[ix] != 0) {
+  for (ix = 2; ix < 2 + KBR_MAX_NBR_PRESSED; ix++)
+  {
+    if (pbuf[ix] != 0)
+    {
       keys[nbr_keys] = pbuf[ix];                                       
       nbr_keys++;
-      for (jx = 0; jx < nbr_keys_last; jx++) {                         
-        if (pbuf[ix] == keys_last[jx]) {
+      for (jx = 0; jx < nbr_keys_last; jx++)
+      {
+        if (pbuf[ix] == keys_last[jx])
+        {
           break;
         }
       }
       
-      if (jx == nbr_keys_last) {
+      if (jx == nbr_keys_last)
+      {
         keys_new[nbr_keys_new] = pbuf[ix];
         nbr_keys_new++;
       }
     }
   }
   
-  if (nbr_keys_new == 1) {
+  if (nbr_keys_new == 1)
+  {
     key_newest = keys_new[0];
     
-    if (shift == TRUE) {
+    if (shift == TRUE)
+    {
       output =  HID_KEYBRD_ShiftKey[HID_KEYBRD_Codes[key_newest]];
-    } else {
+    }
+    else
+    {
       output =  HID_KEYBRD_Key[HID_KEYBRD_Codes[key_newest]];
     }
     
     /* call user process handle */
     USR_KEYBRD_ProcessData(output);
-  } else {
+  }
+  else
+  {
     key_newest = 0x00;
   }
   
   
   nbr_keys_last  = nbr_keys;
-  for (ix = 0; ix < KBR_MAX_NBR_PRESSED; ix++) {
+  for (ix = 0; ix < KBR_MAX_NBR_PRESSED; ix++)
+  {
     keys_last[ix] = keys[ix];
   }
 }
 
-/**
-* @}
-*/ 
 
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/
-
-/**
-* @}
-*/
-
-
-/**
-* @}
-*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

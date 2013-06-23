@@ -29,46 +29,6 @@
 #include "usbh_hid_mouse.h"
 
 
-/** @addtogroup USBH_LIB
-  * @{
-  */
-
-/** @addtogroup USBH_CLASS
-  * @{
-  */
-
-/** @addtogroup USBH_HID_CLASS
-  * @{
-  */
-  
-/** @defgroup USBH_HID_MOUSE 
-  * @brief    This file includes HID Layer Handlers for USB Host HID class.
-  * @{
-  */ 
-
-/** @defgroup USBH_HID_MOUSE_Private_TypesDefinitions
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_HID_MOUSE_Private_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_HID_MOUSE_Private_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
 /** @defgroup USBH_HID_MOUSE_Private_FunctionPrototypes
   * @{
   */ 
@@ -94,21 +54,19 @@ static void  MOUSE_Decode(uint8_t *data);
  #endif /* __CC_ARM */
 #endif
  
- 
-HID_MOUSE_Data_TypeDef HID_MOUSE_Data;
-HID_cb_TypeDef HID_MOUSE_cb = 
+static void  MOUSE_Init ( void );
+static HID_MOUSE_Data_TypeDef HID_MOUSE_Data;
+
+static const HID_cb_TypeDef HID_MOUSE_cb =
 {
   MOUSE_Init,
   MOUSE_Decode,
 };
-/**
-  * @}
-  */ 
 
-
-/** @defgroup USBH_HID_MOUSE_Private_Functions
-  * @{
-  */ 
+const HID_cb_TypeDef* USR_MOUSE_GetClassCallback()
+{
+	return &HID_MOUSE_cb;
+}
 
 /**
 * @brief  MOUSE_Init
@@ -116,7 +74,7 @@ HID_cb_TypeDef HID_MOUSE_cb =
 * @param  None
 * @retval None
 */
-static void  MOUSE_Init ( void)
+static void  MOUSE_Init ( void )
 {
  /* Call User Init*/
  USR_MOUSE_Init();
@@ -138,24 +96,5 @@ static void  MOUSE_Decode(uint8_t *data)
   USR_MOUSE_ProcessData(&HID_MOUSE_Data);
 
 }
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-
-/**
-  * @}
-  */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

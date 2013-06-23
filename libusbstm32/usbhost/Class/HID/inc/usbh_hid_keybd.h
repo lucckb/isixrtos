@@ -77,22 +77,12 @@
 
 #define  KBR_MAX_NBR_PRESSED                            6
 
-/**
-  * @}
-  */ 
 
-/** @defgroup USBH_HID_KEYBD_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
-/** @defgroup USBH_HID_KEYBD_Exported_Variables
-  * @{
-  */ 
+//extern const HID_cb_TypeDef HID_KEYBRD_cb;
 
-extern const HID_cb_TypeDef HID_KEYBRD_cb;
+const HID_cb_TypeDef* USR_KEYBRD_Get_Callback();
+
 /**
   * @}
   */ 
@@ -108,21 +98,8 @@ void  USR_KEYBRD_ProcessData (uint8_t pbuf);
 
 #endif /* __USBH_HID_KEYBD_H */
 
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

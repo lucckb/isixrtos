@@ -250,7 +250,7 @@ void HID_MOUSE_ButtonReleased(uint8_t button_idx)
 	dbprintf("Mouse released %u", button_idx);
 }
 
-const USBH_Usr_cb_TypeDef USR_Callbacks =
+static const USBH_Usr_cb_TypeDef USR_Callbacks =
 {
   USBH_USR_Init,
   USBH_USR_DeInit,
@@ -292,7 +292,7 @@ int stm32_usbhost_init(void)
 {
 	isix_task_create( host_usb_task, NULL, 1024, 3 );
 	int ret = 0;
-	USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usb_host, &HID_cb, &USR_Callbacks );
+	USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usb_host, USBH_HID_Class_Callback(), &USR_Callbacks );
 	do
 	{
 		if( !(usb_ready_sem = isix_sem_create_limited(NULL,0,1)) )

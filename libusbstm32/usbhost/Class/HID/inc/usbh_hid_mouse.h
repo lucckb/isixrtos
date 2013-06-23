@@ -33,22 +33,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_hid_core.h"
 
-/** @addtogroup USBH_LIB
-  * @{
-  */
-
-/** @addtogroup USBH_CLASS
-  * @{
-  */
-
-/** @addtogroup USBH_HID_CLASS
-  * @{
-  */
-
-/** @defgroup USBH_HID_MOUSE
-  * @brief This file is the Header file for USBH_HID_MOUSE.c
-  * @{
-  */ 
 
 
 /** @defgroup USBH_HID_MOUSE_Exported_Types
@@ -63,30 +47,13 @@ typedef struct _HID_MOUSE_Data
 }
 HID_MOUSE_Data_TypeDef;
 
-/**
-  * @}
-  */ 
 
-/** @defgroup USBH_HID_MOUSE_Exported_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
-/** @defgroup USBH_HID_MOUSE_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
-/** @defgroup USBH_HID_MOUSE_Exported_Variables
-  * @{
-  */ 
+//extern HID_cb_TypeDef HID_MOUSE_cb;
+//extern HID_MOUSE_Data_TypeDef	 HID_MOUSE_Data;
+const HID_cb_TypeDef* USR_MOUSE_GetClassCallback();
 
-extern HID_cb_TypeDef HID_MOUSE_cb;
-extern HID_MOUSE_Data_TypeDef	 HID_MOUSE_Data;
 /**
   * @}
   */ 
@@ -102,19 +69,5 @@ void  USR_MOUSE_ProcessData (HID_MOUSE_Data_TypeDef *data);
 
 #endif /* __USBH_HID_MOUSE_H */
 
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */ 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

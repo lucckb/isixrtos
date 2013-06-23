@@ -110,7 +110,7 @@ typedef struct _HID_Process
   uint8_t              ep_addr;
   uint16_t             poll; 
   __IO uint16_t        timer; 
-  HID_cb_TypeDef             *cb;
+  const HID_cb_TypeDef             *cb;
 }
 HID_Machine_TypeDef;
 
@@ -128,7 +128,9 @@ HID_Machine_TypeDef;
 #define USB_HID_SET_PROTOCOL         0x0B    
 
 
-extern const USBH_Class_cb_TypeDef  HID_cb;
+//extern const USBH_Class_cb_TypeDef  HID_cb;
+
+const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback();
 
 
 /** @defgroup USBH_HID_CORE_Exported_FunctionsPrototype
