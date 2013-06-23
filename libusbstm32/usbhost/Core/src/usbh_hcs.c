@@ -28,63 +28,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_hcs.h"
 
-/** @addtogroup USBH_LIB
-  * @{
-  */
 
-/** @addtogroup USBH_LIB_CORE
-* @{
-*/
-  
-/** @defgroup USBH_HCS
-  * @brief This file includes opening and closing host channels
-  * @{
-  */ 
-
-/** @defgroup USBH_HCS_Private_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_HCS_Private_TypesDefinitions
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_HCS_Private_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_HCS_Private_Variables
-  * @{
-  */ 
-
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_HCS_Private_FunctionPrototypes
-  * @{
-  */ 
 static uint16_t USBH_GetFreeChannel (USB_OTG_CORE_HANDLE *pdev);
 /**
   * @}
   */ 
 
-
-/** @defgroup USBH_HCS_Private_Functions
-  * @{
-  */ 
 
 
 
@@ -238,21 +187,6 @@ static uint16_t USBH_GetFreeChannel (USB_OTG_CORE_HANDLE *pdev)
 }
 
 
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/
-
-/**
-* @}
-*/ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

@@ -191,16 +191,6 @@ uint32_t HCD_SubmitRequest (USB_OTG_CORE_HANDLE *pdev , uint8_t hc_num)
 }
 
 
-/**
-* @}
-*/ 
 
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

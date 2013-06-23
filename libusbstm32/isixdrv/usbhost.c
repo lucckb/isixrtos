@@ -286,7 +286,6 @@ static ISIX_TASK_FUNC(host_usb_task, entry_param)
 			if( reset_req )
 			{
 				USB_OTG_ResetPort(&usb_otg_dev);
-				dbprintf("Reset port req");
 				reset_req = false;
 			}
 			USBH_Process(&usb_otg_dev , &usb_host);
