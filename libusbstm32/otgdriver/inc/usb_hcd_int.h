@@ -26,34 +26,13 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __HCD_INT_H__
-#define __HCD_INT_H__
+#ifndef STM32_HCD_INT_H_
+#define STM32_HCD_INT_H_
 
 /* Includes ------------------------------------------------------------------*/
 #include "usb_hcd.h"
 
 
-/** @addtogroup USB_OTG_DRIVER
-  * @{
-  */
-  
-/** @defgroup USB_HCD_INT
-  * @brief This file is the 
-  * @{
-  */ 
-
-
-/** @defgroup USB_HCD_INT_Exported_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_HCD_INT_Exported_Types
-  * @{
-  */ 
 
 typedef struct _USBH_HCD_INT
 {
@@ -64,14 +43,17 @@ typedef struct _USBH_HCD_INT
 } USBH_HCD_INT_cb_TypeDef;
 
 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_HCD_INT_Exported_Macros
-  * @{
-  */ 
+enum usbh_hcd_irq_flags
+{
+	usbh_hcd_irq_flags_sof = 0x1,
+	usbh_hcd_irq_flags_rxqlvl = 0x2,
+	usbh_hcd_irq_flags_nptxfempty = 0x4,
+	usbh_hcd_irq_flags_ptxfempty = 0x08,
+	usbh_hcd_irq_flags_hc = 0x10,
+	usbh_hcd_irq_flags_port = 0x20,
+	usbh_hcd_irq_flags_disconnect = 0x40,
+	usbh_hcd_irq_flags_incomplete_periodic_xfer = 0x80
+};
 
 #define CLEAR_HC_INT(HC_REGS, intr) \
   {\
@@ -101,41 +83,17 @@ typedef struct _USBH_HCD_INT
     INTMSK.b.ack = 1; \
     USB_OTG_WRITE_REG32(&pdev->regs.HC_REGS[hc_num]->HCINTMSK, INTMSK.d32);}
 
-/**
-  * @}
-  */ 
 
-/** @defgroup USB_HCD_INT_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USB_HCD_INT_Exported_FunctionsPrototype
-  * @{
-  */ 
 /* Callbacks handler */
 void ConnectCallback_Handler(USB_OTG_CORE_HANDLE *pdev);
 void Disconnect_Callback_Handler(USB_OTG_CORE_HANDLE *pdev);
 void Overcurrent_Callback_Handler(USB_OTG_CORE_HANDLE *pdev);
 uint32_t USBH_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
 
-/**
-  * @}
-  */ 
-
 
 
 #endif //__HCD_INT_H__
 
 
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */ 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

@@ -44,50 +44,7 @@
 #include "usbh_hid_mouse.h"
 #include "usbh_hid_keybd.h"
 
-/** @addtogroup USBH_LIB
-* @{
-*/
 
-/** @addtogroup USBH_CLASS
-* @{
-*/
-
-/** @addtogroup USBH_HID_CLASS
-* @{
-*/
-
-/** @defgroup USBH_HID_CORE 
-* @brief    This file includes HID Layer Handlers for USB Host HID class.
-* @{
-*/ 
-
-/** @defgroup USBH_HID_CORE_Private_TypesDefinitions
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USBH_HID_CORE_Private_Defines
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USBH_HID_CORE_Private_Macros
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USBH_HID_CORE_Private_Variables
-* @{
-*/
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
   #if defined ( __ICCARM__ ) /*!< IAR Compiler */
     #pragma data_alignment=4   
@@ -632,26 +589,7 @@ static void  USBH_ParseHIDDesc (USBH_HIDDesc_TypeDef *desc, uint8_t *buf)
   desc->wItemLength              =  LE16  (buf + 7);
   
 } 
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/
 
 
-/**
-* @}
-*/
-
-
-/**
-* @}
-*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

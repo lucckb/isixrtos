@@ -25,27 +25,13 @@
   ******************************************************************************
   */ 
 
-/* Define to prevent recursive  ----------------------------------------------*/
 #ifndef __USBH_CORE_H
 #define __USBH_CORE_H
 
-/* Includes ------------------------------------------------------------------*/
+
 #include "usb_hcd.h"
 #include "usbh_def.h"
 #include "usbh_conf.h"
-
-/** @addtogroup USBH_LIB
-  * @{
-  */
-
-/** @addtogroup USBH_LIB_CORE
-* @{
-*/
-  
-/** @defgroup USBH_CORE
-  * @brief This file is the Header file for usbh_core.c
-  * @{
-  */ 
 
 
 /** @defgroup USBH_CORE_Exported_Defines
@@ -234,31 +220,7 @@ typedef struct _Host_TypeDef
   
 } USBH_HOST, *pUSBH_HOST;
 
-/**
-  * @}
-  */ 
 
-
-
-/** @defgroup USBH_CORE_Exported_Macros
-  * @{
-  */ 
-
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_CORE_Exported_Variables
-  * @{
-  */ 
-
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_CORE_Exported_FunctionsPrototype
-  * @{
-  */ 
 void USBH_Init(USB_OTG_CORE_HANDLE *pdev,
                USB_OTG_CORE_ID_TypeDef coreID, 
                USBH_HOST *phost,                    
@@ -267,27 +229,14 @@ void USBH_Init(USB_OTG_CORE_HANDLE *pdev,
                
 USBH_Status USBH_DeInit(USB_OTG_CORE_HANDLE *pdev, 
                         USBH_HOST *phost);
-void USBH_Process(USB_OTG_CORE_HANDLE *pdev , 
+void  USBH_Process(USB_OTG_CORE_HANDLE *pdev ,
                   USBH_HOST *phost);
 void USBH_ErrorHandle(USBH_HOST *phost, 
                       USBH_Status errType);
 
-/**
-  * @}
-  */ 
 
 #endif /* __USBH_CORE_H */
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
-
-/**
-* @}
-*/ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

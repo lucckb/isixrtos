@@ -25,67 +25,11 @@
   ******************************************************************************
   */
 
-/* Includes ------------------------------------------------------------------*/
 #include "usb_core.h"
 #include "usb_hcd.h"
 #include "usb_conf.h"
 #include "usb_bsp.h"
 
-
-/** @addtogroup USB_OTG_DRIVER
-  * @{
-  */
-  
-/** @defgroup USB_HCD 
-  * @brief This file is the interface between EFSL ans Host mass-storage class
-  * @{
-  */
-
-
-/** @defgroup USB_HCD_Private_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
- 
-
-/** @defgroup USB_HCD_Private_TypesDefinitions
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-
-/** @defgroup USB_HCD_Private_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_HCD_Private_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_HCD_Private_FunctionPrototypes
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_HCD_Private_Functions
-  * @{
-  */ 
 
 /**
   * @brief  HCD_Init 

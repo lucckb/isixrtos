@@ -26,22 +26,11 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef USB_DCD_INT_H__
-#define USB_DCD_INT_H__
+#ifndef STM32_USB_DCD_INT_H_
+#define STM32_USB_DCD_INT_H_
 
-/* Includes ------------------------------------------------------------------*/
+
 #include "usb_dcd.h"
-
-
-
-/** @addtogroup USB_OTG_DRIVER
-  * @{
-  */
-  
-/** @defgroup USB_DCD_INT
-  * @brief This file is the 
-  * @{
-  */ 
 
 
 /** @defgroup USB_DCD_INT_Exported_Defines
@@ -66,17 +55,6 @@ typedef struct _USBD_DCD_INT
 }USBD_DCD_INT_cb_TypeDef;
 
 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_DCD_INT_Exported_Types
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
 /** @defgroup USB_DCD_INT_Exported_Macros
   * @{
@@ -92,20 +70,7 @@ typedef struct _USBD_DCD_INT
   doepint.b.intr = 1; \
   USB_OTG_WRITE_REG32(&pdev->regs.OUTEP_REGS[epnum]->DOEPINT,doepint.d32);
 
-/**
-  * @}
-  */ 
 
-/** @defgroup USB_DCD_INT_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USB_DCD_INT_Exported_FunctionsPrototype
-  * @{
-  */ 
 
 uint32_t USBD_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
 
@@ -116,12 +81,6 @@ uint32_t USBD_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
 
 #endif // USB_DCD_INT_H__
 
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

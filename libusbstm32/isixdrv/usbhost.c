@@ -5,12 +5,16 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
+#include "usbh_hid_mouse.h"
+#include "usbh_hid_keybd.h"
+
 #include <usbhost.h>
 #include <usbh_core.h>
 #include <usbh_hid_core.h>
+#include <usb_hcd_int.h>
 #include <dbglog.h>
-#include "usbh_hid_mouse.h"
-#include "usbh_hid_keybd.h"
+#include <isix.h>
+
 /* ------------------------------------------------------------------ */
 //USB host core handle
 static USB_OTG_CORE_HANDLE    usb_otg_dev;
@@ -186,7 +190,7 @@ void  USR_KEYBRD_ProcessData (uint8_t data)
 {
 
 
-    dbprintf("KBD event %c", data);
+    dbprintf("KBD event [%c]", data);
 
 }
 
@@ -267,25 +271,48 @@ const USBH_Usr_cb_TypeDef USR_Callbacks =
   USBH_USR_DeviceNotSupported,
   USBH_USR_UnrecoveredError
 };
+/* ------------------------------------------------------------------ */
+/* USB int semaphore signal */
+static sem_t *usb_ready_sem;
 
+/* ------------------------------------------------------------------ */
+static ISIX_TASK_FUNC(host_usb_task, entry_param)
+{
+	(void)entry_param;
+	for(;;)
+	{
+		if( isix_sem_wait( usb_ready_sem , ISIX_TIME_INFINITE ) == ISIX_EOK )
+		{
+			USBH_Process(&usb_otg_dev , &usb_host);
+		}
+	}
+}
 /* ------------------------------------------------------------------ */
 int stm32_usbhost_init(void)
 {
+	isix_task_create( host_usb_task, NULL, 1024, 3 );
+	int ret = 0;
 	USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usb_host, &HID_cb, &USR_Callbacks );
-	return 0;
+	do
+	{
+		if( !(usb_ready_sem = isix_sem_create_limited(NULL,0,1)) )
+			break;
+	}
+	while(0);
+
+	return ret;
 }
 
 
-void stm32_usbhost_process(void)
-{
-	USBH_Process(&usb_otg_dev , &usb_host);
-}
 /* ------------------------------------------------------------------ */
 
 //OTG interrupt ISR vector
 void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 {
-	//dbprintf("IRQ");
-	USBH_OTG_ISR_Handler(&usb_otg_dev);
+	const unsigned ret = USBH_OTG_ISR_Handler(&usb_otg_dev);
+	if( ret )
+	{
+		isix_sem_signal_isr( usb_ready_sem );
+	}
 }
 /* ------------------------------------------------------------------ */

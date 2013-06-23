@@ -96,7 +96,7 @@ static void  KEYBRD_Decode(uint8_t *data);
 /** @defgroup USBH_HID_KEYBD_Private_Variables
 * @{
 */
-HID_cb_TypeDef HID_KEYBRD_cb= 
+const HID_cb_TypeDef HID_KEYBRD_cb=
 {
   KEYBRD_Init,
   KEYBRD_Decode

@@ -30,61 +30,7 @@
 #include "usb_bsp.h"
 
 
-/** @addtogroup USB_OTG_DRIVER
-* @{
-*/
 
-/** @defgroup USB_DCD 
-* @brief This file is the interface between EFSL ans Host mass-storage class
-* @{
-*/
-
-
-/** @defgroup USB_DCD_Private_Defines
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USB_DCD_Private_TypesDefinitions
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-
-/** @defgroup USB_DCD_Private_Macros
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USB_DCD_Private_Variables
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USB_DCD_Private_FunctionPrototypes
-* @{
-*/ 
-
-/**
-* @}
-*/ 
-
-
-/** @defgroup USB_DCD_Private_Functions
-* @{
-*/ 
 
 
 

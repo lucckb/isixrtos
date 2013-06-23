@@ -92,7 +92,7 @@
   * @{
   */ 
 
-extern HID_cb_TypeDef HID_KEYBRD_cb;
+extern const HID_cb_TypeDef HID_KEYBRD_cb;
 /**
   * @}
   */ 

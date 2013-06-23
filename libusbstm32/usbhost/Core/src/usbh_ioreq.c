@@ -28,68 +28,11 @@
 
 #include "usbh_ioreq.h"
 
-/** @addtogroup USBH_LIB
-  * @{
-  */
 
-/** @addtogroup USBH_LIB_CORE
-* @{
-*/
-  
-/** @defgroup USBH_IOREQ 
-  * @brief This file handles the standard protocol processing (USB v2.0)
-  * @{
-  */
-
-
-/** @defgroup USBH_IOREQ_Private_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
- 
-
-/** @defgroup USBH_IOREQ_Private_TypesDefinitions
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-
-/** @defgroup USBH_IOREQ_Private_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_IOREQ_Private_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_IOREQ_Private_FunctionPrototypes
-  * @{
-  */ 
 static USBH_Status USBH_SubmitSetupRequest(USBH_HOST *phost,
                                            uint8_t* buff, 
                                            uint16_t length);
 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_IOREQ_Private_Functions
-  * @{
-  */ 
 
 
 /**
@@ -452,21 +395,7 @@ USBH_Status USBH_IsocSendData( USB_OTG_CORE_HANDLE *pdev,
   return USBH_OK;
 }
 
-/**
-* @}
-*/ 
 
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/
-
-/**
-* @}
-*/ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

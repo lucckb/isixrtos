@@ -26,8 +26,8 @@
   */ 
 
 /* Define to prevent recursive  ----------------------------------------------*/
-#ifndef __USBH_HID_CORE_H
-#define __USBH_HID_CORE_H
+#ifndef _USBH_HID_CORE_H
+#define _USBH_HID_CORE_H
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_core.h"
@@ -36,27 +36,7 @@
 #include "usbh_ioreq.h"
 #include "usbh_hcs.h"
  
-/** @addtogroup USBH_LIB
-  * @{
-  */
 
-/** @addtogroup USBH_CLASS
-  * @{
-  */
-
-/** @addtogroup USBH_HID_CLASS
-  * @{
-  */
-  
-/** @defgroup USBH_HID_CORE
-  * @brief This file is the Header file for USBH_HID_CORE.c
-  * @{
-  */ 
-
-
-/** @defgroup USBH_HID_CORE_Exported_Types
-  * @{
-  */ 
 
 #define HID_MIN_POLL          10
 
@@ -134,9 +114,7 @@ typedef struct _HID_Process
 }
 HID_Machine_TypeDef;
 
-/**
-  * @}
-  */ 
+
 
 /** @defgroup USBH_HID_CORE_Exported_Defines
   * @{
@@ -148,24 +126,10 @@ HID_Machine_TypeDef;
 #define USB_HID_SET_REPORT           0x09
 #define USB_HID_SET_IDLE             0x0A
 #define USB_HID_SET_PROTOCOL         0x0B    
-/**
-  * @}
-  */ 
 
-/** @defgroup USBH_HID_CORE_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
-/** @defgroup USBH_HID_CORE_Exported_Variables
-  * @{
-  */ 
 extern const USBH_Class_cb_TypeDef  HID_cb;
-/**
-  * @}
-  */ 
+
 
 /** @defgroup USBH_HID_CORE_Exported_FunctionsPrototype
   * @{
@@ -177,27 +141,10 @@ USBH_Status USBH_Set_Report (USB_OTG_CORE_HANDLE *pdev,
                                   uint8_t reportId,
                                   uint8_t reportLen,
                                   uint8_t* reportBuff);
-/**
-  * @}
-  */ 
 
 
 #endif /* __USBH_HID_CORE_H */
 
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */ 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

@@ -26,8 +26,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USB_OTG_REGS_H__
-#define __USB_OTG_REGS_H__
+#ifndef STM32_USB_OTG_REGS_H_
+#define STM32_USB_OTG_REGS_H_
 
 /* Includes ------------------------------------------------------------------*/
 #include "usb_conf.h"
@@ -35,14 +35,6 @@
 #pragma GCC system_header
 
 
-/** @addtogroup USB_OTG_DRIVER
-  * @{
-  */
-  
-/** @defgroup USB_REGS
-  * @brief This file is the 
-  * @{
-  */ 
 
 
 /** @defgroup USB_REGS_Exported_Defines
@@ -1149,42 +1141,11 @@ uint32_t Reserved5_31 :
   b;
 } USB_OTG_PCGCCTL_TypeDef ;
 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_REGS_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USB_REGS_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USB_REGS_Exported_FunctionsPrototype
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
 
 #endif //__USB_OTG_REGS_H__
 
 
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

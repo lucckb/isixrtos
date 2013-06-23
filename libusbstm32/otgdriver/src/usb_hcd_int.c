@@ -25,22 +25,11 @@
   ******************************************************************************
   */
 
-/* Includes ------------------------------------------------------------------*/
 #include "usb_core.h"
 #include "usb_defines.h"
 #include "usb_hcd_int.h"
 
-#if 0
-#if defined   (__CC_ARM) /*!< ARM Compiler */
-#pragma O0
-#elif defined (__GNUC__) /*!< GNU Compiler */
-#pragma GCC optimize ("O0")
-#elif defined  (__TASKING__) /*!< TASKING Compiler */ 
-#pragma optimize=0                          
 
-#endif /* __CC_ARM */
-
-#endif
 
 
 //FIXME in the host library
@@ -49,9 +38,6 @@ const USBH_HCD_INT_cb_TypeDef* USBH_Get_Device_INT_fops(void);
 #define USBH_HCD_INT_fops USBH_Get_Device_INT_fops()
 
 
-/** @defgroup USB_HCD_INT_Private_FunctionPrototypes
-* @{
-*/ 
 
 static uint32_t USB_OTG_USBH_handle_sof_ISR(USB_OTG_CORE_HANDLE *pdev);
 static uint32_t USB_OTG_USBH_handle_port_ISR(USB_OTG_CORE_HANDLE *pdev);
@@ -197,7 +183,7 @@ static uint32_t USB_OTG_USBH_handle_sof_ISR (USB_OTG_CORE_HANDLE *pdev)
   gintsts.b.sofintr = 1;
   USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GINTSTS, gintsts.d32);
   
-  return 1;
+  return usbh_hcd_irq_flags_sof;
 }
 
 /**
@@ -218,11 +204,9 @@ static uint32_t USB_OTG_USBH_handle_Disconnect_ISR (USB_OTG_CORE_HANDLE *pdev)
   gintsts.b.disconnect = 1;
   USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GINTSTS, gintsts.d32);
   
-  return 1;
+  return usbh_hcd_irq_flags_disconnect;
 }
-#if defined ( __ICCARM__ ) /*!< IAR Compiler */
-#pragma optimize = none
-#endif /* __CC_ARM */
+
 /**
 * @brief  USB_OTG_USBH_handle_nptxfempty_ISR 
 *         Handles non periodic tx fifo empty.
@@ -266,11 +250,9 @@ static uint32_t USB_OTG_USBH_handle_nptxfempty_ISR (USB_OTG_CORE_HANDLE *pdev)
     hnptxsts.d32 = USB_OTG_READ_REG32(&pdev->regs.GREGS->HNPTXSTS);
   }  
   
-  return 1;
+  return usbh_hcd_irq_flags_nptxfempty;
 }
-#if defined ( __ICCARM__ ) /*!< IAR Compiler */
-#pragma optimize = none
-#endif /* __CC_ARM */
+
 /**
 * @brief  USB_OTG_USBH_handle_ptxfempty_ISR 
 *         Handles periodic tx fifo empty
@@ -313,7 +295,7 @@ static uint32_t USB_OTG_USBH_handle_ptxfempty_ISR (USB_OTG_CORE_HANDLE *pdev)
     hptxsts.d32 = USB_OTG_READ_REG32(&pdev->regs.HREGS->HPTXSTS);
   }  
   
-  return 1;
+  return usbh_hcd_irq_flags_ptxfempty;
 }
 
 /**
@@ -322,9 +304,7 @@ static uint32_t USB_OTG_USBH_handle_ptxfempty_ISR (USB_OTG_CORE_HANDLE *pdev)
 * @param  pdev: Selected device
 * @retval status 
 */
-#if defined ( __ICCARM__ ) /*!< IAR Compiler */
-#pragma optimize = none
-#endif /* __CC_ARM */
+
 static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
 {
   USB_OTG_HPRT0_TypeDef  hprt0;
@@ -353,7 +333,7 @@ static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
 
     hprt0_dup.b.prtconndet = 1;
     USBH_HCD_INT_fops->DevConnected(pdev);
-    retval |= 1;
+    retval |= usbh_hcd_irq_flags_port;
   }
   
   /* Port Enable Changed */
@@ -405,7 +385,7 @@ static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
   if (hprt0.b.prtovrcurrchng)
   {
     hprt0_dup.b.prtovrcurrchng = 1;
-    retval |= 1;
+    retval |= usbh_hcd_irq_flags_port;
   }
   if (do_reset)
   {
@@ -416,9 +396,7 @@ static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
   
   return retval;
 }
-#if defined ( __ICCARM__ ) /*!< IAR Compiler */
-#pragma optimize = none
-#endif /* __CC_ARM */
+
 /**
 * @brief  USB_OTG_USBH_handle_hc_n_Out_ISR 
 *         Handles interrupt for a specific Host Channel
@@ -549,11 +527,11 @@ uint32_t USB_OTG_USBH_handle_hc_n_Out_ISR (USB_OTG_CORE_HANDLE *pdev , uint32_t 
   }
   
   
-  return 1;
+  return usbh_hcd_irq_flags_hc;
 }
-#if defined ( __ICCARM__ ) /*!< IAR Compiler */
-#pragma optimize = none
-#endif /* __CC_ARM */
+
+
+
 /**
 * @brief  USB_OTG_USBH_handle_hc_n_In_ISR 
 *         Handles interrupt for a specific Host Channel
@@ -704,7 +682,7 @@ uint32_t USB_OTG_USBH_handle_hc_n_In_ISR (USB_OTG_CORE_HANDLE *pdev , uint32_t n
   }
   
   
-  return 1;
+  return usbh_hcd_irq_flags_hc;
   
 }
 
@@ -714,9 +692,7 @@ uint32_t USB_OTG_USBH_handle_hc_n_In_ISR (USB_OTG_CORE_HANDLE *pdev , uint32_t n
 * @param  pdev: Selected device
 * @retval status 
 */
-#if defined ( __ICCARM__ ) /*!< IAR Compiler */
-#pragma optimize = none
-#endif /* __CC_ARM */
+
 static uint32_t USB_OTG_USBH_handle_rx_qlvl_ISR (USB_OTG_CORE_HANDLE *pdev)
 {
   USB_OTG_GRXFSTS_TypeDef       grxsts;
@@ -773,7 +749,7 @@ static uint32_t USB_OTG_USBH_handle_rx_qlvl_ISR (USB_OTG_CORE_HANDLE *pdev)
   /* Enable the Rx Status Queue Level interrupt */
   intmsk.b.rxstsqlvl = 1;
   USB_OTG_MODIFY_REG32(&pdev->regs.GREGS->GINTMSK, 0, intmsk.d32);
-  return 1;
+  return usbh_hcd_irq_flags_rxqlvl;
 }
 
 /**
@@ -782,9 +758,7 @@ static uint32_t USB_OTG_USBH_handle_rx_qlvl_ISR (USB_OTG_CORE_HANDLE *pdev)
 * @param  pdev: Selected device
 * @retval status 
 */
-#if defined ( __ICCARM__ ) /*!< IAR Compiler */
-#pragma optimize = none
-#endif /* __CC_ARM */
+
 static uint32_t USB_OTG_USBH_handle_IncompletePeriodicXfer_ISR (USB_OTG_CORE_HANDLE *pdev)
 {
   
@@ -804,7 +778,7 @@ static uint32_t USB_OTG_USBH_handle_IncompletePeriodicXfer_ISR (USB_OTG_CORE_HAN
   gintsts.b.incomplisoout = 1;
   USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GINTSTS, gintsts.d32);
   
-  return 1;
+  return usbh_hcd_irq_flags_incomplete_periodic_xfer;
 }
 
 

@@ -52,9 +52,9 @@
 /** @defgroup USBH_CORE_Private_TypesDefinitions
   * @{
   */ 
-uint8_t USBH_Disconnected (USB_OTG_CORE_HANDLE *pdev); 
-uint8_t USBH_Connected (USB_OTG_CORE_HANDLE *pdev); 
-uint8_t USBH_SOF (USB_OTG_CORE_HANDLE *pdev); 
+static uint8_t USBH_Disconnected (USB_OTG_CORE_HANDLE *pdev);
+static uint8_t USBH_Connected (USB_OTG_CORE_HANDLE *pdev);
+static uint8_t USBH_SOF (USB_OTG_CORE_HANDLE *pdev);
 
 static const USBH_HCD_INT_cb_TypeDef USBH_HCD_INT_cb =
 {
@@ -68,33 +68,6 @@ const USBH_HCD_INT_cb_TypeDef* USBH_Get_Device_INT_fops(void)
 	return &USBH_HCD_INT_cb;
 }
 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_CORE_Private_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_CORE_Private_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_CORE_Private_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
 
 /** @defgroup USBH_CORE_Private_FunctionPrototypes
@@ -103,14 +76,6 @@ const USBH_HCD_INT_cb_TypeDef* USBH_Get_Device_INT_fops(void)
 static USBH_Status USBH_HandleEnum(USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost);
 USBH_Status USBH_HandleControl (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost);
 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_CORE_Private_Functions
-  * @{
-  */ 
 
 
 /**
@@ -223,7 +188,7 @@ USBH_Status USBH_DeInit(USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost)
 void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
 {
   volatile USBH_Status status = USBH_FAIL;
-  
+
   
   /* check for Host port events */
   if ((HCD_IsDeviceConnected(pdev) == 0)&& (phost->gState != HOST_IDLE)) 
@@ -243,6 +208,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
     {
       phost->gState = HOST_DEV_ATTACHED;
       USB_OTG_BSP_mDelay(100);
+      USBH_Process( pdev , phost );
     }
     break;
    
@@ -279,7 +245,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
                            phost->device_prop.address,
                            phost->device_prop.speed,
                            EP_TYPE_CTRL,
-                           phost->Control.ep0size);          
+                           phost->Control.ep0size);
    }
     break;
     
@@ -292,7 +258,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
       /* user callback for end of device basic enumeration */
       phost->usr_cb->EnumerationDone();
       
-      phost->gState  = HOST_USR_INPUT;    
+      phost->gState  = HOST_USR_INPUT;
     }
     break;
     
@@ -321,8 +287,8 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
      {
        USBH_ErrorHandle(phost, status);
      }
- 
-    
+
+
     break;    
   case HOST_CLASS:   
     /* process class state machine */
@@ -332,7 +298,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
     
   case HOST_CTRL_XFER:
     /* process control transfer state machine */
-    USBH_HandleControl(pdev, phost);    
+    USBH_HandleControl(pdev, phost);
     break;
     
   case HOST_SUSPENDED:
@@ -838,21 +804,6 @@ USBH_Status USBH_HandleControl (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost)
 }
 
 
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/ 
-
-/**
-* @}
-*/
-
-/**
-* @}
-*/ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

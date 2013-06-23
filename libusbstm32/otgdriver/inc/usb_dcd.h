@@ -26,8 +26,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __DCD_H__
-#define __DCD_H__
+#ifndef STM32_DCD_H_
+#define STM32_DCD_H_
 
 /* Includes ------------------------------------------------------------------*/
 #include "usb_core.h"

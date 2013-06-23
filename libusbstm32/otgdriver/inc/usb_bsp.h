@@ -26,52 +26,14 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USB_BSP__H__
-#define __USB_BSP__H__
+#ifndef STM32_USB_BSP__H_
+#define STM32_USB_BSP__H_
 
 /* Includes ------------------------------------------------------------------*/
 #include "usb_core.h"
 #include "usb_conf.h"
 
-/** @addtogroup USB_OTG_DRIVER
-  * @{
-  */
-  
-/** @defgroup USB_BSP
-  * @brief This file is the 
-  * @{
-  */ 
 
-
-/** @defgroup USB_BSP_Exported_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_BSP_Exported_Types
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_BSP_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USB_BSP_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
 /** @defgroup USB_BSP_Exported_FunctionsPrototype
   * @{
@@ -92,9 +54,6 @@ void USB_OTG_BSP_DriveVBUS(USB_OTG_CORE_HANDLE *pdev,uint8_t state);
 
 #endif //__USB_BSP__H__
 
-/**
-  * @}
-  */ 
 
 /**
   * @}

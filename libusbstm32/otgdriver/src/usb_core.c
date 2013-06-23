@@ -719,7 +719,7 @@ USB_OTG_STS USB_OTG_EnableHostInt(USB_OTG_CORE_HANDLE *pdev)
   intmsk.b.portintr   = 1;
   intmsk.b.hcintr     = 1;
   intmsk.b.disconnect = 1;  
-  intmsk.b.sofintr    = 1;  
+  intmsk.b.sofintr    = 1;
   intmsk.b.incomplisoout  = 1; 
   USB_OTG_MODIFY_REG32(&pdev->regs.GREGS->GINTMSK, intmsk.d32, intmsk.d32);
   return status;

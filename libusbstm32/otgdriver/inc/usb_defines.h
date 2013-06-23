@@ -26,8 +26,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USB_DEF_H__
-#define __USB_DEF_H__
+#ifndef STM32_USB_DEF_H_
+#define STM32_USB_DEF_H_
 
 /* Includes ------------------------------------------------------------------*/
 #include  "usb_conf.h"

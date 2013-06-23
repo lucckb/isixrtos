@@ -26,8 +26,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USB_CORE_H__
-#define __USB_CORE_H__
+#ifndef STM32_USB_CORE_H_
+#define STM32_USB_CORE_H_
 
 /* Includes ------------------------------------------------------------------*/
 #include "usb_conf.h"
@@ -171,7 +171,6 @@ typedef struct USB_OTG_core_cfg
   uint8_t       Sof_output;
   uint8_t       low_power;
   uint8_t       coreID;
- 
 }
 USB_OTG_CORE_CFGS, *PUSB_OTG_CORE_CFGS;
 
@@ -309,25 +308,6 @@ typedef struct USB_OTG_handle
 }
 USB_OTG_CORE_HANDLE , *PUSB_OTG_CORE_HANDLE;
 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USB_CORE_Exported_Macros
-  * @{
-  */ 
-
-/**
-  * @}
-  */ 
-
-/** @defgroup USB_CORE_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
 /** @defgroup USB_CORE_Exported_FunctionsPrototype
   * @{

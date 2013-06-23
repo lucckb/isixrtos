@@ -26,8 +26,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USB_CONF__H__
-#define __USB_CONF__H__
+#ifndef STM32_USB_CONF__H_
+#define STM32_USB_CONF__H_
 
 
 #define USE_USB_OTG_FS
