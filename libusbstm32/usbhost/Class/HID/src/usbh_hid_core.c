@@ -598,6 +598,4 @@ static void  USBH_ParseHIDDesc (USBH_HIDDesc_TypeDef *desc, uint8_t *buf)
   
 } 
 
-
-
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
