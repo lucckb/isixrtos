@@ -274,7 +274,7 @@ static const USBH_Usr_cb_TypeDef USR_Callbacks =
 /* ------------------------------------------------------------------ */
 /* USB int semaphore signal */
 static sem_t *usb_ready_sem;
-static bool reset_req = false;
+
 /* ------------------------------------------------------------------ */
 static ISIX_TASK_FUNC(host_usb_task, entry_param)
 {
@@ -283,11 +283,6 @@ static ISIX_TASK_FUNC(host_usb_task, entry_param)
 	{
 		if( isix_sem_wait( usb_ready_sem , ISIX_TIME_INFINITE ) == ISIX_EOK )
 		{
-			if( reset_req )
-			{
-				USB_OTG_ResetPort(&usb_otg_dev);
-				reset_req = false;
-			}
 			USBH_Process(&usb_otg_dev , &usb_host);
 		}
 	}
@@ -318,10 +313,6 @@ void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 	if( ret )
 	{
 		isix_sem_signal_isr( usb_ready_sem );
-		if( ret & usbh_hcd_do_reset_required )
-		{
-			reset_req = true;
-		}
 	}
 }
 /* ------------------------------------------------------------------ */

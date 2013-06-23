@@ -360,7 +360,7 @@ static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
             {
               USB_OTG_InitFSLSPClkSel(pdev ,HCFG_6_MHZ );
             }
-            retval |= usbh_hcd_do_reset_required;
+            pdev->host.reset_req = true;
           }
         }
         else
@@ -370,13 +370,13 @@ static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
           if (hcfg.b.fslspclksel != HCFG_48_MHZ)
           {
             USB_OTG_InitFSLSPClkSel(pdev ,HCFG_48_MHZ );
-            retval |= usbh_hcd_do_reset_required;
+            pdev->host.reset_req = true;
           }
         }
       }
       else
       {
-    	  retval |= usbh_hcd_do_reset_required;
+    	  pdev->host.reset_req = true;
       }
     }
   }

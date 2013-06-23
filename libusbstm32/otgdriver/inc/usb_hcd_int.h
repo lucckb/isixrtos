@@ -53,7 +53,6 @@ enum usbh_hcd_irq_flags
 	usbh_hcd_irq_flags_port = 0x20,
 	usbh_hcd_irq_flags_disconnect = 0x40,
 	usbh_hcd_irq_flags_incomplete_periodic_xfer = 0x80,
-	usbh_hcd_do_reset_required = 0x40000000
 };
 
 #define CLEAR_HC_INT(HC_REGS, intr) \

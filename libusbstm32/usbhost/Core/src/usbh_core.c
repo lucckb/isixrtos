@@ -187,8 +187,13 @@ USBH_Status USBH_DeInit(USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost)
 */
 void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
 {
-  volatile USBH_Status status = USBH_FAIL;
+  USBH_Status status = USBH_FAIL;
 
+  if( pdev->host.reset_req  )
+  {
+	  pdev->host.reset_req = false;
+	 USB_OTG_ResetPort( pdev );
+  }
   
   /* check for Host port events */
   if ((HCD_IsDeviceConnected(pdev) == 0)&& (phost->gState != HOST_IDLE)) 
