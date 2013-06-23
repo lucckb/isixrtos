@@ -310,7 +310,6 @@ static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
   USB_OTG_HPRT0_TypeDef  hprt0;
   USB_OTG_HPRT0_TypeDef  hprt0_dup;
   USB_OTG_HCFG_TypeDef   hcfg;    
-  uint32_t do_reset = 0;
   uint32_t retval = 0;
   
   hcfg.d32 = 0;
@@ -361,7 +360,7 @@ static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
             {
               USB_OTG_InitFSLSPClkSel(pdev ,HCFG_6_MHZ );
             }
-            do_reset = 1;
+            retval |= usbh_hcd_do_reset_required;
           }
         }
         else
@@ -371,13 +370,13 @@ static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
           if (hcfg.b.fslspclksel != HCFG_48_MHZ)
           {
             USB_OTG_InitFSLSPClkSel(pdev ,HCFG_48_MHZ );
-            do_reset = 1;
+            retval |= usbh_hcd_do_reset_required;
           }
         }
       }
       else
       {
-        do_reset = 1;
+    	  retval |= usbh_hcd_do_reset_required;
       }
     }
   }
@@ -387,10 +386,10 @@ static uint32_t USB_OTG_USBH_handle_port_ISR (USB_OTG_CORE_HANDLE *pdev)
     hprt0_dup.b.prtovrcurrchng = 1;
     retval |= usbh_hcd_irq_flags_port;
   }
-  if (do_reset)
-  {
-    USB_OTG_ResetPort(pdev);
-  }
+  //if (do_reset)
+  //{
+   // USB_OTG_ResetPort(pdev);
+ // }
   /* Clear Port Interrupts */
   USB_OTG_WRITE_REG32(pdev->regs.HPRT0, hprt0_dup.d32);
   

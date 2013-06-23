@@ -48,9 +48,7 @@ void USB_OTG_BSP_uDelay (const uint32_t usec)
 /* ------------------------------------------------------------------ */
 void USB_OTG_BSP_mDelay (const uint32_t msec)
 {
-	//isix_wait_ms( msec );	//FIXME this
-	 for(uint32_t i=0;i<msec; i++ )
-	 USB_OTG_BSP_uDelay( 1000 );
+	isix_wait_ms( msec );
 }
 
 /* ------------------------------------------------------------------ */
