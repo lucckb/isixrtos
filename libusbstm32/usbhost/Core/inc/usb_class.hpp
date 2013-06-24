@@ -16,7 +16,21 @@
 /* -------------------------------------------------------------------------- */
 class usb_class_base
 {
-	virtual
+public:
+	/* USB host init */
+	virtual USBH_Status init()
+	{}
+	/* USB host deinit */
+	virtual void deinit()
+	{}
+	/* USB host request */
+	virtual void requests()
+	{}
+	/* USB host machine */
+	virtual void machine()
+	{}
+private:
+	USBH_class_ctx &m_control;
 };
 
 /* -------------------------------------------------------------------------- */

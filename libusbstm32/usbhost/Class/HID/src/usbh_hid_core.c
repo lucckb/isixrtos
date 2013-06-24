@@ -58,14 +58,8 @@ static __ALIGN_BEGIN HID_Machine_TypeDef        HID_Machine __ALIGN_END ;
 static __ALIGN_BEGIN USBH_HIDDesc_TypeDef       HID_Desc __ALIGN_END ;
 
 static __IO uint8_t start_toggle = 0;
-/**
-* @}
-*/ 
 
 
-/** @defgroup USBH_HID_CORE_Private_FunctionPrototypes
-* @{
-*/ 
 
 static USBH_Status USBH_HID_InterfaceInit  ( USBH_class_ctx * ctx );
 
@@ -96,7 +90,6 @@ static USBH_Status USBH_Set_Protocol (USB_OTG_CORE_HANDLE *pdev,
 
 
 
-
 const USBH_Class_cb_TypeDef  HID_cb =
 {
   USBH_HID_InterfaceInit,
@@ -111,14 +104,7 @@ const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback()
 	return &HID_cb;
 }
 
-/**
-* @}
-*/ 
 
-
-/** @defgroup USBH_HID_CORE_Private_Functions
-* @{
-*/ 
 
 /**
 * @brief  USBH_HID_InterfaceInit 

@@ -819,6 +819,3 @@ USBH_Status USBH_HandleControl (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost)
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 
-
-
-
