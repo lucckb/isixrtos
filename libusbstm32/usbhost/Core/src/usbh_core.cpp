@@ -63,12 +63,13 @@ static const USBH_HCD_INT_cb_TypeDef USBH_HCD_INT_cb =
   USBH_Disconnected,    
 };
 
+extern "C" {
 const USBH_HCD_INT_cb_TypeDef* USBH_Get_Device_INT_fops(void)
 {
 	return &USBH_HCD_INT_cb;
 }
 
-
+}
 
 /** @defgroup USBH_CORE_Private_FunctionPrototypes
   * @{
@@ -188,6 +189,12 @@ USBH_Status USBH_DeInit(USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost)
 void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
 {
   USBH_Status status = USBH_FAIL;
+  USBH_class_ctx ctx =
+  {
+  	pdev,
+  	phost,
+  	phost->class_cb->pdata
+  };
 
   if( pdev->host.reset_req  )
   {
@@ -271,7 +278,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
     /*The function should return user response true to move to class state */
     if ( phost->usr_cb->UserInput() == USBH_USR_RESP_OK)
     {
-      if((phost->class_cb->Init(pdev, phost))\
+      if((phost->class_cb->Init(&ctx))\
         == USBH_OK)
       {
         phost->gState  = HOST_CLASS_REQUEST;     
@@ -281,7 +288,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
     
   case HOST_CLASS_REQUEST:  
     /* process class standard contol requests state machine */ 
-    status = phost->class_cb->Requests(pdev, phost);
+    status = phost->class_cb->Requests(&ctx);
     
      if(status == USBH_OK)
      {
@@ -297,7 +304,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
     break;    
   case HOST_CLASS:   
     /* process class state machine */
-    status = phost->class_cb->Machine(pdev, phost);
+    status = phost->class_cb->Machine(&ctx);
     USBH_ErrorHandle(phost, status);
     break;       
     
@@ -313,7 +320,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
     /* Re-Initilaize Host for new Enumeration */
     USBH_DeInit(pdev, phost);
     phost->usr_cb->DeInit();
-    phost->class_cb->DeInit(pdev, &phost->device_prop);
+    phost->class_cb->DeInit( &ctx );
     break;
     
   case HOST_DEV_DISCONNECTED :
@@ -324,7 +331,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
     /* Re-Initilaize Host for new Enumeration */
     USBH_DeInit(pdev, phost);
     phost->usr_cb->DeInit();
-    phost->class_cb->DeInit(pdev, &phost->device_prop); 
+    phost->class_cb->DeInit(&ctx);
     USBH_DeAllocate_AllChannel(pdev);  
     phost->gState = HOST_IDLE;
     

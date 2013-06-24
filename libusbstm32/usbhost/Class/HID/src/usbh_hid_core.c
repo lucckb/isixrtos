@@ -49,10 +49,10 @@
 static __ALIGN_BEGIN HID_Machine_TypeDef        HID_Machine __ALIGN_END ;
 
 
-static __ALIGN_BEGIN HID_Report_TypeDef         HID_Report __ALIGN_END ;
+//static __ALIGN_BEGIN HID_Report_TypeDef         HID_Report __ALIGN_END ;
 
 
-static __ALIGN_BEGIN USB_Setup_TypeDef          HID_Setup __ALIGN_END ;
+//static __ALIGN_BEGIN USB_Setup_TypeDef          HID_Setup __ALIGN_END ;
 
 
 static __ALIGN_BEGIN USBH_HIDDesc_TypeDef       HID_Desc __ALIGN_END ;
@@ -67,19 +67,15 @@ static __IO uint8_t start_toggle = 0;
 * @{
 */ 
 
-static USBH_Status USBH_HID_InterfaceInit  (USB_OTG_CORE_HANDLE *pdev , 
-                                            void *phost);
+static USBH_Status USBH_HID_InterfaceInit  ( USBH_class_ctx * ctx );
 
 static void  USBH_ParseHIDDesc (USBH_HIDDesc_TypeDef *desc, uint8_t *buf);
 
-static void USBH_HID_InterfaceDeInit  (USB_OTG_CORE_HANDLE *pdev , 
-                                       void *phost);
+static void USBH_HID_InterfaceDeInit (  USBH_class_ctx * ctx );
 
-static USBH_Status USBH_HID_Handle(USB_OTG_CORE_HANDLE *pdev , 
-                                   void *phost);
+static USBH_Status USBH_HID_Handle(USBH_class_ctx * ctx);
 
-static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev , 
-                                         void *phost);
+static USBH_Status USBH_HID_ClassRequest( USBH_class_ctx * ctx );
 
 static USBH_Status USBH_Get_HID_ReportDescriptor (USB_OTG_CORE_HANDLE *pdev, 
                                                   USBH_HOST *phost,
@@ -106,7 +102,8 @@ const USBH_Class_cb_TypeDef  HID_cb =
   USBH_HID_InterfaceInit,
   USBH_HID_InterfaceDeInit,
   USBH_HID_ClassRequest,
-  USBH_HID_Handle
+  USBH_HID_Handle,
+  0
 };
 
 const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback()
@@ -130,34 +127,32 @@ const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback()
 * @param  hdev: Selected device property
 * @retval  USBH_Status :Response for USB HID driver intialization
 */
-static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev, 
-                                           void *phost)
+static USBH_Status USBH_HID_InterfaceInit ( USBH_class_ctx * ctx )
 {	
   uint8_t maxEP;
-  USBH_HOST *pphost = phost;
     
   uint8_t num =0;
   USBH_Status status = USBH_BUSY ;
   HID_Machine.state = HID_ERROR;
   
-  
-  if(pphost->device_prop.Itf_Desc[0].bInterfaceSubClass  == HID_BOOT_CODE)
+
+  if(ctx->phost->device_prop.Itf_Desc[0].bInterfaceSubClass  == HID_BOOT_CODE)
   {
     /*Decode Bootclass Protocl: Mouse or Keyboard*/
-    if(pphost->device_prop.Itf_Desc[0].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
+    if(ctx->phost->device_prop.Itf_Desc[0].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
     {
       HID_Machine.cb = USR_KEYBRD_Get_Callback();
     }
-    else if(pphost->device_prop.Itf_Desc[0].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)		  
+    else if(ctx->phost->device_prop.Itf_Desc[0].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)
     {
       HID_Machine.cb = USR_MOUSE_GetClassCallback();
     }
     
     HID_Machine.state     = HID_IDLE;
     HID_Machine.ctl_state = HID_REQ_IDLE; 
-    HID_Machine.ep_addr   = pphost->device_prop.Ep_Desc[0][0].bEndpointAddress;
-    HID_Machine.length    = pphost->device_prop.Ep_Desc[0][0].wMaxPacketSize;
-    HID_Machine.poll      = pphost->device_prop.Ep_Desc[0][0].bInterval ;
+    HID_Machine.ep_addr   = ctx->phost->device_prop.Ep_Desc[0][0].bEndpointAddress;
+    HID_Machine.length    = ctx->phost->device_prop.Ep_Desc[0][0].wMaxPacketSize;
+    HID_Machine.poll      = ctx->phost->device_prop.Ep_Desc[0][0].bInterval ;
     
     if (HID_Machine.poll  < HID_MIN_POLL) 
     {
@@ -168,41 +163,41 @@ static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
     /* Check fo available number of endpoints */
     /* Find the number of EPs in the Interface Descriptor */      
     /* Choose the lower number in order not to overrun the buffer allocated */
-    maxEP = ( (pphost->device_prop.Itf_Desc[0].bNumEndpoints <= USBH_MAX_NUM_ENDPOINTS) ? 
-             pphost->device_prop.Itf_Desc[0].bNumEndpoints :
+    maxEP = ( (ctx->phost->device_prop.Itf_Desc[0].bNumEndpoints <= USBH_MAX_NUM_ENDPOINTS) ?
+    		ctx->phost->device_prop.Itf_Desc[0].bNumEndpoints :
                  USBH_MAX_NUM_ENDPOINTS); 
     
     
     /* Decode endpoint IN and OUT address from interface descriptor */
     for (num=0; num < maxEP; num++)
     {
-      if(pphost->device_prop.Ep_Desc[0][num].bEndpointAddress & 0x80)
+      if(ctx->phost->device_prop.Ep_Desc[0][num].bEndpointAddress & 0x80)
       {
-        HID_Machine.HIDIntInEp = (pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
+        HID_Machine.HIDIntInEp = (ctx->phost->device_prop.Ep_Desc[0][num].bEndpointAddress);
         HID_Machine.hc_num_in  =\
-               USBH_Alloc_Channel(pdev, 
-                                  pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
+               USBH_Alloc_Channel(ctx->pdev,
+            		   	   ctx->phost->device_prop.Ep_Desc[0][num].bEndpointAddress);
         
         /* Open channel for IN endpoint */
-        USBH_Open_Channel  (pdev,
+        USBH_Open_Channel  (ctx->pdev,
                             HID_Machine.hc_num_in,
-                            pphost->device_prop.address,
-                            pphost->device_prop.speed,
+                            ctx->phost->device_prop.address,
+                            ctx->phost->device_prop.speed,
                             EP_TYPE_INTR,
                             HID_Machine.length); 
       }
       else
       {
-        HID_Machine.HIDIntOutEp = (pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
+        HID_Machine.HIDIntOutEp = (ctx->phost->device_prop.Ep_Desc[0][num].bEndpointAddress);
         HID_Machine.hc_num_out  =\
-                USBH_Alloc_Channel(pdev, 
-                                   pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
+                USBH_Alloc_Channel(ctx->pdev,
+                		ctx->phost->device_prop.Ep_Desc[0][num].bEndpointAddress);
         
         /* Open channel for OUT endpoint */
-        USBH_Open_Channel  (pdev,
+        USBH_Open_Channel  (ctx->pdev,
                             HID_Machine.hc_num_out,
-                            pphost->device_prop.address,
-                            pphost->device_prop.speed,
+                            ctx->phost->device_prop.address,
+                            ctx->phost->device_prop.speed,
                             EP_TYPE_INTR,
                             HID_Machine.length); 
       }
@@ -214,7 +209,7 @@ static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
   }
   else
   {
-    pphost->usr_cb->DeviceNotSupported();   
+	  ctx->phost->usr_cb->DeviceNotSupported();
   }
   
   return status;
@@ -230,22 +225,21 @@ static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
 * @param  hdev: Selected device property
 * @retval None
 */
-void USBH_HID_InterfaceDeInit ( USB_OTG_CORE_HANDLE *pdev,
-                               void *phost)
+void USBH_HID_InterfaceDeInit (  USBH_class_ctx * ctx )
 {	
    //USBH_HOST *pphost = phost;
     
   if(HID_Machine.hc_num_in != 0x00)
   {   
-    USB_OTG_HC_Halt(pdev, HID_Machine.hc_num_in);
-    USBH_Free_Channel  (pdev, HID_Machine.hc_num_in);
+    USB_OTG_HC_Halt(ctx->pdev, HID_Machine.hc_num_in);
+    USBH_Free_Channel  (ctx->pdev, HID_Machine.hc_num_in);
     HID_Machine.hc_num_in = 0;     /* Reset the Channel as Free */  
   }
   
   if(HID_Machine.hc_num_out != 0x00)
   {   
-    USB_OTG_HC_Halt(pdev, HID_Machine.hc_num_out);
-    USBH_Free_Channel  (pdev, HID_Machine.hc_num_out);
+    USB_OTG_HC_Halt(ctx->pdev, HID_Machine.hc_num_out);
+    USBH_Free_Channel  (ctx->pdev, HID_Machine.hc_num_out);
     HID_Machine.hc_num_out = 0;     /* Reset the Channel as Free */  
   }
  
@@ -260,11 +254,9 @@ void USBH_HID_InterfaceDeInit ( USB_OTG_CORE_HANDLE *pdev,
 * @param  hdev: Selected device property
 * @retval  USBH_Status :Response for USB Set Protocol request
 */
-static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev , 
-                                         void *phost)
+static USBH_Status USBH_HID_ClassRequest( USBH_class_ctx * ctx )
 {   
-    USBH_HOST *pphost = phost;
-    
+
   USBH_Status status         = USBH_BUSY;
   USBH_Status classReqStatus = USBH_BUSY;
   
@@ -276,10 +268,10 @@ static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev ,
   case HID_REQ_GET_HID_DESC:
     
     /* Get HID Desc */ 
-    if (USBH_Get_HID_Descriptor (pdev, pphost, USB_HID_DESC_SIZE)== USBH_OK)
+    if (USBH_Get_HID_Descriptor (ctx->pdev, ctx->phost, USB_HID_DESC_SIZE)== USBH_OK)
     {
       
-      USBH_ParseHIDDesc(&HID_Desc, pdev->host.Rx_Buffer);
+      USBH_ParseHIDDesc(&HID_Desc, ctx->pdev->host.Rx_Buffer);
       HID_Machine.ctl_state = HID_REQ_GET_REPORT_DESC;
     }
     
@@ -288,7 +280,7 @@ static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev ,
     
     
     /* Get Report Desc */ 
-    if (USBH_Get_HID_ReportDescriptor(pdev , pphost, HID_Desc.wItemLength) == USBH_OK)
+    if (USBH_Get_HID_ReportDescriptor(ctx->pdev , ctx->phost, HID_Desc.wItemLength) == USBH_OK)
     {
       HID_Machine.ctl_state = HID_REQ_SET_IDLE;
     }
@@ -297,7 +289,7 @@ static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev ,
     
   case HID_REQ_SET_IDLE:
     
-    classReqStatus = USBH_Set_Idle (pdev, pphost, 0, 0);
+    classReqStatus = USBH_Set_Idle (ctx->pdev, ctx->phost, 0, 0);
     
     /* set Idle */
     if (classReqStatus == USBH_OK)
@@ -312,7 +304,7 @@ static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev ,
     
   case HID_REQ_SET_PROTOCOL:
     /* set protocol */
-    if (USBH_Set_Protocol (pdev ,pphost, 0) == USBH_OK)
+    if (USBH_Set_Protocol (ctx->pdev ,ctx->phost, 0) == USBH_OK)
     {
       HID_Machine.ctl_state = HID_REQ_IDLE;
       
@@ -336,10 +328,8 @@ static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev ,
 * @param  hdev: Selected device property
 * @retval USBH_Status
 */
-static USBH_Status USBH_HID_Handle(USB_OTG_CORE_HANDLE *pdev , 
-                                   void   *phost)
+static USBH_Status USBH_HID_Handle(USBH_class_ctx * ctx)
 {
-  USBH_HOST *pphost = phost;
   USBH_Status status = USBH_OK;
   
   switch (HID_Machine.state)
@@ -352,7 +342,7 @@ static USBH_Status USBH_HID_Handle(USB_OTG_CORE_HANDLE *pdev ,
   case HID_SYNC:
 
     /* Sync with start of Even Frame */
-    if(USB_OTG_IsEvenFrame(pdev) == TRUE)
+    if(USB_OTG_IsEvenFrame(ctx->pdev) == TRUE)
     {
       HID_Machine.state = HID_GET_DATA;  
     }
@@ -360,22 +350,22 @@ static USBH_Status USBH_HID_Handle(USB_OTG_CORE_HANDLE *pdev ,
     
   case HID_GET_DATA:
 
-    USBH_InterruptReceiveData(pdev, 
+    USBH_InterruptReceiveData(ctx->pdev,
                               HID_Machine.buff,
                               HID_Machine.length,
                               HID_Machine.hc_num_in);
     start_toggle = 1;
     
     HID_Machine.state = HID_POLL;
-    HID_Machine.timer = HCD_GetCurrentFrame(pdev);
+    HID_Machine.timer = HCD_GetCurrentFrame(ctx->pdev);
     break;
     
   case HID_POLL:
-    if(( HCD_GetCurrentFrame(pdev) - HID_Machine.timer) >= HID_Machine.poll)
+    if(( HCD_GetCurrentFrame(ctx->pdev) - HID_Machine.timer) >= HID_Machine.poll)
     {
       HID_Machine.state = HID_GET_DATA;
     }
-    else if(HCD_GetURB_State(pdev , HID_Machine.hc_num_in) == URB_DONE)
+    else if(HCD_GetURB_State(ctx->pdev , HID_Machine.hc_num_in) == URB_DONE)
     {
       if(start_toggle == 1) /* handle data once */
       {
@@ -383,12 +373,12 @@ static USBH_Status USBH_HID_Handle(USB_OTG_CORE_HANDLE *pdev ,
         HID_Machine.cb->Decode(HID_Machine.buff);
       }
     }
-    else if(HCD_GetURB_State(pdev, HID_Machine.hc_num_in) == URB_STALL) /* IN Endpoint Stalled */
+    else if(HCD_GetURB_State(ctx->pdev, HID_Machine.hc_num_in) == URB_STALL) /* IN Endpoint Stalled */
     {
       
       /* Issue Clear Feature on interrupt IN endpoint */ 
-      if( (USBH_ClrFeature(pdev, 
-                           pphost,
+      if( (USBH_ClrFeature(ctx->pdev,
+    		  	  	  	   ctx->phost,
                            HID_Machine.ep_addr,
                            HID_Machine.hc_num_in)) == USBH_OK)
       {

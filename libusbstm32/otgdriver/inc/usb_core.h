@@ -81,7 +81,7 @@ typedef enum {
   HC_STALL,
   HC_XACTERR,  
   HC_BBLERR,   
-  HC_DATATGLERR,  
+  HC_DATATGLERR
 }HC_STATUS;
 
 typedef enum {

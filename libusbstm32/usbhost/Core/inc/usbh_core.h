@@ -167,17 +167,23 @@ typedef struct _DeviceProp
   
 }USBH_Device_TypeDef;
 
+struct _Host_TypeDef;
+
+typedef struct _USBH_class_ctx
+{
+	USB_OTG_CORE_HANDLE *pdev;
+	struct _Host_TypeDef *phost;
+	void *pdata;
+}  USBH_class_ctx;
+
+
 typedef struct _USBH_Class_cb
 {
-  USBH_Status  (*Init)\
-    (USB_OTG_CORE_HANDLE *pdev , void *phost);
-  void         (*DeInit)\
-    (USB_OTG_CORE_HANDLE *pdev , void *phost);
-  USBH_Status  (*Requests)\
-    (USB_OTG_CORE_HANDLE *pdev , void *phost);  
-  USBH_Status  (*Machine)\
-    (USB_OTG_CORE_HANDLE *pdev , void *phost);     
-  
+  USBH_Status  (*Init)( USBH_class_ctx * ctx );
+  void         (*DeInit)(USBH_class_ctx * ctx );
+  USBH_Status  (*Requests)(USBH_class_ctx * ctx );
+  USBH_Status  (*Machine)(USBH_class_ctx * ctx );
+  void *pdata;
 } USBH_Class_cb_TypeDef;
 
 
@@ -196,9 +202,9 @@ typedef struct _USBH_USR_PROP
                                      USBH_InterfaceDesc_TypeDef *,
                                      USBH_EpDesc_TypeDef *); 
   /* Configuration Descriptor available */
-  void (*ManufacturerString)(void *);     /* ManufacturerString*/
-  void (*ProductString)(void *);          /* ProductString*/
-  void (*SerialNumString)(void *);        /* SerialNubString*/
+  void (*ManufacturerString)(const void *);     /* ManufacturerString*/
+  void (*ProductString)(const void *);          /* ProductString*/
+  void (*SerialNumString)(const void *);        /* SerialNubString*/
   void (*EnumerationDone)(void);           /* Enumeration finished */
   USBH_USR_Status (*UserInput)(void);
   int  (*UserApplication) (void);
@@ -225,11 +231,9 @@ typedef struct _Host_TypeDef
 } USBH_HOST, *pUSBH_HOST;
 
 
-void USBH_Init(USB_OTG_CORE_HANDLE *pdev,
-               USB_OTG_CORE_ID_TypeDef coreID, 
-               USBH_HOST *phost,                    
-               const USBH_Class_cb_TypeDef *class_cb,
-               const USBH_Usr_cb_TypeDef *usr_cb);
+void USBH_Init(USB_OTG_CORE_HANDLE *pdev, USB_OTG_CORE_ID_TypeDef coreID,
+				USBH_HOST *phost, const USBH_Class_cb_TypeDef *class_cb,
+                const USBH_Usr_cb_TypeDef *usr_cb);
                
 USBH_Status USBH_DeInit(USB_OTG_CORE_HANDLE *pdev, 
                         USBH_HOST *phost);

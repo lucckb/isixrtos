@@ -136,20 +136,20 @@ void USBH_USR_Configuration_DescAvailable(USBH_CfgDesc_TypeDef * cfgDesc,
   }
 }
 
-void USBH_USR_Manufacturer_String(void *ManufacturerString)
+void USBH_USR_Manufacturer_String(const char *ManufacturerString)
 {
-  dbprintf( "Manufacturer : %s\n", (char *)ManufacturerString);
+  dbprintf( "Manufacturer : %s\n", ManufacturerString);
 
 }
 
-void USBH_USR_Product_String(void *ProductString)
+void USBH_USR_Product_String(const char *ProductString)
 {
-  dbprintf( "Product : %s\n", (char *)ProductString);
+  dbprintf( "Product : %s\n", ProductString);
 }
 
-void USBH_USR_SerialNum_String(void *SerialNumString)
+void USBH_USR_SerialNum_String(const char *SerialNumString)
 {
-	 dbprintf( "Serial Number : %s\n", (char *)SerialNumString);
+	 dbprintf( "Serial Number : %s\n", SerialNumString);
 }
 
 void USBH_USR_EnumerationDone(void)
