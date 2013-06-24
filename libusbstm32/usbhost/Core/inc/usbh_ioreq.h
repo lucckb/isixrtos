@@ -34,18 +34,9 @@
 #include "usbh_core.h"
 #include "usbh_def.h"
 
-/** @addtogroup USBH_LIB
-  * @{
-  */
-
-/** @addtogroup USBH_LIB_CORE
-* @{
-*/
-  
-/** @defgroup USBH_IOREQ
-  * @brief This file is the header file for usbh_ioreq.c
-  * @{
-  */ 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 
 /** @defgroup USBH_IOREQ_Exported_Defines
@@ -58,28 +49,6 @@
   * @}
   */ 
 
-
-/** @defgroup USBH_IOREQ_Exported_Types
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_IOREQ_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_IOREQ_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
 /** @defgroup USBH_IOREQ_Exported_FunctionsPrototype
   * @{
@@ -133,23 +102,14 @@ USBH_Status USBH_IsocSendData( USB_OTG_CORE_HANDLE *pdev,
                                 uint8_t *buff, 
                                 uint32_t length,
                                 uint8_t hc_num);
-/**
-  * @}
-  */ 
+
+
+
+#ifdef __cplusplus
+	}
+#endif
 
 #endif /* __USBH_IOREQ_H */
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */
-
-/**
-* @}
-*/ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

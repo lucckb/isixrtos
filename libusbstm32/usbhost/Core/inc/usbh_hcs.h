@@ -32,18 +32,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_core.h"
 
-/** @addtogroup USBH_LIB
-  * @{
-  */
-
-/** @addtogroup USBH_LIB_CORE
-* @{
-*/
-  
-/** @defgroup USBH_HCS
-  * @brief This file is the header file for usbh_hcs.c
-  * @{
-  */ 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 /** @defgroup USBH_HCS_Exported_Defines
   * @{
@@ -54,35 +45,9 @@
 #define HC_USED          0x8000
 #define HC_ERROR         0xFFFF
 #define HC_USED_MASK     0x7FFF
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_HCS_Exported_Types
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
 
-/** @defgroup USBH_HCS_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
-/** @defgroup USBH_HCS_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_HCS_Exported_FunctionsPrototype
-  * @{
-  */
 
 uint8_t USBH_Alloc_Channel(USB_OTG_CORE_HANDLE *pdev, uint8_t ep_addr);
 
@@ -103,26 +68,19 @@ uint8_t USBH_Modify_Channel (USB_OTG_CORE_HANDLE *pdev,
                             uint8_t speed,
                             uint8_t ep_type,
                             uint16_t mps);
-/**
-  * @}
-  */ 
+
+
+
+#ifdef __cplusplus
+	}
+#endif
 
 
 
 #endif /* __USBH_HCS_H */
 
 
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
-
-/**
-* @}
-*/ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

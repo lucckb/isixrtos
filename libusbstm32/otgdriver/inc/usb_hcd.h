@@ -33,7 +33,9 @@
 #include "usb_regs.h"
 #include "usb_core.h"
 
-
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 /** @defgroup USB_HCD_Exported_FunctionsPrototype
   * @{
@@ -51,9 +53,12 @@ uint32_t  HCD_GetCurrentFrame      (USB_OTG_CORE_HANDLE *pdev) ;
 URB_STATE HCD_GetURB_State         (USB_OTG_CORE_HANDLE *pdev,  uint8_t ch_num); 
 uint32_t  HCD_GetXferCnt           (USB_OTG_CORE_HANDLE *pdev,  uint8_t ch_num); 
 HC_STATUS HCD_GetHCState           (USB_OTG_CORE_HANDLE *pdev,  uint8_t ch_num) ;
-/**
-  * @}
-  */ 
+
+
+#ifdef __cplusplus
+	}
+#endif
+
 
 #endif //__USB_HCD_H__
 

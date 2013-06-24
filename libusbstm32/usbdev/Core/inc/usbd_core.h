@@ -34,14 +34,9 @@
 #include "usbd_def.h"
 #include "usbd_conf.h"
 
-/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
-  * @{
-  */
-  
-/** @defgroup USBD_CORE
-  * @brief This file is the Header file for usbd_core.c file
-  * @{
-  */ 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 
 /** @defgroup USBD_CORE_Exported_Defines
@@ -58,36 +53,6 @@ typedef enum {
   */ 
 
 
-/** @defgroup USBD_CORE_Exported_TypesDefinitions
-  * @{
-  */
- 
-
-/**
-  * @}
-  */ 
-
-
-
-/** @defgroup USBD_CORE_Exported_Macros
-  * @{
-  */ 
-
-/**
-  * @}
-  */ 
-
-/** @defgroup USBD_CORE_Exported_Variables
-  * @{
-  */ 
-
-/**
-  * @}
-  */ 
-
-/** @defgroup USBD_CORE_Exported_FunctionsPrototype
-  * @{
-  */ 
 
 struct _USBD_DCD_INT;
 
@@ -107,9 +72,10 @@ USBD_Status USBD_SetCfg(USB_OTG_CORE_HANDLE  *pdev, uint8_t cfgidx);
 
 const struct _USBD_DCD_INT* USBD_Get_Device_INT_fops(void);
 
-/**
-  * @}
-  */ 
+
+#ifdef __cplusplus
+	}
+#endif
 
 #endif /* __USBD_CORE_H */
 

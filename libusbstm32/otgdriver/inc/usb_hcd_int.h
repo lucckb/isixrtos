@@ -32,6 +32,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usb_hcd.h"
 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 
 typedef struct _USBH_HCD_INT
@@ -90,7 +93,9 @@ void Disconnect_Callback_Handler(USB_OTG_CORE_HANDLE *pdev);
 void Overcurrent_Callback_Handler(USB_OTG_CORE_HANDLE *pdev);
 uint32_t USBH_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
 
-
+#ifdef __cplusplus
+	}
+#endif
 
 #endif //__HCD_INT_H__
 

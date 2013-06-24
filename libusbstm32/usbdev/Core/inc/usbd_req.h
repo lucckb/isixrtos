@@ -36,45 +36,9 @@
 #include  "usbd_conf.h"
 
 
-/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
-  * @{
-  */
-  
-/** @defgroup USBD_REQ
-  * @brief header file for the usbd_ioreq.c file
-  * @{
-  */ 
-
-/** @defgroup USBD_REQ_Exported_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBD_REQ_Exported_Types
-  * @{
-  */
-/**
-  * @}
-  */ 
-
-
-
-/** @defgroup USBD_REQ_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USBD_REQ_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 /** @defgroup USBD_REQ_Exported_FunctionsPrototype
   * @{
@@ -90,19 +54,13 @@ void USBD_CtlError( USB_OTG_CORE_HANDLE  *pdev,
                             USB_SETUP_REQ *req);
 
 void USBD_GetString(const char *desc, uint8_t *unicode, uint16_t *len);
-/**
-  * @}
-  */ 
+
+#ifdef __cplusplus
+	}
+#endif
 
 #endif /* __USB_REQUEST_H_ */
 
-/**
-  * @}
-  */ 
-
-/**
-* @}
-*/ 
 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

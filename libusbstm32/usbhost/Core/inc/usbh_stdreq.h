@@ -35,18 +35,9 @@
 #include "usbh_core.h"
 #include "usbh_def.h"
 
-/** @addtogroup USBH_LIB
-  * @{
-  */
-
-/** @addtogroup USBH_LIB_CORE
-* @{
-*/
-  
-/** @defgroup USBH_STDREQ
-  * @brief This file is the 
-  * @{
-  */ 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 
 /** @defgroup USBH_STDREQ_Exported_Defines
@@ -64,30 +55,8 @@
 
 #define USBH_HID_CLASS                    0x03
 
-/**
-  * @}
-  */ 
 
-
-/** @defgroup USBH_STDREQ_Exported_Types
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_STDREQ_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_STDREQ_Exported_Variables
-  * @{
-  */ 
-extern uint8_t USBH_CfgDesc[512];
+//extern uint8_t USBH_CfgDesc[512];
 /**
   * @}
   */ 
@@ -144,17 +113,11 @@ USBH_DescHeader_t      *USBH_GetNextDesc (uint8_t   *pbuf,
 
 #endif /* __USBH_STDREQ_H */
 
-/**
-  * @}
-  */ 
 
-/**
-  * @}
-  */ 
+#ifdef __cplusplus
+	}
+#endif
 
-/**
-* @}
-*/ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

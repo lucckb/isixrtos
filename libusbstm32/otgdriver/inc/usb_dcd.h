@@ -32,15 +32,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usb_core.h"
 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
-/** @addtogroup USB_OTG_DRIVER
-* @{
-*/
-
-/** @defgroup USB_DCD
-* @brief This file is the 
-* @{
-*/ 
 
 
 /** @defgroup USB_DCD_Exported_Defines
@@ -124,9 +119,11 @@ void DCD_SetEPStatus (USB_OTG_CORE_HANDLE *pdev ,
                       uint8_t epnum , 
                       uint32_t Status);
 
-/**
-* @}
-*/ 
+
+
+#ifdef __cplusplus
+	}
+#endif
 
 
 #endif //__DCD_H__

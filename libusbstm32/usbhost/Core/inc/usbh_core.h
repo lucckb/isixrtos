@@ -34,6 +34,10 @@
 #include "usbh_conf.h"
 
 
+#ifdef __cplusplus
+	extern "C" {
+#endif
+
 /** @defgroup USBH_CORE_Exported_Defines
   * @{
   */ 
@@ -234,6 +238,10 @@ void  USBH_Process(USB_OTG_CORE_HANDLE *pdev ,
 void USBH_ErrorHandle(USBH_HOST *phost, 
                       USBH_Status errType);
 
+
+#ifdef __cplusplus
+	}
+#endif
 
 #endif /* __USBH_CORE_H */
 

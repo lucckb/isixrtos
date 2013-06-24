@@ -29,57 +29,12 @@
 #include "usbh_ioreq.h"
 #include "usbh_stdreq.h"
 
-/** @addtogroup USBH_LIB
-* @{
-*/
-
-/** @addtogroup USBH_LIB_CORE
-* @{
-*/
-
-/** @defgroup USBH_STDREQ 
-* @brief This file implements the standard requests for device enumeration
-* @{
-*/
-
-
-/** @defgroup USBH_STDREQ_Private_Defines
-* @{
-*/ 
-/**
-* @}
-*/ 
-
-
-/** @defgroup USBH_STDREQ_Private_TypesDefinitions
-* @{
-*/ 
-/**
-* @}
-*/ 
 
 
 
-/** @defgroup USBH_STDREQ_Private_Macros
-* @{
-*/ 
-/**
-* @}
-*/ 
 
 
-/** @defgroup USBH_STDREQ_Private_Variables
-* @{
-*/
-/**
-* @}
-*/ 
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-__ALIGN_BEGIN uint8_t          USBH_CfgDesc[512] __ALIGN_END ;
+//static __ALIGN_BEGIN uint8_t          USBH_CfgDesc[512] __ALIGN_END ;
 
 
 /** @defgroup USBH_STDREQ_Private_FunctionPrototypes
@@ -165,11 +120,12 @@ USBH_Status USBH_Get_CfgDesc(USB_OTG_CORE_HANDLE *pdev,
                                   pdev->host.Rx_Buffer,
                                   length)) == USBH_OK)
   {
+	  //TODO: Lucja Fix it later very ugly stuff
     /*save Cfg descriptor for class parsing usage */
-    for( ; index < length ; index ++)
-    {
-      USBH_CfgDesc[index] = pdev->host.Rx_Buffer[index];
-    }
+  //  for( ; index < length ; index ++)
+   // {
+   //   USBH_CfgDesc[index] = pdev->host.Rx_Buffer[index];
+   // }
     
     /* Commands successfully sent and Response Received  */       
     USBH_ParseCfgDesc (&phost->device_prop.Cfg_Desc,

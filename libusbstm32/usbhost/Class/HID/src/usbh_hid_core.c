@@ -45,35 +45,19 @@
 #include "usbh_hid_keybd.h"
 
 
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-__ALIGN_BEGIN HID_Machine_TypeDef        HID_Machine __ALIGN_END ;
 
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-__ALIGN_BEGIN HID_Report_TypeDef         HID_Report __ALIGN_END ;
+static __ALIGN_BEGIN HID_Machine_TypeDef        HID_Machine __ALIGN_END ;
 
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-__ALIGN_BEGIN USB_Setup_TypeDef          HID_Setup __ALIGN_END ;
 
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
-    #pragma data_alignment=4   
-  #endif
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-__ALIGN_BEGIN USBH_HIDDesc_TypeDef       HID_Desc __ALIGN_END ; 
+static __ALIGN_BEGIN HID_Report_TypeDef         HID_Report __ALIGN_END ;
 
-__IO uint8_t start_toggle = 0;
+
+static __ALIGN_BEGIN USB_Setup_TypeDef          HID_Setup __ALIGN_END ;
+
+
+static __ALIGN_BEGIN USBH_HIDDesc_TypeDef       HID_Desc __ALIGN_END ;
+
+static __IO uint8_t start_toggle = 0;
 /**
 * @}
 */ 

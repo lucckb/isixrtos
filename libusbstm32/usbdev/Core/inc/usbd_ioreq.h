@@ -34,53 +34,11 @@
 #include  "usbd_def.h"
 #include  "usbd_core.h"
 
-/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
-  * @{
-  */
-  
-/** @defgroup USBD_IOREQ
-  * @brief header file for the usbd_ioreq.c file
-  * @{
-  */ 
 
-/** @defgroup USBD_IOREQ_Exported_Defines
-  * @{
-  */ 
-/**
-  * @}
-  */ 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
-
-/** @defgroup USBD_IOREQ_Exported_Types
-  * @{
-  */
-
-
-/**
-  * @}
-  */ 
-
-
-
-/** @defgroup USBD_IOREQ_Exported_Macros
-  * @{
-  */ 
-
-/**
-  * @}
-  */ 
-
-/** @defgroup USBD_IOREQ_Exported_Variables
-  * @{
-  */ 
-
-/**
-  * @}
-  */ 
-
-/** @defgroup USBD_IOREQ_Exported_FunctionsPrototype
-  * @{
-  */ 
 
 USBD_Status  USBD_CtlSendData (USB_OTG_CORE_HANDLE  *pdev, 
                                const uint8_t *buf,
@@ -105,17 +63,13 @@ USBD_Status  USBD_CtlReceiveStatus (USB_OTG_CORE_HANDLE  *pdev);
 uint16_t  USBD_GetRxCount (USB_OTG_CORE_HANDLE  *pdev , 
                            uint8_t epnum);
 
-/**
-  * @}
-  */ 
+#ifdef __cplusplus
+	}
+#endif
+
 
 #endif /* __USBD_IOREQ_H_ */
 
-/**
-  * @}
-  */ 
 
-/**
-* @}
-*/ 
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

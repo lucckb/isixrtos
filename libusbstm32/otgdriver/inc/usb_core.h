@@ -35,19 +35,10 @@
 #include "usb_defines.h"
 
 
-/** @addtogroup USB_OTG_DRIVER
-  * @{
-  */
-  
-/** @defgroup USB_CORE
-  * @brief usb otg driver core layer
-  * @{
-  */ 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
-
-/** @defgroup USB_CORE_Exported_Defines
-  * @{
-  */ 
 
 #define USB_OTG_EP0_IDLE                          0
 #define USB_OTG_EP0_SETUP                         1
@@ -380,9 +371,12 @@ void         USB_OTG_StopDevice(USB_OTG_CORE_HANDLE *pdev);
 void         USB_OTG_SetEPStatus (USB_OTG_CORE_HANDLE *pdev , USB_OTG_EP *ep , uint32_t Status);
 uint32_t     USB_OTG_GetEPStatus(USB_OTG_CORE_HANDLE *pdev ,USB_OTG_EP *ep);
 #endif
-/**
-  * @}
-  */ 
+
+
+#ifdef __cplusplus
+	}
+#endif
+
 
 #endif  /* __USB_CORE_H__ */
 

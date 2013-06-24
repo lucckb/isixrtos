@@ -26,8 +26,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USBH_CONF__H__
-#define __USBH_CONF__H__
+#ifndef STM32_USBH_CONF__H_
+#define STM32_USBH_CONF__H_
 
 /* Includes ------------------------------------------------------------------*/
 
@@ -52,39 +52,7 @@
 #define USBH_MSC_MPS_SIZE                 0x200
 #endif
 
-/**
-  * @}
-  */ 
 
-
-/** @defgroup USBH_CONF_Exported_Types
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup USBH_CONF_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_CONF_Exported_Variables
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_CONF_Exported_FunctionsPrototype
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
 
 #endif //__USBH_CONF__H__

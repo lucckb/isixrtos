@@ -31,11 +31,9 @@
 
 
 
-
-
-/** @defgroup USB_OTG_Exported_Defines
-  * @{
-  */ 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 
 void USB_OTG_InitiateSRP(void);
@@ -43,7 +41,9 @@ void USB_OTG_InitiateHNP(uint8_t state , uint8_t mode);
 void USB_OTG_Switchback (USB_OTG_CORE_DEVICE *pdev);
 uint32_t  USB_OTG_GetCurrentState (USB_OTG_CORE_DEVICE *pdev);
 
-
+#ifdef __cplusplus
+	}
+#endif
 
 #endif //__USB_OTG__
 

@@ -29,10 +29,14 @@
 #ifndef STM32_USB_BSP__H_
 #define STM32_USB_BSP__H_
 
+
 /* Includes ------------------------------------------------------------------*/
 #include "usb_core.h"
 #include "usb_conf.h"
 
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 
 /** @defgroup USB_BSP_Exported_FunctionsPrototype
@@ -48,9 +52,15 @@ void USB_OTG_BSP_EnableInterrupt (USB_OTG_CORE_HANDLE *pdev);
 void USB_OTG_BSP_ConfigVBUS(USB_OTG_CORE_HANDLE *pdev);
 void USB_OTG_BSP_DriveVBUS(USB_OTG_CORE_HANDLE *pdev,uint8_t state);
 #endif
-/**
-  * @}
-  */ 
+
+
+
+#ifdef __cplusplus
+	}
+#endif
+
+
+
 
 #endif //__USB_BSP__H__
 
