@@ -124,7 +124,7 @@ CTRL_State;
 
 typedef enum {
   USBH_USR_NO_RESP   = 0,
-  USBH_USR_RESP_OK = 1,
+  USBH_USR_RESP_OK = 1
 }
 USBH_USR_Status;
 
@@ -202,9 +202,9 @@ typedef struct _USBH_USR_PROP
                                      USBH_InterfaceDesc_TypeDef *,
                                      USBH_EpDesc_TypeDef *); 
   /* Configuration Descriptor available */
-  void (*ManufacturerString)(const void *);     /* ManufacturerString*/
-  void (*ProductString)(const void *);          /* ProductString*/
-  void (*SerialNumString)(const void *);        /* SerialNubString*/
+  void (*ManufacturerString)(const char *);     /* ManufacturerString*/
+  void (*ProductString)(const char *);          /* ProductString*/
+  void (*SerialNumString)(const char *);        /* SerialNubString*/
   void (*EnumerationDone)(void);           /* Enumeration finished */
   USBH_USR_Status (*UserInput)(void);
   int  (*UserApplication) (void);

@@ -10,6 +10,7 @@
 #include <usbd_cdc_core.h>
 #include <usbd_req.h>
 #include <usb_dcd_int.h>
+#include <usb_hcd_int.h>
 #include <dbglog.h>
 #include <isix.h>
 #include <prv/list.h>

@@ -5,9 +5,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#include "usbh_hid_mouse.h"
 #include "usbh_hid_keybd.h"
-
 #include <usbhost.h>
 #include <usbh_core.h>
 #include <usbh_hid_core.h>
@@ -84,11 +82,9 @@ void USBH_USR_Device_DescAvailable(void *DeviceDesc)
   USBH_DevDesc_TypeDef *hs;
   hs = DeviceDesc;
 
+ dbprintf( "VID : %04Xh\n" , (*hs).idVendor);
+ dbprintf( "PID : %04Xh\n" , (*hs).idProduct);
 
- dbprintf( "VID : %04Xh\n" , (uint32_t)(*hs).idVendor);
-
-
- dbprintf( "PID : %04Xh\n" , (uint32_t)(*hs).idProduct);
 }
 
 
@@ -104,13 +100,6 @@ void USBH_USR_DeviceAddressAssigned(void)
 #define KYBRD_LAST_LINE                  (uint8_t)200
 
 
-/**
-* @}
-*/
-uint8_t  KeybrdCharXpos           = 0;
-uint16_t KeybrdCharYpos           = 0;
-extern  int16_t  x_loc, y_loc;
-extern __IO int16_t  prev_x, prev_y;
 
 /**
 * @brief  USBH_USR_Conf_Desc
@@ -122,6 +111,8 @@ void USBH_USR_Configuration_DescAvailable(USBH_CfgDesc_TypeDef * cfgDesc,
                                           USBH_InterfaceDesc_TypeDef *itfDesc,
                                           USBH_EpDesc_TypeDef *epDesc)
 {
+  (void)epDesc;
+  (void)cfgDesc;
   USBH_InterfaceDesc_TypeDef *id;
 
   id = itfDesc;
@@ -181,74 +172,7 @@ void USBH_USR_UnrecoveredError (void)
 	dbprintf("> Unrecovered error.");
 }
 
-void  USR_KEYBRD_Init (void)
-{
-	dbprintf("> KEYB INIT.");
-}
 
-void  USR_KEYBRD_ProcessData (uint8_t data)
-{
-
-
-    dbprintf("KBD event [%c]", data);
-
-}
-
-void USR_MOUSE_Init	(void)
-{
-	dbprintf("Mouse initialized");
-}
-
-
-void USR_MOUSE_ProcessData(HID_MOUSE_Data_TypeDef *data)
-{
-
-  uint8_t idx = 1;
-  static uint8_t b_state[3] = { 0, 0 , 0};
-
-  if ((data->x != 0) && (data->y != 0))
-  {
-    HID_MOUSE_UpdatePosition(data->x , data->y);
-  }
-
-  for ( idx = 0 ; idx < 3 ; idx ++)
-  {
-
-    if(data->button & 1 << idx)
-    {
-      if(b_state[idx] == 0)
-      {
-        HID_MOUSE_ButtonPressed (idx);
-        b_state[idx] = 1;
-      }
-    }
-    else
-    {
-      if(b_state[idx] == 1)
-      {
-        HID_MOUSE_ButtonReleased (idx);
-        b_state[idx] = 0;
-      }
-    }
-  }
-
-
-}
-
-void HID_MOUSE_UpdatePosition (int8_t x, int8_t y)
-{
-	dbprintf("MOuse update pos %i %i", x, y);
-
-}
-void HID_MOUSE_ButtonPressed(uint8_t button_idx)
-{
-	dbprintf("Mouse pressed %u", button_idx);
-}
-
-void HID_MOUSE_ButtonReleased(uint8_t button_idx)
-{
-	dbprintf("Mouse released %u", button_idx);
-}
 
 static const USBH_Usr_cb_TypeDef USR_Callbacks =
 {

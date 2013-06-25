@@ -111,7 +111,7 @@ USBH_Status USBH_Get_CfgDesc(USB_OTG_CORE_HANDLE *pdev,
 
 {
   USBH_Status status;
-  uint16_t index = 0;
+  //uint16_t index = 0;
   
   if((status = USBH_GetDescriptor(pdev,
                                   phost,

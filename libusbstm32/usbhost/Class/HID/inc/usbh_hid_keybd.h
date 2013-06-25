@@ -33,38 +33,13 @@
 #include "usb_conf.h"
 #include "usbh_hid_core.h"
 
-/** @addtogroup USBH_LIB
-  * @{
-  */
-
-/** @addtogroup USBH_CLASS
-  * @{
-  */
-
-/** @addtogroup USBH_HID_CLASS
-  * @{
-  */
-  
-/** @defgroup USBH_HID_KEYBD
-  * @brief This file is the Header file for USBH_HID_KEYBD.c
-  * @{
-  */ 
-
-
-/** @defgroup USBH_HID_KEYBD_Exported_Types
-  * @{
-  */ 
 
 
 /**
   * @}
   */ 
 
-/** @defgroup USBH_HID_KEYBD_Exported_Defines
-  * @{
-  */ 
-#define QWERTY_KEYBOARD
-//#define AZERTY_KEYBOARD
+
 
 #define  KBD_LEFT_CTRL                                  0x01
 #define  KBD_LEFT_SHIFT                                 0x02
@@ -83,18 +58,6 @@
 
 const HID_cb_TypeDef* USR_KEYBRD_Get_Callback();
 
-/**
-  * @}
-  */ 
-
-/** @defgroup USBH_HID_KEYBD_Exported_FunctionsPrototype
-  * @{
-  */ 
-void  USR_KEYBRD_Init (void);
-void  USR_KEYBRD_ProcessData (uint8_t pbuf);
-/**
-  * @}
-  */ 
 
 #endif /* __USBH_HID_KEYBD_H */
 

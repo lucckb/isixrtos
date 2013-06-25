@@ -131,7 +131,8 @@ static USBH_Status USBH_HID_InterfaceInit ( USBH_class_ctx * ctx )
     }
     else if(ctx->phost->device_prop.Itf_Desc[0].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)
     {
-      HID_Machine.cb = USR_MOUSE_GetClassCallback();
+    	ctx->phost->usr_cb->DeviceNotSupported();
+    	return status;
     }
     
     HID_Machine.state     = HID_IDLE;
@@ -144,7 +145,6 @@ static USBH_Status USBH_HID_InterfaceInit ( USBH_class_ctx * ctx )
     {
        HID_Machine.poll = HID_MIN_POLL;
     }
-
     
     /* Check fo available number of endpoints */
     /* Find the number of EPs in the Interface Descriptor */      

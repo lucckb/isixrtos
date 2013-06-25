@@ -63,13 +63,12 @@ static const USBH_HCD_INT_cb_TypeDef USBH_HCD_INT_cb =
   USBH_Disconnected,    
 };
 
-extern "C" {
+
 const USBH_HCD_INT_cb_TypeDef* USBH_Get_Device_INT_fops(void)
 {
 	return &USBH_HCD_INT_cb;
 }
 
-}
 
 /** @defgroup USBH_CORE_Private_FunctionPrototypes
   * @{
@@ -114,6 +113,7 @@ uint8_t USBH_Disconnected (USB_OTG_CORE_HANDLE *pdev)
 uint8_t USBH_SOF (USB_OTG_CORE_HANDLE *pdev)
 {
   /* This callback could be used to implement a scheduler process */
+  (void)pdev;
   return 0;  
 }
 /**
@@ -484,7 +484,7 @@ static USBH_Status USBH_HandleEnum(USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost)
                                0xff) == USBH_OK)
       {
         /* User callback for Manufacturing string */
-        phost->usr_cb->ManufacturerString(Local_Buffer);
+        phost->usr_cb->ManufacturerString((const char*)Local_Buffer);
         phost->EnumState = ENUM_GET_PRODUCT_STRING_DESC;
       }
     }
@@ -505,7 +505,7 @@ static USBH_Status USBH_HandleEnum(USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost)
                                0xff) == USBH_OK)
       {
         /* User callback for Product string */
-        phost->usr_cb->ProductString(Local_Buffer);
+        phost->usr_cb->ProductString((const char*)(Local_Buffer));
         phost->EnumState = ENUM_GET_SERIALNUM_STRING_DESC;
       }
     }
@@ -526,7 +526,7 @@ static USBH_Status USBH_HandleEnum(USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost)
                                0xff) == USBH_OK)
       {
         /* User callback for Serial number string */
-        phost->usr_cb->SerialNumString(Local_Buffer);
+        phost->usr_cb->SerialNumString((const char*)(Local_Buffer));
         phost->EnumState = ENUM_SET_CONFIGURATION;
       }
     }
