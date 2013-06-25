@@ -194,8 +194,8 @@ static void KEYBRD_Decode(uint8_t *pbuf)
   nbr_keys_new  = 0;
   nbr_keys_last = 0;
   key_newest    = 0x00;
-  
-  
+  for(int i=0;i<8;++i)
+  dbprintf("Decode %i -- %02x", i, pbuf[i]);
   /* Check if Shift key is pressed */                                                                         
   if ((pbuf[0] == KBD_LEFT_SHIFT) || (pbuf[0] == KBD_RIGHT_SHIFT)) {
     shift = TRUE;

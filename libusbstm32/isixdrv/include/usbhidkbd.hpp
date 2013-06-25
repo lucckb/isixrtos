@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 
-#ifndef LIBISIX_DRV_USBHOST_H_
-#define LIBISIX_DRV_USBHOST_H_
+#ifndef LIBISIX_DRV_USBHIDKBD_H_
+#define LIBISIX_DRV_USBHIDKBD_H_
 /* ------------------------------------------------------------------ */
 #include <stddef.h>
 

@@ -49,7 +49,7 @@ typedef enum
   HID_GET_DATA,   
   HID_SYNC,     
   HID_POLL,
-  HID_ERROR,
+  HID_ERROR
 }
 HID_State;
 
@@ -60,7 +60,7 @@ typedef enum
   HID_REQ_GET_HID_DESC,
   HID_REQ_SET_IDLE,
   HID_REQ_SET_PROTOCOL,
-  HID_REQ_SET_REPORT,
+  HID_REQ_SET_REPORT
 
 }
 HID_CtlState;
