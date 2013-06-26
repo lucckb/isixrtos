@@ -128,7 +128,9 @@ HID_Machine_TypeDef;
 #define USB_HID_SET_PROTOCOL         0x0B    
 
 
-//extern const USBH_Class_cb_TypeDef  HID_cb;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback();
 
@@ -143,6 +145,10 @@ USBH_Status USBH_Set_Report (USB_OTG_CORE_HANDLE *pdev,
                                   uint8_t reportId,
                                   uint8_t reportLen,
                                   uint8_t* reportBuff);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* __USBH_HID_CORE_H */

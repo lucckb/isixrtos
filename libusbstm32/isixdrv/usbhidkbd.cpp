@@ -6,13 +6,13 @@
  */
 /* ------------------------------------------------------------------ */
 #include "usbh_hid_keybd.h"
-#include <usbhidkbd.hpp>
 #include <usbh_core.h>
 #include <usbh_hid_core.h>
 #include <usb_hcd_int.h>
 #include <dbglog.h>
 #include <isix.h>
 #include <isix/dev/input.hpp>
+#include <usbhidkbd.hpp>
 /* ------------------------------------------------------------------ */
 //USB host core handle
 static USB_OTG_CORE_HANDLE    usb_otg_dev;
@@ -182,6 +182,8 @@ static const USBH_Usr_cb_TypeDef usr_callbacks =
 /* USB int semaphore signal */
 static isix::sem_t *usb_ready_sem;
 
+namespace stm32 {
+namespace dev {
 /* ------------------------------------------------------------------ */
 static void host_usb_task( void *entry_param )
 {
@@ -195,10 +197,11 @@ static void host_usb_task( void *entry_param )
 	}
 }
 /* ------------------------------------------------------------------ */
-int stm32_usbhid_keyb_init(void)
+/* Initialize USB bus */
+int usb_bus_initialize( isix::dev::device &device )
 {
 	int ret = 0;
-	USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usb_host, USBH_HID_Class_Callback(), &usr_callbacks );
+	::USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usb_host, USBH_HID_Class_Callback(), &usr_callbacks );
 	do
 	{
 		if( !(usb_ready_sem = isix::isix_sem_create_limited(NULL,0,1)) )
@@ -210,7 +213,6 @@ int stm32_usbhid_keyb_init(void)
 }
 
 /* ------------------------------------------------------------------ */
-
 //OTG interrupt ISR vector
 void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 {
@@ -221,3 +223,4 @@ void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 	}
 }
 /* ------------------------------------------------------------------ */
+}}

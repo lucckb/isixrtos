@@ -5,26 +5,29 @@
  *      Author: lucck
  */
 
-#ifndef LIBISIX_DRV_USBHIDKBD_H_
-#define LIBISIX_DRV_USBHIDKBD_H_
+#ifndef LIBISIX_DRV_USBHIDKBD_HPP_
+#define LIBISIX_DRV_USBHIDKBD_HPP_
 /* ------------------------------------------------------------------ */
 #include <stddef.h>
+#include <isix/dev/input.hpp>
 
 /* ------------------------------------------------------------------ */
-#ifdef __cplusplus
-extern "C" {
 namespace stm32 {
 namespace dev {
-#endif
+/* ------------------------------------------------------------------ */
+/* Initialize USB bus */
+int usb_bus_initialize( );
 
 /* ------------------------------------------------------------------ */
-int stm32_usbhost_init(void);
-
+/* Register usb device class */
+int usb_register_device( isix::dev::device &device );
 
 /* ------------------------------------------------------------------ */
+class hid_keyboard	: public isix::dev::input_class
+{
 
-#ifdef __cplusplus
-}}}
-#endif
+};
+/* ------------------------------------------------------------------ */
+}}
 /* ------------------------------------------------------------------ */
 #endif /* USBHOST_H_ */

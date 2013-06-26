@@ -4,23 +4,27 @@
  *  Created on: 25-06-2013
  *      Author: lucck
  */
-
+/* ------------------------------------------------------------------ */
 #ifndef ISIX_DEV_INPUT_HPP_
 #define ISIX_DEV_INPUT_HPP_
+/* ------------------------------------------------------------------ */
+#include "device.hpp"
+
 /* ------------------------------------------------------------------ */
 namespace isix {
 namespace dev {
 
 /* ------------------------------------------------------------------ */
-class input_class
+class input_class : public device
 {
 public:
 	/* Event type */
 	enum event_type
 	{
-		EV_KEY,		/*Keyboard event */
-		EV_REL,		/*Relative event */
-		EV_ABS		/*Absolute event */
+		EV_SW,		/* Plug unplug event */
+		EV_KEY,		/* Keyboard event  */
+		EV_REL,		/* Relative event  */
+		EV_ABS		/* Absolute event  */
 	};
 	enum key_code
 	{
@@ -123,8 +127,7 @@ public:
 
 	/* get device ID */
 	virtual int get_device_id( id& /*id*/ ) const = 0;
-	/* Is device operational */
-	virtual int is_connected() const = 0;
+
 	/* get repeat code */
 	virtual int get_repeat_settings( int& /*delay */, int& /*period*/ ) const
 	{
@@ -155,7 +158,10 @@ public:
 		return ISIX_ENOTSUP;
 	}
 	/* Read data from virtual device */
-	virtual int read( event &ev, int timeout ) const = 0;
+	int read( event &ev, int timeout )
+	{
+		return device::read( &ev, sizeof(event), timeout );
+	}
 };
 
 /* ------------------------------------------------------------------ */
