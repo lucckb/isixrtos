@@ -9,7 +9,7 @@
 #define ISIX_DEV_INPUT_HPP_
 /* ------------------------------------------------------------------ */
 #include "device.hpp"
-
+#include <cstring>
 /* ------------------------------------------------------------------ */
 namespace isix {
 namespace dev {
@@ -124,7 +124,10 @@ public:
 		int flat;
 		int resolution;
 	};
-
+	input_class( device::class_id cl )
+		: device( cl )
+	{}
+	virtual ~input_class() {}
 	/* get device ID */
 	virtual int get_device_id( id& /*id*/ ) const = 0;
 
@@ -139,9 +142,9 @@ public:
 		return ISIX_ENOTSUP;
 	}
 	/* Get device name */
-	virtual const char* get_device_name() const
+	const char* get_device_name() const
 	{
-		return 0;
+		return m_desc;
 	}
 	virtual int hardware_led_enable(bool /*yes*/)
 	{
@@ -162,6 +165,19 @@ public:
 	{
 		return device::read( &ev, sizeof(event), timeout );
 	}
+protected:
+	void set_identifier_callback( isix::dev::input_class::id &id )
+	{
+		m_identifier = id;
+	}
+	void set_desc_callback( const char *desc )
+	{
+		std::strncpy( m_desc, desc, sizeof m_desc );
+	}
+ 	virtual void generate_event( const uint8_t *req, std::size_t len ) = 0;
+private:
+ 	isix::dev::input_class::id m_identifier;
+ 	char m_desc[32] {};
 };
 
 /* ------------------------------------------------------------------ */

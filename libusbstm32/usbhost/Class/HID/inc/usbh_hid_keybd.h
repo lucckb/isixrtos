@@ -35,12 +35,6 @@
 
 
 
-/**
-  * @}
-  */ 
-
-
-
 #define  KBD_LEFT_CTRL                                  0x01
 #define  KBD_LEFT_SHIFT                                 0x02
 #define  KBD_LEFT_ALT                                   0x04

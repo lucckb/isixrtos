@@ -146,10 +146,10 @@ void USBH_Init(USB_OTG_CORE_HANDLE *pdev,
     
   /* Start the USB OTG core */     
    HCD_Init(pdev , coreID);
-   
+
   /* Upon Init call usr call back */
   phost->usr_cb->Init();
-  
+
   /* Enable Interrupts */
   USB_OTG_BSP_EnableInterrupt(pdev);
 }

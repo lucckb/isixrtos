@@ -41,25 +41,10 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_hid_core.h"
-#include "usbh_hid_mouse.h"
-#include "usbh_hid_keybd.h"
 
-
-
-static __ALIGN_BEGIN HID_Machine_TypeDef        HID_Machine __ALIGN_END ;
-
-
-//static __ALIGN_BEGIN HID_Report_TypeDef         HID_Report __ALIGN_END ;
-
-
-//static __ALIGN_BEGIN USB_Setup_TypeDef          HID_Setup __ALIGN_END ;
-
-
-static __ALIGN_BEGIN USBH_HIDDesc_TypeDef       HID_Desc __ALIGN_END ;
-
-static __IO uint8_t start_toggle = 0;
-
-
+#include <isix/dev/input.hpp>
+#include <usbhidkbd.hpp>
+#include <memory>
 
 static USBH_Status USBH_HID_InterfaceInit  ( USBH_class_ctx * ctx );
 
@@ -89,22 +74,46 @@ static USBH_Status USBH_Set_Protocol (USB_OTG_CORE_HANDLE *pdev,
                                       uint8_t protocol);
 
 
+namespace {
+	const USBH_Class_cb_TypeDef  hid_cb =
+	{
+	  USBH_HID_InterfaceInit,
+	  USBH_HID_InterfaceDeInit,
+	  USBH_HID_ClassRequest,
+	  USBH_HID_Handle,
+	  0
+	};
 
-const USBH_Class_cb_TypeDef  HID_cb =
-{
-  USBH_HID_InterfaceInit,
-  USBH_HID_InterfaceDeInit,
-  USBH_HID_ClassRequest,
-  USBH_HID_Handle,
-  0
-};
+	__ALIGN_BEGIN HID_Machine_TypeDef        HID_Machine __ALIGN_END ;
+	//static __ALIGN_BEGIN HID_Report_TypeDef         HID_Report __ALIGN_END ;
+	//static __ALIGN_BEGIN USB_Setup_TypeDef          HID_Setup __ALIGN_END ;
+	__ALIGN_BEGIN USBH_HIDDesc_TypeDef       HID_Desc __ALIGN_END ;
+	__IO uint8_t start_toggle = 0;
 
-const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback()
+}
+
+const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback( )
 {
-	return &HID_cb;
+	return &hid_cb;
 }
 
 
+template <class T> class hid_handle_wrapper : public T
+{
+public:
+	void _generate_event( const uint8_t *req, std::size_t len )
+	{
+		T::generate_event( req, len );
+	}
+	void _set_identifier_callback( isix::dev::input_class::id &id )
+	{
+		T::set_identifier_callback( id );
+	}
+	void _set_desc_callback( const char *desc )
+	{
+		T::set_desc_callback( desc );
+	}
+};
 
 /**
 * @brief  USBH_HID_InterfaceInit 
@@ -127,7 +136,7 @@ static USBH_Status USBH_HID_InterfaceInit ( USBH_class_ctx * ctx )
     /*Decode Bootclass Protocl: Mouse or Keyboard*/
     if(ctx->phost->device_prop.Itf_Desc[0].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
     {
-      HID_Machine.cb = USR_KEYBRD_Get_Callback();
+    	HID_Machine.cb.reset( new hid_handle_wrapper<stm32::dev::hid_keyboard> );
     }
     else if(ctx->phost->device_prop.Itf_Desc[0].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)
     {
@@ -189,7 +198,6 @@ static USBH_Status USBH_HID_InterfaceInit ( USBH_class_ctx * ctx )
       }
       
     }   
-    
      start_toggle =0;
      status = USBH_OK; 
   }
@@ -202,8 +210,6 @@ static USBH_Status USBH_HID_InterfaceInit ( USBH_class_ctx * ctx )
   
 }
 
-
-
 /**
 * @brief  USBH_HID_InterfaceDeInit 
 *         The function DeInit the Host Channels used for the HID class.
@@ -211,6 +217,7 @@ static USBH_Status USBH_HID_InterfaceInit ( USBH_class_ctx * ctx )
 * @param  hdev: Selected device property
 * @retval None
 */
+#include <dbglog.h>
 void USBH_HID_InterfaceDeInit (  USBH_class_ctx * ctx )
 {	
    //USBH_HOST *pphost = phost;
@@ -230,6 +237,7 @@ void USBH_HID_InterfaceDeInit (  USBH_class_ctx * ctx )
   }
  
   start_toggle = 0;
+  HID_Machine.cb.reset();
 }
 
 /**
@@ -322,7 +330,7 @@ static USBH_Status USBH_HID_Handle(USBH_class_ctx * ctx)
   {
     
   case HID_IDLE:
-    HID_Machine.cb->Init();
+    //HID_Machine.cb->Init();
     HID_Machine.state = HID_SYNC;
     
   case HID_SYNC:
@@ -356,7 +364,10 @@ static USBH_Status USBH_HID_Handle(USBH_class_ctx * ctx)
       if(start_toggle == 1) /* handle data once */
       {
         start_toggle = 0;
-        HID_Machine.cb->Decode(HID_Machine.buff);
+       // HID_Machine.cb-> h(HID_Machine.buff);
+        //TODO: Ugly hack in wrong C implemenation it should be fixed
+        if( HID_Machine.cb->get_class() == isix::dev::device::cid_input_usb_kbd )
+        	std::static_pointer_cast<hid_handle_wrapper<stm32::dev::hid_keyboard>>(HID_Machine.cb)->_generate_event(HID_Machine.buff, 8 );
       }
     }
     else if(HCD_GetURB_State(ctx->pdev, HID_Machine.hc_num_in) == URB_STALL) /* IN Endpoint Stalled */
@@ -558,4 +569,8 @@ static void  USBH_ParseHIDDesc (USBH_HIDDesc_TypeDef *desc, uint8_t *buf)
   
 } 
 
+std::shared_ptr<isix::dev::input_class> USBH_HID_Get_Object()
+{
+	return HID_Machine.cb;
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

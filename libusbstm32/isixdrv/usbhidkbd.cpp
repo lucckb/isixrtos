@@ -5,7 +5,6 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#include "usbh_hid_keybd.h"
 #include <usbh_core.h>
 #include <usbh_hid_core.h>
 #include <usb_hcd_int.h>
@@ -198,22 +197,32 @@ static void host_usb_task( void *entry_param )
 }
 /* ------------------------------------------------------------------ */
 /* Initialize USB bus */
-int usb_bus_initialize( isix::dev::device &device )
+int usb_bus_initialize()
 {
 	int ret = 0;
-	::USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usb_host, USBH_HID_Class_Callback(), &usr_callbacks );
 	do
 	{
 		if( !(usb_ready_sem = isix::isix_sem_create_limited(NULL,0,1)) )
+		{
+			ret = -1;
 			break;
+		}
+		if( !(isix::isix_task_create( host_usb_task, nullptr, 2048, isix::isix_get_min_priority())))
+		{
+			ret = -1;
+			break;
+		}
 	}
 	while(0);
-
+	if( !ret )
+		USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usb_host, USBH_HID_Class_Callback(), &usr_callbacks );
 	return ret;
 }
 
 /* ------------------------------------------------------------------ */
 //OTG interrupt ISR vector
+extern "C"
+{
 void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 {
 	const unsigned ret = USBH_OTG_ISR_Handler(&usb_otg_dev);
@@ -221,6 +230,58 @@ void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 	{
 		isix::isix_sem_signal_isr( usb_ready_sem );
 	}
+}
+}
+/* ------------------------------------------------------------------ */
+/* Get device identifier */
+int hid_keyboard::get_device_id( isix::dev::input_class::id& id ) const
+{
+
+}
+/* ------------------------------------------------------------------ */
+/* Read data from KBD */
+int hid_keyboard::read( void* buf, std::size_t len, int timeout )
+{
+
+}
+/* ------------------------------------------------------------------ */
+int hid_keyboard::open( int flags )
+{
+
+}
+/* ------------------------------------------------------------------ */
+int   hid_keyboard::get_repeat_settings( int& /*delay */, int& /*period*/ ) const
+{
+
+}
+/* ------------------------------------------------------------------ */
+int hid_keyboard::set_repeat_settings( int /*delay */, int /*period*/ )
+{
+
+}
+/* ------------------------------------------------------------------ */
+int hid_keyboard::hardware_led_enable(bool /*yes*/)
+{
+}
+/* ------------------------------------------------------------------ */
+int hid_keyboard::get_led( led_ctl /*led_id */, bool& /*value*/ ) const
+{
+}
+/* ------------------------------------------------------------------ */
+int hid_keyboard::set_led( led_ctl /*led_id */, bool /*value*/ )
+{
+}
+/* ------------------------------------------------------------------ */
+/* Get current assigned device */
+std::shared_ptr<isix::dev::device> usb_get_device( int /*id*/ )
+{
+	return USBH_HID_Get_Object();
+}
+/* ------------------------------------------------------------------ */
+void hid_keyboard::generate_event( const uint8_t *req, std::size_t len )
+{
+	for( std::size_t a=0;a<len;a++)
+	dbprintf("REQ %02X", req[a]);
 }
 /* ------------------------------------------------------------------ */
 }}

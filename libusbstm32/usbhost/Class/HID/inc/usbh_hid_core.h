@@ -35,10 +35,12 @@
 #include "usb_bsp.h"
 #include "usbh_ioreq.h"
 #include "usbh_hcs.h"
- 
+#include <isix/dev/input.hpp>
+#include <memory>
+static constexpr auto HID_MIN_POLL    =      10;
 
 
-#define HID_MIN_POLL          10
+
 
 /* States for HID State Machine */
 typedef enum
@@ -65,12 +67,6 @@ typedef enum
 }
 HID_CtlState;
 
-typedef struct HID_cb
-{
-  void  (*Init)   (void);             
-  void  (*Decode) (uint8_t *data);       
-  
-} HID_cb_TypeDef;
 
 typedef  struct  _HID_Report 
 {
@@ -110,7 +106,7 @@ typedef struct _HID_Process
   uint8_t              ep_addr;
   uint16_t             poll; 
   __IO uint16_t        timer; 
-  const HID_cb_TypeDef             *cb;
+  std::shared_ptr<isix::dev::input_class> cb;
 }
 HID_Machine_TypeDef;
 
@@ -133,6 +129,9 @@ extern "C" {
 #endif
 
 const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback();
+
+
+std::shared_ptr<isix::dev::input_class> USBH_HID_Get_Object();
 
 
 /** @defgroup USBH_HID_CORE_Exported_FunctionsPrototype

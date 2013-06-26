@@ -7,6 +7,11 @@
 /* ------------------------------------------------------------------ */
 #ifndef ISIX_DEV_DEVICE_HPP_
 #define ISIX_DEV_DEVICE_HPP_
+
+/* ------------------------------------------------------------------ */
+#include <isix/error.h>
+#include <isix/types.h>
+#include <cstddef>
 /* ------------------------------------------------------------------ */
 namespace isix {
 namespace dev {
@@ -24,11 +29,12 @@ private:
 public:
 	enum class_id
 	{
-		cid_input
+		cid_input_usb_kbd
 	};
 	device( class_id dclass )
 		: m_class( dclass )
 	{}
+	virtual ~device() {}
 	class_id get_class() const
 	{
 		return class_id(m_class);
