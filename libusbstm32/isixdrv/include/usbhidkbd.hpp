@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <isix/dev/input.hpp>
 #include <memory>
+#include <usb_device.hpp>
 /* ------------------------------------------------------------------ */
 namespace stm32 {
 namespace dev {
@@ -27,7 +28,7 @@ std::shared_ptr<isix::dev::device> usb_get_device_in_slot();
 class hid_keyboard	: public isix::dev::input_class
 {
 public:
-	hid_keyboard()
+	hid_keyboard( )
 		: input_class(isix::dev::device::cid_input_usb_kbd )
 	{}
 	virtual ~hid_keyboard() {}
