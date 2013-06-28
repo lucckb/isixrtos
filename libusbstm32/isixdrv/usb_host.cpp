@@ -185,7 +185,8 @@ usb_host::usb_host( int /*core_id*/ )
 	: task_base( 2048, isix::isix_get_min_priority())
 	, usb_ready_sem( 0, 1)
 {
-	USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &stm32_host, USBH_HID_Class_Callback(), &usr_callbacks );
+	internal::host1 = this;
+	USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &stm32_host, USBH_HID_Class_Callback(this), &usr_callbacks );
 }
 /* ------------------------------------------------------------------ */
 void usb_host::main()
@@ -205,7 +206,9 @@ extern "C"
 	void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
 	{
 		if( internal::host1 == nullptr )
+		{
 			return;
+		}
 		const unsigned ret = USBH_OTG_ISR_Handler(&internal::host1->usb_otg_dev);
 		if( ret )
 		{

@@ -35,10 +35,23 @@
 #include "usb_bsp.h"
 #include "usbh_ioreq.h"
 #include "usbh_hcs.h"
-#include <isix/dev/input.hpp>
 #include <memory>
-static constexpr auto HID_MIN_POLL    =      10;
 
+
+namespace isix {
+namespace dev {
+	class usb_host;
+}
+}
+
+namespace gfx {
+namespace inp {
+	class input_class;
+}
+}
+
+
+static constexpr auto HID_MIN_POLL    =      10;
 
 
 
@@ -106,7 +119,7 @@ typedef struct _HID_Process
   uint8_t              ep_addr;
   uint16_t             poll; 
   __IO uint16_t        timer; 
-  std::shared_ptr<isix::dev::input_class> cb;
+  std::shared_ptr<gfx::inp::input_class> cb;
 }
 HID_Machine_TypeDef;
 
@@ -128,10 +141,10 @@ HID_Machine_TypeDef;
 extern "C" {
 #endif
 
-const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback();
+const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback( isix::dev::usb_host *host );
 
 
-std::shared_ptr<isix::dev::input_class> USBH_HID_Get_Object();
+std::shared_ptr<gfx::inp::input_class> USBH_HID_Get_Object();
 
 
 /** @defgroup USBH_HID_CORE_Exported_FunctionsPrototype

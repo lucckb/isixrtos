@@ -5,252 +5,17 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#include <usbh_core.h>
-#include <usbh_hid_core.h>
-#include <usb_hcd_int.h>
 #include <dbglog.h>
 #include <isix.h>
-#include <isix/dev/input.hpp>
+#include <usbh_hid_core.h>
 #include <usbhidkbd.hpp>
+
 /* ------------------------------------------------------------------ */
-//USB host core handle
-static USB_OTG_CORE_HANDLE    usb_otg_dev;
-static USBH_HOST usb_host;
-
-namespace {
-namespace usb_usr_cb {
-	void init(void)
-	{
-		dbprintf("Init");
-	}
-	void deinit(void)
-	{
-		dbprintf("Init");
-	}
-	void attached(void)
-	{
-		dbprintf("Device attached");
-	}
-	void reset(void)
-	{
-		dbprintf("Device reset");
-	}
-
-	void disconnected(void)
-	{
-		dbprintf("Device disconnected");
-	}
-	void overcurrent (void)
-	{
-		dbprintf("Overcurrent detected.\n");
-
-	}
-
-	void speed_detected(uint8_t DeviceSpeed)
-	{
-	  if(DeviceSpeed == HPRT0_PRTSPD_HIGH_SPEED)
-	  {
-		  dbprintf("HPRT0_PRTSPD_HIGH_SPEED.");
-	  }
-	  else if(DeviceSpeed == HPRT0_PRTSPD_FULL_SPEED)
-	  {
-		  dbprintf("HPRT0_PRTSPD_FULL_SPEED.");
-	  }
-	  else if(DeviceSpeed == HPRT0_PRTSPD_LOW_SPEED)
-	  {
-		  dbprintf("HPRT0_PRTSPD_LOW_SPEED.");
-	  }
-	  else
-	  {
-		  dbprintf("Speed error");
-	  }
-	}
-
-	void desc_available(void *DeviceDesc)
-	{
-	  const USBH_DevDesc_TypeDef *hs = reinterpret_cast<const USBH_DevDesc_TypeDef*>(DeviceDesc);
-	  dbprintf( "VID : %04Xh\n" , (*hs).idVendor);
-	  dbprintf( "PID : %04Xh\n" , (*hs).idProduct);
-	}
-
-
-	void device_address_assigned(void)
-	{
-		dbprintf("Dev address assigned ");
-	}
-
-	const uint16_t KYBRD_FIRST_COLUMN        =      319;
-	const uint16_t KYBRD_LAST_COLUMN         =      7;
-	const uint16_t KYBRD_FIRST_LINE          =      120;
-	const uint16_t KYBRD_LAST_LINE           =      200;
-
-
-
-	/**
-	* @brief  USBH_USR_Conf_Desc
-	*         Displays the message on LCD for configuration descriptor
-	* @param  ConfDesc : Configuration descriptor
-	* @retval None
-	*/
-	void configuration_desc_available(USBH_CfgDesc_TypeDef * cfgDesc,
-											  USBH_InterfaceDesc_TypeDef *itfDesc,
-											  USBH_EpDesc_TypeDef *epDesc)
-	{
-	  (void)epDesc;
-	  (void)cfgDesc;
-	  USBH_InterfaceDesc_TypeDef *id;
-
-	  id = itfDesc;
-
-	  if((*id).bInterfaceClass  == 0x08)
-	  {
-	   dbprintf("MSG_MSC_CLASS");
-	  }
-	  else if((*id).bInterfaceClass  == 0x03)
-	  {
-		  dbprintf("MSG_HID_CLASS");
-	  }
-	}
-
-	void manufacturer_string(const char *ManufacturerString)
-	{
-	  dbprintf( "Manufacturer : %s\n", ManufacturerString);
-
-	}
-
-	void product_string(const char *ProductString)
-	{
-	  dbprintf( "Product : %s\n", ProductString);
-	}
-
-	void serialnum_string(const char *SerialNumString)
-	{
-		 dbprintf( "Serial Number : %s\n", SerialNumString);
-	}
-
-	void enumeration_done(void)
-	{
-		dbprintf( "Enumeration done");
-	}
-
-
-	USBH_USR_Status user_input(void)
-	{
-
-	  USBH_USR_Status usbh_usr_status;
-	  dbprintf("User input");
-	  usbh_usr_status = USBH_USR_RESP_OK;
-	  return usbh_usr_status;
-	}
-
-	void device_not_supported(void)
-	{
-		dbprintf("> Device not supported.");
-
-	}
-
-	void unrecovered_error (void)
-	{
-		dbprintf("> Unrecovered error.");
-	}
-
-}}
-
-static const USBH_Usr_cb_TypeDef usr_callbacks =
-{
-  usb_usr_cb::init,
-  usb_usr_cb::deinit,
-  usb_usr_cb::attached,
-  usb_usr_cb::reset,
-  usb_usr_cb::disconnected,
-  usb_usr_cb::overcurrent,
-  usb_usr_cb::speed_detected,
-  usb_usr_cb::desc_available,
-  usb_usr_cb::device_address_assigned,
-  usb_usr_cb::configuration_desc_available,
-  usb_usr_cb::manufacturer_string,
-  usb_usr_cb::product_string,
-  usb_usr_cb::serialnum_string,
-  usb_usr_cb::enumeration_done,
-  usb_usr_cb::user_input,
-  NULL,
-  usb_usr_cb::device_not_supported,
-  usb_usr_cb::unrecovered_error
-};
-/* ------------------------------------------------------------------ */
-/* USB int semaphore signal */
-static isix::sem_t *usb_ready_sem;
-
 namespace stm32 {
 namespace dev {
-/* ------------------------------------------------------------------ */
-static void host_usb_task( void *entry_param )
-{
-	(void)entry_param;
-	for(;;)
-	{
-		if( isix::isix_sem_wait( usb_ready_sem , isix::ISIX_TIME_INFINITE ) == isix::ISIX_EOK )
-		{
-			USBH_Process(&usb_otg_dev , &usb_host);
-		}
-	}
-}
-/* ------------------------------------------------------------------ */
-/* Initialize USB bus */
-int usb_bus_initialize()
-{
-	int ret = 0;
-	do
-	{
-		if( !(usb_ready_sem = isix::isix_sem_create_limited(NULL,0,1)) )
-		{
-			ret = -1;
-			break;
-		}
-		if( !(isix::isix_task_create( host_usb_task, nullptr, 2048, isix::isix_get_min_priority())))
-		{
-			ret = -1;
-			break;
-		}
-	}
-	while(0);
-	if( !ret )
-		USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &usb_host, USBH_HID_Class_Callback(), &usr_callbacks );
-	return ret;
-}
 
 /* ------------------------------------------------------------------ */
-//OTG interrupt ISR vector
-extern "C"
-{
-void __attribute__((__interrupt__)) otg_fs_isr_vector(void)
-{
-	const unsigned ret = USBH_OTG_ISR_Handler(&usb_otg_dev);
-	if( ret )
-	{
-		isix::isix_sem_signal_isr( usb_ready_sem );
-	}
-}
-}
-/* ------------------------------------------------------------------ */
-/* Get device identifier */
-int hid_keyboard::get_device_id( isix::dev::input_class::id& id ) const
-{
-
-}
-/* ------------------------------------------------------------------ */
-/* Read data from KBD */
-int hid_keyboard::read( void* buf, std::size_t len, int timeout )
-{
-
-}
-/* ------------------------------------------------------------------ */
-int hid_keyboard::open( int flags )
-{
-
-}
-/* ------------------------------------------------------------------ */
-int   hid_keyboard::get_repeat_settings( int& /*delay */, int& /*period*/ ) const
+int hid_keyboard::get_repeat_settings( int& /*delay */, int& /*period*/ ) const
 {
 
 }
@@ -272,16 +37,66 @@ int hid_keyboard::set_led( led_ctl /*led_id */, bool /*value*/ )
 {
 }
 /* ------------------------------------------------------------------ */
-/* Get current assigned device */
-std::shared_ptr<isix::dev::device> usb_get_device( int /*id*/ )
-{
-	return USBH_HID_Get_Object();
-}
-/* ------------------------------------------------------------------ */
 void hid_keyboard::generate_event( const uint8_t *req, std::size_t len )
 {
+	/*
+	static uint8_t rep_out = 2;
 	for( std::size_t a=0;a<len;a++)
-	dbprintf("REQ %02X", req[a]);
+	dbprintf("REQ %i --- %02X",a ,req[a]);
+	if( req[2] == 0x07) rep_out = 2;
+	else if( req[2] == 0x09 ) rep_out = 0;
+	if( req[2] == 0x07 || req[2]== 0x09 )
+	{
+		const auto R = USBH_Set_Report( &gethost().usb_otg_dev, &gethost().stm32_host, 0x02, 0, 1, &rep_out);
+		dbprintf("S %02X SEND R %i", rep_out, R);
+		input_report_key( gfx::inp::input::KEY_PRESS, 12 );
+	}
+	*/
+	for(size_t ix = 2; ix < len; ix++)
+	{
+		if( req[ix]==0x01 || req[ix]==0x02 || req[ix]==0x03 )
+		{
+			dbprintf("Error in report");
+			return;
+		}
+	}
+	auto nbr_keys     = 0;
+	auto nbr_keys_new = 0;
+	std::array<uint8_t, KEY_REPORT_LEN>  keys;
+	std::array<uint8_t, KEY_REPORT_LEN>  keys_new;
+	for (size_t ix = 2; ix < 2 + KEY_REPORT_LEN; ix++)
+	{
+	    if (req[ix] != 0)
+	    {
+	      keys[nbr_keys] = req[ix];
+	      nbr_keys++;
+	      size_t jx;
+	      for (jx = 0; jx < m_nbr_keys_last; jx++)
+	      {
+	        if (req[ix] == m_keys_last[jx])
+	          break;
+	      }
+
+	      if (jx == m_nbr_keys_last)
+	      {
+	        keys_new[nbr_keys_new] = req[ix];
+	        nbr_keys_new++;
+	      }
+	    }
+	  }
+
+	  if (nbr_keys_new == 1)
+	  {
+		  auto key_newest = keys_new[0];
+		  input_report_key(  gfx::inp::input::KEY_PRESS, key_newest, req[0] );
+		 // dbprintf("New key %02X report %i", key_newest, status );
+	  }
+
+	  m_nbr_keys_last  = nbr_keys;
+	  for (size_t ix = 0; ix < KEY_REPORT_LEN; ix++)
+	  {
+	    m_keys_last[ix] = keys[ix];
+	  }
 }
 /* ------------------------------------------------------------------ */
 }}

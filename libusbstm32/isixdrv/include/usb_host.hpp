@@ -32,9 +32,10 @@ public:
 	std::shared_ptr<usb_device> get_slot();
 private:
 	virtual void main();
-private:
+public:	//TODO FIXME very ugly to C lib
 	USB_OTG_CORE_HANDLE    usb_otg_dev;
 	USBH_HOST stm32_host;
+private:
 	isix::semaphore usb_ready_sem;
 };
 
