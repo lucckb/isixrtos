@@ -94,7 +94,8 @@ namespace {
 
 const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback(  isix::dev::usb_host * xhost   )
 {
-	host = xhost;
+	if(	xhost )
+		host = xhost;
 	return &hid_cb;
 }
 
@@ -139,6 +140,7 @@ static USBH_Status USBH_HID_InterfaceInit ( USBH_class_ctx * ctx )
     if(ctx->phost->device_prop.Itf_Desc[0].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
     {
     	HID_Machine.cb.reset( new stm32::dev::hid_keyboard(*host) );
+    	host->on_device_event_gen( true, HID_Machine.cb );
     }
     else if(ctx->phost->device_prop.Itf_Desc[0].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)
     {
@@ -239,6 +241,7 @@ void USBH_HID_InterfaceDeInit (  USBH_class_ctx * ctx )
   }
  
   start_toggle = 0;
+  host->on_device_event_gen(false,  HID_Machine.cb);
   HID_Machine.cb.reset();
 }
 
@@ -572,7 +575,7 @@ static void  USBH_ParseHIDDesc (USBH_HIDDesc_TypeDef *desc, uint8_t *buf)
   
 } 
 
-std::shared_ptr<gfx::inp::input_class> USBH_HID_Get_Object()
+std::shared_ptr<usb_input_device> USBH_HID_Get_Object()
 {
 	return HID_Machine.cb;
 }

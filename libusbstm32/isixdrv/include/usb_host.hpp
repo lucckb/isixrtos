@@ -13,6 +13,7 @@
 #include <isix.h>
 #include <isix/dev/device.hpp>
 #include <memory>
+#include <functional>
 /* ------------------------------------------------------------------ */
 namespace isix {
 namespace dev {
@@ -35,8 +36,13 @@ private:
 public:	//TODO FIXME very ugly to C lib
 	USB_OTG_CORE_HANDLE    usb_otg_dev;
 	USBH_HOST stm32_host;
+	void on_device_event_gen( bool connect, std::shared_ptr<usb_device> dev )
+	{
+		if( m_on_device_event ) m_on_device_event( connect, dev );
+	}
 private:
 	isix::semaphore usb_ready_sem;
+ 	std::function<void( bool, std::shared_ptr<usb_device> )> m_on_device_event;
 };
 
 /* ------------------------------------------------------------------ */

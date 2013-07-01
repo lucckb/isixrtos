@@ -216,8 +216,24 @@ extern "C"
 		}
 	}
 }
-
+/* ------------------------------------------------------------------ */
+std::shared_ptr<usb_device>  usb_host::get_slot()
+{
+	//Fixme this
+	return std::static_pointer_cast<usb_device>(USBH_HID_Get_Object());
+}
 /* ------------------------------------------------------------------ */
 } /* namespace dev */
 } /* namespace isix */
 /* ------------------------------------------------------------------ */
+
+//FIXME THIS
+namespace std
+{
+void  __throw_bad_function_call() __attribute__((__noreturn__));
+void  __throw_bad_function_call()
+{
+
+}
+
+}

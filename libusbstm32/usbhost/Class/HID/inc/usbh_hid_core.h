@@ -36,7 +36,8 @@
 #include "usbh_ioreq.h"
 #include "usbh_hcs.h"
 #include <memory>
-
+#include <usb_device.hpp>
+#include <gfx/input/input.hpp>
 
 namespace isix {
 namespace dev {
@@ -44,11 +45,6 @@ namespace dev {
 }
 }
 
-namespace gfx {
-namespace inp {
-	class input_class;
-}
-}
 
 
 static constexpr auto HID_MIN_POLL    =      10;
@@ -105,6 +101,14 @@ typedef  struct  _HID_Report
 } 
 HID_Report_TypeDef;
 
+class usb_input_device	: public gfx::inp::input_class, public isix::dev::usb_device
+{
+public:
+	usb_input_device( isix::dev::usb_host & host, isix::dev::device::class_id id )
+		: input_class( id ), usb_device( host )
+	{}
+};
+
 /* Structure for HID process */
 typedef struct _HID_Process
 {
@@ -119,9 +123,11 @@ typedef struct _HID_Process
   uint8_t              ep_addr;
   uint16_t             poll; 
   __IO uint16_t        timer; 
-  std::shared_ptr<gfx::inp::input_class> cb;
+  std::shared_ptr<usb_input_device> cb;
 }
 HID_Machine_TypeDef;
+
+
 
 
 
@@ -144,7 +150,7 @@ extern "C" {
 const USBH_Class_cb_TypeDef * USBH_HID_Class_Callback( isix::dev::usb_host *host );
 
 
-std::shared_ptr<gfx::inp::input_class> USBH_HID_Get_Object();
+std::shared_ptr<usb_input_device> USBH_HID_Get_Object();
 
 
 /** @defgroup USBH_HID_CORE_Exported_FunctionsPrototype
@@ -157,6 +163,8 @@ USBH_Status USBH_Set_Report (USB_OTG_CORE_HANDLE *pdev,
                                   uint8_t reportId,
                                   uint8_t reportLen,
                                   uint8_t* reportBuff);
+
+
 
 #ifdef __cplusplus
 }

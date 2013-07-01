@@ -20,12 +20,11 @@ namespace stm32 {
 namespace dev {
 
 /* ------------------------------------------------------------------ */
-class hid_keyboard	: public gfx::inp::input_class, protected isix::dev::usb_device
+class hid_keyboard	: public usb_input_device
 {
 public:
 	hid_keyboard( isix::dev::usb_host &host)
-		: input_class(isix::dev::device::cid_input_usb_kbd ),
-		  usb_device( host )
+		: usb_input_device( host, isix::dev::device::cid_input_usb_kbd )
 	{}
 	virtual ~hid_keyboard() {}
 	/* Read data from KBD */

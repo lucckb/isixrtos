@@ -12,7 +12,7 @@ namespace gfx {
 namespace inp {
 
 /* ------------------------------------------------------------------ */
-input_queue_t input_class::m_queue( config::QUEUE_SIZE );
+//input_queue_t input_class::m_queue( config::QUEUE_SIZE );
 /* ------------------------------------------------------------------ */
 int input_class::input_report_key( input::key_code code, unsigned char key, unsigned char skeys  )
 {
@@ -20,8 +20,6 @@ int input_class::input_report_key( input::key_code code, unsigned char key, unsi
 	const input::event ev
 	{
 		isix::isix_get_jiffies(),
-		//shared_from_this(),
-		this,
 		static_cast<unsigned short>(code),
 		input::EV_KEY,
 		{{key,skeys}}

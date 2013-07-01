@@ -86,7 +86,6 @@ enum abs_code
 struct event
 {
 	isix::tick_t time;
-	input_class* sender;
 	unsigned short type;
 	unsigned short code;
 	union
@@ -123,7 +122,7 @@ struct event
 typedef isix::fifo<input::event> input_queue_t;
 
 /* ------------------------------------------------------------------ */
-class input_class : public isix::dev::device, public std::enable_shared_from_this<input_class>
+class input_class : public isix::dev::device
 {
 public:
 	enum led_ctl
@@ -171,7 +170,7 @@ public:
 		int resolution;
 	};
 	input_class( device::class_id cl )
-		: device( cl )
+		: device( cl ), m_queue( config::QUEUE_SIZE )
 	{}
 	virtual ~input_class() {}
 	/* get device ID */
@@ -181,7 +180,7 @@ public:
 	}
 	/* Get input queue
 	 */
-	static int evt_wait( input::event &evt, int timeout )
+	int evt_wait( input::event &evt, int timeout )
 	{
 		return m_queue.pop( evt, timeout );
 	}
@@ -227,7 +226,7 @@ protected:
 private:
  	gfx::inp::input_class::id m_identifier;
  	char m_desc[32] {};
- 	static input_queue_t m_queue;
+ 	input_queue_t m_queue;
 };
 
 
