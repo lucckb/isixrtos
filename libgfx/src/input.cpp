@@ -24,7 +24,7 @@ int input_class::input_report_key( input::key_code code, unsigned char key, unsi
 		input::EV_KEY,
 		{{key,skeys}}
 	};
-	return m_queue.push_isr( ev );
+	return m_queue?(m_queue->push_isr(ev)):(isix::ISIX_ENOTSUP);
 }
 /* ------------------------------------------------------------------ */
 }}

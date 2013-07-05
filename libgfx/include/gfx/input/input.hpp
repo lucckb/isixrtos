@@ -18,13 +18,7 @@ namespace gfx {
 namespace inp {
 /* ------------------------------------------------------------------ */
 class input_class;
-/* ------------------------------------------------------------------ */
-namespace config
-{
-	//TODO: Later switch to dynarray
-	static constexpr size_t MAX_INPUT_DEVS = 4;
-	static constexpr size_t QUEUE_SIZE = 32;
-}
+
 /* ------------------------------------------------------------------ */
 namespace input {
 /* ------------------------------------------------------------------ */
@@ -170,19 +164,13 @@ public:
 		int resolution;
 	};
 	input_class( device::class_id cl )
-		: device( cl ), m_queue( config::QUEUE_SIZE )
+		: device( cl )
 	{}
 	virtual ~input_class() {}
 	/* get device ID */
 	const id& get_device_id() const
 	{
 		return m_identifier;
-	}
-	/* Get input queue
-	 */
-	int evt_wait( input::event &evt, int timeout )
-	{
-		return m_queue.pop( evt, timeout );
 	}
 	/* get repeat code */
 	virtual int get_repeat_settings( int& /*delay */, int& /*period*/ ) const
@@ -213,6 +201,11 @@ public:
 	{
 		return isix::ISIX_ENOTSUP;
 	}
+	/* Set input queue */
+	void set_queue( input_queue_t *queue )
+	{
+		m_queue = queue;
+	}
 protected:
 	void set_identifier_callback( gfx::inp::input_class::id &id )
 	{
@@ -226,7 +219,7 @@ protected:
 private:
  	gfx::inp::input_class::id m_identifier;
  	char m_desc[32] {};
- 	input_queue_t m_queue;
+ 	input_queue_t * m_queue {};
 };
 
 

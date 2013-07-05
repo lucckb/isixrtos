@@ -199,5 +199,19 @@ void __verbose_terminate_handler()
 
 }//namespace __gnu_cxx
 
-/* -------------------------------------------------------------- */
 
+/* -------------------------------------------------------------- */
+//Bad function call handler if no exception
+#if (__cplusplus > 199711L) && !defined(CONFIG_ENABLE_EXCEPTIONS)
+namespace std
+{
+void  __throw_bad_function_call() __attribute__((__noreturn__));
+void  __throw_bad_function_call()
+{
+	terminate_process();
+	for(;;);
+}
+
+}
+#endif
+/* -------------------------------------------------------------- */

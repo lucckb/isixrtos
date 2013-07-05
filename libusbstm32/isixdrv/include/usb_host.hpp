@@ -40,6 +40,10 @@ public:	//TODO FIXME very ugly to C lib
 	{
 		if( m_on_device_event ) m_on_device_event( connect, dev );
 	}
+	void set_device_callback( std::function<void( bool, std::shared_ptr<usb_device> )> cb)
+	{
+		m_on_device_event = cb;
+	}
 private:
 	isix::semaphore usb_ready_sem;
  	std::function<void( bool, std::shared_ptr<usb_device> )> m_on_device_event;
