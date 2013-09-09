@@ -1044,6 +1044,7 @@ static inline void rcc_ahb_periph_clock_cmd( uint32_t periph, bool enable)
  * @param periph  Perhipherals bitmask
  * @param enable Enable or disable
  */
+#ifdef STM32F10X_CL
 static inline void rcc_ahb_periph_reset_cmd(uint32_t periph, bool enable )
 {
   if ( enable )
@@ -1055,6 +1056,7 @@ static inline void rcc_ahb_periph_reset_cmd(uint32_t periph, bool enable )
     RCC->AHBRSTR &= ~periph;
   }
 }
+#endif
 /*----------------------------------------------------------*/
 /**
  * @brief Set reset on selected peripheral
