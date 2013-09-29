@@ -1284,6 +1284,8 @@ static inline void rcc_flash_latency(uint32_t frequency)
 	wait_states &= FLASH_ACR_LATENCY;			// trim to max allowed value - 7
 	FLASH->ACR = wait_states;				    // set wait_states, disable all caches and prefetch
 	FLASH->ACR = FLASH_ACR_PRFTBE  | wait_states;	// enable caches and prefetch
+#else
+	(void)frequency;
 #endif
 }
 
@@ -1338,6 +1340,7 @@ static const unsigned PRE1Div_Offset = 1;
 #elif defined(STM32F10X_LD) || defined(STM32F10X_MD) || \
 	  defined(STM32F10X_HD) || defined(STM32F10X_XL)
 		for (div = 1; div <= 1; div++)			// PLL divider
+		{
 #else
 #error Unknown MCU type
 #endif
