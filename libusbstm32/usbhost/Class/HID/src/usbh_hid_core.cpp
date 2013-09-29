@@ -107,7 +107,7 @@ public:
 	{
 		T::generate_event( req, len );
 	}
-	void _set_identifier_callback( gfx::inp::input_class::id &id )
+	void _set_identifier_callback( gfx::input::input_class::id &id )
 	{
 		T::set_identifier_callback( id );
 	}

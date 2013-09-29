@@ -13,107 +13,15 @@
 #include <memory>
 #include <array>
 #include <isix.h>
+#include "event_info.hpp"
 /* ------------------------------------------------------------------ */
 namespace gfx {
-namespace inp {
-/* ------------------------------------------------------------------ */
-class input_class;
-
-/* ------------------------------------------------------------------ */
 namespace input {
-/* ------------------------------------------------------------------ */
-/* Event type */
-enum event_type
-{
-	EV_SW,		/* Plug unplug event */
-	EV_KEY,		/* Keyboard event  */
-	EV_REL,		/* Relative event  */
-	EV_ABS		/* Absolute event  */
-};
-enum key_code
-{
-	KEY_PRESS,
-	KEY_RELEASE,
-	KEY_REPEAT
-};
-enum rel_code
-{
-	REL_X			,
-	REL_Y			,
-	REL_Z			,
-	REL_RX			,
-	REL_RY			,
-	REL_RZ			,
-	REL_HWHEEL		,
-	REL_DIAL		,
-	REL_WHEEL		,
-	REL_MISC
-};
-enum abs_code
-{
-	ABS_X			,
-	ABS_Y			,
-	ABS_Z			,
-	ABS_RX			,
-	ABS_RY			,
-	ABS_RZ			,
-	ABS_THROTTLE	,
-	ABS_RUDDER		,
-	ABS_WHEEL		,
-	ABS_GAS			,
-	ABS_BRAKE		,
-	ABS_HAT0X		,
-	ABS_HAT0Y		,
-	ABS_HAT1X		,
-	ABS_HAT1Y		,
-	ABS_HAT2X		,
-	ABS_HAT2Y		,
-	ABS_HAT3X		,
-	ABS_HAT3Y		,
-	ABS_PRESSURE	,
-	ABS_DISTANCE	,
-	ABS_TILT_X		,
-	ABS_TILT_Y		,
-	ABS_TOOL_WIDTH	,
-	ABS_MISC
-};
-struct event
-{
-	isix::tick_t time;
-	unsigned short type;
-	unsigned short code;
-	union
-	{
-		struct
-		{
-			unsigned char norm;
-			union
-			{
-				unsigned char ctrl;
-				struct
-				{
-					unsigned short code;
-					unsigned char lctrl:1;
-					unsigned char lshift:1;
-					unsigned char lalt : 1;
-					unsigned char lgui : 1;
-					unsigned char rctrl: 1;
-					unsigned char rshift:1;
-					unsigned char ralt:1;
-					unsigned char rgui: 1;
-
-				} ctrlbits;
-			};
-
-		} key;
-	};
-};
 
 /* ------------------------------------------------------------------ */
-}	//Input internal namespace
-/* ------------------------------------------------------------------ */
+
 //Input queue type
-typedef isix::fifo<input::event> input_queue_t;
+typedef isix::fifo<gui::event_info> input_queue_t;
 
 /* ------------------------------------------------------------------ */
 class input_class : public isix::dev::device
@@ -167,11 +75,7 @@ public:
 		: device( cl )
 	{}
 	virtual ~input_class() {}
-	/* get device ID */
-	const id& get_device_id() const
-	{
-		return m_identifier;
-	}
+
 	/* get repeat code */
 	virtual int get_repeat_settings( int& /*delay */, int& /*period*/ ) const
 	{
@@ -207,17 +111,10 @@ public:
 		m_queue = queue;
 	}
 protected:
-	void set_identifier_callback( gfx::inp::input_class::id &id )
-	{
-		m_identifier = id;
-	}
-	void set_desc_callback( const char *desc )
-	{
-		std::strncpy( m_desc, desc, sizeof m_desc );
-	}
-	int input_report_key( input::key_code code, unsigned char key, unsigned char skeys );
+		int input_report_key(  gui::detail::keyboard_tag::status status ,
+				gui::detail::keyboard_tag::key_type key,
+				gui::detail::keyboard_tag::control_key_type ctl  );
 private:
- 	gfx::inp::input_class::id m_identifier;
  	char m_desc[32] {};
  	input_queue_t * m_queue {};
 };

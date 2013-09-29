@@ -6,23 +6,26 @@
  */
 /* ------------------------------------------------------------------ */
 #include <gfx/input/input.hpp>
-#include <list>
-/* ------------------------------------------------------------------ */
-namespace gfx {
-namespace inp {
 
 /* ------------------------------------------------------------------ */
-//input_queue_t input_class::m_queue( config::QUEUE_SIZE );
+namespace gfx {
+namespace input {
+
 /* ------------------------------------------------------------------ */
-int input_class::input_report_key( input::key_code code, unsigned char key, unsigned char skeys  )
+int input_class::input_report_key(  gui::detail::keyboard_tag::status status ,
+				gui::detail::keyboard_tag::key_type key,
+				gui::detail::keyboard_tag::control_key_type ctl  )
 {
 	//TODO: FIXME Pointer to sender
-	const input::event ev
+	const gui::event_info ev
 	{
 		isix::isix_get_jiffies(),
-		static_cast<unsigned short>(code),
-		input::EV_KEY,
-		{{key,skeys}}
+		gui::event_info::evtype::EV_KEY,
+		{
+			status,
+			key,
+			ctl
+		}
 	};
 	return m_queue?(m_queue->push_isr(ev)):(isix::ISIX_ENOTSUP);
 }

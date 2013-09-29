@@ -101,7 +101,7 @@ typedef  struct  _HID_Report
 } 
 HID_Report_TypeDef;
 
-class usb_input_device	: public gfx::inp::input_class, public isix::dev::usb_device
+class usb_input_device	: public gfx::input::input_class, public isix::dev::usb_device
 {
 public:
 	usb_input_device( isix::dev::usb_host & host, isix::dev::device::class_id id )
