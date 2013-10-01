@@ -28,22 +28,36 @@ public:
 	 {
 		 m_mngr.add_window( this );
 	 }
+	 //Remove window
+	 virtual ~window()
+	 {
+		 m_mngr.delete_window( this );
+	 }
 	 //Resize the window
 	 void resize(coord_t new_width, coord_t new_height);
 	 //Move the window
 	 void move( coord_t new_x, coord_t new_y );
-	 //Repaint the window
+	 //Set window color
+	 void set_color( color_t fg, color_t bg )
+	 {
+		 m_gdi.set_bg_color( bg );
+		 m_gdi.set_fg_color( fg );
+	 }
 	// On repaint the window return true when changed
 	virtual bool repaint();
+	//* Report input event
+	virtual bool report_event( const input::event_info& /*ev*/ )
+	{
+	}
+	//On event
 protected:
 	//Get GDI
 	disp::gdi& gdi() { return m_gdi; };
 private:
 	coord_t m_x {}, m_y {};							/* Position X */
-	coord_t m_cx {}, m_cy {};				/* Position Y */
-	frame &m_mngr;							/* GUI manager */
+	coord_t m_cx {}, m_cy {};						/* Position Y */
+	frame &m_mngr;									/* GUI manager */
 	disp::gdi m_gdi;								/* Graphics content for window */
-	bool m_visible {};								/* The window is visible */
 	bool m_changed {};								/* The window is changed */
 };
 /* ------------------------------------------------------------------ */

@@ -16,7 +16,7 @@ namespace gui {
 
 /* ------------------------------------------------------------------ */
 /* Repaint the all windows */
-int frame::repaint()
+int frame::repaint_all()
 {
 	for( const auto item : m_windows )
 	{
@@ -28,13 +28,38 @@ int frame::repaint()
 /** Execute gui main loop */
 void frame::execute()
 {
-	for(input::event_info ev;;)
+	m_disp.clear(rgb(0,0,0));
+	repaint_all();
+	for( input::event_info ev;; )
 	{
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
 		{
-			//TODO Queue handle
+			if( !m_windows.empty() )
+				m_windows.front()->report_event( ev );
 		}
 	}
+}
+/* ------------------------------------------------------------------ */
+//Add window to frame
+void frame::add_window( window* window )
+{
+	m_windows.push_back( window );
+	repaint();
+}
+
+/* ------------------------------------------------------------------ */
+//Delete the window
+void frame::delete_window( window* window )
+{
+	m_windows.remove( window );
+	repaint_all();
+}
+
+/* ------------------------------------------------------------------ */
+//Repaint first windows
+int frame::repaint()
+{
+	return m_windows.empty()?false:m_windows.front()->repaint();
 }
 /* ------------------------------------------------------------------ */
 }	//ns gui

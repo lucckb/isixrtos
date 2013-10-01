@@ -12,11 +12,11 @@
 
 namespace gfx {
 namespace gui {
+
 /* ------------------------------------------------------------------ */
 // On repaint the window return true when changed
 bool window::repaint()
 {
-	m_gdi.set_bg_color( rgb(255,0,0) );
 	m_gdi.fill_area(m_x, m_y, m_cx, m_cy, true );
 	dbprintf("Repaint");
 	return true;

@@ -38,18 +38,20 @@ public:
 	/** Execute gui main loop */
 	void execute();
 	/** Send gui event handler */
-	int input_gui_event( const input::event_info &event );
+	int report_event( const input::event_info &event );
 	//Get display
 	drv::disp_base& get_display() const
 	{
 		return m_disp;
 	}
 	//Add window to frame
-	void add_window( window* window )
-	{
-		m_windows.push_back( window );
-	}
+	void add_window( window* window );
+	//Delete the window
+	void delete_window( window* window );
+protected:
 	/* Repaint the all windows */
+	int repaint_all();
+	//Repaint visible
 	int repaint();
 private:
 	//Private events queue
