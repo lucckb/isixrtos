@@ -8,7 +8,7 @@
 #ifndef MMC_COMMAND_HPP_
 #define MMC_COMMAND_HPP_
 /*----------------------------------------------------------*/
-#include "noncopyable.hpp"
+#include <foundation/noncopyable.hpp>
 #include <stdint.h>
 #include <cstddef>
 #include "mmc/mmc_error_codes.hpp"

@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 
-#include "hd44xx_display.hpp"
-#include <utils.h>
+#include "foundation/hd44xx_display.hpp"
+#include <foundation/utils.h>
 /* ------------------------------------------------------------------ */
 namespace fnd
 {

@@ -8,7 +8,7 @@
 #ifndef IMMC_DET_PIN_HPP_
 #define IMMC_DET_PIN_HPP_
 /*----------------------------------------------------------*/
-#include <noncopyable.hpp>
+#include <foundation/noncopyable.hpp>
 
 /*----------------------------------------------------------*/
 namespace drv {

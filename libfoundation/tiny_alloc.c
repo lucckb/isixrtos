@@ -6,7 +6,7 @@
  *      Author: lucck
  */
 /*------------------------------------------------------*/
-#include "tiny_alloc.h"
+#include "foundation/tiny_alloc.h"
 
 /*------------------------------------------------------*/
 #ifndef COMPILED_UNDER_ISIX

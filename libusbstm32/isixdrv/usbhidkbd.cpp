@@ -5,7 +5,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#include <dbglog.h>
+#include <foundation/dbglog.h>
 #include <isix.h>
 #include <usbh_hid_core.h>
 #include <usbhidkbd.hpp>
@@ -88,7 +88,7 @@ void hid_keyboard::generate_event( const uint8_t *req, std::size_t len )
 	  if (nbr_keys_new == 1)
 	  {
 		  auto key_newest = keys_new[0];
-		  int status = input_report_key(  gfx::gui::detail::keyboard_tag::status::DOWN, key_newest, req[0] );
+		  int status = input_report_key(  gfx::input::detail::keyboard_tag::status::DOWN, key_newest, req[0] );
 		  dbprintf("New key %02X report %i", key_newest, status );
 	  }
 

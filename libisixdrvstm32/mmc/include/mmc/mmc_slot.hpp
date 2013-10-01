@@ -8,7 +8,7 @@
 #ifndef MMC_SLOT_HPP_
 #define MMC_SLOT_HPP_
 
-#include "noncopyable.hpp"
+#include <foundation/noncopyable.hpp>
 #include "mmc/immc_det_pin.hpp"
 #include "mmc/mmc_error_codes.hpp"
 #include <isix.h>

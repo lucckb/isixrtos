@@ -78,10 +78,12 @@ public:
 	 * @param[in] y Position Y
 	 * @param[in] cx Height
 	 * @param[in] cy Width
+	 * @param[in] bg Background color
+	 *
 	 */
-	void fill_area( coord_t x, color_t y, coord_t cx, coord_t cy )
+	void fill_area( coord_t x, coord_t y, coord_t cx, coord_t cy, bool bg = false)
 	{
-		m_gdev.fill( x, y, cx, cy, m_color );
+		m_gdev.fill( x, y, cx, cy, bg?m_bg_color:m_color );
 	}
 
 	/** Draw circle

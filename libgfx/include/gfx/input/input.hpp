@@ -12,21 +12,18 @@
 #include <cstring>
 #include <memory>
 #include <array>
-#include <isix.h>
+#include <functional>
 #include "event_info.hpp"
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace input {
 
-/* ------------------------------------------------------------------ */
-
-//Input queue type
-typedef isix::fifo<gui::event_info> input_queue_t;
 
 /* ------------------------------------------------------------------ */
 class input_class : public isix::dev::device
 {
 public:
+	typedef std::function<void( const event_info& )> input_evt_t;
 	enum led_ctl
 	{
 		LED_NUML,
@@ -106,17 +103,17 @@ public:
 		return isix::ISIX_ENOTSUP;
 	}
 	/* Set input queue */
-	void set_queue( input_queue_t *queue )
+	void connect( input_evt_t evt )
 	{
-		m_queue = queue;
+		m_evt_report = evt;
 	}
 protected:
-		int input_report_key(  gui::detail::keyboard_tag::status status ,
-				gui::detail::keyboard_tag::key_type key,
-				gui::detail::keyboard_tag::control_key_type ctl  );
+		int input_report_key(  detail::keyboard_tag::status status ,
+				detail::keyboard_tag::key_type key,
+				detail::keyboard_tag::control_key_type ctl  );
 private:
  	char m_desc[32] {};
- 	input_queue_t * m_queue {};
+ 	input_evt_t m_evt_report;
 };
 
 

@@ -205,13 +205,18 @@ void __verbose_terminate_handler()
 #if (__cplusplus > 199711L) && !defined(CONFIG_ENABLE_EXCEPTIONS)
 namespace std
 {
-void  __throw_bad_function_call() __attribute__((__noreturn__));
-void  __throw_bad_function_call()
-{
-	terminate_process();
-	for(;;);
-}
-
+	void  __throw_bad_function_call() __attribute__((__noreturn__));
+	void  __throw_bad_function_call()
+	{
+		terminate_process();
+		for(;;);
+	}
+	void  __throw_bad_alloc() __attribute__((__noreturn__));
+	void  __throw_bad_alloc()
+	{
+		terminate_process();
+		for(;;);
+	}
 }
 #endif
 /* -------------------------------------------------------------- */

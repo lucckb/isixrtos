@@ -41,6 +41,5 @@ CPPSRC += $(wildcard *.cpp)
 ASRC += $(wildcard *.S)
 
 
-
 include ../lib-stm32/scripts/stm32.mk
 

@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <stdint.h>
 #include <isix.h>
-#include <noncopyable.hpp>
+#include <foundation/noncopyable.hpp>
 /*----------------------------------------------------------*/
 namespace drv {
 

@@ -7,9 +7,10 @@
 /* ------------------------------------------------------------------ */
 #ifndef GFX_INPUT_EVENT_INFO_HPP_
 #define GFX_INPUT_EVENT_INFO_HPP_
+
 /* ------------------------------------------------------------------ */
 namespace gfx {
-namespace gui {
+namespace input {
 
 /* ------------------------------------------------------------------ */
 namespace detail {
@@ -53,7 +54,7 @@ struct event_info
 		EV_KEY,		/* Keyboard event  */
 		EV_MOUSE,	/* Relative event  */
 	};
-	isix::tick_t time;
+	unsigned time;
 	evtype type;
 	union
 	{

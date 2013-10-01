@@ -16,6 +16,8 @@
 #define CONFIG_GFX_PIXEL_FORMAT_RGB8   3
 #ifndef CONFIG_GFX_PIXEL_FORMAT
 #define CONFIG_GFX_PIXEL_FORMAT CONFIG_GFX_PIXEL_FORMAT_RGB565
+
+/* ------------------------------------------------------------------ */
 #endif
 /* ------------------------------------------------------------------ */
 namespace gfx

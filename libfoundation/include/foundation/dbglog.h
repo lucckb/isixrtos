@@ -10,7 +10,7 @@
 #define DBGLOG_H_
 /* ------------------------------------------------------------------ */
 #ifdef PDEBUG /* Debug enabled */
-#include <tiny_printf.h>
+#include <foundation/tiny_printf.h>
 
 #pragma GCC system_header
 

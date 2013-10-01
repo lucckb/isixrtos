@@ -11,7 +11,7 @@
 #include <stm32dma.h>
 #include <stm32spi.h>
 #include <stm32bitbang.h>
-#include <dbglog.h>
+#include <foundation/dbglog.h>
 #include <cstring>
 /*----------------------------------------------------------*/
 

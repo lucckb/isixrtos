@@ -75,7 +75,7 @@ typedef unsigned long mem_ptr_t;
 
 /* prototypes for printf() and abort() */
 
-#include <dbglog.h>
+#include <foundation/dbglog.h>
 #include <isix.h>
 
 

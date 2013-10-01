@@ -7,7 +7,7 @@
 /* ------------------------------------------------------------------ */
 #include <usb_host.hpp>
 #include <usb_hcd_int.h>
-#include <dbglog.h>
+#include <foundation/dbglog.h>
 /* ------------------------------------------------------------------ */
 namespace isix {
 namespace dev {

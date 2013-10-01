@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#include "virtual_eeprom.hpp"
-#include "iflash_mem.hpp"
+#include "foundation/virtual_eeprom.hpp"
+#include "foundation/iflash_mem.hpp"
 #include <stdint.h>
 #include <cstddef>
 

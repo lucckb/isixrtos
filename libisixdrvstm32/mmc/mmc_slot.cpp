@@ -8,7 +8,7 @@
 #include "mmc/mmc_slot.hpp"
 #include "mmc/mmc_card.hpp"
 #include "mmc/mmc_error_codes.hpp"
-#include <dbglog.h>
+#include <foundation/dbglog.h>
 
 namespace drv {
 namespace mmc {

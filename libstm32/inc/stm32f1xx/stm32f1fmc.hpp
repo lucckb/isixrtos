@@ -9,7 +9,7 @@
 #ifndef STM32F1FMC_HPP_
 #define STM32F1FMC_HPP_
 /* ------------------------------------------------------------------ */
-#include "iflash_mem.hpp"
+#include "foundation/iflash_mem.hpp"
 
 /* ------------------------------------------------------------------ */
 namespace stm32

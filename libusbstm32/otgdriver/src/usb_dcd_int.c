@@ -164,7 +164,7 @@ uint32_t USBD_OTG_EP1IN_ISR_Handler (USB_OTG_CORE_HANDLE *pdev)
 }
 #endif
 
-#include <dbglog.h>
+#include <foundation/dbglog.h>
 /**
 * @brief  STM32_USBF_OTG_ISR_Handler
 *         handles all USB Interrupts
