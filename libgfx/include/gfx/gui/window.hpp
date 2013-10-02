@@ -48,11 +48,16 @@ public:
 	//* Report input event
 	virtual bool report_event( const input::event_info& /*ev*/ )
 	{
+		return false;
 	}
 	//On event
 protected:
 	//Get GDI
 	disp::gdi& gdi() { return m_gdi; };
+	coord_t get_x() const { return m_x; }
+	coord_t get_y() const { return m_y; }
+	coord_t get_cx() const { return m_cx; }
+	coord_t get_cy() const { return m_cy; }
 private:
 	coord_t m_x {}, m_y {};							/* Position X */
 	coord_t m_cx {}, m_cy {};						/* Position Y */

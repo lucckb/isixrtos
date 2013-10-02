@@ -18,7 +18,6 @@
 namespace gfx {
 namespace input {
 
-
 /* ------------------------------------------------------------------ */
 class input_class : public isix::dev::device
 {

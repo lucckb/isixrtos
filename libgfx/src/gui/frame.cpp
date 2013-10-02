@@ -34,8 +34,10 @@ void frame::execute()
 	{
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
 		{
-			if( !m_windows.empty() )
-				m_windows.front()->report_event( ev );
+			for( const auto item : m_windows )
+			{
+				item->report_event( ev );
+			}
 		}
 	}
 }
