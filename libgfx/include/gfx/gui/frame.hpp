@@ -38,7 +38,10 @@ public:
 	/** Execute gui main loop */
 	void execute();
 	/** Send gui event handler */
-	int report_event( const input::event_info &event );
+	int report_event( const input::event_info &event )
+	{
+		return m_events_queue.push_isr( event );
+	}
 	//Get display
 	drv::disp_base& get_display() const
 	{

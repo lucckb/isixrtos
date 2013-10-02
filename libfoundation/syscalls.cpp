@@ -205,104 +205,77 @@ void __verbose_terminate_handler()
 #if (__cplusplus > 199711L) && !defined(CONFIG_ENABLE_EXCEPTIONS)
 namespace std
 {
-	void   __throw_bad_exception() __attribute__((__noreturn__));
-	void   __throw_bad_exception()
-	{
-		terminate_process();
-		for(;;);
-	}
-	void  __throw_bad_alloc() __attribute__((__noreturn__));
-	void  __throw_bad_alloc()
-	{
-		terminate_process();
-		for(;;);
-	}
-	void  __throw_bad_cast() __attribute__((__noreturn__));
-	void  __throw_bad_cast()
-	{
-		terminate_process();
-		for(;;);
-	}
-	void  __throw_bad_typeid() __attribute__((__noreturn__));
-	void  __throw_bad_typeid()
-	{
-		terminate_process();
-		for(;;);
-	}
-	void  __throw_logic_error() __attribute__((__noreturn__));
-	void  __throw_logic_error()
-	{
-		terminate_process();
-		for(;;);
-	}
-	void  __throw_domain_error() __attribute__((__noreturn__));
-	void  __throw_domain_error()
-	{
-		terminate_process();
-		for(;;);
-	}
-	void   __throw_invalid_argument() __attribute__((__noreturn__));
-	void   __throw_invalid_argument()
-	{
-		terminate_process();
-		for(;;);
-	}
-	void __throw_length_error(const char*) __attribute__((__noreturn__));
-	void __throw_length_error(const char*)
-	{
-		terminate_process();
-		for(;;);
-	}
-	void __throw_out_of_range(const char*) __attribute__((__noreturn__));
-	void __throw_out_of_range(const char*)
-	{
-		terminate_process();
-		for(;;);
-	}
+	  void
+	  __throw_bad_exception()
+	  { terminate_process(); for(;;); }
 
-	void __throw_runtime_error(const char*) __attribute__((__noreturn__));
-	void __throw_runtime_error(const char*)
-	{
-		terminate_process();
-		for(;;);
-	}
+	  void
+	  __throw_bad_alloc()
+	  { terminate_process(); for(;;); }
 
-	void __throw_range_error(const char*) __attribute__((__noreturn__));
-	void __throw_range_error(const char*)
-	{
-		terminate_process();
-		for(;;);
-	}
+	  void
+	  __throw_bad_cast()
+	  { terminate_process(); for(;;); }
 
-	void __throw_overflow_error(const char*) __attribute__((__noreturn__));
-	void __throw_overflow_error(const char*)
-	{
-		terminate_process();
-		for(;;);
-	}
+	  void
+	  __throw_bad_typeid()
+	  { terminate_process(); for(;;); }
 
+	  void
+	  __throw_logic_error(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
 
-	void __throw_underflow_error(const char*) __attribute__((__noreturn__));
-	void __throw_underflow_error(const char*)
-	{
-		terminate_process();
-		for(;;);
-	}
+	  void
+	  __throw_domain_error(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
 
-	void __throw_ios_failure(const char*) __attribute__((__noreturn__));
-	void __throw_ios_failure(const char*)
-	{
-		terminate_process();
-		for(;;);
-	}
+	  void
+	  __throw_invalid_argument(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
 
-	void  __throw_bad_function_call() __attribute__((__noreturn__));
-	void  __throw_bad_function_call()
-	{
-		terminate_process();
-		for(;;);
-	}
+	  void
+	  __throw_length_error(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
 
+	  void
+	  __throw_out_of_range(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
+
+	  void
+	  __throw_runtime_error(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
+
+	  void
+	  __throw_range_error(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
+
+	  void
+	  __throw_overflow_error(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
+
+	  void
+	  __throw_underflow_error(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
+
+	  void
+	  __throw_ios_failure(const char* __s __attribute__((unused)))
+	  { terminate_process(); for(;;); }
+
+	  void
+	  __throw_system_error(int __i __attribute__((unused)))
+	  { terminate_process(); for(;;); }
+
+	  void
+	  __throw_future_error(int __i __attribute__((unused)))
+	  { terminate_process(); for(;;); }
+
+	  void
+	  __throw_bad_function_call()
+	  { terminate_process(); for(;;); }
+
+	  void
+	  __throw_regex_error()
+	  { terminate_process(); for(;;); }
 
 }
 #endif
