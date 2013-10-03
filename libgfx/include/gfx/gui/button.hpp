@@ -17,8 +17,8 @@ namespace gui {
 class button: public window
 {
 public:
-	explicit button( coord_t new_x, coord_t new_y, coord_t new_cx, coord_t new_cy, frame &mngr)
-		: window( new_x, new_y, new_cx, new_cy, mngr )
+	explicit button( rectangle const& rect,layout const& layout ,frame &mngr )
+		: window( rect, layout, mngr )
 	{}
 	//Destructor
 	virtual ~button()
@@ -36,6 +36,7 @@ protected:
 	virtual bool report_event( const input::event_info& ev );
 private:
 	detail::string m_caption;
+	bool m_clicked {};
 };
 /* ------------------------------------------------------------------ */
 } /* namespace gui */

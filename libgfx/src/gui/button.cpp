@@ -15,8 +15,12 @@ namespace gui {
 // On repaint the window return true when changed
 bool button::repaint()
 {
-	gdi().fill_area(get_x(), get_y(), get_cx(), get_y(), true );
-	gdi().draw_text(get_x(), get_y(), m_caption.c_str());
+	auto gdi = make_gdi( get_layout() );
+	auto &c = get_coord();
+	gdi.fill_area( c.x(), c.y(), c.cx(), c.cy(), true );
+	gdi.draw_text( c.x(), c.y(), m_caption.c_str());
+	dbprintf("Repaint2");
+	return 0;
 }
 /* ------------------------------------------------------------------ */
 //* Report input event

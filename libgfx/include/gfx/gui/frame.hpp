@@ -11,6 +11,7 @@
 #include <foundation/noncopyable.hpp>
 #include <gfx/input/event_info.hpp>
 #include <gfx/gui/detail/defines.hpp>
+#include <gfx/gui/primitives.hpp>
 #include <isix.h>
 /* ------------------------------------------------------------------ */
 namespace gfx {
@@ -43,14 +44,13 @@ public:
 		return m_events_queue.push_isr( event );
 	}
 	//Get display
-	drv::disp_base& get_display() const
-	{
-		return m_disp;
-	}
+	drv::disp_base& get_display() const { return m_disp; }
 	//Add window to frame
 	void add_window( window* window );
 	//Delete the window
 	void delete_window( window* window );
+	//Get default layout
+	layout const& get_def_layout() const { return m_default_layout; }
 protected:
 	/* Repaint the all windows */
 	int repaint_all();
@@ -63,6 +63,8 @@ private:
 	detail::windows_container<window*> m_windows;
 	//Display
 	drv::disp_base& m_disp;
+	//Default layout
+	layout m_default_layout { color::Black, color::RosyBrown };
 };
 
 /* ------------------------------------------------------------------ */

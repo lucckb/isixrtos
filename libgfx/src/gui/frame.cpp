@@ -28,7 +28,7 @@ int frame::repaint_all()
 /** Execute gui main loop */
 void frame::execute()
 {
-	m_disp.clear(rgb(0,0,0));
+	m_disp.clear(color::White);
 	repaint_all();
 	for( input::event_info ev;; )
 	{

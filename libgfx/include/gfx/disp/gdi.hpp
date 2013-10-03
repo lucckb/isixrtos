@@ -24,11 +24,13 @@ class gdi
 	gdi& operator=(const gdi&) = delete;
 public:
 	//!Constructor
-	gdi( drv::disp_base &gdev ):
-		m_gdev( gdev )
+	explicit gdi( drv::disp_base &gdev, color_t fg = rgb(255,255,255),
+			color_t bg = rgb(0,0,0), const font_t* fnt= &fonts::font_default )
+	: m_gdev( gdev ), m_color( fg ), m_bg_color( bg ), m_font(fnt)
 	{
 	}
-
+	//Move constructor
+	gdi( gdi&& ) = default;
 	/** Clear the screen using background color */
 	void clear()
 	{
@@ -139,9 +141,9 @@ public:
 	}
 private:
 	drv::disp_base &m_gdev;
-	const font_t *m_font { &fonts::font_default } ;
-	color_t m_color { rgb(255,255,255) };
-	color_t m_bg_color { rgb(0,0,0) };
+	color_t m_color;
+	color_t m_bg_color;
+	const font_t* m_font;
 	bool m_bg_fill { false };	//Fill the background
 };
 /* ------------------------------------------------------------------ */
