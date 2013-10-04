@@ -36,15 +36,51 @@ namespace gfx
 	{
 		return ((B>>3)<<(16-5)) | ((G>>2)<<(16-5-6) | (R>>3) );
 	}
+	static inline constexpr uint8_t color_t_R(color_t color)
+	{
+		return (color&0x1F) << 3;
+	}
+	static inline constexpr uint8_t color_t_G(color_t color)
+	{
+		return ((color>>(16-5-6))&0x3F) << 2;
+	}
+	static inline constexpr uint8_t color_t_B(color_t color)
+	{
+		return ((color>>(16-5))&0x1F) << 3;
+	}
 #elif  CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_BGR565
 	static inline constexpr color_t rgb( unsigned char R, unsigned char G, unsigned char B )
 	{
 		return ((R>>3)<<(16-5)) | ((G>>2)<<(16-5-6) | (B>>3) );
 	}
+	static inline constexpr uint8_t color_t_B(color_t color)
+	{
+		return (color&0x1F) << 3;
+	}
+	static inline constexpr uint8_t color_t_G(color_t color)
+	{
+		return ((color>>(16-5-6))&0x3F) << 2;
+	}
+	static inline constexpr uint8_t color_t_R(color_t color)
+	{
+		return ((color>>(16-5))&0x1F) << 3;
+	}
 #elif  CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_RGB8
 	static inline constexpr color_t rgb( unsigned char R, unsigned char G, unsigned char B )
 	{
 		return (B<<16) | (G<<8) | R );
+	}
+	static inline constexpr uint8_t color_t_R(color_t color)
+	{
+		return color&0xFF;
+	}
+	static inline constexpr uint8_t color_t_G(color_t color)
+	{
+		return (color>>8)&0xFF;
+	}
+	static inline constexpr uint8_t color_t_B(color_t color)
+	{
+		return (color>>16)&0xFF;
 	}
 #else
 #error "Unknown CONFIG_GFX_PIXEL_FORMAT"
@@ -59,17 +95,37 @@ namespace gfx
 	//Color space utilities
 	namespace colorspace
 	{
-		inline color_t rgb565( uint16_t value )
+		static inline constexpr color_t rgb565( uint16_t value )
 		{
 			return rgb( (value&0x1f)<<3, ((value>>5)&0x3f)<<2, ((value>>11)&0x1f)<<3 );
 		}
-		inline color_t bgr565( uint16_t value )
+		static inline constexpr color_t bgr565( uint16_t value )
 		{
 			return rgb( ((value>>11)&0x1f)<<3, ((value>>5)&0x3f)<<2, (value&0x1f)<<3 );
 		}
-		inline color_t bgr332( uint8_t value )
+		static inline constexpr color_t bgr332( uint8_t value )
 		{
 			return (value==0xff)?(rgb(255,255,255)):(rgb( (value&0x07)<<5, ((value>>3)&0x07)<<5, ((value>>6)&0x03)<<6 ));
+		}
+		static inline color_t brigh( color_t color, int bright )
+		{
+			int r = color_t_R(color) + bright;
+			int g = color_t_G(color) + bright;
+			int b = color_t_B(color) + bright;
+			if (r > 255) r = 255;
+			else if(r < 0) r = 0;
+			if (g > 255) g = 255;
+			else if(g < 0) g = 0;
+			if (b > 255) b = 255;
+			else if(b < 0) b = 0;
+			return rgb(r,g,b);
+		}
+		static inline constexpr uint8_t luminance( color_t color )
+		{
+			return ( color_t_R(color)*color_t_R(color) +
+					 color_t_B(color) +
+					 color_t_G(color)*color_t_G(color)*color_t_G(color)
+				    );
 		}
 	}
 	//Standard html5 color defs

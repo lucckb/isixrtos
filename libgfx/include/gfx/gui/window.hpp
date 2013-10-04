@@ -53,12 +53,12 @@ public:
 protected:
 	//Get
 	const rectangle& get_coord() const { return m_coord; }
-	const layout& get_layout() const { return m_layout; }
+	const layout& get_layout() const { return m_layout.inherit()?m_mngr.get_def_layout():m_layout; }
 	frame& get_frame() { return m_mngr; }
 	//Make gdi
-	disp::gdi make_gdi( layout const& lay )
+	disp::gdi make_gdi( )
 	{
-		const auto l = lay.inherit()?m_mngr.get_def_layout():lay;
+		const auto l = m_layout.inherit()?m_mngr.get_def_layout():m_layout;
 		return std::move(disp::gdi( m_mngr.get_display(), l.fg(), l.bg(), l.font() ));
 	}
 private:

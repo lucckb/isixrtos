@@ -29,6 +29,14 @@ public:
 	{
 		m_caption = caption;
 	}
+	void pushed( bool pushed )
+	{
+		m_pushed = pushed;
+	}
+	void set_pushkey( short key )
+	{
+		m_push_key = key;
+	}
 protected:
 	// On repaint the window return true when changed
 	virtual bool repaint();
@@ -36,7 +44,8 @@ protected:
 	virtual bool report_event( const input::event_info& ev );
 private:
 	detail::string m_caption;
-	bool m_clicked {};
+	bool m_pushed {};
+	short m_push_key { -1 };
 };
 /* ------------------------------------------------------------------ */
 } /* namespace gui */

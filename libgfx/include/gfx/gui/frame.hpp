@@ -64,7 +64,7 @@ private:
 	//Display
 	drv::disp_base& m_disp;
 	//Default layout
-	layout m_default_layout { color::Black, color::RosyBrown };
+	layout m_default_layout { color::Black, color::LightGray, color::BlueViolet };
 };
 
 /* ------------------------------------------------------------------ */
