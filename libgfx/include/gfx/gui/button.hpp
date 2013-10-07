@@ -8,17 +8,17 @@
 #ifndef GFX_GUI_BUTTON_HPP_
 #define GFX_GUI_BUTTON_HPP_
 /* ------------------------------------------------------------------ */
-#include "window.hpp"
+#include "widget.hpp"
 
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
-
-class button: public window
+/* ------------------------------------------------------------------ */
+class button: public widget
 {
 public:
-	explicit button( rectangle const& rect,layout const& layout ,frame &mngr )
-		: window( rect, layout, mngr )
+	explicit button( rectangle const& rect,layout const& layout ,window &win )
+		: widget( rect, layout, win )
 	{}
 	//Destructor
 	virtual ~button()
@@ -38,7 +38,7 @@ public:
 		m_push_key = key;
 	}
 protected:
-	// On repaint the window return true when changed
+	// On repaint the widget return true when changed
 	virtual bool repaint();
 	//* Report input event
 	virtual bool report_event( const input::event_info& ev );

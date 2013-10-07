@@ -38,8 +38,8 @@ private:
 class layout
 {
 public:
-	layout(color_t fg, color_t bg, color_t sel,const font_t* const font = &disp::fonts::font_default)
-		: mbg(bg), mfg(fg), msel(sel),mfont(font),  minherited(false)
+	layout(color_t fg, color_t bg, color_t sel, const font_t* const font = &disp::fonts::font_default,  bool noborder=true)
+		: mbg(bg), mfg(fg), msel(sel),mfont(font), mnoborder(noborder), minherited(false)
 	{}
 	layout() {}
 	bool inherit() const { return minherited; }
@@ -50,9 +50,16 @@ public:
 private:
 	color_t mbg{}, mfg{}, msel{};
 	const font_t* mfont { &disp::fonts::font_default };
+	bool mnoborder;
 	bool minherited { true };
 };
 
+/* ------------------------------------------------------------------ */
+//Operator - beetween two windows
+static inline rectangle operator+( rectangle &r1, rectangle &r2 )
+{
+	return std::move(
+}
 /* ------------------------------------------------------------------ */
 }}
 

@@ -18,9 +18,11 @@ bool button::repaint()
 	constexpr auto luma = 128;
 	constexpr auto luma2 = luma/2;
 	auto gdi = make_gdi( );
-	auto &c = get_coord();
+	auto &c = get_coord() - get_owner().get_coord();
 	gdi.fill_area( c.x()+1, c.y()+1, c.cx()-2, c.cy()-2, true );
-	gdi.draw_text( c.x()+1, c.y()+1, m_caption.c_str());
+	const auto tx = c.x() + (c.cx() - gdi.get_text_width(m_caption.c_str()))/2;
+	const auto ty = c.y() + (c.cy() - gdi.get_text_height())/2;
+	gdi.draw_text( tx, ty, m_caption.c_str());
 	if( !m_pushed )
 	{
 		//FRM1
@@ -47,7 +49,6 @@ bool button::repaint()
 
 
 	}
-	dbprintf("Repaint2");
 	return 0;
 }
 /* ------------------------------------------------------------------ */
@@ -58,6 +59,7 @@ bool button::report_event( const input::event_info& ev )
 	if( m_push_key > 0 && m_push_key == ev.keyb.key )
 	{
 		m_pushed = ( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN );
+		//FIXME: repaint fix
 		repaint();
 	}
 	return true;

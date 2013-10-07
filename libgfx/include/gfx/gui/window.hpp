@@ -1,73 +1,63 @@
 /*
  * window.hpp
  *
- *  Created on: 30 wrz 2013
+ *  Created on: 7 paź 2013
  *      Author: lucck
  */
-
+/* ------------------------------------------------------------------ */
 #ifndef GFX_GUI_WINDOW_HPP_
 #define GFX_GUI_WINDOW_HPP_
 /* ------------------------------------------------------------------ */
-#include <gfx/types.hpp>
-#include <memory>
 #include <foundation/noncopyable.hpp>
-#include <gfx/gui/detail/defines.hpp>
-#include <gfx/disp/gdi.hpp>
-#include <gfx/gui/frame.hpp>
+#include <gfx/types.hpp>
 #include <gfx/gui/primitives.hpp>
+#include <gfx/gui/detail/defines.hpp>
+#include <gfx/input/event_info.hpp>
+#include <gfx/gui/frame.hpp>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */
-class window  : private fnd::noncopyable
+class widget;
+
+/* ------------------------------------------------------------------ */
+class window : public fnd::noncopyable
 {
 public:
-	 //Create window constructor
-	 explicit window( rectangle const& rect,layout const& layout ,frame &mngr)
-	 	 : m_coord(rect), m_layout(layout), m_mngr(mngr)
-	 {
-		 m_mngr.add_window( this );
-	 }
-	 //Remove window
-	 virtual ~window()
-	 {
-		 m_mngr.delete_window( this );
-	 }
-	 //Resize the window
-	 void resize(coord_t new_width, coord_t new_height);
-	 //Move the window
-	 void move( coord_t new_x, coord_t new_y );
-	 //Set window color
-	 void set_layout( layout const& lay )
-	 {
-		m_layout = lay;
-	 }
-	// On repaint the window return true when changed
+	//Get window
+	window( const rectangle &coord, frame &frm )
+		: m_coord( coord ), m_frm ( frm )
+	{
+		m_frm.add_window( this );
+	}
+	// On repaint the widget return true when changed
 	virtual bool repaint();
 	//* Report input event
 	virtual bool report_event( const input::event_info& /*ev*/ )
 	{
+		//TODO: FIXME THIS
 		return false;
 	}
-	//On event
-protected:
-	//Get
-	const rectangle& get_coord() const { return m_coord; }
-	const layout& get_layout() const { return m_layout.inherit()?m_mngr.get_def_layout():m_layout; }
-	frame& get_frame() { return m_mngr; }
-	//Make gdi
-	disp::gdi make_gdi( )
+	void add_widget( widget * const w )
 	{
-		const auto l = m_layout.inherit()?m_mngr.get_def_layout():m_layout;
-		return std::move(disp::gdi( m_mngr.get_display(), l.fg(), l.bg(), l.font() ));
+		m_widgets.push_front( w );
 	}
+	void delete_widget( widget * const w )
+	{
+		m_widgets.remove( w );
+	}
+	const rectangle& get_coord() const { return m_coord; }
+	frame& get_owner() { return m_frm; }
 private:
+	detail::windows_container<widget*> m_widgets;
 	rectangle m_coord;
-	layout m_layout;
-	frame &m_mngr;									/* GUI manager */
-	bool m_changed {};								/* The window is changed */
+	frame &m_frm;
 };
 /* ------------------------------------------------------------------ */
+
 }}
+
 /* ------------------------------------------------------------------ */
-#endif /* WINDOW_HPP_ */
+
+#endif /* GFX_GUI_WINDOW_HPP_ */
+/* ------------------------------------------------------------------ */

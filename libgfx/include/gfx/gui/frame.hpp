@@ -39,23 +39,21 @@ public:
 	/** Execute gui main loop */
 	void execute();
 	/** Send gui event handler */
-	int report_event( const input::event_info &event )
-	{
-		return m_events_queue.push_isr( event );
-	}
+	int report_event( const input::event_info &event );
 	//Get display
 	drv::disp_base& get_display() const { return m_disp; }
-	//Add window to frame
+	//Add widget to frame
 	void add_window( window* window );
-	//Delete the window
+	//Delete the widget
 	void delete_window( window* window );
 	//Get default layout
 	layout const& get_def_layout() const { return m_default_layout; }
+	layout const& get_def_win_layout() const { return m_default_win_layout; }
+	//Focus on the window
+	void set_focus( window* window );
 protected:
-	/* Repaint the all windows */
-	int repaint_all();
 	//Repaint visible
-	int repaint();
+	bool repaint();
 private:
 	//Private events queue
 	isix::fifo<input::event_info> m_events_queue;
@@ -64,7 +62,8 @@ private:
 	//Display
 	drv::disp_base& m_disp;
 	//Default layout
-	layout m_default_layout { color::Black, color::LightGray, color::BlueViolet };
+	layout m_default_win_layout { color::Black, color::White, color::Red };					/* Window layout */
+	layout m_default_layout { color::Black, color::LightGray, color::BlueViolet  } ;		/* Component layout */
 };
 
 /* ------------------------------------------------------------------ */

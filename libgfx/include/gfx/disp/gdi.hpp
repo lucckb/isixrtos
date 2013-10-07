@@ -53,7 +53,12 @@ public:
 	 * @param[in] str Input text
 	 * @return Text length
 	 */
-	coord_t get_text_width( const char *str );
+	coord_t get_text_width( const char *str ) const;
+
+	/** Calculate text height
+	 * @return text height */
+	coord_t get_text_height( ) const;
+
 
 	/** Set PIXEL
 	 * @param[in] x position X

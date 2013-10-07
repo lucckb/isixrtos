@@ -171,7 +171,7 @@ void gdi::draw_text( coord_t x, coord_t y, const char* str )
 
 /* ------------------------------------------------------------------ */
 /** Get text width */
-coord_t gdi::get_text_width( const char *str )
+coord_t gdi::get_text_width( const char *str ) const
 {
 	if( !m_font->width )
 		return std::strlen( str ) * m_font->maxwidth;
@@ -185,6 +185,12 @@ coord_t gdi::get_text_width( const char *str )
 		}
 		return width;
 	}
+}
+/* ------------------------------------------------------------------ */
+/* Get text height */
+coord_t gdi::get_text_height() const
+{
+	return m_font->height;
 }
 /* ------------------------------------------------------------------ */
 //Draw line
