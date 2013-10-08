@@ -8,7 +8,7 @@
 #ifndef GFX_GUI_WINDOW_HPP_
 #define GFX_GUI_WINDOW_HPP_
 /* ------------------------------------------------------------------ */
-#include <foundation/noncopyable.hpp>
+#include <gfx/gui/object.hpp>
 #include <gfx/types.hpp>
 #include <gfx/gui/primitives.hpp>
 #include <gfx/gui/detail/defines.hpp>
@@ -21,37 +21,52 @@ namespace gui {
 class widget;
 
 /* ------------------------------------------------------------------ */
-class window : public fnd::noncopyable
+//Window class
+class window : public object
 {
 public:
+	struct flags
+	{
+		enum  : unsigned
+		{
+			fill = 			0x01,			//Fill background
+			border = 		0x02,			//Draw border
+			selectborder =  0x04			//Select border
+		};
+	};
 	//Get window
-	window( const rectangle &coord, frame &frm )
-		: m_coord( coord ), m_frm ( frm )
+	window( const rectangle &coord, frame &frm, unsigned flags = 0 )
+		: m_coord( coord ),m_frm ( frm ), m_flags(flags)
 	{
 		m_frm.add_window( this );
 	}
 	// On repaint the widget return true when changed
 	virtual bool repaint();
 	//* Report input event
-	virtual bool report_event( const input::event_info& /*ev*/ )
-	{
-		//TODO: FIXME THIS
-		return false;
-	}
+	virtual bool report_event( const input::event_info& /*ev*/ );
 	void add_widget( widget * const w )
 	{
 		m_widgets.push_front( w );
+		m_current_widget = m_widgets.begin();
 	}
 	void delete_widget( widget * const w )
 	{
 		m_widgets.remove( w );
+		m_current_widget = m_widgets.empty()?m_widgets.end():m_widgets.begin();
 	}
 	const rectangle& get_coord() const { return m_coord; }
 	frame& get_owner() { return m_frm; }
+	void set_layout( const layout &lay ) { m_layout = lay; }
+	//Select next or prev item
+	void select_next();
+	void select_prev();
 private:
-	detail::windows_container<widget*> m_widgets;
+	detail::container<widget*> m_widgets;
+	detail::container<widget*>::iterator m_current_widget;
+	layout m_layout;
 	rectangle m_coord;
 	frame &m_frm;
+	unsigned m_flags;
 };
 /* ------------------------------------------------------------------ */
 

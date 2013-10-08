@@ -10,7 +10,7 @@
 /* ------------------------------------------------------------------ */
 #include <gfx/types.hpp>
 #include <memory>
-#include <foundation/noncopyable.hpp>
+#include <gfx/gui/object.hpp>
 #include <gfx/gui/detail/defines.hpp>
 #include <gfx/disp/gdi.hpp>
 #include <gfx/gui/window.hpp>
@@ -19,7 +19,7 @@
 namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */
-class widget  : private fnd::noncopyable
+class widget  : public object
 {
 public:
 	 //Create widget constructor

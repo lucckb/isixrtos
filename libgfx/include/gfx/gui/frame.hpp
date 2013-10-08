@@ -58,11 +58,11 @@ private:
 	//Private events queue
 	isix::fifo<input::event_info> m_events_queue;
 	//Windows container
-	detail::windows_container<window*> m_windows;
+	detail::container<window*> m_windows;
 	//Display
 	drv::disp_base& m_disp;
 	//Default layout
-	layout m_default_win_layout { color::Black, color::White, color::Red };					/* Window layout */
+	layout m_default_win_layout { color::Black, color::Black, color::Red };					/* Window layout */
 	layout m_default_layout { color::Black, color::LightGray, color::BlueViolet  } ;		/* Component layout */
 };
 

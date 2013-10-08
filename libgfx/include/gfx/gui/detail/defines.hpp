@@ -24,7 +24,7 @@ namespace gui {
 //TODO: Constant strings allocator add
 namespace detail {
 //template <typename T> using windows_stack = std::list<T, __gnu_cxx::array_allocator<T, std::array<T,CONFIG_GFX_GUI_MAX_CHILD_WINDOWS> > >;
-template <typename T> using windows_container = std::list<T>;
+template <typename T> using container = std::list<T>;
 using string = std::string;
 
 }
