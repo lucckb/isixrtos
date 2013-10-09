@@ -24,16 +24,16 @@ struct event : public input::event_info
 {
 	using evtype = input::event_info::evtype;
 
-	event( const object *_sender, const input::event_info &event)
+	event( object *_sender, const input::event_info &event)
 		: event_info( event), sender(_sender)
 	{}
-	event( const object *_sender, evtype _type )
+	event( object *_sender, evtype _type )
 		: sender(_sender )
 	{
 		type = _type;
 	}
 	virtual ~event() {}
-	const object *sender;
+	object * const sender;
 };
 /* ------------------------------------------------------------------ */
 //Basic event signal

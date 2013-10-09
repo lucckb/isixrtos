@@ -46,8 +46,6 @@ void button::repaint()
 		//gdi.set_fg_color( colorspace::brigh( get_layout().bg(), -luma ) );
 		gdi.draw_line(c.x(), c.y(), c.x() + c.cx(), c.y() );
 		gdi.draw_line(c.x(), c.y(), c.x(), c.y() + c.cy() );
-
-
 	}
 }
 /* ------------------------------------------------------------------ */
@@ -57,9 +55,15 @@ bool button::report_event( const input::event_info& ev )
 	bool ret {};
 	if( m_push_key > 0 && m_push_key == ev.keyb.key )
 	{
-		m_pushed = ( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN );
-		event btn_event( this, event::evtype::EV_CLICK );
-		ret = emit( event( this, ev));
+		const auto cpush = ( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN );
+		dbprintf("Pushed %i", cpush);
+		if( cpush )
+		{
+			event btn_event( this, event::evtype::EV_CLICK );
+			ret = emit( event( this, ev));
+		}
+		ret |= cpush != m_pushed;
+		m_pushed = cpush;
 	}
 	return ret;
 }

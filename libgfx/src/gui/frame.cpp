@@ -10,6 +10,7 @@
 #include <gfx/gui/window.hpp>
 #include <gfx/drivers/disp/disp_base.hpp>
 #include <isix.h>
+#include <foundation/dbglog.h>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
@@ -19,6 +20,7 @@ namespace gui {
 void frame::execute()
 {
 	m_disp.clear(color::Black);
+	repaint();
 	for( input::event_info ev;; )
 	{
 		bool need_repaint {};
@@ -27,7 +29,10 @@ void frame::execute()
 			need_repaint = m_windows.empty()?false:m_windows.front()->report_event( ev );
 		}
 		if( need_repaint )
+		{
+			dbprintf("Do repaint");
 			repaint();
+		}
 	}
 }
 /* ------------------------------------------------------------------ */

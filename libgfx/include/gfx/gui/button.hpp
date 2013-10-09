@@ -29,6 +29,10 @@ public:
 	{
 		m_caption = caption;
 	}
+	const std::string& caption() const
+	{
+		return m_caption;
+	}
 	void pushed( bool pushed )
 	{
 		m_pushed = pushed;

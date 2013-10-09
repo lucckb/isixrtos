@@ -13,30 +13,55 @@
 namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */
+namespace
+{
+
+	//Draw the single line box
+	void draw_line_box( const rectangle &r, disp::gdi &gdi )
+	{
+		gdi.draw_line(r.x(),r.y(),r.x()+r.cx(), r.y() );
+		gdi.draw_line(r.x(),r.y()+r.cy(),r.x()+r.cx(), r.y()+r.cy() );
+		gdi.draw_line(r.x(),r.y(),r.x(), r.y()+r.cy() );
+		gdi.draw_line(r.x()+r.cx(),r.y(),r.x()+r.cx(), r.y()+r.cy() );
+	}
+
+}
+/* ------------------------------------------------------------------ */
 // On repaint the widget return true when changed
 void window::repaint()
 {
-	dbprintf("window::repaint");
+	const auto& lay = m_layout.inherit()?get_owner().get_def_win_layout():m_layout;
+	disp::gdi gdi( get_owner().get_display(), lay.sel(), lay.bg(), lay.font() );
 	{
-		const auto& lay = m_layout.inherit()?get_owner().get_def_win_layout():m_layout;
-		disp::gdi gdi( get_owner().get_display(), lay.sel(), lay.bg(), lay.font() );
 		if( m_flags & flags::fill )
 		{
 			gdi.fill_area( m_coord.x(), m_coord.y(), m_coord.cx(), m_coord.cy(), true );
 		}
 		if( m_flags & flags::border )
 		{
-			gdi.draw_line(m_coord.x(),m_coord.y(),m_coord.x()+m_coord.cx(), m_coord.y() );
-			gdi.draw_line(m_coord.x(),m_coord.y()+m_coord.cy(),m_coord.x()+m_coord.cx(), m_coord.y()+m_coord.cy() );
-			gdi.draw_line(m_coord.x(),m_coord.y(),m_coord.x(), m_coord.y()+m_coord.cy() );
-			gdi.draw_line(m_coord.x()+m_coord.cx(),m_coord.y(),m_coord.x()+m_coord.cx(), m_coord.y()+m_coord.cy() );
+			draw_line_box( m_coord, gdi );
 		}
 	}
 	for( const auto item : m_widgets )
 	{
 		item->repaint();
 	}
+	//If border outside component is required
+	if( m_flags & flags::selectborder )
+	{
+		{
+			const auto s = (*m_current_widget)->get_coord() + get_coord() + 1;
+			draw_line_box( s, gdi );
+		}
+		if( m_redraw_widget != m_widgets.end() )
+		{
+			const auto s = (*m_redraw_widget)->get_coord() + get_coord() + 1;
+			disp::gdi gdic( get_owner().get_display(), (m_flags&flags::fill)?(lay.bg()):(color_t(color::Black)) );
+			draw_line_box( s, gdic );
+		}
+	}
 }
+
 /* ------------------------------------------------------------------ */
 //Report event
 bool window::report_event( const input::event_info& ev )
@@ -50,16 +75,17 @@ bool window::report_event( const input::event_info& ev )
 //Select next component
 void window::select_next()
 {
+	m_redraw_widget = m_current_widget;
 	if( ++m_current_widget == m_widgets.end() )
 		m_current_widget = m_widgets.begin();
-
 }
 /* ------------------------------------------------------------------ */
 //Select prev component
 void window::select_prev()
 {
+	m_redraw_widget = m_current_widget;
 	if( m_current_widget == m_widgets.begin() )
-		m_current_widget = m_widgets.end();
+		m_current_widget = --m_widgets.end();
 	else
 		--m_current_widget;
 }

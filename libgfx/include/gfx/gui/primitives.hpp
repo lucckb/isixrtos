@@ -35,6 +35,7 @@ private:
 	const coord_t mx{},my{}, mcx {}, mcy{};
 };
 
+
 /* ------------------------------------------------------------------ */
 //Basic layout class
 class layout
@@ -60,6 +61,12 @@ private:
 static inline rectangle operator+( const rectangle &r1, const rectangle &r2 )
 {
 	return std::move(  rectangle(r1.x()+r2.x(),r1.y()+r2.y(), std::min(r1.cx(),r2.cx()), std::min(r1.cy(),r2.cy()) ) );
+}
+/* ------------------------------------------------------------------ */
+//Operator - beetween two windows
+static inline rectangle operator+( const rectangle &r1, coord_t size )
+{
+	return std::move( rectangle(r1.x()-size, r1.y()-size, r1.cx()+size, r1.cy()+size) );
 }
 /* ------------------------------------------------------------------ */
 }}

@@ -64,6 +64,7 @@ public:
 private:
 	detail::container<widget*> m_widgets;
 	detail::container<widget*>::iterator m_current_widget;
+	detail::container<widget*>::iterator m_redraw_widget { m_widgets.end() };
 	layout m_layout;
 	rectangle m_coord;
 	frame &m_frm;

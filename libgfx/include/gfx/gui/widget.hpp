@@ -44,11 +44,11 @@ public:
 	virtual void repaint() = 0;
 	//* Report input event
 	virtual bool report_event( const input::event_info& /*ev*/ ) = 0;
-
+	// Get client coordinate
+	const rectangle& get_coord() const { return m_coord; }
 	//On event
 protected:
 	//Get
-	const rectangle& get_coord() const { return m_coord; }
 	const layout& get_layout() const { return m_layout.inherit()?m_win.get_owner().get_def_layout():m_layout; }
 	window& get_owner() { return m_win; }
 	//Make gdi
