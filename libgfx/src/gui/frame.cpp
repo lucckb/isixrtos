@@ -19,13 +19,15 @@ namespace gui {
 void frame::execute()
 {
 	m_disp.clear(color::Black);
-	repaint();
 	for( input::event_info ev;; )
 	{
+		bool need_repaint {};
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
 		{
-			m_windows.empty()?false:m_windows.front()->report_event( ev );
+			need_repaint = m_windows.empty()?false:m_windows.front()->report_event( ev );
 		}
+		if( need_repaint )
+			repaint();
 	}
 }
 /* ------------------------------------------------------------------ */
@@ -52,9 +54,10 @@ int frame::report_event( const input::event_info &event )
 }
 /* ------------------------------------------------------------------ */
 //Repaint first windows
-bool frame::repaint()
+void frame::repaint()
 {
-	return m_windows.empty()?false:m_windows.front()->repaint();
+	if( ! m_windows.empty() )
+		m_windows.front()->repaint();
 }
 /* ------------------------------------------------------------------ */
 }	//ns gui

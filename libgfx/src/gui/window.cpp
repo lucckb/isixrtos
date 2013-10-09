@@ -14,7 +14,7 @@ namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */
 // On repaint the widget return true when changed
-bool window::repaint()
+void window::repaint()
 {
 	dbprintf("window::repaint");
 	{
@@ -32,19 +32,19 @@ bool window::repaint()
 			gdi.draw_line(m_coord.x()+m_coord.cx(),m_coord.y(),m_coord.x()+m_coord.cx(), m_coord.y()+m_coord.cy() );
 		}
 	}
-	bool res {};
 	for( const auto item : m_widgets )
 	{
 		item->repaint();
 	}
-	return res;
 }
 /* ------------------------------------------------------------------ */
 //Report event
 bool window::report_event( const input::event_info& ev )
 {
-	emit( event( this, ev ) );
-	return (*m_current_widget)->report_event( ev );
+	//Emit signal to others
+	bool ret = emit( event( this, ev ) );
+	ret |= (*m_current_widget)->report_event( ev );
+	return ret;
 }
 /* ------------------------------------------------------------------ */
 //Select next component

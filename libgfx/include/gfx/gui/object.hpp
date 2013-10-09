@@ -22,15 +22,22 @@ class object;
 //Event for user space
 struct event : public input::event_info
 {
+	using evtype = input::event_info::evtype;
+
 	event( const object *_sender, const input::event_info &event)
 		: event_info( event), sender(_sender)
 	{}
+	event( const object *_sender, evtype _type )
+		: sender(_sender )
+	{
+		type = _type;
+	}
 	virtual ~event() {}
 	const object *sender;
 };
 /* ------------------------------------------------------------------ */
 //Basic event signal
-using event_signal = std::function<void(const event&)>;
+using event_signal = std::function<bool(const event&)>;
 using event_handle = std::weak_ptr<event_signal>;
 
 /* ------------------------------------------------------------------ */
@@ -48,12 +55,14 @@ public:
 		m_events.remove( evt.lock() );
 	}
 protected:
-	void emit( const event& ev )
+	bool emit( const event& ev )
 	{
+		bool ret {};
 		for( const auto handler : m_events )
 		{
-			(*handler)( ev );
+			ret |= (*handler)( ev );
 		}
+		return ret;
 	}
 private:
 	//Signal event slot

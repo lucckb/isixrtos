@@ -39,7 +39,7 @@ public:
 	}
 protected:
 	// On repaint the widget return true when changed
-	virtual bool repaint();
+	virtual void repaint();
 	//* Report input event
 	virtual bool report_event( const input::event_info& ev );
 private:

@@ -41,7 +41,7 @@ public:
 		m_frm.add_window( this );
 	}
 	// On repaint the widget return true when changed
-	virtual bool repaint();
+	virtual void repaint();
 	//* Report input event
 	virtual bool report_event( const input::event_info& /*ev*/ );
 	void add_widget( widget * const w )
@@ -57,8 +57,9 @@ public:
 	const rectangle& get_coord() const { return m_coord; }
 	frame& get_owner() { return m_frm; }
 	void set_layout( const layout &lay ) { m_layout = lay; }
-	//Select next or prev item
+	//Select next item
 	void select_next();
+	//Select prev item
 	void select_prev();
 private:
 	detail::container<widget*> m_widgets;

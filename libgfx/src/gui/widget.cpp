@@ -13,12 +13,7 @@
 namespace gfx {
 namespace gui {
 
-/* ------------------------------------------------------------------ */
-// On repaint the widget return true when changed
-bool widget::repaint()
-{
-	return false;
-}
+
 /* ------------------------------------------------------------------ */
 }	//ns gui
 }	//ns gfx

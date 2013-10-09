@@ -41,12 +41,10 @@ public:
 		m_layout = lay;
 	 }
 	// On repaint the widget return true when changed
-	virtual bool repaint();
+	virtual void repaint() = 0;
 	//* Report input event
-	virtual bool report_event( const input::event_info& /*ev*/ )
-	{
-		return false;
-	}
+	virtual bool report_event( const input::event_info& /*ev*/ ) = 0;
+
 	//On event
 protected:
 	//Get

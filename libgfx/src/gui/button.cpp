@@ -13,7 +13,7 @@ namespace gui {
 
 /* ------------------------------------------------------------------ */
 // On repaint the window return true when changed
-bool button::repaint()
+void button::repaint()
 {
 	constexpr auto luma = 128;
 	constexpr auto luma2 = luma/2;
@@ -49,20 +49,19 @@ bool button::repaint()
 
 
 	}
-	return 0;
 }
 /* ------------------------------------------------------------------ */
 //* Report input event
 bool button::report_event( const input::event_info& ev )
 {
-	dbprintf("report_event %i", ev.keyb.key);
+	bool ret {};
 	if( m_push_key > 0 && m_push_key == ev.keyb.key )
 	{
 		m_pushed = ( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN );
-		//FIXME: repaint fix
-		repaint();
+		event btn_event( this, event::evtype::EV_CLICK );
+		ret = emit( event( this, ev));
 	}
-	return true;
+	return ret;
 }
 /* ------------------------------------------------------------------ */
 
