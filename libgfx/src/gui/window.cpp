@@ -43,7 +43,7 @@ bool window::repaint()
 //Report event
 bool window::report_event( const input::event_info& ev )
 {
-	//emit( event( this, ev ) );
+	emit( event( this, ev ) );
 	return (*m_current_widget)->report_event( ev );
 }
 /* ------------------------------------------------------------------ */

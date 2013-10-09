@@ -11,6 +11,7 @@
 #include <foundation/noncopyable.hpp>
 #include <gfx/input/event_info.hpp>
 #include <functional>
+#include <memory>
 #include <gfx/gui/detail/defines.hpp>
 /* ------------------------------------------------------------------ */
 namespace gfx {
@@ -30,30 +31,33 @@ struct event : public input::event_info
 /* ------------------------------------------------------------------ */
 //Basic event signal
 using event_signal = std::function<void(const event&)>;
+using event_handle = std::weak_ptr<event_signal>;
 
 /* ------------------------------------------------------------------ */
 class object  : private fnd::noncopyable
 {
 public:
-	void connect( event_signal event_signal )
+	event_handle connect( event_signal evt )
 	{
-		m_events.push_back( event_signal );
+		auto ret = std::make_shared<event_signal>( evt );
+		m_events.push_back( ret );
+		return ret;
 	}
-	void disconnect( event_signal event_signal )
+	void disconnect( event_handle evt )
 	{
-		m_events.remove( event_signal );
+		m_events.remove( evt.lock() );
 	}
 protected:
 	void emit( const event& ev )
 	{
-		for( const auto& handler : m_events )
+		for( const auto handler : m_events )
 		{
-			handler( ev );
+			(*handler)( ev );
 		}
 	}
 private:
 	//Signal event slot
-	detail::container<event_signal> m_events;
+	detail::container<std::shared_ptr<event_signal>> m_events;
 };
 /* ------------------------------------------------------------------ */
 }
