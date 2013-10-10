@@ -12,8 +12,9 @@ namespace gui {
 /* ------------------------------------------------------------------ */
 //Constructor
 label::label( rectangle const& rect,layout const& layout ,window &win )
-	: widget( rect, layout, win, false )
+	: widget( rect, layout, win )
 {
+	selectable(false);
 }
 /* ------------------------------------------------------------------ */
 //Repaint the lable

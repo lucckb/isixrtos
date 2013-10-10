@@ -23,8 +23,8 @@ class widget  : public object
 {
 public:
 	 //Create widget constructor
-	 explicit widget( rectangle const& rect,layout const& layout ,window &win, bool selectable = true)
-	 	 : m_coord(rect), m_layout(layout), m_win(win), m_selectable(selectable)
+	 explicit widget( rectangle const& rect,layout const& layout ,window &win)
+	 	 : m_coord(rect), m_layout(layout), m_win(win)
 	 {
 		 //TODO: FIXME THIS
 		 m_win.add_widget( this );
@@ -50,7 +50,8 @@ public:
 	// Get client coordinate
 	const rectangle& get_coord() const { return m_coord; }
 	//Get selectable flag
-	bool is_selectable() const { return m_selectable; }
+	bool selectable() const { return m_selectable; }
+	void selectable( bool sel ) { m_selectable = sel; }
 	//On event
 protected:
 	//Get base layout
@@ -72,7 +73,7 @@ private:
 	rectangle m_coord;
 	layout m_layout;								/* Component layout */
 	window &m_win;									/* GUI manager */
-	bool m_selectable  {};							/* The widget is changed */
+	bool m_selectable  { true };							/* The widget is changed */
 };
 /* ------------------------------------------------------------------ */
 }}

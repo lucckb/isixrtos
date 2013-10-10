@@ -82,7 +82,7 @@ void window::select_next()
 		{
 			if( ++m_current_widget == m_widgets.end() )
 				m_current_widget = m_widgets.begin();
-			if( (*m_current_widget)->is_selectable() )
+			if( (*m_current_widget)->selectable() )
 				break;
 		}
 	}
@@ -100,7 +100,7 @@ void window::select_prev()
 				m_current_widget = --m_widgets.end();
 			else
 				--m_current_widget;
-			if( (*m_current_widget)->is_selectable() )
+			if( (*m_current_widget)->selectable() )
 				break;
 		}
 	}
@@ -109,14 +109,14 @@ void window::select_prev()
 void window::add_widget( widget * const w )
 {
 	m_widgets.push_front( w );
-	if( w->is_selectable() )
+	if( w->selectable() )
 		m_current_widget = m_widgets.begin();
 }
 /* ------------------------------------------------------------------ */
 void window::delete_widget( widget * const w )
 {
 	m_widgets.remove( w );
-	m_current_widget = m_widgets.empty()||!w->is_selectable()?m_widgets.end():m_widgets.begin();
+	m_current_widget = m_widgets.empty()||!w->selectable()?m_widgets.end():m_widgets.begin();
 }
 /* ------------------------------------------------------------------ */
 }}

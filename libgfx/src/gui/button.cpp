@@ -23,7 +23,7 @@ void button::repaint()
 	const auto tx = c.x() + (c.cx() - gdi.get_text_width(m_caption.c_str()))/2;
 	const auto ty = c.y() + (c.cy() - gdi.get_text_height())/2;
 	gdi.draw_text( tx, ty, m_caption.c_str());
-	if( !m_pushed )
+	if( !pushed() )
 	{
 		//FRM1
 		gdi.set_fg_color( colorspace::brigh( get_layout().bg(), -luma ) );
@@ -48,25 +48,7 @@ void button::repaint()
 		gdi.draw_line(c.x(), c.y(), c.x(), c.y() + c.cy() );
 	}
 }
-/* ------------------------------------------------------------------ */
-//* Report input event
-bool button::report_event( const input::event_info& ev )
-{
-	bool ret {};
-	if( m_push_key > 0 && m_push_key == ev.keyb.key )
-	{
-		const auto cpush = ( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN );
-		dbprintf("Pushed %i", cpush);
-		if( cpush )
-		{
-			event btn_event( this, event::evtype::EV_CLICK );
-			ret = emit( event( this, ev));
-		}
-		ret |= cpush != m_pushed;
-		m_pushed = cpush;
-	}
-	return ret;
-}
+
 /* ------------------------------------------------------------------ */
 
 } /* namespace gui */
