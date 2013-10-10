@@ -19,11 +19,15 @@ label::label( rectangle const& rect,layout const& layout ,window &win )
 //Repaint the lable
 void label::repaint()
 {
-	auto gdi = make_gdi( );
-	const auto c = get_coord() + get_owner().get_coord();
-	gdi.draw_text(c.x(), c.y(), "DUPA");
+	if( !m_caption.empty() )
+	{
+		const auto c = get_coord() + get_owner().get_coord();
+		auto gdi = make_wgdi();
+		const auto ty = c.y() + (c.cy() - gdi.get_text_height())/2;
+		gdi.set_fill_background( m_bg_fill );
+		gdi.draw_text( c.x(), ty, m_caption.c_str());
+	}
 }
-
 /* ------------------------------------------------------------------ */
 } /* namespace gui */
 } /* namespace gfx */

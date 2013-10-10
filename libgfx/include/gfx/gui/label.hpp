@@ -26,8 +26,20 @@ public:
 	{
 		return false;
 	}
+	template< typename T>
+	void caption( const T caption )
+	{
+		m_caption = caption;
+	}
+	const std::string& caption() const
+	{
+		return m_caption;
+	}
 	//Repaint the label
 	virtual void repaint();
+private:
+	bool m_bg_fill {};
+	detail::string m_caption;
 };
 /* ------------------------------------------------------------------ */
 } /* namespace gui */

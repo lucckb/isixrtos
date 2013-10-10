@@ -31,8 +31,9 @@ class frame : private fnd::noncopyable
 	static constexpr auto system_events_qsize = 64;
 public:
 	//Standard constructor
-	frame( drv::disp_base &display ):
-		m_events_queue( system_events_qsize ), m_disp( display )
+	frame( drv::disp_base &display, color_t color = color::Black):
+		m_events_queue( system_events_qsize ),
+		m_disp( display ), m_color( color )
 	{
 
 	}
@@ -61,8 +62,10 @@ private:
 	detail::container<window*> m_windows;
 	//Display
 	drv::disp_base& m_disp;
+	//Main frame color
+	color_t m_color;
 	//Default layout
-	layout m_default_win_layout { color::Black, color::Black, color::Red };					/* Window layout */
+	layout m_default_win_layout { color_t(~m_color), m_color, color::Red };					/* Window layout */
 	layout m_default_layout { color::Black, color::LightGray, color::BlueViolet  } ;		/* Component layout */
 };
 
