@@ -1,44 +1,42 @@
 /*
- * label.hpp
+ * icon.hpp
  *
  *  Created on: 10 paź 2013
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_LABEL_HPP_
-#define GFX_GUI_LABEL_HPP_
+#ifndef GFX_GUI_ICON_HPP_
+#define GFX_GUI_ICON_HPP_
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/widget.hpp>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
-
 /* ------------------------------------------------------------------ */
-class label: public widget
+class icon: public widget
 {
 public:
-	//Destructor
-	virtual ~label(){ }
 	//Constructor
-	label(rectangle const& rect,layout const& layout ,window &win);
-	//Label no reports any events
-	template< typename T>
-	void caption( const T caption )
+	icon( rectangle const& rect,layout const& layout ,window &win );
+	//Destructor
+	virtual ~icon() {}
+	//Set image
+	void image( const bitmap_t& bitmap )
 	{
-		m_caption = caption;
+		m_bitmap = &bitmap;
 	}
-	const std::string& caption() const
+	void image()
 	{
-		return m_caption;
+		m_bitmap = nullptr;
 	}
 	//Repaint the label
 	virtual void repaint();
 private:
-	detail::string m_caption;
+	const bitmap_t *m_bitmap {};
 };
 /* ------------------------------------------------------------------ */
 } /* namespace gui */
 } /* namespace gfx */
 /* ------------------------------------------------------------------ */
-#endif /* LABEL_HPP_ */
+#endif /* GFX_GUI_ICON_HPP_ */
 /* ------------------------------------------------------------------ */

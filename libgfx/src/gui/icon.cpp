@@ -1,33 +1,38 @@
 /*
- * label.cpp
+ * icon.cpp
  *
  *  Created on: 10 paź 2013
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#include <gfx/gui/label.hpp>
+#include <gfx/gui/icon.hpp>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
+
 /* ------------------------------------------------------------------ */
 //Constructor
-label::label( rectangle const& rect,layout const& layout ,window &win )
+icon::icon( rectangle const& rect,layout const& layout ,window &win )
 	: widget( rect, layout, win, false )
 {
+
 }
 /* ------------------------------------------------------------------ */
-//Repaint the lable
-void label::repaint()
+//Repaint the window
+void icon::repaint()
 {
-	if( !m_caption.empty() )
+	if( m_bitmap )
 	{
 		const auto c = get_coord() + get_owner().get_coord();
 		auto gdi = make_wgdi();
+		const auto tx = c.x() + (c.cx() - m_bitmap->width)/2;
 		const auto ty = c.y() + (c.cy() - gdi.get_text_height())/2;
-		gdi.draw_text( c.x(), ty, m_caption.c_str());
+		gdi.draw_image(tx,ty, *m_bitmap );
 	}
 }
+
 /* ------------------------------------------------------------------ */
 } /* namespace gui */
 } /* namespace gfx */
+
 /* ------------------------------------------------------------------ */

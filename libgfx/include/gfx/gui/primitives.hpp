@@ -11,6 +11,7 @@
 /* ------------------------------------------------------------------ */
 #include <gfx/types.hpp>
 #include <gfx/disp/bitmap_fonts.hpp>
+#include <gfx/disp/static_bitmap.hpp>
 #include <algorithm>
 #include <utility>
 /* ------------------------------------------------------------------ */
@@ -18,6 +19,7 @@ namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */
 using font_t = disp::font_t;
+using bitmap_t = disp::cmem_bitmap_t;
 /* ------------------------------------------------------------------ */
 //Basic rectangle class
 class rectangle

@@ -43,7 +43,10 @@ public:
 	// On repaint the widget return true when changed
 	virtual void repaint() = 0;
 	//* Report input event
-	virtual bool report_event( const input::event_info& /*ev*/ ) = 0;
+	virtual bool report_event( const input::event_info& /*ev*/ )
+	{
+		return false;
+	}
 	// Get client coordinate
 	const rectangle& get_coord() const { return m_coord; }
 	//Get selectable flag

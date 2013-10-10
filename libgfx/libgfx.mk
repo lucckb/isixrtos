@@ -13,6 +13,7 @@ LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/widget.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/window.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/button.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/label.cpp
+LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/icon.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/frame.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/input.cpp
 LIBGFX_CPPSRC += $(LIBGFXFONTSRC_DIR)/default.cpp
