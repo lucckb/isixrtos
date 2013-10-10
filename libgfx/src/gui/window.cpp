@@ -75,19 +75,48 @@ bool window::report_event( const input::event_info& ev )
 //Select next component
 void window::select_next()
 {
-	m_redraw_widget = m_current_widget;
-	if( ++m_current_widget == m_widgets.end() )
-		m_current_widget = m_widgets.begin();
+	if( m_current_widget != m_widgets.end() )
+	{
+		m_redraw_widget = m_current_widget;
+		for( size_t s=m_widgets.size(),i=0; i<s; ++s )
+		{
+			if( ++m_current_widget == m_widgets.end() )
+				m_current_widget = m_widgets.begin();
+			if( (*m_current_widget)->is_selectable() )
+				break;
+		}
+	}
 }
 /* ------------------------------------------------------------------ */
 //Select prev component
 void window::select_prev()
 {
-	m_redraw_widget = m_current_widget;
-	if( m_current_widget == m_widgets.begin() )
-		m_current_widget = --m_widgets.end();
-	else
-		--m_current_widget;
+	if( m_current_widget != m_widgets.end() )
+	{
+		m_redraw_widget = m_current_widget;
+		for( size_t s=m_widgets.size(),i=0; i<s; ++s )
+		{
+			if( m_current_widget == m_widgets.begin() )
+				m_current_widget = --m_widgets.end();
+			else
+				--m_current_widget;
+			if( (*m_current_widget)->is_selectable() )
+				break;
+		}
+	}
+}
+/* ------------------------------------------------------------------ */
+void window::add_widget( widget * const w )
+{
+	m_widgets.push_front( w );
+	if( w->is_selectable() )
+		m_current_widget = m_widgets.begin();
+}
+/* ------------------------------------------------------------------ */
+void window::delete_widget( widget * const w )
+{
+	m_widgets.remove( w );
+	m_current_widget = m_widgets.empty()||!w->is_selectable()?m_widgets.end():m_widgets.begin();
 }
 /* ------------------------------------------------------------------ */
 }}

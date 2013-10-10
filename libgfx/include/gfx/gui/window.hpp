@@ -43,17 +43,9 @@ public:
 	// On repaint the widget return true when changed
 	virtual void repaint();
 	//* Report input event
-	virtual bool report_event( const input::event_info& /*ev*/ );
-	void add_widget( widget * const w )
-	{
-		m_widgets.push_front( w );
-		m_current_widget = m_widgets.begin();
-	}
-	void delete_widget( widget * const w )
-	{
-		m_widgets.remove( w );
-		m_current_widget = m_widgets.empty()?m_widgets.end():m_widgets.begin();
-	}
+	virtual bool report_event( const input::event_info& ev );
+	void add_widget( widget * const w );
+	void delete_widget( widget * const w );
 	const rectangle& get_coord() const { return m_coord; }
 	frame& get_owner() { return m_frm; }
 	void set_layout( const layout &lay ) { m_layout = lay; }
@@ -63,7 +55,7 @@ public:
 	void select_prev();
 private:
 	detail::container<widget*> m_widgets;
-	detail::container<widget*>::iterator m_current_widget;
+	detail::container<widget*>::iterator m_current_widget { m_widgets.end() };
 	detail::container<widget*>::iterator m_redraw_widget { m_widgets.end() };
 	layout m_layout;
 	rectangle m_coord;
