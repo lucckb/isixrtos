@@ -32,8 +32,7 @@ public:
 	 //Remove widget
 	 virtual ~widget()
 	 {
-		 //TODO: FIXME THIS
-		 // m_mngr.delete_window( this );
+		  m_win.delete_widget( this );
 	 }
 	 //Set widget color
 	 void set_layout( layout const& lay )

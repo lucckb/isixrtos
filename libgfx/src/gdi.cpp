@@ -156,10 +156,11 @@ void gdi::draw_text(coord_t x, coord_t y, int ch )
 }
 /* ------------------------------------------------------------------ */
 //Draw text
-void gdi::draw_text( coord_t x, coord_t y, const char* str )
+coord_t gdi::draw_text( coord_t x, coord_t y, const char* str )
 {
 	const auto dwidth = m_gdev.get_width();
-	for( coord_t px=x; *str; ++str )
+	coord_t px = x;
+	for( ; *str; ++str )
 	{
 		const int ch = ( *str < m_font->firstchar || *str >= m_font->size )?(m_font->defaultchar):(*str);
 		const auto width = (m_font->width)?(m_font->width[ch]):(m_font->maxwidth);
@@ -167,6 +168,7 @@ void gdi::draw_text( coord_t x, coord_t y, const char* str )
 		px += width;
 		if( px > dwidth ) break;
 	}
+	return px;
 }
 
 /* ------------------------------------------------------------------ */

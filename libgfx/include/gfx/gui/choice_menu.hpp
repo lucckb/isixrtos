@@ -33,9 +33,14 @@ public:
 	//Destructor
 	virtual ~choice_menu() {}
 	//Set menu items
-	void items( const item *items=nullptr) { m_items = items; }
+	void items( const item *items=nullptr);
 	//Repaint virtual function
 	virtual void repaint();
+	//* Report input event
+	virtual bool report_event( const input::event_info& ev );
+private:
+	//Calc maximum item value
+	int calc_max_items() const;
 private:
 	//Widget style
 	style m_style { style::normal };
@@ -44,7 +49,12 @@ private:
 	//Current selected item
 	int m_sel_item {};
 	//Max number of items
-	const int m_max_items {};
+	const int m_max_box_items;
+	//Num items
+	int m_num_items {};
+	//Margin for y
+	static constexpr coord_t y_margin = 1;
+	static constexpr coord_t x_margin = 4;
 };
 
 /* ------------------------------------------------------------------ */

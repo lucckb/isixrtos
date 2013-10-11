@@ -46,8 +46,9 @@ public:
 	 * @param[in] x position on display
 	 * @param[in] y position on display
 	 * @param[str] str string to display
+	 * @return X position after the last char
 	 */
-	void draw_text( coord_t x, coord_t y, const char* str );
+	coord_t draw_text( coord_t x, coord_t y, const char* str );
 
 	/** Calculate and get text size
 	 * @param[in] str Input text
