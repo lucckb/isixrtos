@@ -40,11 +40,9 @@ void choice_menu::repaint()
 		const auto coo = get_coord() + get_owner().get_coord();
 		const auto ymul = gdi_sel.get_text_height();
 		const auto ystart = coo.y() + y_margin;
-		const auto boxpos = m_sel_item % m_max_box_items;
-		dbprintf("BOX POS %i", boxpos);
+		const auto boxpos = m_sel_item>m_max_box_items-1?m_max_box_items-1:m_sel_item;
 		for( int c=0,s=m_sel_item-boxpos>0?m_sel_item-boxpos:0;
-			  c<m_max_box_items;
-			  ++c,++s )
+			  c<m_max_box_items; ++c,++s )
 		{
 			auto &gdi = m_sel_item==s?gdi_sel:gdi_nsel;
 			const auto y = ystart + c * ymul;
