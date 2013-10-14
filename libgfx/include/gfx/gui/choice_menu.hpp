@@ -38,6 +38,8 @@ public:
 	virtual void repaint();
 	//* Report input event
 	virtual bool report_event( const input::event_info& ev );
+	//Get selection
+	int selection() const { return m_sel_item; }
 private:
 	//Calc maximum item value
 	int calc_max_items() const;

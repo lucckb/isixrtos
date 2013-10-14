@@ -30,7 +30,7 @@ void frame::execute()
 		}
 		if( need_repaint )
 		{
-			dbprintf("Do repaint");
+			//dbprintf("Do repaint");
 			repaint();
 		}
 	}

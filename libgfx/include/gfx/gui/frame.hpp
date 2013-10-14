@@ -50,6 +50,9 @@ public:
 	//Get default layout
 	layout const& get_def_layout() const { return m_default_layout; }
 	layout const& get_def_win_layout() const { return m_default_win_layout; }
+	//Set layout
+	void set_def_layout( const layout& lay ) { m_default_layout = lay; }
+	void set_def_win_layout( const layout& lay ) { m_default_win_layout = lay; }
 	//Focus on the window
 	void set_focus( window* window );
 protected:

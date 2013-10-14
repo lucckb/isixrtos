@@ -78,7 +78,6 @@ void choice_menu::repaint()
 		const auto sel_width_ =  m_max_box_items *( twidth ) / m_num_items;
 		const auto sel_width = sel_width_<min_slider?min_slider:sel_width_;
 		const auto ypos = (sel_width * m_sel_item ) / (m_num_items+1);
-		dbprintf("Sel width %i/%i", sel_width, twidth );
 		auto gdi = make_gdi();
 		constexpr auto luma = -128;
 		gdi.set_fg_color( colorspace::brigh( get_layout().bg(), luma ) );
@@ -117,8 +116,12 @@ bool choice_menu::report_event( const input::event_info& ev )
 			if( --m_sel_item < 0 ) m_sel_item = 0;
 			else ret = true;
 		}
+		else if(  ev.keyb.key == kbdcodes::enter )
+		{
+			event btn_event( this, event::evtype::EV_CLICK );
+			ret = emit( event( this, ev));
+		}
 	}
-	dbprintf("Selected item %d", m_sel_item);
 	return ret;
 }
 /* ------------------------------------------------------------------ */
