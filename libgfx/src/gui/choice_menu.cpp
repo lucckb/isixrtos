@@ -50,6 +50,26 @@ void choice_menu::repaint()
 			gdi.fill_area( xf, y, coo.x()+coo.cx()-xf-x_margin, ymul, true );
 		}
 	}
+	//Draw frame corners
+	{
+		auto gdi = make_gdi( );
+		auto gdiw = make_wgdi( );
+		const auto c = get_coord() + get_owner().get_coord();
+		//Left lines
+		gdi.set_fg_color( get_layout().bg() );
+		gdi.draw_line(c.x(), c.y()+1, c.x(), c.y()+c.cy()-2 );
+		gdiw.draw_line(c.x()+1, c.y()+1,c.x()+1, c.y()+c.cy()-2 );
+		//Bottom lines
+		gdi.draw_line(c.x()+2, c.y()+c.cy()-2, c.x()+c.cx()-2, c.y()+c.cy()-2 );
+		gdiw.draw_line(c.x()+1, c.y()+c.cy()-1, c.x()+c.cx()-1, c.y()+c.cy()-1 );
+		//Top Line
+		gdi.draw_line(c.x()+2, c.y()+1, c.x()+c.cx()-2, c.y()+1 );
+		gdiw.draw_line(c.x()+1, c.y(), c.x()+c.cx()-2, c.y() );
+		//Right line
+		gdi.draw_line(c.x()+c.cx()-2, c.y()+1, c.x()+c.cx()-2, c.y()+c.cy()-2 );
+		gdiw.draw_line(c.x()-1+c.cx(), c.y()+1,c.x()+c.cx()-1, c.y()+c.cy()-2 );
+
+	}
 }
 
 /* ------------------------------------------------------------------ */
