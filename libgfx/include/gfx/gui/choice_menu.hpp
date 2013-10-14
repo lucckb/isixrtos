@@ -53,8 +53,10 @@ private:
 	//Num items
 	int m_num_items {};
 	//Margin for y
-	static constexpr coord_t y_margin = 1;
-	static constexpr coord_t x_margin = 4;
+	static constexpr coord_t y_margin = 2;
+	static constexpr coord_t x_margin_left = 4;
+	static constexpr coord_t x_margin_right = 9;
+	static constexpr coord_t slider_space = 2;
 };
 
 /* ------------------------------------------------------------------ */

@@ -46,8 +46,8 @@ void choice_menu::repaint()
 		{
 			auto &gdi = m_sel_item==s?gdi_sel:gdi_nsel;
 			const auto y = ystart + c * ymul;
-			const auto xf = gdi.draw_text( coo.x()+x_margin, y , m_items[s].second );
-			gdi.fill_area( xf, y, coo.x()+coo.cx()-xf-x_margin, ymul, true );
+			const auto xf = gdi.draw_text( coo.x()+x_margin_left, y , m_items[s].second );
+			gdi.fill_area( xf, y, coo.x()+coo.cx()-xf-x_margin_right, ymul, true );
 		}
 	}
 	//Draw frame corners
@@ -69,6 +69,22 @@ void choice_menu::repaint()
 		gdi.draw_line(c.x()+c.cx()-2, c.y()+1, c.x()+c.cx()-2, c.y()+c.cy()-2 );
 		gdiw.draw_line(c.x()-1+c.cx(), c.y()+1,c.x()+c.cx()-1, c.y()+c.cy()-2 );
 
+	}
+	//Draw the slider
+	{
+		static constexpr coord_t min_slider = 10;
+		const auto c = get_coord() + get_owner().get_coord();
+		const auto twidth = c.cy() - y_margin*2;
+		const auto sel_width_ =  m_max_box_items *( twidth ) / m_num_items;
+		const auto sel_width = sel_width_<min_slider?min_slider:sel_width_;
+		const auto ypos = (sel_width * m_sel_item ) / (m_num_items+1);
+		dbprintf("Sel width %i/%i", sel_width, twidth );
+		auto gdi = make_gdi();
+		constexpr auto luma = -128;
+		gdi.set_fg_color( colorspace::brigh( get_layout().bg(), luma ) );
+		gdi.fill_area(c.x()+c.cx()-x_margin_right+slider_space, c.y()+y_margin ,x_margin_right-slider_space-2 ,  twidth );
+		//Selected part
+		gdi.fill_area(c.x()+c.cx()-x_margin_right+slider_space, c.y()+y_margin+ypos ,x_margin_right-slider_space-2 , sel_width, true );
 	}
 }
 
