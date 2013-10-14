@@ -46,8 +46,22 @@ void choice_menu::repaint()
 		{
 			auto &gdi = m_sel_item==s?gdi_sel:gdi_nsel;
 			const auto y = ystart + c * ymul;
-			const auto xf = gdi.draw_text( coo.x()+x_margin_left, y , m_items[s].second );
+			auto x = coo.x()+x_margin_left;
+			if( m_style == style::select )
+			{
+				gdi.fill_area( x, y, ymul, ymul, true );
+				x+= gdi_sel.get_text_height();
+			}
+			const auto xf = gdi.draw_text( x , y , m_items[s].second );
 			gdi.fill_area( xf, y, coo.x()+coo.cx()-xf-x_margin_right, ymul, true );
+			if( m_style == style::select )
+			{
+				gdi.set_fill_background(true);
+				const auto r = gdi_sel.get_text_height() /2 ;
+				const auto xc = coo.x()+x_margin_left + r;
+				const auto yc = y + r;
+				gdi.draw_circle( xc, yc, r - slider_space - 1);
+			}
 		}
 	}
 	//Draw frame corners
@@ -68,7 +82,6 @@ void choice_menu::repaint()
 		//Right line
 		gdi.draw_line(c.x()+c.cx()-2, c.y()+1, c.x()+c.cx()-2, c.y()+c.cy()-2 );
 		gdiw.draw_line(c.x()-1+c.cx(), c.y()+1,c.x()+c.cx()-1, c.y()+c.cy()-2 );
-
 	}
 	//Draw the slider
 	{

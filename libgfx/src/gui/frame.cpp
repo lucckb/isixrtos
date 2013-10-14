@@ -30,8 +30,9 @@ void frame::execute()
 		}
 		if( need_repaint )
 		{
-			//dbprintf("Do repaint");
+			const auto tbeg = isix::isix_get_jiffies();
 			repaint();
+			dbprintf("Repaint time %i", isix::isix_get_jiffies()-tbeg);
 		}
 	}
 }
