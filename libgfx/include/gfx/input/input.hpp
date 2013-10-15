@@ -98,7 +98,7 @@ public:
 	}
     /** Enable disable hardware led control
         @param[in] yes Enable hardware flow control
-        @return 
+        @return Error code */
 	virtual int hardware_led_enable(bool /*yes*/)
 	{
 		return isix::ISIX_ENOTSUP;
