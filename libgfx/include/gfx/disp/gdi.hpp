@@ -140,8 +140,8 @@ public:
 	{
 		m_font = &font;
 	}
-	/** Enable or disable background fill */
-	void set_fill_background( bool enable )
+	/** Enable or disable Fill */
+	void set_fill( bool enable )
 	{
 		m_bg_fill = enable;
 	}

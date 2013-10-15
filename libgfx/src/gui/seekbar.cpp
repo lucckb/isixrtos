@@ -29,13 +29,13 @@ void seekbar::repaint()
 	{
 		auto gdiw = make_wgdi();
 		gdiw.set_fg_color( get_owner().get_layout().bg() );
-		gdiw.set_fill_background(true);
+		gdiw.set_fill(true);
 		gdiw.draw_circle( x+m_psex ,ycirc, r );
 	}
 	gdi.fill_area( x, y , sex, ys, false );
 	gdi.fill_area( x+sex, y, cx-sex, ys, true );
 	gdi.set_fg_color( colorspace::brigh(get_layout().bg(), luma));
-	gdi.set_fill_background( true );
+	gdi.set_fill( true );
 	gdi.draw_circle( x+sex,ycirc, r);
 	m_psex = sex;
 }

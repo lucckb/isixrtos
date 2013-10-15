@@ -56,7 +56,7 @@ void choice_menu::repaint()
 			gdi.fill_area( xf, y, coo.x()+coo.cx()-xf-x_margin_right, ymul, true );
 			if( m_style == style::select )
 			{
-				gdi.set_fill_background(true);
+				gdi.set_fill(true);
 				const auto r = gdi_sel.get_text_height() /2 ;
 				const auto xc = coo.x()+x_margin_left + r;
 				const auto yc = y + r;
@@ -64,7 +64,7 @@ void choice_menu::repaint()
 				if( m_sel_item == s )
 				{
 					auto lgdi = make_gdi( );
-					lgdi.set_fill_background(true);
+					lgdi.set_fill(true);
 					lgdi.draw_circle(xc, yc, (r - slider_space - 1)/2 );
 				}
 			}
