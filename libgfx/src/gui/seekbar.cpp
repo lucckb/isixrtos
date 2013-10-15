@@ -59,6 +59,11 @@ bool seekbar::report_event( const input::event_info& ev )
 			if( m_value < m_min ) m_value = m_min;
 			else ret = true;
 		}
+		else if(  ev.keyb.key == kbdcodes::enter )
+		{
+			event btn_event( this, event::evtype::EV_CLICK );
+			ret = emit( event( this, ev));
+		}
 	}
 	return ret;
 }
