@@ -13,6 +13,7 @@ namespace gfx {
 namespace input {
 
 /* ------------------------------------------------------------------ */
+/** Keybd codes */
 struct kbdcodes
 {
 	enum keyboard : char
@@ -34,6 +35,7 @@ struct kbdcodes
 };
 
 /* ------------------------------------------------------------------ */
+/* Mouse codes */
 struct mousecodes
 {
 	enum mouse : char
@@ -44,29 +46,30 @@ struct mousecodes
 /* ------------------------------------------------------------------ */
 namespace detail {
 
-	struct keyboard_tag
+	/** Keyboard tag event */
+    struct keyboard_tag
 	{
-		typedef unsigned char control_key_type;
-		typedef unsigned char key_type;
-		enum class status : unsigned char
+		typedef unsigned char control_key_type;         //! Control keys
+		typedef unsigned char key_type;                 //! Key defs
+		enum class status : unsigned char               //! Key status
 		{
-			DOWN,
-			UP
-		} stat;
-		key_type key;
+			DOWN,                                       //! Key is down
+			UP                                          //! Key is up
+		} stat;         
+		key_type key;                                   //! Current key
 		union
 		{
-			control_key_type ctrl;
+			control_key_type ctrl;                      //! Control events
 			struct
 			{
-				unsigned char lctrl:1;
-				unsigned char lshift:1;
-				unsigned char lalt : 1;
-				unsigned char lgui : 1;
-				unsigned char rctrl: 1;
-				unsigned char rshift:1;
-				unsigned char ralt:1;
-				unsigned char rgui: 1;
+				unsigned char lctrl:1;                  //! Left control press
+				unsigned char lshift:1;                 //! Left shift press
+				unsigned char lalt : 1;                 //! Left alt
+				unsigned char lgui : 1;                 //! Left gui
+				unsigned char rctrl: 1;                 //! Right control
+				unsigned char rshift:1;                 //! Right shift
+				unsigned char ralt:1;                   //! Right alt
+				unsigned char rgui: 1;                  //! Right gui
 
 			} ctrlbits;
 		};
@@ -76,20 +79,20 @@ namespace detail {
 /* ------------------------------------------------------------------ */
 struct event_info
 {
-	/* Event type */
+	/** Event type */
 	enum evtype	: unsigned short
 	{
-		EV_SW,		/* Plug unplug event */
-		EV_KEY,		/* Keyboard event  */
-		EV_MOUSE,	/* Relative event  */
-		EV_CLICK,	/* Click event  (Inherited) */
+		EV_SW,		/** Plug unplug event */
+		EV_KEY,		/** Keyboard event  */
+		EV_MOUSE,	/** Relative event  */
+		EV_CLICK,	/** Click event  (Inherited) */
 		EV_CHANGE	/* Component changed */
 	};
-	unsigned time;
-	evtype type;
+	unsigned time;  //! Timestamp
+	evtype type;    //! Event type
 	union
 	{
-		detail::keyboard_tag keyb;
+		detail::keyboard_tag keyb;      //! Keyboard tag
 	};
 };
 /* ------------------------------------------------------------------ */
