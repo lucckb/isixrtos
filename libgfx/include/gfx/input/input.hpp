@@ -72,21 +72,33 @@ public:
 	{}
 	virtual ~input_class() {}
 
-	/* get repeat code */
+	/** get repeat code 
+        @param[in] delay Delay value
+        @param[in] period Period value 
+        @return Error codes
+    */
 	virtual int get_repeat_settings( int& /*delay */, int& /*period*/ ) const
 	{
 		return isix::ISIX_ENOTSUP;
 	}
-	/* get repeat code */
+	/** get repeat code 
+        @param[in] delay Delay value
+        @param[in] period Period value
+    */
 	virtual int set_repeat_settings( int /*delay */, int /*period*/ )
 	{
 		return isix::ISIX_ENOTSUP;
 	}
-	/* Get device name */
+	/** Get device name 
+        @return Return device descriptor
+    */
 	const char* get_device_name() const
 	{
 		return m_desc;
 	}
+    /** Enable disable hardware led control
+        @param[in] yes Enable hardware flow control
+        @return 
 	virtual int hardware_led_enable(bool /*yes*/)
 	{
 		return isix::ISIX_ENOTSUP;
