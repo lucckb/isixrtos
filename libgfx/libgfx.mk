@@ -10,6 +10,7 @@ LIBGFX_INC = -I$(LIBGFXINC_DIR)
 LIBGFX_DRV_CPPSRC = $(LIBGFX_DRVDISP_SRC_DIR)/ili9341.cpp
 LIBGFX_CPPSRC =  $(LIBGFXSRC_DIR)/gdi.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/editbox.cpp
+LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/seekbar.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/selectable_widget.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/choice_menu.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/widget.cpp

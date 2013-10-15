@@ -14,6 +14,9 @@
 #include "icon.hpp"
 #include "label.hpp"
 #include "window.hpp"
-
+#include "seekbar.hpp"
 
 #endif /* GUI_HPP_ */
+
+
+
