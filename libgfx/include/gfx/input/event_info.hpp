@@ -83,6 +83,7 @@ struct event_info
 		EV_KEY,		/* Keyboard event  */
 		EV_MOUSE,	/* Relative event  */
 		EV_CLICK,	/* Click event  (Inherited) */
+		EV_CHANGE	/* Component changed */
 	};
 	unsigned time;
 	evtype type;

@@ -1,6 +1,6 @@
 /*
  * gui.hpp
- *
+ *	Common header for the gui stuff
  *  Created on: 14 paź 2013
  *      Author: lucck
  */

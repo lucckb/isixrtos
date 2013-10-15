@@ -142,8 +142,13 @@ bool choice_menu::report_event( const input::event_info& ev )
 				m_sel_item = m_curr_item;
 			}
 			event btn_event( this, event::evtype::EV_CLICK );
-			ret = emit( event( this, ev));
+			ret = emit( btn_event );
 		}
+	}
+	if( ret )
+	{
+		event btn_event( this, event::evtype::EV_CHANGE );
+		ret = emit( btn_event );
 	}
 	return ret;
 }

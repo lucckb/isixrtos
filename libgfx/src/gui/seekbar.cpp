@@ -62,8 +62,13 @@ bool seekbar::report_event( const input::event_info& ev )
 		else if(  ev.keyb.key == kbdcodes::enter )
 		{
 			event btn_event( this, event::evtype::EV_CLICK );
-			ret = emit( event( this, ev));
+			ret = emit( btn_event );
 		}
+	}
+	if( ret )
+	{
+		event btn_event( this, event::evtype::EV_CHANGE );
+		ret = emit( btn_event );
 	}
 	return ret;
 }

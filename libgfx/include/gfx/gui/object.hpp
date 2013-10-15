@@ -38,15 +38,15 @@ struct event : public input::event_info
 /* ------------------------------------------------------------------ */
 //Basic event signal
 using event_signal = std::function<bool(const event&)>;
-using event_handle = std::weak_ptr<event_signal>;
+using event_handle = std::weak_ptr<std::pair<event::evtype,event_signal>>;
 
 /* ------------------------------------------------------------------ */
 class object  : private fnd::noncopyable
 {
 public:
-	event_handle connect( event_signal evt )
+	event_handle connect( event_signal evt_h, event::evtype evt_t  )
 	{
-		auto ret = std::make_shared<event_signal>( evt );
+		auto ret = std::make_shared<std::pair<event::evtype,event_signal>>( std::make_pair(evt_t, evt_h) );
 		m_events.push_back( ret );
 		return ret;
 	}
@@ -60,13 +60,14 @@ protected:
 		bool ret {};
 		for( const auto handler : m_events )
 		{
-			ret |= (*handler)( ev );
+			if( handler->first == ev.type )
+				ret |= (handler->second)( ev );
 		}
 		return ret;
 	}
 private:
 	//Signal event slot
-	detail::container<std::shared_ptr<event_signal>> m_events;
+	detail::container<std::shared_ptr<std::pair<event::evtype,event_signal>>> m_events;
 };
 /* ------------------------------------------------------------------ */
 }
