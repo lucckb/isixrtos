@@ -39,7 +39,15 @@ public:
 	//* Report input event
 	virtual bool report_event( const input::event_info& ev );
 	//Get selection
-	int selection() const { return m_sel_item; }
+	int selection() const
+	{
+		return m_style==style::normal?m_curr_item:m_sel_item;
+	}
+	void selection(int sel)
+	{
+		if( m_style==style::normal ) m_curr_item = sel;
+		else m_sel_item = sel;
+	}
 private:
 	//Calc maximum item value
 	int calc_max_items() const;
@@ -49,6 +57,8 @@ private:
 	//Menu items
 	const item *m_items;
 	//Current selected item
+	int m_curr_item {};
+	//Selected item in choice mode
 	int m_sel_item {};
 	//Max number of items
 	const int m_max_box_items;

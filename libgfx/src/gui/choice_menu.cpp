@@ -40,11 +40,11 @@ void choice_menu::repaint()
 		const auto coo = get_coord() + get_owner().get_coord();
 		const auto ymul = gdi_sel.get_text_height();
 		const auto ystart = coo.y() + y_margin;
-		const auto boxpos = m_sel_item>m_max_box_items-1?m_max_box_items-1:m_sel_item;
-		for( int c=0,s=m_sel_item-boxpos>0?m_sel_item-boxpos:0;
+		const auto boxpos = m_curr_item>m_max_box_items-1?m_max_box_items-1:m_curr_item;
+		for( int c=0,s=m_curr_item-boxpos>0?m_curr_item-boxpos:0;
 			  c<m_max_box_items; ++c,++s )
 		{
-			auto &gdi = m_sel_item==s?gdi_sel:gdi_nsel;
+			auto &gdi = m_curr_item==s?gdi_sel:gdi_nsel;
 			const auto y = ystart + c * ymul;
 			auto x = coo.x()+x_margin_left;
 			if( m_style == style::select )
@@ -60,7 +60,13 @@ void choice_menu::repaint()
 				const auto r = gdi_sel.get_text_height() /2 ;
 				const auto xc = coo.x()+x_margin_left + r;
 				const auto yc = y + r;
-				gdi.draw_circle( xc, yc, r - slider_space - 1);
+				gdi.draw_circle( xc, yc, r - slider_space - 1 );
+				if( m_sel_item == s )
+				{
+					auto lgdi = make_gdi( );
+					lgdi.set_fill_background(true);
+					lgdi.draw_circle(xc, yc, (r - slider_space - 1)/2 );
+				}
 			}
 		}
 	}
@@ -90,7 +96,7 @@ void choice_menu::repaint()
 		const auto twidth = c.cy() - y_margin*2;
 		const auto sel_width_ =  m_max_box_items *( twidth ) / m_num_items;
 		const auto sel_width = sel_width_<min_slider?min_slider:sel_width_;
-		const auto ypos = (sel_width * m_sel_item ) / (m_num_items+1);
+		const auto ypos = (sel_width * m_curr_item ) / (m_num_items+1);
 		auto gdi = make_gdi();
 		constexpr auto luma = -128;
 		gdi.set_fg_color( colorspace::brigh( get_layout().bg(), luma ) );
@@ -121,16 +127,20 @@ bool choice_menu::report_event( const input::event_info& ev )
 	{
 		if( ev.keyb.key == kbdcodes::os_arrow_down )
 		{
-			if(++m_sel_item == m_num_items) --m_sel_item;
+			if(++m_curr_item == m_num_items) --m_curr_item;
 			else ret = true;
 		}
 		else if( ev.keyb.key == kbdcodes::os_arrow_up )
 		{
-			if( --m_sel_item < 0 ) m_sel_item = 0;
+			if( --m_curr_item < 0 ) m_curr_item = 0;
 			else ret = true;
 		}
 		else if(  ev.keyb.key == kbdcodes::enter )
 		{
+			if( m_style == style::select )
+			{
+				m_sel_item = m_curr_item;
+			}
 			event btn_event( this, event::evtype::EV_CLICK );
 			ret = emit( event( this, ev));
 		}
