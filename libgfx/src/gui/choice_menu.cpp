@@ -53,7 +53,9 @@ void choice_menu::repaint()
 				x+= gdi_sel.get_text_height();
 			}
 			const auto xf = gdi.draw_text( x , y , m_items[s].second );
-			gdi.fill_area( xf, y, coo.x()+coo.cx()-xf-x_margin_right, ymul, true );
+			const auto cxf = coo.x()+coo.cx()-xf-x_margin_right;
+			if( cxf > 0)
+				gdi.fill_area( xf, y, cxf , ymul, true );
 			if( m_style == style::select )
 			{
 				gdi.set_fill(true);
