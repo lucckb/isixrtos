@@ -40,8 +40,9 @@ public:
 	 * @param[in] x position on display
 	 * @param[in] y position on display
 	 * @param[ch] ch char to display
+	 * @return 0 if fail or new pos
 	 */
-	void draw_text( coord_t x, coord_t y, int ch );
+	coord_t draw_text( coord_t x, coord_t y, int ch );
 	/** Draw text using current context and font
 	 * @param[in] x position on display
 	 * @param[in] y position on display
@@ -55,6 +56,12 @@ public:
 	 * @return Text length
 	 */
 	coord_t get_text_width( const char *str ) const;
+
+	/** Calculate and get text second version char only
+	 * @param[in] ch Input text
+	 * @return Text length
+	 */
+	coord_t get_text_width( const char ch ) const;
 
 	/** Calculate text height
 	 * @return text height */

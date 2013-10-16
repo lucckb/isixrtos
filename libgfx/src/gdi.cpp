@@ -126,14 +126,14 @@ namespace
 }
 /* ------------------------------------------------------------------ */
 //Draw char
-void gdi::draw_text(coord_t x, coord_t y, int ch )
+coord_t gdi::draw_text(coord_t x, coord_t y, int ch )
 {
 	if( ch < m_font->firstchar || ch >= m_font->size )
 		ch = m_font->defaultchar;
 	const auto buf = m_gdev.get_rbuf();
 	const auto width = (m_font->width)?(m_font->width[ch]):(m_font->maxwidth);
 	if( x + width > m_gdev.get_width() )
-		return;
+		return x;
 	const auto bmpch = m_font->offset[ ch - m_font->firstchar ];
 	const auto rows_in_buf = buf.second / width;
 	coord_t p_blit_cy = 0;
@@ -153,6 +153,7 @@ void gdi::draw_text(coord_t x, coord_t y, int ch )
 			blit_rows = (m_font->height-row)<rows_in_buf?(m_font->height-row):rows_in_buf;
 		}
 	}
+	return x+width;
 }
 /* ------------------------------------------------------------------ */
 //Draw text
@@ -186,6 +187,18 @@ coord_t gdi::get_text_width( const char *str ) const
 			width += m_font->width[ch];
 		}
 		return width;
+	}
+}
+/* ------------------------------------------------------------------ */
+/** Get text width second version char only */
+coord_t gdi::get_text_width( const char ch ) const
+{
+	if( !m_font->width )
+		return m_font->maxwidth;
+	else
+	{
+		const int c = ( ch < m_font->firstchar || ch >= m_font->size )?(m_font->defaultchar):(ch);
+		return m_font->width[c];
 	}
 }
 /* ------------------------------------------------------------------ */

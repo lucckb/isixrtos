@@ -29,7 +29,7 @@ public:
 	{
 		m_caption = caption;
 	}
-	const std::string& caption() const
+	const detail::string& caption() const
 	{
 		return m_caption;
 	}

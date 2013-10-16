@@ -56,6 +56,7 @@ protected:
 	//Get base layout
 	const layout& get_layout() const { return m_layout.inherit()?m_win.get_owner().get_def_layout():m_layout; }
 	window& get_owner() { return m_win; }
+	const window& get_owner() const { return m_win; }
 	//Make gdi
 	disp::gdi make_gdi( )
 	{

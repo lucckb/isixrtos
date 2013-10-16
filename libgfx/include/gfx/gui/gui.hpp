@@ -15,8 +15,9 @@
 #include "label.hpp"
 #include "window.hpp"
 #include "seekbar.hpp"
+#include "editbox.hpp"
 
-#endif /* GUI_HPP_ */
+#endif /*GFX_GUI_GUI_HPP_*/
 
 
 
