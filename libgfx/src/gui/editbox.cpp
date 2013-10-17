@@ -25,8 +25,7 @@ void editbox::repaint()
 	gdi.fill_area( c.x()+1, c.y()+1, c.cx()-2, c.cy()-2, true );
 	//Draw after the cursor
 	auto x = m_cursor_x;
-	auto it = m_value.begin()+m_cursor_pos;
-	for( ; it!=m_value.end(); ++it )
+	for(auto it = m_value.begin()+m_cursor_pos; it!=m_value.end(); ++it )
 	{
 		if( x + gdi.get_text_width(*it) >= c.x()+c.cx()-text_margin*2 )
 			break;
@@ -34,7 +33,8 @@ void editbox::repaint()
 	}
 	//Draw before the cursor
 	x = m_cursor_x;
-	for( ; it!=m_value.begin(); --it )
+	if( m_cursor_pos > 0)
+	for(auto it = m_value.begin()+m_cursor_pos-1; it!=m_value.begin(); --it )
 	{
 		dbprintf("ch=%c x=%i",*it,x);
 		const auto tw = gdi.get_text_width(*it);
