@@ -4,6 +4,8 @@
  *
  *  Created on: 14 paź 2013
  *      Author: lucck
+ *      TODO: Cursor change improvement
+ *      TODO: Set min and max window limit
  */
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/editbox.hpp>
@@ -16,7 +18,6 @@ namespace gui {
 // On repaint the widget return true when changed
 void editbox::repaint()
 {
-	dbprintf("EDitBox::repaint()");
 	constexpr auto luma = 128;
 	constexpr auto luma2 = luma/2;
 	auto gdi = make_wgdi( );
@@ -33,10 +34,8 @@ void editbox::repaint()
 	}
 	//Draw before the cursor
 	x = m_cursor_x;
-	if( m_cursor_pos > 0)
-	for(auto it = m_value.begin()+m_cursor_pos-1; it!=m_value.begin(); --it )
+	for(auto it = m_value.begin()+m_cursor_pos-1; m_cursor_pos>0&&it>=m_value.begin(); --it )
 	{
-		dbprintf("ch=%c x=%i",*it,x);
 		const auto tw = gdi.get_text_width(*it);
 		if( x - tw < c.x()+text_margin )
 			break;
@@ -59,22 +58,6 @@ void editbox::repaint()
 	gdi.set_fg_color( colorspace::brigh( get_layout().bg(), luma ) );
 	gdi.draw_line(c.x()+1, c.y(), c.x()+c.cx()-1, c.y() );
 	gdi.draw_line(c.x(), c.y(), c.x(), c.y()+c.cy()-2 );
-}
-/* ------------------------------------------------------------------ */
-//Return maximum cursor pos
-size_t editbox::max_scr_curpos(const disp::gdi &gdi) const
-{
-	const auto c = get_coord() + get_owner().get_coord();
-	size_t ret = 0;
-	coord_t width=0;
-	for( auto ch : m_value )
-	{
-		width += gdi.get_text_width( ch );
-		if( width > c.cx() - 2*text_margin )
-			break;
-		++ret;
-	}
-	return ret;
 }
 /* ------------------------------------------------------------------ */
 //* Report input event
@@ -133,10 +116,20 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 			m_value[m_cursor_pos] = ch_inc( m_value[m_cursor_pos] );
 			ret = true;
 		}
-		else if( evk.key == kbdcodes::os_arrow_down)
+		else if( evk.key == kbdcodes::os_arrow_down )
 		{
 			m_value[m_cursor_pos] = ch_dec( m_value[m_cursor_pos] );
 			ret = true;
+		}
+		else if( evk.key == kbdcodes::enter)
+		{
+			event btn_event( this, event::evtype::EV_CLICK );
+			ret = emit( btn_event );
+		}
+		if( ret )
+		{
+			event btn_event( this, event::evtype::EV_CHANGE );
+			ret = emit( btn_event );
 		}
 	}
 	return ret;

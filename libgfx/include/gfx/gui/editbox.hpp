@@ -78,8 +78,6 @@ private:
 	char ch_dec( char ch ) const;
 	//Insert character get
 	char insert_ch();
-	//Return maximum cursor pos
-	size_t max_scr_curpos( const disp::gdi &gdi ) const ;
 private:
 	short m_min_len { 0 };					//Minimum len
 	short m_max_len { 0 };					//Maximum len
