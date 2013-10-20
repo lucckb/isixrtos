@@ -8,7 +8,7 @@
  * ------------------------------------------------------------ */
 #ifndef COMPILED_UNDER_ISIX
 
-#include "tiny_alloc.h"
+#include "foundation/tiny_alloc.h"
 
 #else /*COMPILED_UNDER_ISIX*/
 
