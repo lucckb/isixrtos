@@ -5,7 +5,7 @@
  *      Author: lucck
  */
 
-#include "uc1601_display.hpp"
+#include <foundation/uc1601_display.hpp>
 
 namespace fnd {
 namespace lcd {

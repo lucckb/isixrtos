@@ -20,6 +20,10 @@ namespace lcd {
 class uc1601_bus
 {
 public:
+	//! Destructor
+	virtual ~uc1601_bus()
+	{
+	}
 	//! Empty comand statement
 	static constexpr auto CMD_EMPTY = 1;
 	/** Write command to the uc1601 device

@@ -161,10 +161,10 @@ static inline void i2c_init(I2C_TypeDef* I2Cx, uint32_t clock_speed, uint16_t mo
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None
   */
-static inline void i2c_cmd(I2C_TypeDef* I2Cx, FunctionalState NewState)
+static inline void i2c_cmd(I2C_TypeDef* I2Cx, bool en)
 {
   /* Check the parameters */
-  if (NewState != DISABLE)
+  if (en)
   {
     /* Enable the selected I2C peripheral */
     I2Cx->CR1 |= I2C_CR1_PE;
@@ -184,9 +184,9 @@ static inline void i2c_cmd(I2C_TypeDef* I2Cx, FunctionalState NewState)
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None.
   */
-static inline void i2c_generate_start(I2C_TypeDef* I2Cx, FunctionalState NewState)
+static inline void i2c_generate_start(I2C_TypeDef* I2Cx, bool en)
 {
-  if (NewState != DISABLE)
+  if (en)
   {
     /* Generate a START condition */
     I2Cx->CR1 |= I2C_CR1_START;
@@ -205,9 +205,9 @@ static inline void i2c_generate_start(I2C_TypeDef* I2Cx, FunctionalState NewStat
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None.
   */
-static inline void i2c_generate_stop(I2C_TypeDef* I2Cx, FunctionalState NewState)
+static inline void i2c_generate_stop(I2C_TypeDef* I2Cx, bool en)
 {
-  if (NewState != DISABLE)
+  if (en)
   {
     /* Generate a STOP condition */
     I2Cx->CR1 |= I2C_CR1_STOP;
@@ -254,9 +254,9 @@ static inline void i2c_send_7bit_address(I2C_TypeDef* I2Cx, uint8_t Address, uin
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None.
   */
-static inline void i2c_acknowledge_config(I2C_TypeDef* I2Cx, FunctionalState NewState)
+static inline void i2c_acknowledge_config(I2C_TypeDef* I2Cx, bool en)
 {
-  if (NewState != DISABLE)
+  if ( en )
   {
     /* Enable the acknowledgement */
     I2Cx->CR1 |= I2C_CR1_ACK;
@@ -646,9 +646,9 @@ static inline uint16_t i2c_read_register(I2C_TypeDef* I2Cx, uint8_t I2C_Register
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None
   */
-static inline void i2c_it_config(I2C_TypeDef* I2Cx, uint16_t I2C_IT, FunctionalState NewState)
+static inline void i2c_it_config(I2C_TypeDef* I2Cx, uint16_t I2C_IT, bool en )
 {
-  if (NewState != DISABLE)
+  if ( en )
   {
     /* Enable the selected I2C interrupts */
     I2Cx->CR2 |= I2C_IT;
