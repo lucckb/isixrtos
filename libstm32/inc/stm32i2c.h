@@ -248,6 +248,17 @@ static inline void i2c_send_7bit_address(I2C_TypeDef* I2Cx, uint8_t Address, uin
 }
 /*----------------------------------------------------------*/
 /**
+ * Send 7 bit full address
+ * @param I2Cx I2C periph
+ * @param Address Full address without modify RW bit
+ */
+static inline void i2c_send_f7bit_address(I2C_TypeDef* I2Cx, uint8_t Address)
+{
+	I2Cx->DR = Address;
+}
+
+/*----------------------------------------------------------*/
+/**
   * @brief  Enables or disables the specified I2C acknowledge feature.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
   * @param  NewState: new state of the I2C Acknowledgement.

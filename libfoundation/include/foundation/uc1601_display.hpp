@@ -50,6 +50,11 @@ public:
 	 * @return	Error code
 	 */
 	virtual int data_rd(  uint8_t *buffer, size_t len ) = 0;
+	/**
+	 *
+	 * @param timeout timeout in ms
+	 */
+	virtual void mdelay( unsigned timeout ) = 0;
 protected:
 	/**
 	 * Write command implementation
@@ -74,18 +79,42 @@ public:
 	 * @param c char
 	 * @return error code
 	 */
-	int putchar( char c );
+	void putchar( char c );
 
 	/**
 	 * Set cursor position
 	 * @param x cursor position
 	 * @param y cursor position
-	 * @return
+	 * @return error code
 	 */
-	int setpos( int x, int y );
+	void setpos( int x, int y );
+
+	/**
+	 * Clear the display
+	 * @return Error code
+	 */
+	void clear();
+
+	/**
+	 * Get error code
+	 * @return error code
+	 */
+	int error() const
+	{
+		return m_error;
+	}
+private:
+	/**
+	 *
+	 * @param pa Page adres
+	 * @param ca Row address
+	 * @return Error code
+	 */
+	int address_set( uint8_t pa, uint8_t ca );
 private:
 	//! Bus interface
 	uc1601_bus &bus;
+	int m_error;
 };
 /* ------------------------------------------------------------------ */
 } /* namespace lcd */
