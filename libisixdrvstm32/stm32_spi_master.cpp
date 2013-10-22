@@ -12,7 +12,6 @@
 #include "config.h"
 #endif
 
-
 /*----------------------------------------------------------*/
 namespace stm32 {
 namespace drv {
