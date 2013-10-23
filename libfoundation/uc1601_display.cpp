@@ -239,9 +239,24 @@ int uc1601_display::box( int x1, int y1, int cx, int cy, box_t type )
 			break;
 		}
 		m_error = address_set( y1/8, x1 );
-		const auto pattern = (type == box_t::clear || type == box_t::frame)?(empty_line):(full_line);
+		//const auto pattern = (type == box_t::clear || type == box_t::frame)?(empty_line):(full_line);
 		for( int w=0; w<cy; ++w )
 		{
+			const uint8_t *pattern;
+			if( type == box_t::frame )
+			{
+				if( w == 0 ) pattern =top_line;
+				else if( w == cy-1 ) pattern = bottom_line;
+				else pattern = empty_line;
+			}
+			else if( type == box_t::fill )
+			{
+				pattern = full_line;
+			}
+			else
+			{
+				pattern = empty_line;
+			}
 			for(int rx=cx; rx>0; rx-=cx>max_pattern?max_pattern:cx )
 			{
 				m_error = bus.data_wr(pattern, rx>max_pattern?max_pattern:rx );
