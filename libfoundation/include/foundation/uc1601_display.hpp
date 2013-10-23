@@ -74,7 +74,7 @@ class uc1601_display : private fnd::noncopyable
 private:
 	static constexpr auto uc1601_cols = 132;
 public:
-	enum error
+	enum error	: int
 	{
 		ERR_OK = 0,
 		ERR_ALIGN = -1,
@@ -82,6 +82,14 @@ public:
 		ERR_NO_CHAR = -3,		//Missing char
 		ERR_OUT_RANGE = -4
 	};
+
+	enum class box_t
+	{
+		clear,	//Clear only
+		frame,	//Clear + frame
+		fill,	//Fill only
+	};
+
 	/**
 	 * Display controler
 	 * @param bus_ initialize and setup the display
@@ -93,7 +101,7 @@ public:
 	 * @param c char
 	 * @return error code
 	 */
-	void putc( char ch );
+	int putc( char ch );
 
 	/**
 	 * Set cursor position
@@ -101,13 +109,13 @@ public:
 	 * @param y cursor position
 	 * @return error code
 	 */
-	void setpos( int x, int y );
+	int setpos( int x, int y );
 
 	/**
 	 * Clear the display
 	 * @return Error code
 	 */
-	void clear();
+	int clear();
 
 	/**
 	 * Get error code
@@ -119,13 +127,14 @@ public:
 	}
 
 	/**
-	 * Draw box arround the area
+	 *  draw box arround the area
 	 * @param x1	X pos
 	 * @param y1	Y pos
 	 * @param cx	box width
 	 * @param cy	box height
+	 * @param type display frame type @see box_t
 	 */
-	void draw_box( int x1, int y1, int cx, int cy );
+	int box( int x1, int y1, int cx, int cy, box_t type = box_t::clear );
 
 	/**
 	 * Set font
@@ -152,7 +161,7 @@ private:
 	const font_t* m_font {};
 	//Current page address and column address
 	uint8_t m_pa {}, m_ca {};
-	const uint8_t m_rows, m_cols;
+	const uint8_t m_cols, m_rows;
 };
 /* ------------------------------------------------------------------ */
 } /* namespace lcd */

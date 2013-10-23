@@ -63,8 +63,25 @@ namespace {
 	constexpr uint8_t UC1601_SET_DEN_MASK    = 0x7F;
 	constexpr uint8_t UC1601_READ_DATA_CMD   = 0xFF;
 	constexpr uint8_t UC1601_READ_DATA_MASK  = 0xFF;
-	//Empty char
-	constexpr uint8_t empty_line[64] {};
+	//For rects defs
+	constexpr auto max_pattern = 32;
+	constexpr uint8_t empty_line[max_pattern] {};
+	constexpr uint8_t top_line[max_pattern]
+	                           	   { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+									 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+									 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+									 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+	constexpr uint8_t bottom_line[max_pattern]
+	                                  { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+									 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+									 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+									 	0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80};
+	constexpr uint8_t full_line[max_pattern]
+	                                { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+									  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+									  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+									  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+	};
 }
 /* ------------------------------------------------------------------ */
 //Set address
@@ -130,7 +147,7 @@ uc1601_display::uc1601_display( uc1601_bus &bus_, uint8_t cols, uint8_t rows  )
 }
 /* ------------------------------------------------------------------ */
 //Clear the display
-void uc1601_display::clear()
+int uc1601_display::clear()
 {
 	do
 	{
@@ -143,20 +160,21 @@ void uc1601_display::clear()
 		    if( m_error ) break;
 		}
 	} while(0);
+	return m_error;
 }
 /* ------------------------------------------------------------------ */
 //Put char
-void uc1601_display::putc( char ch )
+int uc1601_display::putc( char ch )
 {
 	if( m_font == nullptr )
 	{
 		m_error = ERR_MISSING_FONT;
-		return;
+		return m_error;
 	}
 	if( (ch < m_font->first_char || ch > m_font->last_char) && ch!=' ' )
 	{
 		m_error = ERR_NO_CHAR;
-		return;
+		return m_error;
 	}
 	const auto cho = ch - m_font->first_char;
 	const auto width = (ch!=' ')?(m_font->chr_desc[int(cho)].width):(m_font->spc_width);
@@ -166,30 +184,77 @@ void uc1601_display::putc( char ch )
 	if( m_ca + width + 1 > m_cols )
 	{
 		m_error = ERR_OUT_RANGE;
-		return;
+		return m_error;
 	}
 	for(size_t w=0; w<m_font->height;w+=8)
 	{
 		m_error = bus.data_wr(bmp_ptr, width );
-		if( m_error ) return;
+		if( m_error ) return m_error;
 		m_error = bus.data_wr(empty_line, 1 );
+		if( m_error ) return m_error;
 		bmp_ptr += width;
 		m_error = address_set( m_pa + 1, m_ca );
-		if( m_error ) return;
+		if( m_error ) return m_error;
 	}
 	m_error = address_set( saved_pa, m_ca + width + 1 );
-	if( m_error ) return;
+	return m_error;
 }
 /* ------------------------------------------------------------------ */
 // Set cursor position
-void uc1601_display::setpos( int x, int y )
+int uc1601_display::setpos( int x, int y )
 {
-	if( y / 8 )
+	do
 	{
-		m_error = ERR_ALIGN;
-		return;
+		if( x > m_cols || y > m_rows )
+		{
+			m_error = ERR_OUT_RANGE;
+			break;
+		}
+		if( y % 8 )
+		{
+			m_error = ERR_ALIGN;
+			break;
+		}
+		m_error = address_set( y/8, x );
 	}
-	m_error = address_set( y/8, x );
+	while(0);
+	return m_error;
+}
+/* ------------------------------------------------------------------ */
+//draw box arround the area
+int uc1601_display::box( int x1, int y1, int cx, int cy, box_t type )
+{
+	const auto save_pa = m_pa;
+	const auto save_ca = m_ca;
+	do
+	{
+		if( x1 > m_cols || y1 > m_rows || (x1+cx)>m_cols || (y1+cy)>m_rows )
+		{
+			m_error = ERR_OUT_RANGE;
+			break;
+		}
+		if( y1 % 8 || cy %8 )
+		{
+			m_error = ERR_ALIGN;
+			break;
+		}
+		m_error = address_set( y1/8, x1 );
+		const auto pattern = (type == box_t::clear || type == box_t::frame)?(empty_line):(full_line);
+		for( int w=0; w<cy; ++w )
+		{
+			for(int rx=cx; rx>0; rx-=cx>max_pattern?max_pattern:cx )
+			{
+				m_error = bus.data_wr(pattern, rx>max_pattern?max_pattern:rx );
+				if( m_error ) return m_error;
+			}
+			m_error = address_set( (y1+w)/8, x1 );
+			if( m_error ) return m_error;
+		}
+	}
+	while(0);
+	m_pa = save_pa;
+	m_ca = save_ca;
+	return m_error;
 }
 /* ------------------------------------------------------------------ */
 } /* namespace lcd */

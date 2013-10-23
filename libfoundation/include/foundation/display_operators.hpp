@@ -102,7 +102,7 @@ namespace lcd {
 	template <typename D>
 		D& operator<<(D &o,const pos &fmt)
 	{
-		o.setpos(fmt.x,fmt.y);
+		o.setpos(fmt.x(),fmt.y());
 		return o;
 	}
 	/* ------------------------------------------------------------------ */
