@@ -5,15 +5,15 @@
  *      Author: lucck
  */
 /*----------------------------------------------------------*/
-#ifndef HD44XX_DISPLAY_HPP_
-#define HD44XX_DISPLAY_HPP_
+#ifndef FOUNDATION_HD44XX_DISPLAY_HPP_
+#define FOUNDATION_HD44XX_DISPLAY_HPP_
 /*----------------------------------------------------------*/
 #include <stdint.h>
+#include <foundation/display_operators.hpp>
 /*----------------------------------------------------------*/
-namespace fnd
-{
-namespace lcd
-{
+namespace fnd {
+namespace lcd {
+
 	class hd44xx_display
 	{
 	public:
@@ -79,55 +79,7 @@ namespace lcd
 		hd44xx_display(hd44xx_display &);
 		hd44xx_display& operator=(const hd44xx_display&);
 	};
-/*----------------------------------------------------------*/
-	class lfmt
-	{
-		friend hd44xx_display& operator<<(hd44xx_display &o,const lfmt &fmt);
-	public:
-		enum
-		{
-			dec = 10,
-			hex = 16
-		};
-		lfmt(unsigned val_, int fmt_, char fmtch_='0', short base_=dec)
-		: val(val_),fmt(fmt_),fmtch(fmtch_) , base(base_) {}
-	private:
-		unsigned val;
-		int fmt;
-		char fmtch;
-		short base;
-	};
-/* ------------------------------------------------------------------ */
-	struct icon
-	{
-		friend hd44xx_display& operator<<(hd44xx_display &o,const icon &fmt);
-	protected:
-		virtual const char* get_data() const = 0;
-		virtual char get_char() const = 0;
-	};
-/* ------------------------------------------------------------------ */
-	class pos
-	{
-		friend hd44xx_display& operator<<(hd44xx_display &o,const pos &fmt);
-	public:
-		pos(int x_, int y_)
-		:x(x_), y(y_) {}
-	private:
-		unsigned char x;
-		unsigned char y;
-	};
-/* ------------------------------------------------------------------ */
-	hd44xx_display& operator<<(hd44xx_display &o,const char *str);
 
-	hd44xx_display& operator<<(hd44xx_display &o,unsigned value);
-
-	hd44xx_display& operator<<(hd44xx_display &o,const lfmt &fmt);
-
-	hd44xx_display& operator<<(hd44xx_display &o,const icon &fmt);
-
-	hd44xx_display& operator<<(hd44xx_display &o,const pos &fmt);
-
-	hd44xx_display& operator<<(hd44xx_display &o,int value);
 /* ------------------------------------------------------------------ */
 
 }}

@@ -11,9 +11,12 @@
 #include <cstdint>
 #include <cstddef>
 #include <foundation/noncopyable.hpp>
+#include <foundation/display_operators.hpp>
 /* ------------------------------------------------------------------ */
 namespace fnd {
 namespace lcd {
+/* ------------------------------------------------------------------ */
+struct font_t;
 
 /* ------------------------------------------------------------------ */
 //! UC1601 bus interface
@@ -68,18 +71,29 @@ protected:
 //! UC1601 basic command display
 class uc1601_display : private fnd::noncopyable
 {
+private:
+	static constexpr auto uc1601_cols = 132;
 public:
+	enum error
+	{
+		ERR_OK = 0,
+		ERR_ALIGN = -1,
+		ERR_MISSING_FONT = -2,
+		ERR_NO_CHAR = -3,		//Missing char
+		ERR_OUT_RANGE = -4
+	};
 	/**
 	 * Display controler
 	 * @param bus_ initialize and setup the display
+	 * @param cols numer of cols
 	 * @param rows number of rows
 	 */
-	uc1601_display( uc1601_bus &bus_, int rows);
+	uc1601_display( uc1601_bus &bus_, uint8_t cols, uint8_t rows );
 	/** Putchar
 	 * @param c char
 	 * @return error code
 	 */
-	void putchar( char c );
+	void putc( char ch );
 
 	/**
 	 * Set cursor position
@@ -103,6 +117,24 @@ public:
 	{
 		return m_error;
 	}
+
+	/**
+	 * Draw box arround the area
+	 * @param x1	X pos
+	 * @param y1	Y pos
+	 * @param cx	box width
+	 * @param cy	box height
+	 */
+	void draw_box( int x1, int y1, int cx, int cy );
+
+	/**
+	 * Set font
+	 * @param font new font
+	 */
+	void set_font( const font_t * font )
+	{
+		m_font = font;
+	}
 private:
 	/**
 	 *
@@ -114,7 +146,13 @@ private:
 private:
 	//! Bus interface
 	uc1601_bus &bus;
+	//! Error code
 	int m_error;
+	//! Selected font
+	const font_t* m_font {};
+	//Current page address and column address
+	uint8_t m_pa {}, m_ca {};
+	const uint8_t m_rows, m_cols;
 };
 /* ------------------------------------------------------------------ */
 } /* namespace lcd */

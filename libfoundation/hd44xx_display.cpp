@@ -8,10 +8,8 @@
 #include "foundation/hd44xx_display.hpp"
 #include <foundation/utils.h>
 /* ------------------------------------------------------------------ */
-namespace fnd
-{
-namespace lcd
-{
+namespace fnd {
+namespace lcd {
 /* ------------------------------------------------------------------ */
 namespace //CFG
 {
@@ -137,55 +135,8 @@ int hd44xx_display::progress_bar(int x, int y, int value, int width, char chpos)
     return ret;
 }
 /* ------------------------------------------------------------------ */
-hd44xx_display& operator<<(hd44xx_display &o,const char *str)
-{
-
-	while(*str)
-		o.putc(*str++);
-	return o;
 }
-
-/* ------------------------------------------------------------------ */
-hd44xx_display& operator<<(hd44xx_display &o,unsigned value)
-{
-	char buf[11];
-	fnd::fnd_uitoa(buf,value,1,'0',10);
-	o << buf;
-	return o;
 }
 /* ------------------------------------------------------------------ */
-hd44xx_display& operator<<(hd44xx_display &o,int value)
-{
-	char buf[12];
-	fnd::fnd_itoa(buf,value,1,'0');
-	o << buf;
-	return o;
-}
-/* ------------------------------------------------------------------ */
-hd44xx_display& operator<<(hd44xx_display &o,const lfmt &fmt)
-{
-	char buf[11];
-	fnd::fnd_uitoa(buf,fmt.val,fmt.fmt,fmt.fmtch,fmt.base);
-	o << buf;
-	return o;
-}
-
-/* ------------------------------------------------------------------ */
-hd44xx_display& operator<<(hd44xx_display &o,const icon &fmt)
-{
-	o.show_icon(fmt.get_char(),fmt.get_data());
-	return o;
-}
-
-/* ------------------------------------------------------------------ */
-hd44xx_display& operator<<(hd44xx_display &o,const pos &fmt)
-{
-	o.setpos(fmt.x,fmt.y);
-	return o;
-}
-/* ------------------------------------------------------------------ */
-}
-}
-
 
 

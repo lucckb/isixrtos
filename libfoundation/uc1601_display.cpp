@@ -7,6 +7,7 @@
 
 #include <foundation/uc1601_display.hpp>
 #include <foundation/dbglog.h>
+#include <foundation/lcd_font.hpp>
 
 namespace fnd {
 namespace lcd {
@@ -62,7 +63,8 @@ namespace {
 	constexpr uint8_t UC1601_SET_DEN_MASK    = 0x7F;
 	constexpr uint8_t UC1601_READ_DATA_CMD   = 0xFF;
 	constexpr uint8_t UC1601_READ_DATA_MASK  = 0xFF;
-
+	//Empty char
+	constexpr uint8_t empty_line[64] {};
 }
 /* ------------------------------------------------------------------ */
 //Set address
@@ -88,12 +90,14 @@ int uc1601_display::address_set( uint8_t pa, uint8_t ca )
 		if( ret != 0 ) break;
 	}
 	while(0);
+	m_ca = ca;
+	m_pa = pa;
 	return ret;
 }
 /* ------------------------------------------------------------------ */
 //Constructor
-uc1601_display::uc1601_display( uc1601_bus &bus_, int rows )
-	: bus(bus_)
+uc1601_display::uc1601_display( uc1601_bus &bus_, uint8_t cols, uint8_t rows  )
+	: bus(bus_), m_cols(cols), m_rows(rows)
 {
 	do
 	{
@@ -133,7 +137,7 @@ void uc1601_display::clear()
 		m_error = address_set( 0, 0 );
 		if( m_error ) break;
 		uint8_t buf = 0;
-		for (int i = 0; i < (132*32)/8; i++)
+		for (int i = 0; i < (uc1601_cols*m_rows)/8; i++)
 		{
 			m_error = bus.data_wr(&buf, sizeof(buf) );
 		    if( m_error ) break;
@@ -142,25 +146,50 @@ void uc1601_display::clear()
 }
 /* ------------------------------------------------------------------ */
 //Put char
-void uc1601_display::putchar( char c )
+void uc1601_display::putc( char ch )
 {
-	dbprintf("putchar");
-	m_error = address_set( 0, 0 );
-	if(!m_error)
+	if( m_font == nullptr )
 	{
-		uint8_t buf[] = { 0xFF };
-		for (int i = 0; i < (132*32)/8; i++)
-		{
-			m_error = bus.data_wr(buf, sizeof(buf) );
-			if(m_error) return;
-		}
+		m_error = ERR_MISSING_FONT;
+		return;
 	}
+	if( (ch < m_font->first_char || ch > m_font->last_char) && ch!=' ' )
+	{
+		m_error = ERR_NO_CHAR;
+		return;
+	}
+	const auto cho = ch - m_font->first_char;
+	const auto width = (ch!=' ')?(m_font->chr_desc[int(cho)].width):(m_font->spc_width);
+	const auto offs = m_font->chr_desc[int(cho)].offset;
+	auto bmp_ptr = (ch!=' ')?(&m_font->bmp[offs]):(empty_line);
+	const auto saved_pa = m_pa;
+	if( m_ca + width + 1 > m_cols )
+	{
+		m_error = ERR_OUT_RANGE;
+		return;
+	}
+	for(size_t w=0; w<m_font->height;w+=8)
+	{
+		m_error = bus.data_wr(bmp_ptr, width );
+		if( m_error ) return;
+		m_error = bus.data_wr(empty_line, 1 );
+		bmp_ptr += width;
+		m_error = address_set( m_pa + 1, m_ca );
+		if( m_error ) return;
+	}
+	m_error = address_set( saved_pa, m_ca + width + 1 );
+	if( m_error ) return;
 }
 /* ------------------------------------------------------------------ */
 // Set cursor position
 void uc1601_display::setpos( int x, int y )
 {
-
+	if( y / 8 )
+	{
+		m_error = ERR_ALIGN;
+		return;
+	}
+	m_error = address_set( y/8, x );
 }
 /* ------------------------------------------------------------------ */
 } /* namespace lcd */
