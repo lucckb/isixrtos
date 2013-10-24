@@ -582,9 +582,9 @@ static inline uint8_t i2c_get_pec(I2C_TypeDef* I2Cx)
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None
   */
-static inline void i2c_dma_cmd(I2C_TypeDef* I2Cx, FunctionalState NewState)
+static inline void i2c_dma_cmd(I2C_TypeDef* I2Cx, bool en)
 {
-  if (NewState != DISABLE)
+  if ( en )
   {
     /* Enable the selected I2C DMA requests */
     I2Cx->CR2 |= I2C_CR2_DMAEN;
