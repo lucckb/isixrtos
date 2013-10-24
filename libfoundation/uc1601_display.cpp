@@ -166,37 +166,41 @@ int uc1601_display::clear()
 //Put char
 int uc1601_display::putc( char ch )
 {
-	if( m_font == nullptr )
-	{
-		m_error = ERR_MISSING_FONT;
-		return m_error;
-	}
-	if( (ch < m_font->first_char || ch > m_font->last_char) && ch!=' ' )
-	{
-		m_error = ERR_NO_CHAR;
-		return m_error;
-	}
-	const auto cho = ch - m_font->first_char;
-	const auto width = (ch!=' ')?(m_font->chr_desc[int(cho)].width):(m_font->spc_width);
-	const auto offs = m_font->chr_desc[int(cho)].offset;
-	auto bmp_ptr = (ch!=' ')?(&m_font->bmp[offs]):(empty_line);
-	const auto saved_pa = m_pa;
-	if( m_ca + width + 1 > m_cols )
-	{
-		m_error = ERR_OUT_RANGE;
-		return m_error;
-	}
-	for(size_t w=0; w<m_font->height;w+=8)
-	{
-		m_error = bus.data_wr(bmp_ptr, width );
-		if( m_error ) return m_error;
-		m_error = bus.data_wr(empty_line, 1 );
-		if( m_error ) return m_error;
-		bmp_ptr += width;
-		m_error = address_set( m_pa + 1, m_ca );
-		if( m_error ) return m_error;
-	}
-	m_error = address_set( saved_pa, m_ca + width + 1 );
+	do {
+		if( m_font == nullptr )
+		{
+			m_error = ERR_MISSING_FONT;
+			break;
+		}
+		if( (ch < m_font->first_char || ch > m_font->last_char) && ch!=' ' )
+		{
+			m_error = ERR_NO_CHAR;
+			break;
+		}
+		const auto cho = ch - m_font->first_char;
+		const auto width = (ch!=' ')?(m_font->chr_desc[int(cho)].width):(m_font->spc_width);
+		const auto offs = m_font->chr_desc[int(cho)].offset;
+		auto bmp_ptr = (ch!=' ')?(&m_font->bmp[offs]):(empty_line);
+		const auto saved_pa = m_pa;
+		if( m_ca + width + 1 > m_cols )
+		{
+			m_error = ERR_OUT_RANGE;
+			break;
+		}
+		for(size_t w=0; w<m_font->height;w+=8)
+		{
+			if( m_error ) break;
+			m_error = bus.data_wr(bmp_ptr, width );
+			if( m_error ) break;
+			m_error = bus.data_wr(empty_line, 1 );
+			if( m_error ) break;
+			bmp_ptr += width;
+			m_error = address_set( m_pa + 1, m_ca );
+			if( m_error ) break;
+		}
+		if( m_error ) break;
+		m_error = address_set( saved_pa, m_ca + width + 1 );
+	} while(0);
 	return m_error;
 }
 /* ------------------------------------------------------------------ */
@@ -238,15 +242,15 @@ int uc1601_display::box( int x1, int y1, int cx, int cy, box_t type )
 			m_error = ERR_ALIGN;
 			break;
 		}
-		m_error = address_set( y1/8, x1 );
-		//const auto pattern = (type == box_t::clear || type == box_t::frame)?(empty_line):(full_line);
-		for( int w=0; w<cy; ++w )
+		for( int w=0; w<cy; w+=8 )
 		{
+			m_error = address_set( (y1+w)/8, x1 );
+			if( m_error ) break;
 			const uint8_t *pattern;
 			if( type == box_t::frame )
 			{
-				if( w == 0 ) pattern =top_line;
-				else if( w == cy-1 ) pattern = bottom_line;
+				if( w == 0 ) pattern = top_line;
+				else if( w == cy-8 ) pattern = bottom_line;
 				else pattern = empty_line;
 			}
 			else if( type == box_t::fill )
@@ -259,16 +263,46 @@ int uc1601_display::box( int x1, int y1, int cx, int cy, box_t type )
 			}
 			for(int rx=cx; rx>0; rx-=cx>max_pattern?max_pattern:cx )
 			{
+				if( m_error ) break;
 				m_error = bus.data_wr(pattern, rx>max_pattern?max_pattern:rx );
-				if( m_error ) return m_error;
+				if( m_error ) break;
 			}
+		}
+		if( type == box_t::frame )
+		for( int w=0; w<cy; w+=8 )
+		{
+			if( m_error ) break;
+			//Left frame
 			m_error = address_set( (y1+w)/8, x1 );
-			if( m_error ) return m_error;
+			if( m_error ) break;
+			m_error = bus.data_wr(full_line, 1 );
+			if( m_error ) break;
+			//Right frame
+			m_error = address_set( (y1+w)/8, x1+cx );
+			if( m_error ) break;
+			m_error = bus.data_wr(full_line, 1 );
+			if( m_error ) break;
 		}
 	}
 	while(0);
 	m_pa = save_pa;
 	m_ca = save_ca;
+	return m_error;
+}
+/* ------------------------------------------------------------------ */
+//Display a progress bar
+int uc1601_display::progress_bar(int x1, int y1, int cx, int cy, int value, int max )
+{
+	do
+	{
+		const int cx1 = ( cx * value ) / max;
+		const int cx2 = cx - cx1;
+		box( x1, y1, cx1, cy, box_t::fill );
+		if( m_error ) break;
+		box( 53, y1, cx2, cy, box_t::frame );
+		if( m_error ) break;
+	}
+	while(0);
 	return m_error;
 }
 /* ------------------------------------------------------------------ */

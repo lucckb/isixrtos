@@ -144,6 +144,17 @@ public:
 	{
 		m_font = font;
 	}
+	/**
+	 * Display progress bar
+	 * @param x1	Start position X
+	 * @param y1	Start position Y
+	 * @param cx	Bar width
+	 * @param cy	Bar height
+	 * @param value	Progress value
+	 * @param max	Maximum value
+	 * @return Error code
+	 */
+	int progress_bar(int x1, int y1, int cx, int cy, int value, int max = 100 );
 private:
 	/**
 	 *
