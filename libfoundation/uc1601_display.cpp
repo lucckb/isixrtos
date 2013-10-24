@@ -6,7 +6,6 @@
  */
 
 #include <foundation/uc1601_display.hpp>
-#include <foundation/dbglog.h>
 #include <foundation/lcd_font.hpp>
 #include <foundation/lcd_bitmap.hpp>
 
@@ -300,7 +299,7 @@ int uc1601_display::progress_bar(int x1, int y1, int cx, int cy, int value, int 
 		const int cx2 = cx - cx1;
 		box( x1, y1, cx1, cy, box_t::fill );
 		if( m_error ) break;
-		box( 53, y1, cx2, cy, box_t::frame );
+		box( x1+cx1, y1, cx2, cy, box_t::frame );
 		if( m_error ) break;
 	}
 	while(0);
