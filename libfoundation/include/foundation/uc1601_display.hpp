@@ -17,7 +17,7 @@ namespace fnd {
 namespace lcd {
 /* ------------------------------------------------------------------ */
 struct font_t;
-
+struct icon_t;
 /* ------------------------------------------------------------------ */
 //! UC1601 bus interface
 class uc1601_bus
@@ -80,7 +80,8 @@ public:
 		ERR_ALIGN = -1,
 		ERR_MISSING_FONT = -2,
 		ERR_NO_CHAR = -3,		//Missing char
-		ERR_OUT_RANGE = -4
+		ERR_OUT_RANGE = -4,
+		ERR_INVALID_ARG = -5	//Invalid argument
 	};
 
 	enum class box_t
@@ -155,6 +156,16 @@ public:
 	 * @return Error code
 	 */
 	int progress_bar(int x1, int y1, int cx, int cy, int value, int max = 100 );
+
+	/**
+	 * Show icon on screen
+	 * @param x1	Position X icon
+	 * @param y1	Position Y icon
+	 * @param icon	Icon Pointer
+	 * @return		Error code
+	 */
+	int show_icon( int x1, int y1, const icon_t *icon );
+
 private:
 	/**
 	 *

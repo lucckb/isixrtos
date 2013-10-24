@@ -8,6 +8,7 @@
 #include <foundation/uc1601_display.hpp>
 #include <foundation/dbglog.h>
 #include <foundation/lcd_font.hpp>
+#include <foundation/lcd_bitmap.hpp>
 
 namespace fnd {
 namespace lcd {
@@ -303,6 +304,43 @@ int uc1601_display::progress_bar(int x1, int y1, int cx, int cy, int value, int 
 		if( m_error ) break;
 	}
 	while(0);
+	return m_error;
+}
+
+/* ------------------------------------------------------------------ */
+//Show the icon on screen
+int uc1601_display::show_icon( int x1, int y1, const icon_t *icon )
+{
+	const auto save_pa = m_pa;
+	const auto save_ca = m_ca;
+	do
+	{
+		if( icon == nullptr )
+		{
+			m_error = ERR_INVALID_ARG;
+			break;
+		}
+		if( y1 % 8 )
+		{
+			m_error = ERR_ALIGN;
+			break;
+		}
+		if( y1/8 + icon->pg_width > m_rows/8  ||  x1+icon->height > m_cols )
+		{
+			m_error = ERR_OUT_RANGE;
+			break;
+		}
+		for(unsigned p=0; p<icon->pg_width; ++p )
+		{
+			m_error = address_set( y1/8+p, x1 );
+			if( m_error ) break;
+			m_error = bus.data_wr( &icon->data[p*icon->height], icon->height );
+			if( m_error ) break;
+		}
+	}
+	while(0);
+	m_pa = save_pa;
+	m_ca = save_ca;
 	return m_error;
 }
 /* ------------------------------------------------------------------ */
