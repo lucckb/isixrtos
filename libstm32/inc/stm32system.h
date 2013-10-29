@@ -145,7 +145,20 @@ static inline void irq_enable(void)
 {
 	asm volatile("cpsie i\t\n");
 }
-
+/*----------------------------------------------------------*/
+/**
+ * @brief  Read the interrupt pending bit for a device specific interrupt source
+ *
+ * @param  IRQn    The number of the device specifc interrupt
+ * @return         1 = interrupt pending, 0 = interrupt not pending
+ *
+ * Read the pending register in NVIC and return 1 if its status is pending,
+ * otherwise it returns 0
+ */
+static inline  uint32_t nvic_irq_get_pending(IRQn_Type IRQn)
+{
+  return((uint32_t) ((NVIC->ISPR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0)); /* Return 1 if pending else 0 */
+}
 /*----------------------------------------------------------*/
 
 /** Clear pending IRQ interrupt in CORTEX-M3 core
@@ -157,7 +170,14 @@ static inline void nvic_irq_pend_clear(IRQn_Type irq_num)
 	NVIC->ICPR[((uint32_t)irq_num >> 0x05)] = (u32)0x01 << ((uint32_t)irq_num & (u32)0x1F);
 }
 
+/*----------------------------------------------------------*/
+//! Activate events in cortex m3 core
+static inline void scb_evt_on_irq_pending(void)
+{
+	SCB->SCR |= SCB_SCR_SEVONPEND_Msk;
+}
 
+/*----------------------------------------------------------*/
 //! Sleep mode wait for interrupt macros
 #ifndef PDEBUG
 static inline void wfi( void ) { asm volatile("wfi"); }
@@ -168,6 +188,9 @@ static inline void wfi( void ) { asm volatile("nop");  }
 /*----------------------------------------------------------*/
 //! NOP command definition
 static inline void nop(void) { asm volatile("nop"); }
+/*----------------------------------------------------------*/
+//!Wait for ebvent
+static inline void wfe(void) { asm volatile("wfe"); }
 
 /*----------------------------------------------------------*/
 
