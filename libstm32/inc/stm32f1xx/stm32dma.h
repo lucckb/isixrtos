@@ -45,7 +45,7 @@ static inline void dma_enable(enum dma_cntr ch)
 }
 /* ---------------------------------------------------------------------------- */
 //Disable the dma channel
-void dma_disable(enum dma_cntr ch)
+static inline void dma_disable(enum dma_cntr ch)
 {
 	if(ch == DMACNTR_1)
 	{
