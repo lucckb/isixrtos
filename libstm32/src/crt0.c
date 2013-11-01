@@ -517,7 +517,8 @@ static unsigned short iObject = 0;
 
 int __cxa_atexit(void (*func) (void *), void * arg, void * dso_handle)
 {
-        if (iObject >= MAX_CXA_ATEXIT_OBJECTS) return -1;
+        (void)dso_handle;
+		if (iObject >= MAX_CXA_ATEXIT_OBJECTS) return -1;
         object[iObject].func = func;
         object[iObject].arg = arg;
         ++iObject;
