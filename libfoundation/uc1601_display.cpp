@@ -4,11 +4,11 @@
  *  Created on: 20 paź 2013
  *      Author: lucck
  */
-
+/* ------------------------------------------------------------------ */
 #include <foundation/uc1601_display.hpp>
 #include <foundation/lcd_font.hpp>
 #include <foundation/lcd_bitmap.hpp>
-
+/* ------------------------------------------------------------------ */
 namespace fnd {
 namespace lcd {
 /* ------------------------------------------------------------------ */
@@ -348,6 +348,21 @@ int uc1601_display::show_icon( int x1, int y1, const icon_t *icon )
 	while(0);
 	m_pa = save_pa;
 	m_ca = save_ca;
+	return m_error;
+}
+/* ------------------------------------------------------------------ */
+//Clear to end of line
+int uc1601_display::endl()
+{
+	do {
+
+		if( m_font == nullptr )
+		{
+			m_error = ERR_MISSING_FONT;
+			break;
+		}
+		box( m_ca, m_pa*8, m_cols-m_ca, m_font->height+8-m_font->height%8 );
+	} while(0);
 	return m_error;
 }
 /* ------------------------------------------------------------------ */

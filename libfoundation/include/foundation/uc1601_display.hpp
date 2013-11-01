@@ -171,6 +171,12 @@ public:
 	 */
 	int show_icon( int x1, int y1, const icon_t *icon );
 
+	/**
+	 * Go to to endl using current font
+	 * @return Error code
+	 */
+	int endl();
+
 private:
 	/**
 	 *
