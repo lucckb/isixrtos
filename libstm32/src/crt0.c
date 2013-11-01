@@ -527,7 +527,8 @@ int __cxa_atexit(void (*func) (void *), void * arg, void * dso_handle)
 /* This currently destroys all objects */
 void __cxa_finalize(void *d)
 {
-        unsigned int i = iObject;
+        (void)d;
+		unsigned int i = iObject;
         for (; i > 0; --i)
         {
                 --iObject;
