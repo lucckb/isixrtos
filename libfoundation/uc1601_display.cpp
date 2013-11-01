@@ -46,6 +46,7 @@ namespace {
 	constexpr uint8_t UC1601_SET_DC0_EN      = 0xA7;
 	constexpr uint8_t UC1601_SET_DC2         = 0xAE;
 	constexpr uint8_t UC1601_SET_DC2_EN      = 0xAF;
+	constexpr uint8_t UC1601_SET_DC2_DEN     = 0xAE;
 	constexpr uint8_t UC1601_SET_LC21        = 0xC0;
 	constexpr uint8_t UC1601_SET_LC21_MASK   = 0x06;
 	constexpr uint8_t UC1601_SET_SC          = 0xE2;
@@ -144,6 +145,13 @@ uc1601_display::uc1601_display( uc1601_bus &bus_, uint8_t cols, uint8_t rows  )
 		if( m_error ) break;
 	}
 	while(0);
+}
+/* ------------------------------------------------------------------ */
+/** Destructor */
+uc1601_display::~uc1601_display()
+{
+	//Display reset
+	 bus.command(UC1601_SET_DC2_DEN);
 }
 /* ------------------------------------------------------------------ */
 //Clear the display

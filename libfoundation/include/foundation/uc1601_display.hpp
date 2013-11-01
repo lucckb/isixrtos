@@ -98,6 +98,11 @@ public:
 	 * @param rows number of rows
 	 */
 	uc1601_display( uc1601_bus &bus_, uint8_t cols, uint8_t rows );
+
+
+	/** Destructor */
+	~uc1601_display();
+
 	/** Putchar
 	 * @param c char
 	 * @return error code
