@@ -34,6 +34,20 @@ namespace lcd {
 		const short m_base;
 	};
 	/* ------------------------------------------------------------------ */
+	template<typename T>
+	class ffmt
+	{
+	public:
+		ffmt( T _val, int _prec )
+			: m_val(_val), m_prec(_prec)
+		{}
+		T val() const { return m_val; }
+		int prec() const { return m_prec; }
+	private:
+		T 	m_val;
+		int m_prec;
+	};
+	/* ------------------------------------------------------------------ */
 	struct icon
 	{
 	public:
@@ -86,6 +100,42 @@ namespace lcd {
 	}
 	/* ------------------------------------------------------------------ */
 	template <typename D>
+		D& operator<<(D &o,float value)
+	{
+		char buf[32];
+		fnd::fnd_ftoa(value,buf,4);
+		o << buf;
+		return o;
+	}
+	/* ------------------------------------------------------------------ */
+	template <typename D>
+		D& operator<<(D &o,double value)
+	{
+		char buf[32];
+		fnd::fnd_ftoa(value,buf,4);
+		o << buf;
+		return o;
+	}
+	/* ------------------------------------------------------------------ */
+	template <typename D>
+			D& operator<<(D &o,const ffmt<float> &fmt)
+	{
+		char buf[32];
+		fnd::fnd_ftoa(fmt.val(),buf, fmt.prec() );
+		o << buf;
+		return o;
+	}
+	/* ------------------------------------------------------------------ */
+	template <typename D>
+			D& operator<<(D &o,const ffmt<double> &fmt)
+	{
+		char buf[32];
+		fnd::fnd_dtoa(fmt.val(),buf, fmt.prec() );
+		o << buf;
+		return o;
+	}
+	/* ------------------------------------------------------------------ */
+	template <typename D>
 		D& operator<<(D &o,const lfmt &fmt)
 	{
 		char buf[11];
@@ -93,7 +143,6 @@ namespace lcd {
 		o << buf;
 		return o;
 	}
-
 	/* ------------------------------------------------------------------ */
 	template <typename D>
 		D& operator<<(D &o,const icon &fmt)
