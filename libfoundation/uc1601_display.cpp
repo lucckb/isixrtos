@@ -161,12 +161,8 @@ int uc1601_display::clear()
 	{
 		m_error = address_set( 0, 0 );
 		if( m_error ) break;
-		uint8_t buf = 0;
-		for (int i = 0; i < (uc1601_cols*m_rows)/8; i++)
-		{
-			m_error = bus.data_wr(&buf, sizeof(buf) );
-		    if( m_error ) break;
-		}
+		box( 0, 0, m_cols, m_rows );
+		if( m_error ) break;
 	} while(0);
 	return m_error;
 }
