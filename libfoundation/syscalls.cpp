@@ -20,13 +20,18 @@
 
 #ifndef COMPILED_UNDER_ISIX
 
+#ifndef CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION
 //It can be redefined
 #define foundation_alloc fnd::tiny_alloc
 #define foundation_free fnd::tiny_free
+#else /*CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION */
+#define foundation_alloc(x) NULL
+#define foundation_free(x) do {} while(0)
+#endif /*CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION */
+
 #define terminate_process() while(1)
 
 #else /*COMPILED_UNDER_ISIX*/
-
 
 #define foundation_alloc isix::isix_alloc
 #define foundation_free isix::isix_free
