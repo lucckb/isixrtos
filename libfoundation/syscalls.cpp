@@ -25,8 +25,8 @@
 #define foundation_alloc fnd::tiny_alloc
 #define foundation_free fnd::tiny_free
 #else /*CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION */
-#define foundation_alloc(x) NULL
-#define foundation_free(x) do {} while(0)
+#define foundation_alloc(x) ((x)?NULL:NULL)
+#define foundation_free(x) do { (void)(x); } while(0)
 #endif /*CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION */
 
 #define terminate_process() while(1)
