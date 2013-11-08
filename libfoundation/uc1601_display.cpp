@@ -357,7 +357,7 @@ int uc1601_display::endl()
 			m_error = ERR_MISSING_FONT;
 			break;
 		}
-		box( m_ca, m_pa*8, m_cols-m_ca, m_font->height+8-m_font->height%8 - m_pa*8 );
+		box( m_ca, m_pa*8, m_cols-m_ca, m_font->height+(8-m_font->height%8) );
 	} while(0);
 	return m_error;
 }
