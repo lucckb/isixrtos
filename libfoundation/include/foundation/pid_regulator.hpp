@@ -29,13 +29,13 @@ public:
 	/** Setup the PID params
 	 *
 	 * @param kp KP parameter
-	 * @param ti TI parameter
-	 * @param td TD parameter
+	 * @param ti KI parameter
+	 * @param td KD parameter
 	 */
-	void operator()( T kp, T ti, T td ) {
+	void operator()( T kp, T ki, T kd ) {
 		m_kp = kp;
-		m_ti = ti;
-		m_td = td;
+		m_ki = ki;
+		m_kd = kd;
 		clear();
 	}
 	/** Calculate the PID step
@@ -47,11 +47,11 @@ public:
 	{
 		T u = m_kp * e;
 		if( !m_ov ) m_sum += e;
-		if( m_ti != T(0) ) {
-			u += m_kp * (m_tp/m_ti) * m_sum;
+		if( m_ki != T(0) ) {
+			u += m_kp * (m_tp/m_ki) * m_sum;
 		}
-		if( m_td != T(0) ) {
-			u += m_kp * (m_td/m_tp) * (e - m_ep);
+		if( m_kd != T(0) ) {
+			u += m_kp * (m_kd/m_tp) * (e - m_ep);
 		}
 		m_ep = e;
 		m_ov = false;
@@ -66,8 +66,8 @@ public:
 	}
 private:
 	T m_kp { T(1) };		//KP parameter
-	T m_ti {};				//TI parameter
-	T m_td {};				//TP parameter
+	T m_ki {};				//TI parameter
+	T m_kd {};				//TP parameter
 	const T m_tp;			//Sample time
 	T m_sum {};				//Integral value
 	T m_ep {};				//Previous E
