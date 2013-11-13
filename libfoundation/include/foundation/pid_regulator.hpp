@@ -50,7 +50,7 @@ public:
 		if( m_ti != T(0) ) {
 			u += m_kp * (m_tp/m_ti) * m_sum;
 		}
-		if( m_td !=  T(0) ) {
+		if( m_td != T(0) ) {
 			u += m_kp * (m_td/m_tp) * (e - m_ep);
 		}
 		m_ep = e;
