@@ -48,10 +48,10 @@ public:
 		T u = m_kp * e;
 		if( !m_ov ) m_sum += e;
 		if( m_ki != T(0) ) {
-			u += m_kp * (m_tp/m_ki) * m_sum;
+			u += m_tp * m_ki * m_sum;
 		}
 		if( m_kd != T(0) ) {
-			u += m_kp * (m_kd/m_tp) * (e - m_ep);
+			u += m_kd * (e - m_ep) / m_tp;
 		}
 		m_ep = e;
 		m_ov = false;
