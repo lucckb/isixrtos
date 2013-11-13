@@ -56,8 +56,7 @@ public:
 		m_ep = e;
 		m_ov = false;
 		if(u > T(1)) {
-			u = T(1);
-			m_ov = true;
+			u = T(1); m_ov = true;
 		}
 		else if (u < T(-1)) {
 			u = T(-1); m_ov = true;
