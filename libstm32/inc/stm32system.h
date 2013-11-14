@@ -366,7 +366,74 @@ static inline uint32_t atomic_read_word( const volatile uint32_t *addr )
 	return ret;
 }
 /*----------------------------------------------------------*/
+/** Try write atomic into specified location
+ * This function should be called from interrupt context
+ * @param[out] addr Atomic location to write
+ * @param[in] val Value to write into selected addr
+ * @return 1 if unable to access memory
+ */
+static inline long atomic_try_write_sword( volatile int32_t *addr, int32_t val )
+{
+	long lock;
+	asm volatile
+	(
+		"ldrex %[lock],[%[addr]]\n"
+		"strex %[lock],%[val],[%[addr]]\n"
+		: [lock] "=&r"(lock)
+		: [addr] "r"(addr), [val] "r"(val)
+		: "cc", "memory"
+	);
+	return lock;
+}
 
+/*----------------------------------------------------------*/
+/** Atomic exchange byte
+ * Write and read to selected address. Function
+ * should be called from main context
+ * @param[out] addr Address with location to write
+ * @param[in] val Value to write
+ * @return Value read from specified location
+ */
+static inline int32_t atomic_xchg_sword( volatile int32_t *addr, int32_t val )
+{
+	uint32_t ret;
+	unsigned long lock;
+	asm volatile
+	(
+	"1:	ldrex %[ret],[%[addr]]\n"
+	   "strex %[lock],%[val],[%[addr]]\n"
+	   "teq %[lock],#0\n"
+	   "bne 1b\n"
+		: [ret]"=&r"(ret), [lock]"=&r"(lock)
+		: [addr]"r"(addr), [val]"r"(val)
+		: "cc", "memory"
+	);
+	return ret;
+}
+/*----------------------------------------------------------*/
+/** Atomic read word
+ * Write and read to selected address. Function
+ * should be called from main context
+ * @param[out] addr Address with location to write
+ * @return Value read from specified location
+ */
+static inline int32_t atomic_read_sword( const volatile int32_t *addr )
+{
+	int32_t ret = 0;
+	unsigned long lock;
+	asm volatile
+	(
+	"1:	ldrex %[ret],[%[addr]]\n"
+	   "strex %[lock],%[ret],[%[addr]]\n"
+	   "teq %[lock],#0\n"
+	   "bne 1b\n"
+		: [ret]"+&r"(ret), [lock]"=&r"(lock)
+		: [addr]"r"(addr)
+		: "cc", "memory"
+	);
+	return ret;
+}
+/*----------------------------------------------------------*/
 
 //Reset the MCU system
 static inline void nvic_system_reset(void)
