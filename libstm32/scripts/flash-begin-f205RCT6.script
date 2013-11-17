@@ -1,0 +1,5 @@
+reset halt
+sleep 100
+wait_halt
+sleep 100
+
