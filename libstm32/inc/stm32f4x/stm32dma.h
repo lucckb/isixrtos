@@ -9,7 +9,14 @@
 #define STM32F4DMA_H_
 /* ---------------------------------------------------------------------------- */
 #include <stm32lib.h>
+#if defined(STM32MCU_MAJOR_TYPE_F4)
 #include "stm32f4xx_dma.h"
+#elif defined(STM32MCU_MAJOR_TYPE_F2)
+#include "../stm32f2x/stm32f2xx_dma.h"
+#else
+#error Selected MCU type is invalid
+#endif
+
 /* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus
 namespace stm32 {
