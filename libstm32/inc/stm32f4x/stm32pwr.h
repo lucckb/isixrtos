@@ -221,7 +221,7 @@ static inline void pwr_enter_stop_mode(uint32_t PWR_Regulator, uint8_t PWR_STOPE
   * @param  None
   * @retval None
   */
-static inline void pwr_rnter_standby_mode(void)
+static inline void pwr_enter_standby_mode(void)
 {
   /* Clear Wakeup flag */
   PWR->CR |= PWR_CR_CWUF;
