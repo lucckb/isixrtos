@@ -2,7 +2,7 @@
 #include <isix/printk.h>
 #include <isix/types.h>
 #include <prv/scheduler.h>
-
+#include <isix/task.h>
 
 /*-----------------------------------------------------------------------*/
 //Save context
@@ -78,19 +78,25 @@ void svc_isr_vector(void)
      "0: .word isix_current_task\t\n"
       );
 }
-
+/*-----------------------------------------------------------------------*/
+//! Terminate the process when task exits
+static void __attribute__((noreturn)) isixp_process_terminator(void)
+{
+	isix_task_delete(NULL);
+	for(;;);
+}
 /*-----------------------------------------------------------------------*/
 //Create of stack context 
 unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, void *param)
 {
     *sp-- = INITIAL_XPSR;
-    *sp-- = (unsigned long)pfun;    //PC
-    *sp-- = 0x14;           //LR
-    *sp-- = 0x12;           //R12
-    *sp-- = 0x3;            //R3
-    *sp-- = 0x2;            //R2
-    *sp-- = 0x1;            //R1
-    *sp-- = (unsigned long)param;   //R0
+    *sp-- = (unsigned long)pfun;    		//PC
+    *sp-- = (unsigned long)isixp_process_terminator;       //LR
+    *sp-- = 0x12;           				//R12
+    *sp-- = 0x3;            				//R3
+    *sp-- = 0x2;            				//R2
+    *sp-- = 0x1;            				//R1
+    *sp-- = (unsigned long)param;   		//R0
     /*
     *sp-- = 0x11;	//R11
     *sp-- = 0x10;	//R10

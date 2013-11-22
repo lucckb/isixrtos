@@ -16,7 +16,8 @@
 #if ISIX_DEBUG_FIFO == ISIX_DBG_ON
 #include <isix/printk.h>
 #else
-#define isix_printk(...)
+#undef isix_printk
+#define isix_printk(...) do {} while(0)
 #endif
 
 

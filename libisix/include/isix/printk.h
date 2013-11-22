@@ -7,7 +7,7 @@
 #if (ISIX_DEBUG_ENABLE == ISIX_DBG_OFF)
 #define isix_printk(...)
 #else
-#include <tiny_printf.h>
+#include <foundation/tiny_printf.h>
 
 #define isix_printk(...) do { isixp_enter_critical(); \
 						 tiny_printf("%s:%d|%s|",__FILE__,__LINE__,__FUNCTION__); \

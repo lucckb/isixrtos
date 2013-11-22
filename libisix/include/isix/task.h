@@ -14,7 +14,6 @@ namespace isix {
 #ifndef __cplusplus
 //!Definition of task function in C mode
 #define ISIX_TASK_FUNC(FUNC, ARG)							\
-	void FUNC(void *ARG) __attribute__ ((noreturn));	\
 	void FUNC(void *ARG)
 
 #endif
@@ -154,12 +153,10 @@ public:
 protected:
 	/** Pure virtual method for the object main thread */
 	virtual void main() = 0;
-
 private:
-	__attribute__ ((noreturn)) static void start_task(void *ptr)
+	static void start_task(void *ptr)
 	{
 		static_cast<task_base*>(ptr)->main();
-		while(1) isix_wait(-1);
 	}
 private:
 	task_base(const task_base&);

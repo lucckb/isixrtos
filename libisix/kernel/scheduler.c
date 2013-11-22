@@ -13,6 +13,13 @@
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
 #endif
 
+#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
+#include <isix/printk.h>
+#else
+#undef isix_printk
+#define isix_printk(...) do {} while(0)
+#endif
+
 /*-----------------------------------------------------------------------*/
 //! Kernel panic callback function definition
 void __attribute__((weak)) isix_kernel_panic_callback( const char* file, int line, const char *msg )
