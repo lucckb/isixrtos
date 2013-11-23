@@ -13,7 +13,6 @@
 #include "stm32f2xx_iwdg.h"
 #include "stm32f2xx_flash.h"
 #include "stm32f2xx_rcc.h"
-#include "stm32f2xx_usart.h"
 #include "stm32f2xx_dma.h"
 #include "stm32f2xx_adc.h"
 #include "stm32f2xx_exti.h"

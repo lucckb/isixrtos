@@ -19,5 +19,5 @@
 #endif
 
 #include "stm32gpio.h"
-
+#include "stm32fxxx_usart.h"
 #endif /* STM32LIB_H_ */
