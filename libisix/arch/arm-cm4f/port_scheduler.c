@@ -2,6 +2,7 @@
 #include <isix/printk.h>
 #include <isix/types.h>
 #include <prv/scheduler.h>
+#include <isix/task.h>
 
 
 /*-----------------------------------------------------------------------*/
@@ -39,6 +40,15 @@
     ".align 2 \t\n"												\
     "0: .word isix_current_task\t\n"							\
    )
+/*-----------------------------------------------------------------------*/
+/** Restore the context to the place when scheduler was started to run
+ *  Use Main stack pointer negate bit 2 of LR
+ */
+#define cpu_restore_main_context()								\
+	asm volatile (												\
+	"bic lr,lr,#0x04\t\n"											\
+	"bx lr\t\n"													\
+	)
 
 /*-----------------------------------------------------------------------*/
 #define portNVIC_INT_CTRL           ( ( volatile unsigned long *) 0xe000ed04 )
@@ -58,11 +68,21 @@ void pend_svc_isr_vector(void) __attribute__((__interrupt__,naked));
 
 void pend_svc_isr_vector(void)
 {
-    cpu_save_context();
+#ifdef ISIX_CONFIG_SHUTDOWN_API
+	if( isix_scheduler_running ) {
+		  cpu_save_context();
+		  isixp_schedule();
+		  cpu_restore_context();
+	} else {
+		cpu_restore_main_context();
+	}
+#else
+	cpu_save_context();
 
     isixp_schedule();
 
     cpu_restore_context();
+#endif
 }
 
 /*-----------------------------------------------------------------------*/
@@ -83,14 +103,20 @@ void svc_isr_vector(void)
      "0: .word isix_current_task\t\n"
       );
 }
-
+/*-----------------------------------------------------------------------*/
+//! Terminate the process when task exits
+static void __attribute__((noreturn)) isixp_process_terminator(void)
+{
+	isix_task_delete(NULL);
+	for(;;);
+}
 /*-----------------------------------------------------------------------*/
 //Create of stack context 
 unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, void *param)
 {
     *sp-- = INITIAL_XPSR;
     *sp-- = (unsigned long)pfun;    //PC
-    *sp-- = 0x0;            //LR
+    *sp-- = (unsigned long)isixp_process_terminator;
     *sp-- = 0x12;           //R12
     *sp-- = 0x3;            //R3
     *sp-- = 0x2;            //R2
@@ -169,6 +195,12 @@ void port_yield(void )
 void port_start_first_task(void) __attribute__((naked));
 void port_start_first_task( void )
 {
+#ifdef ISIX_CONFIG_SHUTDOWN_API
+	__asm volatile(
+		"svc 0\t\n"
+		"bx lr\t\n"
+	 );
+#else
   __asm volatile(
       " ldr r0, =0xE000ED08 \t\n" /* Use the NVIC offset register to locate the stack. */	
       "ldr r0, [r0]\t\n"
@@ -177,5 +209,6 @@ void port_start_first_task( void )
       "svc 0\t\n"
 	  "nop\r\n"
       );
+#endif
 }
 /*-----------------------------------------------------------------------*/

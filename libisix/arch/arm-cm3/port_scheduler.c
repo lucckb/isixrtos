@@ -144,7 +144,7 @@ void systick_isr_vector(void)
 	isixp_enter_critical();
 
 	//Call isix system time handler if used
-    isix_systime_handler();
+	isix_systime_handler();
 	isixp_schedule_time();
 
 	//Clear interrupt mask
