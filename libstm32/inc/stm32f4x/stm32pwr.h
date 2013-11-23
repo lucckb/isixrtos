@@ -261,7 +261,7 @@ static inline void pwr_enter_standby_mode(void)
 static inline bool pwr_get_flag_status(uint32_t PWR_FLAG)
 {
 
-  return ((PWR->CSR & PWR_FLAG) != (uint32_t)RESET);
+  return ((PWR->CSR & PWR_FLAG) != (uint32_t)0);
 }
 /* ---------------------------------------------------------------------------- */
 /**

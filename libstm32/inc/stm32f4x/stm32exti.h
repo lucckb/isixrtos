@@ -91,7 +91,7 @@
  static inline bool exti_get_flag_status(uint32_t EXTI_Line)
  {
 
-   return ((EXTI->PR & EXTI_Line) != (uint32_t)RESET);
+   return ((EXTI->PR & EXTI_Line) != (uint32_t)0);
  }
  /* ---------------------------------------------------------------------------- */
  /**
@@ -115,7 +115,7 @@
  {
 
    uint32_t enablestatus =  EXTI->IMR & EXTI_Line;
-   return (((EXTI->PR & EXTI_Line) != (uint32_t)RESET) && (enablestatus != (uint32_t)RESET));
+   return (((EXTI->PR & EXTI_Line) != (uint32_t)0) && (enablestatus != (uint32_t)0));
  }
  /* ---------------------------------------------------------------------------- */
  /**

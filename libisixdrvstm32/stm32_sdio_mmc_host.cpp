@@ -101,7 +101,7 @@ namespace
 	  dma_clear_flag(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_FEIF | SD_SDIO_DMA_FLAG_DMEIF |
 			  SD_SDIO_DMA_FLAG_TEIF | SD_SDIO_DMA_FLAG_HTIF | SD_SDIO_DMA_FLAG_TCIF);
 	  /* DMA2 Stream3  or Stream6 disable */
-	  dma_cmd(SD_SDIO_DMA_STREAM, DISABLE);
+	  dma_cmd(SD_SDIO_DMA_STREAM, false);
 	  /* DMA2 Stream3  or Stream6 Config */
 	  dma_deinit( SD_SDIO_DMA_STREAM );
 	  dma_init( SD_SDIO_DMA_STREAM , DMA_DIR_MemoryToPeripheral | DMA_PeripheralInc_Disable |
@@ -110,7 +110,7 @@ namespace
 				DMA_FIFOMode_Enable | DMA_FIFOThreshold_Full, 0, SDIO_FIFO_ADDRESS, (uint32_t*)buffer_src );
 	  dma_flow_controller_config(SD_SDIO_DMA_STREAM, DMA_FlowCtrl_Peripheral);
 	  /* DMA2 Stream3  or Stream6 enable */
-	  dma_cmd(SD_SDIO_DMA_STREAM, ENABLE);
+	  dma_cmd(SD_SDIO_DMA_STREAM, true);
 	}
 	/*--------------------------------------------------------------------*/
 	/**
@@ -125,7 +125,7 @@ namespace
 	  (void)buf_size;
 	  dma_clear_flag(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_FLAG_FEIF | SD_SDIO_DMA_FLAG_DMEIF | SD_SDIO_DMA_FLAG_TEIF | SD_SDIO_DMA_FLAG_HTIF | SD_SDIO_DMA_FLAG_TCIF);
 	  /* DMA2 Stream3  or Stream6 disable */
-	  dma_cmd(SD_SDIO_DMA_STREAM, DISABLE);
+	  dma_cmd(SD_SDIO_DMA_STREAM, false);
 	  /* DMA2 Stream3 or Stream6 Config */
 	  dma_deinit(SD_SDIO_DMA_STREAM);
 	  dma_init(SD_SDIO_DMA_STREAM, SD_SDIO_DMA_CHANNEL | DMA_DIR_PeripheralToMemory | DMA_PeripheralInc_Disable |
@@ -134,7 +134,7 @@ namespace
 			  DMA_FIFOMode_Enable | DMA_FIFOThreshold_Full, 0, SDIO_FIFO_ADDRESS,  buf_dst );
 	  dma_flow_controller_config(SD_SDIO_DMA_STREAM, DMA_FlowCtrl_Peripheral);
 	  /* DMA2 Stream3 or Stream6 enable */
-	  dma_cmd(SD_SDIO_DMA_STREAM, ENABLE);
+	  dma_cmd(SD_SDIO_DMA_STREAM, true);
 	}
 }	/* Unnamed namespace */
 #endif
@@ -178,32 +178,32 @@ void mmc_host_sdio::process_irq_sdio()
 {
 	 using namespace ::drv::mmc;
 	 using namespace stm32;
-	 if (sdio_get_it_status(SDIO_IT_DATAEND) != RESET)
+	 if (sdio_get_it_status(SDIO_IT_DATAEND) != 0)
 	 {
 	    m_transfer_error = MMC_OK;
 	    sdio_clear_it_pending_bit(SDIO_IT_DATAEND);
 	 }
-	 else if (sdio_get_it_status(SDIO_IT_DCRCFAIL) != RESET)
+	 else if (sdio_get_it_status(SDIO_IT_DCRCFAIL) != 0)
 	 {
 		sdio_clear_it_pending_bit(SDIO_IT_DCRCFAIL);
 	    m_transfer_error = MMC_DATA_CRC_FAIL;
 	 }
-	 else if (sdio_get_it_status(SDIO_IT_DTIMEOUT) != RESET)
+	 else if (sdio_get_it_status(SDIO_IT_DTIMEOUT) != 0)
 	 {
 		sdio_clear_it_pending_bit(SDIO_IT_DTIMEOUT);
 		m_transfer_error = MMC_DATA_TIMEOUT;
 	 }
-	 else if (sdio_get_it_status(SDIO_IT_RXOVERR) != RESET)
+	 else if (sdio_get_it_status(SDIO_IT_RXOVERR) != 0)
 	 {
 		sdio_clear_it_pending_bit(SDIO_IT_RXOVERR);
 		m_transfer_error = MMC_RX_OVERRUN;
 	 }
-	 else if (sdio_get_it_status(SDIO_IT_TXUNDERR) != RESET)
+	 else if (sdio_get_it_status(SDIO_IT_TXUNDERR) != 0)
 	 {
 		sdio_clear_it_pending_bit(SDIO_IT_TXUNDERR);
 		m_transfer_error = MMC_TX_UNDERRUN;
 	 }
-	 else if (sdio_get_it_status(SDIO_IT_STBITERR) != RESET)
+	 else if (sdio_get_it_status(SDIO_IT_STBITERR) != 0)
 	 {
 		sdio_clear_it_pending_bit(SDIO_IT_STBITERR);
 		m_transfer_error = MMC_START_BIT_ERR;
@@ -211,7 +211,7 @@ void mmc_host_sdio::process_irq_sdio()
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	 sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND |
 	               SDIO_IT_TXFIFOHE | SDIO_IT_RXFIFOHF | SDIO_IT_TXUNDERR |
-	               SDIO_IT_RXOVERR | SDIO_IT_STBITERR, DISABLE);
+	               SDIO_IT_RXOVERR | SDIO_IT_STBITERR, false);
 	 m_complete.signal_isr();
 #endif
 }
@@ -281,7 +281,7 @@ mmc_host_sdio::mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz )
 	  nvic_set_priority( SDIO_IRQn, IRQ_PRIO, IRQ_SUB );
 	  nvic_irq_enable( SDIO_IRQn, true );
 #endif
-	 sdio_dma_cmd(ENABLE);
+	 sdio_dma_cmd(true);
 #if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
      rcc_apb2_periph_clock_cmd(RCC_APB2Periph_SYSCFG, true );
      gpio_exti_line_config( GPIO_PortSourceGPIOC, GPIO_PinSource8 );
@@ -294,15 +294,15 @@ mmc_host_sdio::mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz )
 mmc_host_sdio::~mmc_host_sdio()
 {
 	/*!< Disable SDIO Clock */
-	sdio_clock_cmd(DISABLE);
+	sdio_clock_cmd(false);
 	/*!< Set Power State to OFF */
 	sdio_set_power_state(SDIO_PowerState_OFF);
 	/*!< DeInitializes the SDIO peripheral */
 	sdio_deinit();
 	/* Disable the SDIO APB2 Clock */
-	rcc_apb2_periph_clock_cmd(RCC_APB2Periph_SDIO, DISABLE);
+	rcc_apb2_periph_clock_cmd(RCC_APB2Periph_SDIO, false);
 #if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
-	rcc_ahb1_periph_clock_cmd( RCC_AHB1Periph_DMA2, DISABLE );
+	rcc_ahb1_periph_clock_cmd( RCC_AHB1Periph_DMA2, false );
 	/* Deactivate the GPIO ports */
 	gpio_pin_AF_config( GPIOC, GPIO_PinSource8,  GPIO_AF_MCO );
 	gpio_pin_AF_config( GPIOC, GPIO_PinSource9,  GPIO_AF_MCO );
@@ -431,7 +431,7 @@ int mmc_host_sdio::send_data( const void *buf, size_t len, unsigned timeout )
 	timeout = (m_pclk2/2/8/1000) * timeout;
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 	 sdio_it_config( SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND
-		 | SDIO_IT_RXOVERR | SDIO_IT_STBITERR , ENABLE );
+		 | SDIO_IT_RXOVERR | SDIO_IT_STBITERR , true );
 #endif
 	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToCard,
 					SDIO_TransferMode_Block, SDIO_DPSM_Enable );
@@ -485,9 +485,9 @@ int mmc_host_sdio::receive_data_prep( void* buf, size_t len, unsigned timeout)
 	timeout = (m_pclk2/2/8/1000) * timeout;
 	sdio_data_config( timeout, len, block_size, SDIO_TransferDir_ToSDIO, SDIO_TransferMode_Block, SDIO_DPSM_Enable );
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
-	sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR, ENABLE);
+	sdio_it_config(SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND | SDIO_IT_RXOVERR | SDIO_IT_STBITERR, true);
 #endif
-	sdio_dma_cmd(ENABLE);
+	sdio_dma_cmd(true);
 	sd_lowlevel_dma_rx_config( buf, len );
 	//Wait for data transfer
 	return MMC_OK;
@@ -551,7 +551,7 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 		sdio_set_power_state(SDIO_PowerState_ON);
 		for(int w=0; w<16; w++ ) nop();
 		/*!< Enable SDIO Clock */
-		sdio_clock_cmd(ENABLE);
+		sdio_clock_cmd(true);
 		dbprintf("Command power ON");
 		break;
 	}

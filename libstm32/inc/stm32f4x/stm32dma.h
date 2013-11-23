@@ -443,7 +443,7 @@ static inline bool dma_get_flag_status(DMA_Stream_TypeDef* DMAy_Streamx, uint32_
   }
 
   /* Check if the flag is in HISR or LISR */
-  if ((DMA_FLAG & HIGH_ISR_MASK) != (uint32_t)RESET)
+  if ((DMA_FLAG & HIGH_ISR_MASK) != 0)
   {
     /* Get DMAy HISR register value */
     tmpreg = DMAy->HISR;
@@ -458,7 +458,7 @@ static inline bool dma_get_flag_status(DMA_Stream_TypeDef* DMAy_Streamx, uint32_
   tmpreg &= (uint32_t)RESERVED_MASK;
 
   /* Check the status of the specified DMA flag */
-  return ((tmpreg & DMA_FLAG) != (uint32_t)RESET);
+  return ((tmpreg & DMA_FLAG) != 0);
 }
 /* ---------------------------------------------------------------------------- */
 /**
@@ -492,7 +492,7 @@ static inline void dma_clear_flag(DMA_Stream_TypeDef* DMAy_Streamx, uint32_t DMA
   }
 
   /* Check if LIFCR or HIFCR register is targeted */
-  if ((DMA_FLAG & HIGH_ISR_MASK) != (uint32_t)RESET)
+  if ((DMA_FLAG & HIGH_ISR_MASK) != (uint32_t)0)
   {
     /* Set DMAy HIFCR register clear flag bits */
     DMAy->HIFCR = (uint32_t)(DMA_FLAG & RESERVED_MASK);
@@ -584,7 +584,7 @@ static inline bool dma_get_it_status(DMA_Stream_TypeDef* DMAy_Streamx, uint32_t 
   }
 
   /* Check if the interrupt enable bit is in the CR or FCR register */
-  if ((DMA_IT & TRANSFER_IT_MASK) != (uint32_t)RESET)
+  if ((DMA_IT & TRANSFER_IT_MASK) != (uint32_t)0)
   {
     /* Get the interrupt enable position mask in CR register */
     tmpreg = (uint32_t)((DMA_IT >> 11) & TRANSFER_IT_ENABLE_MASK);
@@ -599,7 +599,7 @@ static inline bool dma_get_it_status(DMA_Stream_TypeDef* DMAy_Streamx, uint32_t 
   }
 
   /* Check if the interrupt pending flag is in LISR or HISR */
-  if ((DMA_IT & HIGH_ISR_MASK) != (uint32_t)RESET)
+  if ((DMA_IT & HIGH_ISR_MASK) != (uint32_t)0)
   {
     /* Get DMAy HISR register value */
     tmpreg = DMAy->HISR ;
@@ -614,7 +614,7 @@ static inline bool dma_get_it_status(DMA_Stream_TypeDef* DMAy_Streamx, uint32_t 
   tmpreg &= (uint32_t)RESERVED_MASK;
 
   /* Check the status of the specified DMA interrupt */
-  return (((tmpreg & DMA_IT) != (uint32_t)RESET) && (enablestatus != (uint32_t)RESET));
+  return (((tmpreg & DMA_IT) != (uint32_t)0) && (enablestatus != (uint32_t)0));
 
 }
 /* ---------------------------------------------------------------------------- */
@@ -649,7 +649,7 @@ static inline void dma_clear_it_pending_bit(DMA_Stream_TypeDef* DMAy_Streamx, ui
   }
 
   /* Check if LIFCR or HIFCR register is targeted */
-  if ((DMA_IT & HIGH_ISR_MASK) != (uint32_t)RESET)
+  if ((DMA_IT & HIGH_ISR_MASK) != (uint32_t)0)
   {
     /* Set DMAy HIFCR register clear interrupt bits */
     DMAy->HIFCR = (uint32_t)(DMA_IT & RESERVED_MASK);

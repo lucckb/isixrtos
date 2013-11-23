@@ -179,7 +179,7 @@ static inline bool rcc_get_flag_status(uint8_t RCC_FLAG)
 
   /* Get the flag position */
   tmp = RCC_FLAG & FLAG_MASK;
-  return ((statusreg & ((uint32_t)1 << tmp)) != (uint32_t)RESET);
+  return ((statusreg & ((uint32_t)1 << tmp)) != (uint32_t)0);
 }
 
 /* ------------------------------------------------------------------ */
@@ -1283,7 +1283,7 @@ static inline void rcc_clear_flag(void)
 static inline bool rcc_get_it_status(uint8_t RCC_IT)
 {
   /* Check the status of the specified RCC interrupt */
-  return ((RCC->CIR & RCC_IT) != (uint32_t)RESET);
+  return ((RCC->CIR & RCC_IT) != (uint32_t)0);
 }
 /* ------------------------------------------------------------------ */
 /**
