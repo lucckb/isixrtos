@@ -40,7 +40,7 @@ typedef void(*vect_fun_t)(void);
 #define DEFINE_REAL_INTERRUPT_HANDLER( handler_name )  void handler_name(void) __attribute__ ((interrupt))
 /*----------------------------------------------------------*/
 #if defined(COMPILED_UNDER_ISIX) && defined(FUNCTION_MAIN_RETURN)
-void  _isixp_finalize();
+void  __attribute__((weak,alias("empty_func")))_isixp_finalize();
 #endif
 /*----------------------------------------------------------*/
 DEFINE_INTERRUPT_HANDLER(nmi_exception_vector);
