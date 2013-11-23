@@ -30,7 +30,3 @@
 #define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
 #define ISIX_DEBUG_TASK ISIX_DBG_OFF
 #define ISIX_DEBUG_MULTIOBJECTS ISIX_DBG_OFF
-
-
-/* ISIX is able to terminate scheduler and return to main */
-#define ISIX_CONFIG_SHUTDOWN_API
