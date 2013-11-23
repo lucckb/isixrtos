@@ -18,10 +18,7 @@
 #ifndef ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY
 #define ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY 0x10
 #endif
-/* If you want to heave isix micro timer feature
- * please define number of hi res timer ticks per usec
- * #define ISIX_CONFIG_HRESTIM_TICKS_PER_USEC
- */
+
 /** Enable disable global debug */
 #define ISIX_DEBUG_ENABLE ISIX_DBG_OFF
 /** Configure the thread debugging */
@@ -35,3 +32,5 @@
 #define ISIX_DEBUG_MULTIOBJECTS ISIX_DBG_OFF
 
 
+/* ISIX is able to terminate scheduler and return to main */
+#define ISIX_CONFIG_SHUTDOWN_API

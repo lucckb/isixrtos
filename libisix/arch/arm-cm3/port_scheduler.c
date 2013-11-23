@@ -33,6 +33,15 @@
     ".align 2 \t\n"												\
     "0: .word isix_current_task\t\n"							\
    )
+/*-----------------------------------------------------------------------*/
+/** Restore the context to the place when scheduler was started to run
+ *  Use Main stack pointer negate bit 2 of LR
+ */
+#define cpu_restore_main_context()								\
+	asm volatile (												\
+	"bic lr,lr,#0x04\t\n"											\
+	"bx lr\t\n"													\
+	)
 
 /*-----------------------------------------------------------------------*/
 #define portNVIC_INT_CTRL           ( ( volatile unsigned long *) 0xe000ed04 )
@@ -52,11 +61,21 @@ void pend_svc_isr_vector(void) __attribute__((__interrupt__,naked));
 
 void pend_svc_isr_vector(void)
 {
+#ifdef ISIX_CONFIG_SHUTDOWN_API
+	if( isix_scheduler_running ) {
+		  cpu_save_context();
+		  isixp_schedule();
+		  cpu_restore_context();
+	} else {
+		cpu_restore_main_context();
+	}
+#else
     cpu_save_context();
 
     isixp_schedule();
 
     cpu_restore_context();
+#endif
 }
 
 /*-----------------------------------------------------------------------*/
@@ -165,11 +184,22 @@ void port_yield(void )
 }
 
 /*-----------------------------------------------------------------------*/
-//Start first task by svc call
+/* Start first task by svc call
+ * If the scheduler is able to stop
+ * (when ISIX_CONFIG_SHUTDOWN_API is defined)
+ *  the return main context is preserved
+ *  if not the MSP pointer is setup to statup value
+ */
 void port_start_first_task(void) __attribute__((naked));
 void port_start_first_task( void )
 {
-  __asm volatile(
+#ifdef ISIX_CONFIG_SHUTDOWN_API
+	__asm volatile(
+		"svc 0\t\n"
+		"bx lr\t\n"
+	);
+#else
+	__asm volatile(
       " ldr r0, =0xE000ED08 \t\n" /* Use the NVIC offset register to locate the stack. */	
       "ldr r0, [r0]\t\n"
       "ldr r0, [r0]\t\n"
@@ -177,7 +207,10 @@ void port_start_first_task( void )
       "svc 0\t\n"
 	  "nop\t\n"
       );
+#endif
 }
+/*-----------------------------------------------------------------------*/
+
 /*-----------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------*/

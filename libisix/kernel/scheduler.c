@@ -384,7 +384,6 @@ static inline void cleanup_tasks(void)
         isixp_exit_critical();
     }
 }
-
 /*-----------------------------------------------------------------------*/
 //Idle task function do nothing and lower priority
 ISIX_TASK_FUNC(idle_task,p)
@@ -452,16 +451,19 @@ void isix_init(prio_t num_priorities)
 
 /*-----------------------------------------------------------------------*/
 /* This function start scheduler after main function */
+#ifndef ISIX_CONFIG_SHUTDOWN_API
 void isix_start_scheduler(void) __attribute__((noreturn));
+#endif
 void isix_start_scheduler(void)
 {
    jiffies = 0;		//Zero jiffies if it was previously run
    isix_scheduler_running = true;
    //Restore context and run OS
    port_start_first_task();
+#ifndef ISIX_CONFIG_SHUTDOWN_API
    while(1);    //Prevent compiler warning
+#endif
 }
-
 /*-----------------------------------------------------------------------*/
 //Get maxium available priority
 prio_t isix_get_min_priority(void)
@@ -474,3 +476,26 @@ bool isix_is_scheduler_active(void)
 {
     return isix_scheduler_running;
 }
+
+/*-----------------------------------------------------------------------*/
+#ifdef ISIX_CONFIG_SHUTDOWN_API
+/**
+ * Shutdown scheduler and return to main
+ * @note It can be called only a once just before
+ * the system shutdown for battery power save
+ */
+void isix_shutdown_scheduler(void)
+{
+	isix_scheduler_running = false;
+	port_yield();
+}
+/*-----------------------------------------------------------------------*/
+/** Function called at end of isix execution onlt
+ * when shutdown API is enabled
+ */
+void _isixp_finalize() {
+	cleanup_tasks();
+}
+/*-----------------------------------------------------------------------*/
+#endif
+/*-----------------------------------------------------------------------*/

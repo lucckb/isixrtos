@@ -38,7 +38,11 @@ typedef void(*vect_fun_t)(void);
 /*----------------------------------------------------------*/
 #define DEFINE_INTERRUPT_HANDLER( handler_name ) void handler_name(void) __attribute__ ((interrupt, weak, alias("unused_vector")))
 #define DEFINE_REAL_INTERRUPT_HANDLER( handler_name )  void handler_name(void) __attribute__ ((interrupt))
-
+/*----------------------------------------------------------*/
+#if defined(COMPILED_UNDER_ISIX) && defined(FUNCTION_MAIN_RETURN)
+void  _isixp_finalize();
+#endif
+/*----------------------------------------------------------*/
 DEFINE_INTERRUPT_HANDLER(nmi_exception_vector);
 DEFINE_INTERRUPT_HANDLER(hard_fault_exception_vector);
 DEFINE_INTERRUPT_HANDLER(mem_manage_exception_vector);
@@ -611,6 +615,9 @@ void reset_handler(void)
     __libc_fini_array();
 #endif /* __ARM_EABI__*/
     __cxa_finalize(0);
+#if defined(COMPILED_UNDER_ISIX) && defined(FUNCTION_MAIN_RETURN)
+    _isixp_finalize();
+#endif
     _external_exit();
 #endif /*defined(FUNCTION_MAIN_RETURN) && defined(CPP_STARTUP_CODE)*/
     while(1);
