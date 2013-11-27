@@ -23,7 +23,7 @@ bool selectable_widget::report_event( const input::event_info& ev )
 		if( cpush )
 		{
 			event btn_event( this, event::evtype::EV_CLICK );
-			ret = emit( btn_event );
+			ret |= emit( btn_event );
 		}
 		ret |= cpush != m_pushed;
 		m_pushed = cpush;

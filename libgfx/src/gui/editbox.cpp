@@ -124,12 +124,12 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 		else if( evk.key == kbdcodes::enter)
 		{
 			event btn_event( this, event::evtype::EV_CLICK );
-			ret = emit( btn_event );
+			ret |= emit( btn_event );
 		}
 		if( ret )
 		{
 			event btn_event( this, event::evtype::EV_CHANGE );
-			ret = emit( btn_event );
+			ret |= emit( btn_event );
 		}
 	}
 	return ret;
