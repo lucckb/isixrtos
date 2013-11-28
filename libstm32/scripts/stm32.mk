@@ -83,7 +83,7 @@ LSCRIPT := $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
 
 #Pozostale ustawienia kompilatora
-COMMON_FLAGS += -O$(OPT) -mcpu=$(MCU) -mthumb -Wno-variadic-macros -Wno-long-long
+COMMON_FLAGS += -O$(OPT) -mcpu=$(MCU) -mthumb -Wno-variadic-macros -Wno-long-long -pipe
 ifeq ($(MCU_MAJOR_TYPE),f4)
 COMMON_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffast-math -fsingle-precision-constant
 COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F4
