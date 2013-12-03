@@ -95,7 +95,7 @@ COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F1
 endif
 endif
 CXXFLAGS += -std=c++11
-ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb
+ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb $(COMMON_FLAGS)
 LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
 CPFLAGS =  -S
 ARFLAGS = rcs
