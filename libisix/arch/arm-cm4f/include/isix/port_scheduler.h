@@ -11,7 +11,7 @@ namespace isix {
 static const unsigned ISIX_PORT_SCHED_MIN_STACK_DEPTH = 112 + 16*sizeof(long);
 #else
 //Minimum stack depth
-#define ISIX_PORT_SCHED_MIN_STACK_DEPTH (112+16*sizeof(long))
+#define ISIX_PORT_SCHED_MIN_STACK_DEPTH (112+32*sizeof(long))
 #endif /*__cplusplus*/
 /*-----------------------------------------------------------------------*/
 /* Port yield function for the RTOS */
