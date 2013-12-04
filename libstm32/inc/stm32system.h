@@ -161,6 +161,20 @@ static inline  uint32_t nvic_irq_get_pending(IRQn_Type IRQn)
 }
 /*----------------------------------------------------------*/
 
+/** \brief  Set Pending Interrupt
+
+    This function sets the pending bit for the specified interrupt.
+    The interrupt number cannot be a negative value.
+
+    \param [in]      IRQn  Number of the interrupt for set pending
+ */
+static inline void nvic_irq_set_pending(IRQn_Type IRQn)
+{
+  NVIC->ISPR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* set interrupt pending */
+}
+
+/*----------------------------------------------------------*/
+
 /** Clear pending IRQ interrupt in CORTEX-M3 core
  * @param[in] channel IRQ channel number
  */
