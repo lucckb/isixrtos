@@ -37,6 +37,21 @@ static inline void port_cleanup_task(void */*sp*/) {}
 #endif
 
 /*-----------------------------------------------------------------------*/
+//Idle task additional
+static inline void port_idle_cpu( void )
+{
+#ifndef ISIX_DEBUG
+	asm volatile("wfi\t\n");
+#endif
+}
+/*-----------------------------------------------------------------------*/
+//!Flush the memory
+static inline void port_flush_memory( void )
+{
+	asm volatile("dsb\t\n");
+	asm volatile("isb\t\n");
+}
+/*-----------------------------------------------------------------------*/
 #define SYST_CVR (*((volatile unsigned long*)0xE000E018))
 #define SYST_RVR (*((volatile unsigned long*)0xE000E014))
 
@@ -54,16 +69,6 @@ static inline unsigned long port_get_hres_jiffies_timer_max_value(void)
 
 #undef SYST_CVR
 #undef SYST_RVR
-/*-----------------------------------------------------------------------*/
-
-//Idle task additional
-static inline void port_idle_cpu( void )
-{
-#ifndef ISIX_DEBUG
-	asm volatile("wfi\t\n");
-#endif
-}
-
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }	//end namespace

@@ -181,8 +181,7 @@ void port_yield(void )
 {
   /* Set a PendSV to request a context switch. */
   *(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
-  asm volatile("dsb\n");
-  asm volatile("isb\n");
+  port_flush_memory();
 }
 
 /*-----------------------------------------------------------------------*/

@@ -108,6 +108,7 @@ void isixp_enter_critical(void)
 		port_set_interrupt_mask();
 	}
     critical_count++;
+    port_flush_memory();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -119,6 +120,7 @@ void isixp_exit_critical(void)
     {
 		port_clear_interrupt_mask();
     }
+	port_flush_memory();
 }
 
 /*-----------------------------------------------------------------------*/

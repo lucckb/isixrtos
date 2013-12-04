@@ -41,6 +41,13 @@ static inline void port_idle_cpu( void )
 #endif
 }
 /*-----------------------------------------------------------------------*/
+//!Flush the memory
+static inline void port_flush_memory( void )
+{
+	asm volatile("dsb\t\n");
+	asm volatile("isb\t\n");
+}
+/*-----------------------------------------------------------------------*/
 #define SYST_CVR (*((volatile unsigned long*)0xE000E018))
 #define SYST_RVR (*((volatile unsigned long*)0xE000E014))
 
