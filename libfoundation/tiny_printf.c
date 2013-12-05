@@ -254,22 +254,22 @@ static int print(char **out, size_t len, const char *format, va_list args )
 /* ------------------------------------------------------------ */
 int tiny_printf(const char *format, ...)
 {
-		int result;
-		va_list args;
-		va_start( args, format );
-		if(fn_lock && fn_unlock) fn_lock();
-        result = print( NULL,0, format, args );
-        if(fn_lock && fn_unlock) fn_unlock();
-        return  result;
+	int result;
+	va_list args;
+	va_start( args, format );
+	if(fn_lock && fn_unlock) fn_lock();
+    result = print( NULL,0, format, args );
+    if(fn_lock && fn_unlock) fn_unlock();
+    return  result;
 }
 
 /*----------------------------------------------------------*/
 
 int tiny_snprintf(char *out, unsigned long max_len, const char *format, ...)
 {
-        va_list args;
-        va_start( args, format );
-        return print( &out, max_len, format, args );
+    va_list args;
+    va_start( args, format );
+    return print( &out, max_len, format, args );
 }
 
 /*----------------------------------------------------------*/
