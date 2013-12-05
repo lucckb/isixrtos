@@ -58,8 +58,8 @@ namespace detail {
 		char s2[36] = {0};										    \
 		QUnit::detail::convert(expr1, s1, sizeof s1);                \
 		QUnit::detail::convert(expr2, s2, sizeof s2);                \
-        qunit.evaluate(                                             \
-            compare, result, s1, s2, #expr1, #expr2,                \
+        qunit.evaluate(    (result)?((expr1)==(expr2)):((expr1)!=(expr2)),                                         \
+            compare,result,s1, s2, #expr1, #expr2,                \
             __FILE__, __LINE__, __FUNCTION__ );                     \
     };                                                              \
 
@@ -81,7 +81,7 @@ namespace QUnit {
         
         int  errors() const;
           
-        void evaluate(bool, bool,
+        void evaluate(bool, bool, bool,
                       const char*, const char*, const char*, const char*,
                       const char *, int, const char *);
 
@@ -120,12 +120,12 @@ namespace QUnit {
     }
   
     inline void UnitTest::evaluate(
+    	bool ok,
     	bool compare, bool result,
     	const char* val1, const char* val2,
     	const char* str1, const char* str2,
         const char * file, int line, const char * func) {
 
-        bool ok = result ? (!std::strcmp(val1, val2)) : std::strcmp(val1 , val2);
         tests_ += 1;
         errors_ += ok ? 0 : 1;
 

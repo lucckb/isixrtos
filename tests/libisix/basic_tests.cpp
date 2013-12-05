@@ -17,7 +17,18 @@ namespace detail {
    }
 
 }}
-
+/* ------------------------------------------------------------------ */
+class unit_tests {
+	QUnit::UnitTest qunit {QUnit::verbose };
+	void heap_test() {
+		auto ptr1 = isix::isix_alloc( -1 );
+		QUNIT_IS_EQUAL( ptr1, nullptr );
+	}
+public:
+	void run() {
+		heap_test();
+	}
+};
 
 /* ------------------------------------------------------------------ */
 int main()
@@ -26,10 +37,9 @@ int main()
     stm32::usartsimple_init( USART2,115200,true, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
 #endif
     dblog_init_putc_locked( stm32::usartsimple_putc, NULL, detail::usart_lock, detail::usart_unlock );
-	dbprintf("Basic unit test framework started");
-	QUnit::UnitTest qunit(QUnit::verbose);
-	QUNIT_IS_TRUE( true );
-	QUNIT_IS_EQUAL( 5 , 5 );
+	static unit_tests testobj;
+	testobj.run();
+	//isix::isix_start_scheduler();
 	return 0;
 }
 
