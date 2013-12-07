@@ -1,7 +1,7 @@
 #4 Automatic makefile for GNUARM (C/C++)
 
 #Target binary file name
-TARGET	   = fpuctxtest
+TARGET	   = unittest
 
 #Output format (elf,hex,bin)
 FORMAT	= elf
@@ -37,7 +37,7 @@ CFLAGS += $(COMMON_FLAGS)
 CFLAGS += -std=gnu99 
 
 #C++ compiler options 
-CXXFLAGS += $(COMMON_FLAGS) -std=c++11
+CXXFLAGS += $(COMMON_FLAGS)
 
 #Disable safe constructors
 #CXXFLAGS +=  -fno-threadsafe-statics
