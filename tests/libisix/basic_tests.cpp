@@ -21,8 +21,12 @@ namespace detail {
 class unit_tests {
 	QUnit::UnitTest qunit {QUnit::verbose };
 	void heap_test() {
-		auto ptr1 = isix::isix_alloc( -1 );
-		QUNIT_IS_EQUAL( ptr1, nullptr );
+		auto ptr1 = isix::isix_alloc( 1 );
+		QUNIT_IS_NOT_EQUAL( ptr1, nullptr );
+		isix::isix_free( ptr1 );
+		int fragments {};
+		const int freem =  isix::isix_heap_free( &fragments );
+		QUNIT_IS_TRUE( freem > 0 );
 	}
 public:
 	void run() {
