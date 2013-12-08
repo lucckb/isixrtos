@@ -54,10 +54,15 @@ namespace detail {
 }}
 
 
-#define QUNIT_IS_EQUAL(expr1,expr2)     QUNIT_COMPARE(true,true,expr1,expr2)
-#define QUNIT_IS_NOT_EQUAL(expr1,expr2) QUNIT_COMPARE(true,false,expr1,expr2)
-#define QUNIT_IS_TRUE(expr)             QUNIT_COMPARE(false,true,expr,true)
-#define QUNIT_IS_FALSE(expr)            QUNIT_COMPARE(false,true,expr,false)
+#define QUNIT_IS_EQUAL(expr1,expr2)     QUNIT_COMPARE(true,QUnit::equal,expr1,expr2)
+#define QUNIT_IS_NOT_EQUAL(expr1,expr2) QUNIT_COMPARE(true,QUnit::nequal,expr1,expr2)
+#define QUNIT_IS_LOWER(expr1,expr2) QUNIT_COMPARE(true,QUnit::lower,expr1,expr2)
+#define QUNIT_IS_GREATER(expr1,expr2) QUNIT_COMPARE(true,QUnit::greater,expr1,expr2)
+#define QUNIT_IS_LOWEREQ(expr1,expr2) QUNIT_COMPARE(true,QUnit::lowereq,expr1,expr2)
+#define QUNIT_IS_GREATEREQ(expr1,expr2) QUNIT_COMPARE(true,QUnit::greatereq,expr1,expr2)
+
+#define QUNIT_IS_TRUE(expr)             QUNIT_COMPARE(false,QUnit::equal,expr,true)
+#define QUNIT_IS_FALSE(expr)            QUNIT_COMPARE(false,QUnit::equal,expr,false)
 
 #define QUNIT_COMPARE(compare,result,expr1,expr2) {             \
         qunit.evaluate(                                         \
@@ -69,7 +74,7 @@ namespace detail {
 namespace QUnit {
 
     enum { silent, quiet, normal, verbose, noisy };
-      
+    enum expr_t { equal, nequal, lower, greater, lowereq, greatereq };
     class UnitTest {
         
     public:
@@ -105,14 +110,33 @@ namespace QUnit {
         {
             return errors_;
         }
-          
+        const char* type2str( expr_t type )
+        {
+             switch(type) {
+               case equal: return "==";
+               case nequal: return "!=";
+               case lower:  return "<";
+               case greater: return ">";
+               case lowereq: return "<=";
+               case greatereq: return">=";
+               default: return "";
+               }
+        }
         template <typename T1, typename T2>
         inline void evaluate(
-           	bool compare, bool result, T1 expr1, T2 expr2,
+           	bool compare, expr_t type, T1 expr1, T2 expr2,
            	const char* str1, const char* str2,
             const char * file, int line, const char * func)
         {
-        	   const bool ok = result?(expr1==expr2):(expr1!=expr2);
+        	   bool ok {};
+               switch(type) {
+               case equal: ok = (expr1==expr2); break;
+               case nequal: ok = (expr1!=expr2); break;
+               case lower:  ok = (expr1<expr2); break;
+               case greater: ok = (expr1>expr2); break;
+               case lowereq: ok = (expr1<=expr2); break;
+               case greatereq: ok = (expr1>=expr2); break;
+               }
                tests_ += 1;
                errors_ += ok ? 0 : 1;
 
@@ -124,7 +148,7 @@ namespace QUnit {
                detail::convert(expr2, s2, sizeof s2);
                if( compare )
                {
-               	const char* cmp = ( result ? "==" : "!=" );
+               	const char* cmp = type2str(type);
                	fnd::tiny_printf(
                    	 "%s%s%i: %s%s(): compare {%s} %s {%s} got {\"%s\"} %s {\"%s\"}\r\n",
                    	 file,( ok ? ";" : ":" ),line,( ok ? "OK/" : "FAILED/" ),
