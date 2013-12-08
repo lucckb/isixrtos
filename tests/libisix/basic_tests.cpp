@@ -5,18 +5,18 @@
 #include <foundation/dbglog.h>
 #include <qunit.hpp>
 #include <string>
+#include <stm32crashinfo.h>
 /* ------------------------------------------------------------------ */
 namespace {
 namespace detail {
 
    isix::semaphore usem(1, 1);
    void usart_lock() {
-       //usem.wait(isix::ISIX_TIME_INFINITE);
+       usem.wait(isix::ISIX_TIME_INFINITE);
    }
    void usart_unlock() {
-       //usem.signal();
+       usem.signal();
    }
-
 }}
 /* ------------------------------------------------------------------ */
 namespace {
@@ -34,8 +34,8 @@ namespace {
 	public:
 		static constexpr auto TASK_PRIO = 1;
 		base_task_tests()
-			: task_base( STACK_SIZE, TASK_PRIO )
-		{};
+			: task_base(STACK_SIZE, TASK_PRIO)
+		{}
 		unsigned exec_count() const {
 			return m_exec_count;
 		}
@@ -51,7 +51,8 @@ namespace {
 		//Main funcs
 		virtual void main() {
             m_error = m_sem.wait( isix::ISIX_TIME_INFINITE );
-            m_items.push_back( m_id );   
+            m_items.push_back( m_id );  
+			for(;;) isix::isix_wait_ms(1000);
 		}
 	public:
 		semaphore_task_test( char ch_id, isix::prio_t prio, isix::semaphore &sem, std::string &items ) 
@@ -149,6 +150,7 @@ class unit_tests : public isix::task_base
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(t2->get_taskid()) > MIN_STACK_FREE  );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(t3->get_taskid()) > MIN_STACK_FREE  );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(t4->get_taskid()) > MIN_STACK_FREE  );
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
 
 		//Now delete tasks
 		delete t1;
@@ -160,15 +162,23 @@ class unit_tests : public isix::task_base
 	//Testunit semaphore test
 	void semaphore_tests() 
 	{
-		QUNIT_IS_EQUAL( isix::isix_task_change_prio(isix::isix_task_self(), isix::isix_get_min_priority()), TASKDEF_PRIORITY );
-        isix::semaphore sigs(0);
-        QUNIT_IS_TRUE( sigs.is_valid() );
-        std::string tstr;
-        semaphore_task_test t1('A', 3, sigs, tstr );
-        semaphore_task_test t2('B', 2, sigs, tstr );
+		std::string tstr;		
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
+		isix::semaphore sigs(0);
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
+		QUNIT_IS_TRUE( sigs.is_valid() );  
+		QUNIT_IS_EQUAL( isix::isix_task_change_prio(nullptr, 3), TASKDEF_PRIORITY );		
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
+		semaphore_task_test t1('A', 3, sigs, tstr );
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );		
+		semaphore_task_test t2('B', 2, sigs, tstr );
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );		
         semaphore_task_test t3('C', 1, sigs, tstr );
-        semaphore_task_test t4('D', 0, sigs, tstr );
-        QUNIT_IS_TRUE( t1.is_valid() );
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );
+		semaphore_task_test t4('D', 0, sigs, tstr );
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );
+	
+		QUNIT_IS_TRUE( t1.is_valid() );
         QUNIT_IS_TRUE( t2.is_valid() );
         QUNIT_IS_TRUE( t3.is_valid() );
         QUNIT_IS_TRUE( t4.is_valid() );
@@ -180,7 +190,7 @@ class unit_tests : public isix::task_base
 	}
 	virtual void main() {
 			heap_test();
-			basic_tasks_tests();
+			//basic_tasks_tests();
             semaphore_tests();
 			isix::isix_shutdown_scheduler();
 		}
@@ -203,3 +213,12 @@ int main()
 }
 
 /* ------------------------------------------------------------------ */
+extern "C" {
+//Crash info interrupt handler
+	void __attribute__((__interrupt__,naked)) hard_fault_exception_vector(void)
+	{
+		cm3_hard_hault_regs_dump();
+	}
+}
+/* ------------------------------------------------------------------ */
+
