@@ -21,6 +21,7 @@
 
 #include <cstring>
 #include <foundation/utils.h>
+#include <string>
 
 namespace QUnit {
 namespace detail {
@@ -51,6 +52,9 @@ namespace detail {
 		else
 			std::strncpy(buf,"false", s);
 	}
+    void convert( std::string &str, char* buf, size_t s) {
+        std::strncpy( buf, str.c_str(), s );
+    }
 }}
 
 

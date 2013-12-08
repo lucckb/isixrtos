@@ -4,16 +4,17 @@
 #include <usart_simple.h>
 #include <foundation/dbglog.h>
 #include <qunit.hpp>
+#include <string>
 /* ------------------------------------------------------------------ */
 namespace {
 namespace detail {
 
    isix::semaphore usem(1, 1);
    void usart_lock() {
-       usem.wait(isix::ISIX_TIME_INFINITE);
+       //usem.wait(isix::ISIX_TIME_INFINITE);
    }
    void usart_unlock() {
-       usem.signal();
+       //usem.signal();
    }
 
 }}
@@ -44,19 +45,27 @@ namespace {
 	};
 /* ------------------------------------------------------------------ */
 	//Basic semaphore test
-	class semaphore_test : public isix::task_base {
+	class semaphore_task_test : public isix::task_base {
 		
 		static constexpr auto STACK_SIZE = 1024;
 		//Main funcs
 		virtual void main() {
-			
+            m_error = m_sem.wait( isix::ISIX_TIME_INFINITE );
+            m_items.push_back( m_id );   
 		}
 	public:
-		semaphore_test( char ch_id, isix::prio_t prio ) 
-			: task_base( STACK_SIZE, prio )
+		semaphore_task_test( char ch_id, isix::prio_t prio, isix::semaphore &sem, std::string &items ) 
+			: task_base( STACK_SIZE, prio ), m_sem( sem ), m_id( ch_id ), m_items( items )
 		{
-			
 		}
+        int error() const {
+            return m_error;
+        }
+    private:
+        isix::semaphore& m_sem;
+        const char  m_id;
+        std::string& m_items;
+        int m_error { -50000 };
 	};
 /* ------------------------------------------------------------------ */
 }
@@ -65,6 +74,7 @@ class unit_tests : public isix::task_base
 {
 	static constexpr auto STACK_SIZE = 2048;
 	static constexpr auto MIN_STACK_FREE = 64;
+    static constexpr auto TASKDEF_PRIORITY = 0;
 	QUnit::UnitTest qunit {QUnit::verbose };
 	//Test heap
 	void heap_test() {
@@ -146,14 +156,32 @@ class unit_tests : public isix::task_base
 		delete t3;
 		delete t4;
 	}
+    //TODO: Priority inheritance
 	//Testunit semaphore test
-	void semaphore_test() 
+	void semaphore_tests() 
 	{
-		
+		QUNIT_IS_EQUAL( isix::isix_task_change_prio(isix::isix_task_self(), isix::isix_get_min_priority()), TASKDEF_PRIORITY );
+        isix::semaphore sigs(0);
+        QUNIT_IS_TRUE( sigs.is_valid() );
+        std::string tstr;
+        semaphore_task_test t1('A', 3, sigs, tstr );
+        semaphore_task_test t2('B', 2, sigs, tstr );
+        semaphore_task_test t3('C', 1, sigs, tstr );
+        semaphore_task_test t4('D', 0, sigs, tstr );
+        QUNIT_IS_TRUE( t1.is_valid() );
+        QUNIT_IS_TRUE( t2.is_valid() );
+        QUNIT_IS_TRUE( t3.is_valid() );
+        QUNIT_IS_TRUE( t4.is_valid() );
+        QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
+        QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
+        QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
+        QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
+        QUNIT_IS_EQUAL( tstr, "DCBA" );
 	}
 	virtual void main() {
 			heap_test();
 			basic_tasks_tests();
+            semaphore_tests();
 			isix::isix_shutdown_scheduler();
 		}
 public:
