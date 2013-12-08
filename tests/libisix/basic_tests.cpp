@@ -19,6 +19,8 @@ namespace detail {
 }}
 /* ------------------------------------------------------------------ */
 namespace {
+/* ------------------------------------------------------------------ */
+	//Test basic task functionality
 	class base_task_tests : public isix::task_base {
 		static constexpr auto STACK_SIZE = 1024;
 		volatile unsigned m_exec_count {};
@@ -40,11 +42,29 @@ namespace {
 			m_exec_count = v;
 		}
 	};
+/* ------------------------------------------------------------------ */
+	//Basic semaphore test
+	class semaphore_test : public isix::task_base {
+		
+		static constexpr auto STACK_SIZE = 1024;
+		//Main funcs
+		virtual void main() {
+			
+		}
+	public:
+		semaphore_test( char ch_id, isix::prio_t prio ) 
+			: task_base( STACK_SIZE, prio )
+		{
+			
+		}
+	};
+/* ------------------------------------------------------------------ */
 }
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
 	static constexpr auto STACK_SIZE = 2048;
+	static constexpr auto MIN_STACK_FREE = 64;
 	QUnit::UnitTest qunit {QUnit::verbose };
 	//Test heap
 	void heap_test() {
@@ -63,6 +83,11 @@ class unit_tests : public isix::task_base
 		auto t2 = new base_task_tests;
 		auto t3 = new base_task_tests;
 		auto t4 = new base_task_tests;
+		//Try set private data
+		QUNIT_IS_EQUAL( isix::isix_set_task_private_data(t1->get_taskid(), reinterpret_cast<void*>(1)), isix::ISIX_EOK );
+		QUNIT_IS_EQUAL( isix::isix_set_task_private_data(t2->get_taskid(), reinterpret_cast<void*>(2)), isix::ISIX_EOK );
+		QUNIT_IS_EQUAL( isix::isix_set_task_private_data(t3->get_taskid(), reinterpret_cast<void*>(3)), isix::ISIX_EOK );
+		QUNIT_IS_EQUAL( isix::isix_set_task_private_data(t4->get_taskid(), reinterpret_cast<void*>(4)), isix::ISIX_EOK );
 		//Active wait tasks shouldnt run
 		for(auto tc = isix::isix_get_jiffies(); isix::isix_get_jiffies()<tc+5000; ) {
 			asm volatile("nop\n");
@@ -102,12 +127,29 @@ class unit_tests : public isix::task_base
 		QUNIT_IS_TRUE( t2->exec_count()>0 );
 		QUNIT_IS_TRUE( t3->exec_count()>0 );
 		QUNIT_IS_TRUE( t4->exec_count()>0 );
+		
+		//After finish all tasks check private data
+		QUNIT_IS_EQUAL( isix::isix_get_task_private_data(t1->get_taskid()), reinterpret_cast<void*>(1) );
+		QUNIT_IS_EQUAL( isix::isix_get_task_private_data(t2->get_taskid()), reinterpret_cast<void*>(2) );
+		QUNIT_IS_EQUAL( isix::isix_get_task_private_data(t3->get_taskid()), reinterpret_cast<void*>(3) );
+		QUNIT_IS_EQUAL( isix::isix_get_task_private_data(t4->get_taskid()), reinterpret_cast<void*>(4) );
+		
+		//Validate stack space functionality
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(t1->get_taskid()) > MIN_STACK_FREE  );
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(t2->get_taskid()) > MIN_STACK_FREE  );
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(t3->get_taskid()) > MIN_STACK_FREE  );
+		QUNIT_IS_TRUE( isix::isix_free_stack_space(t4->get_taskid()) > MIN_STACK_FREE  );
 
 		//Now delete tasks
 		delete t1;
 		delete t2;
 		delete t3;
 		delete t4;
+	}
+	//Testunit semaphore test
+	void semaphore_test() 
+	{
+		
 	}
 	virtual void main() {
 			heap_test();
