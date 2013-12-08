@@ -12,10 +12,10 @@ namespace detail {
 
    isix::semaphore usem(1, 1);
    void usart_lock() {
-       usem.wait(isix::ISIX_TIME_INFINITE);
+       //usem.wait(isix::ISIX_TIME_INFINITE);
    }
    void usart_unlock() {
-       usem.signal();
+       //usem.signal();
    }
 }}
 /* ------------------------------------------------------------------ */
@@ -73,7 +73,7 @@ namespace {
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
-	static constexpr auto STACK_SIZE = 2048;
+	static constexpr auto STACK_SIZE = 4096;
 	static constexpr auto MIN_STACK_FREE = 64;
     static constexpr auto TASKDEF_PRIORITY = 0;
 	QUnit::UnitTest qunit {QUnit::verbose };
@@ -169,19 +169,19 @@ class unit_tests : public isix::task_base
 		QUNIT_IS_TRUE( sigs.is_valid() );  
 		QUNIT_IS_EQUAL( isix::isix_task_change_prio(nullptr, 3), TASKDEF_PRIORITY );		
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
-		semaphore_task_test t1('A', 3, sigs, tstr );
+		auto t1 = new semaphore_task_test('A', 3, sigs, tstr );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );		
-		semaphore_task_test t2('B', 2, sigs, tstr );
+		auto t2 = new semaphore_task_test('B', 2, sigs, tstr );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );		
-        semaphore_task_test t3('C', 1, sigs, tstr );
+        auto t3 = new semaphore_task_test('C', 1, sigs, tstr );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );
-		semaphore_task_test t4('D', 0, sigs, tstr );
+		auto t4 = new semaphore_task_test('D', 0, sigs, tstr );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );
 	
-		QUNIT_IS_TRUE( t1.is_valid() );
-        QUNIT_IS_TRUE( t2.is_valid() );
-        QUNIT_IS_TRUE( t3.is_valid() );
-        QUNIT_IS_TRUE( t4.is_valid() );
+		QUNIT_IS_TRUE( t1->is_valid() );
+        QUNIT_IS_TRUE( t2->is_valid() );
+        QUNIT_IS_TRUE( t3->is_valid() );
+        QUNIT_IS_TRUE( t4->is_valid() );
         QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
         QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
         QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );

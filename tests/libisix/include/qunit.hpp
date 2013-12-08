@@ -144,8 +144,8 @@ namespace QUnit {
                errors_ += ok ? 0 : 1;
                if( (ok && !(verboseLevel_ > normal)) || verboseLevel_ == silent )
                    return;
-               char s1[36] = {0};
-               char s2[36] = {0};
+               char s1[48] = {0};
+               char s2[48] = {0};
                detail::convert(expr1, s1, sizeof s1);
                detail::convert(expr2, s2, sizeof s2);
                if( compare )
