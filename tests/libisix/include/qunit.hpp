@@ -59,11 +59,11 @@ namespace detail {
 #define QUNIT_IS_TRUE(expr)             QUNIT_COMPARE(false,QUnit::equal,expr,true)
 #define QUNIT_IS_FALSE(expr)            QUNIT_COMPARE(false,QUnit::equal,expr,false)
 
-#define QUNIT_COMPARE(compare,result,expr1,expr2) {             \
+#define QUNIT_COMPARE(compare,result,expr1,expr2) do {             \
         qunit.evaluate(                                         \
             compare,result,expr1,expr2, #expr1, #expr2,         \
             __FILE__, __LINE__, __FUNCTION__ );                 \
-    };                                                          \
+    } while(0)                                                       \
 
 
 namespace QUnit {
