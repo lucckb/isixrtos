@@ -56,11 +56,6 @@ namespace detail {
 
 #define QUNIT_IS_EQUAL(expr1,expr2)     QUNIT_COMPARE(true,QUnit::equal,expr1,expr2)
 #define QUNIT_IS_NOT_EQUAL(expr1,expr2) QUNIT_COMPARE(true,QUnit::nequal,expr1,expr2)
-#define QUNIT_IS_LOWER(expr1,expr2) QUNIT_COMPARE(true,QUnit::lower,expr1,expr2)
-#define QUNIT_IS_GREATER(expr1,expr2) QUNIT_COMPARE(true,QUnit::greater,expr1,expr2)
-#define QUNIT_IS_LOWEREQ(expr1,expr2) QUNIT_COMPARE(true,QUnit::lowereq,expr1,expr2)
-#define QUNIT_IS_GREATEREQ(expr1,expr2) QUNIT_COMPARE(true,QUnit::greatereq,expr1,expr2)
-
 #define QUNIT_IS_TRUE(expr)             QUNIT_COMPARE(false,QUnit::equal,expr,true)
 #define QUNIT_IS_FALSE(expr)            QUNIT_COMPARE(false,QUnit::equal,expr,false)
 
@@ -74,8 +69,19 @@ namespace detail {
 namespace QUnit {
 
     enum { silent, quiet, normal, verbose, noisy };
-    enum expr_t { equal, nequal, lower, greater, lowereq, greatereq };
-    class UnitTest {
+    enum expr_t { equal, nequal };
+    
+	namespace compare {
+		struct ops {};
+		struct equal : public ops {
+			template <typename T1, typename T2> bool operator()( T1 o1, T2 o2 ) {
+				return o1==o2;
+			}
+		};
+	}
+
+
+	class UnitTest {
         
     public:
         UnitTest(  int verboseLevel)
@@ -115,10 +121,6 @@ namespace QUnit {
              switch(type) {
                case equal: return "==";
                case nequal: return "!=";
-               case lower:  return "<";
-               case greater: return ">";
-               case lowereq: return "<=";
-               case greatereq: return">=";
                default: return "";
                }
         }
@@ -129,17 +131,13 @@ namespace QUnit {
             const char * file, int line, const char * func)
         {
         	   bool ok {};
-               switch(type) {
-               case equal: ok = (expr1==expr2); break;
-               case nequal: ok = (expr1!=expr2); break;
-               case lower:  ok = (expr1<expr2); break;
-               case greater: ok = (expr1>expr2); break;
-               case lowereq: ok = (expr1<=expr2); break;
-               case greatereq: ok = (expr1>=expr2); break;
+               if( type ==  equal ) {
+                  ok = (expr1==expr2);
+               } else if( type ==  nequal ) {
+                   ok = (expr1!=expr2);
                }
                tests_ += 1;
                errors_ += ok ? 0 : 1;
-
                if( (ok && !(verboseLevel_ > normal)) || verboseLevel_ == silent )
                    return;
                char s1[36] = {0};
