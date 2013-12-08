@@ -50,13 +50,15 @@ namespace {
 		static constexpr auto STACK_SIZE = 1024;
 		//Main funcs
 		virtual void main() {
+            dbprintf("tick %c", m_id);
             m_error = m_sem.wait( isix::ISIX_TIME_INFINITE );
             m_items.push_back( m_id );  
 			for(;;) isix::isix_wait_ms(1000);
 		}
 	public:
 		semaphore_task_test( char ch_id, isix::prio_t prio, isix::semaphore &sem, std::string &items ) 
-			: task_base( STACK_SIZE, prio ), m_sem( sem ), m_id( ch_id ), m_items( items )
+			: task_base( STACK_SIZE, prio ), 
+            m_sem( sem ), m_id( ch_id ), m_items( items )
 		{
 		}
         int error() const {
@@ -66,7 +68,7 @@ namespace {
         isix::semaphore& m_sem;
         const char  m_id;
         std::string& m_items;
-        int m_error { -50000 };
+        int m_error { -32768 };
 	};
 /* ------------------------------------------------------------------ */
 }
@@ -160,28 +162,28 @@ class unit_tests : public isix::task_base
 	}
     //TODO: Priority inheritance
 	//Testunit semaphore test
-	void semaphore_tests() 
+	void semaphore_prio_tests() 
 	{
-		std::string tstr;		
+		//TODO: FIXME when priority is FIRST
+        QUNIT_IS_EQUAL( isix::isix_task_change_prio(nullptr, 3), TASKDEF_PRIORITY );	        
+        std::string tstr;		
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
 		isix::semaphore sigs(0);
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
 		QUNIT_IS_TRUE( sigs.is_valid() );  
-		QUNIT_IS_EQUAL( isix::isix_task_change_prio(nullptr, 3), TASKDEF_PRIORITY );		
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
-		auto t1 = new semaphore_task_test('A', 3, sigs, tstr );
+		semaphore_task_test t1('A', 3, sigs, tstr );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );		
-		auto t2 = new semaphore_task_test('B', 2, sigs, tstr );
+		semaphore_task_test t2('B', 2, sigs, tstr );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );		
-        auto t3 = new semaphore_task_test('C', 1, sigs, tstr );
+        semaphore_task_test t3('C', 1, sigs, tstr );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );
-		auto t4 = new semaphore_task_test('D', 0, sigs, tstr );
+		semaphore_task_test t4('D', 0, sigs, tstr );
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );
-	
-		QUNIT_IS_TRUE( t1->is_valid() );
-        QUNIT_IS_TRUE( t2->is_valid() );
-        QUNIT_IS_TRUE( t3->is_valid() );
-        QUNIT_IS_TRUE( t4->is_valid() );
+		QUNIT_IS_TRUE( t1.is_valid() );
+        QUNIT_IS_TRUE( t2.is_valid() );
+        QUNIT_IS_TRUE( t3.is_valid() );
+        QUNIT_IS_TRUE( t4.is_valid() );
         QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
         QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
         QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
@@ -191,7 +193,7 @@ class unit_tests : public isix::task_base
 	virtual void main() {
 			heap_test();
 			//basic_tasks_tests();
-            semaphore_tests();
+            semaphore_prio_tests();
 			isix::isix_shutdown_scheduler();
 		}
 public:
