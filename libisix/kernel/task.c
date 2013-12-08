@@ -251,10 +251,11 @@ task_t * isix_task_self(void)
 size_t isix_free_stack_space(const task_t *task)
 {
 	size_t usage=0;
-	unsigned char *bStack = (unsigned char*)task->init_stack;
-	while(*bStack==MAGIC_FILL_VALUE)
+	const task_t *taskd = task?task:isix_current_task;
+	unsigned char *b_stack = (unsigned char*)taskd->init_stack;
+	while(*b_stack==MAGIC_FILL_VALUE)
 	{
-		bStack++;
+		b_stack++;
 		usage++;
 	}
 	return usage;
