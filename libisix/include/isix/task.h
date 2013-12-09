@@ -156,6 +156,8 @@ protected:
 private:
 	static void start_task(void *ptr)
 	{
+		//FIXME: It should be fixed and replaced by another API
+		isix_wait_ms(10);
 		static_cast<task_base*>(ptr)->main();
 	}
 private:
