@@ -167,19 +167,12 @@ class unit_tests : public isix::task_base
 		//ThreadRunner<MyThreadClass>
         QUNIT_IS_EQUAL( isix::isix_task_change_prio(nullptr, 3), TASKDEF_PRIORITY );	        
         std::string tstr;		
-		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
 		isix::semaphore sigs(0);
-		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
 		QUNIT_IS_TRUE( sigs.is_valid() );  
-		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
 		semaphore_task_test t1('A', 3, sigs, tstr );
-		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );		
 		semaphore_task_test t2('B', 2, sigs, tstr );
-		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );		
         semaphore_task_test t3('C', 1, sigs, tstr );
-		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );
 		semaphore_task_test t4('D', 0, sigs, tstr );
-		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );
 		QUNIT_IS_TRUE( t1.is_valid() );
         QUNIT_IS_TRUE( t2.is_valid() );
         QUNIT_IS_TRUE( t3.is_valid() );
@@ -192,7 +185,7 @@ class unit_tests : public isix::task_base
 	}
 	virtual void main() {
 			heap_test();
-			//basic_tasks_tests();
+			basic_tasks_tests();
             semaphore_prio_tests();
 			isix::isix_shutdown_scheduler();
 		}
