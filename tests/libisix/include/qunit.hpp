@@ -21,40 +21,45 @@
 
 #include <cstring>
 #include <foundation/utils.h>
+#include <foundation/tiny_printf.h>
 #include <string>
 
 namespace QUnit {
 namespace detail {
-	void convert(int value, char* buf, size_t ) {
+	static inline void convert(int value, char* buf, size_t ) {
 		fnd::fnd_itoa(buf,value,1,'0');
 	}
-	void convert(unsigned value, char* buf, size_t) {
+	static inline void convert(unsigned value, char* buf, size_t) {
 		fnd::fnd_uitoa(buf,value,1,'0',10);
 	}
-	void convert(float value, char* buf, size_t) {
+	static inline void convert(float value, char* buf, size_t) {
 		fnd::fnd_ftoa(value,buf,4);
 	}
-	void convert(double value, char* buf, size_t) {
+	static inline void convert(double value, char* buf, size_t) {
 		fnd::fnd_dtoa(value,buf,4);
 	}
-	void convert(const char *value, char* buf, size_t s) {
+	static inline void convert(const char *value, char* buf, size_t s) {
 		std::strncpy(buf,value, s);
 	}
-	void convert(const void *value, char* buf, size_t ) {
+	static inline void convert(const void *value, char* buf, size_t ) {
 			fnd::fnd_uitoa(buf, reinterpret_cast<unsigned>(value),8,'0',16);
 		}
-	void convert(std::nullptr_t&, char* buf, size_t s) {
+	static inline void convert(std::nullptr_t&, char* buf, size_t s) {
 		std::strncpy(buf,"nullptr", s);
 	}
-	void convert(bool value, char* buf, size_t s) {
+	static inline void convert(bool value, char* buf, size_t s) {
 		if( value )
 			std::strncpy(buf,"true", s);
 		else
 			std::strncpy(buf,"false", s);
 	}
-    void convert( std::string &str, char* buf, size_t s) {
+    static inline void convert( std::string &str, char* buf, size_t s) {
         std::strncpy( buf, str.c_str(), s );
     }
+	static inline void convert( char ch, char* buf, size_t s) {
+        std::strncpy( buf, &ch, s );
+    }
+
 }}
 
 

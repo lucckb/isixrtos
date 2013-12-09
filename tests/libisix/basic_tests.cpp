@@ -6,6 +6,8 @@
 #include <qunit.hpp>
 #include <string>
 #include <stm32crashinfo.h>
+#include "semaphore_test.hpp"
+
 /* ------------------------------------------------------------------ */
 namespace {
 namespace detail {
@@ -36,6 +38,7 @@ namespace {
 		base_task_tests()
 			: task_base(STACK_SIZE, TASK_PRIO)
 		{}
+		virtual ~base_task_tests() {}
 		unsigned exec_count() const {
 			return m_exec_count;
 		}
@@ -43,32 +46,7 @@ namespace {
 			m_exec_count = v;
 		}
 	};
-/* ------------------------------------------------------------------ */
-	//Basic semaphore test
-	class semaphore_task_test : public isix::task_base {
-		
-		static constexpr auto STACK_SIZE = 1024;
-		//Main funcs
-		virtual void main() {
-            m_error = m_sem.wait( isix::ISIX_TIME_INFINITE );
-            m_items.push_back( m_id );  
-			for(;;) isix::isix_wait_ms(1000);
-		}
-	public:
-		semaphore_task_test( char ch_id, isix::prio_t prio, isix::semaphore &sem, std::string &items ) 
-			: task_base( STACK_SIZE, prio ), 
-            m_sem( sem ), m_id( ch_id ), m_items( items )
-		{
-		}
-        int error() const {
-            return m_error;
-        }
-    private:
-        isix::semaphore& m_sem;
-        const char  m_id;
-        std::string& m_items;
-        int m_error { -32768 };
-	};
+
 /* ------------------------------------------------------------------ */
 }
 /* ------------------------------------------------------------------ */
@@ -78,6 +56,7 @@ class unit_tests : public isix::task_base
 	static constexpr auto MIN_STACK_FREE = 64;
     static constexpr auto TASKDEF_PRIORITY = 0;
 	QUnit::UnitTest qunit {QUnit::verbose };
+	tests::semaphores sem_test { qunit };
 	//Test heap
 	void heap_test() {
 		auto ptr1 = isix::isix_alloc( 1 );
@@ -94,7 +73,7 @@ class unit_tests : public isix::task_base
 		auto t1 = new base_task_tests;
 		auto t2 = new base_task_tests;
 		auto t3 = new base_task_tests;
-		auto t4 = new base_task_tests;
+		auto t4 = new base_task_tests; 
 		//Try set private data
 		QUNIT_IS_EQUAL( isix::isix_set_task_private_data(t1->get_taskid(), reinterpret_cast<void*>(1)), isix::ISIX_EOK );
 		QUNIT_IS_EQUAL( isix::isix_set_task_private_data(t2->get_taskid(), reinterpret_cast<void*>(2)), isix::ISIX_EOK );
@@ -159,40 +138,17 @@ class unit_tests : public isix::task_base
 		delete t3;
 		delete t4;
 	}
-    //TODO: Priority inheritance
-	//Testunit semaphore test
-	void semaphore_prio_tests() 
+    virtual void main() 
 	{
-		//TODO: Must be fixed the task creation like tomek said 
-		//ThreadRunner<MyThreadClass>
-        QUNIT_IS_EQUAL( isix::isix_task_change_prio(nullptr, 3), TASKDEF_PRIORITY );	        
-        std::string tstr;		
-		isix::semaphore sigs(0);
-		QUNIT_IS_TRUE( sigs.is_valid() );  
-		semaphore_task_test t1('A', 3, sigs, tstr );
-		semaphore_task_test t2('B', 2, sigs, tstr );
-        semaphore_task_test t3('C', 1, sigs, tstr );
-		semaphore_task_test t4('D', 0, sigs, tstr );
-		QUNIT_IS_TRUE( t1.is_valid() );
-        QUNIT_IS_TRUE( t2.is_valid() );
-        QUNIT_IS_TRUE( t3.is_valid() );
-        QUNIT_IS_TRUE( t4.is_valid() );
-        QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
-        QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
-        QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
-        QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
-        QUNIT_IS_EQUAL( tstr, "DCBA" );
-	}
-	virtual void main() {
-			heap_test();
-			basic_tasks_tests();
-            semaphore_prio_tests();
+			//heap_test();
+			//basic_tasks_tests();
+			sem_test.run();
 			isix::isix_shutdown_scheduler();
-		}
-public:
-	unit_tests()
-		: task_base( STACK_SIZE, 0 )
-	{}
+	}
+	public:
+		unit_tests()
+			: task_base( STACK_SIZE, 0 )
+		{}
 };
 
 /* ------------------------------------------------------------------ */
