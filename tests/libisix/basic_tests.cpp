@@ -163,7 +163,8 @@ class unit_tests : public isix::task_base
 	//Testunit semaphore test
 	void semaphore_prio_tests() 
 	{
-		//TODO: FIXME when priority is FIRST
+		//TODO: Must be fixed the task creation like tomek said 
+		//ThreadRunner<MyThreadClass>
         QUNIT_IS_EQUAL( isix::isix_task_change_prio(nullptr, 3), TASKDEF_PRIORITY );	        
         std::string tstr;		
 		QUNIT_IS_TRUE( isix::isix_free_stack_space(nullptr) > MIN_STACK_FREE  );	
