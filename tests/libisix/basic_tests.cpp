@@ -50,7 +50,6 @@ namespace {
 		static constexpr auto STACK_SIZE = 1024;
 		//Main funcs
 		virtual void main() {
-            dbprintf("tick %c", m_id);
             m_error = m_sem.wait( isix::ISIX_TIME_INFINITE );
             m_items.push_back( m_id );  
 			for(;;) isix::isix_wait_ms(1000);
