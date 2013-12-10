@@ -39,10 +39,13 @@ public:
 	void run() {
 		semaphore_prio_tests();
 		semaphore_time_test();
+		from_interrupt();
 	}
 private:
 	void semaphore_prio_tests();
 	void semaphore_time_test();
+	//Semaphore from interrupts
+	void from_interrupt();
 private:
 	QUnit::UnitTest& qunit;
 };
