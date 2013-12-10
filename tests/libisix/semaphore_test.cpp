@@ -31,7 +31,7 @@ namespace {
 	isix::semaphore sem_irq( 0, 0 );
 	isix::semaphore sem_irq_get( 0, 0 );
 	int irq_get_isr_nposts = 0;
-	constexpr auto N_TEST_POSTS = 5;
+	constexpr auto N_TEST_POSTS = 25;
 }
 
 /* ------------------------------------------------------------------ */
@@ -193,12 +193,14 @@ void semaphores::from_interrupt() {
 	for( int i = 0; i < N_TEST_POSTS; ++i ) { 
 		sem_irq_get.signal();
 	}
+	enable_irq_timers();
 	int ret;
 	//Do loop waits for irq
-	for(int n=0; (ret=sem_irq.wait(1000)) == isix::ISIX_EOK; ++n );
+	int n_signals;
+	for(n_signals=0; (ret=sem_irq.wait(1000)) == isix::ISIX_EOK; ++n_signals );
 	//Check the result
 	QUNIT_IS_EQUAL( ret, isix::ISIX_ETIMEOUT );
-	QUNIT_IS_EQUAL( ret, N_TEST_POSTS );
+	QUNIT_IS_EQUAL( n_signals, N_TEST_POSTS );
 	//Check get isr result
 	QUNIT_IS_EQUAL( irq_get_isr_nposts, N_TEST_POSTS );
 }
