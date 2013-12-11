@@ -91,7 +91,7 @@ namespace QUnit {
 
 
 	class UnitTest {
-        
+       static constexpr auto STATIC_BUFFERS_SIZE = 48;
     public:
         UnitTest(  int verboseLevel)
             : verboseLevel_(verboseLevel) , errors_(0) , tests_(0)

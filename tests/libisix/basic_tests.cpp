@@ -8,6 +8,7 @@
 #include <stm32crashinfo.h>
 #include "semaphore_test.hpp"
 #include "task_tests.hpp"
+#include "fifo_test.hpp"
 
 /* ------------------------------------------------------------------ */
 namespace {
@@ -29,6 +30,7 @@ class unit_tests : public isix::task_base
 	QUnit::UnitTest qunit {QUnit::verbose };
 	tests::semaphores sem_test { qunit };
 	tests::task_tests task_test { qunit };
+	tests::fifo_test fifo_test{ qunit };
 	//Test heap
 	void heap_test() {
 		auto ptr1 = isix::isix_alloc( 1 );
@@ -43,8 +45,10 @@ class unit_tests : public isix::task_base
     virtual void main() 
 	{
 			heap_test();
-			sem_test.run();
-			task_test.run();
+			//sem_test.run();
+			//sem_test.run();
+			//task_test.run();
+			fifo_test.run();
 			isix::isix_shutdown_scheduler();
 	}
 	public:
@@ -58,8 +62,9 @@ int main()
 {
 #ifdef PDEBUG
     stm32::usartsimple_init( USART2,115200,true, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
-#endif
+#endif	
     dblog_init_putc_locked( stm32::usartsimple_putc, NULL, detail::usart_lock, detail::usart_unlock );
+	dbprintf("-------- BEGIN_TESTS ---------");
 	static unit_tests testobj;
 	isix::isix_start_scheduler();
 	return 0;
