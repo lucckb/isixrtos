@@ -45,9 +45,10 @@ class unit_tests : public isix::task_base
     virtual void main() 
 	{
 			heap_test();
-			sem_test.run();
-			task_test.run();
+			//sem_test.run();
+			//task_test.run();	
 			fifo_test.run();
+			isix::isix_wait_ms(10);
 			isix::isix_shutdown_scheduler();
 	}
 	public:

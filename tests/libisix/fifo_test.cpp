@@ -20,7 +20,9 @@
 #include "fifo_test.hpp"
 #include <isix.h>
 #include <qunit.hpp>
+#include <vector>
 #include <foundation/dbglog.h>
+#include "timer_interrupt.hpp" 
 
 namespace tests {
 
@@ -55,10 +57,6 @@ namespace {
 
 }	//Unnamed namespace end
 
-//Namespace for timer 
-namespace {
-
-}
 	
 //Base tests from external task 
 void fifo_test::base_tests() 
@@ -93,6 +91,7 @@ void fifo_test::insert_overflow()
 	 * Probably the reason is that the task have not been deleted yet but
 	 * sempaphore was deleted so race condition occurs
 	 */
+	isix::isix_wait_ms(10);
 	static constexpr auto FIFO_SIZE = 64;
 	isix::fifo<char> ovfifo( FIFO_SIZE );
 	QUNIT_IS_TRUE( ovfifo.is_valid() );
@@ -115,12 +114,48 @@ void fifo_test::insert_overflow()
 //Interrupt handler
 void fifo_test::interrupt_handler() noexcept
 {
-
+	if( m_irq_cnt++ < IRQ_QTEST_SIZE ) {
+		m_last_irq_err  = m_irqf.push_isr( m_irq_cnt );
+		if (m_last_irq_err != isix::ISIX_EOK ) {
+			detail::periodic_timer_stop();
+		}
+	} else {
+		detail::periodic_timer_stop();
+	}
 }
 
 //Added operation for testing sem from interrupts
-void fifo_test::interrupt_test() {
-	
+void fifo_test::interrupt_test() 
+{
+	m_irq_cnt = 0;
+	std::vector<int> test_vec;
+	detail::periodic_timer_setup(
+		std::bind( &fifo_test::interrupt_handler, std::ref(*this) ), 65535
+	);
+	int val; int ret;
+	for( int n=0; (ret=m_irqf.pop(val, 1000)) == isix::ISIX_EOK; ++n ) {
+		test_vec.push_back( val );
+	}
+	QUNIT_IS_EQUAL( ret, isix::ISIX_ETIMEOUT );
+	QUNIT_IS_EQUAL( m_irqf.size(), 0 );
+ 
+	bool vector_failed {};
+	int scnt { 1 };
+	for( auto v: test_vec ){
+		dbprintf("->%i", v );
+	}
+	for( auto v : test_vec ) {
+		if( v != scnt ) {
+			vector_failed = true;
+			dbprintf("Failed at  %i!=%i", v, scnt );
+			break;
+		}
+		++scnt;
+	} 
+	QUNIT_IS_EQUAL( test_vec.size(), IRQ_QTEST_SIZE );
+	QUNIT_IS_FALSE( vector_failed );
+	QUNIT_IS_EQUAL( m_last_irq_err, isix::ISIX_EOK );
+	detail::periodic_timer_stop();
 }
 
 }//Test Ns end

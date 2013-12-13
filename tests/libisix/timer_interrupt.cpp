@@ -69,6 +69,7 @@ namespace {
 		if( nested_handler ) {
 			nvic_irq_enable( TIM2_IRQn, true );
 		}
+		initialized = false;
 	}
 
  extern "C" {

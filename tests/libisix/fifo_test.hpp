@@ -20,6 +20,7 @@
 #ifndef  fifo_test_INC
 #define  fifo_test_INC
 
+#include <isix.h>
 
 namespace QUnit {
 	class UnitTest;
@@ -30,6 +31,7 @@ namespace tests {
 // Basic class functionality test
 class fifo_test {
 	static constexpr auto TASKDEF_PRIORITY=0;
+	static constexpr auto IRQ_QTEST_SIZE = 64;
 public:
 	fifo_test( QUnit::UnitTest& unit_test )
 	: qunit( unit_test )
@@ -40,7 +42,6 @@ public:
 		base_tests();
 		insert_overflow();
 		interrupt_test();
-			//Namespace for timer ;
 	}
 	//Base tests from external task 
 	void base_tests();
@@ -50,8 +51,13 @@ public:
 	void interrupt_test();
 	//Interrupt handler
 	void interrupt_handler() noexcept;
+	//Interrupt overflow
+	void interrupt_overflow() noexcept;
 private:
 	QUnit::UnitTest &qunit;
+	isix::fifo<int> m_irqf { IRQ_QTEST_SIZE/2 };
+	volatile size_t m_irq_cnt {};
+	volatile int m_last_irq_err {};
 };
 
 
