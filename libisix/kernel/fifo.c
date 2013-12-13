@@ -54,7 +54,7 @@ fifo_t* isix_fifo_create(int n_elem, int elem_size)
    isix_sem_create(&fifo->rx_sem,0);
    //Create tx sem as numer of element in fifo
    isix_sem_create(&fifo->tx_sem,n_elem);
-   isix_printk("FifoCreate New fifo handler %p",(void*)fifo);
+   isix_printk("FifoCreate New fifo handler %p",fifo);
    return fifo;
 }
 
@@ -69,12 +69,11 @@ int isix_fifo_write(fifo_t *fifo,const void *item, tick_t timeout)
         isix_printk("FifoWrite: Timeout on TX queue");
         return ISIX_ETIMEOUT;
     }
-	isixp_enter_critical();
-	if( fifo->size >  (fifo->tx_p - fifo->mem_p) ) {
-		memcpy(fifo->tx_p,item,fifo->elem_size );
-    	fifo->tx_p+= fifo->elem_size;
-	} 
+    isixp_enter_critical();
+    memcpy(fifo->tx_p,item,fifo->elem_size);
     isix_printk("FifoWrite: Data write at TXp %p",fifo->tx_p);
+    fifo->tx_p+= fifo->elem_size;
+    if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
     isixp_exit_critical();
     isix_printk("FifoWrite: New TXp %p",fifo->tx_p);
     //Signaling RX thread with new data
@@ -91,11 +90,10 @@ int isix_fifo_write_isr(fifo_t *fifo,const void *item)
         return ISIX_EFIFOFULL;
     }
     isixp_enter_critical();
+    memcpy(fifo->tx_p,item,fifo->elem_size);
     isix_printk("FifoWriteISR: Data write at TXp %p",fifo->tx_p);
-	if( fifo->size >  (fifo->tx_p - fifo->mem_p) ) {
-		memcpy(fifo->tx_p,item,fifo->elem_size );
-    	fifo->tx_p+= fifo->elem_size;
-	} 
+    fifo->tx_p+= fifo->elem_size;
+    if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
     isixp_exit_critical();
     isix_printk("FifoWriteISR: New TXp %p",fifo->tx_p);
     //Signaling RX thread with new data
