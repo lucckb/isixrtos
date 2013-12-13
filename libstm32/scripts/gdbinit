@@ -1,0 +1,19 @@
+#set tdesc filename gdb7.3-oldregs.xml
+target remote localhost:3333
+monitor reset
+monitor sleep 500
+monitor poll
+monitor soft_reset_halt
+#debug stop mode
+monitor mww 0xE0042004 0x02
+#monitor arm7_9 force_hw_bkpts enable
+monitor gdb_breakpoint_override hard
+#monitor sleep 100
+#monitor soft_reset_halt
+#define display RCC registers
+define display_RCC
+  set var $RCC = (RCC_TypeDef *)0x40021000
+  p/x *$RCC
+  printf "RCC->CFGR: SW=%x SWS=%x HPRE=%x PPRE1=%x PPRE2=%x ADCPRE=%x PLLSRC=%x PLLXTPRE=%x PLLMUL=%x \n",$RCC->CFGR&2,($RCC->CFGR>>2)&2, ($RCC->CFGR>>4)&0x0f, ($RCC->CFGR>>8)&0x07, ($RCC->CFGR>>11)&0x07, ($RCC->CFGR>>14)&0x03, ($RCC->CFGR>>16)&0x01, ($RCC->CFGR>>17)&0x01, ($RCC->CFGR>>18)&0x0f
+end
+
