@@ -98,8 +98,6 @@ namespace {
 /* ------------------------------------------------------------------ */
 void semaphores::isr_test_handler() 
 {
-	//Post IRQ sem five times
-	static volatile int test_count = 0;
 	if( test_count++ < N_TEST_POSTS ) {
 		m_sem_irq.signal_isr();
 	} else {

@@ -93,7 +93,6 @@ void fifo_test::insert_overflow()
 	 * Probably the reason is that the task have not been deleted yet but
 	 * sempaphore was deleted so race condition occurs
 	 */
-	isix::isix_wait_ms(15);
 	static constexpr auto FIFO_SIZE = 64;
 	isix::fifo<char> ovfifo( FIFO_SIZE );
 	QUNIT_IS_TRUE( ovfifo.is_valid() );
@@ -110,12 +109,18 @@ void fifo_test::insert_overflow()
 	QUNIT_IS_EQUAL( ovfifo.push('X',1000), isix::ISIX_ETIMEOUT );
 	QUNIT_IS_EQUAL( ovfifo.pop(ch), isix::ISIX_EOK );
 	QUNIT_IS_EQUAL( ch, 'A' );
+	QUNIT_IS_EQUAL( ovfifo.size(), FIFO_SIZE -1 );
 }  
 
+//Interrupt handler
+void fifo_test::interrupt_handler() noexcept
+{
+
+}
 
 //Added operation for testing sem from interrupts
 void fifo_test::interrupt_test() {
-
+	
 }
 
 }//Test Ns end

@@ -48,6 +48,8 @@ public:
 	void insert_overflow();
 	//Added operation for testing sem from interrupts
 	void interrupt_test();
+	//Interrupt handler
+	void interrupt_handler() noexcept;
 private:
 	QUnit::UnitTest &qunit;
 };

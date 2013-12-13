@@ -53,6 +53,7 @@ private:
 	isix::semaphore m_sem_irq { 0, 0 };
 	isix::semaphore m_sem_irq_get { 0, 0 };
 	volatile int irq_get_isr_nposts = 0;
+	volatile int test_count { }; //Post IRQ sem five times
 	QUnit::UnitTest& qunit;
 };
 
