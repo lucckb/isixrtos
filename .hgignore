@@ -7,7 +7,7 @@ syntax: glob
 *.hex
 *.lss
 *.map
-
+.*.un~
 libgfx/host-tools/convbdf
 libgfx/host-tools/convflashbmp
 libgfx/host-tools/tags
