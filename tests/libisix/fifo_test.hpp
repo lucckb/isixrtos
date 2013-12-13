@@ -39,11 +39,15 @@ public:
 	void run() {
 		base_tests();
 		insert_overflow();
+		interrupt_test();
+			//Namespace for timer ;
 	}
 	//Base tests from external task 
 	void base_tests();
 	//Insert overflow test
 	void insert_overflow();
+	//Added operation for testing sem from interrupts
+	void interrupt_test();
 private:
 	QUnit::UnitTest &qunit;
 };

@@ -20,17 +20,15 @@
 #include "semaphore_test.hpp"
 #include "qunit.hpp"
 #include <isix.h>
-#include <stm32system.h>
-#include <stm32tim.h>
-#include <stm32rcc.h>
+#include "timer_interrupt.hpp"
+
+/* ------------------------------------------------------------------ */
+
 namespace tests {
 
 /* ------------------------------------------------------------------ */
+//Global private namespace
 namespace {
-	//Isix interrupt semaphore
-	isix::semaphore sem_irq( 0, 0 );
-	isix::semaphore sem_irq_get( 0, 0 );
-	int irq_get_isr_nposts = 0;
 	constexpr auto N_TEST_POSTS = 25;
 }
 
@@ -97,51 +95,21 @@ namespace {
 /* ------------------------------------------------------------------ */
 }	// Unnamed namespace end
 
-namespace {
-
 /* ------------------------------------------------------------------ */
-//! Interrupt FPU context on the lower possible level
-void enable_irq_timers() 
+void semaphores::isr_test_handler() 
 {
-    using namespace stm32;
-    rcc_apb1_periph_clock_cmd( RCC_APB1Periph_TIM3, true );
-    nvic_set_priority( TIM3_IRQn , 1, 1 );
-    tim_timebase_init( TIM3, 0, TIM_CounterMode_Up, 65535, 0, 0 );
-    tim_it_config( TIM3, TIM_IT_Update, true );
-    tim_cmd( TIM3, true );
-    nvic_irq_enable( TIM3_IRQn, true );
-}
-
-/* ------------------------------------------------------------------ */
-//! Disable IRQ timers
-void disable_irq_timers() {
-	using namespace stm32;
-	//Disable IRQ timers
-    tim_it_config( TIM3, TIM_IT_Update, false);
-    nvic_irq_enable( TIM3_IRQn, false);
-}
-/* ------------------------------------------------------------------ */
- //Interrrupt handlers
-extern "C" {
-    //TIM3 base initial IRQ
-	void __attribute__((interrupt)) tim3_isr_vector() 
-	{
-		//Post IRQ sem five times
-		static int test_count = 0;
-		stm32::tim_clear_it_pending_bit( TIM3, TIM_IT_Update );
-		if( test_count++ < N_TEST_POSTS ) {
-        	sem_irq.signal_isr();
-		} else {
-			disable_irq_timers();
-			while( sem_irq_get.get_isr() == isix::ISIX_EOK ) {
-				++irq_get_isr_nposts;
-			}
+	//Post IRQ sem five times
+	static volatile int test_count = 0;
+	if( test_count++ < N_TEST_POSTS ) {
+		m_sem_irq.signal_isr();
+	} else {
+		while( m_sem_irq_get.get_isr() == isix::ISIX_EOK ) {
+			++irq_get_isr_nposts;
 		}
-    }
+		detail::periodic_timer_stop();
+	}
 }
 
-/* ------------------------------------------------------------------ */
-} 	//
 /* ------------------------------------------------------------------ */
 //Create timing semaphore test
 void semaphores::semaphore_time_test() 
@@ -191,13 +159,15 @@ void semaphores::semaphore_prio_tests()
 void semaphores::from_interrupt() {
 	//First push 5 items 
 	for( int i = 0; i < N_TEST_POSTS; ++i ) { 
-		sem_irq_get.signal();
+		m_sem_irq_get.signal();
 	}
-	enable_irq_timers();
+	detail::periodic_timer_setup(
+			std::bind( &semaphores::isr_test_handler, std::ref(*this)), 65535
+	);
 	int ret;
 	//Do loop waits for irq
 	int n_signals;
-	for(n_signals=0; (ret=sem_irq.wait(1000)) == isix::ISIX_EOK; ++n_signals );
+	for(n_signals=0; (ret=m_sem_irq.wait(1000)) == isix::ISIX_EOK; ++n_signals );
 	//Check the result
 	QUNIT_IS_EQUAL( ret, isix::ISIX_ETIMEOUT );
 	QUNIT_IS_EQUAL( n_signals, N_TEST_POSTS );

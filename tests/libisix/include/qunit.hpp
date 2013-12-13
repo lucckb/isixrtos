@@ -56,8 +56,8 @@ namespace detail {
     static inline void convert( std::string &str, char* buf, size_t s) {
         std::strncpy( buf, str.c_str(), s );
     }
-	static inline void convert( char ch, char* buf, size_t s) {
-        std::strncpy( buf, &ch, s );
+	static inline void convert( char ch, char* buf, size_t ) {
+        *buf = ch;
     }
 
 }}

@@ -19,6 +19,7 @@
 #ifndef  semaphore_test_INC
 #define  semaphore_test_INC
 
+#include <isix.h>
 
 /* ------------------------------------------------------------------ */
 namespace QUnit {
@@ -44,9 +45,14 @@ public:
 private:
 	void semaphore_prio_tests();
 	void semaphore_time_test();
+	void isr_test_handler();
 	//Semaphore from interrupts
 	void from_interrupt();
 private:
+	//Isix interrupt semaphore
+	isix::semaphore m_sem_irq { 0, 0 };
+	isix::semaphore m_sem_irq_get { 0, 0 };
+	volatile int irq_get_isr_nposts = 0;
 	QUnit::UnitTest& qunit;
 };
 

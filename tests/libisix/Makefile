@@ -19,7 +19,7 @@ MCU_MINOR_TYPE = 17VGT6
 #MCU_MINOR_TYPE = 17VG
 
 #System stack size interrupts etc
-MCU_SYSTEM_STACK_SIZE = 512
+MCU_SYSTEM_STACK_SIZE = 1024
 
 #Enable exceptions support
 CPP_EXCEPTIONS = y
