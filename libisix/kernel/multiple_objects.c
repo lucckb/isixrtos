@@ -6,9 +6,6 @@
  */
 
 /*--------------------------------------------------------------*/
-#ifdef ISIX_CONFIG_USE_MULTIOBJECTS	//If timers are enabled
-
-/*--------------------------------------------------------------*/
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/semaphore.h>
@@ -20,6 +17,10 @@
 #include <isix/error.h>
 #include <prv/multiple_objects.h>
 /*--------------------------------------------------------------*/
+#if ISIX_CONFIG_USE_MULTIOBJECTS == ISIX_ON
+
+/*--------------------------------------------------------------*/
+
 #ifndef ISIX_DEBUG_MULTIOBJECTS
 #define ISIX_DEBUG_MULTIOBJECTS ISIX_DBG_OFF
 #endif
@@ -31,7 +32,6 @@
 #undef isix_printk
 #define isix_printk(...) do {} while(0)
 #endif
-
 
 
 /*--------------------------------------------------------------*/
@@ -198,9 +198,5 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 	return retval;
 }
 /*--------------------------------------------------------------*/
-#else
-
-//NOTE: avoid warning iso C forbid empty translation unit
-static inline void ixixp_multiple_objects_init( void ) {}
 
 #endif /* ISIX_CONFIG_USE_MULTIOBJECTS */

@@ -9,12 +9,12 @@
 #ifndef ISIX_PRV_MULTIPLE_OBJECTS_H_
 #define ISIX_PRV_MULTIPLE_OBJECTS_H_
 /*--------------------------------------------------------------*/
-
-#ifdef ISIX_CONFIG_USE_MULTIOBJECTS	//If multiobjects enable
-
-/*--------------------------------------------------------------*/
+#include <isix/config.h>
 #include <isix/types.h>
 #include <isix/scheduler.h>
+/*--------------------------------------------------------------*/
+
+#if ISIX_CONFIG_USE_MULTIOBJECTS == ISIX_ON
 
 /*--------------------------------------------------------------*/
 struct multiple_obj

@@ -103,7 +103,7 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     return (isix_current_task->state&TASK_SEM_WKUP)?ISIX_EOK:ISIX_ETIMEOUT;
 }
 /*--------------------------------------------------------------*/
-#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
+#if ISIX_CONFIG_USE_MULTIOBJECTS == ISIX_ON
 //Wakeup from iterate over muliple objects
 static int isixp_wakeup_multiple( task_t *task_wake )
 {
@@ -148,7 +148,7 @@ int isixp_sem_signal( sem_t *sem, bool isr )
         	}
         }
         isix_printk("Waiting list is empty incval to %d",sem->value);
-#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
+#if ISIX_CONFIG_USE_MULTIOBJECTS == ISIX_ON 
         //Only for multiple objs
         {
           int ret = isixp_wakeup_multiple_waiting_tasks( sem, isixp_wakeup_multiple );
