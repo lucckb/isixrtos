@@ -76,6 +76,14 @@ int isix_set_task_private_data( task_t *task, void *data );
 void* isix_get_task_private_data( task_t *task );
 
 /*-----------------------------------------------------------------------*/
+/**
+ *	Isix get task priority utility function
+ *	@param[in] task Task control object
+ *	@return current task priority
+ */
+ prio_t isix_get_task_priority( const task_t* task );
+
+/*-----------------------------------------------------------------------*/
 /** Check of the available stack space
  * @param[in] task Task control block
  * @return Size of the number of bytes used by the task/thread

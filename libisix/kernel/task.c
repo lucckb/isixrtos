@@ -185,7 +185,7 @@ int isix_set_task_private_data( task_t *task, void *data )
 /*-----------------------------------------------------------------------*/
 //Delete task pointed by struct task
 int isix_task_delete(task_t *task)
-{
+ {
     isixp_enter_critical();
     task_t *taskd = task?task:isix_current_task;
     isix_printk("Task: %08x(SP %08x) to delete",task,taskd->init_stack);
@@ -235,7 +235,7 @@ int isix_task_delete(task_t *task)
 /*-----------------------------------------------------------------------*/
 //Get current thread handler
 task_t * isix_task_self(void)
-{
+ {
     task_t *t = isix_current_task;
     return t;
 }
@@ -261,4 +261,15 @@ size_t isix_free_stack_space(const task_t *task)
 	return usage;
 }
 #endif
+/*-----------------------------------------------------------------------*/
+/**
+ *	Isix get task priority utility function
+ *	@return none 
+ */
+/*-----------------------------------------------------------------------*/
+prio_t isix_get_task_priority( const task_t* task )
+{
+	const task_t *taskd = task?task:isix_current_task;
+	return taskd->prio;
+}
 /*-----------------------------------------------------------------------*/
