@@ -96,6 +96,23 @@ namespace {
 	};
 }
 
+//Unnamend namespace
+namespace {
+
+	//Verify incremental context
+	template <typename T> 
+		bool verify_values( const std::vector<T>& vec, int scnt ) 
+		{
+			for( auto v : vec ) {
+				if( v != scnt ) {
+					dbprintf("Failed at  %i!=%i", v, scnt );
+					return false;
+				}
+				++scnt;
+			}
+			return true;
+		}
+}
 //Base tests from external task 
 void fifo_test::base_tests() 
 {
@@ -162,6 +179,36 @@ void fifo_test::interrupt_handler() noexcept
 	}
 }
 
+//Interrupt pop_isr test
+void fifo_test::interrupt_pop_isr( std::vector<int>& back ) noexcept 
+{
+	int elem { -1 };
+	if( m_irqf.pop_isr( elem ) == isix::ISIX_EOK ) {
+		back.push_back( elem );
+	}
+}
+
+//Pop isr test
+void fifo_test::pop_isr_test( uint16_t timer_val ) 
+{
+	std::vector<int> back_vect;
+	detail::periodic_timer_setup( 
+		std::bind( &fifo_test::interrupt_pop_isr, std::ref(*this),
+			std::ref(back_vect) ), timer_val
+	);
+	static constexpr int test_val = 1280;
+	int error;
+	for(int p = 0; p < IRQ_QTEST_SIZE; ++p ) {
+		error = m_irqf.push( p + test_val );	
+		if( error ) break;
+	}
+	QUNIT_IS_EQUAL( error, isix::ISIX_EOK );
+	isix::isix_wait_ms( 100 );
+	QUNIT_IS_EQUAL( back_vect.size(), IRQ_QTEST_SIZE );
+	QUNIT_IS_TRUE( verify_values( back_vect, test_val ) );
+}
+
+	
 //Added operation for testing sem from interrupts
 void fifo_test::delivery_test( uint16_t time_irq ) 
 {
@@ -183,19 +230,9 @@ void fifo_test::delivery_test( uint16_t time_irq )
 	QUNIT_IS_EQUAL( ret, isix::ISIX_ETIMEOUT );
 	QUNIT_IS_EQUAL( m_irqf.size(), 0 );
  
-	bool vector_failed {};
-	int scnt { 1 };
-	for( auto v : test_vec ) {
-		if( v != scnt ) {
-			vector_failed = true;
-			dbprintf("Failed at  %i!=%i", v, scnt );
-			break;
-		}
-		++scnt;
-	} 
 	//Final parameter check
 	QUNIT_IS_EQUAL( test_vec.size(), IRQ_QTEST_SIZE );
-	QUNIT_IS_FALSE( vector_failed );
+	QUNIT_IS_TRUE( verify_values( test_vec, 1 ) );
 	QUNIT_IS_EQUAL( m_last_irq_err, isix::ISIX_EOK );
 		detail::periodic_timer_stop();
 	if( time_irq != NOT_FROM_IRQ ) {

@@ -21,6 +21,7 @@
 #define  fifo_test_INC
 
 #include <isix.h>
+#include <vector>
 
 namespace QUnit {
 	class UnitTest;
@@ -47,6 +48,7 @@ public:
 		delivery_test( 65535 );
 		delivery_test( 1 );
 		delivery_test( NOT_FROM_IRQ );
+		pop_isr_test( 65535 );
 	}
 	//Base tests from external task 
 	void base_tests();
@@ -54,8 +56,12 @@ public:
 	void insert_overflow();
 	//Added operation for testing sem from interrupts
 	void delivery_test( uint16_t time_irq ); 
+	//Pop isr test
+	void pop_isr_test( uint16_t timer_val );
 	//Interrupt handler
 	void interrupt_handler() noexcept;
+	//Interrupt pop_isr test
+	void interrupt_pop_isr( std::vector<int>& back ) noexcept;
 private:
 	QUnit::UnitTest &qunit;
 	isix::fifo<int> m_irqf { IRQ_QTEST_SIZE/2 };
