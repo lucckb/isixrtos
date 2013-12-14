@@ -25,7 +25,7 @@ namespace detail {
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
-	static constexpr auto STACK_SIZE = 4096;
+	static constexpr auto STACK_SIZE = 4192;
     static constexpr auto TASKDEF_PRIORITY = 0;
 	QUnit::UnitTest qunit {QUnit::verbose };
 	tests::semaphores sem_test { qunit };
@@ -45,8 +45,8 @@ class unit_tests : public isix::task_base
     virtual void main() 
 	{
 			heap_test();
-			//sem_test.run();
-			//task_test.run();	
+			sem_test.run();
+			task_test.run();	
 			fifo_test.run();
 			isix::isix_wait_ms(10);
 			isix::isix_shutdown_scheduler();
