@@ -31,8 +31,11 @@ namespace tests {
 // Basic class functionality test
 class fifo_test {
 	static constexpr auto TASKDEF_PRIORITY=0;
-	static constexpr auto IRQ_QTEST_SIZE = 64;
+	static constexpr auto NOT_FROM_IRQ=0;
 public:
+	//Default qtest size
+	static constexpr auto IRQ_QTEST_SIZE = 64;
+	//Constructor
 	fifo_test( QUnit::UnitTest& unit_test )
 	: qunit( unit_test )
 	{}
@@ -41,18 +44,18 @@ public:
 	void run() {
 		base_tests();
 		insert_overflow();
-		interrupt_test();
+		delivery_test( 65535 );
+		delivery_test( 1 );
+		delivery_test( NOT_FROM_IRQ );
 	}
 	//Base tests from external task 
 	void base_tests();
 	//Insert overflow test
 	void insert_overflow();
 	//Added operation for testing sem from interrupts
-	void interrupt_test();
+	void delivery_test( uint16_t time_irq ); 
 	//Interrupt handler
 	void interrupt_handler() noexcept;
-	//Interrupt overflow
-	void interrupt_overflow() noexcept;
 private:
 	QUnit::UnitTest &qunit;
 	isix::fifo<int> m_irqf { IRQ_QTEST_SIZE/2 };

@@ -57,7 +57,45 @@ namespace {
 
 }	//Unnamed namespace end
 
+
+//Delivery class task
+namespace {
 	
+	//Overflow task for testing the push
+	class overflow_task : public isix::task_base 
+	{
+	static constexpr auto STACK_SIZE = 1024;
+	public:
+		//Number of items per task
+		static constexpr auto N_ITEMS = 4;
+		//Constructor
+		overflow_task( isix::prio_t prio, isix::fifo<int> &fifo ) 
+			: task_base( STACK_SIZE, prio ), m_fifo( fifo )
+		{
+		}
+		//Destructor
+		virtual ~overflow_task() {}
+		//Error code
+		int error() const {
+			return m_error;
+		}
+	protected:
+		//Main function from another task
+		virtual void main() 
+		{
+			for( int i=0; i < fifo_test::IRQ_QTEST_SIZE; ++i ) {
+				m_error = m_fifo.push(i+1);
+				if( m_error != isix::ISIX_EOK ) {
+					break;
+				}
+			}
+		}
+	private:
+		isix::fifo<int> &m_fifo;
+		int m_error { -32768 };
+	};
+}
+
 //Base tests from external task 
 void fifo_test::base_tests() 
 {
@@ -125,14 +163,20 @@ void fifo_test::interrupt_handler() noexcept
 }
 
 //Added operation for testing sem from interrupts
-void fifo_test::interrupt_test() 
+void fifo_test::delivery_test( uint16_t time_irq ) 
 {
-	m_irq_cnt = 0;
-	std::vector<int> test_vec;
-	detail::periodic_timer_setup(
-		std::bind( &fifo_test::interrupt_handler, std::ref(*this) ), 65535
-	);
+	dbprintf("Begin delivery test value [%i]", time_irq );
+	overflow_task* task {};
+	if( time_irq != NOT_FROM_IRQ ) {
+		m_irq_cnt = 0;
+		detail::periodic_timer_setup(
+			std::bind( &fifo_test::interrupt_handler, std::ref(*this) ), 65535
+		);
+	} else {
+		task = new overflow_task( isix::isix_get_task_priority(nullptr), m_irqf );
+	}
 	int val; int ret;
+	std::vector<int> test_vec;
 	for( int n=0; (ret=m_irqf.pop(val, 1000)) == isix::ISIX_EOK; ++n ) {
 		test_vec.push_back( val );
 	}
@@ -141,9 +185,6 @@ void fifo_test::interrupt_test()
  
 	bool vector_failed {};
 	int scnt { 1 };
-	for( auto v: test_vec ){
-		dbprintf("->%i", v );
-	}
 	for( auto v : test_vec ) {
 		if( v != scnt ) {
 			vector_failed = true;
@@ -152,10 +193,17 @@ void fifo_test::interrupt_test()
 		}
 		++scnt;
 	} 
+	//Final parameter check
 	QUNIT_IS_EQUAL( test_vec.size(), IRQ_QTEST_SIZE );
 	QUNIT_IS_FALSE( vector_failed );
 	QUNIT_IS_EQUAL( m_last_irq_err, isix::ISIX_EOK );
-	detail::periodic_timer_stop();
+		detail::periodic_timer_stop();
+	if( time_irq != NOT_FROM_IRQ ) {
+		detail::periodic_timer_stop();
+	} else {
+		//TODO: Fixme delete crap related to free resources
+	//	delete task;
+	}
 }
 
 }//Test Ns end
