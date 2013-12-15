@@ -5,6 +5,8 @@
 #include <foundation/dbglog.h>
 #include <qunit.hpp>
 #include <string>
+//Temporary only
+#include <asm/atomic_locks.h>
 #include <stm32crashinfo.h>
 #include "semaphore_test.hpp"
 #include "task_tests.hpp"
