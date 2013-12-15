@@ -8,7 +8,7 @@ namespace isix {
 
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
-static const unsigned ISIX_PORT_SCHED_MIN_STACK_DEPTH = 112 + 16*sizeof(long);
+static const unsigned ISIX_PORT_SCHED_MIN_STACK_DEPTH = 112 + 32*sizeof(long);
 #else
 //Minimum stack depth
 #define ISIX_PORT_SCHED_MIN_STACK_DEPTH (112+32*sizeof(long))
