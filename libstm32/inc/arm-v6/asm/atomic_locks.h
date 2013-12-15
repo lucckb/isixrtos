@@ -36,10 +36,20 @@ typedef struct
 {
 	long value;
 }	sys_atomic_sem_lock_t;
+
+/*--------------------------------------------------------------*/
+/** Initialize sem locking primitive 
+ * @param [out] lock Lock object
+ * @param [in] value Initial semaphore value 
+ */
+static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, long value )
+{
+	lock->value = value;
+}
 /*--------------------------------------------------------------*/
 /** Function try wait on the spinlock semaphore 
- * @param sem Semaphore primitive object
- * @return return false if lock failed or positive sem value
+ * @param sem[out] Semaphore primitive object
+ * @return false if lock failed or positive sem value
  * if semafory is successfuly obtained
  */
 static inline int sys_atomic_try_sem_dec( sys_atomic_sem_lock_t* lock )
@@ -65,7 +75,7 @@ static inline int sys_atomic_try_sem_dec( sys_atomic_sem_lock_t* lock )
 /*--------------------------------------------------------------*/
 /**
  * Function signal the semaphore
- * @param sem Semaphore primitive object
+ * @param [out] sem Semaphore primitive object
  */
 static inline int sys_atomic_try_sem_inc( sys_atomic_sem_lock_t* lock )
 {	
@@ -86,6 +96,10 @@ static inline int sys_atomic_try_sem_inc( sys_atomic_sem_lock_t* lock )
 	return val;
 }
 /*--------------------------------------------------------------*/
+/**
+ * Clear all exclusive locks
+ * @note It should be called during context switching
+ */
 static inline void sys_atomic_clear_locks(void)
 {
 	asm volatile("clrex\n");
