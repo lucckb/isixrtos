@@ -161,7 +161,7 @@ static inline uint8_t sys_atomic_read_uint8_t( const volatile uint8_t *addr )
 	   "strexb %[lock],%[ret],[%[addr]]\n"
 	   "teq %[lock],#0\n"
 	   "bne 1b\n"
-		: [ret]"+&r"(ret), [lock]"=&r"(lock)
+		: [ret]"=&r"(ret), [lock]"=&r"(lock)
 		: [addr]"r"(addr)
 		: "cc", "memory"
 	);
@@ -207,7 +207,7 @@ static inline uint32_t sys_atomic_read_uint32_t( const volatile uint32_t *addr )
 	   "strex %[lock],%[ret],[%[addr]]\n"
 	   "teq %[lock],#0\n"
 	   "bne 1b\n"
-		: [ret]"+&r"(ret), [lock]"=&r"(lock)
+		: [ret]"=&r"(ret), [lock]"=&r"(lock)
 		: [addr]"r"(addr)
 		: "cc", "memory"
 	);
@@ -273,7 +273,7 @@ static inline uint16_t sys_atomic_read_uint16_t( const volatile uint16_t *addr )
 	   "strexh %[lock],%[ret],[%[addr]]\n"
 	   "teq %[lock],#0\n"
 	   "bne 1b\n"
-		: [ret]"+&r"(ret), [lock]"=&r"(lock)
+		: [ret]"=&r"(ret), [lock]"=&r"(lock)
 		: [addr]"r"(addr)
 		: "cc", "memory"
 	);
