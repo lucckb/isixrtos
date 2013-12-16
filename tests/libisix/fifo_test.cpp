@@ -23,6 +23,7 @@
 #include <vector>
 #include <foundation/dbglog.h>
 #include "timer_interrupt.hpp" 
+#include <asm/atomic_ops.h>
 
 namespace tests {
 
