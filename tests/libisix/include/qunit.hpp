@@ -35,6 +35,9 @@ namespace detail {
 	static inline void convert(float value, char* buf, size_t) {
 		fnd::fnd_ftoa(value,buf,4);
 	}
+	static inline void convert(long value, char* buf, size_t) {
+		fnd::fnd_itoa(buf,value,1,'0');
+	}
 	static inline void convert(double value, char* buf, size_t) {
 		fnd::fnd_dtoa(value,buf,4);
 	}

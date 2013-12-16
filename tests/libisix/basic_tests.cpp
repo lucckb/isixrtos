@@ -5,12 +5,11 @@
 #include <foundation/dbglog.h>
 #include <qunit.hpp>
 #include <string>
-//Temporary only
 #include <stm32crashinfo.h>
 #include "semaphore_test.hpp"
 #include "task_tests.hpp"
 #include "fifo_test.hpp"
-
+#include "atomic_tests.hpp"
 /* ------------------------------------------------------------------ */
 namespace {
 namespace detail {
@@ -31,7 +30,8 @@ class unit_tests : public isix::task_base
 	QUnit::UnitTest qunit {QUnit::verbose };
 	tests::semaphores sem_test { qunit };
 	tests::task_tests task_test { qunit };
-	tests::fifo_test fifo_test{ qunit };
+	tests::fifo_test fifo_test { qunit };
+	tests::atomic_tests atomic_test { qunit };
 	//Test heap
 	void heap_test() {
 		auto ptr1 = isix::isix_alloc( 1 );
@@ -49,6 +49,7 @@ class unit_tests : public isix::task_base
 			sem_test.run();
 			task_test.run();	
 			fifo_test.run();
+			atomic_test.run();
 			isix::isix_wait_ms(10);
 			isix::isix_shutdown_scheduler();
 	}
