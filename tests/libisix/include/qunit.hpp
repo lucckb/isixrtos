@@ -38,6 +38,10 @@ namespace detail {
 	static inline void convert(long value, char* buf, size_t) {
 		fnd::fnd_itoa(buf,value,1,'0');
 	}
+
+	static inline void convert(unsigned long value, char* buf, size_t) {
+		fnd::fnd_uitoa(buf,value,1,'0',10);
+	}
 	static inline void convert(double value, char* buf, size_t) {
 		fnd::fnd_dtoa(value,buf,4);
 	}

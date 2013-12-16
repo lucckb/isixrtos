@@ -38,10 +38,19 @@ public:
 	//Run all tests
 	void run() {
 	atomic_sem_test( );	
+	atomic_access_8();
+	atomic_access_16();
+	atomic_access_32();
 	}
 private:
 	//Atomic semaphore primitives test
 	void atomic_sem_test( );
+	//Atomic access 8bit test
+	void atomic_access_8();
+	//Atomic access 16 bit test
+	void atomic_access_16();
+	//Atomic access 32 bit test
+	void atomic_access_32();
 private:
 	QUnit::UnitTest &qunit;
 };
