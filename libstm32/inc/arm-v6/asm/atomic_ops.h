@@ -20,12 +20,7 @@
 #ifndef  _ASM_ATOMIC_OPS_H
 #define  _ASM_ATOMIC_OPS_H
 /*--------------------------------------------------------------*/
-#include <stddef.h>
-
-/*--------------------------------------------------------------*/
-//! Temporary define address of
-#define address_of(ptr, type, member) \
-	(uintptr_t)(ptr) + offsetof(type,member)
+#include <stdint.h>
 /*--------------------------------------------------------------*/
 #ifdef __cplusplus
 namespace sys {
@@ -50,7 +45,7 @@ static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, long value 
 /** Function try wait on the spinlock semaphore 
  * @param sem[out] Semaphore primitive object
  * @return false if lock failed or positive sem value
- * if semafory is successfuly obtained
+ * if semafore is successfuly obtained
  */
 static inline int sys_atomic_try_sem_dec( sys_atomic_sem_lock_t* lock )
 {
@@ -59,15 +54,16 @@ static inline int sys_atomic_try_sem_dec( sys_atomic_sem_lock_t* lock )
 	(
 		"1: ldrex %[val], [%[lock_addr]]\n"
 		"cmp %[val], #0\n"
+		"it eq\n"
+		"clrexeq\n"
 		"beq 1f\n"
 		"sub %[val],#1\n"
 	    "strex %[exlck], %[val], [%[lock_addr]]\n"
 		"cmp %[exlck],#0\n"
 		"bne 1b\n"
 		"1: dmb\n"
-		: [lock_addr] "+r"( address_of(lock,sys_atomic_sem_lock_t,value) ),
-		  [exlck] "=&r"(exlck), [val]"+r"(val)
-		:
+		: [val]"=&r"(val), [exlck] "=&r"(exlck)
+		: [lock_addr] "r"(&lock->value)
 		: "cc", "memory"
 	);
 	return val;
@@ -88,9 +84,8 @@ static inline int sys_atomic_try_sem_inc( sys_atomic_sem_lock_t* lock )
 		"cmp %[exlck],#0\n"
 		"bne 1b\n"
 		"dmb\n"
-		: [lock_addr] "+r"( address_of(lock,sys_atomic_sem_lock_t,value) ),
-		  [exlck] "=&r"(exlck), [val]"+r"(val)
-		:
+		: [val]"=&r"(val), [exlck] "=&r"(exlck) 
+		: [lock_addr] "r"(&lock->value)
 		: "cc", "memory"
 	);
 	return val;
@@ -358,9 +353,6 @@ static inline long sys_atomic_try_write_int8_t( volatile int8_t *addr, int8_t va
 {
 	return sys_atomic_try_write_uint8_t( (volatile uint8_t*)addr, (uint8_t)val );
 }
-/*----------------------------------------------------------*/
-//Undefine addres off
-#undef address_of
 /*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
