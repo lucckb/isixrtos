@@ -35,18 +35,18 @@ void atomic_tests::atomic_sem_test( )
 	sys_atomic_sem_init( &sem , 1 );
 	//Basic aritmetic tests
 	QUNIT_IS_EQUAL( sem.value, 1 );
-	QUNIT_IS_EQUAL( sys_atomic_try_sem_inc( &sem ), 2 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &sem, 0 ), 2 );
 	QUNIT_IS_EQUAL( sem.value, 2 );
-	QUNIT_IS_EQUAL( sys_atomic_try_sem_inc( &sem ), 3 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &sem ,0 ), 3 );
 	QUNIT_IS_EQUAL( sem.value, 3 );
-	QUNIT_IS_EQUAL( sys_atomic_try_sem_dec( &sem ), 2 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 2 );
 	QUNIT_IS_EQUAL( sem.value, 2 );
-	sys_atomic_try_sem_dec( &sem );
+	sys_atomic_sem_dec( &sem );
 	QUNIT_IS_EQUAL( sem.value, 1 );
-	QUNIT_IS_EQUAL( sys_atomic_try_sem_dec( &sem ), 0 );
-	QUNIT_IS_EQUAL( sys_atomic_try_sem_dec( &sem ), 0 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 0 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 0 );
 	QUNIT_IS_EQUAL( sem.value, 0 );
-	QUNIT_IS_EQUAL( sys_atomic_try_sem_dec( &sem ), 0 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 0 );
 	QUNIT_IS_EQUAL( sem.value, 0 );
 }
 
