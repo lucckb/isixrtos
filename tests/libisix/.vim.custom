@@ -1,0 +1,1 @@
+set path=.,/usr/include,include/,../isixrtos/libisix/include/,../isixrtos/libisix/include/prv/,../isixrtos/libstm32/inc/,../isixrtos/libfoundation/include/,../isixrtos/libstm32/inc/arm-v6/
