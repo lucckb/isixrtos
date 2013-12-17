@@ -32,22 +32,37 @@ void atomic_tests::atomic_sem_test( )
 {
 	using namespace sys;
 	sys_atomic_sem_lock_t sem;
-	sys_atomic_sem_init( &sem , 1 );
+	sys_atomic_sem_init( &sem , 1, sys_atomic_unlimited_value );
 	//Basic aritmetic tests
 	QUNIT_IS_EQUAL( sem.value, 1 );
-	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &sem, 0 ), 2 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &sem ), 2 );
 	QUNIT_IS_EQUAL( sem.value, 2 );
-	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &sem ,0 ), 3 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &sem ), 3 );
 	QUNIT_IS_EQUAL( sem.value, 3 );
-	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 2 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 3 );
 	QUNIT_IS_EQUAL( sem.value, 2 );
 	sys_atomic_sem_dec( &sem );
 	QUNIT_IS_EQUAL( sem.value, 1 );
-	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 0 );
-	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 0 );
-	QUNIT_IS_EQUAL( sem.value, 0 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 1 );
 	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 0 );
 	QUNIT_IS_EQUAL( sem.value, 0 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &sem ), 0 );
+	QUNIT_IS_EQUAL( sem.value, 0 );
+	//Testing for upper limit value
+	sys_atomic_sem_lock_t lsem;
+	sys_atomic_sem_init( &lsem, 0, 3 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &lsem ), 1 );
+	QUNIT_IS_EQUAL( lsem.value, 1 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &lsem ), 2 );
+	QUNIT_IS_EQUAL( lsem.value, 2 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &lsem ), 3 );
+	QUNIT_IS_EQUAL( lsem.value, 3 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &lsem ), 3 );
+	QUNIT_IS_EQUAL( lsem.value, 3 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_inc( &lsem ), 3 );
+	QUNIT_IS_EQUAL( lsem.value, 3 );
+	QUNIT_IS_EQUAL( sys_atomic_sem_dec( &lsem ), 3 );
+	QUNIT_IS_EQUAL( lsem.value, 2 );
 }
 
 //Atomic access 8bit test

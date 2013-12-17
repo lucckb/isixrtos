@@ -45,13 +45,14 @@ class unit_tests : public isix::task_base
 	//Test basic tasks
     virtual void main() 
 	{
-			heap_test();
-			sem_test.run();
-			task_test.run();	
-			fifo_test.run();
-			atomic_test.run();
-			isix::isix_wait_ms(10);
-			isix::isix_shutdown_scheduler();
+		heap_test();
+		atomic_test.run();
+//		return ; //FIXME: Disable temporary nexts
+		sem_test.run();
+		task_test.run();	
+		fifo_test.run();
+		isix::isix_wait_ms(10);
+		isix::isix_shutdown_scheduler();
 	}
 	public:
 		unit_tests()
