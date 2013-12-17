@@ -31,8 +31,8 @@ typedef sys_atomic_sem_lock_t _port_atomic_t;
  * @param [out] lock Lock object
  * @param [in] value Initial semaphore value 
  */
-static inline void port_atomic_sem_init( _port_atomic_t* lock, long value ) {
-	sys_atomic_sem_init( lock, value );
+static inline void port_atomic_sem_init( _port_atomic_t* lock, int value , int limit ) {
+	sys_atomic_sem_init( lock, value, limit );
 }
 
 /*--------------------------------------------------------------*/
@@ -53,8 +53,8 @@ static inline int port_atomic_sem_dec( _port_atomic_t* lock ) {
  * Function signal the semaphore
  * @param [out] sem Semaphore primitive object
  */
-static inline int port_atomic_sem_inc( _port_atomic_t* lock, int maxval ) {
-	return sys_atomic_sem_inc( lock , maxval );
+static inline int port_atomic_sem_inc( _port_atomic_t* lock ) {
+	return sys_atomic_sem_inc( lock );
 }
 
 /*--------------------------------------------------------------*/

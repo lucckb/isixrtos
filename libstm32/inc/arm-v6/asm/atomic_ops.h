@@ -30,16 +30,23 @@ namespace sys {
 typedef struct 
 {
 	int32_t value;
+	int32_t limit;
 }	sys_atomic_sem_lock_t;
 
+/*--------------------------------------------------------------*/
+//! Unlimited value for semaphoe implementation
+enum sys_atomic_const_e {
+	sys_atomic_unlimited_value = 0
+};
 /*--------------------------------------------------------------*/
 /** Initialize sem locking primitive 
  * @param [out] lock Lock object
  * @param [in] value Initial semaphore value 
  */
-static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, int value )
+static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, int value, int limit )
 {
 	lock->value = value;
+	lock->limit = limit;
 }
 /*--------------------------------------------------------------*/
 /** Function try wait on the spinlock semaphore 
@@ -49,10 +56,11 @@ static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, int value )
  */
 static inline int sys_atomic_sem_dec( sys_atomic_sem_lock_t* lock )
 {
-	long exlck, val;
+	int32_t exlck, val, ret;
 	asm volatile
 	(
 		"1: ldrex %[val], [%[lock_addr]]\n"
+		"mov %[ret], %[val]\n"
 		"cmp %[val], #0\n"
 		"it eq\n"
 		"clrexeq\n"
@@ -62,22 +70,23 @@ static inline int sys_atomic_sem_dec( sys_atomic_sem_lock_t* lock )
 		"cmp %[exlck],#0\n"
 		"bne 1b\n"
 		"1: dmb\n"
-		: [val]"=&r"(val), [exlck] "=&r"(exlck)
+		: [val]"=&r"(val), [exlck] "=&r"(exlck), [ret]"=&r"(ret)
 		: [lock_addr] "r"(&lock->value)
 		: "cc", "memory"
 	);
-	return val;
+	return ret;
 }
 
 /*--------------------------------------------------------------*/
 /**
  * Function signal the semaphore
- * @param [out] sem Semaphore primitive object
+ * @param [out] lock Semaphore primitive object
+ * @param [in] Maximum atomic value. If 0 or negative inc is inlimited
  */
 //TODO: Needs reimplementation and testing
-static inline int sys_atomic_sem_inc( sys_atomic_sem_lock_t* lock, int maxval )
+static inline int sys_atomic_sem_inc( sys_atomic_sem_lock_t* lock )
 {	
-	long exlck, val;
+	int32_t exlck, val;
 	asm volatile
 	(
 		"1: ldrex %[val], [%[lock_addr]]\n"
@@ -91,7 +100,7 @@ static inline int sys_atomic_sem_inc( sys_atomic_sem_lock_t* lock, int maxval )
 		"bne 1b\n"
 		"dmb\n"
 		: [val]"=&r"(val), [exlck] "=&r"(exlck) 
-		: [lock_addr] "r"(&lock->value), [maxval]"r"(maxval)
+		: [lock_addr] "r"(&lock->value), [maxval]"r"(lock->limit)
 		: "cc", "memory"
 	);
 	return val;
@@ -385,6 +394,14 @@ static inline int sys_atomic_sem_read_val( sys_atomic_sem_lock_t* lock )
  */
 static inline int sys_atomic_sem_write_val( sys_atomic_sem_lock_t* lock, int val )
 {
+	if( lock->limit > 0 ) {
+		if( val > lock->limit ) {
+			val = lock->limit;
+		}
+	}
+	if( val < 0 ) {
+		val = 0;
+	}
 	return sys_atomic_write_int32_t( &lock->value, val );
 }
 /*----------------------------------------------------------*/

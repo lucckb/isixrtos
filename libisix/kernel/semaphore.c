@@ -37,9 +37,8 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
     }
     memset(sem,0,sizeof(sem_t));
     sem->static_mem = static_mem;
-	port_atomic_sem_init(&sem->value, val );
-    sem->limit_value = limit_val;
-    //Set sem type
+	port_atomic_sem_init(&sem->value, val, limit_val );
+	//Set sem type
     sem->type = IHANDLE_T_SEM;
     list_init(&sem->sem_task);
     isix_printk("Create sem %08x val %d",sem,sem->value);
@@ -135,7 +134,7 @@ int isixp_sem_signal( sem_t *sem, bool isr )
     }
 	//If one need increment
 	//TODO: Fix this
-	if( port_atomic_sem_inc( &sem->value, sem->limit_value ) != 1 )
+	if( port_atomic_sem_inc( &sem->value ) > 1 )
     {
         isix_printk("Waiting list is empty incval to %d",sem->value);
 #if ISIX_CONFIG_USE_MULTIOBJECTS == ISIX_ON 
@@ -161,10 +160,12 @@ int isixp_sem_signal( sem_t *sem, bool isr )
     }
 	else 
 	{
-		isixp_exit_critical();
+		isixp_enter_critical();
         if( list_isempty(&sem->sem_task) )
 		{
-			isix_bug( "Semaphore task not empty" );
+			//TODO: Add 31 bit as notify check list will not be required
+			isixp_exit_critical();
+			return ISIX_EOK;
 		}
 		//List is not empty wakeup high priority task
 		task_t *task_wake = list_get_first(&sem->sem_task,inode_sem,task_t);
@@ -233,14 +234,6 @@ int isix_sem_setval(sem_t *sem, int val)
     {
         isixp_exit_critical();
         return ISIX_EBUSY;
-    }
-    if(sem->limit_value > ISIX_SEM_ULIMITED)
-    {
-         if( val > sem->limit_value )
-         {
-           isix_printk("Limit value to %d",val);
-           val  = sem->limit_value;
-         }
     }
     port_atomic_sem_write_val( &sem->value, val );
     isixp_exit_critical();

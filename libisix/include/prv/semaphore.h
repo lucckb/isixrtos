@@ -23,8 +23,6 @@ struct sem_struct
     list_entry_t sem_task;
     //Resource type
     bool static_mem;
-    //Semaphore limit value
-    int limit_value;
 };
 
 /*--------------------------------------------------------------*/
