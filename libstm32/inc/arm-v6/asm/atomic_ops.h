@@ -29,7 +29,7 @@ namespace sys {
 //! Atomic type definition
 typedef struct 
 {
-	long value;
+	int32_t value;
 }	sys_atomic_sem_lock_t;
 
 /*--------------------------------------------------------------*/
@@ -37,7 +37,7 @@ typedef struct
  * @param [out] lock Lock object
  * @param [in] value Initial semaphore value 
  */
-static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, long value )
+static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, int value )
 {
 	lock->value = value;
 }
@@ -47,7 +47,7 @@ static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, long value 
  * @return false if lock failed or positive sem value
  * if semafore is successfuly obtained
  */
-static inline int sys_atomic_try_sem_dec( sys_atomic_sem_lock_t* lock )
+static inline int sys_atomic_sem_dec( sys_atomic_sem_lock_t* lock )
 {
 	long exlck, val;
 	asm volatile
@@ -68,24 +68,30 @@ static inline int sys_atomic_try_sem_dec( sys_atomic_sem_lock_t* lock )
 	);
 	return val;
 }
+
 /*--------------------------------------------------------------*/
 /**
  * Function signal the semaphore
  * @param [out] sem Semaphore primitive object
  */
-static inline int sys_atomic_try_sem_inc( sys_atomic_sem_lock_t* lock )
+//TODO: Needs reimplementation and testing
+static inline int sys_atomic_sem_inc( sys_atomic_sem_lock_t* lock, int maxval )
 {	
 	long exlck, val;
 	asm volatile
 	(
 		"1: ldrex %[val], [%[lock_addr]]\n"
 		"add %[val], #1\n"
+		"cmp %[maxval], #0\n"
+		"itt gt\n"
+		"cmpgt %[val], %[maxval]\n"
+		"movgt %[val], %[maxval]\n"
 	    "strex %[exlck], %[val], [%[lock_addr]]\n"
 		"cmp %[exlck],#0\n"
 		"bne 1b\n"
 		"dmb\n"
 		: [val]"=&r"(val), [exlck] "=&r"(exlck) 
-		: [lock_addr] "r"(&lock->value)
+		: [lock_addr] "r"(&lock->value), [maxval]"r"(maxval)
 		: "cc", "memory"
 	);
 	return val;
@@ -117,6 +123,7 @@ static inline uint8_t sys_atomic_write_uint8_t( volatile uint8_t *addr, uint8_t 
 	   "strexb %[lock],%[val],[%[addr]]\n"
 	   "teq %[lock],#0\n"
 	   "bne 1b\n"
+	   "dmb\n"
 		: [ret]"=&r"(ret), [lock]"=&r"(lock)
 		: [addr]"r"(addr), [val]"r"(val)
 		: "cc", "memory"
@@ -137,6 +144,7 @@ static inline long sys_atomic_try_write_uint8_t( volatile uint8_t *addr, uint8_t
 	(
 		"ldrexb %[lock],[%[addr]]\n"
 		"strexb %[lock],%[val],[%[addr]]\n"
+	    "dmb\n"
 		: [lock] "=&r"(lock)
 		: [addr] "r"(addr), [val] "r"(val)
 		: "cc", "memory"
@@ -161,6 +169,7 @@ static inline uint8_t sys_atomic_read_uint8_t( const volatile uint8_t *addr )
 	   "strexb %[lock],%[ret],[%[addr]]\n"
 	   "teq %[lock],#0\n"
 	   "bne 1b\n"
+	   "dmb\n"
 		: [ret]"=&r"(ret), [lock]"=&r"(lock)
 		: [addr]"r"(addr)
 		: "cc", "memory"
@@ -184,6 +193,7 @@ static inline uint32_t sys_atomic_write_uint32_t( volatile uint32_t *addr, uint3
 	   "strex %[lock],%[val],[%[addr]]\n"
 	   "teq %[lock],#0\n"
 	   "bne 1b\n"
+	   "dmb\n"
 		: [ret]"=&r"(ret), [lock]"=&r"(lock)
 		: [addr]"r"(addr), [val]"r"(val)
 		: "cc", "memory"
@@ -207,6 +217,7 @@ static inline uint32_t sys_atomic_read_uint32_t( const volatile uint32_t *addr )
 	   "strex %[lock],%[ret],[%[addr]]\n"
 	   "teq %[lock],#0\n"
 	   "bne 1b\n"
+	   "dmb\n"
 		: [ret]"=&r"(ret), [lock]"=&r"(lock)
 		: [addr]"r"(addr)
 		: "cc", "memory"
@@ -227,6 +238,7 @@ static inline long sys_atomic_try_write_uint32_t( volatile uint32_t *addr, uint3
 	(
 		"ldrex %[lock],[%[addr]]\n"
 		"strex %[lock],%[val],[%[addr]]\n"
+	    "dmb\n"
 		: [lock] "=&r"(lock)
 		: [addr] "r"(addr), [val] "r"(val)
 		: "cc", "memory"
@@ -250,6 +262,7 @@ static inline uint16_t sys_atomic_write_uint16_t( volatile uint16_t *addr, uint1
 	   "strexh %[lock],%[val],[%[addr]]\n"
 	   "teq %[lock],#0\n"
 	   "bne 1b\n"
+	   "dmb\n"
 		: [ret]"=&r"(ret), [lock]"=&r"(lock)
 		: [addr]"r"(addr), [val]"r"(val)
 		: "cc", "memory"
@@ -273,6 +286,7 @@ static inline uint16_t sys_atomic_read_uint16_t( const volatile uint16_t *addr )
 	   "strexh %[lock],%[ret],[%[addr]]\n"
 	   "teq %[lock],#0\n"
 	   "bne 1b\n"
+	   "dmb\n"
 		: [ret]"=&r"(ret), [lock]"=&r"(lock)
 		: [addr]"r"(addr)
 		: "cc", "memory"
@@ -293,6 +307,7 @@ static inline long sys_atomic_try_write_uint16_t( volatile uint16_t *addr, uint1
 	(
 		"ldrexh %[lock],[%[addr]]\n"
 		"strexh %[lock],%[val],[%[addr]]\n"
+	    "dmb\n"
 		: [lock] "=&r"(lock)
 		: [addr] "r"(addr), [val] "r"(val)
 		: "cc", "memory"
@@ -352,6 +367,25 @@ static inline int8_t sys_atomic_read_int8_t( const volatile int8_t *addr )
 static inline long sys_atomic_try_write_int8_t( volatile int8_t *addr, int8_t val )
 {
 	return sys_atomic_try_write_uint8_t( (volatile uint8_t*)addr, (uint8_t)val );
+}
+/*--------------------------------------------------------------*/
+/** Sys atomic read value 
+ * @param[in] lock Semaphore lock object
+ * @return readed value*/
+static inline int sys_atomic_sem_read_val( sys_atomic_sem_lock_t* lock ) 
+{
+	return sys_atomic_read_int32_t( &lock->value );
+}
+/*----------------------------------------------------------*/
+/**
+ * Sys atomic write value
+ * @param[in] lock Semaphore object input
+ * @param[in] val Input value
+ * @return Previous value
+ */
+static inline int sys_atomic_sem_write_val( sys_atomic_sem_lock_t* lock, int val )
+{
+	return sys_atomic_write_int32_t( &lock->value, val );
 }
 /*----------------------------------------------------------*/
 #ifdef __cplusplus

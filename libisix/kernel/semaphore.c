@@ -6,6 +6,7 @@
 #include <prv/semaphore.h>
 #include <string.h>
 #include <prv/multiple_objects.h>
+#include <isix/port_atomic.h>
 
 #ifndef ISIX_DEBUG_SEMAPHORE
 #define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
@@ -36,7 +37,7 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
     }
     memset(sem,0,sizeof(sem_t));
     sem->static_mem = static_mem;
-    sem->value = val;
+	port_atomic_sem_init(&sem->value, val );
     sem->limit_value = limit_val;
     //Set sem type
     sem->type = IHANDLE_T_SEM;
@@ -52,16 +53,14 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
 {
     //If nothing to to - exit
     if(sem==NULL && timeout==0) return ISIX_EINVARG;
-    //Lock scheduler
-    isixp_enter_critical();
     isix_printk("Operate on task %08x state %02x",isix_current_task,isix_current_task->state);
-    if(sem && sem->value>0)
+    if( sem && port_atomic_sem_dec( &sem->value ) > 0 )
     {
-        sem->value--;
-        isix_printk("Decrement value %d",sem->value);
-        isixp_exit_critical();
+        isix_printk("Decrement value %d",sem->value->value);
         return ISIX_EOK;
     }
+    //Lock scheduler
+    isixp_enter_critical();
     //If any task remove task from ready list
     if(timeout || sem)
     {
@@ -134,24 +133,17 @@ int isixp_sem_signal( sem_t *sem, bool isr )
         isix_printk("No sem");
         return ISIX_EINVARG;
     }
-
-    isixp_enter_critical();
-    if(list_isempty(&sem->sem_task)==true)
+	//If one need increment
+	//TODO: Fix this
+	if( port_atomic_sem_inc( &sem->value, sem->limit_value ) != 1 )
     {
-    	sem->value++;
-        if(sem->limit_value > ISIX_SEM_ULIMITED)
-        {
-        	if(sem->value > sem->limit_value)
-        	{
-        		isix_printk("Limit value to %d",sem->value);
-        		sem->value = sem->limit_value;
-        	}
-        }
         isix_printk("Waiting list is empty incval to %d",sem->value);
 #if ISIX_CONFIG_USE_MULTIOBJECTS == ISIX_ON 
         //Only for multiple objs
         {
-          int ret = isixp_wakeup_multiple_waiting_tasks( sem, isixp_wakeup_multiple );
+		  //TODO: Multiple object needs reimplementation
+          isixp_enter_critical();
+		  int ret = isixp_wakeup_multiple_waiting_tasks( sem, isixp_wakeup_multiple );
           if(ret>0)
           {
         	  if(ret<isix_current_task->prio && !isr)
@@ -165,49 +157,56 @@ int isixp_sem_signal( sem_t *sem, bool isr )
           else { isixp_exit_critical(); return ret; }
         }
 #endif
-        isixp_exit_critical();
         return ISIX_EOK;
     }
-    //List is not empty wakeup high priority task
-    task_t *task_wake = list_get_first(&sem->sem_task,inode_sem,task_t);
-    isix_printk("Task to wakeup %08x",task_wake);
-    //Remove from time list
-    if(task_wake->state & TASK_SLEEPING)
-    {
-        list_delete(&task_wake->inode);
-        task_wake->state &= ~TASK_SLEEPING;
-    }
-    //Task in waiting list is always in waking state
-    //Reschedule is needed wakeup task have higer prio then current prio
-    if(!task_wake->sem)
-    {
-    	isix_bug("Sem is empty");
-    }
-    if(task_wake->sem != sem)
-    {
-    	isix_bug("Task is not assigned to semaphore");
-    }
-    task_wake->state &= ~TASK_WAITING;
-    task_wake->state |= TASK_READY | TASK_SEM_WKUP;
-    task_wake->sem = NULL;
-    list_delete(&task_wake->inode_sem);
-    if(isixp_add_task_to_ready_list(task_wake)<0)
-    {
-        isixp_exit_critical();
-        return ISIX_ENOMEM;
-    }
-    if(task_wake->prio<isix_current_task->prio && !isr)
-    {
-        isix_printk("Yield processor higer prio");
-        isixp_exit_critical();
-        isix_yield();
-        return ISIX_EOK;
-    }
-    else
-    {
-        isixp_exit_critical();
-        return ISIX_EOK;
-    }
+	else 
+	{
+		isixp_exit_critical();
+        if( list_isempty(&sem->sem_task) )
+		{
+			isix_bug( "Semaphore task not empty" );
+		}
+		//List is not empty wakeup high priority task
+		task_t *task_wake = list_get_first(&sem->sem_task,inode_sem,task_t);
+		isix_printk("Task to wakeup %08x",task_wake);
+		//Remove from time list
+		if(task_wake->state & TASK_SLEEPING)
+		{
+			list_delete(&task_wake->inode);
+			task_wake->state &= ~TASK_SLEEPING;
+		}
+		//Task in waiting list is always in waking state
+		//Reschedule is needed wakeup task have higer prio then current prio
+		if(!task_wake->sem)
+		{
+			isix_bug("Sem is empty");
+		}
+		if(task_wake->sem != sem)
+		{
+			isix_bug("Task is not assigned to semaphore");
+		}
+		task_wake->state &= ~TASK_WAITING;
+		task_wake->state |= TASK_READY | TASK_SEM_WKUP;
+		task_wake->sem = NULL;
+		list_delete(&task_wake->inode_sem);
+		if(isixp_add_task_to_ready_list(task_wake)<0)
+		{
+			isixp_exit_critical();
+			return ISIX_ENOMEM;
+		}
+		if(task_wake->prio<isix_current_task->prio && !isr)
+		{
+			isix_printk("Yield processor higer prio");
+			isixp_exit_critical();
+			isix_yield();
+			return ISIX_EOK;
+		}
+		else
+		{
+			isixp_exit_critical();
+			return ISIX_EOK;
+		}
+	}
 }
 
 /*--------------------------------------------------------------*/
@@ -216,13 +215,10 @@ int isix_sem_get_isr(sem_t *sem)
 {
     if(!sem) return ISIX_EINVARG;
     int res = ISIX_EBUSY;
-    isixp_enter_critical();
-    if(sem && sem->value>0)
+    if( sem && port_atomic_sem_dec(&sem->value) ) 
     {
-        sem->value--;
         res = ISIX_EOK;
     }
-    isixp_exit_critical();
     return res;
 }
 
@@ -238,15 +234,15 @@ int isix_sem_setval(sem_t *sem, int val)
         isixp_exit_critical();
         return ISIX_EBUSY;
     }
-    sem->value = val;
     if(sem->limit_value > ISIX_SEM_ULIMITED)
     {
-         if(sem->value > sem->limit_value)
+         if( val > sem->limit_value )
          {
-           isix_printk("Limit value to %d",sem->value);
-           sem->value = sem->limit_value;
+           isix_printk("Limit value to %d",val);
+           val  = sem->limit_value;
          }
     }
+    port_atomic_sem_write_val( &sem->value, val );
     isixp_exit_critical();
     return ISIX_EOK;
 }
@@ -256,10 +252,7 @@ int isix_sem_setval(sem_t *sem, int val)
 int isix_sem_getval(sem_t *sem)
 {
     if(!sem) return ISIX_EINVARG;
-    isixp_enter_critical();
-    int v = sem->value;
-    isixp_exit_critical();
-    return v;
+    return port_atomic_sem_read_val( &sem->value );
 }
 
 /*--------------------------------------------------------------*/

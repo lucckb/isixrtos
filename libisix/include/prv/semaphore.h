@@ -3,7 +3,7 @@
 
 
 #include <prv/list.h>
-
+#include <isix/port_atomic.h>
 /*--------------------------------------------------------------*/
 enum ihandle_type
 {
@@ -18,7 +18,7 @@ struct sem_struct
 {
     enum ihandle_type type;
 	//Semaphore val
-    int value;
+  	_port_atomic_t value; 
     //Task val waiting for semaphore
     list_entry_t sem_task;
     //Resource type
