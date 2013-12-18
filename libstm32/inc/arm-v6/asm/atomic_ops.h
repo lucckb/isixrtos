@@ -51,7 +51,7 @@ static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, int value, 
 /*--------------------------------------------------------------*/
 /** Function try wait on the spinlock semaphore 
  * @param sem[out] Semaphore primitive object
- * @return false if lock failed or positive sem value
+ * @return non zero if application would block  
  * if semafore is successfuly obtained
  */
 static inline int sys_atomic_sem_dec( sys_atomic_sem_lock_t* lock )

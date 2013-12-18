@@ -167,6 +167,8 @@ int isixp_sem_signal( sem_t *sem, bool isr )
 			isixp_exit_critical();
 			return ISIX_EOK;
 		}
+		//Decrement again
+		port_atomic_sem_dec( &sem->value ); 
 		//List is not empty wakeup high priority task
 		task_t *task_wake = list_get_first(&sem->sem_task,inode_sem,task_t);
 		isix_printk("Task to wakeup %08x",task_wake);
