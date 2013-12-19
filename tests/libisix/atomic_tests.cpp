@@ -15,7 +15,8 @@
  *
  * =====================================================================================
  */
-#include <asm/atomic_ops.h>
+#include <asm/atomic_sem.h>
+#include <asm/atomic.h>
 #include "atomic_tests.hpp"
 #include "qunit.hpp"
 #include "timer_interrupt.hpp"
