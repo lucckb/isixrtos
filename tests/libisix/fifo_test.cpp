@@ -146,7 +146,7 @@ void fifo_test::insert_overflow()
 	 * Probably the reason is that the task have not been deleted yet but
 	 * sempaphore was deleted so race condition occurs
 	 */
-	isix::isix_wait_ms(10);
+	//isix::isix_wait_ms(10);
 	static constexpr auto FIFO_SIZE = 64;
 	isix::fifo<char> ovfifo( FIFO_SIZE );
 	QUNIT_IS_TRUE( ovfifo.is_valid() );
