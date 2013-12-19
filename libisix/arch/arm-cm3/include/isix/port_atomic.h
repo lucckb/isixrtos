@@ -20,11 +20,16 @@
 #ifndef  _ISIX_PORT_ATOMIC_H
 #define  _ISIX_PORT_ATOMIC_H
 
-#include <asm/atomic_ops.h>
-
+#include <asm/atomic_sem.h>
+#include <asm/atomic.h>
 /*--------------------------------------------------------------*/
 
+/*--------------------------------------------------------------*/
+//! Atomic semaphore type definition
 typedef sys_atomic_sem_lock_t _port_atomic_t;
+
+//! Atomic counter type
+typedef sys_atomic_t _port_atomic_int_t;
 
 /*--------------------------------------------------------------*/
 /** Initialize sem locking primitive 
@@ -70,7 +75,7 @@ static inline void port_atomic_clear_locks(void)
 /** Sys atomic read value 
  * @param[in] lock Semaphore lock object
  * @return readed value*/
-static inline long port_atomic_sem_read_val( sys_atomic_sem_lock_t* lock ) 
+static inline long port_atomic_sem_read_val( _port_atomic_t* lock ) 
 {
 	return sys_atomic_sem_read_val( lock );
 }
@@ -81,9 +86,29 @@ static inline long port_atomic_sem_read_val( sys_atomic_sem_lock_t* lock )
  * @param[in] val Input value
  * @return Previous value
  */
-static inline long port_atomic_sem_write_val( sys_atomic_sem_lock_t* lock, long val )
+static inline int port_atomic_sem_write_val( _port_atomic_t* lock, int val )
 {
 	return sys_atomic_sem_write_val( lock , val );
+}
+/*--------------------------------------------------------------*/
+/** 
+ *	Port atomic increment
+ *	@param[in] val Atomic type
+ *	@return returned value
+ */
+static inline int port_atomic_inc( _port_atomic_int_t* val ) 
+{
+	return sys_atomic_add_return( 1, val );
+}
+/*--------------------------------------------------------------*/
+/** 
+ *	Port atomic decrement
+ *	@param[in] val Atomic type
+ *	@return returned value
+ */
+static inline int port_atomic_dec( _port_atomic_int_t* val ) 
+{
+	return sys_atomic_sub_return( 1, val );
 }
 /*--------------------------------------------------------------*/
 #endif   /* ----- #ifndef port_atomic_INC  ----- */
