@@ -148,7 +148,9 @@ public:
 	//! Destruct the task/thread object
 	virtual ~task_base()
 	{
-		isix_task_delete(task_id);
+		if( task_id ) {
+			isix_task_delete(task_id);
+		}
 	}
 	/** Get thread task id
 	 * @return Task control object
@@ -167,6 +169,7 @@ private:
 		//FIXME: It should be fixed and replaced by another API
 		isix_wait_ms(10);
 		static_cast<task_base*>(ptr)->main();
+		static_cast<task_base*>(ptr)->task_id = NULL;
 	}
 private:
 	task_base(const task_base&);
