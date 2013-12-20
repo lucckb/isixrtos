@@ -133,6 +133,7 @@ public:
 	 */
 #ifdef WITH_ISIX_TCPIP_LIB
 	explicit task_base(std::size_t stack_depth, prio_t priority, bool tcpip=false)
+		__attribute__ ((deprecated("please use task class instead")))
 	{
 		if(tcpip)
 			task_id = isix_task_create_tcpip( start_task, this, stack_depth, priority );
@@ -141,6 +142,7 @@ public:
 	}
 #else
 	explicit task_base(std::size_t stack_depth, prio_t priority)
+		__attribute__ ((deprecated("please use task class instead")))
 	{
 		task_id = isix_task_create( start_task, this, stack_depth, priority );
 	}
@@ -166,7 +168,7 @@ protected:
 private:
 	static void start_task(void *ptr)
 	{
-		//FIXME: It should be fixed and replaced by another API
+		//FIXME: It should be replaced by task wrapper API
 		isix_wait_ms(10);
 		static_cast<task_base*>(ptr)->main();
 		static_cast<task_base*>(ptr)->task_id = NULL;
@@ -176,8 +178,57 @@ private:
 	task_base& operator=(const task_base&);
 private:
 	task_t *task_id;
-};
+}; 
 
+/*-----------------------------------------------------------------------*/
+//! C++ wrapper for task base new API
+template <class T> class task 
+{
+public:
+	/** Two versions of constructor create the task API */
+#ifdef WITH_ISIX_TCPIP_LIB
+	task(T& user, std::size_t stack_depth, prio_t priority, bool tcpip=false)
+		: m_user( user )
+	{
+		if(tcpip)
+			task_id = isix_task_create_tcpip( start_task, this, stack_depth, priority );
+		else
+			task_id = isix_task_create( start_task, this,  stack_depth, priority );
+	}
+#else
+	explicit task(T& user, std::size_t stack_depth, prio_t priority)
+		: m_user( user )
+	{
+		task_id = isix_task_create( start_task, this, stack_depth, priority );
+	}
+#endif
+	//! Destruct the task/thread object
+	~task()
+	{
+		if( task_id ) {
+			isix_task_delete(task_id);
+		}
+	}
+	/** Get thread task id
+	 * @return Task control object
+	 */
+	task_t* get_taskid() { return task_id; }
+	/** Check the fifo object is in valid state
+	 * @return True when the object is in valid state
+	 */
+	bool is_valid() { return task_id!=0; }
+private:
+	/** Private task */
+	static void start_task(void *ptr) {
+		static_cast<task*>(ptr)->m_user.main();
+		static_cast<task*>(ptr)->task_id = NULL;
+	}
+	task(const task&);
+	task& operator=(const task_base&);
+private:
+	T &m_user;
+	task_t* task_id;
+};
 /*-----------------------------------------------------------------------*/
 }
 #endif /* __cplusplus */
