@@ -56,7 +56,7 @@ static inline void sys_atomic_add( int i, sys_atomic_t* v )
 	"	add	%0, %0, %4\n"
 	"	strex	%1, %0, [%3]\n"
 	"	teq	%1, #0\n"
-	"	bne	1b"
+	"	bne	1b\n"
 	: "=&r" (result), "=&r" (tmp), "+Qo" (v->counter)
 	: "r" (&v->counter), "Ir" (i)
 	: "cc");
@@ -74,7 +74,7 @@ static inline int sys_atomic_add_return( int i, sys_atomic_t *v)
 	"	add	%0, %0, %4\n"
 	"	strex	%1, %0, [%3]\n"
 	"	teq	%1, #0\n"
-	"	bne	1b"
+	"	bne	1b\n"
 	"	dmb\n"
 	: "=&r" (result), "=&r" (tmp), "+Qo" (v->counter)
 	: "r" (&v->counter), "Ir" (i)
@@ -94,7 +94,7 @@ static inline void sys_atomic_sub( int i, sys_atomic_t *v )
 	"	sub	%0, %0, %4\n"
 	"	strex	%1, %0, [%3]\n"
 	"	teq	%1, #0\n"
-	"	bne	1b"
+	"	bne	1b\n"
 	: "=&r" (result), "=&r" (tmp), "+Qo" (v->counter)
 	: "r" (&v->counter), "Ir" (i)
 	: "cc");
@@ -112,7 +112,7 @@ static inline int sys_atomic_sub_return( int i, sys_atomic_t *v )
 	"	sub	%0, %0, %4\n"
 	"	strex	%1, %0, [%3]\n"
 	"	teq	%1, #0\n"
-	"	bne	1b"
+	"	bne	1b\n"
 	"	dmb\n"
 	: "=&r" (result), "=&r" (tmp), "+Qo" (v->counter)
 	: "r" (&v->counter), "Ir" (i)
