@@ -182,11 +182,11 @@ static const USBH_Usr_cb_TypeDef usr_callbacks =
 /* ------------------------------------------------------------------ */
 /* USB host controller constructor */
 usb_host::usb_host( int /*core_id*/ )
-	: task_base( 2048, isix::isix_get_min_priority())
-	, usb_ready_sem( 0, 1)
+	: usb_ready_sem( 0, 1)
 {
 	internal::host1 = this;
 	USBH_Init( &usb_otg_dev, USB_OTG_FS_CORE_ID, &stm32_host, USBH_HID_Class_Callback(this), &usr_callbacks );
+	start_thread( 2048, isix::isix_get_min_priority());
 }
 /* ------------------------------------------------------------------ */
 void usb_host::main()
