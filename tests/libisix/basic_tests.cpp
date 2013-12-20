@@ -3,6 +3,7 @@
 #include <isix.h>
 #include <usart_simple.h>
 #include <foundation/dbglog.h>
+#include <foundation/noncopyable.hpp>
 #include <qunit.hpp>
 #include <string>
 #include <stm32crashinfo.h>
@@ -23,9 +24,9 @@ namespace detail {
    }
 }}
 /* ------------------------------------------------------------------ */
-class unit_tests : public isix::task_base
+class unit_tests : private fnd::noncopyable
 {
-	static constexpr auto STACK_SIZE = 4192;
+	static constexpr auto STACK_SIZE = 4096;
     static constexpr auto TASKDEF_PRIORITY = 0;
 	QUnit::UnitTest qunit {QUnit::verbose };
 	tests::semaphores sem_test { qunit };
@@ -42,8 +43,9 @@ class unit_tests : public isix::task_base
 		dbprintf("Free %i frags %i", freem, fragments );
 		QUNIT_IS_TRUE( freem > 0 );
 	}
+public:
 	//Test basic tasks
-    virtual void main() 
+    void main() 
 	{
 		heap_test();
 		atomic_test.run();
@@ -54,10 +56,6 @@ class unit_tests : public isix::task_base
 		isix::isix_wait_ms(10);
 		isix::isix_shutdown_scheduler();
 	}
-	public:
-		unit_tests()
-			: task_base( STACK_SIZE, 0 )
-		{}
 };
 
 /* ------------------------------------------------------------------ */
@@ -68,7 +66,8 @@ int main()
 #endif	
     dblog_init_putc_locked( stm32::usartsimple_putc, NULL, detail::usart_lock, detail::usart_unlock );
 	dbprintf("-------- BEGIN_TESTS ---------");
-	static unit_tests testobj;
+	static unit_tests test;
+	static isix::task<unit_tests> testobj( test , 4096, 0 );
 	isix::isix_start_scheduler();
 	return 0;
 }
