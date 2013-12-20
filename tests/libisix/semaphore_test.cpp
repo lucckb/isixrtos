@@ -48,9 +48,11 @@ namespace {
 		}
 	public:
 		semaphore_task_test( char ch_id, isix::prio_t prio, isix::semaphore &sem, std::string &items ) 
-			: task_base( STACK_SIZE, prio ), 
-            m_sem( sem ), m_id( ch_id ), m_items( items )
+            : m_sem( sem ), m_id( ch_id ), m_items( items ), m_prio( prio )
 		{
+		}
+		void start() {
+			start_thread(STACK_SIZE, m_prio );
 		}
 		virtual ~semaphore_task_test() {}
         int error() const {
@@ -61,6 +63,7 @@ namespace {
         const char  m_id;
         std::string& m_items;
         int m_error { -32768 };
+		isix::prio_t m_prio;
 	};
 
 /* ------------------------------------------------------------------ */
@@ -71,8 +74,7 @@ namespace {
 		static constexpr auto sem_tout = 500;
 	public:
 		semaphore_time_task( isix::semaphore& sem  ) 
-			: task_base( STACK_SIZE, TASK_PRIO ),
-			m_sem(sem)
+			: m_sem(sem)
 		{	
 		}
 		virtual ~semaphore_time_task(){}
@@ -81,6 +83,9 @@ namespace {
 				m_error = m_sem.wait ( sem_tout );
 				m_notify_sem.signal();
 			}
+		}
+		void start() {
+			start_thread(STACK_SIZE, TASK_PRIO);
 		}
         int error() const {
           
@@ -113,7 +118,7 @@ void semaphores::isr_test_handler()
 void semaphores::semaphore_time_test() 
 {
 		isix::semaphore sigs(0);
-		semaphore_time_task t1( sigs );
+		semaphore_time_task t1( sigs ); t1.start();
 		QUNIT_IS_TRUE( t1.is_valid() );
 		QUNIT_IS_EQUAL( t1.error() , isix::ISIX_ETIMEOUT );
 		sigs.signal();
@@ -131,10 +136,10 @@ void semaphores::semaphore_prio_tests()
 	std::string tstr;		
 	isix::semaphore sigs(0);
 	QUNIT_IS_TRUE( sigs.is_valid() );  
-	semaphore_task_test t1('A', 3, sigs, tstr );
-	semaphore_task_test t2('B', 2, sigs, tstr );
-	semaphore_task_test t3('C', 1, sigs, tstr );
-	semaphore_task_test t4('D', 0, sigs, tstr );
+	semaphore_task_test t1('A', 3, sigs, tstr ); t1.start();
+	semaphore_task_test t2('B', 2, sigs, tstr ); t2.start();
+	semaphore_task_test t3('C', 1, sigs, tstr ); t3.start();
+	semaphore_task_test t4('D', 0, sigs, tstr ); t4.start();
 	QUNIT_IS_TRUE( t1.is_valid() );
 	QUNIT_IS_TRUE( t2.is_valid() );
 	QUNIT_IS_TRUE( t3.is_valid() );

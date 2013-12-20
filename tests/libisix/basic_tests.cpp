@@ -24,7 +24,7 @@ namespace detail {
    }
 }}
 /* ------------------------------------------------------------------ */
-class unit_tests : private fnd::noncopyable
+class unit_tests : public isix::task_base
 {
 	static constexpr auto STACK_SIZE = 4096;
     static constexpr auto TASKDEF_PRIORITY = 0;
@@ -43,9 +43,8 @@ class unit_tests : private fnd::noncopyable
 		dbprintf("Free %i frags %i", freem, fragments );
 		QUNIT_IS_TRUE( freem > 0 );
 	}
-public:
 	//Test basic tasks
-    void main() 
+    virtual void main() 
 	{
 		heap_test();
 		atomic_test.run();
@@ -67,7 +66,7 @@ int main()
     dblog_init_putc_locked( stm32::usartsimple_putc, NULL, detail::usart_lock, detail::usart_unlock );
 	dbprintf("-------- BEGIN_TESTS ---------");
 	static unit_tests test;
-	static isix::task<unit_tests> testobj( test , 4096, 0 );
+	test.start_thread(4096, 0);
 	isix::isix_start_scheduler();
 	return 0;
 }

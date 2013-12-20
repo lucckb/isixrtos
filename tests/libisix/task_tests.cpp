@@ -36,10 +36,11 @@ namespace {
 			}
 		}
 	public:
+		base_task_tests() {}
 		static constexpr auto TASK_PRIO = 1;
-		base_task_tests()
-			: task_base(STACK_SIZE, TASK_PRIO)
-		{}
+		void start() {
+			start_thread(STACK_SIZE, TASK_PRIO);
+		}
 		virtual ~base_task_tests() {}
 		unsigned exec_count() const {
 			return m_exec_count;
@@ -60,6 +61,7 @@ void task_tests::basic_funcs()
 	auto t2 = new base_task_tests;
 	auto t3 = new base_task_tests;
 	auto t4 = new base_task_tests; 
+	t1->start(); t2->start(); t3->start(); t4->start();
 	//Try set private data
 	QUNIT_IS_EQUAL( isix::isix_set_task_private_data(t1->get_taskid(), reinterpret_cast<void*>(1)), isix::ISIX_EOK );
 	QUNIT_IS_EQUAL( isix::isix_set_task_private_data(t2->get_taskid(), reinterpret_cast<void*>(2)), isix::ISIX_EOK );

@@ -35,15 +35,18 @@ namespace {
 		static constexpr auto N_ITEMS = 4;
 		//Constructor
 		task_test( char ch_id, isix::prio_t prio, isix::fifo<char> &fifo ) 
-			: task_base( STACK_SIZE, prio ), 
-            m_fifo( fifo ), m_id( ch_id )
+			: m_fifo( fifo ), m_id( ch_id ), m_prio( prio )
 		{
+		}
+		void start() {
+			start_thread(STACK_SIZE, m_prio);
 		}
 		virtual ~task_test() {}
 	protected:
 		//Main function from another task
 		virtual void main( void ) 
 		{
+			isix::isix_wait_ms(100);
 			for( int i = 0; i< N_ITEMS; ++i ) {
 				m_error = m_fifo.push( m_id );
 				if( m_error ) break;
@@ -53,6 +56,7 @@ namespace {
 		isix::fifo<char>& m_fifo; 
 		const char m_id;
 		int m_error { -32768 };
+		isix::prio_t m_prio;
 	};
 
 }	//Unnamed namespace end
@@ -70,7 +74,7 @@ namespace {
 		static constexpr auto N_ITEMS = 4;
 		//Constructor
 		overflow_task( isix::prio_t prio, isix::fifo<int> &fifo ) 
-			: task_base( STACK_SIZE, prio ), m_fifo( fifo )
+			:  m_fifo( fifo ), m_prio( prio )
 		{
 		}
 		//Destructor
@@ -78,6 +82,10 @@ namespace {
 		//Error code
 		int error() const {
 			return m_error;
+		}
+		//Start function
+		void start() {
+			start_thread( STACK_SIZE, m_prio );
 		}
 	protected:
 		//Main function from another task
@@ -93,6 +101,7 @@ namespace {
 	private:
 		isix::fifo<int> &m_fifo;
 		int m_error { -32768 };
+		isix::prio_t m_prio;
 	};
 }
 
@@ -121,10 +130,11 @@ void fifo_test::base_tests()
 	isix::fifo<char> fifo_tst( 32 );
 	QUNIT_IS_TRUE( fifo_tst.is_valid() );  
 	  
-	task_test t1( 'A',  3, fifo_tst );
-	task_test t2( 'B',  2, fifo_tst );
-	task_test t3( 'C',  1, fifo_tst );
+	task_test t1( 'A',  3, fifo_tst ); 
+	task_test t2( 'B',  2, fifo_tst ); 
+	task_test t3( 'C',  1, fifo_tst ); 
 	task_test t4( 'D',  0, fifo_tst );
+	t1.start(); t2.start(); t3.start(); t4.start();
 
 	char tbuf[17] {};
 	size_t tbcnt {};
@@ -221,6 +231,7 @@ void fifo_test::delivery_test( uint16_t time_irq )
 		);
 	} else {
 		task = new overflow_task( isix::isix_get_task_priority(nullptr), m_irqf );
+		task->start();
 	}
 	int val; int ret;
 	std::vector<int> test_vec;
@@ -238,8 +249,7 @@ void fifo_test::delivery_test( uint16_t time_irq )
 	if( time_irq != NOT_FROM_IRQ ) {
 		detail::periodic_timer_stop();
 	} else {
-		//TODO: Fixme delete crap related to free resources
-	//	delete task;
+		delete task;
 	}
 }
 
