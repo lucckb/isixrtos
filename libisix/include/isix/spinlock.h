@@ -62,17 +62,19 @@ static inline void isix_spinlock_init( isix_spinlock_t* lock )
 static inline void isix_spinlock_lock( isix_spinlock_t* lock )
 {
 	if( port_atomic_sem_dec( &lock->sem ) == 0 ) {
-		_isixp_lock_scheduler();
 		while( port_atomic_sem_read_val( &lock->sem ) == 0 ) {
 		   port_atomic_wait_for_interrupt();
 		}
-		_isixp_unlock_scheduler();
+	} else {
+
+		_isixp_lock_scheduler();
 	}
 }
 /*-----------------------------------------------------------------------*/
 /** Its unlock the locked resource  */
 static inline void isix_spinlock_unlock( isix_spinlock_t* lock )
 {
+	_isixp_unlock_scheduler();
 	port_atomic_sem_inc( &lock->sem );
 }
 /*-----------------------------------------------------------------------*/
