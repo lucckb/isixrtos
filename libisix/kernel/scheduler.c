@@ -240,8 +240,6 @@ int isixp_add_task_to_ready_list(task_t *task)
 {
     if(task->prio > number_of_priorities)
     	return ISIX_ENOPRIO;
-	//Scheduler lock
-    isixp_enter_critical();
     //Find task equal entry
     task_ready_t *prio_i;
     list_for_each_entry(&ready_task,prio_i,inode)
@@ -254,8 +252,6 @@ int isixp_add_task_to_ready_list(task_t *task)
             task->prio_elem = prio_i;
             //Add task at end of ready list
             list_insert_end(&prio_i->task_list,&task->inode);
-            //Unlock scheduler
-            isixp_exit_critical();
             return 0;
         }
         else if(task->prio < prio_i->prio)
@@ -277,7 +273,6 @@ int isixp_add_task_to_ready_list(task_t *task)
     list_insert_end(&prio_n->task_list,&task->inode);
     list_insert_before(&prio_i->inode,&prio_n->inode);
     isix_printk("AddTaskToReadyList: Add new node %08x with prio %d",prio_n,prio_n->prio);
-    isixp_exit_critical();
     return ISIX_EOK;
 }
 
@@ -286,7 +281,6 @@ int isixp_add_task_to_ready_list(task_t *task)
 void isixp_delete_task_from_ready_list(task_t *task)
 {
     //Scheduler lock
-   isixp_enter_critical();
    list_delete(&task->inode);
    //Check for task on priority structure
    if(list_isempty(&task->prio_elem->task_list)==true)
@@ -296,8 +290,6 @@ void isixp_delete_task_from_ready_list(task_t *task)
         list_delete(&task->prio_elem->inode);
         free_task_ready_t(task->prio_elem);
    }
-   //Scheduler unlock
-   isixp_exit_critical();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -305,7 +297,6 @@ void isixp_delete_task_from_ready_list(task_t *task)
 void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
 {
     //Scheduler lock
-    isixp_enter_critical();
     task->jiffies = jiffies + timeout;
     if(task->jiffies < jiffies)
     {
@@ -329,16 +320,12 @@ void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     	isix_printk("MoveTaskToWaiting: NO overflow insert in time list at %08x",&waitl->inode);
     	list_insert_before(&waitl->inode,&task->inode);
     }
-    //Scheduler unlock
-    isixp_exit_critical();
 }
 
 /*--------------------------------------------------------------*/
 //Add task to semaphore list
 void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 {
-    //Scheduler lock
-    isixp_enter_critical();
     //Insert on waiting list in time order
     task_t *taskl;
     list_for_each_entry(sem_list,taskl,inode_sem)
@@ -348,19 +335,13 @@ void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
     isix_printk("MoveTaskToSem: insert in time list at %08x",taskl);
     list_insert_before(&taskl->inode_sem,&task->inode_sem);
 
-    //Scheduler unlock
-    isixp_exit_critical();
-
 }
 /*-----------------------------------------------------------------------*/
 //Add task list to delete
 void isixp_add_task_to_delete_list(task_t *task)
 {
-    //lock scheduler
-    isixp_enter_critical();
     list_insert_end(&dead_task,&task->inode);
     number_of_task_deleted++;
-    isixp_exit_critical();
 }
 
 /*-----------------------------------------------------------------------*/
