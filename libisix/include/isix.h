@@ -13,6 +13,8 @@
 #include <isix/irqtimers.h>
 #include <isix/multiple_objects.h>
 #include <isix/mempool.h>
+#include <isix/spinlock.h>
+#include <isix/scoped_lock.h>
 /*--------------------------------------------------*/
 
 #endif

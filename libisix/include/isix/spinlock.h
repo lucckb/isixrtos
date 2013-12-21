@@ -64,7 +64,7 @@ static inline void isix_spinlock_lock( isix_spinlock_t* lock )
 	if( port_atomic_sem_dec( &lock->sem ) == 0 ) {
 		_isixp_lock_scheduler();
 		while( port_atomic_sem_read_val( &lock->sem ) == 0 ) {
-			port_atomic_wait_for_interrupt();
+		   port_atomic_wait_for_interrupt();
 		}
 		_isixp_unlock_scheduler();
 	}
@@ -80,6 +80,40 @@ static inline int isix_spinlock_try_lock( isix_spinlock_t* lock )
 {
 	return port_atomic_sem_dec( &lock->sem );
 }
+/*-----------------------------------------------------------------------*/
+#ifdef __cplusplus
+class spinlock 
+{
+public:
+	spinlock() {
+		isix_spinlock_init( &m_lock );
+	}
+	void lock() {
+		isix_spinlock_lock( &m_lock );
+	}
+	void unlock() {
+		isix_spinlock_unlock( &m_lock );
+	}
+	int try_lock() {
+		return isix_spinlock_try_lock( &m_lock );
+	}
+#if __cplusplus > 199711L
+private:
+	spinlock( const spinlock& ) = delete;
+	const spinlock& operator=( const spinlock& ) = delete;
+#else
+private:  // emphasize the following members are private
+	spinlock( const spinlock& );
+	const spinlock& operator=( const spinlock& );
+#endif
+private:
+	isix_spinlock_t m_lock;
+};
+
+/*-----------------------------------------------------------------------*/
+#else /*__cplusplus */
+#define ISIX_SPINLOCK_STATIC_INIT { 1, 1 }
+#endif /*__cplusplus */
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }	//end namespace
