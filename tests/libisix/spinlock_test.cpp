@@ -41,12 +41,10 @@ namespace {
 	private:
 		virtual void main() 
 		{
-			//isix::scoped_lock<isix::spinlock> lock(m_lock);
-			m_lock.lock();
-			for(int i=0;i<10000;++i)
+			isix::scoped_lock<isix::spinlock> lock(m_lock);
+			for(int i=0;i<1000000;++i)
 				stm32::nop();
 			m_ret.push_back( m_id );
-			m_lock.unlock();
 		}
 	private:
 		const char m_id; 
@@ -60,7 +58,7 @@ void spinlock_tests::scheduler_api()
 { 
 	isix::_isixp_lock_scheduler();
 	for(int i=0;i<100;++i)
-		stm32::nop();
+		stm32::nop();	
 	isix::_isixp_unlock_scheduler();
 	dbprintf("Short time scheduler lock");
 	isix::_isixp_lock_scheduler();
@@ -83,8 +81,25 @@ void spinlock_tests::basic_test()
 	t2.start(1);
 	t3.start(2);
 	t4.start(3);
-	isix::isix_wait_ms( 3000 );
-	dbprintf("Exited return val %s\n", tstr.c_str() );
+	const auto tbeg = isix::isix_get_jiffies();
+	constexpr auto tout = 18000;
+	bool ok {};
+	while(true) {
+		tstr_lock.lock();
+		const auto r = tstr.size();
+		tstr_lock.unlock();
+		if( r == 4 ) {
+			ok = true;
+			break;
+		}
+		if( isix::isix_get_jiffies() - tbeg > tout ) {
+			ok = false;
+			break;
+		}
+		isix::isix_wait_ms(1);
+	}
+	QUNIT_IS_TRUE( ok );
+	QUNIT_IS_EQUAL( tstr, "ABCD" );
 }
 
 }
