@@ -40,7 +40,7 @@ static _port_atomic_int_t critical_count;
 
 /*-----------------------------------------------------------------------*/
 // Task reschedule lock for spinlock
-static _port_atomic_t sem_schedule_lock = { 0, 0 };
+static _port_atomic_t sem_schedule_lock = { 0, 1 };
 
 /*-----------------------------------------------------------------------*/
 //Binary tree of task ready to execute
@@ -215,13 +215,11 @@ static void internal_schedule_time(void)
 //Schedule time handled from timer context
 void isixp_schedule_time() 
 {
-#if 0
     if( port_atomic_sem_read_val( &sem_schedule_lock ) > 0 ) {
 		port_atomic_inc( &jiffies_skipped );
 	} else {
 		internal_schedule_time();
 	}
-#endif
 	internal_schedule_time();
 }
 /*-----------------------------------------------------------------------*/

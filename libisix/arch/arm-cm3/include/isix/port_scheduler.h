@@ -1,5 +1,5 @@
-#ifndef __PORT_SCHEDULER_H
-#define __PORT_SCHEDULER_H
+#ifndef _ISIX_PORT_SCHEDULER_H
+#define _ISIX_PORT_SCHEDULER_H
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {

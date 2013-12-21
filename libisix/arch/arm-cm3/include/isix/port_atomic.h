@@ -6,12 +6,12 @@
  *    Description:  
  *
  *        Version:  1.0
- *        Created:  12/17/2013 10:00:07 AM
+ *        Created:  12/17/2013 10:00:07 PM
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  Lucjan Bryndza (lb), Lucjan_B1@verifone.com
- *   Organization:  VERIFONE
+ *         Author:  Lucjan Bryndza (lb)
+ *   Organization:  BoFF
  *
  * =====================================================================================
  */
@@ -20,9 +20,9 @@
 #ifndef  _ISIX_PORT_ATOMIC_H
 #define  _ISIX_PORT_ATOMIC_H
 
+/*--------------------------------------------------------------*/
 #include <asm/atomic_sem.h>
 #include <asm/atomic.h>
-/*--------------------------------------------------------------*/
 
 /*--------------------------------------------------------------*/
 //! Atomic semaphore type definition
@@ -119,6 +119,11 @@ static inline int port_atomic_dec( _port_atomic_int_t* val )
 static inline int port_atomic_read( _port_atomic_int_t* val )
 {
 	return sys_atomic_read( val );
+}
+/*--------------------------------------------------------------*/
+static inline void port_atomic_wait_for_interrupt()
+{
+	sys_atomic_wait_for_interrupt();
 }
 /*--------------------------------------------------------------*/
 #endif   /* ----- #ifndef port_atomic_INC  ----- */

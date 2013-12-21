@@ -21,9 +21,9 @@
 #define  _ASM_ATOMIC_SEM__H
 /*--------------------------------------------------------------*/
 #include "atomic_int.h"
-/*--------------------------------------------------------------*/
+/*----------------------------------------------------------*/
 #ifdef __cplusplus
-namespace sys {
+extern "C" {
 #endif
 /*--------------------------------------------------------------*/
 //! Atomic type definition
@@ -140,7 +140,15 @@ static inline int sys_atomic_sem_read_val( sys_atomic_sem_lock_t* lock )
 {
 	return sys_atomic_read_int32_t( &lock->value );
 }
-/*--------------------------------------------------------------*/
+
+/*----------------------------------------------------------*/
+/** Sys atomic wait for interrupt 
+*/
+static inline void sys_atomic_wait_for_interrupt()
+{
+	asm volatile("wfi\n");
+}
+/*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
 #endif
