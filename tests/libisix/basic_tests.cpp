@@ -11,6 +11,7 @@
 #include "task_tests.hpp"
 #include "fifo_test.hpp"
 #include "atomic_tests.hpp"
+#include <isix/spinlock.h>
 /* ------------------------------------------------------------------ */
 namespace {
 namespace detail {

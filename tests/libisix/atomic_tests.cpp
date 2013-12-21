@@ -27,7 +27,6 @@ namespace tests {
 //Atomic semaphore primitives test
 void atomic_tests::atomic_sem_test( )  
 {
-	using namespace sys;
 	sys_atomic_sem_lock_t sem;
 	sys_atomic_sem_init( &sem , 1, sys_atomic_unlimited_value );
 	//Basic aritmetic tests
@@ -65,7 +64,6 @@ void atomic_tests::atomic_sem_test( )
 //Atomic access 8bit test
 void atomic_tests::atomic_access_8() 
 {
-	using namespace sys;
 	int8_t s = -100;
 	QUNIT_IS_EQUAL( sys_atomic_read_int8_t(&s), -100 );
 	QUNIT_IS_EQUAL( sys_atomic_write_int8_t(&s, -5 ) , -100 );
@@ -83,7 +81,6 @@ void atomic_tests::atomic_access_8()
 //Atomic access 8bit test
 void atomic_tests::atomic_access_16() 
 {
-	using namespace sys;
 	int16_t s = -1000;
 	QUNIT_IS_EQUAL( sys_atomic_read_int16_t(&s), -1000 );
 	QUNIT_IS_EQUAL( sys_atomic_write_int16_t(&s, -500 ) , -1000 );
@@ -100,7 +97,6 @@ void atomic_tests::atomic_access_16()
 
 void atomic_tests::atomic_access_32() 
 {
-	using namespace sys;
 	int32_t s = -100000;
 	QUNIT_IS_EQUAL( sys_atomic_read_int32_t(&s), -100000 );
 	QUNIT_IS_EQUAL( sys_atomic_write_int32_t(&s, -500000 ) , -100000 );
