@@ -44,7 +44,7 @@ namespace {
 		virtual ~task_test() {}
 	protected:
 		//Main function from another task
-		virtual void main( void ) 
+		virtual void main( ) 
 		{
 			isix::isix_wait_ms(100);
 			for( int i = 0; i< N_ITEMS; ++i ) {

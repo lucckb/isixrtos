@@ -11,7 +11,7 @@
 #include "task_tests.hpp"
 #include "fifo_test.hpp"
 #include "atomic_tests.hpp"
-#include <isix/spinlock.h>
+#include "spinlock_test.hpp"
 /* ------------------------------------------------------------------ */
 namespace {
 namespace detail {
@@ -34,6 +34,7 @@ class unit_tests : public isix::task_base
 	tests::task_tests task_test { qunit };
 	tests::fifo_test fifo_test { qunit };
 	tests::atomic_tests atomic_test { qunit };
+	tests::spinlock_tests spin_test { qunit };
 	//Test heap
 	void heap_test() {
 		auto ptr1 = isix::isix_alloc( 1 );
@@ -49,7 +50,7 @@ class unit_tests : public isix::task_base
 	{
 		heap_test();
 		atomic_test.run();
-//		return ; //FIXME: Disable temporary nexts
+		spin_test.run();
 		sem_test.run();
 		task_test.run();	
 		fifo_test.run();

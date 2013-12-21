@@ -37,10 +37,10 @@ public:
 
 	//Run all tests
 	void run() {
-	atomic_sem_test( );	
-	atomic_access_8();
-	atomic_access_16();
-	atomic_access_32();
+		atomic_sem_test( );	
+		atomic_access_8();
+		atomic_access_16();
+		atomic_access_32();
 	}
 private:
 	//Atomic semaphore primitives test
