@@ -123,6 +123,10 @@ void isixp_exit_critical(void)
 
 /*-----------------------------------------------------------------------*/
 //Scheduler is called in switch context
+/**
+ * NOTE: The process not require isixp_enter_critical because
+ * it is protected itself by pend svc vector lock 
+ */
 void isixp_schedule(void)
 {
 
