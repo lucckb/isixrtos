@@ -23,10 +23,6 @@
 
 namespace tests {
 
-//From interrupt context test
-namespace {
-
-}
 
 //Atomic semaphore primitives test
 void atomic_tests::atomic_sem_test( )  
