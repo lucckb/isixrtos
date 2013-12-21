@@ -126,9 +126,6 @@ void isixp_exit_critical(void)
 void isixp_schedule(void)
 {
 
-    //Enter to the critical section
-	isixp_enter_critical();
-
     //Remove executed task and add at end
     if(isix_current_task->state & TASK_READY)
     {
@@ -149,7 +146,6 @@ void isixp_schedule(void)
     	isix_bug("Task priority doesn't match to element priority");
     }
     isix_printk("Scheduler: new task %08x",isix_current_task);
-    isixp_exit_critical();
 }
 
 /*-----------------------------------------------------------------------*/
