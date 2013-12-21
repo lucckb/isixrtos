@@ -111,4 +111,14 @@ static inline int port_atomic_dec( _port_atomic_int_t* val )
 	return sys_atomic_sub_return( 1, val );
 }
 /*--------------------------------------------------------------*/
+/**
+ * Sys atomic read value
+ * @param[in] val Atomic type
+ * @return counter value
+ */
+static inline int port_atomic_read( _port_atomic_int_t* val )
+{
+	return sys_atomic_read( val );
+}
+/*--------------------------------------------------------------*/
 #endif   /* ----- #ifndef port_atomic_INC  ----- */

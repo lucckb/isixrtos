@@ -39,6 +39,10 @@ task_t * volatile isix_current_task = NULL;
 static _port_atomic_int_t critical_count;
 
 /*-----------------------------------------------------------------------*/
+// Task reschedule lock for spinlock
+static _port_atomic_t sem_schedule_lock = { 0, 0 };
+
+/*-----------------------------------------------------------------------*/
 //Binary tree of task ready to execute
 static list_entry_t ready_task;
 
@@ -61,12 +65,11 @@ static list_entry_t free_prio_elem;
 /*-----------------------------------------------------------------------*/
 //Global jiffies var
 static volatile tick_t jiffies;
-
+//Skiped jiffies when scheduler is locked
+static _port_atomic_int_t jiffies_skipped;
 //Number of deleted task
 static volatile unsigned number_of_task_deleted;
-
 //Number of priorities
-
 static volatile prio_t number_of_priorities;
 
 /*-----------------------------------------------------------------------*/
@@ -129,7 +132,10 @@ void isixp_exit_critical(void)
  */
 void isixp_schedule(void)
 {
-
+	if( port_atomic_sem_read_val( &sem_schedule_lock ) )
+	{
+		return;
+	}
     //Remove executed task and add at end
     if(isix_current_task->state & TASK_READY)
     {
@@ -154,9 +160,8 @@ void isixp_schedule(void)
 
 /*-----------------------------------------------------------------------*/
 //Time call from isr
-void isixp_schedule_time(void)
+static void internal_schedule_time(void)
 {
-
 	//Increment sys tick
 	jiffies++;
 	if(!isix_scheduler_running)
@@ -203,8 +208,21 @@ void isixp_schedule_time(void)
             isix_bug("Add task to ready list fail");
         }
     }
-    //Handle time from vtimers
+	//Handle timvtimers
     isixp_vtimer_handle_time( jiffies );
+}
+/*-----------------------------------------------------------------------*/
+//Schedule time handled from timer context
+void isixp_schedule_time() 
+{
+#if 0
+    if( port_atomic_sem_read_val( &sem_schedule_lock ) > 0 ) {
+		port_atomic_inc( &jiffies_skipped );
+	} else {
+		internal_schedule_time();
+	}
+#endif
+	internal_schedule_time();
 }
 /*-----------------------------------------------------------------------*/
 //Try get task ready from free list if is not exist allocate memory
@@ -476,6 +494,28 @@ void isix_shutdown_scheduler(void)
  */
 void _isixp_finalize() {
 	cleanup_tasks();
+}
+/*-----------------------------------------------------------------------*/
+/** Temporary lock task reschedule */
+void _isixp_lock_scheduler() 
+{
+	port_atomic_sem_inc( &sem_schedule_lock );
+}
+/*-----------------------------------------------------------------------*/
+/** Temporary unlock task reschedule */
+void _isixp_unlock_scheduler() 
+{
+	if( port_atomic_sem_dec( &sem_schedule_lock ) == 1 ) {
+		if( port_atomic_read(&jiffies_skipped) > 0 ) 
+		{
+			isixp_enter_critical();
+			while( jiffies_skipped.counter > 0 ) {
+				internal_schedule_time();
+				--jiffies_skipped.counter;
+			}
+			isixp_exit_critical();
+		}
+	}
 }
 /*-----------------------------------------------------------------------*/
 #endif
