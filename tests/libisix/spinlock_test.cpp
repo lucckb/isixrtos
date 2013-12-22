@@ -57,8 +57,9 @@ namespace {
 void spinlock_tests::scheduler_api()
 { 
 	isix::_isixp_lock_scheduler();
-	for(int i=0;i<100;++i)
-		stm32::nop();	
+	for(int i=0;i<100;++i) {
+		isix::isix_yield();
+	}
 	isix::_isixp_unlock_scheduler();
 	dbprintf("Short time scheduler lock");
 	isix::_isixp_lock_scheduler();
@@ -66,6 +67,12 @@ void spinlock_tests::scheduler_api()
 		stm32::nop();
 	isix::_isixp_unlock_scheduler();
 	dbprintf("Long time scheduler lock");
+#if 0
+	for( int i=0; i<100; ++i ) {
+		isix::isix_yield();
+	}
+#endif
+	dbprintf("Scheduler yield test");
 }
 
 //Basic spin test
