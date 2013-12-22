@@ -57,6 +57,7 @@ namespace {
 void spinlock_tests::scheduler_api()
 { 
 	isix::_isixp_lock_scheduler();
+	dbprintf("Scheduler locked yield test");
 	for(int i=0;i<100;++i) {
 		isix::isix_yield();
 	}
@@ -72,7 +73,7 @@ void spinlock_tests::scheduler_api()
 		isix::isix_yield();
 	}
 #endif
-	dbprintf("Scheduler yield test");
+	//dbprintf("Scheduler yield test");
 }
 
 //Basic spin test
@@ -103,7 +104,7 @@ void spinlock_tests::basic_test()
 			ok = false;
 			break;
 		}
-		isix::isix_wait_ms(1);
+		isix::isix_wait_ms(2);
 	}
 	QUNIT_IS_TRUE( ok );
 	QUNIT_IS_EQUAL( tstr, "ABCD" );
