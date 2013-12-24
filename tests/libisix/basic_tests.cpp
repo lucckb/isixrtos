@@ -16,12 +16,12 @@
 namespace {
 namespace detail {
 
-   isix::semaphore usem(1, 1);
+  isix::semaphore usem(1, 1);
    void usart_lock() {
-       usem.wait(isix::ISIX_TIME_INFINITE);
+//		usem.wait(isix::ISIX_TIME_INFINITE);
    }
    void usart_unlock() {
-       usem.signal();
+  //     usem.signal();
    }
 }}
 /* ------------------------------------------------------------------ */

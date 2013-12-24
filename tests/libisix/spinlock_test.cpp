@@ -16,7 +16,6 @@
  * =====================================================================================
  */
 #include "spinlock_test.hpp"
-
 #include "qunit.hpp"
 #include "timer_interrupt.hpp"
 #include <isix.h>
@@ -68,12 +67,11 @@ void spinlock_tests::scheduler_api()
 		stm32::nop();
 	isix::_isixp_unlock_scheduler();
 	dbprintf("Long time scheduler lock");
-#if 0
 	for( int i=0; i<100; ++i ) {
 		isix::isix_yield();
 	}
-#endif
-	//dbprintf("Scheduler yield test");
+	isix::isix_wait_ms(1);
+	dbprintf("Scheduler yield test");
 }
 
 //Basic spin test
