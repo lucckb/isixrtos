@@ -504,15 +504,12 @@ void _isixp_lock_scheduler()
 void _isixp_unlock_scheduler() 
 {
 	if( port_atomic_sem_dec( &sem_schedule_lock ) == 1 ) {
-		if( port_atomic_read(&jiffies_skipped) > 0 ) 
-		{
-			isixp_enter_critical();
-			while( jiffies_skipped.counter > 0 ) {
-				internal_schedule_time();
-				--jiffies_skipped.counter;
-			}
-			isixp_exit_critical();
+		isixp_enter_critical();
+		while( jiffies_skipped.counter > 0 ) {
+			internal_schedule_time();
+			--jiffies_skipped.counter;
 		}
+		isixp_exit_critical();
 	}
 }
 /*-----------------------------------------------------------------------*/

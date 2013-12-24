@@ -81,7 +81,7 @@ static inline int sys_atomic_sem_dec( sys_atomic_sem_lock_t* lock )
 /**
  * Function signal the semaphore
  * @param [out] lock Semaphore primitive object
- * @param [in] Maximum atomic value. If 0 or negative inc is inlimited
+ * @param [in] Maximum atomic value. If 0 or negative inc is unlimited
  */
 static inline int sys_atomic_sem_inc( sys_atomic_sem_lock_t* lock )
 {	
