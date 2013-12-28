@@ -34,6 +34,12 @@ typedef union
 	uint32_t ucounter;
 } sys_atomic_t;
 /*----------------------------------------------------------*/
+/** Initialize atomic value  */
+static inline void sys_atomic_init( sys_atomic_t* v, int value )
+{
+	v->counter = value;
+}
+/*----------------------------------------------------------*/
 /** Sys atomic set */
 static inline void sys_atomic_set( sys_atomic_t* v, int value ) 
 {

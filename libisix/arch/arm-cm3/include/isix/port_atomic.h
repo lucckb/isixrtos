@@ -91,6 +91,15 @@ static inline int port_atomic_sem_write_val( _port_atomic_t* lock, int val )
 	return sys_atomic_sem_write_val( lock , val );
 }
 /*--------------------------------------------------------------*/
+/** Sys atomic initialize 
+ * @param[in] val Atomic value type
+ * @param[in] value Initial value
+ */
+static inline void port_atomic_init( _port_atomic_int_t* val, int value )
+{
+	sys_atomic_init( val , value );
+}
+/*--------------------------------------------------------------*/
 /** 
  *	Port atomic increment
  *	@param[in] val Atomic type

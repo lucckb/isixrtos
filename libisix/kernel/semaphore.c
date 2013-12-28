@@ -40,6 +40,7 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
 	port_atomic_sem_init(&sem->value, val, limit_val );
 	//Set sem type
     sem->type = IHANDLE_T_SEM;
+	port_atomic_init( &sem->sem_task_count, 0 );
     list_init(&sem->sem_task);
     isix_printk("Create sem %08x val %d",sem,sem->value);
     return sem;
@@ -92,6 +93,7 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     	isixp_add_task_to_sem_list(&sem->sem_task,isix_current_task);
         isix_current_task->state |= TASK_WAITING;
         isix_current_task->sem = sem;
+		port_atomic_inc( &sem->sem_task_count );
         isix_printk("Add task %08x to sem",isix_current_task);
     }
     isixp_exit_critical();
@@ -160,12 +162,14 @@ int isixp_sem_signal( sem_t *sem, bool isr )
     }
 	else 
 	{
+		if( port_atomic_read( &sem->sem_task_count ) <=0 )
+		{
+			return ISIX_EOK;
+		}
 		isixp_enter_critical();
         if( list_isempty(&sem->sem_task) )
 		{
-			//TODO: Add 31 bit as notify check list will not be required
-			isixp_exit_critical();
-			return ISIX_EOK;
+			isix_bug("List is empty. Atomic wait count mismatch");
 		}
 		//Decrement again
 		port_atomic_sem_dec( &sem->value ); 
@@ -192,6 +196,7 @@ int isixp_sem_signal( sem_t *sem, bool isr )
 		task_wake->state |= TASK_READY | TASK_SEM_WKUP;
 		task_wake->sem = NULL;
 		list_delete(&task_wake->inode_sem);
+		port_atomic_dec( &sem->sem_task_count );
 		if(isixp_add_task_to_ready_list(task_wake)<0)
 		{
 			isixp_exit_critical();

@@ -191,6 +191,7 @@ static void internal_schedule_time(void)
             	isix_bug( "TASK waiting on empty sem");
             }
         	task_c->state &= ~TASK_SEM_WKUP;
+			port_atomic_dec( &task_c->sem->sem_task_count );
             task_c->sem = NULL;
             task_c->state &= ~TASK_WAITING;
             list_delete(&task_c->inode_sem);
@@ -358,7 +359,6 @@ void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
     }
     isix_printk("MoveTaskToSem: insert in time list at %08x",taskl);
     list_insert_before(&taskl->inode_sem,&task->inode_sem);
-
 }
 /*-----------------------------------------------------------------------*/
 //Add task list to delete
