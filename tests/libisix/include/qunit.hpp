@@ -156,8 +156,8 @@ namespace QUnit {
                errors_ += ok ? 0 : 1;
                if( (ok && !(verboseLevel_ > normal)) || verboseLevel_ == silent )
                    return;
-               char s1[80] = {0};
-               char s2[80] = {0};
+               static char s1[256] = {0};
+               static char s2[256] = {0};
                detail::convert(expr1, s1, sizeof s1);
                detail::convert(expr2, s2, sizeof s2);
 			   s1[ sizeof s1 - sizeof '\0'  ] = '\0';

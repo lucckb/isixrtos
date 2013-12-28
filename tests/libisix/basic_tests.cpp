@@ -11,7 +11,7 @@
 #include "task_tests.hpp"
 #include "fifo_test.hpp"
 #include "atomic_tests.hpp"
-#include "spinlock_test.hpp"
+#include "sched_suspend.hpp"
 /* ------------------------------------------------------------------ */
 namespace {
 namespace detail {
@@ -34,7 +34,7 @@ class unit_tests : public isix::task_base
 	tests::task_tests task_test { qunit };
 	tests::fifo_test fifo_test { qunit };
 	tests::atomic_tests atomic_test { qunit };
-	tests::spinlock_tests spin_test { qunit };
+	tests::sched_suspend sched_test { qunit };
 	//Test heap
 	void heap_test() {
 		auto ptr1 = isix::isix_alloc( 1 );
@@ -50,7 +50,7 @@ class unit_tests : public isix::task_base
 	{
 		heap_test();
 		atomic_test.run();
-		spin_test.run();
+		sched_test.run();
 		sem_test.run();
 		task_test.run();	
 		fifo_test.run();
@@ -65,7 +65,8 @@ int main()
 #ifdef PDEBUG
     stm32::usartsimple_init( USART2,115200,true, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
 #endif	
-    dblog_init_putc_locked( stm32::usartsimple_putc, NULL, detail::usart_lock, detail::usart_unlock );
+    //dblog_init_putc_locked( stm32::usartsimple_putc, NULL, detail::usart_lock, detail::usart_unlock );
+	dblog_init_putc( stm32::usartsimple_putc, NULL );
 	dbprintf("-------- BEGIN_TESTS ---------");
 	static unit_tests test;
 	test.start_thread(4096, 0);

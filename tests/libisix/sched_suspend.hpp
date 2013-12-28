@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  spinlock_test.h
+ *       Filename:  sched_suspend.h
  *
  *    Description:  
  *
@@ -17,8 +17,8 @@
  */
 
 
-#ifndef  spinlock_test_INC
-#define  spinlock_test_INC
+#ifndef  sched_suspend_INC
+#define  sched_suspend_INC
 
 namespace QUnit {
 	class UnitTest;
@@ -26,24 +26,26 @@ namespace QUnit {
 
 namespace tests {
 
-class spinlock_tests {
+class sched_suspend {
 public:
 	//Default constructor
-	spinlock_tests( QUnit::UnitTest& unit_test )
+	sched_suspend( QUnit::UnitTest& unit_test )
 	: qunit( unit_test )
 	{
 	}
 	//Run all tests
 	void run() {
-		scheduler_api();
-		basic_test();
+		basic_lock();
+		task_lock();
 	}
 private:
-	void scheduler_api();
-	void basic_test();
+	//Basic lock test
+	void basic_lock();
+	//Advanced lock tests
+	void task_lock();
 private:
 	QUnit::UnitTest &qunit;
 };
 
 }
-#endif   /* ----- #ifndef spinlock_test_INC  ----- */
+#endif   /* ----- #ifndef sched_suspend_INC  ----- */
