@@ -156,6 +156,10 @@ namespace QUnit {
                errors_ += ok ? 0 : 1;
                if( (ok && !(verboseLevel_ > normal)) || verboseLevel_ == silent )
                    return;
+			   /**
+				* NOTE: Only one thread send the data to the output
+				* in the tests so buffers can be declared as static
+				* for save thread memory*/
                static char s1[256] = {0};
                static char s2[256] = {0};
                detail::convert(expr1, s1, sizeof s1);

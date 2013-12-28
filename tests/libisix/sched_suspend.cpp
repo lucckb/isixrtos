@@ -109,7 +109,6 @@ void sched_suspend::task_lock()
 		QUNIT_IS_EQUAL( t3.get_id(), 'C' );
 		QUNIT_IS_EQUAL( t4.get_id(), 'D' );
 	}
-	if(1)
 	{
 
 		task *t1 = new task( 'A' );
