@@ -211,13 +211,23 @@ static void internal_schedule_time(void)
     isixp_vtimer_handle_time( jiffies );
 }
 /*-----------------------------------------------------------------------*/
+static void unused_func(void ) {}
+void isix_systime_handler(void) __attribute__ ((weak, alias("unused_func")));
+/*-----------------------------------------------------------------------*/
 //Schedule time handled from timer context
 void isixp_schedule_time() 
 {
+	//Call isix system time handler if used
+    isix_systime_handler();
     if( port_atomic_sem_read_val( &sem_schedule_lock ) ) {
 		port_atomic_inc( &jiffies_skipped );
 	} else {
+		//Increment system ticks
+		isixp_enter_critical();
+		//Internal schedule time
 		internal_schedule_time();
+		//Clear interrupt mask
+		isixp_exit_critical();
 	}
 }
 /*-----------------------------------------------------------------------*/
@@ -225,7 +235,7 @@ void isixp_schedule_time()
 static task_ready_t *alloc_task_ready_t(void)
 {
    task_ready_t *prio = NULL;
-   if(list_isempty(&free_prio_elem)==true)
+   if(list_isempty(&free_prio_elem))
    {
        isix_bug("Priority list not available");
    }
@@ -297,7 +307,7 @@ void isixp_delete_task_from_ready_list(task_t *task)
     //Scheduler lock
    list_delete(&task->inode);
    //Check for task on priority structure
-   if(list_isempty(&task->prio_elem->task_list)==true)
+   if(list_isempty(&task->prio_elem->task_list))
    {
         //Task list is empty remove element
         isix_printk("DeleteTskFromRdyLst: Remove prio list elem");
@@ -400,14 +410,7 @@ ISIX_TASK_FUNC(idle_task,p)
 //Get currrent jiffies
 tick_t isix_get_jiffies(void)
 {
-    tick_t t1,t2;
-    do
-    {
-        t1 = jiffies;
-        t2 = jiffies;
-    }
-    while(t1!=t2);
-    return t2;
+    return jiffies;
 }
 
 /*-----------------------------------------------------------------------*/

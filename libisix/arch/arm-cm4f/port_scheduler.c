@@ -64,9 +64,7 @@
 
 /*-----------------------------------------------------------------------*/
 //Pend SV interrupt (context switch)
-void pend_svc_isr_vector(void) __attribute__((__interrupt__,naked));
-
-void pend_svc_isr_vector(void)
+void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 {
 #ifdef ISIX_CONFIG_SHUTDOWN_API
 	if( isix_scheduler_running ) {
@@ -87,8 +85,7 @@ void pend_svc_isr_vector(void)
 
 /*-----------------------------------------------------------------------*/
 //SVC handler call for start the first task
-void svc_isr_vector(void) __attribute__((__interrupt__,naked));
-void svc_isr_vector(void)
+void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
 {
      asm volatile(
      "ldr r3, 0f\t\n" 			 	/* Restore the context. */
@@ -138,32 +135,18 @@ unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, vo
 }
 
 /*-----------------------------------------------------------------------*/
-static void unused_func(void ) {}
-void isix_systime_handler(void) __attribute__ ((weak, alias("unused_func")));
-
-/*-----------------------------------------------------------------------*/
 //Cyclic schedule time interrupt
-void systick_isr_vector(void) __attribute__((__interrupt__));
-
-void systick_isr_vector(void)
+void __attribute__((__interrupt__)) systick_isr_vector(void)
 {
-    //Increment system ticks
-	isixp_enter_critical();
-
-	//Call isix system time handler if used
-    isix_systime_handler();
 	isixp_schedule_time();
-
-	//Clear interrupt mask
-	isixp_exit_critical();
 
 #ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
-    if(isix_scheduler_running)
-    {
-    	*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
-    }
+    if(isix_scheduler_running) {
+		*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
+	}
 #endif
+
 }
 
 /*-----------------------------------------------------------------------*/
@@ -184,17 +167,15 @@ void port_clear_interrupt_mask(void)
 
 /*-----------------------------------------------------------------------*/
 //Yield to another task
-void port_yield(void )
+void port_yield(void)
 {
-  /* Set a PendSV to request a context switch. */
-  *(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
-  port_flush_memory();
+	/* Set a PendSV to request a context switch. */
+	*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
+	port_flush_memory();
 }
-
 /*-----------------------------------------------------------------------*/
 //Start first task by svc call
-void port_start_first_task(void) __attribute__((naked));
-void port_start_first_task( void )
+void  __attribute__((naked)) port_start_first_task( void )
 {
 #ifdef ISIX_CONFIG_SHUTDOWN_API
 	__asm volatile(

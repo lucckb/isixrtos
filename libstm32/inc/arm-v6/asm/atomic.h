@@ -28,9 +28,10 @@ extern "C" {
 #endif
 /*----------------------------------------------------------*/
 //! Atomic basic type
-typedef struct 
+typedef union 
 {
 	int32_t counter;
+	uint32_t ucounter;
 } sys_atomic_t;
 /*----------------------------------------------------------*/
 /** Sys atomic set */

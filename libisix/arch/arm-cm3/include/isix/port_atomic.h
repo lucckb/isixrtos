@@ -121,6 +121,36 @@ static inline int port_atomic_read( _port_atomic_int_t* val )
 	return sys_atomic_read( val );
 }
 /*--------------------------------------------------------------*/
+/** 
+ *	Port atomic increment
+ *	@param[in] val Atomic type
+ *	@return returned value
+ */
+static inline unsigned port_unsigned_atomic_inc( _port_atomic_int_t* val ) 
+{
+	return (unsigned)sys_atomic_add_return( 1, val );
+}
+/*--------------------------------------------------------------*/
+/** 
+ *	Port atomic decrement
+ *	@param[in] val Atomic type
+ *	@return returned value
+ */
+static inline unsigned port_unsigned_atomic_dec( _port_atomic_int_t* val ) 
+{
+	return (unsigned)sys_atomic_sub_return( 1, val );
+}
+/*--------------------------------------------------------------*/
+/**
+ * Sys atomic read value
+ * @param[in] val Atomic type
+ * @return counter value
+ */
+static inline unsigned port_unsigned_atomic_read( _port_atomic_int_t* val )
+{
+	return (unsigned)sys_atomic_read( val );
+}
+/*--------------------------------------------------------------*/
 static inline void port_atomic_wait_for_interrupt()
 {
 	sys_atomic_wait_for_interrupt();

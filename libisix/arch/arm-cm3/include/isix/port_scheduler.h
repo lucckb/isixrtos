@@ -28,13 +28,15 @@ void port_clear_interrupt_mask( void );
 /*-----------------------------------------------------------------------*/
 //Cleanup task for example dealocate memory
 #ifdef __cplusplus
-static inline void port_cleanup_task(void */*sp*/) {}
+static inline __attribute__((always_inline))
+	void port_cleanup_task(void */*sp*/) {}
 #else
 #define port_cleanup_task(p) do {} while(0)
 #endif
 /*-----------------------------------------------------------------------*/
 //Idle task additional
-static inline void port_idle_cpu( void )
+static inline  __attribute__((always_inline)) 
+	void port_idle_cpu( void )
 {
 #ifndef ISIX_DEBUG
 	asm volatile("wfi\t\n");
@@ -42,7 +44,8 @@ static inline void port_idle_cpu( void )
 }
 /*-----------------------------------------------------------------------*/
 //!Flush the memory
-static inline void port_flush_memory( void )
+static inline  __attribute__((always_inline)) 
+	void port_flush_memory( void )
 {
 	asm volatile("dsb\t\n");
 	asm volatile("isb\t\n");
@@ -52,13 +55,15 @@ static inline void port_flush_memory( void )
 #define SYST_RVR (*((volatile unsigned long*)0xE000E014))
 
 //Get HI resolution timer (must be inline)
-static inline unsigned long port_get_hres_jiffies_timer_value(void)
+static inline  __attribute__((always_inline))
+	unsigned long port_get_hres_jiffies_timer_value(void)
 {
 	return SYST_RVR - SYST_CVR;
 }
 /*-----------------------------------------------------------------------*/
 //Get hres timer max value
-static inline unsigned long port_get_hres_jiffies_timer_max_value(void)
+static inline __attribute__((always_inline)) 
+	unsigned long port_get_hres_jiffies_timer_max_value(void)
 {
 	return SYST_RVR;
 }
