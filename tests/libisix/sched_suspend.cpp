@@ -121,24 +121,20 @@ void sched_suspend::task_lock()
 		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t3) % 4, 0 );
 		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t4) % 4, 0 );
 		isix::_isixp_lock_scheduler();
-#if 1
 		t1->start();
 		t2->start();
 		t3->start();
 		t4->start();
-#endif
 		for(int i=0;i<1000000;++i) stm32::nop();
 		QUNIT_IS_EQUAL( t1->get_id(), ' ' );
 		QUNIT_IS_EQUAL( t2->get_id(), ' ' );
 		QUNIT_IS_EQUAL( t3->get_id(), ' ' );
 		QUNIT_IS_EQUAL( t4->get_id(), ' ' );
 		isix::_isixp_unlock_scheduler();
-#if 1
 		delete t1;
 		delete t2;
 		delete t3;
 		delete t4;
-#endif
 	}
 }
 
