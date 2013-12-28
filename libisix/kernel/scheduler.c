@@ -40,9 +40,7 @@ static _port_atomic_int_t critical_count;
 
 /*-----------------------------------------------------------------------*/
 // Task reschedule lock for spinlock
-#if 1
 static _port_atomic_t sem_schedule_lock = { 0, 1 };
-#endif
 /*-----------------------------------------------------------------------*/
 //Binary tree of task ready to execute
 static list_entry_t ready_task;
@@ -66,10 +64,8 @@ static list_entry_t free_prio_elem;
 /*-----------------------------------------------------------------------*/
 //Global jiffies var
 static volatile tick_t jiffies;
-#if 1
 //Skiped jiffies when scheduler is locked
 static _port_atomic_int_t jiffies_skipped;
-#endif
 //Number of deleted task
 static volatile unsigned number_of_task_deleted;
 //Number of priorities
@@ -135,12 +131,10 @@ void isixp_exit_critical(void)
  */
 void isixp_schedule(void)
 {
-#if 1
 	if( port_atomic_sem_read_val( &sem_schedule_lock ) )
 	{
 		return;
 	}
-#endif
     //Remove executed task and add at end
     if(isix_current_task->state & TASK_READY)
     {
@@ -220,15 +214,11 @@ static void internal_schedule_time(void)
 //Schedule time handled from timer context
 void isixp_schedule_time() 
 {
-#if 1
     if( port_atomic_sem_read_val( &sem_schedule_lock ) ) {
 		port_atomic_inc( &jiffies_skipped );
 	} else {
 		internal_schedule_time();
 	}
-#else
-	internal_schedule_time();
-#endif
 }
 /*-----------------------------------------------------------------------*/
 //Try get task ready from free list if is not exist allocate memory
@@ -505,15 +495,12 @@ void _isixp_finalize() {
 /** Temporary lock task reschedule */
 void _isixp_lock_scheduler() 
 {
-#if 1
 	port_atomic_sem_inc( &sem_schedule_lock );
-#endif
 }
 /*-----------------------------------------------------------------------*/
 /** Temporary unlock task reschedule */
 void _isixp_unlock_scheduler() 
 {
-#if 1
 	if( port_atomic_sem_dec( &sem_schedule_lock ) == 1 ) {
 		isixp_enter_critical();
 		while( jiffies_skipped.counter > 0 ) {
@@ -522,7 +509,6 @@ void _isixp_unlock_scheduler()
 		}
 		isixp_exit_critical();
 	}
-#endif
 }
 /*-----------------------------------------------------------------------*/
 #endif
