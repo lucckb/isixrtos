@@ -176,7 +176,7 @@ private:
 	task_base(const task_base&);
 	task_base& operator=(const task_base&);
 private:
-	task_t *task_id;
+	task_t* task_id;
 }; 
 
 /*-----------------------------------------------------------------------*/
