@@ -12,6 +12,7 @@
 #include "fifo_test.hpp"
 #include "atomic_tests.hpp"
 #include "sched_suspend.hpp"
+#include "mempool_test.hpp"
 
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
@@ -24,6 +25,7 @@ class unit_tests : public isix::task_base
 	tests::fifo_test fifo_test { qunit };
 	tests::atomic_tests atomic_test { qunit };
 	tests::sched_suspend sched_test { qunit };
+	tests::mempool mempool_test { qunit };
 	//Test heap
 	void heap_test() {
 		auto ptr1 = isix::isix_alloc( 1 );
@@ -43,6 +45,7 @@ class unit_tests : public isix::task_base
 		sem_test.run();
 		task_test.run();	
 		fifo_test.run();
+		mempool_test.run();
 		isix::isix_wait_ms(10);
 		isix::isix_shutdown_scheduler();
 	}
