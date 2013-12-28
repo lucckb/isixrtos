@@ -12,18 +12,7 @@
 #include "fifo_test.hpp"
 #include "atomic_tests.hpp"
 #include "sched_suspend.hpp"
-/* ------------------------------------------------------------------ */
-namespace {
-namespace detail {
 
-  isix::semaphore usem(1, 1);
-   void usart_lock() {
-//		usem.wait(isix::ISIX_TIME_INFINITE);
-   }
-   void usart_unlock() {
-  //     usem.signal();
-   }
-}}
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
@@ -65,7 +54,6 @@ int main()
 #ifdef PDEBUG
     stm32::usartsimple_init( USART2,115200,true, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
 #endif	
-    //dblog_init_putc_locked( stm32::usartsimple_putc, NULL, detail::usart_lock, detail::usart_unlock );
 	dblog_init_putc( stm32::usartsimple_putc, NULL );
 	dbprintf("-------- BEGIN_TESTS ---------");
 	static unit_tests test;
@@ -76,11 +64,18 @@ int main()
 
 /* ------------------------------------------------------------------ */
 extern "C" {
-//Crash info interrupt handler
+#ifdef PDEBUG
+	//Crash info interrupt handler
 	void __attribute__((__interrupt__,naked)) hard_fault_exception_vector(void)
 	{
 		cm3_hard_hault_regs_dump();
 	}
+	//Isix panic callback
+	void isix_kernel_panic_callback( const char* file, int line, const char *msg )
+	{
+		fnd::tiny_printf("ISIX_PANIC %s:%i %s\r\n", file, line, msg );
+	}
+#endif
 }
 /* ------------------------------------------------------------------ */
 
