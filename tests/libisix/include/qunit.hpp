@@ -178,8 +178,8 @@ namespace QUnit {
                else
                {
                    fnd::tiny_printf(
-                   	 "%s%s%i: %s%s(): evaluate {%s} == %s\r\n",
-                   	 file, ( ok ? ";" : ":" ),line,
+                   	 "%s:%i: %s%s(): evaluate {%s} == %s\r\n",
+                   	 file, line,
                    	 ( ok ? "OK/" : "FAILED/" ),
                    	 func,
                    	 str1,

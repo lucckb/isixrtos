@@ -92,7 +92,7 @@ void mempool::mempool_tests() {
 	for(size_t n=0; n<N_POOL; ++n) {
 		auto p = memp.alloc(n+'A');
 		QUNIT_IS_TRUE( p != nullptr );
-		QUNIT_IS_EQUAL( reinterpret_cast<long>(p)%4, 0 );
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(p)%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE, 0 );
 		QUNIT_IS_TRUE( *p );
 		pptr[n] = p;
 	}

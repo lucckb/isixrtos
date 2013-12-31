@@ -28,11 +28,15 @@ class unit_tests : public isix::task_base
 	tests::mempool mempool_test { qunit };
 	//Test heap
 	void heap_test() {
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(this)%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE , 0 );
 		auto ptr1 = isix::isix_alloc( 1 );
+		auto ptr2 = isix::isix_alloc( 1 );
 		QUNIT_IS_NOT_EQUAL( ptr1, nullptr );
-		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr1)%4 , 0 );
-		QUNIT_IS_EQUAL( reinterpret_cast<long>(this)%4 , 0 );
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr1)%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE , 0 );
+		QUNIT_IS_NOT_EQUAL( ptr2, nullptr );
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr2)%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE , 0 );
 		isix::isix_free( ptr1 );
+		isix::isix_free( ptr2 );
 		int fragments {};
 		const int freem =  isix::isix_heap_free( &fragments );
 		dbprintf("Free %i frags %i", freem, fragments );
