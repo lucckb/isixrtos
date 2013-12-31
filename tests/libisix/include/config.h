@@ -21,7 +21,7 @@
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
 			//HCLK system speed
 			#define CONFIG_XTAL_HZ 	 8000000U
-			#define CONFIG_HCLK_HZ   168000000U
+			#define CONFIG_HCLK_HZ   120000000U
 			#define CONFIG_PCLK1_HZ  (CONFIG_HCLK_HZ/4)
 			#define CONFIG_PCLK2_HZ  (CONFIG_HCLK_HZ/2)
 
