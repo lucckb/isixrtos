@@ -23,8 +23,8 @@ namespace {
 	{
 		stm32::rcc_flash_latency( CONFIG_HCLK_HZ );
 		stm32::rcc_pll1_sysclk_setup( stm32::e_sysclk_hse_pll, CONFIG_XTAL_HZ , CONFIG_HCLK_HZ );
-		stm32::rcc_pclk2_config(  RCC_HCLK_Div2 );
-		stm32::rcc_pclk1_config(  RCC_HCLK_Div4 );
+		stm32::rcc_pclk2_config( RCC_HCLK_Div2 );
+		stm32::rcc_pclk1_config( RCC_HCLK_Div4 );
 		//Setup NVIC vector at begin of flash
 		SCB->VTOR = NVIC_VectTab_FLASH;
 	}
