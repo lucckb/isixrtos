@@ -30,6 +30,8 @@ class unit_tests : public isix::task_base
 	void heap_test() {
 		auto ptr1 = isix::isix_alloc( 1 );
 		QUNIT_IS_NOT_EQUAL( ptr1, nullptr );
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr1)%4 , 0 );
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(this)%4 , 0 );
 		isix::isix_free( ptr1 );
 		int fragments {};
 		const int freem =  isix::isix_heap_free( &fragments );
