@@ -19,6 +19,11 @@
 #define ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY 0x10
 #endif
 
+/** Configure alignment mask */
+#ifndef ISIX_CONFIG_BYTE_ALIGNMENT_SIZE
+#define ISIX_CONFIG_BYTE_ALIGNMENT_SIZE 8
+#endif
+
 /** Enable disable global debug */
 #define ISIX_DEBUG_ENABLE ISIX_DBG_OFF
 /** Configure the thread debugging */

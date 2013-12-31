@@ -105,28 +105,19 @@ static void __attribute__((noreturn)) isixp_process_terminator(void)
 //Create of stack context 
 unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, void *param)
 {
-    *sp-- = INITIAL_XPSR;
-    *sp-- = (unsigned long)pfun;    		//PC
-    *sp-- = (unsigned long)isixp_process_terminator;       //LR
-    *sp-- = 0x12;           				//R12
-    *sp-- = 0x3;            				//R3
-    *sp-- = 0x2;            				//R2
-    *sp-- = 0x1;            				//R1
-    *sp-- = (unsigned long)param;   		//R0
-    /*
-    *sp-- = 0x11;	//R11
-    *sp-- = 0x10;	//R10
-    *sp-- = 0x9;	//R9
-    *sp-- = 0x8;	//R8
-    *sp-- = 0x7;	//R7
-    *sp-- = 0x6;	//R6
-    *sp-- = 0x5;	//R5
-    *sp = 0x4;	//R4
-    *sp */
-    sp -= 7;
-    return sp;
+	/* Simulate the stack frame as it would be created by a context switch
+	interrupt. */
+	sp--; /* Offset added to account for the way the MCU uses the stack on entry/exit of interrupts. */
+	*sp = INITIAL_XPSR;	/* xPSR */
+	sp--;
+	*sp = ( unsigned long ) pfun;	/* PC */
+	sp--;
+	*sp = ( unsigned long ) isixp_process_terminator;	/* LR */
+	sp -= 5;	/* R12, R3, R2 and R1. */
+	*sp = ( unsigned long ) param;	/* R0 */
+	sp -= 8;	/* R11, R10, R9, R8, R7, R6, R5 and R4. */
+	return sp;
 }
-
 /*-----------------------------------------------------------------------*/
 //Cyclic schedule time interrupt
 void  __attribute__((__interrupt__)) systick_isr_vector(void)

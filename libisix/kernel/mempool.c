@@ -13,12 +13,10 @@
 #include <prv/mempool.h>
 #include <isix/memory.h>
 /*-----------------------------------------------------------------------*/
-#define ISIX_MEM_ALIGN_SIZE sizeof(void*)
-
 /* Private function for return len alignment */
 static inline size_t isix_align_mem_len( size_t len )
 {
-    return (len/ISIX_MEM_ALIGN_SIZE+!!(len%ISIX_MEM_ALIGN_SIZE))*ISIX_MEM_ALIGN_SIZE;
+    return (len/ISIX_CONFIG_BYTE_ALIGNMENT_SIZE+!!(len%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE))*ISIX_CONFIG_BYTE_ALIGNMENT_SIZE;
 }
 
 /*-----------------------------------------------------------------------*/

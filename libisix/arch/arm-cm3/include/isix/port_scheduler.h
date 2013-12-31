@@ -14,10 +14,11 @@ static const unsigned ISIX_PORT_SCHED_MIN_STACK_DEPTH = 112;
 #define ISIX_PORT_SCHED_MIN_STACK_DEPTH 112
 #endif /*__cplusplus*/
 /*-----------------------------------------------------------------------*/
+/** Port yield CPU */
 void port_yield( void );
 
 /*-----------------------------------------------------------------------*/
-
+/** Start first task */
 void port_start_first_task( void );
 
 /*-----------------------------------------------------------------------*/
