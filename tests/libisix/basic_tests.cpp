@@ -46,7 +46,7 @@ class unit_tests : public isix::task_base
 		task_test.run();	
 		fifo_test.run();
 		mempool_test.run();
-		isix::isix_wait_ms(10);
+		isix::isix_wait_ms(100);
 		isix::isix_shutdown_scheduler();
 	}
 };

@@ -170,8 +170,8 @@ namespace QUnit {
                {
                	const char* cmp = type2str(type);
                	fnd::tiny_printf(
-                   	 "%s%s%i: %s%s(): compare {%s} %s {%s} got {\"%s\"} %s {\"%s\"}\r\n",
-                   	 file,( ok ? ";" : ":" ),line,( ok ? "OK/" : "FAILED/" ),
+                   	 "%s:%i: %s%s(): compare {%s} %s {%s} got {\"%s\"} %s {\"%s\"}\r\n",
+                   	 file,line,( ok ? "OK/" : "FAILED/" ),
                    	 func, str1, cmp, str2, s1, cmp, s2
                   );
                }

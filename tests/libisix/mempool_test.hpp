@@ -37,9 +37,11 @@ public:
 	//Run method
 	void run() {
 		mempool_tests();
+		task_racecond();
 	}
 private:
 	void mempool_tests();
+	void task_racecond();
 private:
 	QUnit::UnitTest& qunit;
 };
