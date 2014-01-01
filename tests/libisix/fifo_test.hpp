@@ -49,6 +49,8 @@ public:
 		delivery_test( 1 );
 		delivery_test( NOT_FROM_IRQ );
 		pop_isr_test( 65535 );
+		m_irqf = &m_fifo_noirq;
+		delivery_test( NOT_FROM_IRQ );
 	}
 	//Base tests from external task 
 	void base_tests();
@@ -64,7 +66,9 @@ public:
 	void interrupt_pop_isr( std::vector<int>& back ) noexcept;
 private:
 	QUnit::UnitTest &qunit;
-	isix::fifo<int> m_irqf { IRQ_QTEST_SIZE/2 };
+	isix::fifo<int> m_fifo_n { IRQ_QTEST_SIZE/2 };
+	isix::fifo<int> m_fifo_noirq { IRQ_QTEST_SIZE/2, isix::isix_fifo_f_noirq };
+	isix::fifo<int>* m_irqf { &m_fifo_n };
 	volatile size_t m_irq_cnt {};
 	volatile int m_last_irq_err {};
 };

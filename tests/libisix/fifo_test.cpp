@@ -180,7 +180,7 @@ void fifo_test::insert_overflow()
 void fifo_test::interrupt_handler() noexcept
 {
 	if( m_irq_cnt++ < IRQ_QTEST_SIZE ) {
-		m_last_irq_err  = m_irqf.push_isr( m_irq_cnt );
+		m_last_irq_err  = m_irqf->push_isr( m_irq_cnt );
 		if (m_last_irq_err != isix::ISIX_EOK ) {
 			detail::periodic_timer_stop();
 		}
@@ -193,7 +193,7 @@ void fifo_test::interrupt_handler() noexcept
 void fifo_test::interrupt_pop_isr( std::vector<int>& back ) noexcept 
 {
 	int elem { -1 };
-	if( m_irqf.pop_isr( elem ) == isix::ISIX_EOK ) {
+	if( m_irqf->pop_isr( elem ) == isix::ISIX_EOK ) {
 		back.push_back( elem );
 	}
 }
@@ -209,7 +209,7 @@ void fifo_test::pop_isr_test( uint16_t timer_val )
 	static constexpr int test_val = 1280;
 	int error;
 	for(int p = 0; p < IRQ_QTEST_SIZE; ++p ) {
-		error = m_irqf.push( p + test_val );	
+		error = m_irqf->push( p + test_val );	
 		if( error ) break;
 	}
 	QUNIT_IS_EQUAL( error, isix::ISIX_EOK );
@@ -222,7 +222,7 @@ void fifo_test::pop_isr_test( uint16_t timer_val )
 //Added operation for testing sem from interrupts
 void fifo_test::delivery_test( uint16_t time_irq ) 
 {
-	dbprintf("Begin delivery test value [%i]", time_irq );
+	dbprintf("Begin delivery test value [%i] noirq [%i]", time_irq , m_irqf==&m_fifo_noirq );
 	overflow_task* task {};
 	if( time_irq != NOT_FROM_IRQ ) {
 		m_irq_cnt = 0;
@@ -230,16 +230,16 @@ void fifo_test::delivery_test( uint16_t time_irq )
 			std::bind( &fifo_test::interrupt_handler, std::ref(*this) ), 65535
 		);
 	} else {
-		task = new overflow_task( isix::isix_get_task_priority(nullptr), m_irqf );
+		task = new overflow_task( isix::isix_get_task_priority(nullptr), *m_irqf);
 		task->start();
 	}
 	int val; int ret;
 	std::vector<int> test_vec;
-	for( int n=0; (ret=m_irqf.pop(val, 1000)) == isix::ISIX_EOK; ++n ) {
+	for( int n=0; (ret=m_irqf->pop(val, 1000)) == isix::ISIX_EOK; ++n ) {
 		test_vec.push_back( val );
 	}
 	QUNIT_IS_EQUAL( ret, isix::ISIX_ETIMEOUT );
-	QUNIT_IS_EQUAL( m_irqf.size(), 0 );
+	QUNIT_IS_EQUAL( m_irqf->size(), 0 );
  
 	//Final parameter check
 	QUNIT_IS_EQUAL( test_vec.size(), IRQ_QTEST_SIZE );
