@@ -13,13 +13,26 @@ struct fifo_struct;
 typedef struct fifo_struct fifo_t;
 
 /*--------------------------------------------------------------*/
+//! Extra flags for fifo create EX
+enum isix_fifo_ex_flags 
+{
+	isix_fifo_f_noirq = 0x01
+};
+/*--------------------------------------------------------------*/
 /** Create queue for n elements
  * @param[in] n_elem Number of available elements in the fifo
  * @param[in] elem_size Size of the element
+ * @param[in] flags Extra flags
  * @return Fifo object
  */
-fifo_t* isix_fifo_create(int n_elem, int elem_size);
+fifo_t* isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags );
 
+/*--------------------------------------------------------------*/
+/** Compatibility version of the fifo create without ex */
+static inline fifo_t* isix_fifo_create( int n_elem, int elem_size )
+{
+	return isix_fifo_create_ex( n_elem, elem_size, 0 );
+}
 /*--------------------------------------------------------------*/
 /** Push element in the queue
  * @param[in] fifo  Pointer to queue
@@ -101,8 +114,8 @@ public:
 	/** Construct fifo object with the selected elements
 	 * @param n_elem Number of elements in the fifo
 	 */
-	explicit fifo(std::size_t n_elem)
-		: fifo_base(isix_fifo_create(n_elem,sizeof(T)))
+	explicit fifo(std::size_t n_elem, unsigned flags=0)
+		: fifo_base(isix_fifo_create_ex(n_elem,sizeof(T),flags))
 	{
 	}
 	//! Destruct fifo object

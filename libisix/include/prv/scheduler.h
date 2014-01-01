@@ -98,6 +98,11 @@ void isixp_add_task_to_delete_list(struct task_struct *task);
 unsigned long* isixp_task_init_stack(unsigned long *sp,task_func_ptr_t pfun,void *param);
 
 /*-----------------------------------------------------------------------*/
-
+//Lock the scheduler
+void _isixp_lock_scheduler();
+/*-----------------------------------------------------------------------*/
+//Unlock the scheduler
+void _isixp_unlock_scheduler();
+/*-----------------------------------------------------------------------*/
 #endif
 
