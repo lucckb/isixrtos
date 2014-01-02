@@ -12,7 +12,7 @@
 #include <isix/types.h>
 #include <prv/list.h>
 /*-----------------------------------------------------------------------*/
-#if ISIX_CONFIG_USE_TIMERS == ISIX_ON
+#ifdef ISIX_CONFIG_USE_TIMERS
 /*-----------------------------------------------------------------------*/
 //Initialize vtimers infrastructure
 void _isixp_vtimer_init(void);

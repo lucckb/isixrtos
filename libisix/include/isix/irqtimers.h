@@ -12,7 +12,7 @@
 #include <isix/config.h>
 
 /*-----------------------------------------------------------------------*/
-#if ISIX_CONFIG_USE_TIMERS == ISIX_ON
+#ifdef ISIX_CONFIG_USE_TIMERS
 /*-----------------------------------------------------------------------*/
 #include <isix/types.h>
 #include <isix/semaphore.h>

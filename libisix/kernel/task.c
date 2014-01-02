@@ -62,7 +62,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
 #else
      task->top_stack = task->init_stack;
 #endif
-#if ISIX_CONFIG_TASK_STACK_CHECK==ISIX_ON
+#ifdef ISIX_CONFIG_TASK_STACK_CHECK
     memset(task->init_stack,MAGIC_FILL_VALUE,stack_depth);
 #endif
     isix_printk("Top stack SP=%08x",task->top_stack);
@@ -234,7 +234,7 @@ task_t * isix_task_self(void)
 
 /*-----------------------------------------------------------------------*/
 //Stack check for fill value
-#if ISIX_CONFIG_TASK_STACK_CHECK == ISIX_ON
+#ifdef ISIX_CONFIG_TASK_STACK_CHECK
 
 #ifndef ISIX_CONFIG_STACK_GROWTH
 #error isix_free_stack_space() for grown stack not implemented yet
