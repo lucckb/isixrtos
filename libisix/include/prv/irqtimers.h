@@ -8,10 +8,11 @@
 #ifndef ISIX_PRV_IRQTIMERS_H_
 #define ISIX_PRV_IRQTIMERS_H_
 /*-----------------------------------------------------------------------*/
+#include <isix/config.h>
 #include <isix/types.h>
 #include <prv/list.h>
 /*-----------------------------------------------------------------------*/
-#ifdef ISIX_CONFIG_USE_TIMERS
+#if ISIX_CONFIG_USE_TIMERS == ISIX_ON
 /*-----------------------------------------------------------------------*/
 //Initialize vtimers infrastructure
 void _isixp_vtimer_init(void);

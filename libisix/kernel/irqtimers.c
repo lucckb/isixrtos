@@ -13,7 +13,7 @@
 #include <string.h>
 
 /*-----------------------------------------------------------------------*/
-#ifdef ISIX_CONFIG_USE_TIMERS	//If timers are enabled
+#if ISIX_CONFIG_USE_TIMERS == ISIX_ON 
 /*-----------------------------------------------------------------------*/
 //List entry for the virtual timers
 static list_entry_t vtimer_list[2];

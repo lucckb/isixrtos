@@ -4,11 +4,11 @@
 
 /** Stack from high to low address */
 #ifndef ISIX_CONFIG_STACK_GROWTH
-#define ISIX_CONFIG_STACK_GROWTH 1
+#define ISIX_CONFIG_STACK_GROWTH ISIX_ON
 #endif
 /** Use preemption */
 #ifndef ISIX_CONFIG_USE_PREEMPTION
-#define ISIX_CONFIG_USE_PREEMPTION 1
+#define ISIX_CONFIG_USE_PREEMPTION ISIX_ON
 #endif
 /** Ticks per seconds */
 #ifndef ISIX_CONFIG_HZ
@@ -22,6 +22,10 @@
 /** Configure alignment mask */
 #ifndef ISIX_CONFIG_BYTE_ALIGNMENT_SIZE
 #define ISIX_CONFIG_BYTE_ALIGNMENT_SIZE 8
+#endif
+
+#ifndef ISIX_CONFIG_USE_TIMERS
+#define ISIX_CONFIG_USE_TIMERS ISIX_OFF
 #endif
 
 /** Enable disable global debug */
