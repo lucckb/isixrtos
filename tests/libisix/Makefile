@@ -39,8 +39,6 @@ CFLAGS += -std=gnu99
 #C++ compiler options 
 CXXFLAGS += $(COMMON_FLAGS)
 
-#Disable safe constructors
-#CXXFLAGS +=  -fno-threadsafe-statics
 
 #Per file listing
 LISTING = n

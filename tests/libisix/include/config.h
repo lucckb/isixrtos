@@ -5,11 +5,13 @@
  *      Author: lucck
  */
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef APP_CONFIG_H_
+#define APP_CONFIG_H_
 
-
-#define ISIX_CONFIG_SHUTDOWN_API ISIX_ON
+/* Enable shoutdown API */
+#define ISIX_CONFIG_SHUTDOWN_API
+/* Enable task stack checking */
+#define ISIX_CONFIG_TASK_STACK_CHECK
 
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
