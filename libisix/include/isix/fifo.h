@@ -85,18 +85,11 @@ int isix_fifo_read_isr(fifo_t *queue, void *item);
 #include <cstddef>
 
 namespace isix {
-/*--------------------------------------------------------------*/
-#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
-union ihandle;
-#endif
 
 /*--------------------------------------------------------------*/
 //! The base class for fifo contains only data
 class fifo_base
 {
-#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
-	friend union ihandle;
-#endif
 public:
 	explicit fifo_base(fifo_t *hwnd_) : hwnd(hwnd_) {}
 protected:

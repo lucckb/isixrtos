@@ -5,7 +5,6 @@
 #include <isix/semaphore.h>
 #include <prv/semaphore.h>
 #include <string.h>
-#include <prv/multiple_objects.h>
 #include <isix/port_atomic.h>
 
 #ifndef ISIX_DEBUG_SEMAPHORE
@@ -38,8 +37,6 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
     memset(sem,0,sizeof(sem_t));
     sem->static_mem = static_mem;
 	port_atomic_sem_init(&sem->value, val, limit_val );
-	//Set sem type
-    sem->type = IHANDLE_T_SEM;
 	port_atomic_init( &sem->sem_task_count, 0 );
     list_init(&sem->sem_task);
     isix_printk("Create sem %08x val %d",sem,sem->value);
@@ -103,28 +100,6 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     return (_isix_current_task->state&TASK_SEM_WKUP)?ISIX_EOK:ISIX_ETIMEOUT;
 }
 /*--------------------------------------------------------------*/
-#if ISIX_CONFIG_USE_MULTIOBJECTS == ISIX_ON
-//Wakeup from iterate over muliple objects
-static int _isixp_wakeup_multiple( task_t *task_wake )
-{
-	isix_printk("task state %02x",task_wake->state);
-	//Remove from time list
-	if(task_wake->state & TASK_SLEEPING)
-	{
-	    list_delete(&task_wake->inode);
-	    task_wake->state &= ~TASK_SLEEPING;
-	    isix_printk("Remove task %08x from time list",task_wake );
-	}
-	task_wake->state &= ~TASK_WAITING_MULTIPLE;
-	task_wake->state |= TASK_READY | TASK_MULTIPLE_WKUP;
-	if(_isixp_add_task_to_ready_list(task_wake)<0)
-	{
-	     return ISIX_ENOMEM;
-	}
-	return ISIX_EOK;
-}
-#endif
-/*--------------------------------------------------------------*/
 //Sem signal V()
 int _isixp_sem_signal( sem_t *sem, bool isr )
 {
@@ -139,25 +114,6 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
 	if( port_atomic_sem_inc( &sem->value ) > 1 )
     {
         isix_printk("Waiting list is empty incval to %d",sem->value);
-#if ISIX_CONFIG_USE_MULTIOBJECTS == ISIX_ON 
-        //Only for multiple objs
-        {
-		  //TODO: Multiple object needs reimplementation
-          _isixp_enter_critical();
-		  int ret = _isixp_wakeup_multiple_waiting_tasks( sem, _isixp_wakeup_multiple );
-          if(ret>0)
-          {
-        	  if(ret<_isix_current_task->prio && !isr)
-       		  {
-        		 isix_printk("Yield processor higer prio wktask %d main %d",ret,_isix_current_task->prio);
-        		 _isixp_exit_critical();
-       			 isix_yield();
-    			 _isixp_enter_critical();
-       		  }
-          }
-          else { _isixp_exit_critical(); return ret; }
-        }
-#endif
         return ISIX_EOK;
     }
 	else 

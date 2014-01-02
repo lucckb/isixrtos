@@ -4,19 +4,12 @@
 
 #include <prv/list.h>
 #include <isix/port_atomic.h>
-/*--------------------------------------------------------------*/
-enum ihandle_type
-{
-	IHANDLE_T_SEM=1,
-	IHANDLE_T_FIFO=2
-};
 
 /*--------------------------------------------------------------*/
 
 //Structure of semaphore
 struct sem_struct
 {
-    enum ihandle_type type;
 	//Semaphore val
   	_port_atomic_t value; 
     //Task val waiting for semaphore

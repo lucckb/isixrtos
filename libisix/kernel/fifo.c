@@ -56,8 +56,6 @@ fifo_t* isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
    }
    //Set flags
    fifo->flags = flags;
-   //Set fifo type
-   fifo->type = IHANDLE_T_FIFO;
    //Calculate size
    fifo->size = n_elem * elem_size;
    //Create used memory struct

@@ -7,7 +7,6 @@
 #include <prv/list.h>
 #include <prv/semaphore.h>
 #include <prv/irqtimers.h>
-#include <prv/multiple_objects.h>
 
 #ifndef ISIX_DEBUG_SCHEDULER
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
@@ -197,12 +196,6 @@ static void internal_schedule_time(void)
             list_delete(&task_c->inode_sem);
             isix_printk("SchedulerTime: Timeout delete from sem list");
         }
-#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
-        if(task_c->state & TASK_WAITING_MULTIPLE)
-        {
-        	task_c->state &= ~(TASK_WAITING_MULTIPLE|TASK_MULTIPLE_WKUP);
-        }
-#endif
         if(_isixp_add_task_to_ready_list(task_c)<0)
         {
             isix_bug("Add task to ready list fail");
@@ -443,8 +436,6 @@ void isix_init(prio_t num_priorities)
     isix_task_create(idle_task,NULL,ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities);
     //Initialize virtual timers infrastructure
     _isixp_vtimer_init();
-    //Initialize multiple objects infrastructure
-    ixixp_multiple_objects_init();
 }
 
 /*-----------------------------------------------------------------------*/

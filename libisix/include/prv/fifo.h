@@ -13,7 +13,6 @@
 /* Queue structure */
 struct fifo_struct
 {
-	enum ihandle_type type;	//Structure type
 	char *rx_p;     //Pointer to rx
     char *tx_p;     //Pointer to tx
     char *mem_p;    //Pointer to allocated memory
