@@ -63,7 +63,7 @@ static void mem_lock_init(void)
 //!Lock the memory
 static void mem_lock(void)
 {
-	if(isix_scheduler_running)
+	if(_isix_scheduler_running)
 		isix_sem_wait( &mem_sem, ISIX_TIME_INFINITE );
 }
 
@@ -71,7 +71,7 @@ static void mem_lock(void)
 //!Unlock the memory
 static void mem_unlock(void)
 {
-	if(isix_scheduler_running)
+	if(_isix_scheduler_running)
 		isix_sem_signal( &mem_sem );
 }
 

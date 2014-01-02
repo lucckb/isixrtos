@@ -30,7 +30,7 @@ struct sem_struct
 /*--------------------------------------------------------------*/
 
 //Semaphore can by destroyed
-static inline bool isixp_sem_can_destroy(sem_t *sem)
+static inline bool _isixp_sem_can_destroy(sem_t *sem)
 {
    return list_isempty(&sem->sem_task);
 }

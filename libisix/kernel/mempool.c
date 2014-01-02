@@ -64,15 +64,15 @@ void isix_mempool_destroy( isix_mempool_t mp )
 void* isix_mempool_alloc( isix_mempool_t mp )
 {
     if( !mp ) return NULL;
-    isixp_enter_critical();
+    _isixp_enter_critical();
     if( list_isempty( &mp->free_elems ) )
     {
-    	isixp_exit_critical();
+    	_isixp_exit_critical();
     	return NULL;
     }
     struct mempool_node *n = list_get_first( &mp->free_elems, inode, struct mempool_node );
     list_delete( &n->inode );
-    isixp_exit_critical();
+    _isixp_exit_critical();
     return n;
 }
 /*-----------------------------------------------------------------------*/
@@ -81,8 +81,8 @@ void isix_mempool_free( isix_mempool_t mp, void *p )
 {
     if( !mp ) return;
     if( !p ) return;
-    isixp_enter_critical();
+    _isixp_enter_critical();
     list_insert_end( &mp->free_elems, &((struct mempool_node*)p)->inode );
-    isixp_exit_critical();
+    _isixp_exit_critical();
 }
 /*-----------------------------------------------------------------------*/

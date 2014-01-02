@@ -14,10 +14,10 @@
 #ifdef ISIX_CONFIG_USE_TIMERS
 /*-----------------------------------------------------------------------*/
 //Initialize vtimers infrastructure
-void isixp_vtimer_init(void);
+void _isixp_vtimer_init(void);
 /*-----------------------------------------------------------------------*/
 //Call timer funcs in the interrupt context
-void isixp_vtimer_handle_time(tick_t jiffies);
+void _isixp_vtimer_handle_time(tick_t jiffies);
 /*-----------------------------------------------------------------------*/
 struct vtimer_struct
 {
@@ -29,8 +29,8 @@ struct vtimer_struct
 };
 /*-----------------------------------------------------------------------*/
 #else
-static inline void isixp_vtimer_init(void) {}
-static inline void isixp_vtimer_handle_time(tick_t jiffies) { (void)jiffies; }
+static inline void _isixp_vtimer_init(void) {}
+static inline void _isixp_vtimer_handle_time(tick_t jiffies) { (void)jiffies; }
 #endif
 /*-----------------------------------------------------------------------*/
 #endif /* IRQTIMERS_H_ */

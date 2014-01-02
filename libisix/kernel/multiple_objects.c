@@ -47,9 +47,9 @@ void ixixp_multiple_objects_init( void )
 
 /*--------------------------------------------------------------*/
 //Return taskID waiting for semgroup
-int isixp_wakeup_multiple_waiting_tasks( const sem_t *sem, int (*wkup_fun)(task_t *) )
+int _isixp_wakeup_multiple_waiting_tasks( const sem_t *sem, int (*wkup_fun)(task_t *) )
 {
-	isixp_enter_critical();
+	_isixp_enter_critical();
 	prio_t prio = isix_get_min_priority();
 	multiple_obj_t *mobj;
 	list_for_each_entry( &waiting_objects, mobj, inode)
@@ -62,7 +62,7 @@ int isixp_wakeup_multiple_waiting_tasks( const sem_t *sem, int (*wkup_fun)(task_
 				{
 					if(mobj->task_id->prio < prio ) prio = mobj->task_id->prio;
 					int retval = wkup_fun(mobj->task_id);
-					if(retval<0) { isixp_exit_critical(); return retval;} else break;
+					if(retval<0) { _isixp_exit_critical(); return retval;} else break;
 				}
 			}
 			else if(mobj->ihwnd[s].sem->type == IHANDLE_T_FIFO)
@@ -71,19 +71,19 @@ int isixp_wakeup_multiple_waiting_tasks( const sem_t *sem, int (*wkup_fun)(task_
 				{
 					if(mobj->task_id->prio < prio ) prio = mobj->task_id->prio;
 					int retval = wkup_fun(mobj->task_id);
-					if(retval<0) { isixp_exit_critical(); return retval;} else break;
+					if(retval<0) { _isixp_exit_critical(); return retval;} else break;
 				}
 			}
 		}
 	}
-	isixp_exit_critical();
+	_isixp_exit_critical();
 	return prio;
 }
 /*--------------------------------------------------------------*/
 //Delete obj item
-void isixp_delete_from_multiple_wait_list(const task_t *task )
+void _isixp_delete_from_multiple_wait_list(const task_t *task )
 {
-	isixp_enter_critical();
+	_isixp_enter_critical();
 	multiple_obj_t *mobj;
 	list_for_each_entry( &waiting_objects, mobj, inode)
 	{
@@ -93,7 +93,7 @@ void isixp_delete_from_multiple_wait_list(const task_t *task )
 			break;
 		}
 	}
-	isixp_exit_critical();
+	_isixp_exit_critical();
 }
 
 /*--------------------------------------------------------------*/
@@ -104,10 +104,10 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 	if( hwnd==NULL  ) return ISIX_EINVARG;
 	multiple_obj_t multiple_obj =
 	{
-		hwnd, count, isix_current_task, {NULL, NULL}
+		hwnd, count, _isix_current_task, {NULL, NULL}
 	};
     //Enter critical state
-	isixp_enter_critical();
+	_isixp_enter_critical();
 	//Check if any fifo.rxsem, or sem is signaled
 	for(size_t o = 0; o < count; o++)
 	{
@@ -115,7 +115,7 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 		{
 			if( hwnd[o].sem->value > 0 )
 			{
-				isixp_exit_critical();
+				_isixp_exit_critical();
                 return o+1;
 			}
 		}
@@ -123,7 +123,7 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 		{
 			if( hwnd[o].fifo->rx_sem.value > 0 )
 			{
-				isixp_exit_critical();
+				_isixp_exit_critical();
                 return o+1;
 			}
 		}
@@ -135,29 +135,29 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
     do {
 		//Add to waiting object group
 		list_insert_end( &waiting_objects, &multiple_obj.inode );
-		if(isix_current_task->state & TASK_READY)
+		if(_isix_current_task->state & TASK_READY)
 		{
-				isix_current_task->state &= ~(TASK_READY| TASK_RUNNING );
-				isixp_delete_task_from_ready_list(isix_current_task);
+				_isix_current_task->state &= ~(TASK_READY| TASK_RUNNING );
+				_isixp_delete_task_from_ready_list(_isix_current_task);
 				isix_printk("Delete task from ready list");
 		}
 			//If any task remove task from ready list
 		if(timeout)
 		{
 			//Add to waiting list
-			isixp_add_task_to_waiting_list(isix_current_task,timeout);
-			isix_current_task->state |= TASK_SLEEPING;
-			isix_printk("Wait after %d ticks",isix_current_task->jiffies);
+			_isixp_add_task_to_waiting_list(_isix_current_task,timeout);
+			_isix_current_task->state |= TASK_SLEEPING;
+			isix_printk("Wait after %d ticks",_isix_current_task->jiffies);
 		}
 		//Note state to wait for multiple objects
-		isix_current_task->state |= TASK_WAITING_MULTIPLE;
+		_isix_current_task->state |= TASK_WAITING_MULTIPLE;
 		//Yield the CPU
-		isixp_exit_critical();
+		_isixp_exit_critical();
 		isix_yield();
 		//Section back to the task after the wakeup
-		isixp_enter_critical();
-		isix_printk("After wakeup task state 0x%02x", isix_current_task->state );
-		if(!(isix_current_task->state & TASK_MULTIPLE_WKUP))
+		_isixp_enter_critical();
+		isix_printk("After wakeup task state 0x%02x", _isix_current_task->state );
+		if(!(_isix_current_task->state & TASK_MULTIPLE_WKUP))
 		{
 			retval = ISIX_ETIMEOUT;
 			break;
@@ -193,7 +193,7 @@ int isix_wait_for_multiple_objects(size_t count, tick_t timeout, const ihandle_t
 		isix_bug("Waiting task not found when it is excepted");
 	}
 	//Exit critical section
-	isixp_exit_critical();
+	_isixp_exit_critical();
 	//return
 	return retval;
 }

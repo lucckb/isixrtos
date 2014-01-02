@@ -27,7 +27,7 @@ static inline __attribute__((always_inline)) void _lock( const fifo_t* fifo )
 	if( fifo->flags & isix_fifo_f_noirq ) {
 		_isixp_lock_scheduler();
 	} else {
-		isixp_enter_critical();
+		_isixp_enter_critical();
 	}
 }
 /*-------------------------------------------------------*/
@@ -37,7 +37,7 @@ static inline __attribute__((always_inline)) void _unlock( const fifo_t* fifo )
 	if( fifo->flags & isix_fifo_f_noirq ) {
 		_isixp_unlock_scheduler();
 	} else {
-		isixp_exit_critical();
+		_isixp_exit_critical();
 	}
 }
 /*-------------------------------------------------------*/
@@ -169,14 +169,14 @@ int isix_fifo_destroy(fifo_t *fifo)
 {
     _lock(fifo);
     //Check for TXSEM ban be destroyed
-    if(isixp_sem_can_destroy(&fifo->tx_sem)==false)
+    if(_isixp_sem_can_destroy(&fifo->tx_sem)==false)
     {
         isix_printk("FifoDestroy: Error TXSem busy");
         _unlock(fifo);
         return ISIX_EBUSY;
     }
     //Check for RXSEM can be destroyed
-    if(isixp_sem_can_destroy(&fifo->rx_sem)==false)
+    if(_isixp_sem_can_destroy(&fifo->rx_sem)==false)
     {
         isix_printk("FifoDestroy: Error RXSem busy");
         _unlock(fifo);

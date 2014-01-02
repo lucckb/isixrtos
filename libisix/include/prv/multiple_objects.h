@@ -36,11 +36,11 @@ void ixixp_multiple_objects_init( void );
 
 /*--------------------------------------------------------------*/
 //Wakeup multiple wating tasks
-int isixp_wakeup_multiple_waiting_tasks( const sem_t *sem, int (*wkup_fun)(task_t *) );
+int _isixp_wakeup_multiple_waiting_tasks( const sem_t *sem, int (*wkup_fun)(task_t *) );
 
 /*--------------------------------------------------------------*/
 
-void isixp_delete_from_multiple_wait_list(const task_t *task );
+void _isixp_delete_from_multiple_wait_list(const task_t *task );
 
 /*--------------------------------------------------------------*/
 #else /*ISIX_CONFIG_USE_MULTIOBJECTS */

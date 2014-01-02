@@ -26,8 +26,8 @@ typedef uint8_t prio_t;
 //! Yield the current process
 static inline void isix_yield()
 {
-	extern volatile bool isix_scheduler_running;
-	if(isix_scheduler_running)
+	extern volatile bool _isix_scheduler_running;
+	if(_isix_scheduler_running)
 		port_yield();
 }
 

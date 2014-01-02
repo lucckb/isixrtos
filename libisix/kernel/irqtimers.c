@@ -22,7 +22,7 @@ static list_entry_t *p_vtimer_list;
 static list_entry_t *pov_vtimer_list;
 /*-----------------------------------------------------------------------*/
 //Initialize vtimers infrastructure
-void isixp_vtimer_init(void)
+void _isixp_vtimer_init(void)
 {
 	list_init( &vtimer_list[0] );
 	list_init( &vtimer_list[1] );
@@ -36,7 +36,7 @@ void isixp_vtimer_init(void)
 static void add_vtimer_to_list(vtimer_t *timer)
 {
     //Scheduler lock
-    isixp_enter_critical();
+    _isixp_enter_critical();
     timer->jiffies = isix_get_jiffies() + timer->timeout;
     if(timer->jiffies < isix_get_jiffies())
     {
@@ -59,12 +59,12 @@ static void add_vtimer_to_list(vtimer_t *timer)
     	list_insert_before(&waitl->inode,&timer->inode);
     }
     //Scheduler unlock
-    isixp_exit_critical();
+    _isixp_exit_critical();
 }
 
 /*-----------------------------------------------------------------------*/
 //Call timer funcs in the interrupt context
-void isixp_vtimer_handle_time(tick_t jiffies)
+void _isixp_vtimer_handle_time(tick_t jiffies)
 {
 	if(jiffies == 0)
 	{
@@ -101,7 +101,7 @@ vtimer_t* isix_vtimer_create(void (*func)(void*),void *arg )
 int isix_vtimer_start(vtimer_t* timer, tick_t timeout)
 {
 	if( timer == NULL ) return ISIX_EINVARG;
-	isixp_enter_critical();
+	_isixp_enter_critical();
 	//Search on ov list
 	if( list_is_elem_assigned( &timer->inode ) )
 	{
@@ -113,7 +113,7 @@ int isix_vtimer_start(vtimer_t* timer, tick_t timeout)
 		timer->timeout = timeout;
 		add_vtimer_to_list( timer );
 	}
-	isixp_exit_critical();
+	_isixp_exit_critical();
 	return ISIX_EOK;
 }
 
@@ -122,14 +122,14 @@ int isix_vtimer_start(vtimer_t* timer, tick_t timeout)
 int isix_vtimer_destroy(vtimer_t* timer)
 {
 	if( timer == NULL ) return ISIX_EINVARG;
-	isixp_enter_critical();
+	_isixp_enter_critical();
 	if( list_is_elem_assigned( &timer->inode ) )
 	{
-		isixp_exit_critical();
+		_isixp_exit_critical();
 		return ISIX_EBUSY;
 	}
 	isix_free( timer );
-	isixp_exit_critical();
+	_isixp_exit_critical();
 	return ISIX_EOK;
 }
 /*-----------------------------------------------------------------------*/

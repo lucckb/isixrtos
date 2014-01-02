@@ -62,7 +62,7 @@ int isix_sem_get_isr(sem_t *sem);
  * @param[in] isr True when it is called from the ISR context
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isixp_sem_signal(sem_t *sem, bool isr);
+int _isixp_sem_signal(sem_t *sem, bool isr);
 
 /*--------------------------------------------------------------*/
 /** Semaphore  signal V()
@@ -71,7 +71,7 @@ int isixp_sem_signal(sem_t *sem, bool isr);
  */
 static inline int isix_sem_signal(sem_t *sem)
 {
-	return isixp_sem_signal( sem, false );
+	return _isixp_sem_signal( sem, false );
 }
 
 /*--------------------------------------------------------------*/
@@ -81,7 +81,7 @@ static inline int isix_sem_signal(sem_t *sem)
  */
 static inline int isix_sem_signal_isr(sem_t *sem)
 {
-	return isixp_sem_signal(sem,true);
+	return _isixp_sem_signal(sem,true);
 }
 
 /*--------------------------------------------------------------*/

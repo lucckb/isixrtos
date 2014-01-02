@@ -38,7 +38,7 @@
 	"msr psp, r0\t\n"                                           \
     "bx r14\r\n"                                                \
     ".align 2 \t\n"												\
-    "0: .word isix_current_task\t\n"							\
+    "0: .word _isix_current_task\t\n"							\
    )
 /*-----------------------------------------------------------------------*/
 /** Restore the context to the place when scheduler was started to run
@@ -67,9 +67,9 @@
 void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 {
 #ifdef ISIX_CONFIG_SHUTDOWN_API
-	if( isix_scheduler_running ) {
+	if( _isix_scheduler_running ) {
 		  cpu_save_context();
-		  isixp_schedule();
+		  _isixp_schedule();
 		  cpu_restore_context();
 	} else {
 		cpu_restore_main_context();
@@ -77,7 +77,7 @@ void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 #else
 	cpu_save_context();
 
-    isixp_schedule();
+    _isixp_schedule();
 
     cpu_restore_context();
 #endif
@@ -97,19 +97,19 @@ void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
      "msr basepri, r0\t\n"
      "bx r14\t\n"
      ".align 2 \t\n"
-     "0: .word isix_current_task\t\n"
+     "0: .word _isix_current_task\t\n"
       );
 }
 /*-----------------------------------------------------------------------*/
 //! Terminate the process when task exits
-static void __attribute__((noreturn)) isixp_process_terminator(void)
+static void __attribute__((noreturn)) _isixp_process_terminator(void)
 {
 	isix_task_delete(NULL);
 	for(;;);
 }
 /*-----------------------------------------------------------------------*/
 //Create of stack context 
-unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, void *param)
+unsigned long* _isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, void *param)
 {
 	/* Simulate the stack frame as it would be created by a context switch
 	interrupt. */
@@ -122,7 +122,7 @@ unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, vo
 	sp--;
 	*sp = ( unsigned long ) pfun;	/* PC */
 	sp--;
-	*sp = ( unsigned long ) isixp_process_terminator;	/* LR */
+	*sp = ( unsigned long ) _isixp_process_terminator;	/* LR */
 
 	/* Save code space by skipping register initialisation. */
 	sp -= 5;	/* R12, R3, R2 and R1. */
@@ -143,11 +143,11 @@ unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, vo
 //Cyclic schedule time interrupt
 void __attribute__((__interrupt__)) systick_isr_vector(void)
 {
-	isixp_schedule_time();
+	_isixp_schedule_time();
 
 #ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
-    if(isix_scheduler_running) {
+    if(_isix_scheduler_running) {
 		*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
 	}
 #endif
