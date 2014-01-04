@@ -35,7 +35,6 @@ public:
 		m_events_queue( system_events_qsize ),
 		m_disp( display ), m_color( color )
 	{
-
 	}
 	/** Execute gui main loop */
 	void execute();
