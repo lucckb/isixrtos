@@ -50,9 +50,8 @@ public:
 	const rectangle& get_coord() const { return m_coord; }
 	//Get selectable flag
 	bool selectable() const { return m_selectable; }
-	void selectable( bool sel ) { m_selectable = sel; }
-	//On event
 protected:
+	void selectable( bool sel ) { m_selectable = sel; }
 	//Get base layout
 	const layout& get_layout() const { return m_layout.inherit()?m_win.get_owner().get_def_layout():m_layout; }
 	window& get_owner() { return m_win; }
@@ -73,7 +72,7 @@ private:
 	rectangle m_coord;
 	layout m_layout;								/* Component layout */
 	window &m_win;									/* GUI manager */
-	bool m_selectable  { true };							/* The widget is changed */
+	bool m_selectable  { true };					/* The widget is changed */
 };
 /* ------------------------------------------------------------------ */
 }}
