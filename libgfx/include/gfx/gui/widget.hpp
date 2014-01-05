@@ -30,27 +30,37 @@ public:
 		 m_win.add_widget( this );
 	 }
 	 //Remove widget
-	 virtual ~widget()
-	 {
+	 virtual ~widget() {
 		  m_win.delete_widget( this );
 	 }
 	 //Set widget color
-	 void set_layout( layout const& lay )
-	 {
+	 void set_layout( layout const& lay ) {
 		m_layout = lay;
 	 }
-	// On repaint the widget return true when changed
-	virtual void repaint() = 0;
 	//* Report input event
-	virtual bool report_event( const input::event_info& /*ev*/ )
-	{
-		return false;
+	virtual void report_event( const input::event_info& /*ev*/ ) {
 	}
 	// Get client coordinate
 	const rectangle& get_coord() const { return m_coord; }
 	//Get selectable flag
 	bool selectable() const { return m_selectable; }
+	//Redraw the window
+	void redraw() {
+		repaint();
+		m_changed = false;
+	}
+	//Return true if repaint is required
+	bool changed() const {
+		return m_changed;
+	}
 protected:
+	//Set dirty flag need repaint
+	void dirty(bool changed = true) {
+		m_changed = changed;
+	}
+	// On repaint the widget return true when changed
+	virtual void repaint() = 0;
+	//Widget is selectable
 	void selectable( bool sel ) { m_selectable = sel; }
 	//Get base layout
 	const layout& get_layout() const { return m_layout.inherit()?m_win.get_owner().get_def_layout():m_layout; }
@@ -73,6 +83,7 @@ private:
 	layout m_layout;								/* Component layout */
 	window &m_win;									/* GUI manager */
 	bool m_selectable  { true };					/* The widget is changed */
+	bool m_changed { false };						/*  Change flag  */
 };
 /* ------------------------------------------------------------------ */
 }}

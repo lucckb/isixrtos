@@ -64,10 +64,11 @@ public:
 	{
 		return m_value;
 	}
+	//* Report input event
+	virtual void report_event( const input::event_info& ev );
+protected:
 	// On repaint the widget return true when changed
 	virtual void repaint();
-	//* Report input event
-	virtual bool report_event( const input::event_info& ev );
 private:
 	//Handle joy KBD
 	bool handle_joy( const input::detail::keyboard_tag &key_tag );

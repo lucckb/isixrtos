@@ -34,10 +34,8 @@ public:
 	virtual ~choice_menu() {}
 	//Set menu items
 	void items( const item *items=nullptr);
-	//Repaint virtual function
-	virtual void repaint();
 	//* Report input event
-	virtual bool report_event( const input::event_info& ev );
+	virtual void report_event( const input::event_info& ev );
 	//Get selection
 	int selection() const
 	{
@@ -48,6 +46,9 @@ public:
 		if( m_style==style::normal ) m_curr_item = sel;
 		else m_sel_item = sel;
 	}
+protected:
+	//Repaint virtual function
+	virtual void repaint();
 private:
 	//Calc maximum item value
 	int calc_max_items() const;

@@ -42,9 +42,8 @@ void window::repaint()
 			draw_line_box( m_coord, gdi );
 		}
 	}
-	for( const auto item : m_widgets )
-	{
-		item->repaint();
+	for( const auto item : m_widgets ) {
+		item->redraw();
 	}
 	//If border outside component is required
 	if( m_flags & flags::selectborder )
@@ -68,8 +67,8 @@ bool window::report_event( const input::event_info& ev )
 {
 	//Emit signal to others
 	bool ret = emit( event( this, ev ) );
-	ret |= (*m_current_widget)->report_event( ev );
-	return ret;
+	(*m_current_widget)->report_event( ev );
+	return (*m_current_widget)->changed() || ret; 
 }
 /* ------------------------------------------------------------------ */
 //Select next component

@@ -31,6 +31,7 @@ public:
 	{
 		return m_caption;
 	}
+protected:
 	//Repaint the label
 	virtual void repaint();
 private:

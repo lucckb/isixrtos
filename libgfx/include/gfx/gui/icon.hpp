@@ -29,6 +29,7 @@ public:
 	{
 		m_bitmap = nullptr;
 	}
+protected:
 	//Repaint the label
 	virtual void repaint();
 private:

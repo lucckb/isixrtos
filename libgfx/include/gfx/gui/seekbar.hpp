@@ -24,15 +24,16 @@ public:
 	{}
 	//Destructor
 	virtual ~seekbar() {};
-	//Repaint virtual function
-	virtual void repaint();
 	//* Report input event
-	virtual bool report_event( const input::event_info& ev );
+	virtual void report_event( const input::event_info& ev );
 	//Set/get min value
 	void value( short val ) { m_value = val; }
 	short value() const { return m_value; }
 	//Set step
 	void step(short step) { m_step = step; }
+protected:
+	//Repaint virtual function
+	virtual void repaint();
 private:
 	short m_min { 0 };			//Minimum value
 	short m_max { 100 };		//Maximum value

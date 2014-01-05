@@ -41,9 +41,9 @@ public:
 		m_frm.add_window( this );
 	}
 	// On repaint the widget return true when changed
-	virtual void repaint();
+	void repaint();
 	//* Report input event
-	virtual bool report_event( const input::event_info& ev );
+	bool report_event( const input::event_info& ev );
 	void add_widget( widget * const w );
 	void delete_widget( widget * const w );
 	const rectangle& get_coord() const { return m_coord; }
