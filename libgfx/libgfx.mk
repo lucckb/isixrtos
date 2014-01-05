@@ -13,7 +13,6 @@ LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/editbox.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/seekbar.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/selectable_widget.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/choice_menu.cpp
-LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/widget.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/window.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/button.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/label.cpp
