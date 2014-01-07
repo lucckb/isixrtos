@@ -45,7 +45,6 @@ void editbox::repaint()
 	//Draw cursor
 	gdi.draw_line( m_cursor_x, c.y()+text_margin, m_cursor_x, c.y()+c.cy()-4 );
 
-	//Draw cursor
 	//FRM1
 	gdi.set_fg_color( colorspace::brigh( get_layout().bg(), -luma ) );
 	gdi.draw_line(c.x(), c.y()+c.cy(), c.x()+c.cx(), c.y()+c.cy() );

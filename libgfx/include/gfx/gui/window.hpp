@@ -40,23 +40,47 @@ public:
 	{
 		m_frm.add_window( this );
 	}
+
 	// On repaint the widget return true when changed
 	void repaint();
-	//* Report input event
+
+	//! Report input event
 	bool report_event( const input::event_info& ev );
+	
+	//! Add widget
 	void add_widget( widget * const w );
+
+	//! Delete widget
 	void delete_widget( widget * const w );
-	const rectangle& get_coord() const { return m_coord; }
-	frame& get_owner() { return m_frm; }
-	void set_layout( const layout &lay ) { m_layout = lay; }
-	//Select next item
+	
+	//! Get coord	
+	const rectangle& get_coord() const { 
+		return m_coord; 
+	}
+	//! Get owner
+	const frame& get_owner() const {
+		return m_frm;
+	}
+	//! Set layout	
+	void set_layout( const layout &lay ) { 
+		m_layout = lay; 
+	}
+	//! Select next item
 	void select_next();
-	//Select prev item
+
+	//! Select prev item
 	void select_prev();
-	//Get base layout
-	const layout& get_layout() const { return m_layout.inherit()?m_frm.get_def_win_layout():m_layout; }
+
+	//! Get base layout
+	const layout& get_layout() const {
+		return m_layout.inherit()?m_frm.get_def_win_layout():m_layout; 
+	}
+
 	//Get current selected widget
-	widget* current_widget() const { return (m_current_widget!=m_widgets.end())?(*m_current_widget):(nullptr); }
+	widget* current_widget() const {
+		return (m_current_widget!=m_widgets.end())
+			?(*m_current_widget):(nullptr); 
+	}
 private:
 	detail::container<widget*> m_widgets;
 	detail::container<widget*>::iterator m_current_widget { m_widgets.end() };

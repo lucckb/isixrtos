@@ -22,68 +22,93 @@ namespace gui {
 class widget  : public object
 {
 public:
-	 //Create widget constructor
-	 explicit widget( rectangle const& rect,layout const& layout ,window &win)
-	 	 : m_coord(rect), m_layout(layout), m_win(win)
-	 {
-		 //TODO: FIXME THIS
-		 m_win.add_widget( this );
-	 }
-	 //Remove widget
-	 virtual ~widget() {
-		  m_win.delete_widget( this );
-	 }
-	 //Set widget color
-	 void set_layout( layout const& lay ) {
+	//Create widget constructor
+	widget( rectangle const& rect,layout const& layout,
+			window &win, bool selectable = true )
+		: m_coord(rect), m_layout(layout), 
+		m_win(win), m_selectable(selectable)
+	{
+		//TODO: FIXME THIS
+		m_win.add_widget( this );
+	}
+
+	//Remove widget
+	virtual ~widget() {
+		m_win.delete_widget( this );
+	}
+
+	//Set widget color
+	void set_layout( layout const& lay ) {
 		m_layout = lay;
-	 }
+	}
+
 	//* Report input event
 	virtual void report_event( const input::event_info& /*ev*/ ) {
 	}
+
 	// Get client coordinate
-	const rectangle& get_coord() const { return m_coord; }
+	const rectangle& get_coord() const { 
+		return m_coord; 
+	}
+
 	//Get selectable flag
-	bool selectable() const { return m_selectable; }
+	bool selectable() const { 
+		return m_selectable; 
+	}
+
 	//Redraw the window
 	void redraw() {
 		repaint();
 		m_changed = false;
 	}
+
 	//Return true if repaint is required
 	bool changed() const {
 		return m_changed;
 	}
 protected:
+
 	//Set dirty flag need repaint
-	void dirty(bool changed = true) {
+	void dirty( bool changed = true ) {
 		m_changed = changed;
 	}
+
 	// On repaint the widget return true when changed
 	virtual void repaint() = 0;
-	//Widget is selectable
-	void selectable( bool sel ) { m_selectable = sel; }
+
+
 	//Get base layout
-	const layout& get_layout() const { return m_layout.inherit()?m_win.get_owner().get_def_layout():m_layout; }
-	window& get_owner() { return m_win; }
-	const window& get_owner() const { return m_win; }
+	const layout& get_layout() const { 
+		return m_layout.inherit()?
+			m_win.get_owner().get_def_layout():
+			m_layout; 
+	}
+
+//	window& get_owner() { return m_win; }
+	const window& get_owner() const { 
+		return m_win; 
+	 }
+
 	//Make gdi
-	disp::gdi make_gdi( )
-	{
+	disp::gdi make_gdi( ) {
 		const auto l = m_layout.inherit()?m_win.get_owner().get_def_layout():m_layout;
 		return std::move(disp::gdi( m_win.get_owner().get_display(), l.fg(), l.bg(), l.font() ));
 	}
+
 	//Make win gdi
-	disp::gdi make_wgdi()
-	{
+	disp::gdi make_wgdi() {
 		const auto l = m_win.get_layout();
-		return std::move(disp::gdi( m_win.get_owner().get_display(), l.fg(), l.bg(), l.font() ));
+		return std::move(
+			disp::gdi(m_win.get_owner().get_display(),
+				l.fg(),l.bg(),l.font() )
+		);
 	}
 private:
-	rectangle m_coord;
+	rectangle m_coord;								/* Current coordinate */
 	layout m_layout;								/* Component layout */
 	window &m_win;									/* GUI manager */
-	bool m_selectable  { true };					/* The widget is changed */
-	bool m_changed { false };						/*  Change flag  */
+	const bool m_selectable;  						/* The widget is changed */
+	bool m_changed { false };						/* Change flag */
 };
 /* ------------------------------------------------------------------ */
 }}

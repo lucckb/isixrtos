@@ -32,6 +32,7 @@ namespace gui {
 //! Multi edit class text
 class multiview : public widget
 {
+	static constexpr coord_t text_margin = 2;
 public:
 	 /** Multi edit layout constructor
 	  * @param[in] rect Rectangle layout
@@ -39,37 +40,33 @@ public:
 	  * @param[in] win Window input
 	  */
 	 explicit multiview( rectangle const& rect,layout const& layout ,window &win)
-	 	 : widget( rect, layout, win )
+	 	 : widget( rect, layout, win, false )
 	 {
 	 }
 	 
 	 //! Destructor
-	 virtual ~multiview() 
-	 {
+	 virtual ~multiview() {
 	 }
 	
-	 /** Report key or mouse event widget 
-	  * @param[in] ev Input event type 
-	  */
-	 virtual void report_event( const input::event_info& ev );
-
 	 /** Add one line to multiedit 
 	  * @param[in] value String value 
 	  */
-	 void append_value( const detail::string& value )
-	 {
-		m_last_line = value;
+	 template <typename T>
+	 void append( const T& value ) {
+		m_line += value;
+		dirty();
 	 }
 
 	 /** Clear the window  */
 	 void clear() {
 		m_clear_req = true;
+		dirty();
 	 }
 protected:
 	 //! On repaint the widget return true when changed
 	 virtual void repaint();
 private:
-	detail::string m_last_line;
+	detail::string m_line;
 	bool m_clear_req {};
 };
 /* ------------------------------------------------------------------ */ 

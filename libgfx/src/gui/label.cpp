@@ -12,9 +12,8 @@ namespace gui {
 /* ------------------------------------------------------------------ */
 //Constructor
 label::label( rectangle const& rect,layout const& layout ,window &win )
-	: widget( rect, layout, win )
+	: widget( rect, layout, win, false )
 {
-	selectable(false);
 }
 /* ------------------------------------------------------------------ */
 //Repaint the lable
@@ -25,7 +24,7 @@ void label::repaint()
 		const auto c = get_coord() + get_owner().get_coord();
 		auto gdi = make_wgdi();
 		const auto ty = c.y() + (c.cy() - gdi.get_text_height())/2;
-		gdi.draw_text( c.x(), ty, m_caption.c_str());
+		gdi.draw_text( c.x(), ty, m_caption.c_str() );
 	}
 }
 /* ------------------------------------------------------------------ */
