@@ -16,7 +16,7 @@
 #include "window.hpp"
 #include "seekbar.hpp"
 #include "editbox.hpp"
-#include "multiedit.hpp"
+#include "multiview.hpp"
 
 #endif /*GFX_GUI_GUI_HPP_*/
 

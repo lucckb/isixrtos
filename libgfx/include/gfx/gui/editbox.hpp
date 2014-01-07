@@ -58,6 +58,7 @@ public:
 	void value( const T value )
 	{
 		m_value = value;
+		dirty();
 	}
 	//Set text value
 	const detail::string& value() const

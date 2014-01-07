@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  multiedit.cpp
+ *       Filename:  multiview.cpp
  *
  *    Description:  Multi Edit Box based only on last line message
  *
@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include <gfx/gui/multiedit.hpp>
+#include <gfx/gui/multiview.hpp>
 
 /* ------------------------------------------------------------------ */ 
 namespace gfx {
@@ -25,13 +25,13 @@ namespace gui {
 /** Report key or mouse event widget 
 * @param[in] ev Input event type 
 */
-void  multi_edit::report_event( const input::event_info& ev )
+void  multiview::report_event( const input::event_info& ev )
 {
 
 }
 /* ------------------------------------------------------------------ */ 
 //! On repaint the widget return true when changed
-void multi_edit::repaint()
+void multiview::repaint()
 {
 
 }

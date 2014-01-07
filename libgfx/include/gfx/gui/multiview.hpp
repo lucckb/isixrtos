@@ -19,8 +19,8 @@
  */
 
 
-#ifndef GFX_GUI_MULTIEDIT_HPP_
-#define GFX_GUI_MULTIEDIT_HPP_
+#ifndef GFX_GUI_MULTIVIEW_HPP_
+#define GFX_GUI_MULTIVIEW_HPP_
 
 /* ------------------------------------------------------------------ */ 
 #include <gfx/gui/widget.hpp>
@@ -30,7 +30,7 @@ namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */ 
 //! Multi edit class text
-class multi_edit : public widget
+class multiview : public widget
 {
 public:
 	 /** Multi edit layout constructor
@@ -38,13 +38,13 @@ public:
 	  * @param[in] layout Input layout
 	  * @param[in] win Window input
 	  */
-	 explicit multi_edit( rectangle const& rect,layout const& layout ,window &win)
+	 explicit multiview( rectangle const& rect,layout const& layout ,window &win)
 	 	 : widget( rect, layout, win )
 	 {
 	 }
 	 
 	 //! Destructor
-	 virtual ~multi_edit() 
+	 virtual ~multiview() 
 	 {
 	 }
 	
