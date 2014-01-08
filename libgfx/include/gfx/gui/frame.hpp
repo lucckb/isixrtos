@@ -58,7 +58,7 @@ public:
 	void set_focus( window* window );
 protected:
 	//Repaint visible
-	void repaint();
+	void repaint( bool force );
 private:
 	//Private events queue
 	isix::fifo<input::event_info> m_events_queue;

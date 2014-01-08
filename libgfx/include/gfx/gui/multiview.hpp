@@ -66,7 +66,7 @@ public:
 	 }
 
 	 //! Report an event
-	virtual bool report_event( const input::event_info& ev );
+	virtual void report_event( const input::event_info& ev );
 
 private:
 	 //! Gui draw frame

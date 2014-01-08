@@ -65,7 +65,7 @@ public:
 		return m_value;
 	}
 	//* Report input event
-	virtual bool report_event( const input::event_info& ev );
+	virtual void report_event( const input::event_info& ev );
 protected:
 	// On repaint the widget return true when changed
 	virtual void repaint();

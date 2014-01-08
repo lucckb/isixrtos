@@ -28,7 +28,7 @@ namespace
 }
 /* ------------------------------------------------------------------ */
 // On repaint the widget return true when changed
-void window::repaint()
+void window::repaint( bool force )
 {
 	const auto& lay = m_layout.inherit()?get_owner().get_def_win_layout():m_layout;
 	disp::gdi gdi( get_owner().get_display(), lay.sel(), lay.bg(), lay.font() );
@@ -43,7 +43,7 @@ void window::repaint()
 		}
 	}
 	for( const auto item : m_widgets ) {
-		item->repaint();
+		item->redraw( force );
 	}
 	//If border outside component is required
 	if( m_flags & flags::selectborder )
@@ -63,18 +63,17 @@ void window::repaint()
 
 /* ------------------------------------------------------------------ */
 //Report event
-bool window::report_event( const input::event_info& ev )
+void window::report_event( const input::event_info& ev )
 {
 	//Emit signal to others
-	bool ret = emit( event( this, ev ) );
+	emit( event( this, ev ) );
 	if( ev.type != input::event_info::EV_CHANGE ) {
-		ret |= (*m_current_widget)->report_event( ev );
+		(*m_current_widget)->report_event( ev );
 	} else {
 		for( const auto& widget : m_widgets ) {
-			ret |= widget->report_event( ev );
+			widget->report_event( ev );
 		}
 	}
-	return  ret; 
 }
 /* ------------------------------------------------------------------ */
 //Select next component

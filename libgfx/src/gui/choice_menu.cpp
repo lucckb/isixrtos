@@ -121,7 +121,7 @@ void choice_menu::items( const item *items )
 }
 /* ------------------------------------------------------------------ */
 //* Report input event
-bool choice_menu::report_event( const input::event_info& ev )
+void choice_menu::report_event( const input::event_info& ev )
 {
 	using namespace gfx::input;
 	bool ret {};
@@ -150,9 +150,9 @@ bool choice_menu::report_event( const input::event_info& ev )
 	if( ret )
 	{
 		event btn_event( this, event::evtype::EV_CHANGE );
-		ret |= emit( btn_event );
+		emit( btn_event );
+		modified();
 	}
-	return ret;
 }
 /* ------------------------------------------------------------------ */
 } /* namespace gui */

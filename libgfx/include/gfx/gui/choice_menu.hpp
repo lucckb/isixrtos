@@ -49,7 +49,7 @@ public:
 	void items( const item *items=nullptr);
 
 	// Report input event
-	virtual bool report_event( const input::event_info& ev );
+	virtual void report_event( const input::event_info& ev );
 
 	/** Get current selection
 	 * @return Selected item

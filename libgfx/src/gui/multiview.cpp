@@ -88,12 +88,12 @@ void multiview::gui_add_line()
 
 /* ------------------------------------------------------------------ */
 //! Report an event
-bool multiview::report_event( const input::event_info& ev )
+void multiview::report_event( const input::event_info& ev )
 {
 	if( ev.type == input::event_info::EV_CHANGE ) {
-		return !m_line.empty() || m_clear_req;
-	} else {
-		return false;
+		if( !m_line.empty() || m_clear_req ) {
+			modified();
+		}
 	}
 }
 /* ------------------------------------------------------------------ */

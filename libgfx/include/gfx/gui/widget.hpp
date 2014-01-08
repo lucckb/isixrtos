@@ -43,8 +43,7 @@ public:
 	}
 
 	//* Report input event
-	virtual bool report_event( const input::event_info& /*ev*/ ) {
-		return false;
+	virtual void report_event( const input::event_info& /*ev*/ ) {
 	}
 
 	// Get client coordinate
@@ -57,11 +56,28 @@ public:
 		return m_selectable; 
 	}
 
+	//! Widget is changed
+	bool is_modified() const {
+		return m_modified;
+	}
+
+	/** Redraw the window only if windows state is changed */
+	void redraw( bool force ) {
+		if( force || is_modified() ) {
+			repaint();
+			m_modified = false;
+		}
+	}
+
+protected:
+
+	//! Set modified flag	
+	void modified() {
+		m_modified = true;
+	}
 
 	// On repaint the widget return true when changed
 	virtual void repaint() = 0;
-
-protected:
 
 	//Get base layout
 	const layout& get_layout() const { 
@@ -69,8 +85,7 @@ protected:
 			m_win.get_owner().get_def_layout():
 			m_layout; 
 	}
-
-//	window& get_owner() { return m_win; }
+	//! Get parent object
 	const window& get_owner() const { 
 		return m_win; 
 	 }
@@ -93,7 +108,8 @@ private:
 	rectangle m_coord;								/* Current coordinate */
 	layout m_layout;								/* Component layout */
 	window &m_win;									/* GUI manager */
-	const bool m_selectable;  						/* The widget is changed */
+	const bool m_selectable;  						/* Widget is selectable */
+	bool m_modified {};								/* Widget is changed  */
 };
 /* ------------------------------------------------------------------ */
 }}

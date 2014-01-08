@@ -42,10 +42,10 @@ public:
 	}
 
 	// On repaint the widget return true when changed
-	void repaint();
+	void repaint( bool force );
 
 	//! Report input event
-	bool report_event( const input::event_info& ev );
+	void report_event( const input::event_info& ev );
 	
 	//! Add widget
 	void add_widget( widget * const w );

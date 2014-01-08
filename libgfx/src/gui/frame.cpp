@@ -20,18 +20,18 @@ namespace gui {
 void frame::execute()
 {
 	m_disp.clear(color::Black);
-	repaint();
+	repaint( true );
 	for( input::event_info ev;; )
 	{
-		bool need_repaint {};
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
 		{
-			need_repaint = m_windows.empty()?false:m_windows.front()->report_event( ev );
+			if( !m_windows.empty() ) {
+				m_windows.front()->report_event( ev );
+			}
 		}
-		if( need_repaint )
 		{
 			const auto tbeg = isix::isix_get_jiffies();
-			repaint();
+			repaint(false);
 			dbprintf("Repaint time %i", isix::isix_get_jiffies()-tbeg);
 		}
 	}
@@ -41,7 +41,7 @@ void frame::execute()
 void frame::add_window( window* window )
 {
 	m_windows.push_back( window );
-	repaint();
+	repaint(true);
 }
 
 /* ------------------------------------------------------------------ */
@@ -49,7 +49,7 @@ void frame::add_window( window* window )
 void frame::delete_window( window* window )
 {
 	m_windows.remove( window );
-	repaint();
+	repaint(true);
 }
 /* ------------------------------------------------------------------ */ 
 /** Refresh frame manual requirement */
@@ -70,10 +70,10 @@ int frame::report_event( const input::event_info &event )
 }
 /* ------------------------------------------------------------------ */
 //Repaint first windows
-void frame::repaint()
+void frame::repaint( bool force )
 {
 	if( ! m_windows.empty() )
-		m_windows.front()->repaint();
+		m_windows.front()->repaint( force );
 }
 /* ------------------------------------------------------------------ */
 }	//ns gui
