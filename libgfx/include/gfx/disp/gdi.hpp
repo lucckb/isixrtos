@@ -160,7 +160,7 @@ public:
 	 * @param[in] lines Lines to scroll
 	 * @param[in] bg_color Background color to fill
 	 **/
-	void scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bg_color)
+	void scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bg_color )
 	{
 		m_gdev.vert_scroll(x, y, cx, cy, lines, bg_color);
 	}

@@ -6,6 +6,7 @@
  *    Description:  Multi Edit Box based only on last line message
  *    				Revert is impossible. It use only graphics memory
  *    				shihts for edit box. It is always RO block
+ *    				It is simple console type widget
  *
  *        Version:  1.0
  *        Created:  05.01.2014 19:28:01

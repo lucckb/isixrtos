@@ -35,14 +35,18 @@ void multiview::repaint()
 	const auto yp = c.y() + c.cy() - 2 - gdi.get_text_height();
 	//Draw test
 	for( char ch : m_line ) {
-		if( x + gdi.get_text_width(ch) >= c.x()+c.cx()-text_margin*2 ) {
-		#if 0
-			gdi.scroll( c.x()+text_margin, yp - gdi.get_text_height(), 
-				c.cx()-2*text_margin, gdi.get_text_height(),
-				gdi.get_text_height(), get_owner().get_layout().bg());
+		if( ch == '\r' ) {
+			//Continue if the character is <CR>
+			continue;
+		}
+		if( x + gdi.get_text_width(ch)>=c.x()+c.cx()-text_margin*2 || ch=='\n' ) {
+			gdi.scroll( 
+					c.x()+text_margin, c.y(), c.cx()-text_margin*2, 
+					c.cy(), gdi.get_text_height(), get_owner().get_layout().bg() 
+			);
 			x = c.x() + 1;
-		#endif
-		} else {
+		} 
+		if( std::isprint( ch ) ) {
 			x = gdi.draw_text( x , yp, ch );
 		}
 	}
@@ -58,6 +62,8 @@ void multiview::repaint()
 	gdi.set_fg_color( colorspace::brigh( get_layout().bg(), luma ) );
 	gdi.draw_line(c.x()+1, c.y(), c.x()+c.cx()-1, c.y() );
 	gdi.draw_line(c.x(), c.y(), c.x(), c.y()+c.cy()-2 );
+	//Clear the data line
+	m_line.clear();
 }
 /* ------------------------------------------------------------------ */ 
 } //ns gui

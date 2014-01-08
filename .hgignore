@@ -8,6 +8,7 @@ syntax: glob
 *.lss
 *.map
 .*.un~
+.*.sw*
 libgfx/host-tools/convbdf
 libgfx/host-tools/convflashbmp
 libgfx/host-tools/tags
