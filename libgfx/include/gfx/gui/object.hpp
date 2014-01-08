@@ -29,7 +29,7 @@ struct event : public input::event_info
 		: event_info( event), sender(_sender)
 	{}
 	event( object *_sender, evtype _type )
-		: sender(_sender )
+		: sender( _sender )
 	{
 		type = _type;
 	}

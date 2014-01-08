@@ -36,6 +36,8 @@ public:
 		m_disp( display ), m_color( color )
 	{
 	}
+	/** Refresh frame manual requirement */
+	int update();
 	/** Execute gui main loop */
 	void execute();
 	/** Send gui event handler */

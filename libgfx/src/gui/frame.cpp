@@ -51,7 +51,17 @@ void frame::delete_window( window* window )
 	m_windows.remove( window );
 	repaint();
 }
-
+/* ------------------------------------------------------------------ */ 
+/** Refresh frame manual requirement */
+int frame::update() 
+{
+	const gfx::input::event_info ei  {
+		isix::isix_get_jiffies(),
+		gfx::input::event_info::evtype::EV_CHANGE,
+		{ .param = 0 }
+	};
+	return report_event( ei );
+}
 /* ------------------------------------------------------------------ */
 /** Send gui event handler */
 int frame::report_event( const input::event_info &event )

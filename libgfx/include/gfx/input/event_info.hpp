@@ -93,6 +93,7 @@ struct event_info
 	union
 	{
 		detail::keyboard_tag keyb;      //! Keyboard tag
+		int param;
 	};
 };
 /* ------------------------------------------------------------------ */

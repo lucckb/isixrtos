@@ -67,7 +67,13 @@ bool window::report_event( const input::event_info& ev )
 {
 	//Emit signal to others
 	bool ret = emit( event( this, ev ) );
-	ret |= (*m_current_widget)->report_event( ev );
+	if( ev.type != input::event_info::EV_CHANGE ) {
+		ret |= (*m_current_widget)->report_event( ev );
+	} else {
+		for( const auto& widget : m_widgets ) {
+			ret |= widget->report_event( ev );
+		}
+	}
 	return  ret; 
 }
 /* ------------------------------------------------------------------ */

@@ -44,7 +44,7 @@ public:
 
 	//* Report input event
 	virtual bool report_event( const input::event_info& /*ev*/ ) {
-		return true;
+		return false;
 	}
 
 	// Get client coordinate

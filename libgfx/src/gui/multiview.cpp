@@ -63,7 +63,9 @@ void multiview::gui_add_line()
 {
 	auto gdi = make_wgdi( );
 	const auto c = get_coord() + get_owner().get_coord();
-	auto x = c.x() + text_margin;
+	if( m_last_x == INVAL ) {
+		m_last_x = c.x() + text_margin;
+	}
 	const auto yp = c.y() + c.cy() - 2 - gdi.get_text_height();
 	//Draw test
 	for( char ch : m_line ) {
@@ -71,16 +73,27 @@ void multiview::gui_add_line()
 			//Continue if the character is <CR>
 			continue;
 		}
-		if( x + gdi.get_text_width(ch)>=c.x()+c.cx()-text_margin*2 || ch=='\n' ) {
+		if( m_last_x + gdi.get_text_width(ch)>=c.x()+c.cx()-text_margin*2 || ch=='\n' ) {
 			gdi.scroll( 
 					c.x()+text_margin, c.y(), c.cx()-text_margin*2, 
-					c.cy(), gdi.get_text_height(), get_owner().get_layout().bg() 
+					c.cy()-1, gdi.get_text_height(), get_owner().get_layout().bg() 
 			);
-			x = c.x() + 1;
+			m_last_x = c.x() + text_margin;
 		} 
 		if( std::isprint( ch ) ) {
-			x = gdi.draw_text( x , yp, ch );
+			m_last_x = gdi.draw_text( m_last_x , yp, ch );
 		}
+	}
+}
+
+/* ------------------------------------------------------------------ */
+//! Report an event
+bool multiview::report_event( const input::event_info& ev )
+{
+	if( ev.type == input::event_info::EV_CHANGE ) {
+		return !m_line.empty() || m_clear_req;
+	} else {
+		return false;
 	}
 }
 /* ------------------------------------------------------------------ */
@@ -91,28 +104,7 @@ void multiview::gui_clear_box()
 	const auto c = get_coord() + get_owner().get_coord();
 	gdi.fill_area(c.x()+1, c.y()+1, c.cx()-2, c.cy()-2);
 	m_clear_req = false;
-}
-/* ------------------------------------------------------------------ */ 
-/** Add one line to multiedit 
-* @param[in] value String value 
-*/
-void multiview::append( const detail::string& value )
-{
-	if( value.find( '\n' ) != std::string::npos ) {
-	}
-	m_line += value;
-}
-/* ------------------------------------------------------------------ */ 
-//! Append one character
-void multiview::append( char ch ) 
-{
-	if( m_mode == mode::character ) {
-		//dirty();
-	} else if( m_mode == mode::line ) {
-		if( ch == '\n' ) {
-		}
-	}
-	m_line += ch;
+	m_last_x = INVAL;
 }
 /* ------------------------------------------------------------------ */ 
 } //ns gui

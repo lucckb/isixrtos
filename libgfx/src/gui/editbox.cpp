@@ -63,8 +63,7 @@ void editbox::repaint()
 bool editbox::report_event( const input::event_info& ev )
 {
 	bool ret {};
-	if(ev.type == event::evtype::EV_KEY )
-	{
+	if(ev.type == event::evtype::EV_KEY ) {
 		if( m_kbdmode == kbd_mode::joy )
 			ret = handle_joy( ev.keyb );
 		else if( m_kbdmode == kbd_mode::joy )
@@ -73,9 +72,9 @@ bool editbox::report_event( const input::event_info& ev )
 		{
 			dbprintf("Unknown kbd mode %i", m_kbdmode );
 		}
-	}
-	else
-	{
+	} else if( ev.type == event::evtype::EV_CHANGE ) {
+		//EV change require repaint
+	} else {
 		dbprintf("Unhandled event type %i", ev.type );
 	}
 	return ret;

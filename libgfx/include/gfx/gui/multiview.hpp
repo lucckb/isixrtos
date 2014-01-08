@@ -34,12 +34,8 @@ namespace gui {
 class multiview : public widget
 {
 	static constexpr coord_t text_margin = 2;
+	static constexpr auto INVAL = -1;
 public:
-	//! Console mode
-	 enum class mode : unsigned char {
-		 character,			//! Character mode
-		 line				//! Line mode
-	 };
 
 	 /** Multi edit layout constructor
 	  * @param[in] rect Rectangle layout
@@ -47,8 +43,8 @@ public:
 	  * @param[in] win Window input
 	  */
 	 explicit multiview( rectangle const& rect, layout const& layout, 
-			 window &win, mode m = mode::character )
-	 	 : widget( rect, layout, win, false ), m_mode( m )
+			 window &win )
+	 	 : widget( rect, layout, win, false )
 	 {
 	 }
 	 
@@ -59,17 +55,19 @@ public:
 	 /** Add one line to multiedit 
 	  * @param[in] value String value 
 	  */
-	 void append( const detail::string& value );
-
-	 /** Add one char to the buffer 
-	  * @param[in] ch Input character
-	  */
-	 void append( char ch );
+	 template <typename T>
+	 void append( const T& value ) {
+		 m_line += value;
+	 }
 
 	 /** Clear the window  */
 	 void clear() {
 		m_clear_req = true;
 	 }
+
+	 //! Report an event
+	virtual bool report_event( const input::event_info& ev );
+
 private:
 	 //! Gui draw frame
 	 void gui_draw_frame();
@@ -81,9 +79,9 @@ protected:
 	 //! On repaint the widget return true when changed
 	 virtual void repaint();
 private:
-	detail::string m_line;
-	bool m_clear_req {};
-	mode m_mode {};
+	detail::string m_line;	//! Temporary line buffer
+	bool m_clear_req {};	//! Clear req
+	int m_last_x { INVAL };	//! Last char position in line
 };
 /* ------------------------------------------------------------------ */ 
 }}
