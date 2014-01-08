@@ -27,7 +27,7 @@ public:
 	void pushkey( short key ) {m_push_key = key; }
 public:
 	//* Report input event
-	virtual void report_event( const input::event_info& ev );
+	virtual bool report_event( const input::event_info& ev );
 private:
 	bool m_pushed {};
 	short m_push_key { -1 };

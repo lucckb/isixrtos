@@ -43,7 +43,8 @@ public:
 	}
 
 	//* Report input event
-	virtual void report_event( const input::event_info& /*ev*/ ) {
+	virtual bool report_event( const input::event_info& /*ev*/ ) {
+		return true;
 	}
 
 	// Get client coordinate
@@ -56,26 +57,11 @@ public:
 		return m_selectable; 
 	}
 
-	//Redraw the window
-	void redraw() {
-		repaint();
-		m_changed = false;
-	}
-
-	//Return true if repaint is required
-	bool changed() const {
-		return m_changed;
-	}
-protected:
-
-	//Set dirty flag need repaint
-	void dirty( bool changed = true ) {
-		m_changed = changed;
-	}
 
 	// On repaint the widget return true when changed
 	virtual void repaint() = 0;
 
+protected:
 
 	//Get base layout
 	const layout& get_layout() const { 
@@ -108,7 +94,6 @@ private:
 	layout m_layout;								/* Component layout */
 	window &m_win;									/* GUI manager */
 	const bool m_selectable;  						/* The widget is changed */
-	bool m_changed { false };						/* Change flag */
 };
 /* ------------------------------------------------------------------ */
 }}

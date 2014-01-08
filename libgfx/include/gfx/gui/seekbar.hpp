@@ -25,7 +25,7 @@ public:
 	//Destructor
 	virtual ~seekbar() {};
 	//* Report input event
-	virtual void report_event( const input::event_info& ev );
+	virtual bool report_event( const input::event_info& ev );
 	//Set/get min value
 	void value( short val ) { m_value = val; }
 	short value() const { return m_value; }

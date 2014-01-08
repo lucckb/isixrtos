@@ -13,7 +13,7 @@ namespace gui {
 
 /* ------------------------------------------------------------------ */
 //* Report input event
-void selectable_widget::report_event( const input::event_info& ev )
+bool selectable_widget::report_event( const input::event_info& ev )
 {
 	bool ret {};
 	if( m_push_key > 0 && m_push_key == ev.keyb.key )
@@ -28,9 +28,8 @@ void selectable_widget::report_event( const input::event_info& ev )
 		ret |= cpush != m_pushed;
 		m_pushed = cpush;
 	}
-	dirty( ret );
+	return ret;
 }
-
 /* ------------------------------------------------------------------ */
 } /* namespace gui */
 } /* namespace gfx */

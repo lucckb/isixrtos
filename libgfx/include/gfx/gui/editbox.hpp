@@ -58,7 +58,6 @@ public:
 	void value( const T value )
 	{
 		m_value = value;
-		dirty();
 	}
 	//Set text value
 	const detail::string& value() const
@@ -66,7 +65,7 @@ public:
 		return m_value;
 	}
 	//* Report input event
-	virtual void report_event( const input::event_info& ev );
+	virtual bool report_event( const input::event_info& ev );
 protected:
 	// On repaint the widget return true when changed
 	virtual void repaint();

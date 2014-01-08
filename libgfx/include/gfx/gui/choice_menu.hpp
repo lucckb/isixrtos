@@ -49,7 +49,7 @@ public:
 	void items( const item *items=nullptr);
 
 	// Report input event
-	virtual void report_event( const input::event_info& ev );
+	virtual bool report_event( const input::event_info& ev );
 
 	/** Get current selection
 	 * @return Selected item
@@ -62,7 +62,6 @@ public:
 	void selection(int sel) {
 		if( m_style==style::normal ) m_curr_item = sel;
 		else m_sel_item = sel;
-		dirty();
 	}
 protected:
 	//! Repaint virtual function

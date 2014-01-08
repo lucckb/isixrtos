@@ -41,7 +41,7 @@ void seekbar::repaint()
 }
 /* ------------------------------------------------------------------ */
 //* Report input event
-void seekbar::report_event( const input::event_info& ev )
+bool seekbar::report_event( const input::event_info& ev )
 {
 	using namespace gfx::input;
 	bool ret {};
@@ -70,7 +70,7 @@ void seekbar::report_event( const input::event_info& ev )
 		event btn_event( this, event::evtype::EV_CHANGE );
 		ret |= emit( btn_event );
 	}
-	dirty( ret );
+	return ret;
 }
 
 /* ------------------------------------------------------------------ */

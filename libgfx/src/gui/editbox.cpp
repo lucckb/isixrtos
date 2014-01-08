@@ -60,7 +60,7 @@ void editbox::repaint()
 }
 /* ------------------------------------------------------------------ */
 //* Report input event
-void editbox::report_event( const input::event_info& ev )
+bool editbox::report_event( const input::event_info& ev )
 {
 	bool ret {};
 	if(ev.type == event::evtype::EV_KEY )
@@ -78,7 +78,7 @@ void editbox::report_event( const input::event_info& ev )
 	{
 		dbprintf("Unhandled event type %i", ev.type );
 	}
-	dirty( ret );
+	return ret;
 }
 /* ------------------------------------------------------------------ */
 //Handle joy KBD

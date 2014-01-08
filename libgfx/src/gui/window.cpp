@@ -43,7 +43,7 @@ void window::repaint()
 		}
 	}
 	for( const auto item : m_widgets ) {
-		item->redraw();
+		item->repaint();
 	}
 	//If border outside component is required
 	if( m_flags & flags::selectborder )
@@ -67,8 +67,8 @@ bool window::report_event( const input::event_info& ev )
 {
 	//Emit signal to others
 	bool ret = emit( event( this, ev ) );
-	(*m_current_widget)->report_event( ev );
-	return (*m_current_widget)->changed() || ret; 
+	ret |= (*m_current_widget)->report_event( ev );
+	return  ret; 
 }
 /* ------------------------------------------------------------------ */
 //Select next component

@@ -35,13 +35,20 @@ class multiview : public widget
 {
 	static constexpr coord_t text_margin = 2;
 public:
+	//! Console mode
+	 enum class mode : unsigned char {
+		 character,			//! Character mode
+		 line				//! Line mode
+	 };
+
 	 /** Multi edit layout constructor
 	  * @param[in] rect Rectangle layout
 	  * @param[in] layout Input layout
 	  * @param[in] win Window input
 	  */
-	 explicit multiview( rectangle const& rect,layout const& layout ,window &win)
-	 	 : widget( rect, layout, win, false )
+	 explicit multiview( rectangle const& rect, layout const& layout, 
+			 window &win, mode m = mode::character )
+	 	 : widget( rect, layout, win, false ), m_mode( m )
 	 {
 	 }
 	 
@@ -52,23 +59,31 @@ public:
 	 /** Add one line to multiedit 
 	  * @param[in] value String value 
 	  */
-	 template <typename T>
-	 void append( const T& value ) {
-		m_line += value;
-		dirty();
-	 }
+	 void append( const detail::string& value );
+
+	 /** Add one char to the buffer 
+	  * @param[in] ch Input character
+	  */
+	 void append( char ch );
 
 	 /** Clear the window  */
 	 void clear() {
 		m_clear_req = true;
-		dirty();
 	 }
+private:
+	 //! Gui draw frame
+	 void gui_draw_frame();
+	 //! Repaint and add one line to the gui engine
+	 void gui_add_line();
+	 //! Clear entire box
+	 void gui_clear_box();
 protected:
 	 //! On repaint the widget return true when changed
 	 virtual void repaint();
 private:
 	detail::string m_line;
 	bool m_clear_req {};
+	mode m_mode {};
 };
 /* ------------------------------------------------------------------ */ 
 }}
