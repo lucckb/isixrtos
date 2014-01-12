@@ -49,8 +49,11 @@ public:
 	layout() {}
 	bool inherit() const { return minherited; }
 	color_t bg() const { return mbg; }
+	void bg( color_t color ) { mbg = color; }
 	color_t fg() const { return mfg; }
+	void fg( color_t color ) { mfg = color; }
 	color_t sel() const { return msel; }
+	void sel( color_t color ) { msel = color; }
 	const font_t* font() const { return mfont; }
 private:
 	color_t mbg{}, mfg{}, msel{};

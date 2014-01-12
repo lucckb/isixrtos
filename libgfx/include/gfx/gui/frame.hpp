@@ -43,17 +43,33 @@ public:
 	/** Send gui event handler */
 	int report_event( const input::event_info &event );
 	//Get display
-	drv::disp_base& get_display() const { return m_disp; }
+	drv::disp_base& get_display() const { 
+		return m_disp; 
+	}
 	//Add widget to frame
 	void add_window( window* window );
 	//Delete the widget
 	void delete_window( window* window );
 	//Get default layout
-	layout const& get_def_layout() const { return m_default_layout; }
-	layout const& get_def_win_layout() const { return m_default_win_layout; }
+	layout const& get_def_layout() const { 
+		return m_default_layout; 
+	}
+	//Get default window layout
+	layout const& get_def_win_layout() const { 
+		return m_default_win_layout; 
+	}
 	//Set layout
-	void set_def_layout( const layout& lay ) { m_default_layout = lay; }
-	void set_def_win_layout( const layout& lay ) { m_default_win_layout = lay; }
+	void set_def_layout( const layout& lay ) { 
+		m_default_layout = lay; 
+	}
+	//Set default window layout
+	void set_def_win_layout( const layout& lay ) { 
+		m_default_win_layout = lay; 
+	}
+	//Set basic text color
+	void set_text_color( color_t color ) {
+		m_default_win_layout.fg( color );
+	}
 	//Focus on the window
 	void set_focus( window* window );
 protected:
