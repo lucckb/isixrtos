@@ -1,8 +1,7 @@
-#include <timer.h>
-#include <usbh_configure.h>
-#include <usbh_core.h>
-#include <usbh_error.h>
-#include <usbh_lib.h>
+#include <usb/core/usbh_configure.h>
+#include <usb/core/usbh_core.h>
+#include <usb/core/usbh_error.h>
+#include <usb/core/usbh_lib.h>
 
 int USBHopenDevice(usb_speed_t *speed, uint8_t *dev_addr,
                    usb_device_descriptor_t *dev_desc, int timeout) {

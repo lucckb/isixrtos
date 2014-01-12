@@ -1,12 +1,10 @@
-#include <error.h>
-#include <timer.h>
-#include <usb_interrupt.h>
-#include <usb_otg_regs.h>
-#include <usbh_api.h>
-#include <usbh_core.h>
-#include <usbh_interrupt.h>
-#include <usbh_io.h>
-#include <usbh_lib.h>
+#include <usb/core/usb_interrupt.h>
+#include <usb/drivers/controllers/stm32/usb_otg_regs.h>
+#include <usb/core/usbh_api.h>
+#include <usb/core/usbh_core.h>
+#include <usb/core/usbh_interrupt.h>
+#include <usb/core/usbh_io.h>
+#include <usb/core/usbh_lib.h>
 
 /* TrResult table is initialized with TR_UNDEF values. */
 static usbh_transaction_result_t TrResult[CONST_CHNNL_MAX_COUNT];

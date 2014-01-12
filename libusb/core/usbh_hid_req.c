@@ -1,6 +1,6 @@
-#include <usbh_core.h>
-#include <usbh_error.h>
-#include <usbh_hid_req.h>
+#include <usb/core/usbh_core.h>
+#include <usb/core/usbh_error.h>
+#include <usb/core/usbh_hid_req.h>
 
 int HIDgetReportDescriptor(int synch, uint8_t *desc, uint16_t length) {
   usb_setup_packet_t setup;

@@ -1,14 +1,13 @@
-#include <auxiliary.h>
-#include <delay.h>
+#include <isix.h>
 #include <string.h>
-#include <usb_endianness.h>
-#include <usbh_api.h>
-#include <usbh_core.h>
-#include <usbh_error.h>
-#include <usbh_interrupt.h>
-#include <usbh_io.h>
-#include <usbh_lib.h>
-#include <usbh_std_req.h>
+#include <usb/core/usb_endianness.h>
+#include <usb/core/usbh_api.h>
+#include <usb/core/usbh_core.h>
+#include <usb/core/usbh_error.h>
+#include <usb/core/usbh_interrupt.h>
+#include <usb/core/usbh_io.h>
+#include <usb/core/usbh_lib.h>
+#include <usb/core/usbh_std_req.h>
 
 /* Hub is not supported - only one device can be attached at once. */
 #define DEVICE_ADDRESS  1
@@ -550,7 +549,7 @@ int USBHcontrolRequest(int synch, usb_setup_packet_t const *setup,
       USBHsubmitControlRequest(setup, buffer);
       while (Machine.control.state != CTRL_DONE) {
         USBHunprotectInterrupt(x);
-        Delay(200); /* How long should we wait? */
+        isix_wait_ms(200); /* How long should we wait? */
         x = USBHprotectInterrupt();
       }
       Machine.control.state = CTRL_IDLE;

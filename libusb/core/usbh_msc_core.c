@@ -1,12 +1,12 @@
-#include <delay.h>
+#include <isix.h>
 #include <string.h>
-#include <usb_endianness.h>
-#include <usbh_core.h>
-#include <usbh_error.h>
-#include <usbh_interrupt.h>
-#include <usbh_io.h>
-#include <usbh_msc_core.h>
-#include <usbh_std_req.h>
+#include <usb/core/usb_endianness.h>
+#include <usb/core/usbh_core.h>
+#include <usb/core/usbh_error.h>
+#include <usb/core/usbh_interrupt.h>
+#include <usb/core/usbh_io.h>
+#include <usb/core/usbh_msc_core.h>
+#include <usb/core/usbh_std_req.h>
 
 /** MSC BOT protocol implementation **/
 
@@ -290,7 +290,7 @@ int MSCsetMachine(msc_configuration_t const *cfg) {
                             MSCatDisconnect, &MSCdata);
   if (res == USBHLIB_SUCCESS) {
     while (MSCdata.state == MSC_INIT)
-      Delay(200); /* How long should we wait? */
+      isix_wait_ms(200); /* How long should we wait? */
     if (MSCdata.state != MSC_IDLE)
       res = USBHLIB_ERROR_BUSY; /* Channels are not allocated. */
   }

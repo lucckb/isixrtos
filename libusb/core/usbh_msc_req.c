@@ -1,7 +1,7 @@
-#include <usbh_core.h>
-#include <usbh_error.h>
-#include <usbh_msc_req.h>
-#include <usbh_std_req.h>
+#include <usb/core/usbh_core.h>
+#include <usb/core/usbh_error.h>
+#include <usb/core/usbh_msc_req.h>
+#include <usb/core/usbh_std_req.h>
 
 int MSCgetMaxLun(int synch, uint8_t iface, uint8_t *max_lun) {
   usb_setup_packet_t setup;

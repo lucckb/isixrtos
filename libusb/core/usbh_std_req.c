@@ -1,7 +1,7 @@
-#include <usb_endianness.h>
-#include <usbh_core.h>
-#include <usbh_error.h>
-#include <usbh_std_req.h>
+#include <usb/core/usb_endianness.h>
+#include <usb/core/usbh_core.h>
+#include <usb/core/usbh_error.h>
+#include <usb/core/usbh_std_req.h>
 
 /** Standard requests **/
 

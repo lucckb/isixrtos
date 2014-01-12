@@ -1,7 +1,7 @@
 #ifndef _USBH_STD_REQ_H
 #define _USBH_STD_REQ_H 1
 
-#include <usb_def.h>
+#include <usb/core/usb_def.h>
 
 #ifdef __cplusplus
 extern "C" {

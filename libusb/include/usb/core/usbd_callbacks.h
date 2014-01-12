@@ -1,7 +1,7 @@
 #ifndef _USBD_CALLBACKS_H
 #define _USBD_CALLBACKS_H 1
 
-#include <usb_def.h>
+#include <usb/core/usb_def.h>
 
 /** USB device application callbacks **/
 

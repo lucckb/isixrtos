@@ -1,10 +1,10 @@
-#include <auxiliary.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <usb_otg_fifo.h>
-#include <usbh_api.h>
-#include <usbh_error.h>
-#include <usbh_io.h>
+#include <usb/drivers/controllers/stm32/usb_otg_fifo.h>
+#include <usb/core/usbh_api.h>
+#include <usb/core/usbh_error.h>
+#include <usb/core/usbh_io.h>
+
 
 typedef struct {
   uint8_t                   used;

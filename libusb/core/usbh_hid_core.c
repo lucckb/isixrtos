@@ -1,10 +1,10 @@
 #include <string.h>
-#include <usbh_core.h>
-#include <usbh_error.h>
-#include <usbh_hid_core.h>
-#include <usbh_hid_req.h>
-#include <usbh_io.h>
-#include <usbh_std_req.h>
+#include <usb/core/usbh_core.h>
+#include <usb/core/usbh_error.h>
+#include <usb/core/usbh_hid_core.h>
+#include <usb/core/usbh_hid_req.h>
+#include <usb/core/usbh_io.h>
+#include <usb/core/usbh_std_req.h>
 
 typedef enum {
   HID_EXIT = 0, /* HIDisDeviceReady must return 0, if HID machine is not configured. */
