@@ -1,5 +1,5 @@
-#include <usb/core/usb_interrupt.h>
 #include <usb/drivers/controllers/stm32/usb_otg_regs.h>
+#include <usb/drivers/controllers/stm32/usb_interrupt.h>
 #include <usb/core/usbh_api.h>
 #include <usb/core/usbh_core.h>
 #include <usb/core/usbh_interrupt.h>
@@ -16,6 +16,8 @@ static uint16_t CoreScheduleTime = 65535;
 /* Green LED is blinking when a device is connected and
    the host is working. */
 static void Blink(int enable) {
+#warning fix_this
+#if 0
   static int count = 0;
 
   if (enable) {
@@ -32,6 +34,7 @@ static void Blink(int enable) {
     GreenLEDoff();
     count = 0;
   }
+#endif
 }
 
 /* DATA PID toggle error -- for diagnostic purpose only */
@@ -75,7 +78,7 @@ static void HostDisconnectHandler(void) {
   StopSignallingPortReset();
   USBHdeviceDisconnected();
   Blink(0);
-  RedLEDon(); /* Red LED is on when there is no device connected. */
+  //RedLEDon(); /* Red LED is on when there is no device connected. */
   DeadScheduleClocks = 65535;
   CoreScheduleTime = 65535;
 }
