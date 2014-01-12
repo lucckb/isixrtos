@@ -1,6 +1,6 @@
 #include <usb/core/usb_def.h>
-#include <usb/drivers/controller/stm32/usb_otg_fifo.h>
-#include <usb/core/usb_otg_regs.h>
+#include <usb/drivers/controllers/stm32/usb_otg_fifo.h>
+#include <usb/drivers/controllers/stm32/usb_otg_regs.h>
 
 /** FIFO API for STM32F105, STM32F107, STM32F207, STM32F217,
     STM32F405, STM32F407, STM32F415 and STM32F417 **/

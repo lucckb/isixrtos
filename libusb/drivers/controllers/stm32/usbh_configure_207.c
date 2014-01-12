@@ -1,12 +1,11 @@
-#include <board_usb_def.h>
-#include <timer.h>
-#include <usb_interrupt.h>
-#include <usb_otg_regs.h>
-#include <usbh_configure.h>
-#include <usbh_core.h>
-#include <usbh_error.h>
-#include <usbh_interrupt.h>
+#include <usb/core/usb_interrupt.h>
+#include <usb/drivers/controllers/stm32/usb_otg_regs.h>
+#include <usb/core/usbh_configure.h>
+#include <usb/core/usbh_core.h>
+#include <usb/core/usbh_error.h>
+#include <usb/core/usbh_interrupt.h>
 
+#if 0
 #define HOST_VBUS_PORT  xcat(GPIO, HOST_VBUS_GPIO_N)
 #define HOST_VBUS_PIN   xcat(GPIO_Pin_, HOST_VBUS_PIN_N)
 #define HOST_VBUS_RCC   xcat(RCC_AHB1Periph_GPIO, HOST_VBUS_GPIO_N)
@@ -20,6 +19,7 @@
 #define HOST_OVRCURR_EXTI_LINE    xcat(EXTI_Line, HOST_OVRCURR_PIN_N)
 #define HOST_OVRCURR_IRQn         xcat(HOST_OVRCURR_IRQ_N, _IRQn);
 #define HOST_OVRCURR_IRQ_HANDLER  xcat(HOST_OVRCURR_IRQ_N, _IRQHandler)
+#endif
 
 /** Low level USB host initialization for STM32F2xx and STM32F4xx **/
 
@@ -32,6 +32,8 @@ static usb_phy_t Phy;
 /* Configure USB central components.
     prio - interrupt preemption priority */
 static int USBHcentralConfigure(uint32_t prio) {
+#warning req impl
+#if 0
   GPIO_InitTypeDef GPIO_InitStruct;
   EXTI_InitTypeDef EXTI_InitStruct;
   NVIC_InitTypeDef NVIC_InitStruct;
@@ -175,6 +177,7 @@ static int USBHcentralConfigure(uint32_t prio) {
   }
 
   return USBHLIB_SUCCESS;
+ #endif
 }
 
 /* Configure USB peripheral. */
@@ -277,6 +280,8 @@ static int USBHperipheralConfigure(void) {
 /* Configure USB host interface.
     phy  - used phy transceiver */
 int USBHconfigure(usb_phy_t phy) {
+#warning reimpl_this
+#if 0
   int res;
   uint32_t prio;
 
@@ -318,11 +323,14 @@ void USBHvbus(int value) {
   hprt.b.pena = 0;
   hprt.b.pcdet = 0;
   P_USB_OTG_HREGS->HPRT = hprt.d32;
+#endif
 }
 
+#if 0
 void HOST_OVRCURR_IRQ_HANDLER(void) {
   if (EXTI_GetITStatus(HOST_OVRCURR_EXTI_LINE)) {
     EXTI_ClearITPendingBit(HOST_OVRCURR_EXTI_LINE);
     USBHovercurrentInterruptHandler();
   }
 }
+#endif

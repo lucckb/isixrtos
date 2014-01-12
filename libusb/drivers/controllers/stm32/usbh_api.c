@@ -1,7 +1,7 @@
-#include <usb_otg_fifo.h>
-#include <usb_otg_regs.h>
-#include <usbh_api.h>
-#include <usbh_error.h>
+#include <usb/drivers/controllers/stm32/usb_otg_fifo.h>
+#include <usb/drivers/controllers/stm32/usb_otg_regs.h>
+#include <usb/core/usbh_api.h>
+#include <usb/core/usbh_error.h>
 
 /** USB host API for STM32F105, STM32F107, STM32F2xx and STM32F4xx **/
 
