@@ -17,6 +17,7 @@ ISIX_USBLIB_INC += -I$(LIBUSB_DIR)/include
 ifeq ($(ISIX_USBDRV_TYPE),stm32f2_host)
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usb_otg_fifo.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usb_otg_interrupt.c
+ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_interrupt.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_api.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_configure_207.c
 ISIX_USBLIB_INC += -DSTM32F2XX 

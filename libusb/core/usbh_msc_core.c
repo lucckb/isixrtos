@@ -360,7 +360,7 @@ uint8_t MSCBOT(int synch, uint8_t lun,
       MSCsubmit(lun, scsi_cmd, scsi_len, out_buff, in_buff, *len);
       while (MSCdata.state != MSC_DONE) {
         USBHunprotectInterrupt(x);
-        Delay(200); /* How long should we wait? */
+        isix_wait_ms(200); /* How long should we wait? */
         x = USBHprotectInterrupt();
       }
       MSCdata.state = MSC_IDLE;

@@ -722,7 +722,7 @@ typedef enum {
 } usbh_transaction_result_t;
 
 #ifdef __cplusplus
-extern "C" {
+}
 #endif
 
 #endif

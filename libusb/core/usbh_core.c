@@ -12,6 +12,9 @@
 /* Hub is not supported - only one device can be attached at once. */
 #define DEVICE_ADDRESS  1
 
+static inline unsigned long min( unsigned long a, unsigned long b) {
+	return (((a)<(b))?(a):(b));
+}
 /** USB host core structures **/
 
 typedef enum {

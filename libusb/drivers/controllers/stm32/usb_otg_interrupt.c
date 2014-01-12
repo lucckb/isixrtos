@@ -1,4 +1,4 @@
-#include <usb/core/usb_interrupt.h>
+#include <usb/drivers/controllers/stm32/usb_interrupt.h>
 
 /** USB interrupt handlers for STM32F105, STM32F107, STM32F205,
     STM32F207, STM32F215, STM32F217, STM32F405, STM32F407, STM32F415

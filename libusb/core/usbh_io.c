@@ -6,6 +6,10 @@
 #include <usb/core/usbh_io.h>
 
 
+static inline unsigned long min( unsigned long a, unsigned long b) {
+	return (((a)<(b))?(a):(b));
+}
+
 typedef struct {
   uint8_t                   used;
   uint8_t                   dev_addr;
@@ -46,7 +50,7 @@ int USBHchannelsConfigure() {
     Host.ch_count = (int)ch_count;
   }
 
-  for (i = 0; i < Host.ch_count; ++i)
+  for (i = 0; (int)i < Host.ch_count; ++i)
     Host.ch[i].used = 0;
 
   return USBHLIB_SUCCESS;

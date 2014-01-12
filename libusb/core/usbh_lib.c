@@ -20,7 +20,8 @@ static void DeviceOn(void) {
   USBHvbus(1); /* Switch the device back on. */
 }
 
+#warning todo_x
 void USBHdeviceHardReset(unsigned time) {
   USBHvbus(0); /* Force the device to switch off. */
-  TimerStart(2, DeviceOn, time);
+//TimerStart(2, DeviceOn, time);
 }

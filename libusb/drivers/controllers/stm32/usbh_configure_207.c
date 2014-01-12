@@ -1,4 +1,4 @@
-#include <usb/core/usb_interrupt.h>
+#include <usb/drivers/controllers/stm32/usb_interrupt.h>
 #include <usb/drivers/controllers/stm32/usb_otg_regs.h>
 #include <usb/core/usbh_configure.h>
 #include <usb/core/usbh_core.h>
@@ -299,9 +299,11 @@ int USBHconfigure(usb_phy_t phy) {
   if (res < 0)
     return res;
   return USBHLIB_SUCCESS;
+#endif
 }
 
 void USBHvbus(int value) {
+#if 0
   USB_OTG_HPRT_TypeDef hprt;
 
   hprt.d32 = P_USB_OTG_HREGS->HPRT;
