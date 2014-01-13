@@ -1,14 +1,3 @@
-# Generic libusb MAKEFILE
-#../../isixrtos/libusb
-#├── core
-#├── drivers
-#│   └── controllers
-#├── include
-#│   └── usb
-#│       ├── core
-#│       └── drivers
-#│           └── controllers
-#└── libusb.mk
 
 #USB src libraries
 ISIX_USBLIB_SRC += $(wildcard $(LIBUSB_DIR)/core/*.c)
@@ -20,6 +9,8 @@ ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usb_otg_interrupt.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_interrupt.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_api.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_configure_207.c
+ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/timer.c
+CRT0_OBJECTS += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_interrupt.o
 ISIX_USBLIB_INC += -DSTM32F2XX 
 else
 $(error unknown usb controller type)
@@ -35,4 +26,3 @@ $(ISIX_USBLIB_LIB): $(ISIX_USBLIB_OBJS)
 LIBS += $(ISIX_USBLIB_LIB)
 LIBS_OBJS += $(ISIX_USBLIB_OBJS)
 COMMON_FLAGS += $(ISIX_USBLIB_INC) 
-

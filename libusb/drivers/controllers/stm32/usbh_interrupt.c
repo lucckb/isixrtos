@@ -1,11 +1,13 @@
 #include <usb/drivers/controllers/stm32/usb_otg_regs.h>
 #include <usb/drivers/controllers/stm32/usb_interrupt.h>
+#include <usb/drivers/controllers/stm32/timer.h>
 #include <usb/core/usbh_api.h>
 #include <usb/core/usbh_core.h>
 #include <usb/core/usbh_interrupt.h>
 #include <usb/core/usbh_io.h>
 #include <usb/core/usbh_lib.h>
-
+#include <foundation/dbglog.h>
+#include <isix.h>
 /* TrResult table is initialized with TR_UNDEF values. */
 static usbh_transaction_result_t TrResult[CONST_CHNNL_MAX_COUNT];
 static uint16_t DeadScheduleClocks = 65535;
@@ -38,8 +40,8 @@ static void Blink(int enable) {
 }
 
 /* DATA PID toggle error -- for diagnostic purpose only */
-static void ToggleError(void) {
-  ErrorResetable(-1, 9); /* Signal error by red LED and reset uC. */
+static inline void ToggleError(void) {
+	dbprintf("Fatal Error !!!");
 }
 
 /** USB host interrupt handlers for STM32F105, STM32F107, STM32F205,
@@ -100,7 +102,7 @@ static void HostPortHandler(void) {
     P_USB_OTG_HREGS->HCFG = hcfg.d32;
     USBHdeviceAttached();
     TimerStart(1, StartSignallingPortReset, STARTUP_TIME_MS);
-    RedLEDoff(); /* Red LED id off when a device is connected. */
+    ///RedLEDoff(); /* Red LED id off when a device is connected. */
   }
 
   /* Reset of the device is finished. */
@@ -261,7 +263,7 @@ void USBglobalInterruptHandler() {
   interrupt_status.d32 = P_USB_OTG_GREGS->GINTSTS;
   if (interrupt_status.b.cmod == 0) {
     /* We are in the device mode. */
-    ErrorResetable(-1, 8);
+	isix_bug("OTH controller in device mode");
   }
   else {
     /* We are in the host mode. */

@@ -4,22 +4,12 @@
     STM32F207, STM32F215, STM32F217, STM32F405, STM32F407, STM32F415
     and STM32F417 **/
 
-#warning It require reimplementation
 
-#if 0
-void OTG_FS_IRQHandler(void) {
+
+void __attribute__((__interrupt__)) otg_fs_isr_vector( void ) {
   USBglobalInterruptHandler();
 }
 
-void OTG_HS_IRQHandler(void) {
+void __attribute__((__interrupt__)) otg_hs_isr_vector( void ) {
   USBglobalInterruptHandler();
 }
-
-void OTG_FS_WKUP_IRQHandler(void) {
-  EXTI_ClearITPendingBit(EXTI_Line18);
-}
-
-void OTG_HS_WKUP_IRQHandler(void) {
-  EXTI_ClearITPendingBit(EXTI_Line18);
-}
-#endif
