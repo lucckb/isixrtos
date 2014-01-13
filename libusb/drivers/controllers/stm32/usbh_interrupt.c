@@ -18,25 +18,7 @@ static uint16_t CoreScheduleTime = 65535;
 /* Green LED is blinking when a device is connected and
    the host is working. */
 static void Blink(int enable) {
-#warning fix_this
-#if 0
-  static int count = 0;
-
-  if (enable) {
-    --count;
-    if (count < 0) {
-      GreenLEDoff();
-      count = 999;
-    }
-    else if (count == 499) {
-      GreenLEDon();
-    }
-  }
-  else {
-    GreenLEDoff();
-    count = 0;
-  }
-#endif
+	dbprintf("BLINK %i", enable);
 }
 
 /* DATA PID toggle error -- for diagnostic purpose only */
@@ -206,7 +188,7 @@ static void HostChannelsHandler(void) {
   int                     i;
 
   haint.d32 = P_USB_OTG_HREGS->HAINT;
-  for (i = 0; i < CHNNL_MAX_COUNT; ++i) {
+  for (i = 0; i < (int)CHNNL_MAX_COUNT; ++i) {
     if (haint.b.haint & (1 << i)) {
       hcchar.d32 = P_USB_OTG_HCHNNLS[i].HCCHARx;
       HostOneChannelHandler(i, hcchar.b.epdir);

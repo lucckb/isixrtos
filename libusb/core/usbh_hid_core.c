@@ -211,6 +211,7 @@ static int HIDstateMachine(void *p) {
 }
 
 static void HIDatSoF(void *p, uint16_t frnum) {
+  (void)frnum;
   usbh_hid_data_t *hd = p;
 
   if (hd->timer_in > 0)
@@ -232,6 +233,7 @@ int HIDsetMachine(usb_speed_t speed, uint8_t dev_addr,
                   usb_hid_main_descriptor_t const *hid_desc,
                   usb_endpoint_descriptor_t const *ep_desc,
                   unsigned ep_count) {
+ (void)hid_desc;
   unsigned i;
 
   if (if_desc->bInterfaceClass != HUMAN_INTERFACE_DEVICE_CLASS ||

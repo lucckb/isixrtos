@@ -1,11 +1,11 @@
 #include <stddef.h>
 #include <stm32tim.h>
+#include <stm32rcc.h>
 #include <stm32system.h>
+#include <usb/drivers/controllers/stm32/usb_config.h>
 #include <usb/drivers/controllers/stm32/timer.h>
 #include <usb/core/xcat.h>
 
-#define MS_TIM_N 2
-#define US_TIM_N 3
 
 #ifdef MS_TIM_N
 
@@ -21,46 +21,21 @@ static void (*ms_callback2)(void) = NULL;
 static void (*ms_callback3)(void) = NULL;
 static void (*ms_callback4)(void) = NULL;
 
+
 /* Configure millisecond timer.
     prio    - interrupt preemption priority
     subprio - interrupt service priority when the same prio */
-void TimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1, unsigned pclk2 ) {
-#if 0 
-  RCC_ClocksTypeDef       RCC_ClocksStruct;
-  TIM_TimeBaseInitTypeDef TIM_TimeBaseStruct;
-  TIM_OCInitTypeDef       TIM_OCInitStruct;
-  NVIC_InitTypeDef        NVIC_InitStruct;
-  uint32_t                prescaler;
-
-  RCC_APB1PeriphClockCmd(MS_TIM_RCC, ENABLE);
-
-  /* Compute timer prescaler. Timer clock should be 2 kHz. */
-  RCC_GetClocksFreq(&RCC_ClocksStruct);
-  if (RCC_ClocksStruct.HCLK_Frequency ==
-      RCC_ClocksStruct.PCLK1_Frequency) /* APB1 prescaler == 1 */
-    prescaler = RCC_ClocksStruct.PCLK1_Frequency / 2000 - 1;
-  else
-    prescaler = RCC_ClocksStruct.PCLK1_Frequency / 1000 - 1;
-
-  TIM_TimeBaseStructInit(&TIM_TimeBaseStruct);
-  TIM_TimeBaseStruct.TIM_CounterMode = TIM_CounterMode_Up; /* default */
-  TIM_TimeBaseStruct.TIM_Prescaler = prescaler; /* 2 kHz */
-  TIM_TimeBaseInit(MS_TIM, &TIM_TimeBaseStruct);
-
-  TIM_OCStructInit(&TIM_OCInitStruct);
-  TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_Timing; /* default */
-  TIM_OC1Init(MS_TIM, &TIM_OCInitStruct);
-  TIM_OC1PreloadConfig(MS_TIM, TIM_OCPreload_Disable);
-
-  NVIC_InitStruct.NVIC_IRQChannel = MS_TIM_IRQn;
-  NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = prio;
-  NVIC_InitStruct.NVIC_IRQChannelSubPriority = subprio;
-  NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStruct);
-
-  TIM_Cmd(MS_TIM, ENABLE);
-#endif
-
+void TimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1 ) 
+{
+	rcc_apb1_periph_clock_cmd( MS_TIM_RCC, true );
+	const unsigned  prescaler = pclk1 / 1000 - 1;
+	tim_timebase_init(MS_TIM, prescaler, TIM_CounterMode_Up, 0xFFFF, TIM_CKD_DIV1, 0 );
+	tim_oc_init( MS_TIM, tim_cc_chn1, TIM_OCMode_Timing, 0, TIM_OutputState_Disable, 
+			TIM_OutputNState_Disable, TIM_OCPolarity_High, TIM_OCNPolarity_High, 
+			TIM_OCIdleState_Set, TIM_OCNIdleState_Reset
+	);
+	tim_oc_preload_config( MS_TIM, tim_cc_chn1, false );
+	nvic_set_priority( MS_TIM_IRQn, prio, subprio );
 }
 
 /* Configure millisecond timer to call a function in the future.
@@ -189,50 +164,25 @@ static void (*us_callback4)(void) = NULL;
 /* Configure microsecond timer.
     prio    - interrupt preemption priority
     subprio - interrupt service priority when the same prio */
-void FineTimerConfigure(unsigned prio, unsigned subprio) {
-#if 0
-  RCC_ClocksTypeDef       RCC_ClocksStruct;
-  TIM_TimeBaseInitTypeDef TIM_TimeBaseStruct;
-  TIM_OCInitTypeDef       TIM_OCInitStruct;
-  NVIC_InitTypeDef        NVIC_InitStruct;
-  uint32_t                prescaler;
-
-  RCC_APB1PeriphClockCmd(US_TIM_RCC, ENABLE);
-
-  /* Compute timer prescaler. Timer clock should be 1 MHz. */
-  RCC_GetClocksFreq(&RCC_ClocksStruct);
-  if (RCC_ClocksStruct.HCLK_Frequency ==
-      RCC_ClocksStruct.PCLK1_Frequency) /* APB1 prescaler == 1 */
-    prescaler = RCC_ClocksStruct.PCLK1_Frequency / 1000000 - 1;
-  else
-    prescaler = RCC_ClocksStruct.PCLK1_Frequency / 500000 - 1;
-
-  TIM_TimeBaseStructInit(&TIM_TimeBaseStruct);
-  TIM_TimeBaseStruct.TIM_CounterMode = TIM_CounterMode_Up; /* default */
-  TIM_TimeBaseStruct.TIM_Prescaler = prescaler; /* 1 MHz */
-  TIM_TimeBaseInit(US_TIM, &TIM_TimeBaseStruct);
-
-  TIM_OCStructInit(&TIM_OCInitStruct);
-  TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_Timing; /* default */
-  TIM_OC1Init(US_TIM, &TIM_OCInitStruct);
-  TIM_OC1PreloadConfig(US_TIM, TIM_OCPreload_Disable);
-
-  NVIC_InitStruct.NVIC_IRQChannel = US_TIM_IRQn;
-  NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = prio;
-  NVIC_InitStruct.NVIC_IRQChannelSubPriority = subprio;
-  NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStruct);
-
-  TIM_Cmd(US_TIM, ENABLE);
-#endif
+void FineTimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1) 
+{
+	rcc_apb1_periph_clock_cmd( US_TIM_RCC, true );
+	const unsigned  prescaler = pclk1 / 1000000 - 1;
+	tim_timebase_init(US_TIM, prescaler, TIM_CounterMode_Up, 0xFFFF, TIM_CKD_DIV1, 0 );
+	tim_oc_init( US_TIM, tim_cc_chn1, TIM_OCMode_Timing, 0, TIM_OutputState_Disable, 
+			TIM_OutputNState_Disable, TIM_OCPolarity_High, TIM_OCNPolarity_High, 
+			TIM_OCIdleState_Set, TIM_OCNIdleState_Reset
+	);
+	tim_oc_preload_config( MS_TIM, tim_cc_chn1, false );
+	nvic_set_priority( US_TIM_IRQn, prio, subprio );
 }
 
 /* Configure microsecond timer to call a function in the future.
     timer   - timer number, from 1 to 4
     f       - function to call when time is elapsed
     time_us - time to wait for, from 1 to 65535 microseconds */
-void FineTimerStart(int timer, void (*f)(void), unsigned time_us) {
-#if 0
+void FineTimerStart(int timer, void (*f)(void), unsigned time_us)
+{
   switch (timer) {
     case 1:
       us_callback1 = f;
@@ -259,13 +209,11 @@ void FineTimerStart(int timer, void (*f)(void), unsigned time_us) {
       US_TIM->DIER |= TIM_IT_CC4;
       break;
   }
-#endif
 }
 
 /* Stop time counting. The configured function will not be called.
     timer - timer number, from 1 to 4 */
 void FineTimerStop(int timer) {
-#if 0
   switch (timer) {
     case 1:
       US_TIM->DIER &= ~TIM_IT_CC1;
@@ -288,7 +236,6 @@ void FineTimerStop(int timer) {
       us_callback1 = NULL;
       break;
   }
-#endif
 }
 
 /* The callback function is allowed to reenable a timer. */
@@ -322,5 +269,4 @@ void US_TIM_IRQHandler(void) {
       callback();
   }
 }
-#warning fix_this
 #endif /* US_TIM_N */

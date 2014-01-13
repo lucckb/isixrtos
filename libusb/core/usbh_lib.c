@@ -2,6 +2,8 @@
 #include <usb/core/usbh_core.h>
 #include <usb/core/usbh_error.h>
 #include <usb/core/usbh_lib.h>
+//TODO: Fix it platform independent
+#include <usb/drivers/controllers/stm32/timer.h>
 
 int USBHopenDevice(usb_speed_t *speed, uint8_t *dev_addr,
                    usb_device_descriptor_t *dev_desc, int timeout) {
@@ -20,8 +22,8 @@ static void DeviceOn(void) {
   USBHvbus(1); /* Switch the device back on. */
 }
 
-#warning todo_x
 void USBHdeviceHardReset(unsigned time) {
+  (void)time;
   USBHvbus(0); /* Force the device to switch off. */
-//TimerStart(2, DeviceOn, time);
+TimerStart(2, DeviceOn, time);
 }

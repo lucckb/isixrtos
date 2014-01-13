@@ -257,6 +257,7 @@ static int MSCstateMachine(void *p) {
 }
 
 static void MSCatSof(void *p, uint16_t frnum) {
+  (void)frnum;
   usbh_msc_data_t *md = p;
 
   if (md->nak_delay > 0)

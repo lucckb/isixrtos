@@ -5,14 +5,17 @@
 extern "C" {
 #endif
 
-void TimerConfigure(unsigned, unsigned, unsigned, unsigned );
+void TimerConfigure(unsigned, unsigned, unsigned);
 void TimerStart(int, void (*)(void), unsigned);
 void TimerStop(int);
 void ActiveWait(int, unsigned);
 
-void FineTimerConfigure(unsigned, unsigned);
+void FineTimerConfigure(unsigned, unsigned, unsigned);
 void FineTimerStart(int, void (*)(void), unsigned);
 void FineTimerStop(int);
+
+void MS_TIM_IRQHandler(void);
+void US_TIM_IRQHandler(void);
 
 #ifdef __cplusplus
 }
