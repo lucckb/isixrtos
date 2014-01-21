@@ -6,6 +6,7 @@
 #include <usb/core/usbh_interrupt.h>
 #include <stm32system.h>
 #include <stm32gpio.h>
+#include <stm32rcc.h>
 
 #define HOST_VBUS_PORT  xcat(GPIO, HOST_VBUS_GPIO_N)
 #define HOST_VBUS_PIN   xcat(GPIO_Pin_, HOST_VBUS_PIN_N)
@@ -32,44 +33,38 @@ static usb_phy_t Phy;
 /* Configure USB central components.
     prio - interrupt preemption priority */
 static int USBHcentralConfigure(uint32_t prio) {
-  GPIO_InitTypeDef GPIO_InitStruct;
-  EXTI_InitTypeDef EXTI_InitStruct;
-  NVIC_InitTypeDef NVIC_InitStruct;
-
+#if 0
   GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
   GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
   GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-
+#endif
   if (Phy == USB_PHY_A) {
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    rcc_ahb1_periph_clock_cmd(RCC_AHB1Periph_GPIOA, true);
 
-    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10 |
-                               GPIO_Pin_11 | GPIO_Pin_12;
-    GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource9,  GPIO_AF_OTG1_FS); /* VBUS */
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_OTG1_FS); /* ID */
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_OTG1_FS); /* DM */
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_OTG1_FS); /* DP */
+    static const unsigned pins = (1<<9) | (1<<10) | (1<<11) | (1<<12);
+	gpio_config_ext(GPIOA, pins, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, GPIO_OTYPE_PP);
+    gpio_pin_AF_config(GPIOA, GPIO_PinSource9,  GPIO_AF_OTG_FS); /* VBUS */
+    gpio_pin_AF_config(GPIOA, GPIO_PinSource10, GPIO_AF_OTG_FS); /* ID */
+    gpio_pin_AF_config(GPIOA, GPIO_PinSource11, GPIO_AF_OTG_FS); /* DM */
+    gpio_pin_AF_config(GPIOA, GPIO_PinSource12, GPIO_AF_OTG_FS); /* DP */
 
     USE_OTG_FS_REGS();
-    RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_OTG_FS, ENABLE);
+    rcc_ahb2_periph_clock_cmd(RCC_AHB2Periph_OTG_FS, true);
   }
   else if (Phy == USB_PHY_B) { /* TODO: not tested */
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+    rcc_ahb1_periph_clock_cmd(RCC_AHB1Periph_GPIOB, true);
 
-    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 |
-                               GPIO_Pin_14 | GPIO_Pin_15;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+	static const unsigned pins = (1<<12) | (1<<13) | (1<<14) | (1<<15);
+	gpio_config_ext(GPIOB, pins, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, GPIO_OTYPE_PP);
 
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_OTG2_FS); /* ID */
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_OTG2_FS); /* VBUS */
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_OTG2_FS); /* DM */
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource15, GPIO_AF_OTG2_FS); /* DP */
+   gpio_pin_AF_config(GPIOB, GPIO_PinSource12,GPIO_AF_OTG_HS_FS); /* ID */
+   gpio_pin_AF_config(GPIOB, GPIO_PinSource13,GPIO_AF_OTG_HS_FS); /* VBUS */
+   gpio_pin_AF_config(GPIOB, GPIO_PinSource14,GPIO_AF_OTG_HS_FS); /* DM */
+   gpio_pin_AF_config(GPIOB, GPIO_PinSource15,GPIO_AF_OTG_HS_FS); /* DP */
 
     USE_OTG_HS_REGS();
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_OTG_HS, ENABLE);
+    rcc_ahb1_periph_clock_cmd(RCC_AHB1Periph_OTG_HS, true);
   }
   else if (Phy == USB_PHY_ULPI) {
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA |
