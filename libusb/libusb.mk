@@ -1,17 +1,18 @@
 
 #USB src libraries
+ISIX_USBLIB_INC += -DMS_TIM_N=2 -DUS_TIM_N=3
 ISIX_USBLIB_SRC += $(wildcard $(LIBUSB_DIR)/core/*.c)
 ISIX_USBLIB_INC += -I$(LIBUSB_DIR)/include
 #Driver layer defs
 ifeq ($(ISIX_USBDRV_TYPE),stm32f2_host)
+ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/timer.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usb_otg_fifo.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usb_otg_interrupt.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_interrupt.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_api.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_configure_207.c
-ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/timer.c
-CRT0_OBJECTS += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_interrupt.o
-ISIX_USBLIB_INC += -DSTM32F2XX 
+CRT0_OBJECTS += $(LIBUSB_DIR)/drivers/controllers/stm32/usb_otg_interrupt.o
+ISIX_USBLIB_INC += -DSTM32F2XX
 else
 $(error unknown usb controller type)
 endif

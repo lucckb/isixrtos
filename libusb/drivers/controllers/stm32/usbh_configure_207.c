@@ -323,3 +323,4 @@ void HOST_OVRCURR_IRQ_HANDLER(void) {
     USBHovercurrentInterruptHandler();
   }
 }
+

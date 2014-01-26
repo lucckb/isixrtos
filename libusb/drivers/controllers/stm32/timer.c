@@ -8,7 +8,6 @@
 
 
 #ifdef MS_TIM_N
-
 /** Millisecond timers **/
 
 #define MS_TIM             xcat(TIM, MS_TIM_N)

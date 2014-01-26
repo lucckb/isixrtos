@@ -1,5 +1,5 @@
-#ifndef _USB_TIMER_H
-#define _USB_TIMER_H 1
+#ifndef _USBLIB_TIMER_H
+#define _USBLIB_TIMER_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,8 +14,8 @@ void FineTimerConfigure(unsigned, unsigned, unsigned);
 void FineTimerStart(int, void (*)(void), unsigned);
 void FineTimerStop(int);
 
-void MS_TIM_IRQHandler(void);
-void US_TIM_IRQHandler(void);
+void TIM2_IRQHandler(void);
+void TIM3_IRQHandler(void);
 
 #ifdef __cplusplus
 }

@@ -7,7 +7,6 @@
     and STM32F417 **/
 
 
-
 void __attribute__((__interrupt__)) otg_fs_isr_vector( void ) {
   USBglobalInterruptHandler();
 }
@@ -20,15 +19,14 @@ void __attribute__((__interrupt__)) otg_hs_isr_vector( void ) {
 #if MS_TIM_N == 2
 void __attribute__((__interrupt__)) tim2_isr_vector( void ) {
 
-	MS_TIM_IRQHandler();
+	TIM2_IRQHandler();
 }
 #else
-#error Timer not supported
 #endif
 
 #if US_TIM_N == 3
 void __attribute__((__interrupt__)) tim3_isr_vector( void ) {
-	US_TIM_IRQHandler();
+	TIM3_IRQHandler();
 }
 #else
 #error Timer not supported
