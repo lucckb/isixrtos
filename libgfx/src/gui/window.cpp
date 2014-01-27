@@ -68,7 +68,9 @@ void window::report_event( const input::event_info& ev )
 	//Emit signal to others
 	emit( event( this, ev ) );
 	if( ev.type != input::event_info::EV_CHANGE ) {
-		(*m_current_widget)->report_event( ev );
+		auto widget = current_widget();
+		if( widget )
+			widget->report_event( ev );
 	} else {
 		for( const auto& widget : m_widgets ) {
 			widget->report_event( ev );
