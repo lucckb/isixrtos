@@ -12,6 +12,8 @@
 #include <stm32exti.h>
 #include <usb/drivers/controllers/stm32/timer.h>
 
+
+
 //!TODO: Temporary only configuration
 #define HOST_VBUS_GPIO_N  D
 #define HOST_VBUS_ON      1
@@ -45,19 +47,14 @@ static usb_phy_t Phy;
 /* Configure USB central components.
     prio - interrupt preemption priority */
 static int USBHcentralConfigure(uint32_t prio) {
-#if 0
-  GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-  GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-#endif
-  if (Phy == USB_PHY_A) {
+
+	if (Phy == USB_PHY_A) {
     rcc_ahb1_periph_clock_cmd(RCC_AHB1Periph_GPIOA, true);
 
-    static const unsigned pins = (1<<9) | (1<<10) | (1<<11) | (1<<12);
+    static const unsigned pins = /*(1<<9) | (1<<10) |*/ (1<<11) | (1<<12);
 	gpio_config_ext(GPIOA, pins, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, GPIO_OTYPE_PP);
-    gpio_pin_AF_config(GPIOA, GPIO_PinSource9,  GPIO_AF_OTG_FS); /* VBUS */
-    gpio_pin_AF_config(GPIOA, GPIO_PinSource10, GPIO_AF_OTG_FS); /* ID */
+   // gpio_pin_AF_config(GPIOA, GPIO_PinSource9,  GPIO_AF_OTG_FS); /* VBUS */
+  //  gpio_pin_AF_config(GPIOA, GPIO_PinSource10, GPIO_AF_OTG_FS); /* ID */
     gpio_pin_AF_config(GPIOA, GPIO_PinSource11, GPIO_AF_OTG_FS); /* DM */
     gpio_pin_AF_config(GPIOA, GPIO_PinSource12, GPIO_AF_OTG_FS); /* DP */
 
@@ -267,7 +264,6 @@ static int USBHperipheralConfigure(void) {
 int USBHconfigure(usb_phy_t phy) {
   int res;
   uint32_t prio;
-
   Phy = phy;
   prio = USBHgetInterruptPriority();
   res = USBHcentralConfigure(prio);

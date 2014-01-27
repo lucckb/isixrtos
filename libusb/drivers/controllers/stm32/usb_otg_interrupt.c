@@ -24,9 +24,9 @@ void __attribute__((__interrupt__)) tim2_isr_vector( void ) {
 #else
 #endif
 
-#if US_TIM_N == 3
-void __attribute__((__interrupt__)) tim3_isr_vector( void ) {
-	TIM3_IRQHandler();
+#if US_TIM_N == 4
+void __attribute__((__interrupt__)) tim4_isr_vector( void ) {
+	TIM4_IRQHandler();
 }
 #else
 #error Timer not supported

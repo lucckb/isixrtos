@@ -1,6 +1,6 @@
 
 #USB src libraries
-ISIX_USBLIB_INC += -DMS_TIM_N=2 -DUS_TIM_N=3
+ISIX_USBLIB_INC += -DMS_TIM_N=2 -DUS_TIM_N=4
 ISIX_USBLIB_SRC += $(wildcard $(LIBUSB_DIR)/core/*.c)
 ISIX_USBLIB_INC += -I$(LIBUSB_DIR)/include
 #Driver layer defs

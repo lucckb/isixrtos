@@ -5,6 +5,7 @@
 #include <usb/drivers/controllers/stm32/usb_config.h>
 #include <usb/drivers/controllers/stm32/timer.h>
 #include <usb/core/xcat.h>
+#include <foundation/dbglog.h>
 
 
 #ifdef MS_TIM_N
@@ -35,6 +36,8 @@ void TimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1 )
 	);
 	tim_oc_preload_config( MS_TIM, tim_cc_chn1, false );
 	nvic_set_priority( MS_TIM_IRQn, prio, subprio );
+	nvic_irq_enable( MS_TIM_IRQn, true );
+	tim_cmd( MS_TIM, true );
 }
 
 /* Configure millisecond timer to call a function in the future.
@@ -163,7 +166,7 @@ static void (*us_callback4)(void) = NULL;
 /* Configure microsecond timer.
     prio    - interrupt preemption priority
     subprio - interrupt service priority when the same prio */
-void FineTimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1) 
+void FineTimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1 )
 {
 	rcc_apb1_periph_clock_cmd( US_TIM_RCC, true );
 	const unsigned  prescaler = pclk1 / 1000000 - 1;
@@ -174,6 +177,8 @@ void FineTimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1)
 	);
 	tim_oc_preload_config( MS_TIM, tim_cc_chn1, false );
 	nvic_set_priority( US_TIM_IRQn, prio, subprio );
+	nvic_irq_enable( US_TIM_IRQn, true );
+	tim_cmd( US_TIM, true );
 }
 
 /* Configure microsecond timer to call a function in the future.

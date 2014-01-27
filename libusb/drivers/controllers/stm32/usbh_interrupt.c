@@ -18,7 +18,7 @@ static uint16_t CoreScheduleTime = 65535;
 /* Green LED is blinking when a device is connected and
    the host is working. */
 static void Blink(int enable) {
-	dbprintf("BLINK %i", enable);
+	//dbprintf("BLINK %i", enable);
 }
 
 /* DATA PID toggle error -- for diagnostic purpose only */
