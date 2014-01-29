@@ -11,7 +11,7 @@
 #include <stm32rcc.h>
 #include <stm32exti.h>
 #include <usb/drivers/controllers/stm32/timer.h>
-
+#include <foundation/dbglog.h>
 
 
 //!TODO: Temporary only configuration
@@ -267,16 +267,22 @@ int USBHconfigure(usb_phy_t phy) {
   Phy = phy;
   prio = USBHgetInterruptPriority();
   res = USBHcentralConfigure(prio);
-  if (res < 0)
-    return res;
+  if (res < 0) {
+	 dbprintf( "Central configfure err %i", res );
+	 return res;
+  }
   TimerConfigure(prio, 1, CONFIG_PCLK1_HZ );
   FineTimerConfigure(prio, 3, CONFIG_PCLK1_HZ );
   res = USBHcoreConfigure();
-  if (res < 0)
-    return res;
+  if (res < 0) {
+	  dbprintf( "Core configfure err %i", res );
+	  return res;
+  }
   res = USBHperipheralConfigure();
-  if (res < 0)
-    return res;
+  if (res < 0) {
+	  dbprintf( "Periph configfure err %i", res );
+	  return res;
+  }
   return USBHLIB_SUCCESS;
 }
 
