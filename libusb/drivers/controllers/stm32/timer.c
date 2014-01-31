@@ -7,7 +7,6 @@
 #include <usb/core/xcat.h>
 #include <foundation/dbglog.h>
 
-
 #ifdef MS_TIM_N
 /** Millisecond timers **/
 
