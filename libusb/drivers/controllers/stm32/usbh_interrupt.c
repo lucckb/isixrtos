@@ -23,7 +23,7 @@ static void Blink(int enable) {
 
 /* DATA PID toggle error -- for diagnostic purpose only */
 static inline void ToggleError(void) {
-	dbprintf("Fatal Error !!!");
+
 }
 
 /** USB host interrupt handlers for STM32F105, STM32F107, STM32F205,

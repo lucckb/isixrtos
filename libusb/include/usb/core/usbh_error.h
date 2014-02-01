@@ -1,5 +1,5 @@
-#ifndef _USBH_ERROR_H
-#define _USBH_ERROR_H 1
+#ifndef _ISIX_USBH_ERROR_H
+#define _ISIX_USBH_ERROR_H
 
 enum usbh_errno {
 	USBHLIB_SUCCESS              =   0,
@@ -12,8 +12,8 @@ enum usbh_errno {
 	USBHLIB_ERROR_STALL          =  -9,
 	USBHLIB_ERROR_NO_MEM         = -11,
 	USBHLIB_ERROR_NOT_SUPPORTED  = -12,
-	USBHLIB_IN_PROGRESS          = -50
-
+	USBHLIB_IN_PROGRESS          = -50,
+	USBHLIB_ERROR_OS			 = -51
 };
 
 #endif

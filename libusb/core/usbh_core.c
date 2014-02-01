@@ -8,9 +8,11 @@
 #include <usb/core/usbh_io.h>
 #include <usb/core/usbh_lib.h>
 #include <usb/core/usbh_std_req.h>
+#include <isix.h>
+
 
 /* Hub is not supported - only one device can be attached at once. */
-#define DEVICE_ADDRESS  1
+enum { DEVICE_ADDRESS  = 1 };
 
 static inline unsigned long min( unsigned long a, unsigned long b) {
 	return (((a)<(b))?(a):(b));
@@ -90,6 +92,7 @@ typedef struct {
 
 static usbh_machine_t Machine;
 static usbh_device_t  Device;
+static sem_t*		  notify_sem;
 
 /** USB host core initialization **/
 
@@ -125,12 +128,18 @@ static void USBHcoreDeInit(void) {
   Device.visible_state = DISCONNECTED;
   Device.address = 0;
   memset(&Device.dev_desc, 0, sizeof(usb_device_descriptor_t));
+  isix_sem_get_isr( notify_sem );
 }
 
 /* This function is called only once at configuration phase.
    These initializations are never reversed. */
 int USBHcoreConfigure() {
   int res;
+
+  notify_sem = isix_sem_create_limited( NULL, 0, 1 );
+  if( ! notify_sem ) {
+	  return USBHLIB_ERROR_OS;
+  }
 
   USBHcoreDeInit();
 
@@ -188,6 +197,16 @@ void USBHsof(uint16_t frnum) {
     Machine.class.at_sof(Machine.class.parameter, frnum);
 }
 
+/** Notify the ISIX and wait for finish
+ * @param error Errpr code
+ */
+static inline void usbh_notify_done( int error ) {
+
+	isix_sem_signal_isr( notify_sem );
+    Machine.control.errno = error;
+    Machine.control.state = CTRL_DONE;
+}
+
 /* Control transfer state machine.
    The return value is non-zero, if the machine finished its work.
    The return value is zero, if the machine still works. */
@@ -203,8 +222,7 @@ static int USBHhandleControlTransfer(void) {
         Machine.control.state = CTRL_SETUP_WAIT;
       }
       else {
-        Machine.control.errno = USBHLIB_ERROR_IO;
-        Machine.control.state = CTRL_DONE;
+    	usbh_notify_done( USBHLIB_ERROR_IO );
       }
       break;
     case CTRL_SETUP_WAIT:
@@ -233,8 +251,7 @@ static int USBHhandleControlTransfer(void) {
           Machine.control.state = CTRL_SETUP;
         }
         else {
-          Machine.control.errno = USBHLIB_ERROR_IO;
-          Machine.control.state = CTRL_DONE;
+          usbh_notify_done( USBHLIB_ERROR_IO );
         }
       }
       break;
@@ -246,8 +263,7 @@ static int USBHhandleControlTransfer(void) {
         Machine.control.state = CTRL_DATA_IN_WAIT;
       }
       else {
-        Machine.control.errno = USBHLIB_ERROR_IO;
-        Machine.control.state = CTRL_DONE;
+    	usbh_notify_done( USBHLIB_ERROR_IO );
       }
       break;
     case CTRL_DATA_IN_WAIT:
@@ -269,24 +285,21 @@ static int USBHhandleControlTransfer(void) {
       }
       else if (Machine.control.timeout < 0) {
         USBHhaltChannel(Machine.control.hc_num_in);
-        Machine.control.errno = USBHLIB_ERROR_TIMEOUT;
-        Machine.control.state = CTRL_DONE;
+        usbh_notify_done( USBHLIB_ERROR_TIMEOUT );
       }
       else if (res == TR_NAK) {
         Machine.control.error_count = 0;
         Machine.control.state = CTRL_DATA_IN;
       }
       else if (res == TR_STALL) {
-        Machine.control.errno = USBHLIB_ERROR_STALL;
-        Machine.control.state = CTRL_DONE;
+    	usbh_notify_done( USBHLIB_ERROR_STALL );
       }
       else if (res == TR_ERROR) {
         if (++Machine.control.error_count < TRANS_MAX_REP_COUNT) {
           Machine.control.state = CTRL_DATA_IN;
         }
         else {
-          Machine.control.errno = USBHLIB_ERROR_IO;
-          Machine.control.state = CTRL_DONE;
+          usbh_notify_done( USBHLIB_ERROR_IO );
         }
       }
       break;
@@ -298,8 +311,7 @@ static int USBHhandleControlTransfer(void) {
         Machine.control.state = CTRL_DATA_OUT_WAIT;
       }
       else {
-        Machine.control.errno = USBHLIB_ERROR_IO;
-        Machine.control.state = CTRL_DONE;
+    	  usbh_notify_done( USBHLIB_ERROR_IO );
       }
       break;
     case CTRL_DATA_OUT_WAIT:
@@ -320,24 +332,21 @@ static int USBHhandleControlTransfer(void) {
       }
       else if (Machine.control.timeout < 0) {
         USBHhaltChannel(Machine.control.hc_num_out);
-        Machine.control.errno = USBHLIB_ERROR_TIMEOUT;
-        Machine.control.state = CTRL_DONE;
+        usbh_notify_done( USBHLIB_ERROR_TIMEOUT );
       }
       else if (res == TR_NAK) {
         Machine.control.error_count = 0;
         Machine.control.state = CTRL_DATA_OUT;
       }
       else if (res == TR_STALL) {
-        Machine.control.errno = USBHLIB_ERROR_STALL;
-        Machine.control.state = CTRL_DONE;
+    	usbh_notify_done( USBHLIB_ERROR_STALL );
       }
       else if (res == TR_ERROR) {
         if (++Machine.control.error_count < TRANS_MAX_REP_COUNT) {
           Machine.control.state = CTRL_DATA_OUT;
         }
         else {
-          Machine.control.errno = USBHLIB_ERROR_IO;
-          Machine.control.state = CTRL_DONE;
+          usbh_notify_done( USBHLIB_ERROR_IO );
         }
       }
       break;
@@ -347,37 +356,32 @@ static int USBHhandleControlTransfer(void) {
         Machine.control.state = CTRL_STATUS_IN_WAIT;
       }
       else {
-        Machine.control.errno = USBHLIB_ERROR_IO;
-        Machine.control.state = CTRL_DONE;
+    	usbh_notify_done( USBHLIB_ERROR_IO );
       }
       break;
     case CTRL_STATUS_IN_WAIT:
       res = USBHgetTransactionResult(Machine.control.hc_num_in);
       if (res == TR_DONE) {
-        Machine.control.errno = USBHLIB_SUCCESS;
-        Machine.control.state = CTRL_DONE;
+    	usbh_notify_done( USBHLIB_SUCCESS );
         Machine.control.error_count = 0;
       }
       else if (Machine.control.timeout < 0) {
         USBHhaltChannel(Machine.control.hc_num_in);
-        Machine.control.errno = USBHLIB_ERROR_TIMEOUT;
-        Machine.control.state = CTRL_DONE;
+        usbh_notify_done( USBHLIB_ERROR_TIMEOUT );
       }
       else if (res == TR_NAK) {
         Machine.control.error_count = 0;
         Machine.control.state = CTRL_STATUS_IN;
       }
       else if (res == TR_STALL) {
-        Machine.control.errno = USBHLIB_ERROR_STALL;
-        Machine.control.state = CTRL_DONE;
+    	 usbh_notify_done( USBHLIB_ERROR_STALL );
       }
       else if (res == TR_ERROR) {
         if (++Machine.control.error_count < TRANS_MAX_REP_COUNT) {
           Machine.control.state = CTRL_STATUS_IN;
         }
         else {
-          Machine.control.errno = USBHLIB_ERROR_IO;
-          Machine.control.state = CTRL_DONE;
+          usbh_notify_done(USBHLIB_ERROR_IO);
         }
       }
       break;
@@ -387,37 +391,32 @@ static int USBHhandleControlTransfer(void) {
         Machine.control.state = CTRL_STATUS_OUT_WAIT;
       }
       else {
-        Machine.control.errno = USBHLIB_ERROR_IO;
-        Machine.control.state = CTRL_DONE;
+    	usbh_notify_done(USBHLIB_ERROR_IO);
       }
       break;
     case CTRL_STATUS_OUT_WAIT:
       res = USBHgetTransactionResult(Machine.control.hc_num_out);
       if (res == TR_DONE) {
-        Machine.control.errno = USBHLIB_SUCCESS;
-        Machine.control.state = CTRL_DONE;
+        usbh_notify_done( USBHLIB_SUCCESS );
         Machine.control.error_count = 0;
       }
       else if (Machine.control.timeout < 0) {
         USBHhaltChannel(Machine.control.hc_num_out);
-        Machine.control.errno = USBHLIB_ERROR_TIMEOUT;
-        Machine.control.state = CTRL_DONE;
+        usbh_notify_done( USBHLIB_ERROR_TIMEOUT );
       }
       else if (res == TR_NAK) {
         Machine.control.error_count = 0;
         Machine.control.state = CTRL_STATUS_OUT;
       }
       else if (res == TR_STALL) {
-        Machine.control.errno = USBHLIB_ERROR_STALL;
-        Machine.control.state = CTRL_DONE;
+    	usbh_notify_done( USBHLIB_ERROR_STALL );
       }
       else if (res == TR_ERROR) {
         if (++Machine.control.error_count < TRANS_MAX_REP_COUNT) {
           Machine.control.state = CTRL_STATUS_OUT;
         }
         else {
-          Machine.control.errno = USBHLIB_ERROR_IO;
-          Machine.control.state = CTRL_DONE;
+          usbh_notify_done(USBHLIB_ERROR_IO);
         }
       }
       break;
@@ -549,10 +548,13 @@ int USBHcontrolRequest(int synch, usb_setup_packet_t const *setup,
       return USBHLIB_ERROR_BUSY;
     }
     else {
+      isix_sem_get_isr( notify_sem );
       USBHsubmitControlRequest(setup, buffer);
-      while (Machine.control.state != CTRL_DONE) {
+      /*if (Machine.control.state != CTRL_DONE)*/ {
         USBHunprotectInterrupt(x);
-        isix_wait_ms(200); /* How long should we wait? */
+        if( isix_sem_wait( notify_sem, ISIX_TIME_INFINITE ) != ISIX_EOK ) {
+        	return USBHLIB_ERROR_OS;
+        }
         x = USBHprotectInterrupt();
       }
       Machine.control.state = CTRL_IDLE;
