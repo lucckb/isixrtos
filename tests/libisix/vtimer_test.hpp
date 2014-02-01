@@ -39,11 +39,14 @@ public:
 	//Run all test
 	void run() {
 		basic();
+		one_shoot();
 	}
 protected:
 private:
 	//Basic test
 	void basic();
+	//One shoot test
+	void one_shoot();
 private:
 	class timer : public isix::virtual_timer {
 	public:
