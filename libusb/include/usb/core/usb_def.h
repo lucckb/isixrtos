@@ -76,19 +76,19 @@ typedef struct {
 } __packed usb_notification_packet_t;
 
 /* The bmRequestType field in the setup packet */
-
-#define REQUEST_DIRECTION    0x80 /* mask to get transfer direction */
-#define DEVICE_TO_HOST       0x80
-#define HOST_TO_DEVICE       0x00
-#define REQUEST_TYPE         0x60 /* mask to get request type */
-#define STANDARD_REQUEST     0x00
-#define CLASS_REQUEST        0x20
-#define VENDOR_REQUEST       0x40
-#define REQUEST_RECIPIENT    0x1f /* mask to get recipient */
-#define DEVICE_RECIPIENT     0x00
-#define INTERFACE_RECIPIENT  0x01
-#define ENDPOINT_RECIPIENT   0x02
-
+enum usb_request_type {
+	REQUEST_DIRECTION    =0x80, /* mask to get transfer direction */
+	DEVICE_TO_HOST       =0x80,
+	HOST_TO_DEVICE       =0x00,
+	REQUEST_TYPE         =0x60, /* mask to get request type */
+	STANDARD_REQUEST     =0x00,
+	CLASS_REQUEST        =0x20,
+	VENDOR_REQUEST       =0x40,
+	REQUEST_RECIPIENT    =0x1f, /* mask to get recipient */
+	DEVICE_RECIPIENT     =0x00,
+	INTERFACE_RECIPIENT  =0x01,
+	ENDPOINT_RECIPIENT   =0x02
+};
 /* The bRequest field in the standard request setup packet */
 
 typedef enum {
