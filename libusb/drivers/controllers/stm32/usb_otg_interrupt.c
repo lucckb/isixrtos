@@ -16,14 +16,6 @@ void __attribute__((__interrupt__)) otg_hs_isr_vector( void ) {
 }
 
 
-#if MS_TIM_N == 2
-void __attribute__((__interrupt__)) tim2_isr_vector( void ) {
-
-	TIM2_IRQHandler();
-}
-#else
-#endif
-
 #if US_TIM_N == 4
 void __attribute__((__interrupt__)) tim4_isr_vector( void ) {
 	TIM4_IRQHandler();
