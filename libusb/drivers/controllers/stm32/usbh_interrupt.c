@@ -245,7 +245,7 @@ void USBglobalInterruptHandler() {
   interrupt_status.d32 = P_USB_OTG_GREGS->GINTSTS;
   if (interrupt_status.b.cmod == 0) {
     /* We are in the device mode. */
-	isix_bug("OTH controller in device mode");
+	isix_bug("OTG controller in device mode");
   }
   else {
     /* We are in the host mode. */

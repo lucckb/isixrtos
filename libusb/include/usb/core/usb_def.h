@@ -8,28 +8,23 @@ extern "C" {
 #endif
 
 
-#if defined __CC_ARM
-  #define __packed  __packed
-#elif defined __GNUC__
-  #define __packed  __attribute__ ((__packed__))
-#elif defined __ICCARM__
-  #define __packed  __packed
-#elif defined __TASKING__
-  #define __packed
-#endif
+#define __packed  __attribute__ ((__packed__))
+
 
 /** Definitions from the USB standards **/
 
 /* Visible device states */
 
 typedef uint32_t usb_visible_state_t;
-#define DISCONNECTED  0x00
-#define ATTACHED      0x01
-#define POWERED       0x03
-#define DEFAULT       0x07
-#define ADDRESS       0x0f
-#define CONFIGURED    0x1f
-#define SUSPENDED     0x80
+enum usbh_state {
+	DISCONNECTED  = 0x00,
+	ATTACHED      = 0x01,
+	POWERED       = 0x03,
+	DEFAULT       = 0x07,
+	ADDRESS       = 0x0f,
+	CONFIGURED    = 0x1f,
+	SUSPENDED     = 0x80
+};
 
 /* PID tokens */
 
