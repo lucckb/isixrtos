@@ -77,9 +77,9 @@ void _isixp_vtimer_handle_time(tick_t jiffies)
 	    		jiffies>=(vtimer = list_get_first(p_vtimer_list,inode,vtimer_t))->jiffies
 	      )
 	{
+		list_delete(&vtimer->inode);
 		if( vtimer->timer_handler ) 
 			vtimer->timer_handler( vtimer->arg );
-		list_delete(&vtimer->inode);
 		if( !vtimer->one_shoot ) 
 		{
 			add_vtimer_to_list(vtimer);
@@ -118,7 +118,7 @@ vtimer_t* _isix_vtimer_create_internal_(void (*func)(void*),void *arg, bool one_
 int isix_vtimer_start(vtimer_t* timer, tick_t timeout)
 {
 	if( timer == NULL ) return ISIX_EINVARG;
-	if( timer->one_shoot ) return ISIX_EINVARG;
+	if( timer->one_shoot && timeout > 0 ) return ISIX_EINVARG;
 	_isixp_enter_critical();
 	//Search on ov list
 	if( list_is_elem_assigned( &timer->inode ) )
