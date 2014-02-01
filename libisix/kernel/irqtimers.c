@@ -92,8 +92,20 @@ void _isixp_vtimer_handle_time(tick_t jiffies)
 vtimer_t* _isix_vtimer_create_internal_(void (*func)(void*),void *arg, bool one_shoot )
 {
 	vtimer_t * const timer = (vtimer_t*)isix_alloc(sizeof(vtimer_t));
-	if( func == NULL )  return NULL;
-    if( timer == NULL ) return NULL;
+	if( timer == NULL ) {
+		return NULL;
+	}
+	if( !one_shoot ) {
+		if( func == NULL ) {
+			isix_free( timer );
+			return NULL;
+		}
+	} else {
+		if( func ) {
+			isix_free( timer );
+			return NULL;
+		}
+	}
     memset( timer, 0, sizeof(*timer) );
     timer->arg = arg;
     timer->timer_handler = func;
