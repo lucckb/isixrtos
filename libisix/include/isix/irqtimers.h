@@ -26,15 +26,37 @@ namespace isix {
 /* Structure definition for hidding the type */
 struct vtimer_struct;
 typedef struct vtimer_struct vtimer_t;
-
+/*-----------------------------------------------------------------------*/
+//Private function for handling internal timer
+vtimer_t* _isix_vtimer_create_internal_(void (*func)(void*),void *arg, bool one_shoot );
 /*-----------------------------------------------------------------------*/
 /** Create virtual timer called from interrupt context for light events
  * consume much power cyclic tasks
  * @param[in] func Function to be called in context - cyclic timeout
- * @param[in] arg Frgument passed to the function
+ * @param[in] arg Argument passed to the function
  * @return NULL if timer create was unsucess, else return vtimer pointer
  */
-vtimer_t* isix_vtimer_create(void (*func)(void*),void *arg );
+static inline vtimer_t* isix_vtimer_create(void (*func)(void*),void *arg ) {
+	return _isix_vtimer_create_internal_( func, arg, false );
+}
+/*-----------------------------------------------------------------------*/
+/**
+ * Create virtual timer from interrupt context without init fn
+ * @return
+ */
+static inline vtimer_t* isix_vtimer_create_oneshoot( void ) {
+	return _isix_vtimer_create_internal_( NULL,NULL,true );
+}
+/*-----------------------------------------------------------------------*/
+/**
+ * Start one shoot timer execution
+ * @param timer	Pointer to the timer structure
+ * @param fun Function to be called in interrupt context
+ * @param arg Argument passed to the function
+ * @param timeout Timeout
+ * @return success if ISIX_EOK else isix error
+ */
+int isix_vtimer_one_shoot( vtimer_t* timer, void (*func)(void*), void *arg, tick_t timeout );
 /*-----------------------------------------------------------------------*/
 /** Start the vtimer on the selected period
  * @param[in] timer Pointer to the timer structure

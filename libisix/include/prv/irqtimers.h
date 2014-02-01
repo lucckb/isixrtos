@@ -22,11 +22,12 @@ void _isixp_vtimer_handle_time(tick_t jiffies);
 /*-----------------------------------------------------------------------*/
 struct vtimer_struct
 {
-	tick_t jiffies;	      /* Next timeout handle */
-	tick_t timeout;			 /* Timeout timer value */
+	tick_t jiffies;	      		  /* Next timeout handle */
+	tick_t timeout;			 	  /* Timeout timer value */
 	void (*timer_handler)(void*); /* Next timer call */
 	void *arg;					  /* Function pointer */
 	list_t inode;				  /* Innode list */
+	bool one_shoot;				  /* Is a one shoot timer */
 };
 /*-----------------------------------------------------------------------*/
 #else

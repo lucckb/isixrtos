@@ -77,15 +77,19 @@ void _isixp_vtimer_handle_time(tick_t jiffies)
 	    		jiffies>=(vtimer = list_get_first(p_vtimer_list,inode,vtimer_t))->jiffies
 	      )
 	{
-		vtimer->timer_handler( vtimer->arg );
+		if( vtimer->timer_handler ) 
+			vtimer->timer_handler( vtimer->arg );
 		list_delete(&vtimer->inode);
-		add_vtimer_to_list(vtimer);
+		if( !vtimer->one_shoot ) 
+		{
+			add_vtimer_to_list(vtimer);
+		}
 	}
 }
 
 /*-----------------------------------------------------------------------*/
 //Create the virtual timer
-vtimer_t* isix_vtimer_create(void (*func)(void*),void *arg )
+vtimer_t* _isix_vtimer_create_internal_(void (*func)(void*),void *arg, bool one_shoot )
 {
 	vtimer_t * const timer = (vtimer_t*)isix_alloc(sizeof(vtimer_t));
 	if( func == NULL )  return NULL;
@@ -93,6 +97,7 @@ vtimer_t* isix_vtimer_create(void (*func)(void*),void *arg )
     memset( timer, 0, sizeof(*timer) );
     timer->arg = arg;
     timer->timer_handler = func;
+    timer->one_shoot = one_shoot;
     return timer;
 }
 
@@ -101,6 +106,7 @@ vtimer_t* isix_vtimer_create(void (*func)(void*),void *arg )
 int isix_vtimer_start(vtimer_t* timer, tick_t timeout)
 {
 	if( timer == NULL ) return ISIX_EINVARG;
+	if( timer->one_shoot ) return ISIX_EINVARG;
 	_isixp_enter_critical();
 	//Search on ov list
 	if( list_is_elem_assigned( &timer->inode ) )
@@ -116,7 +122,28 @@ int isix_vtimer_start(vtimer_t* timer, tick_t timeout)
 	_isixp_exit_critical();
 	return ISIX_EOK;
 }
-
+/*-----------------------------------------------------------------------*/
+//! Start one shoot timer
+int isix_vtimer_one_shoot( vtimer_t* timer, void (*func)(void*), void *arg, tick_t timeout )
+{
+	if( timer == NULL ) return ISIX_EINVARG;
+	if( !timer->one_shoot ) return ISIX_EINVARG;
+	_isixp_enter_critical();
+	if( list_is_elem_assigned( &timer->inode ) )
+	{
+		_isixp_exit_critical();
+		return ISIX_EBUSY;
+	}
+	if( timeout > 0 && timer )
+	{
+		timer->timeout = timeout;
+		timer->timer_handler = func;
+		timer->arg = arg;
+		add_vtimer_to_list( timer );
+	}
+	_isixp_exit_critical();
+	return ISIX_EOK;
+}
 /*-----------------------------------------------------------------------*/
 //Destroy the virtual timer
 int isix_vtimer_destroy(vtimer_t* timer)

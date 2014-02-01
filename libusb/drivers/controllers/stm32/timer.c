@@ -6,6 +6,8 @@
 #include <usb/drivers/controllers/stm32/timer.h>
 #include <usb/core/xcat.h>
 #include <foundation/dbglog.h>
+#include <isix.h>
+
 
 #ifdef MS_TIM_N
 /** Millisecond timers **/
@@ -99,19 +101,12 @@ void TimerStop(int timer) {
   }
 }
 
-static volatile int wait = 0;
-
-static void EndWait(void) {
-  wait = 0;
-}
-
 /* Make active delay.
     timer   - timer number, from 1 to 4
     time_ms - time to wait for. */
 void ActiveWait(int timer, unsigned time_ms) {
-  wait = 1;
-  TimerStart(timer, EndWait, time_ms);
-  while (wait);
+	(void)timer;
+	isix_wait_ms( time_ms );
 }
 
 /* The callback function is allowed to reenable a timer. */
