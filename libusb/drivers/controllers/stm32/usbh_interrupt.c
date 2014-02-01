@@ -269,7 +269,8 @@ void USBglobalInterruptHandler() {
   }
 
   /* Call the core process just after the interrupt is handled. */
-  FineTimerStart(1, CoreProcessHandler, 2);
+//  FineTimerStart(1, CoreProcessHandler, 2);
+  USBHcoreProcess();
 }
 
 /* Overcurrent is detected on VBUS. */
