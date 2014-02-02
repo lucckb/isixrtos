@@ -5,65 +5,69 @@
 #include <usb/drivers/controllers/stm32/usb_config.h>
 #include <usb/drivers/controllers/stm32/timer.h>
 #include <usb/core/xcat.h>
+#include <usb/core/usbh_error.h>
 #include <foundation/dbglog.h>
 #include <isix.h>
-
+#include <usb/drivers/controllers/stm32/usb_config.h>
 
 // Isix milisec timer
-static vtimer_t* isix_ms_timer;
+static vtimer_t* isix_ms_timers[2];
 
 
 /* Configure millisecond timer.
     prio    - interrupt preemption priority
     subprio - interrupt service priority when the same prio */
-void TimerConfigure( unsigned prio, unsigned subprio, unsigned pclk1 ) 
+int TimerConfigure( void ) 
 {
-	isix_ms_timer = isix_vtimer_create_oneshoot();
-	if( !isix_ms_timer ) {
-		isix_bug("FAILED");
+	for( unsigned i=0; i<ARRAY_SIZE(isix_ms_timers); ++i ) {
+		isix_ms_timers[i] = isix_vtimer_create_oneshoot();
+		if( !isix_ms_timers[i] ) {
+			return USBHLIB_ERROR_OS;
+		}
 	}
+	return USBHLIB_SUCCESS;
 }
 
 /* Configure millisecond timer to call a function in the future.
     timer   - timer number, from 1 to 4
     f       - function to call when time is elapsed
     time_ms - time to wait for, from 1 to 32767 milliseconds */
-void TimerStart(int timer, void (*f)(void), unsigned time_ms) 
+int TimerStart(unsigned timer, void (*f)(void*), unsigned time_ms) 
 {
-  	(void)timer;
-	const int err = isix_vtimer_one_shoot(isix_ms_timer, (void (*)(void*))f, NULL, time_ms);
-	if( err != ISIX_EOK ) {
-		isix_bug("VTIMER one shoot");
+	--timer;
+	if( timer >= ARRAY_SIZE( isix_ms_timers ) ) {
+		return USBHLIB_ERROR_NOT_SUPPORTED;
 	}
+	const int err = isix_vtimer_one_shoot(isix_ms_timers[timer], f, NULL, time_ms);
+	if( err != ISIX_EOK ) {
+		return USBHLIB_ERROR_OS;
+	}
+	return USBHLIB_SUCCESS;
 }
 
 /* Stop time counting. The configured function will not be called.
     timer - timer number, from 1 to 4 */
-void TimerStop(int timer) {
-  (void)timer;
-  const int err = isix_vtimer_stop(isix_ms_timer);
-	if( err != ISIX_EOK ) {
-		isix_bug("VTIMER one shoot");
+int TimerStop(unsigned timer) 
+{
+	--timer;
+	if( timer >= ARRAY_SIZE( isix_ms_timers ) ) {
+		return USBHLIB_ERROR_OS;
 	}
-}
-
-/* Make active delay.
-    timer   - timer number, from 1 to 4
-    time_ms - time to wait for. */
-void ActiveWait(int timer, unsigned time_ms) {
-	(void)timer;
-	isix_wait_ms( time_ms );
+    const int err = isix_vtimer_stop(isix_ms_timers[timer]);
+	if( err != ISIX_EOK ) {
+		return USBHLIB_ERROR_OS;
+	}
+	return USBHLIB_SUCCESS;
 }
 
 
-#ifdef US_TIM_N
+#ifdef CONFIG_USBLIB_US_TIM_N
 
 /** Microsecond timers **/
 
-#define US_TIM             xcat(TIM, US_TIM_N)
-#define US_TIM_IRQn        xcat3(TIM, US_TIM_N, _IRQn)
-#define US_TIM_RCC         xcat(RCC_APB1Periph_TIM, US_TIM_N)
-#define US_TIM_IRQHandler  xcat3(TIM, US_TIM_N, _IRQHandler)
+#define US_TIM             usblib_xcat(TIM, CONFIG_USBLIB_US_TIM_N)
+#define US_TIM_IRQn        usblib_xcat3(TIM, CONFIG_USBLIB_US_TIM_N, _IRQn)
+#define US_TIM_RCC         usblib_xcat(RCC_APB1Periph_TIM, CONFIG_USBLIB_US_TIM_N)
 
 static void (*us_callback1)(void) = NULL;
 static void (*us_callback2)(void) = NULL;
@@ -150,7 +154,7 @@ void FineTimerStop(int timer) {
 }
 
 /* The callback function is allowed to reenable a timer. */
-void US_TIM_IRQHandler(void) {
+void usbh_prv_fine_timer_irq_handler(void) {
   uint16_t it_status;
   void (*callback)(void);
 
@@ -180,4 +184,4 @@ void US_TIM_IRQHandler(void) {
       callback();
   }
 }
-#endif /* US_TIM_N */
+#endif /* CONFIG_USBLIB_US_TIM_N */

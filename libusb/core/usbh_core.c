@@ -174,7 +174,8 @@ void USBHdeviceSpeed(usb_speed_t speed) {
   Device.speed = speed;
 }
 
-void USBHdeviceResetDone() {
+void USBHdeviceResetDone(void* p) {
+  (void)p;
   Device.visible_state = DEFAULT;
   USBHopenChannel(Machine.control.hc_num_out, Device.address,
                   ENDP_OUT | ENDP0, Device.speed,

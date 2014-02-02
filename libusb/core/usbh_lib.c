@@ -21,7 +21,8 @@ int USBHisDeviceReady() {
   return (USBHgetVisibleDeviceState() & ADDRESS) == ADDRESS;
 }
 
-static void DeviceOn(void) {
+static void DeviceOn(void* p) {
+  (void)p;
   USBHvbus(1); /* Switch the device back on. */
 }
 

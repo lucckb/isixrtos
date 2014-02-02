@@ -13,7 +13,7 @@ int  USBHcoreConfigure(void);
 void USBHdeviceDisconnected(void);
 void USBHdeviceAttached(void);
 void USBHdeviceSpeed(usb_speed_t);
-void USBHdeviceResetDone(void);
+void USBHdeviceResetDone(void*);
 void USBHsof(uint16_t);
 void USBHcoreProcess(void);
 

@@ -24,12 +24,8 @@
 #include <config.h>
 #endif
 
-#ifndef MS_TIM_N 
-#define MS_TIM_N 2
-#endif
-
-#ifndef US_TIM_N 
-#define US_TIM_N 3
+#ifndef CONFIG_USBLIB_US_TIM_N 
+#define CONFIG_USBLIB_US_TIM_N 4
 #endif
 
 #endif   /* ----- #ifndef usb_config_INC  ----- */

@@ -18,7 +18,7 @@ static uint16_t CoreScheduleTime = 65535;
 /* Green LED is blinking when a device is connected and
    the host is working. */
 static void Blink(int enable) {
-	//dbprintf("BLINK %i", enable);
+	(void)enable;
 }
 
 /* DATA PID toggle error -- for diagnostic purpose only */
@@ -29,9 +29,9 @@ static inline void ToggleError(void) {
 /** USB host interrupt handlers for STM32F105, STM32F107, STM32F205,
     STM32F207, STM32F215 and STM32F217 **/
 
-static void StopSignallingPortReset(void) {
+static void StopSignallingPortReset(void* p) {
+  (void)p;
   USB_OTG_HPRT_TypeDef hprt;
-
   hprt.d32 = P_USB_OTG_HREGS->HPRT;
   hprt.b.prst = 0;
   /* Do not clear any interrupt. */
@@ -42,9 +42,9 @@ static void StopSignallingPortReset(void) {
   P_USB_OTG_HREGS->HPRT = hprt.d32;
 }
 
-static void StartSignallingPortReset(void) {
+static void StartSignallingPortReset(void* p) {
+  (void)p;
   USB_OTG_HPRT_TypeDef hprt;
-
   hprt.d32 = P_USB_OTG_HREGS->HPRT;
   hprt.b.prst = 1;
   /* Do not clear any interrupt. */
@@ -56,10 +56,13 @@ static void StartSignallingPortReset(void) {
   TimerStart(1, StopSignallingPortReset, RESET_TIME_MS);
 }
 
-static void HostDisconnectHandler(void) {
+static void HostDisconnectHandler(void* p) {
+  (void)p;
+#ifdef CONFIG_USBLIB_US_TIM_N 
   FineTimerStop(1);
+#endif
   TimerStop(1);
-  StopSignallingPortReset();
+  StopSignallingPortReset(p);
   USBHdeviceDisconnected();
   Blink(0);
   //RedLEDon(); /* Red LED is on when there is no device connected. */
@@ -227,6 +230,8 @@ static void HostSofHandler(void) {
   Blink(1); /* for diagnostic purpose */
 }
 
+
+#ifdef CONFIG_USBLIB_US_TIM_N
 /* The USB global interrupt has higher subpriority
    than the fine-timer interrupt. */
 static void CoreProcessHandler(void) {
@@ -238,6 +243,7 @@ static void CoreProcessHandler(void) {
   else
     FineTimerStop(1);
 }
+#endif
 
 void USBglobalInterruptHandler() {
   USB_OTG_GINTSTS_TypeDef interrupt_status;
@@ -255,7 +261,7 @@ void USBglobalInterruptHandler() {
 
     /* Very important - serve discint before hprtint. */
     if (interrupt_status.b.discint)
-      HostDisconnectHandler(); /* device disconnected */
+      HostDisconnectHandler(NULL); /* device disconnected */
     if (interrupt_status.b.hprtint)
       HostPortHandler(); /* device connected */
 
@@ -267,9 +273,10 @@ void USBglobalInterruptHandler() {
     if (interrupt_status.b.sof)
       HostSofHandler();
   }
-
+#ifdef CONFIG_USBLIB_US_TIM_N
   /* Call the core process just after the interrupt is handled. */
-//  FineTimerStart(1, CoreProcessHandler, 2);
+  FineTimerStart(1, CoreProcessHandler, 2);
+#endif 
   USBHcoreProcess();
 }
 

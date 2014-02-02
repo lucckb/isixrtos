@@ -12,7 +12,7 @@
 #include <stm32exti.h>
 #include <usb/drivers/controllers/stm32/timer.h>
 #include <foundation/dbglog.h>
-
+#include <isix.h>
 
 //!TODO: Temporary only configuration
 #define HOST_VBUS_GPIO_N  D
@@ -20,20 +20,20 @@
 #define HOST_OVRCURR_GPIO_N  D
 #define HOST_OVRCURR_EDGE EXTI_Trigger_Falling
 
-#define HOST_VBUS_PORT  xcat(GPIO, HOST_VBUS_GPIO_N)
+#define HOST_VBUS_PORT  usblib_xcat(GPIO, HOST_VBUS_GPIO_N)
 #define HOST_VBUS_PIN   5
-#define HOST_VBUS_RCC   xcat(RCC_AHB1Periph_GPIO, HOST_VBUS_GPIO_N)
+#define HOST_VBUS_RCC   usblib_xcat(RCC_AHB1Periph_GPIO, HOST_VBUS_GPIO_N)
 #define HOST_VBUS_OFF   (!(HOST_VBUS_ON))
 
-#define HOST_OVRCURR_PORT         xcat(GPIO, HOST_OVRCURR_GPIO_N)
+#define HOST_OVRCURR_PORT         usblib_xcat(GPIO, HOST_OVRCURR_GPIO_N)
 #define HOST_OVRCURR_PIN          14
 #define HOST_OVRCURR_PIN_N   14
-#define HOST_OVRCURR_RCC          xcat(RCC_AHB1Periph_GPIO, HOST_OVRCURR_GPIO_N)
-#define HOST_OVRCURR_PORT_SOURCE  xcat(GPIO_PortSourceGPIO, HOST_OVRCURR_GPIO_N)
-#define HOST_OVRCURR_PIN_SOURCE   xcat(GPIO_PinSource, HOST_OVRCURR_PIN_N)
-#define HOST_OVRCURR_EXTI_LINE    xcat(EXTI_Line, HOST_OVRCURR_PIN_N)
-#define HOST_OVRCURR_IRQn         xcat(HOST_OVRCURR_IRQ_N, _IRQn)
-#define HOST_OVRCURR_IRQ_HANDLER  xcat(HOST_OVRCURR_IRQ_N, _IRQHandler)
+#define HOST_OVRCURR_RCC          usblib_xcat(RCC_AHB1Periph_GPIO, HOST_OVRCURR_GPIO_N)
+#define HOST_OVRCURR_PORT_SOURCE  usblib_xcat(GPIO_PortSourceGPIO, HOST_OVRCURR_GPIO_N)
+#define HOST_OVRCURR_PIN_SOURCE   usblib_xcat(GPIO_PinSource, HOST_OVRCURR_PIN_N)
+#define HOST_OVRCURR_EXTI_LINE    usblib_xcat(EXTI_Line, HOST_OVRCURR_PIN_N)
+#define HOST_OVRCURR_IRQn         usblib_xcat(HOST_OVRCURR_IRQ_N, _IRQn)
+#define HOST_OVRCURR_IRQ_HANDLER  usblib_xcat(HOST_OVRCURR_IRQ_N, _IRQHandler)
 #define HOST_OVRCURR_IRQ_N EXTI15_10
 
 /** Low level USB host initialization for STM32F2xx and STM32F4xx **/
@@ -204,7 +204,7 @@ static int USBHperipheralConfigure(void) {
     gusbcfg.b.ulpievbusi = 1; /* Use an external VBUS comparator. */
   }
   P_USB_OTG_GREGS->GUSBCFG = gusbcfg.d32;
-  ActiveWait(1, 50); /* If not wait, FIFO size registers are not written. */
+  isix_wait_ms(50); /* If not wait, FIFO size registers are not written. */
   USBHvbus(1);  /* Switch VBUS power on. */
   gccfg.d32 = 0;
   gccfg.b.vbusasen = 1; /* Set VBUS sensing on A device. */
@@ -212,7 +212,7 @@ static int USBHperipheralConfigure(void) {
     gccfg.b.pwrdwn = 1; /* Deactivate power down. */
   P_USB_OTG_GREGS->GCCFG = gccfg.d32;
   P_USB_OTG_PREGS->PCGCCTL = 0;  /* Not reset by grstctl.b.csrst */
-  ActiveWait(1, 50); /* If not wait, FIFO size registers are not written. */
+  isix_wait_ms(50); /* If not wait, FIFO size registers are not written. */
 
   /* Calculate the frame interval based on the PHY clock selected in
      the fslspcd field of the HCFG register.
@@ -271,7 +271,7 @@ int USBHconfigure(usb_phy_t phy) {
 	 dbprintf( "Central configfure err %i", res );
 	 return res;
   }
-  TimerConfigure(prio, 1, CONFIG_PCLK1_HZ );
+  TimerConfigure();
   FineTimerConfigure(prio, 3, CONFIG_PCLK1_HZ );
   res = USBHcoreConfigure();
   if (res < 0) {

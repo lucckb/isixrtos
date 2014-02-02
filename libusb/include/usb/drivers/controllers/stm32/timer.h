@@ -1,21 +1,25 @@
 #ifndef _USBLIB_TIMER_H
 #define _USBLIB_TIMER_H 1
 
+#include <usb/drivers/controllers/stm32/usb_config.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void TimerConfigure(unsigned, unsigned, unsigned);
-void TimerStart(int, void (*)(void), unsigned);
-void TimerStop(int);
-void ActiveWait(int, unsigned);
+int TimerConfigure(void);
+int TimerStart(unsigned, void (*)(void*), unsigned);
+int TimerStop(unsigned);
 
-void FineTimerConfigure(unsigned, unsigned, unsigned);
-void FineTimerStart(int, void (*)(void), unsigned);
-void FineTimerStop(int);
+/* Enabled only when the fine timer scheduler is enabled */
+#ifdef CONFIG_USBLIB_US_TIM_N
+void FineTimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1 );
+void FineTimerStart(int timer, void (*f)(void), unsigned time_us);
+void FineTimerStop(int timer);
+//! Private function called on fine timer handle
+void usbh_prv_fine_timer_irq_handler( void );
+#endif
 
-void TIM2_IRQHandler(void);
-void TIM3_IRQHandler(void);
 
 #ifdef __cplusplus
 }
