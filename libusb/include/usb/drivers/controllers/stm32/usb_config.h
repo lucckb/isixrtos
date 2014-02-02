@@ -24,8 +24,7 @@
 #include <config.h>
 #endif
 
-#ifndef CONFIG_USBLIB_US_TIM_N 
-#define CONFIG_USBLIB_US_TIM_N 4
-#endif
+//! This option uses microsec timer for schedule host tasks
+//#define CONFIG_USBLIB_US_TIM_N 4
 
 #endif   /* ----- #ifndef usb_config_INC  ----- */
