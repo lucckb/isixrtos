@@ -1,4 +1,4 @@
-#include <config.h>
+#include <usb/drivers/controllers/stm32/usb_config.h>
 #include <usb/drivers/controllers/stm32/usb_interrupt.h>
 #include <usb/drivers/controllers/stm32/usb_otg_regs.h>
 #include <usb/core/usbh_configure.h>
@@ -14,29 +14,25 @@
 #include <foundation/dbglog.h>
 #include <isix.h>
 
-//!TODO: Temporary only configuration
-#define HOST_VBUS_GPIO_N  D
-#define HOST_VBUS_ON      1
-#define HOST_OVRCURR_GPIO_N  D
-#define HOST_OVRCURR_EDGE EXTI_Trigger_Falling
 
-#define HOST_VBUS_PORT  usblib_xcat(GPIO, HOST_VBUS_GPIO_N)
-#define HOST_VBUS_PIN   5
-#define HOST_VBUS_RCC   usblib_xcat(RCC_AHB1Periph_GPIO, HOST_VBUS_GPIO_N)
-#define HOST_VBUS_OFF   (!(HOST_VBUS_ON))
+#define USBHOST_VBUS_PORT  usblib_xcat(GPIO, CONFIG_USBHOST_VBUS_GPIO_N)
+#define USBHOST_VBUS_RCC   usblib_xcat(RCC_AHB1Periph_GPIO, CONFIG_USBHOST_VBUS_GPIO_N)
+#define USBHOST_VBUS_OFF   (!(CONFIG_USBHOST_VBUS_ON))
+#define USBHOST_VBUS_ON 	CONFIG_USBHOST_VBUS_ON
 
-#define HOST_OVRCURR_PORT         usblib_xcat(GPIO, HOST_OVRCURR_GPIO_N)
-#define HOST_OVRCURR_PIN          14
-#define HOST_OVRCURR_PIN_N   14
-#define HOST_OVRCURR_RCC          usblib_xcat(RCC_AHB1Periph_GPIO, HOST_OVRCURR_GPIO_N)
-#define HOST_OVRCURR_PORT_SOURCE  usblib_xcat(GPIO_PortSourceGPIO, HOST_OVRCURR_GPIO_N)
-#define HOST_OVRCURR_PIN_SOURCE   usblib_xcat(GPIO_PinSource, HOST_OVRCURR_PIN_N)
-#define HOST_OVRCURR_EXTI_LINE    usblib_xcat(EXTI_Line, HOST_OVRCURR_PIN_N)
-#define HOST_OVRCURR_IRQn         usblib_xcat(HOST_OVRCURR_IRQ_N, _IRQn)
-#define HOST_OVRCURR_IRQ_HANDLER  usblib_xcat(HOST_OVRCURR_IRQ_N, _IRQHandler)
-#define HOST_OVRCURR_IRQ_N EXTI15_10
+#ifdef CONFIG_USBHOST_OVRCURR_ENABLE
+#define USBHOST_OVRCURR_PORT         usblib_xcat(GPIO, CONFIG_USBHOST_OVRCURR_GPIO_N)
+#define USBHOST_OVRCURR_PIN          CONFIG_USBHOST_OVRCURR_PIN_N 
+#define USBHOST_OVRCURR_RCC          usblib_xcat(RCC_AHB1Periph_GPIO, CONFIG_USBHOST_OVRCURR_GPIO_N)
+#define USBHOST_OVRCURR_PORT_SOURCE  usblib_xcat(GPIO_PortSourceGPIO, CONFIG_USBHOST_OVRCURR_GPIO_N)
+#define USBHOST_OVRCURR_PIN_SOURCE   usblib_xcat(GPIO_PinSource, CONFIG_USBHOST_OVRCURR_PIN_N)
+#define USBHOST_OVRCURR_EXTI_LINE    usblib_xcat(EXTI_Line, CONFIG_USBHOST_OVRCURR_PIN_N)
+#define USBHOST_OVRCURR_IRQn         usblib_xcat(CONFIG_USBHOST_OVRCURR_IRQ_N, _IRQn)
+#endif
 
 /** Low level USB host initialization for STM32F2xx and STM32F4xx **/
+
+
 
 uint32_t USB_OTG_BASE_ADDR;
 unsigned EP_MAX_COUNT;
@@ -67,10 +63,10 @@ static int USBHcentralConfigure(uint32_t prio) {
 	static const unsigned pins = (1<<12) | (1<<13) | (1<<14) | (1<<15);
 	gpio_config_ext(GPIOB, pins, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, GPIO_OTYPE_PP);
 
-   gpio_pin_AF_config(GPIOB, GPIO_PinSource12,GPIO_AF_OTG_HS_FS); /* ID */
-   gpio_pin_AF_config(GPIOB, GPIO_PinSource13,GPIO_AF_OTG_HS_FS); /* VBUS */
-   gpio_pin_AF_config(GPIOB, GPIO_PinSource14,GPIO_AF_OTG_HS_FS); /* DM */
-   gpio_pin_AF_config(GPIOB, GPIO_PinSource15,GPIO_AF_OTG_HS_FS); /* DP */
+	gpio_pin_AF_config(GPIOB, GPIO_PinSource12,GPIO_AF_OTG_HS_FS); /* ID */
+	gpio_pin_AF_config(GPIOB, GPIO_PinSource13,GPIO_AF_OTG_HS_FS); /* VBUS */
+	gpio_pin_AF_config(GPIOB, GPIO_PinSource14,GPIO_AF_OTG_HS_FS); /* DM */
+	gpio_pin_AF_config(GPIOB, GPIO_PinSource15,GPIO_AF_OTG_HS_FS); /* DP */
 
     USE_OTG_HS_REGS();
     rcc_ahb1_periph_clock_cmd(RCC_AHB1Periph_OTG_HS, true);
@@ -135,38 +131,40 @@ static int USBHcentralConfigure(uint32_t prio) {
     /* Enable clocks for the VBUS enable output and the overcurrent
        sensing input. RCC_APB2Periph_SYSCFG clock is required to
        activate EXTI line. */
-    rcc_ahb1_periph_clock_cmd(HOST_VBUS_RCC | HOST_OVRCURR_RCC, true );
+#ifdef  CONFIG_USBHOST_OVRCURR_ENABLE
+    rcc_ahb1_periph_clock_cmd(USBHOST_VBUS_RCC | USBHOST_OVRCURR_RCC, true );
+#else
+    rcc_ahb1_periph_clock_cmd(USBHOST_VBUS_RCC , true );
+#endif
     rcc_apb2_periph_clock_cmd(RCC_APB2Periph_SYSCFG, true );
 
     /* Configure VBUS power supply enable output. */
-    if( HOST_VBUS_OFF  ) {
-		gpio_set( HOST_VBUS_PORT, HOST_VBUS_PIN );
+    if( USBHOST_VBUS_OFF  ) {
+		gpio_set( USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN );
 	} else {
-		gpio_clr( HOST_VBUS_PORT, HOST_VBUS_PIN );
+		gpio_clr( USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN );
 	}
-	gpio_config(HOST_VBUS_PORT, HOST_VBUS_PIN, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_SPEED_2MHZ, GPIO_OTYPE_PP );
+	gpio_config(USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_SPEED_2MHZ, GPIO_OTYPE_PP );
 
+#ifdef CONFIG_USBHOST_OVRCURR_ENABLE
     /* Configure the overcurrent input and enable its interrupt. */
-	gpio_config( HOST_OVRCURR_PORT, HOST_OVRCURR_PIN, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO_SPEED_2MHZ, GPIO_OTYPE_PP );
-
-    gpio_exti_line_config(HOST_OVRCURR_PORT_SOURCE, HOST_OVRCURR_PIN_SOURCE);
-
-    exti_clear_it_pending_bit(HOST_OVRCURR_EXTI_LINE);
-
-	exti_init(HOST_OVRCURR_EXTI_LINE, EXTI_Mode_Interrupt, HOST_OVRCURR_EDGE, true );
-
-	nvic_set_priority(HOST_OVRCURR_IRQn, prio, 0 );
-	nvic_irq_enable( HOST_OVRCURR_IRQn, true );
+	gpio_config( USBHOST_OVRCURR_PORT, USBHOST_OVRCURR_PIN, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO_SPEED_2MHZ, GPIO_OTYPE_PP );
+    gpio_exti_line_config(USBHOST_OVRCURR_PORT_SOURCE, USBHOST_OVRCURR_PIN_SOURCE);
+    exti_clear_it_pending_bit(USBHOST_OVRCURR_EXTI_LINE);
+	exti_init(USBHOST_OVRCURR_EXTI_LINE, EXTI_Mode_Interrupt, CONFIG_USBHOST_OVRCURR_EDGE, true );
+	nvic_set_priority(USBHOST_OVRCURR_IRQn, prio, 0 );
+	nvic_irq_enable( USBHOST_OVRCURR_IRQn, true );
+#endif
   }
 
   return USBHLIB_SUCCESS;
 }
 
 /* Configure USB peripheral. */
-static int USBHperipheralConfigure(void) {
-  USB_OTG_GRSTCTL_TypeDef  grstctl;
-  USB_OTG_GUSBCFG_TypeDef  gusbcfg;
-  USB_OTG_GCCFG_TypeDef    gccfg;
+	static int USBHperipheralConfigure(void) {
+	USB_OTG_GRSTCTL_TypeDef  grstctl;
+	USB_OTG_GUSBCFG_TypeDef  gusbcfg;
+	USB_OTG_GCCFG_TypeDef    gccfg;
   USB_OTG_GINTMSK_TypeDef  gintmsk;
   USB_OTG_GAHBCFG_TypeDef  gahbcfg;
   USB_OTG_FIFOSIZE_TypeDef fifosize;
@@ -304,13 +302,13 @@ void USBHvbus(int value) {
   if (value) {
     /* Switch the host port power on. */
     if (Phy == USB_PHY_A || Phy == USB_PHY_B)
-      GPIO_WriteBit(HOST_VBUS_PORT, HOST_VBUS_PIN, HOST_VBUS_ON);
+      GPIO_WriteBit(USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN, USBHOST_VBUS_ON);
     hprt.b.ppwr = 1;
   }
   else {
     /* Switch the host port power off. */
     if (Phy == USB_PHY_A || Phy == USB_PHY_B)
-      GPIO_WriteBit(HOST_VBUS_PORT, HOST_VBUS_PIN, HOST_VBUS_OFF);
+      GPIO_WriteBit(USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN, USBHOST_VBUS_OFF);
     hprt.b.ppwr = 0;
   }
   /* Do not clear any interrupt. */
@@ -321,10 +319,5 @@ void USBHvbus(int value) {
   P_USB_OTG_HREGS->HPRT = hprt.d32;
 }
 
-void HOST_OVRCURR_IRQ_HANDLER(void) {
-  if (exti_get_it_status(HOST_OVRCURR_EXTI_LINE)) {
-    exti_clear_it_pending_bit(HOST_OVRCURR_EXTI_LINE);
-    USBHovercurrentInterruptHandler();
-  }
-}
+
 
