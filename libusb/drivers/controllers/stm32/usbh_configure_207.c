@@ -269,9 +269,9 @@ int USBHconfigure(usb_phy_t phy) {
 	 dbprintf( "Central configfure err %i", res );
 	 return res;
   }
-  TimerConfigure();
+  usblibp_timer_configure();
 #ifdef CONFIG_USBLIB_US_TIM_N
-  FineTimerConfigure(prio, 3, CONFIG_PCLK1_HZ );
+  usblibp_fine_timer_configure(prio, 3, CONFIG_PCLK1_HZ );
 #endif
   res = USBHcoreConfigure();
   if (res < 0) {

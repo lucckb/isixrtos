@@ -36,7 +36,7 @@ int PWRconfigure(unsigned prio, unsigned subprio, int clk) {
 
   IRQsetPriority(USBWakeUp_IRQn, prio, subprio);
 
-  TimerConfigure(prio, subprio);
+  usblibp_timer_configure();
 
   return 0;
 }
@@ -122,7 +122,7 @@ void PWRremoteWakeUp() {
     _SetCNTR(_GetCNTR() & ~CNTR_LPMODE);
     PWRresume();
     StartRemoteHostWakeupSignalling();
-    TimerStart(1, StopRemoteHostWakeupSignalling, RW_TIME_MS);
+    usblibp_timer_start(1, StopRemoteHostWakeupSignalling, RW_TIME_MS);
     /* The same wakeup sequence should be called as in
        the USB_LP_CAN1_RX0_IRQHandler. */
     USBDwakeup();

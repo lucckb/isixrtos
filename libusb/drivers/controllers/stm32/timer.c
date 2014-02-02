@@ -17,7 +17,7 @@ static vtimer_t* isix_ms_timers[2];
 /* Configure millisecond timer.
     prio    - interrupt preemption priority
     subprio - interrupt service priority when the same prio */
-int TimerConfigure( void ) 
+int usblibp_timer_configure( void ) 
 {
 	for( unsigned i=0; i<ARRAY_SIZE(isix_ms_timers); ++i ) {
 		isix_ms_timers[i] = isix_vtimer_create_oneshoot();
@@ -32,7 +32,7 @@ int TimerConfigure( void )
     timer   - timer number, from 1 to 4
     f       - function to call when time is elapsed
     time_ms - time to wait for, from 1 to 32767 milliseconds */
-int TimerStart(unsigned timer, void (*f)(void*), unsigned time_ms) 
+int usblibp_timer_start(unsigned timer, void (*f)(void*), unsigned time_ms) 
 {
 	--timer;
 	if( timer >= ARRAY_SIZE( isix_ms_timers ) ) {
@@ -47,7 +47,7 @@ int TimerStart(unsigned timer, void (*f)(void*), unsigned time_ms)
 
 /* Stop time counting. The configured function will not be called.
     timer - timer number, from 1 to 4 */
-int TimerStop(unsigned timer) 
+int usblibp_timer_stop(unsigned timer) 
 {
 	--timer;
 	if( timer >= ARRAY_SIZE( isix_ms_timers ) ) {
@@ -77,7 +77,7 @@ static void (*us_callback4)(void) = NULL;
 /* Configure microsecond timer.
     prio    - interrupt preemption priority
     subprio - interrupt service priority when the same prio */
-void FineTimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1 )
+void usblibp_fine_timer_configure(unsigned prio, unsigned subprio, unsigned pclk1 )
 {
 	rcc_apb1_periph_clock_cmd( US_TIM_RCC, true );
 	const unsigned  prescaler = pclk1 / 1000000 - 1;
@@ -96,7 +96,7 @@ void FineTimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1 )
     timer   - timer number, from 1 to 4
     f       - function to call when time is elapsed
     time_us - time to wait for, from 1 to 65535 microseconds */
-void FineTimerStart(int timer, void (*f)(void), unsigned time_us)
+void usblibp_fine_timer_start(int timer, void (*f)(void), unsigned time_us)
 {
   switch (timer) {
     case 1:
@@ -128,7 +128,7 @@ void FineTimerStart(int timer, void (*f)(void), unsigned time_us)
 
 /* Stop time counting. The configured function will not be called.
     timer - timer number, from 1 to 4 */
-void FineTimerStop(int timer) {
+void usblibp_fine_timer_stop(int timer) {
   switch (timer) {
     case 1:
       US_TIM->DIER &= ~TIM_IT_CC1;
@@ -161,25 +161,25 @@ void usbh_prv_fine_timer_irq_handler(void) {
   it_status = US_TIM->SR & US_TIM->DIER;
   if (it_status & TIM_IT_CC1) {
     callback = us_callback1;
-    FineTimerStop(1);
+    usblibp_fine_timer_stop(1);
     if (callback)
       callback();
   }
   if (it_status & TIM_IT_CC2) {
     callback = us_callback2;
-    FineTimerStop(2);
+    usblibp_fine_timer_stop(2);
     if (callback)
       callback();
   }
   if (it_status & TIM_IT_CC3) {
     callback = us_callback3;
-    FineTimerStop(3);
+    usblibp_fine_timer_stop(3);
     if (callback)
       callback();
   }
   if (it_status & TIM_IT_CC4) {
     callback = us_callback4;
-    FineTimerStop(4);
+    usblibp_fine_timer_stop(4);
     if (callback)
       callback();
   }

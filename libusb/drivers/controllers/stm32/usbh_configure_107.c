@@ -182,8 +182,8 @@ int USBHconfigure(usb_phy_t phy) {
   res = USBHcentralConfigure(prio);
   if (res < 0)
     return res;
-  TimerConfigure(prio, 1);
-  FineTimerConfigure(prio, 3);
+  usblibp_timer_configure();
+  usblibp_fine_timer_configure(prio, 3);
   res = USBHcoreConfigure();
   if (res < 0)
     return res;

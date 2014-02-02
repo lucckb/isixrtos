@@ -7,15 +7,15 @@
 extern "C" {
 #endif
 
-int TimerConfigure(void);
-int TimerStart(unsigned, void (*)(void*), unsigned);
-int TimerStop(unsigned);
+int usblibp_timer_configure(void);
+int usblibp_timer_start(unsigned, void (*)(void*), unsigned);
+int usblibp_timer_stop(unsigned);
 
 /* Enabled only when the fine timer scheduler is enabled */
 #ifdef CONFIG_USBLIB_US_TIM_N
-void FineTimerConfigure(unsigned prio, unsigned subprio, unsigned pclk1 );
-void FineTimerStart(int timer, void (*f)(void), unsigned time_us);
-void FineTimerStop(int timer);
+void usblibp_fine_timer_configure(unsigned prio, unsigned subprio, unsigned pclk1 );
+void usblibp_fine_timer_start(int timer, void (*f)(void), unsigned time_us);
+void usblibp_fine_timer_stop(int timer);
 //! Private function called on fine timer handle
 void usbh_prv_fine_timer_irq_handler( void );
 #endif

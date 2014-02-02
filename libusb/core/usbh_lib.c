@@ -29,5 +29,5 @@ static void DeviceOn(void* p) {
 void USBHdeviceHardReset(unsigned time) {
   (void)time;
   USBHvbus(0); /* Force the device to switch off. */
-TimerStart(2, DeviceOn, time);
+	usblibp_timer_start(2, DeviceOn, time);
 }

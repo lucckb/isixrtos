@@ -53,15 +53,15 @@ static void StartSignallingPortReset(void* p) {
   hprt.b.pena = 0;
   hprt.b.pcdet = 0;
   P_USB_OTG_HREGS->HPRT = hprt.d32;
-  TimerStart(1, StopSignallingPortReset, RESET_TIME_MS);
+  usblibp_timer_start(1, StopSignallingPortReset, RESET_TIME_MS);
 }
 
 static void HostDisconnectHandler(void* p) {
   (void)p;
 #ifdef CONFIG_USBLIB_US_TIM_N 
-  FineTimerStop(1);
+  usblibp_fine_timer_stop(1);
 #endif
-  TimerStop(1);
+  usblibp_timer_stop(1);
   StopSignallingPortReset(p);
   USBHdeviceDisconnected();
   Blink(0);
@@ -86,7 +86,7 @@ static void HostPortHandler(void) {
       hcfg.b.fslspcs = 1;
     P_USB_OTG_HREGS->HCFG = hcfg.d32;
     USBHdeviceAttached();
-    TimerStart(1, StartSignallingPortReset, STARTUP_TIME_MS);
+    usblibp_timer_start(1, StartSignallingPortReset, STARTUP_TIME_MS);
     ///RedLEDoff(); /* Red LED id off when a device is connected. */
   }
 
@@ -109,7 +109,7 @@ static void HostPortHandler(void) {
       CoreScheduleTime = 65535;
     }
     USBHdeviceSpeed(hprt.b.pspd);
-    TimerStart(1, USBHdeviceResetDone, RECOVERY_TIME_MS);
+    usblibp_timer_start(1, USBHdeviceResetDone, RECOVERY_TIME_MS);
   }
 
   /* The overcurrent on VBUS is detected -- never signalled here,
@@ -239,9 +239,9 @@ static void CoreProcessHandler(void) {
   /* Recall the core process even if there is no pending USB interrupt,
      but do not call it just before the next start of frame. */
   if (USBHgetFrameClocksRemaining() >= DeadScheduleClocks)
-    FineTimerStart(1, CoreProcessHandler, CoreScheduleTime);
+    usblibp_fine_timer_start(1, CoreProcessHandler, CoreScheduleTime);
   else
-    FineTimerStop(1);
+    usblibp_fine_timer_stop(1);
 }
 #endif
 
@@ -275,7 +275,7 @@ void USBglobalInterruptHandler() {
   }
 #ifdef CONFIG_USBLIB_US_TIM_N
   /* Call the core process just after the interrupt is handled. */
-  FineTimerStart(1, CoreProcessHandler, 2);
+  usblibp_fine_timer_start(1, CoreProcessHandler, 2);
 #else
   USBHcoreProcess();
 #endif 

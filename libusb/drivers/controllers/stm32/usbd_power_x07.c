@@ -37,7 +37,7 @@ int PWRconfigure(unsigned prio, unsigned subprio, int clk) {
   NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStruct);
 
-  TimerConfigure(prio, subprio);
+  usblibp_timer_configure();
 
   return 0;
 }
@@ -114,7 +114,7 @@ void PWRreduce() {
   /* Start remote host wakeup if desired. */
   if (state == RW_INITIATED) {
     StartRemoteHostWakeupSignalling();
-    TimerStart(1, StopRemoteHostWakeupSignalling, RW_TIME_MS);
+    usblibp_timer_start(1, StopRemoteHostWakeupSignalling, RW_TIME_MS);
   }
 
   /* Finish the wakeup call sequence. */
