@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 int USBHopenDevice(usb_speed_t *, uint8_t *,
-                   usb_device_descriptor_t *, int);
+                   usb_device_descriptor_t *, unsigned);
 int USBHisDeviceReady(void);
 void USBHdeviceHardReset(unsigned);
 

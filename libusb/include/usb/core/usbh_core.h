@@ -20,7 +20,7 @@ void USBHcoreProcess(void);
 /** USB host user API **/
 
 int USBHcontrolRequest(int, usb_setup_packet_t const *, uint8_t *, uint32_t *);
-int USBHgetDevice(usb_speed_t *, uint8_t *, usb_device_descriptor_t *);
+int USBHgetDevice(usb_speed_t *, uint8_t *, usb_device_descriptor_t *, unsigned );
 usb_visible_state_t USBHgetVisibleDeviceState(void);
 int USBHsetClassMachine(int (*)(void *), void (*)(void *, uint16_t),
                         void (*)(void *), void *);

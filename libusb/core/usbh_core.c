@@ -93,6 +93,7 @@ typedef struct {
 static usbh_machine_t Machine;
 static usbh_device_t  Device;
 static sem_t*		  notify_sem;
+static sem_t*		  devrdy_sem;
 
 /** USB host core initialization **/
 
@@ -126,6 +127,7 @@ static void USBHcoreDeInit(void) {
 
   Device.speed = NO_SPEED;
   Device.visible_state = DISCONNECTED;
+  isix_sem_get_isr( devrdy_sem );
   Device.address = 0;
   memset(&Device.dev_desc, 0, sizeof(usb_device_descriptor_t));
   isix_sem_get_isr( notify_sem );
@@ -141,6 +143,14 @@ int USBHcoreConfigure() {
 	  return USBHLIB_ERROR_OS;
   }
 
+  devrdy_sem = isix_sem_create_limited( NULL, 0, 1 );
+  if( ! devrdy_sem ) {
+	  if( notify_sem ) {
+		  isix_sem_destroy( notify_sem );
+		  notify_sem = NULL;
+	  }
+	  return USBHLIB_ERROR_OS;
+  }
   USBHcoreDeInit();
 
   res = USBHchannelsConfigure();
@@ -458,6 +468,7 @@ static int USBHhandleEnumeration(void) {
       if (res == USBHLIB_SUCCESS) {
         Device.address = DEVICE_ADDRESS;
         Device.visible_state = ADDRESS;
+		isix_sem_signal_isr(devrdy_sem);
         /* Update device address for control channels. */
         USBHmodifyChannel(Machine.control.hc_num_in,
                           Device.address, 0);
@@ -568,10 +579,17 @@ int USBHcontrolRequest(int synch, usb_setup_packet_t const *setup,
 }
 
 int USBHgetDevice(usb_speed_t *speed, uint8_t *dev_addr,
-                  usb_device_descriptor_t *dev_desc) {
+                  usb_device_descriptor_t *dev_desc, unsigned timeout) {
   int res;
   uint32_t x;
-
+  res = isix_sem_wait( devrdy_sem, timeout );
+  if( res == ISIX_ETIMEOUT ) {
+	  res = USBHLIB_ERROR_TIMEOUT;
+	  return res;
+  } else if( res != ISIX_EOK ) {
+	  res = USBHLIB_ERROR_OS;
+	  return res;
+  }
   x = USBHprotectInterrupt();
   if (Device.visible_state == ADDRESS) {
     if (speed)
