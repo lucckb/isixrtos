@@ -77,7 +77,7 @@ void USBDcontinueInTransfer(uint8_t ep) {
 void USBDdisableAllNonControlEndPoints() {
   unsigned i;
 
-  for (i = 1; i < EP_MAX_COUNT; ++i)
+  for (i = 1; i < _USB_EP_MAX_COUNT; ++i)
     _SetEPRxTxStatus(i, EP_RX_DIS, EP_TX_DIS);
   for (i = 1; i < USB_EP_MAX_COUNT; ++i) {
     endPointRxIndex[i] = endPointTxIndex[i] = endPointTxSize[i] = 0;
@@ -105,7 +105,7 @@ usb_result_t USBDendPointConfigure(uint8_t endPoint,
                                    uint16_t txBuffSize) {
   /* Microcontroller supports only 8 endpoints.
      The standard allows up to 16 endpoints. */
-  if (endPointCount >= EP_MAX_COUNT ||
+  if (endPointCount >= _USB_EP_MAX_COUNT ||
       endPoint < 0 || endPoint >= USB_EP_MAX_COUNT)
     return REQUEST_ERROR;
   switch (type) {
@@ -176,7 +176,7 @@ usb_result_t USBDendPointConfigure(uint8_t endPoint,
       }
 
       if (rxBuffSize > 0) {
-        if (endPointCount >= EP_MAX_COUNT)
+        if (endPointCount >= _USB_EP_MAX_COUNT)
           return REQUEST_ERROR;
         _SetEPType(endPointCount, EP_ISOCHRONOUS);
         _SetEPNumber(endPointCount, endPoint);

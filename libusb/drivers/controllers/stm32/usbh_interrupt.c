@@ -191,7 +191,7 @@ static void HostChannelsHandler(void) {
   int                     i;
 
   haint.d32 = P_USB_OTG_HREGS->HAINT;
-  for (i = 0; i < (int)CHNNL_MAX_COUNT; ++i) {
+  for (i = 0; i < (int)_USB_CHNNL_MAX_COUNT; ++i) {
     if (haint.b.haint & (1 << i)) {
       hcchar.d32 = P_USB_OTG_HCHNNLS[i].HCCHARx;
       HostOneChannelHandler(i, hcchar.b.epdir);

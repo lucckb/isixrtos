@@ -45,7 +45,7 @@ enum EP_BUF_NUM {
 /* Exported constants --------------------------------------------------------*/
 
 /* MP: Microcontroller supports only 8 endpoints. */
-#define EP_MAX_COUNT  8
+#define _USB_EP_MAX_COUNT  8
 
 #define RegBase (0x40005C00L) /* USB_IP Peripheral Registers base address */
 #define PMAAddr (0x40006000L) /* USB_IP Packet Memory Area base address   */

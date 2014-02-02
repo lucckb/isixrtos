@@ -9,8 +9,8 @@
     STM32F415 and STM32F417. **/
 
 uint32_t _USB_OTG_BASE_ADDR;
-unsigned EP_MAX_COUNT;
-unsigned CHNNL_MAX_COUNT;
+unsigned _USB_EP_MAX_COUNT;
+unsigned _USB_CHNNL_MAX_COUNT;
 
 static usb_speed_t speed;
 static usb_phy_t   phy;

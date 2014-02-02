@@ -12,11 +12,11 @@ extern "C" {
   #define _USB_OTG_BASE_ADDR  0x50000000
 
   /* Core supports 4 device endpoints and 8 host channels. */
-  #define EP_MAX_COUNT     4
-  #define CHNNL_MAX_COUNT  8
+  #define _USB_EP_MAX_COUNT     4
+  #define _USB_CHNNL_MAX_COUNT  8
 
-  #define CONST_EP_MAX_COUNT     EP_MAX_COUNT
-  #define CONST_CHNNL_MAX_COUNT  CHNNL_MAX_COUNT
+  #define CONST_EP_MAX_COUNT     _USB_EP_MAX_COUNT
+  #define CONST_CHNNL_MAX_COUNT  _USB_CHNNL_MAX_COUNT
 
   #define FIFO_DWORDS_SIZE  320
 
@@ -51,18 +51,18 @@ extern "C" {
   #define FIFO_DWORDS_SIZE  1024
 
   extern uint32_t _USB_OTG_BASE_ADDR;
-  extern unsigned EP_MAX_COUNT;
-  extern unsigned CHNNL_MAX_COUNT;
+  extern unsigned _USB_EP_MAX_COUNT;
+  extern unsigned _USB_CHNNL_MAX_COUNT;
 
   #define USE_OTG_FS_REGS()                   \
     _USB_OTG_BASE_ADDR = USB_OTG_FS_BASE_ADDR, \
-    EP_MAX_COUNT      = FS_EP_MAX_COUNT,      \
-    CHNNL_MAX_COUNT   = FS_CHNNL_MAX_COUNT
+    _USB_EP_MAX_COUNT      = FS_EP_MAX_COUNT,      \
+    _USB_CHNNL_MAX_COUNT   = FS_CHNNL_MAX_COUNT
 
   #define USE_OTG_HS_REGS()                   \
     _USB_OTG_BASE_ADDR = USB_OTG_HS_BASE_ADDR, \
-    EP_MAX_COUNT      = HS_EP_MAX_COUNT,      \
-    CHNNL_MAX_COUNT   = HS_CHNNL_MAX_COUNT
+    _USB_EP_MAX_COUNT      = HS_EP_MAX_COUNT,      \
+    _USB_CHNNL_MAX_COUNT   = HS_CHNNL_MAX_COUNT
 
   #define OTG_FS_REGS_USED (_USB_OTG_BASE_ADDR == USB_OTG_FS_BASE_ADDR)
   #define OTG_HS_REGS_USED (_USB_OTG_BASE_ADDR == USB_OTG_HS_BASE_ADDR)

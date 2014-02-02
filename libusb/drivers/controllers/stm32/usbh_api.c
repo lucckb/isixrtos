@@ -31,7 +31,7 @@ static void HaltChannel(int ch_num) {
 /** Host channels API **/
 
 unsigned USBHgetChannelCount() {
-  return CHNNL_MAX_COUNT;
+  return _USB_CHNNL_MAX_COUNT;
 }
 
 void USBHstopAllChannels() {
@@ -41,7 +41,7 @@ void USBHstopAllChannels() {
   /* Fifos must be flushed before USBHhaltChannel. */
   FlushTxFifo(ALL_TX_FIFOS);
   FlushRxFifo(ALL_RX_FIFOS);
-  for (i = 0; i < (int)CHNNL_MAX_COUNT; ++i) {
+  for (i = 0; i < (int)_USB_CHNNL_MAX_COUNT; ++i) {
     HaltChannel(i);
     P_USB_OTG_HCHNNLS[i].HCINTMSKx = 0;
     P_USB_OTG_HCHNNLS[i].HCINTx = 0xffffffff;

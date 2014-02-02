@@ -23,7 +23,7 @@ static void DevResetHandler(void) {
   P_USB_OTG_DREGS->DIEPEMPMSK = 0;
 
   /* Clear pending endpoint interrupts. */
-  for (i = 0; i < EP_MAX_COUNT ; ++i) {
+  for (i = 0; i < _USB_EP_MAX_COUNT ; ++i) {
     P_USB_OTG_DINEPS[i].DIEPINTx = 0xff;
     P_USB_OTG_DOUTEPS[i].DOEPINTx = 0xff;
   }
@@ -135,7 +135,7 @@ static void DevSofHandler(void) {
   int i;
 
   dsts.d32 = P_USB_OTG_DREGS->DSTS;
-  for (i = 1; i < EP_MAX_COUNT; ++i) {
+  for (i = 1; i < _USB_EP_MAX_COUNT; ++i) {
     depctl.d32 = P_USB_OTG_DOUTEPS[i].DOEPCTLx;
     if (depctl.b.eptyp == ISOCHRONOUS_TRANSFER) {
       if (dsts.b.fnsof & 1)

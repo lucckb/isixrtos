@@ -94,7 +94,7 @@ void USBDdisableAllNonControlEndPoints() {
   /* Disable non-control endpoints and clear pending interrupts.*/
   depctl.d32 = 0;
   depctl.b.epdis = 1;
-  for (i = 1; i < EP_MAX_COUNT; ++i) {
+  for (i = 1; i < _USB_EP_MAX_COUNT; ++i) {
     P_USB_OTG_DOUTEPS[i].DOEPCTLx = depctl.d32;
     P_USB_OTG_DINEPS[i].DIEPCTLx = depctl.d32;
     P_USB_OTG_DOUTEPS[i].DOEPINTx = 0xff;
@@ -212,7 +212,7 @@ usb_result_t USBDendPointConfigureEx(uint8_t endPoint,
     P_USB_OTG_DREGS->DAINTMSK = daintmsk.d32;
   }
   else if (type != CONTROL_TRANSFER &&
-           endPoint > 0 && endPoint < EP_MAX_COUNT) {
+           endPoint > 0 && endPoint < _USB_EP_MAX_COUNT) {
     if (rxBuffSize > 0) {
       /* Configure RX buffer. */
       pRxBuffer[endPoint] = globalRxBuffer + rxBufferTop;
@@ -417,7 +417,7 @@ usb_result_t USBDgetEndPointStatus(uint8_t epaddr, uint16_t *status) {
   uint8_t ep;
 
   ep = epaddr & ENDP_NUMBER_MASK;
-  if (ep < 1 || ep >= EP_MAX_COUNT) {
+  if (ep < 1 || ep >= _USB_EP_MAX_COUNT) {
     status = 0;
     return REQUEST_ERROR;
   }
@@ -442,7 +442,7 @@ usb_result_t USBDsetEndPointHalt(uint8_t epaddr) {
   uint8_t ep;
 
   ep = epaddr & ENDP_NUMBER_MASK;
-  if (ep < 1 || ep >= EP_MAX_COUNT)
+  if (ep < 1 || ep >= _USB_EP_MAX_COUNT)
     return REQUEST_ERROR;
 
   if ((epaddr & ENDP_DIRECTION_MASK) == ENDP_IN)
@@ -469,7 +469,7 @@ usb_result_t USBDclearEndPointHalt(uint8_t epaddr) {
   uint8_t ep;
 
   ep = epaddr & ENDP_NUMBER_MASK;
-  if (ep < 1 || ep >= EP_MAX_COUNT)
+  if (ep < 1 || ep >= _USB_EP_MAX_COUNT)
     return REQUEST_ERROR;
 
   if ((epaddr & ENDP_DIRECTION_MASK) == ENDP_IN)
