@@ -9,7 +9,7 @@ extern "C" {
 
 #if defined STM32F10X_CL
 
-  #define USB_OTG_BASE_ADDR  0x50000000
+  #define _USB_OTG_BASE_ADDR  0x50000000
 
   /* Core supports 4 device endpoints and 8 host channels. */
   #define EP_MAX_COUNT     4
@@ -50,22 +50,22 @@ extern "C" {
 
   #define FIFO_DWORDS_SIZE  1024
 
-  extern uint32_t USB_OTG_BASE_ADDR;
+  extern uint32_t _USB_OTG_BASE_ADDR;
   extern unsigned EP_MAX_COUNT;
   extern unsigned CHNNL_MAX_COUNT;
 
   #define USE_OTG_FS_REGS()                   \
-    USB_OTG_BASE_ADDR = USB_OTG_FS_BASE_ADDR, \
+    _USB_OTG_BASE_ADDR = USB_OTG_FS_BASE_ADDR, \
     EP_MAX_COUNT      = FS_EP_MAX_COUNT,      \
     CHNNL_MAX_COUNT   = FS_CHNNL_MAX_COUNT
 
   #define USE_OTG_HS_REGS()                   \
-    USB_OTG_BASE_ADDR = USB_OTG_HS_BASE_ADDR, \
+    _USB_OTG_BASE_ADDR = USB_OTG_HS_BASE_ADDR, \
     EP_MAX_COUNT      = HS_EP_MAX_COUNT,      \
     CHNNL_MAX_COUNT   = HS_CHNNL_MAX_COUNT
 
-  #define OTG_FS_REGS_USED (USB_OTG_BASE_ADDR == USB_OTG_FS_BASE_ADDR)
-  #define OTG_HS_REGS_USED (USB_OTG_BASE_ADDR == USB_OTG_HS_BASE_ADDR)
+  #define OTG_FS_REGS_USED (_USB_OTG_BASE_ADDR == USB_OTG_FS_BASE_ADDR)
+  #define OTG_HS_REGS_USED (_USB_OTG_BASE_ADDR == USB_OTG_HS_BASE_ADDR)
 
 #endif
 
@@ -113,7 +113,7 @@ typedef struct {
 #define DIEPTXF0  HNPTXFSIZ
 
 #define P_USB_OTG_GREGS \
-  ((USB_OTG_GREGS *)(USB_OTG_BASE_ADDR + USB_OTG_CORE_GLOBAL_REG_OFFSET))
+  ((USB_OTG_GREGS *)(_USB_OTG_BASE_ADDR + USB_OTG_CORE_GLOBAL_REG_OFFSET))
 
 typedef union { /* offset 0x0008 */
   uint32_t d32;
@@ -348,7 +348,7 @@ typedef struct {
 } USB_OTG_HREGS;
 
 #define P_USB_OTG_HREGS \
-  ((USB_OTG_HREGS *)(USB_OTG_BASE_ADDR + USB_OTG_HOST_GLOBAL_REG_OFFSET))
+  ((USB_OTG_HREGS *)(_USB_OTG_BASE_ADDR + USB_OTG_HOST_GLOBAL_REG_OFFSET))
 
 typedef union { /* offset 0x0400 */
   uint32_t d32;
@@ -448,7 +448,7 @@ typedef struct {
 } USB_OTG_HCHNNLS;
 
 #define P_USB_OTG_HCHNNLS \
-  ((USB_OTG_HCHNNLS *)(USB_OTG_BASE_ADDR + USB_OTG_HOST_CHANNEL_REG_OFFSET))
+  ((USB_OTG_HCHNNLS *)(_USB_OTG_BASE_ADDR + USB_OTG_HOST_CHANNEL_REG_OFFSET))
 
 typedef union { /* offset 0x0500 + 0x0020 * ch_num */
   uint32_t d32;
@@ -547,7 +547,7 @@ typedef struct {
 } USB_OTG_DREGS;
 
 #define P_USB_OTG_DREGS \
-  ((USB_OTG_DREGS *)(USB_OTG_BASE_ADDR + USB_OTG_DEV_GLOBAL_REG_OFFSET))
+  ((USB_OTG_DREGS *)(_USB_OTG_BASE_ADDR + USB_OTG_DEV_GLOBAL_REG_OFFSET))
 
 typedef union { /* offset 0x0800 */
   uint32_t d32;
@@ -660,7 +660,7 @@ typedef struct {
 } USB_OTG_DINEPS;
 
 #define P_USB_OTG_DINEPS \
-  ((USB_OTG_DINEPS *)(USB_OTG_BASE_ADDR + USB_OTG_DEV_IN_EP_REG_OFFSET))
+  ((USB_OTG_DINEPS *)(_USB_OTG_BASE_ADDR + USB_OTG_DEV_IN_EP_REG_OFFSET))
 
 /*********************************************************************
 * The USB_OTG_DOUTEPS structure defines one set of the OUT endpoint
@@ -680,7 +680,7 @@ typedef struct {
 } USB_OTG_DOUTEPS;
 
 #define P_USB_OTG_DOUTEPS \
-  ((USB_OTG_DOUTEPS *)(USB_OTG_BASE_ADDR + USB_OTG_DEV_OUT_EP_REG_OFFSET))
+  ((USB_OTG_DOUTEPS *)(_USB_OTG_BASE_ADDR + USB_OTG_DEV_OUT_EP_REG_OFFSET))
 
 /* DIEPCTL0 offset 0x0900
    DIEPCTLx offset 0x0900 + 0x20 * ep_num
@@ -780,7 +780,7 @@ typedef struct {
 } USB_OTG_PREGS;
 
 #define P_USB_OTG_PREGS \
-  ((USB_OTG_PREGS *)(USB_OTG_BASE_ADDR + USB_OTG_PCGCCTL_OFFSET))
+  ((USB_OTG_PREGS *)(_USB_OTG_BASE_ADDR + USB_OTG_PCGCCTL_OFFSET))
 
 typedef union { /* offset 0x0E00 */
   uint32_t d32;
@@ -800,7 +800,7 @@ typedef union { /* offset 0x0E00 */
 typedef volatile uint32_t USB_OTG_FIFO[USB_OTG_DATA_FIFO_SIZE >> 2];
 
 #define P_USB_OTG_FIFO \
-  ((USB_OTG_FIFO *)(USB_OTG_BASE_ADDR + USB_OTG_DATA_FIFO_OFFSET))
+  ((USB_OTG_FIFO *)(_USB_OTG_BASE_ADDR + USB_OTG_DATA_FIFO_OFFSET))
 
 #endif /* STM32F10X_CL || STM32F2XX || STM32F4XX */
 

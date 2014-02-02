@@ -34,7 +34,7 @@
 
 
 
-uint32_t USB_OTG_BASE_ADDR;
+uint32_t _USB_OTG_BASE_ADDR;
 unsigned EP_MAX_COUNT;
 unsigned CHNNL_MAX_COUNT;
 

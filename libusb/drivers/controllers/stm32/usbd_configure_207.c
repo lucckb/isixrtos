@@ -8,7 +8,7 @@
     STM32F215 and STM32F217, also applicable for STM32F405, STM32F407,
     STM32F415 and STM32F417. **/
 
-uint32_t USB_OTG_BASE_ADDR;
+uint32_t _USB_OTG_BASE_ADDR;
 unsigned EP_MAX_COUNT;
 unsigned CHNNL_MAX_COUNT;
 
