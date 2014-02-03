@@ -106,8 +106,9 @@ static inline void nvic_irq_enable(IRQn_Type irq_num, bool enable )
 /** Irq mask interrupt priority in CORTEX-M3 core
  * @param[in] priority Assigned IRQ preemtion priority
  * @param[in] subpriority Assigned supbriority
+ * @return Current IRQ state for restore
  */
-static inline void irq_mask(uint32_t priority,uint32_t subpriority)
+static inline uint32_t irq_mask(uint32_t priority,uint32_t subpriority)
 {
 #ifdef __cplusplus
 	using namespace _internal::system;
@@ -120,9 +121,24 @@ static inline void irq_mask(uint32_t priority,uint32_t subpriority)
 			"msr BASEPRI,%0\n"
 			::"r"(tmppriority)
 	);
-
+	return tmppriority;
 }
-
+/*----------------------------------------------------------*/
+//! Alias function for old version irq mask
+static inline uint32_t irq_save(uint32_t priority,uint32_t subpriority) {
+	return irq_mask( priority, subpriority );
+}
+/*----------------------------------------------------------*/
+/**
+ * @param[in] flags IRQ saved flags
+ */
+static inline void irq_restore( uint32_t flags ) {
+	asm volatile
+	(
+		"msr BASEPRI,%0\n"
+		::"r"(flags):"cc"
+	);
+}
 /*----------------------------------------------------------*/
 //! Disable IRQ masking in CORTEX-M3 core
 static inline void irq_umask(void)

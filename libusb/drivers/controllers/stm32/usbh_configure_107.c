@@ -178,7 +178,7 @@ int USBHconfigure(usb_phy_t phy) {
   /* Only internal phy transceiver is supported. */
   if (phy != USB_PHY_A)
     return USBHLIB_ERROR_NOT_SUPPORTED;
-  prio = USBHgetInterruptPriority();
+  prio = usbhp_get_interrupt_priority();
   res = USBHcentralConfigure(prio);
   if (res < 0)
     return res;

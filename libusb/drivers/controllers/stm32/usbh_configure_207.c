@@ -263,7 +263,7 @@ int USBHconfigure(usb_phy_t phy) {
   int res;
   uint32_t prio;
   Phy = phy;
-  prio = USBHgetInterruptPriority();
+  prio = usbhp_get_interrupt_priority();
   res = USBHcentralConfigure(prio);
   if (res < 0) {
 	 dbprintf( "Central configfure err %i", res );

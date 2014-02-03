@@ -1,31 +1,28 @@
-#ifndef _USBH_INTERRUPT_H
-#define _USBH_INTERRUPT_H 1
+#ifndef _ISIX_USBH_INTERRUPT_H
+#define _ISIX_USBH_INTERRUPT_H
 
 #include <stm32system.h>
-
-//TODO: FIX THIS
+#include <usb/drivers/controllers/stm32/usb_config.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//TODO: Fixme this
-typedef unsigned irq_level_t;
+
+typedef unsigned usbh_irq_level_t;
 
 void USBHovercurrentInterruptHandler(void);
 
-static inline uint32_t USBHgetInterruptPriority(void) {
-	return 1;
+static inline usbh_irq_level_t usbhp_get_interrupt_priority(void) {
+	return CONFIG_USBHOST_USB_IRQ_MASK_VALUE;
 }
 
-static inline irq_level_t USBHprotectInterrupt(void) {
-	irq_mask( 1, 0 );
-	return 0;
+static inline usbh_irq_level_t usbhp_protect_interrupt(void) {
+	return irq_save( CONFIG_USBHOST_USB_IRQ_MASK_VALUE, 0 );
 }
 
-static inline void USBHunprotectInterrupt(irq_level_t level) {
-	(void)level;
-	irq_umask();
+static inline void usbhp_unprotect_interrupt(usbh_irq_level_t level) {
+	irq_restore( level );
 }
 
 #ifdef __cplusplus

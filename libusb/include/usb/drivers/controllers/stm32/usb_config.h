@@ -44,6 +44,9 @@
 //#define CONFIG_USBHOST_VBUS_ON      1
 
 
+//! Configure interrupt level
+//#define CONFIG_USBHOST_USB_IRQ_MASK_VALUE 1
+
 //Check the required configuration for ovr current
 #ifdef CONFIG_USBHOST_OVRCURR_ENABLE
 #ifndef  CONFIG_USBHOST_OVRCURR_PIN_N
@@ -69,4 +72,11 @@
 #ifndef CONFIG_USBHOST_VBUS_GPIO_N 
 #error CONFIG_USBHOST_VBUS_ON is not defined
 #endif
+
+#ifndef CONFIG_USBHOST_USB_IRQ_MASK_VALUE
+#error CONFIG_USBHOST_USB_IRQ_MASK_VALUE is not defined
+#endif
+
 #endif   /* ----- #ifndef usb_config_INC  ----- */
+
+

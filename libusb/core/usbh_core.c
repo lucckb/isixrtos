@@ -554,26 +554,26 @@ int USBHcontrolRequest(int synch, usb_setup_packet_t const *setup,
   }
   else {
     uint32_t x;
-    x = USBHprotectInterrupt();
+    x = usbhp_protect_interrupt();
     if (Machine.control.state != CTRL_IDLE) {
-      USBHunprotectInterrupt(x);
+      usbhp_unprotect_interrupt(x);
       return USBHLIB_ERROR_BUSY;
     }
     else {
       isix_sem_get_isr( notify_sem );
       USBHsubmitControlRequest(setup, buffer);
       /*if (Machine.control.state != CTRL_DONE)*/ {
-        USBHunprotectInterrupt(x);
+        usbhp_unprotect_interrupt(x);
         if( isix_sem_wait( notify_sem, ISIX_TIME_INFINITE ) != ISIX_EOK ) {
         	return USBHLIB_ERROR_OS;
         }
-        x = USBHprotectInterrupt();
+        x = usbhp_protect_interrupt();
       }
       Machine.control.state = CTRL_IDLE;
       if (length)
         *length = Machine.control.transfered;
     }
-    USBHunprotectInterrupt(x);
+    usbhp_unprotect_interrupt(x);
   }
   return Machine.control.errno;
 }
@@ -590,7 +590,7 @@ int USBHgetDevice(usb_speed_t *speed, uint8_t *dev_addr,
 	  res = USBHLIB_ERROR_OS;
 	  return res;
   }
-  x = USBHprotectInterrupt();
+  x = usbhp_protect_interrupt();
   if (Device.visible_state == ADDRESS) {
     if (speed)
       *speed = Device.speed;
@@ -604,7 +604,7 @@ int USBHgetDevice(usb_speed_t *speed, uint8_t *dev_addr,
   else {
     res = USBHLIB_ERROR_NO_DEVICE;
   }
-  USBHunprotectInterrupt(x);
+  usbhp_unprotect_interrupt(x);
 
   return res;
 }
@@ -612,7 +612,7 @@ int USBHgetDevice(usb_speed_t *speed, uint8_t *dev_addr,
 usb_visible_state_t USBHgetVisibleDeviceState() {
   /* Reading an integer value from memory is atomic on ARM. Therefore
      we do not need to protect them by
-     USBHprotectInterrupt/USBHunprotectInterrupt. */
+     usbhp_protect_interrupt/usbhp_unprotect_interrupt. */
   return Device.visible_state;
 }
 
@@ -623,7 +623,7 @@ int USBHsetClassMachine(int (*machine)(void *),
   int res;
   uint32_t x;
 
-  x = USBHprotectInterrupt();
+  x = usbhp_protect_interrupt();
   if (Machine.g_state == HOST_IDLE) {
     Machine.class.machine = machine;
     Machine.class.at_sof = at_sof;
@@ -635,7 +635,7 @@ int USBHsetClassMachine(int (*machine)(void *),
   else {
     res = USBHLIB_ERROR_BUSY;
   }
-  USBHunprotectInterrupt(x);
+  usbhp_unprotect_interrupt(x);
 
   return res;
 }

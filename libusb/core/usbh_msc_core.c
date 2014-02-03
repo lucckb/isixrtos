@@ -352,22 +352,22 @@ uint8_t MSCBOT(int synch, uint8_t lun,
   }
   else {
     uint32_t x;
-    x = USBHprotectInterrupt();
+    x = usbhp_protect_interrupt();
     if (MSCdata.state != MSC_IDLE) {
-      USBHunprotectInterrupt(x);
+      usbhp_unprotect_interrupt(x);
       return USBHLIB_ERROR_BUSY;
     }
     else {
       MSCsubmit(lun, scsi_cmd, scsi_len, out_buff, in_buff, *len);
       while (MSCdata.state != MSC_DONE) {
-        USBHunprotectInterrupt(x);
+        usbhp_unprotect_interrupt(x);
         isix_wait_ms(200); /* How long should we wait? */
-        x = USBHprotectInterrupt();
+        x = usbhp_protect_interrupt();
       }
       MSCdata.state = MSC_IDLE;
       *len = MSCdata.transfered;
     }
-    USBHunprotectInterrupt(x);
+    usbhp_unprotect_interrupt(x);
   }
   return MSCdata.status;
 }
