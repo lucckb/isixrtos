@@ -283,5 +283,5 @@ void USBglobalInterruptHandler() {
 
 /* Overcurrent is detected on VBUS. */
 void USBHovercurrentInterruptHandler() {
-  USBHdeviceHardReset(10 * DEVICE_RESET_TIME_MS);
+  usbh_device_hard_reset(10 * DEVICE_RESET_TIME_MS);
 }

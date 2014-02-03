@@ -7,14 +7,16 @@
 extern "C" {
 #endif
 
+
+
 /** USB host standard request API **/
 
-int USBHsetDeviceAddress(int, uint8_t);
-int USBHsetConfiguration(int, uint8_t);
-int USBHclearEndpointHalt(int, uint8_t);
-int USBHgetDeviceDescriptor(int, uint8_t *, uint16_t);
-int USBHgetConfDescriptor(int, uint8_t, uint8_t *, uint16_t);
-int USBHgetStringDescriptorASCII(int, uint8_t, char *, unsigned *);
+int usbh_set_device_address(int, uint8_t);
+int usbh_set_configuration(int, uint8_t);
+int usbh_clear_endpoint_halt(int, uint8_t);
+int usbh_get_device_descriptor(int, uint8_t *, uint16_t);
+int usbh_get_conf_descriptor(int, uint8_t, uint8_t *, uint16_t);
+int usbh_get_string_descriptor_ascii(int, uint8_t, char *, unsigned *);
 
 #ifdef __cplusplus
 }

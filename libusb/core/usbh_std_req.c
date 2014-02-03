@@ -5,7 +5,7 @@
 
 /** Standard requests **/
 
-int USBHsetDeviceAddress(int synch, uint8_t addr) {
+int usbh_set_device_address(int synch, uint8_t addr) {
   usb_setup_packet_t setup;
 
   setup.bmRequestType = HOST_TO_DEVICE | STANDARD_REQUEST |
@@ -15,10 +15,10 @@ int USBHsetDeviceAddress(int synch, uint8_t addr) {
   setup.wIndex = 0;
   setup.wLength = 0;
 
-  return USBHcontrolRequest(synch, &setup, 0, 0);
+  return usbh_control_request(synch, &setup, 0, 0);
 }
 
-int USBHsetConfiguration(int synch, uint8_t conf) {
+int usbh_set_configuration(int synch, uint8_t conf) {
   usb_setup_packet_t setup;
 
   setup.bmRequestType = HOST_TO_DEVICE | STANDARD_REQUEST |
@@ -28,10 +28,10 @@ int USBHsetConfiguration(int synch, uint8_t conf) {
   setup.wIndex = 0;
   setup.wLength = 0;
 
-  return USBHcontrolRequest(synch, &setup, 0, 0);
+  return usbh_control_request(synch, &setup, 0, 0);
 }
 
-int USBHclearEndpointHalt(int synch, uint8_t ep_addr) {
+int usbh_clear_endpoint_halt(int synch, uint8_t ep_addr) {
   int res;
   usb_setup_packet_t setup;
 
@@ -42,11 +42,11 @@ int USBHclearEndpointHalt(int synch, uint8_t ep_addr) {
   setup.wIndex = ep_addr;
   setup.wLength = 0;
 
-  res = USBHcontrolRequest(synch, &setup, 0, 0);
+  res = usbh_control_request(synch, &setup, 0, 0);
   return res;
 }
 
-int USBHgetDeviceDescriptor(int synch, uint8_t *desc, uint16_t length) {
+int usbh_get_device_descriptor(int synch, uint8_t *desc, uint16_t length) {
   usb_setup_packet_t setup;
   int                result;
   uint32_t           received;
@@ -58,7 +58,7 @@ int USBHgetDeviceDescriptor(int synch, uint8_t *desc, uint16_t length) {
   setup.wIndex = 0;
   setup.wLength = length;
 
-  result = USBHcontrolRequest(synch, &setup, desc, &received);
+  result = usbh_control_request(synch, &setup, desc, &received);
 
   if (result == USBHLIB_SUCCESS) {
     usb_device_descriptor_t *dev_desc;
@@ -82,7 +82,7 @@ int USBHgetDeviceDescriptor(int synch, uint8_t *desc, uint16_t length) {
   return result;
 }
 
-int USBHgetConfDescriptor(int synch, uint8_t idx, uint8_t *desc,
+int usbh_get_conf_descriptor(int synch, uint8_t idx, uint8_t *desc,
                           uint16_t length) {
   usb_setup_packet_t setup;
   int                result;
@@ -95,7 +95,7 @@ int USBHgetConfDescriptor(int synch, uint8_t idx, uint8_t *desc,
   setup.wIndex = 0;
   setup.wLength = length;
 
-  result = USBHcontrolRequest(synch, &setup, desc, &received);
+  result = usbh_control_request(synch, &setup, desc, &received);
 
   if (result == USBHLIB_SUCCESS) {
     usb_configuration_descriptor_t *cfg_desc;
@@ -112,7 +112,7 @@ int USBHgetConfDescriptor(int synch, uint8_t idx, uint8_t *desc,
   return result;
 }
 
-int USBHgetStringDescriptorASCII(int synch, uint8_t idx, char *desc,
+int usbh_get_string_descriptor_ascii(int synch, uint8_t idx, char *desc,
                                  unsigned *length) {
   static usb_max_string_descriptor_t string;
   usb_setup_packet_t setup;
@@ -126,7 +126,7 @@ int USBHgetStringDescriptorASCII(int synch, uint8_t idx, char *desc,
   setup.wIndex = LANG_US_ENGLISH;
   setup.wLength = sizeof(usb_max_string_descriptor_t);
 
-  result = USBHcontrolRequest(synch, &setup, (uint8_t *)&string,
+  result = usbh_control_request(synch, &setup, (uint8_t *)&string,
                               &received);
 
   if (result == USBHLIB_SUCCESS) {

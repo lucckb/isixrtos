@@ -7,10 +7,10 @@
 extern "C" {
 #endif
 
-int USBHopenDevice(usb_speed_t *, uint8_t *,
+int usbh_open_device(usb_speed_t *, uint8_t *,
                    usb_device_descriptor_t *, unsigned);
-int USBHisDeviceReady(void);
-void USBHdeviceHardReset(unsigned);
+int usbh_is_device_ready(void);
+void usbh_device_hard_reset(unsigned);
 
 #ifdef __cplusplus
 }

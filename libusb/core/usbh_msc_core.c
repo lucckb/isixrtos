@@ -144,7 +144,7 @@ static void NackedState(usbh_msc_data_t *md, int ch_num,
 static void StalledState(usbh_msc_data_t *md, uint8_t ep_addr) {
   int res;
 
-  res = USBHclearEndpointHalt(0, ep_addr);
+  res = usbh_clear_endpoint_halt(0, ep_addr);
   if (res == USBHLIB_SUCCESS) {
     md->state = MSC_CSW_START;
   }
@@ -287,7 +287,7 @@ int MSCsetMachine(msc_configuration_t const *cfg) {
   MSCdata.status = MSC_BOT_UNDEF_ERROR;
   memcpy(&MSCdata.cfg, cfg, sizeof(msc_configuration_t));
 
-  res = USBHsetClassMachine(MSCstateMachine, MSCatSof,
+  res = usbh_set_class_machine(MSCstateMachine, MSCatSof,
                             MSCatDisconnect, &MSCdata);
   if (res == USBHLIB_SUCCESS) {
     while (MSCdata.state == MSC_INIT)

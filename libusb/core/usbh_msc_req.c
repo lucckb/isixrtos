@@ -13,7 +13,7 @@ int MSCgetMaxLun(int synch, uint8_t iface, uint8_t *max_lun) {
   setup.wIndex = iface;
   setup.wLength = 1;
 
-  return USBHcontrolRequest(synch, &setup, max_lun, 0);
+  return usbh_control_request(synch, &setup, max_lun, 0);
 }
 
 int MSCresetBOT(int synch, uint8_t iface) {
@@ -26,7 +26,7 @@ int MSCresetBOT(int synch, uint8_t iface) {
   setup.wIndex = iface;
   setup.wLength = 0;
 
-  return USBHcontrolRequest(synch, &setup, 0, 0);
+  return usbh_control_request(synch, &setup, 0, 0);
 }
 
 int MSCresetRecovery(int synch, uint8_t interface_number,
@@ -37,10 +37,10 @@ int MSCresetRecovery(int synch, uint8_t interface_number,
     res = MSCresetBOT(1, interface_number);
     if (res != USBHLIB_SUCCESS)
       return res;
-    res = USBHclearEndpointHalt(1, in_ep_addr);
+    res = usbh_clear_endpoint_halt(1, in_ep_addr);
     if (res != USBHLIB_SUCCESS)
       return res;
-    res = USBHclearEndpointHalt(1, out_ep_addr);
+    res = usbh_clear_endpoint_halt(1, out_ep_addr);
     if (res != USBHLIB_SUCCESS)
       return res;
   }

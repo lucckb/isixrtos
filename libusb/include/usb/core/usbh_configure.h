@@ -9,7 +9,7 @@ extern "C" {
 
 /** USB host initialization API **/
 
-int USBHconfigure(usb_phy_t);
+int usbh_configure(usb_phy_t);
 void USBHvbus(int);
 
 #ifdef __cplusplus

@@ -171,7 +171,7 @@ static int USBHperipheralConfigure(void) {
 
 /* Configure USB host interface.
     phy   - used phy transceiver */
-int USBHconfigure(usb_phy_t phy) {
+int usbh_configure(usb_phy_t phy) {
   int res;
   uint32_t prio;
 

@@ -186,7 +186,7 @@ static int HIDstateMachine(void *p) {
       }
       break;
     case HID_STALL_IN:
-      res = USBHclearEndpointHalt(0, hd->ep_addr_in);
+      res = usbh_clear_endpoint_halt(0, hd->ep_addr_in);
       hd->pid_in = PID_DATA0;
       hd->errno = res;
       if (res == USBHLIB_SUCCESS)
@@ -286,7 +286,7 @@ int usbh_hid_set_machine(usb_speed_t speed, uint8_t dev_addr,
   HIDdata.interval_in = ep_desc[i].bInterval;
   HIDdata.report_out = 0;
 
-  return USBHsetClassMachine(HIDstateMachine, HIDatSoF,
+  return usbh_set_class_machine(HIDstateMachine, HIDatSoF,
                              HIDatDisconnect, &HIDdata);
 }
 

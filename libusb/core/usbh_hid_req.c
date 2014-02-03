@@ -14,7 +14,7 @@ int usbh_hid_get_report_descriptor(int synch, uint8_t *desc, uint16_t length) {
   setup.wIndex = 0;
   setup.wLength = length;
 
-  result = USBHcontrolRequest(synch, &setup, desc, &received);
+  result = usbh_control_request(synch, &setup, desc, &received);
 
   if (result == USBHLIB_SUCCESS) {
     if (received != length)
@@ -34,7 +34,7 @@ int usbh_hid_set_idle(int synch, uint8_t iface, uint8_t report_id,
   setup.wIndex = iface;
   setup.wLength = 0;
 
-  return USBHcontrolRequest(synch, &setup, 0, 0);
+  return usbh_control_request(synch, &setup, 0, 0);
 }
 
 int usbh_hid_set_boot_protocol(int synch, uint8_t iface,
@@ -48,7 +48,7 @@ int usbh_hid_set_boot_protocol(int synch, uint8_t iface,
   setup.wIndex = iface;
   setup.wLength = 0;
 
-  return USBHcontrolRequest(synch, &setup, 0, 0);
+  return usbh_control_request(synch, &setup, 0, 0);
 }
 
 int usbh_hid_set_report(int synch, uint8_t iface, uint8_t report_id,
@@ -64,7 +64,7 @@ int usbh_hid_set_report(int synch, uint8_t iface, uint8_t report_id,
   setup.wIndex = iface;
   setup.wLength = length;
 
-  result = USBHcontrolRequest(synch, &setup, report, &sent);
+  result = usbh_control_request(synch, &setup, report, &sent);
 
   if (result == USBHLIB_SUCCESS) {
     if (sent != length)

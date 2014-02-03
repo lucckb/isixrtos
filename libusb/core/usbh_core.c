@@ -445,7 +445,7 @@ static int USBHhandleEnumeration(void) {
 
   switch (Machine.enumeration.state) {
     case ENUM_GET_DEV_DESC: /* Get the first 8 bytes of the device descriptor. */
-      res = USBHgetDeviceDescriptor(0, (uint8_t *)&Device.dev_desc, 8);
+      res = usbh_get_device_descriptor(0, (uint8_t *)&Device.dev_desc, 8);
       if (res == USBHLIB_SUCCESS) {
         /* Set bMaxPacketSize0 for control channels. */
         Machine.control.max_packet = Device.dev_desc.bMaxPacketSize0;
@@ -457,14 +457,14 @@ static int USBHhandleEnumeration(void) {
       }
       break;
     case ENUM_GET_FULL_DEV_DESC: /* Get the whole device descriptor. */
-      res = USBHgetDeviceDescriptor(0, (uint8_t *)&Device.dev_desc,
+      res = usbh_get_device_descriptor(0, (uint8_t *)&Device.dev_desc,
                                     sizeof(usb_device_descriptor_t));
       if (res == USBHLIB_SUCCESS) {
         Machine.enumeration.state = ENUM_SET_DEV_ADDR;
       }
       break;
     case ENUM_SET_DEV_ADDR: /* Set device address. */
-      res = USBHsetDeviceAddress(0, DEVICE_ADDRESS);
+      res = usbh_set_device_address(0, DEVICE_ADDRESS);
       if (res == USBHLIB_SUCCESS) {
         Device.address = DEVICE_ADDRESS;
         Device.visible_state = ADDRESS;
@@ -496,7 +496,7 @@ void USBHcoreProcess() {
       if (USBHhandleEnumeration()) {
         Machine.g_state = HOST_IDLE;
         if (Machine.enumeration.errno != USBHLIB_SUCCESS)
-          USBHdeviceHardReset(DEVICE_RESET_TIME_MS);
+          usbh_device_hard_reset(DEVICE_RESET_TIME_MS);
           /* The disconnection state is detected and USBHcoreDeInit
              is called. */
       }
@@ -540,7 +540,7 @@ static void USBHsubmitControlRequest(usb_setup_packet_t const *setup,
   Machine.control.error_count = 0;
 }
 
-int USBHcontrolRequest(int synch, usb_setup_packet_t const *setup,
+int usbh_control_request(int synch, usb_setup_packet_t const *setup,
                        uint8_t *buffer, uint32_t *length) {
   if (synch == 0) {
     if (Machine.control.state == CTRL_IDLE) {
@@ -578,7 +578,7 @@ int USBHcontrolRequest(int synch, usb_setup_packet_t const *setup,
   return Machine.control.errno;
 }
 
-int USBHgetDevice(usb_speed_t *speed, uint8_t *dev_addr,
+int usbh_get_device(usb_speed_t *speed, uint8_t *dev_addr,
                   usb_device_descriptor_t *dev_desc, unsigned timeout) {
   int res;
   uint32_t x;
@@ -609,14 +609,14 @@ int USBHgetDevice(usb_speed_t *speed, uint8_t *dev_addr,
   return res;
 }
 
-usb_visible_state_t USBHgetVisibleDeviceState() {
+usb_visible_state_t usbh_get_visible_device_state() {
   /* Reading an integer value from memory is atomic on ARM. Therefore
      we do not need to protect them by
      usbhp_protect_interrupt/usbhp_unprotect_interrupt. */
   return Device.visible_state;
 }
 
-int USBHsetClassMachine(int (*machine)(void *),
+int usbh_set_class_machine(int (*machine)(void *),
                         void (*at_sof)(void *, uint16_t),
                         void (*at_disconnect)(void *),
                         void *parameter) {

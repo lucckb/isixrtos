@@ -6,14 +6,14 @@
 #include <usb/drivers/controllers/stm32/timer.h>
 #include <isix.h>
 
-int USBHopenDevice(usb_speed_t *speed, uint8_t *dev_addr,
+int usbh_open_device(usb_speed_t *speed, uint8_t *dev_addr,
                    usb_device_descriptor_t *dev_desc, unsigned timeout) {
-    return USBHgetDevice(speed, dev_addr, dev_desc, timeout );
+    return usbh_get_device(speed, dev_addr, dev_desc, timeout );
 }
 
-int USBHisDeviceReady() {
+int usbh_is_device_ready() {
   /* Check, if a non-zero address is assigned to the device. */
-  return (USBHgetVisibleDeviceState() & ADDRESS) == ADDRESS;
+  return (usbh_get_visible_device_state() & ADDRESS) == ADDRESS;
 }
 
 static void DeviceOn(void* p) {
@@ -21,7 +21,7 @@ static void DeviceOn(void* p) {
   USBHvbus(1); /* Switch the device back on. */
 }
 
-void USBHdeviceHardReset(unsigned time) {
+void usbh_device_hard_reset(unsigned time) {
   (void)time;
   USBHvbus(0); /* Force the device to switch off. */
 	usblibp_timer_start(2, DeviceOn, time);
