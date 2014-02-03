@@ -7,7 +7,7 @@
 #include <usb/core/usbh_std_req.h>
 
 typedef enum {
-  HID_EXIT = 0, /* HIDisDeviceReady must return 0, if HID machine is not configured. */
+  HID_EXIT = 0, /* usbh_hid_is_device_ready must return 0, if HID machine is not configured. */
   HID_INIT,
   HID_POLL_IN,
   HID_POLL_IN_WAIT,
@@ -195,7 +195,7 @@ static int HIDstateMachine(void *p) {
         hd->state = HID_EXIT;
       break;
     case HID_REPORT_OUT:
-      res = HIDsetReport(0, hd->iface, 0, &hd->report_out, 1);
+      res = usbh_hid_set_report(0, hd->iface, 0, &hd->report_out, 1);
       hd->errno = res;
       if (res == USBHLIB_SUCCESS)
         hd->state = HID_POLL_IN;
@@ -228,7 +228,7 @@ static void HIDatDisconnect(void *p) {
 
 static usbh_hid_data_t HIDdata;
 
-int HIDsetMachine(usb_speed_t speed, uint8_t dev_addr,
+int usbh_hid_set_machine(usb_speed_t speed, uint8_t dev_addr,
                   usb_interface_descriptor_t const *if_desc,
                   usb_hid_main_descriptor_t const *hid_desc,
                   usb_endpoint_descriptor_t const *ep_desc,
@@ -290,6 +290,6 @@ int HIDsetMachine(usb_speed_t speed, uint8_t dev_addr,
                              HIDatDisconnect, &HIDdata);
 }
 
-int HIDisDeviceReady() {
+int usbh_hid_is_device_ready() {
   return HIDdata.state != HID_EXIT;
 }

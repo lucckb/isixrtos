@@ -2,7 +2,7 @@
 #include <usb/core/usbh_error.h>
 #include <usb/core/usbh_hid_req.h>
 
-int HIDgetReportDescriptor(int synch, uint8_t *desc, uint16_t length) {
+int usbh_hid_get_report_descriptor(int synch, uint8_t *desc, uint16_t length) {
   usb_setup_packet_t setup;
   int                result;
   uint32_t           received;
@@ -23,7 +23,7 @@ int HIDgetReportDescriptor(int synch, uint8_t *desc, uint16_t length) {
   return result;
 }
 
-int HIDsetIdle(int synch, uint8_t iface, uint8_t report_id,
+int usbh_hid_set_idle(int synch, uint8_t iface, uint8_t report_id,
                uint8_t interval) {
   usb_setup_packet_t setup;
 
@@ -37,7 +37,7 @@ int HIDsetIdle(int synch, uint8_t iface, uint8_t report_id,
   return USBHcontrolRequest(synch, &setup, 0, 0);
 }
 
-int HIDsetBootProtocol(int synch, uint8_t iface,
+int usbh_hid_set_boot_protocol(int synch, uint8_t iface,
                        usb_hid_protocol_t protocol) {
   usb_setup_packet_t setup;
 
@@ -51,7 +51,7 @@ int HIDsetBootProtocol(int synch, uint8_t iface,
   return USBHcontrolRequest(synch, &setup, 0, 0);
 }
 
-int HIDsetReport(int synch, uint8_t iface, uint8_t report_id,
+int usbh_hid_set_report(int synch, uint8_t iface, uint8_t report_id,
                  uint8_t *report, uint16_t length) {
   usb_setup_packet_t setup;
   int                result;

@@ -15,12 +15,13 @@ extern int new_keyboard_data;
 extern unsigned keyboard_modifiers;
 extern uint8_t keyboard_scan_code[KEYBOARD_MAX_PRESSED_KEYS];
 
-int HIDsetMachine(usb_speed_t, uint8_t,
+int usbh_hid_set_machine(usb_speed_t, uint8_t,
                   usb_interface_descriptor_t const *,
                   usb_hid_main_descriptor_t const *,
                   usb_endpoint_descriptor_t const *,
                   unsigned);
-int HIDisDeviceReady(void);
+
+int usbh_hid_is_device_ready(void);
 
 #ifdef __cplusplus
 }
