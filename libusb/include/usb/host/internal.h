@@ -17,15 +17,15 @@
  */
 
 
-#ifndef ISIX_LIBUSB_HOST_H
-#define ISIX_LIBUSB_HOST_H  
+#ifndef ISIX_LIBUSB_INTERNAL_H
+#define ISIX_LIBUSB_INTERNAL_H
 
-#include "core/usb_endianness.h"
-#include "core/usbh_configure.h"
-#include "core/usbh_error.h"
-#include "core/usbh_hid_core.h"
-#include "core/usbh_hid_req.h"
-#include "core/usbh_lib.h"
-#include "core/usbh_std_req.h"
+#include "../core/usb_endianness.h"
+#include "../core/usbh_configure.h"
+#include "../core/usbh_error.h"
+#include "../core/usbh_hid_core.h"
+#include "../core/usbh_hid_req.h"
+#include "../core/usbh_lib.h"
+#include "../core/usbh_std_req.h"
 
 #endif   /* ----- #ifndef host_INC  ----- */
