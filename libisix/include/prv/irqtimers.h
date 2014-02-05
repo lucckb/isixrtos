@@ -26,8 +26,8 @@ struct vtimer_struct
 	tick_t timeout;			 	  /* Timeout timer value */
 	void (*timer_handler)(void*); /* Next timer call */
 	void *arg;					  /* Function pointer */
-	list_t inode;				  /* Innode list */
 	bool one_shoot;				  /* Is a one shoot timer */
+	list_t inode;				  /* Inode list */
 };
 /*-----------------------------------------------------------------------*/
 #else
