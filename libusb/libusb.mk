@@ -10,6 +10,7 @@ ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_interrupt.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_api.c
 ISIX_USBLIB_SRC += $(LIBUSB_DIR)/drivers/controllers/stm32/usbh_configure_207.c
 CRT0_OBJECTS += $(LIBUSB_DIR)/drivers/controllers/stm32/usb_otg_interrupt.o
+ISIX_USBLIB_SRC += $(wildcard $(LIBUSB_DIR)/host/*.c)
 ISIX_USBLIB_INC += -DSTM32F2XX
 else
 $(error unknown usb controller type)
