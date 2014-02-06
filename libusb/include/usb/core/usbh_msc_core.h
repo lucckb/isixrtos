@@ -23,7 +23,7 @@ typedef struct {
 
 int MSCsetMachine(msc_configuration_t const *);
 int MSCisDeviceReady(void);
-uint8_t MSCBOT(int, uint8_t, uint8_t const *, uint32_t,
+int MSCBOT(int, uint8_t, uint8_t const *, uint32_t,
                uint8_t const *, uint8_t *, uint32_t *);
 
 #ifdef __cplusplus

@@ -8,6 +8,10 @@ extern "C" {
 #endif
 
 
+enum {
+	USBH_ASYNC = 0,
+	USBH_SYNC  = 1
+};
 
 /** USB host standard request API **/
 

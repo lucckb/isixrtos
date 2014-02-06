@@ -333,7 +333,7 @@ static void MSCsubmit(uint8_t lun, uint8_t const *scsi_cmd,
   MSCdata.state = MSC_CBW_START;
 }
 
-uint8_t MSCBOT(int synch, uint8_t lun,
+int MSCBOT(int synch, uint8_t lun,
                uint8_t const *scsi_cmd, uint32_t scsi_len,
                uint8_t const *out_buff, uint8_t *in_buff,
                uint32_t *len) {

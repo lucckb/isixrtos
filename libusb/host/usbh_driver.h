@@ -21,18 +21,15 @@
 /* ------------------------------------------------------------------ */ 
 #include <stdint.h>
 #include <stdbool.h>
-#include <prv/list.h>
 /* ------------------------------------------------------------------ */ 
 //!Private usbhdriver struct
 struct usbh_driver {
-	
-	uint8_t dev_class;				//! Device class
-	uint8_t dev_subclass;			//! Device subclass
-	int (*connect)(void*);			//! Connect and descriptor readed
-	int (*disconnect)(void*);		//! Disconnect from host
-	list_t inode;
+	uint16_t dev_class;				//! Device class
+	uint16_t dev_subclass;			//! Device subclass
+	uint16_t dev_vid;				//! Vendor ID
+	uint16_t dev_pid;				//! Product ID
+	int (*process)(void*);			//! Process data
 };
-
 /* ------------------------------------------------------------------ */ 
 #endif   /* ----- #ifndef usbh_driver_INC  ----- */
 /* ------------------------------------------------------------------ */ 
