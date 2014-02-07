@@ -34,7 +34,8 @@ enum usbh_driver_ret {
 //!Private usbhdriver struct
 struct usbh_driver {
 	int (*attached)(const struct usb_descriptor_data* desc );
-	int (*process)(void);			//! Process data
+	int (*process)(void* data);		//! Process data
+	void *data;						//! Driver private data
 };
 /* ------------------------------------------------------------------ */ 
 #ifdef __cplusplus

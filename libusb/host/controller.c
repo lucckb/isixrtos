@@ -53,7 +53,7 @@ static struct usbhost_controller_context ctx;
 
 /* ------------------------------------------------------------------ */ 
 //! Find the device driver by ptr
-static struct usbhost_driver_item* find_driver_by_ptr( const struct usbh_driver* drv )
+static struct usbhost_driver_item* find_driver( const struct usbh_driver* drv )
 {
 	if( !drv ) {
 		return NULL;
@@ -120,7 +120,7 @@ static void usbhost_os_task( void* ptr )
 				}
 			}
 			isix_sem_signal( ctx.lock );
-			ctx.err = ctx.drv->process();
+			ctx.err = ctx.drv->process( ctx.drv->data );
 		}
 	} while(true);
 }
@@ -178,7 +178,7 @@ int usbh_controller_attach_driver( const struct usbh_driver *drv )
 	if( isix_sem_wait( ctx.lock, ISIX_TIME_INFINITE ) != ISIX_EOK ) {
 		return USBHLIB_ERROR_OS;
 	}
-	if( find_driver_by_ptr( drv ) ) {
+	if( find_driver( drv ) ) {
 		isix_sem_signal( ctx.lock );
 		return USBHLIB_ERROR_EXISTS;
 	}
@@ -204,7 +204,7 @@ int usbh_controller_detach_driver( const struct usbh_driver *drv )
 	if( isix_sem_wait( ctx.lock, ISIX_TIME_INFINITE ) != ISIX_EOK ) {
 		return USBHLIB_ERROR_OS;
 	}
-	struct usbhost_driver_item* item = find_driver_by_ptr( drv );
+	struct usbhost_driver_item* item = find_driver( drv );
 	if( item->in_use ) {
 		isix_sem_signal( ctx.lock );
 		return USBHLIB_ERROR_BUSY;
