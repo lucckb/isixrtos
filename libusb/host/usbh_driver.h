@@ -15,21 +15,29 @@
  *
  * =====================================================================================
  */
-
-#ifndef  _INTERNAL_USBH_DRIVER_STRUCT_H
-#define  _INTERNAL_USBH_DRIVER_STRUCT_H
+#pragma once
 /* ------------------------------------------------------------------ */ 
 #include <stdint.h>
 #include <stdbool.h>
 /* ------------------------------------------------------------------ */ 
-//!Private usbhdriver struct
-struct usbh_driver {
-	uint16_t dev_class;				//! Device class
-	uint16_t dev_subclass;			//! Device subclass
-	uint16_t dev_vid;				//! Vendor ID
-	uint16_t dev_pid;				//! Product ID
-	int (*process)(void*);			//! Process data
+struct usb_descriptor_data;
+/* ------------------------------------------------------------------ */ 
+#ifdef __cplusplus
+extern "C" {
+#endif
+/* ------------------------------------------------------------------ */ 
+enum usbh_driver_ret {
+	usbh_driver_ret_configured,		//Device configured
+	usbh_driver_ret_not_found		//Device not found
 };
 /* ------------------------------------------------------------------ */ 
-#endif   /* ----- #ifndef usbh_driver_INC  ----- */
+//!Private usbhdriver struct
+struct usbh_driver {
+	int (*attached)(const struct usb_descriptor_data* desc );
+	int (*process)(void);			//! Process data
+};
 /* ------------------------------------------------------------------ */ 
+#ifdef __cplusplus
+}
+#endif
+/* ------------------------------------------------------------------ */

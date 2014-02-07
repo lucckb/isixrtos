@@ -17,14 +17,11 @@
  */
 
 /* ------------------------------------------------------------------ */ 
-
-#ifndef  ISIX_LIBUSB_USB_DEVICE_STRUCT_H_
-#define  ISIX_LIBUSB_USB_DEVICE_STRUCT_H_
+#pragma once
 /* ------------------------------------------------------------------ */ 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 /* ------------------------------------------------------------------ */ 
 //! USB descriptor data
 struct usb_descriptor_data {
@@ -46,4 +43,3 @@ struct usbhost_device {
 }
 #endif
 /* ------------------------------------------------------------------ */
-#endif   /* ----- #ifndef usb_device_struct_INC  ----- */

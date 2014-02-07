@@ -16,9 +16,7 @@
  * =====================================================================================
  */
 
-
-#ifndef ISIX_LIBUSB_INTERNAL_H
-#define ISIX_LIBUSB_INTERNAL_H
+#pragma once
 
 #include "../core/usb_endianness.h"
 #include "../core/usbh_configure.h"
@@ -27,5 +25,5 @@
 #include "../core/usbh_hid_req.h"
 #include "../core/usbh_lib.h"
 #include "../core/usbh_std_req.h"
+#include "../core/usbh_config_descriptors.h"
 
-#endif   /* ----- #ifndef host_INC  ----- */
