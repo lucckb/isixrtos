@@ -287,7 +287,7 @@ typedef enum {
 
 /* Descriptor formats */
 
-typedef struct {
+typedef struct usb_device_descriptor {
   uint8_t  bLength;
   uint8_t  bDescriptorType;
   uint16_t bcdUSB;

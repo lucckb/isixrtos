@@ -87,16 +87,20 @@ static void usbhost_os_task( void* ptr )
 				dbprintf("usbh_get_conf_descriptor %i", ctx.err );
 				continue;
 			}
-			ctx.dev.cfg_desc.size = cfg_desc.wTotalLength;
-			ctx.dev.cfg_desc.mem = malloc( cfg_desc.wTotalLength );
-			if( !ctx.dev.cfg_desc.mem ) {
+			ctx.dev.cdsize = cfg_desc.wTotalLength;
+			ctx.dev.cdesc = malloc( cfg_desc.wTotalLength );
+			if( !ctx.dev.cdesc ) {
 				ctx.err = USBHLIB_ERROR_NO_MEM;
 				continue;
 			}
-			dbprintf("Total descriptor len %i", ctx.dev.cfg_desc.size );
-			ctx.err = usbh_get_conf_descriptor(USBH_SYNC, 0, ctx.dev.cfg_desc.mem, ctx.dev.cfg_desc.size );
+			dbprintf("Total descriptor len %i", ctx.dev.cdsize );
+			ctx.err = usbh_get_conf_descriptor(USBH_SYNC, 0, ctx.dev.cdesc, ctx.dev.cdsize );
 			if (ctx.err != USBHLIB_SUCCESS) {
 				dbprintf("usbh_get_conf_descriptor 2 err: %i", ctx.err );
+				continue;
+			}
+			if( DESCRIPTOR_TYPE( ctx.dev.cdesc ) !=  CONFIGURATION_DESCRIPTOR )	{
+				dbprintf("Unable to find valid config descriptor");
 				continue;
 			}
 			dbprintf("After full descriptor read");
@@ -109,18 +113,27 @@ static void usbhost_os_task( void* ptr )
 			{
 				struct usbhost_driver_item* i;
 				list_for_each_entry( &ctx.usb_drivers, i, inode ) {
-					if( i->drv->attached( &ctx.dev.cfg_desc ) == usbh_driver_ret_configured ) {
+					const int ret = i->drv->attached(&ctx.dev, ctx.dev.data);
+					if( ret == usbh_driver_ret_configured ) {
 						ctx.drv = i->drv;
+						// Internal driver error
+						break;
+					} else if( ret != usbh_driver_ret_not_found ) {
+						// Internal driver error
+						ctx.err = ret;
 						break;
 					}
 				}
 				if( !ctx.drv ) {
-					dbprintf("Device driver not found for selected dev");
-					break;
+					ctx.err = USBHLIB_ERROR_NO_DRIVER;
+					dbprintf("Device driver not found %i", ctx.err );
+					continue;
 				}
 			}
 			isix_sem_signal( ctx.lock );
-			ctx.err = ctx.drv->process( ctx.drv->data );
+			dbprintf("Process enter");
+			ctx.err = ctx.drv->process( ctx.dev.data );
+			dbprintf("Process exit");
 		}
 	} while(true);
 }

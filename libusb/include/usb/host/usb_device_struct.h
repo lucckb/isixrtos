@@ -23,19 +23,15 @@
 extern "C" {
 #endif
 /* ------------------------------------------------------------------ */ 
-//! USB descriptor data
-struct usb_descriptor_data {
-	void* mem;
-	uint16_t size;
-};
-/* ------------------------------------------------------------------ */ 
 //! USB host device description
 struct usbhost_device {
 	//Part of the connected device data
 	usb_device_descriptor_t dev_desc;	//Device descriptor
 	usb_speed_t speed;					//Device speed
 	uint8_t dev_addr;					//Device address
-	struct usb_descriptor_data cfg_desc;//Config descriptor
+	void* cdesc;						//Config descriptor pointer
+	uint16_t	cdsize;					//Config descriptor size
+	void *data;							//Configuration data
 };
 
 /* ------------------------------------------------------------------ */ 

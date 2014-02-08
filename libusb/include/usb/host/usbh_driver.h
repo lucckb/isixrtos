@@ -20,22 +20,21 @@
 #include <stdint.h>
 #include <stdbool.h>
 /* ------------------------------------------------------------------ */ 
-struct usb_descriptor_data;
-/* ------------------------------------------------------------------ */ 
 #ifdef __cplusplus
 extern "C" {
 #endif
 /* ------------------------------------------------------------------ */ 
+struct usbhost_device;
+/* ------------------------------------------------------------------ */ 
 enum usbh_driver_ret {
 	usbh_driver_ret_configured,		//Device configured
-	usbh_driver_ret_not_found		//Device not found
+	usbh_driver_ret_not_found,		//Device not found
 };
 /* ------------------------------------------------------------------ */ 
 //!Private usbhdriver struct
 struct usbh_driver {
-	int (*attached)(const struct usb_descriptor_data* desc );
+	int (*attached)( const struct usbhost_device* hdev, void** data );
 	int (*process)(void* data);		//! Process data
-	void *data;						//! Driver private data
 };
 /* ------------------------------------------------------------------ */ 
 #ifdef __cplusplus

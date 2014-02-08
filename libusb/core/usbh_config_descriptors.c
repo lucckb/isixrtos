@@ -33,7 +33,7 @@
 
 
 void usb_get_next_descriptor_of_type(uint16_t* const BytesRem,
-                                 void** const CurrConfigLoc,
+                                 const void** CurrConfigLoc,
                                  const uint8_t Type)
 {
 	while (*BytesRem)
@@ -46,7 +46,7 @@ void usb_get_next_descriptor_of_type(uint16_t* const BytesRem,
 }
 
 void usb_get_next_descriptor_of_type_before(uint16_t* const BytesRem,
-                                       void** const CurrConfigLoc,
+                                       const void** CurrConfigLoc,
                                        const uint8_t Type,
                                        const uint8_t BeforeType)
 {
@@ -67,7 +67,7 @@ void usb_get_next_descriptor_of_type_before(uint16_t* const BytesRem,
 }
 
 void usb_get_next_descriptor_of_type_after(uint16_t* const BytesRem,
-                                      void** const CurrConfigLoc,
+                                      const void** CurrConfigLoc,
                                       const uint8_t Type,
                                       const uint8_t AfterType)
 {
@@ -77,15 +77,15 @@ void usb_get_next_descriptor_of_type_after(uint16_t* const BytesRem,
 	  usb_get_next_descriptor_of_type(BytesRem, CurrConfigLoc, Type);
 }
 
-uint8_t usb_get_next_descriptor_comp(uint16_t* const BytesRem,
-                                  void** const CurrConfigLoc,
+int usb_get_next_descriptor_comp(uint16_t* const BytesRem,
+                                  const void** CurrConfigLoc,
                                   config_comparator_ptr_t const ComparatorRoutine)
 {
 	uint8_t ErrorCode;
 
 	while (*BytesRem)
 	{
-		uint8_t* PrevDescLoc  = *CurrConfigLoc;
+		const uint8_t* PrevDescLoc  = *CurrConfigLoc;
 		uint16_t PrevBytesRem = *BytesRem;
 
 		usb_get_next_descriptor(BytesRem, CurrConfigLoc);

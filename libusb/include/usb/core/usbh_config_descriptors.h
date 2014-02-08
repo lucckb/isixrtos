@@ -120,7 +120,7 @@
 			 *
 			 *  \see \ref usb_get_next_descriptor_comp function for more details.
 			 */
-			typedef uint8_t (* config_comparator_ptr_t)(void*);
+			typedef int (* config_comparator_ptr_t)(const void*);
 
 			/** Skips to the next sub-descriptor inside the configuration descriptor of the specified type value.
 			 *  The bytes remaining value is automatically decremented.
@@ -130,7 +130,7 @@
 			 * \param[in]     Type           Descriptor type value to search for.
 			 */
 			void usb_get_next_descriptor_of_type(uint16_t* const BytesRem,
-			                                 void** const CurrConfigLoc,
+			                                 const void** CurrConfigLoc,
 			                                 const uint8_t Type);
 
 			/** Skips to the next sub-descriptor inside the configuration descriptor of the specified type value,
@@ -144,7 +144,7 @@
 			 * \param[in]     BeforeType     Descriptor type value which must not be reached before the given Type descriptor.
 			 */
 			void usb_get_next_descriptor_of_type_before(uint16_t* const BytesRem,
-			                                       void** const CurrConfigLoc,
+			                                       const void** CurrConfigLoc,
 			                                       const uint8_t Type,
 			                                       const uint8_t BeforeType);
 
@@ -158,7 +158,7 @@
 			 * \param[in]     AfterType      Descriptor type value which must be reached before the given Type descriptor.
 			 */
 			void usb_get_next_descriptor_of_type_after(uint16_t* const BytesRem,
-			                                      void** const CurrConfigLoc,
+			                                      const void** CurrConfigLoc,
 			                                      const uint8_t Type,
 			                                      const uint8_t AfterType);
 
@@ -203,8 +203,8 @@
 			 *  }
 			 *  \endcode
 			 */
-			uint8_t usb_get_next_descriptor_comp(uint16_t* const BytesRem,
-			                                  void** const CurrConfigLoc,
+			int usb_get_next_descriptor_comp(uint16_t* const BytesRem,
+			                                  const void** CurrConfigLoc,
 			                                  config_comparator_ptr_t const ComparatorRoutine); 
 
 		/* Inline Functions: */
@@ -215,16 +215,16 @@
 			 * \param[in,out] CurrConfigLoc  Pointer to the current descriptor inside the configuration descriptor.
 			 */
 			static inline void usb_get_next_descriptor(uint16_t* const BytesRem,
-			                                         void** CurrConfigLoc);
+			                                         const void** CurrConfigLoc);
 
 			static inline void usb_get_next_descriptor(uint16_t* const BytesRem,
-			                                         void** CurrConfigLoc)
+			                                         const void** CurrConfigLoc)
 			{
 				uint16_t CurrDescriptorSize = DESCRIPTOR_CAST(*CurrConfigLoc, usb_descriptor_header_t).Size;
 				if (*BytesRem < CurrDescriptorSize)
 				  CurrDescriptorSize = *BytesRem;
 
-				*CurrConfigLoc  = (void*)((uintptr_t)*CurrConfigLoc + CurrDescriptorSize);
+				*CurrConfigLoc  = (const void*)((uintptr_t)*CurrConfigLoc + CurrDescriptorSize);
 				*BytesRem      -= CurrDescriptorSize;
 			}
 
