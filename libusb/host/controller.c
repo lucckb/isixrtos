@@ -15,7 +15,7 @@
  *
  * =====================================================================================
  */
-#include "usbh_driver.h"
+#include <usb/host/usbh_driver.h>
 #include <usb/host/controller.h>
 #include <usb/host/internal.h>
 #include <isix.h>
