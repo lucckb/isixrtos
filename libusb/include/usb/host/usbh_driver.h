@@ -36,6 +36,9 @@ struct usbh_driver {
 	int (*attached)( const struct usbhost_device* hdev, void** data );
 	int (*process)(void* data);		//! Process data
 };
+
+typedef struct usbh_driver usbh_driver_t;
+
 /* ------------------------------------------------------------------ */ 
 #ifdef __cplusplus
 }

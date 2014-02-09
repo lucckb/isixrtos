@@ -35,14 +35,14 @@ struct usbhost_controller_context {
 	task_t* host_task;					//ISIX host base task
 	list_entry_t usb_drivers;			//USB drivers list
 	int err;							//Library error
-	struct usbhost_device dev;			//Attached device
-	const struct usbh_driver* drv;		//Current attached driver
+	usbhost_device_t dev;				//Attached device
+	const usbh_driver_t* drv;			//Current attached driver
 	sem_t* lock;						//Driver lock semaphore
 };
 
 //! Driver item
 struct usbhost_driver_item {
-	const struct usbh_driver* drv;		//Driver struture
+	const usbh_driver_t* drv;			//Driver struture
 	bool in_use;						//Driver in use
 	list_t inode;						//Driver add
 };

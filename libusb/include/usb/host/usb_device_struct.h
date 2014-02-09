@@ -34,6 +34,8 @@ struct usbhost_device {
 	void *data;							//Configuration data
 };
 
+typedef struct usbhost_device usbhost_device_t;
+
 /* ------------------------------------------------------------------ */ 
 #ifdef __cplusplus
 }
