@@ -26,6 +26,11 @@
 #include <usb/host/usb_device_struct.h>
 #include <usb/core/usbh_std_req.h>
 #include <isix.h>
+#include <stdlib.h>
+/* ------------------------------------------------------------------ */ 
+typedef struct keyb_hid_context {
+	usbh_hid_context_t *hid;
+} keyb_hid_context_t;
 /* ------------------------------------------------------------------ */
 //Keyboard interface comparision for joystick
 static int dcomp_keyboard_interface( const void* curr_desc)
@@ -109,7 +114,16 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 		(if_desc->bInterfaceProtocol != MOUSE_PROTOCOL || ret != USBHLIB_ERROR_STALL)) {
 		return ret;
 	}
-	ret = usbh_hid_set_machine(hdev->speed, hdev->dev_addr, if_desc, hid_desc, ep_desc, if_desc->bNumEndpoints );
+	
+	//Prepare keyboard context
+	*data = malloc( sizeof( keyb_hid_context_t ) );
+	if(!(*data)) {
+		return USBHLIB_ERROR_NO_MEM;
+	}
+	keyb_hid_context_t* ctx = (keyb_hid_context_t*)*data;
+	ctx->hid = usbh_hid_core_new_ctx();
+	ret = usbh_hid_set_machine(ctx->hid, hdev->speed, hdev->dev_addr, 
+			if_desc, hid_desc, ep_desc, if_desc->bNumEndpoints );
 	if (ret != USBHLIB_SUCCESS) {
 		return ret;
 	}
@@ -119,9 +133,9 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 //! Process the hid keyboard 
 static int hid_keyboard_process( void* data ) 
 {
-	(void)data;	
+	keyb_hid_context_t* ctx = (keyb_hid_context_t*)data;
 	dbprintf("Hid machine setup ok");
-	while (usbh_hid_is_device_ready()) {
+	while (usbh_hid_is_device_ready(ctx->hid)) {
 			if( new_keyboard_data ) {
 				new_keyboard_data = false;
 				dbprintf("Keyboard modif %02x", keyboard_modifiers );
@@ -135,8 +149,10 @@ static int hid_keyboard_process( void* data )
 		}
 		isix_wait_ms(25);
 	}
-	dbprintf("KBD or mouse disconnected err %i", usbh_hid_error());
-	return 0;
+	dbprintf("KBD or mouse disconnected err %i", usbh_hid_error(ctx->hid));
+	free( ctx->hid );
+	free( ctx );
+	return USBHLIB_SUCCESS;
 }
 /* ------------------------------------------------------------------ */ 
 //! Driver Ops structure

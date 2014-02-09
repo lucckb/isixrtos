@@ -68,9 +68,9 @@ static struct usbhost_driver_item* find_driver( const struct usbh_driver* drv )
 }
 /* ------------------------------------------------------------------ */ 
 //Operating system usb task
-static void usbhost_os_task( void* ptr )
+static void usbhost_os_task( void* unused_os_arg )
 {
-	(void)ptr;
+	(void)unused_os_arg;
 	do {
 		ctx.err = usbh_open_device(&ctx.dev.speed, &ctx.dev.dev_addr, &ctx.dev.dev_desc, ISIX_TIME_INFINITE);
 		if( ctx.err != USBHLIB_SUCCESS ) {
@@ -113,7 +113,7 @@ static void usbhost_os_task( void* ptr )
 			{
 				struct usbhost_driver_item* i;
 				list_for_each_entry( &ctx.usb_drivers, i, inode ) {
-					const int ret = i->drv->attached(&ctx.dev, ctx.dev.data);
+					const int ret = i->drv->attached(&ctx.dev, &ctx.dev.data);
 					if( ret == usbh_driver_ret_configured ) {
 						ctx.drv = i->drv;
 						// Internal driver error
