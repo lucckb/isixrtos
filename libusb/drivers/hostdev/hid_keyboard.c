@@ -28,9 +28,12 @@
 #include <isix.h>
 #include <stdlib.h>
 /* ------------------------------------------------------------------ */ 
-typedef struct keyb_hid_context {
+typedef struct usbh_keyb_hid_context {
 	usbh_hid_context_t *hid;
-} keyb_hid_context_t;
+} usbh_keyb_hid_context_t;
+/* ------------------------------------------------------------------ */ 
+//Keyboard operator struct
+ static const usbh_hid_kbd_ops_t* g_kbd_ops;
 /* ------------------------------------------------------------------ */
 //Keyboard interface comparision for joystick
 static int dcomp_keyboard_interface( const void* curr_desc)
@@ -116,11 +119,11 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 	}
 	
 	//Prepare keyboard context
-	*data = malloc( sizeof( keyb_hid_context_t ) );
+	*data = malloc( sizeof( usbh_keyb_hid_context_t ) );
 	if(!(*data)) {
 		return USBHLIB_ERROR_NO_MEM;
 	}
-	keyb_hid_context_t* ctx = (keyb_hid_context_t*)*data;
+	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)*data;
 	ctx->hid = usbh_hid_core_new_ctx();
 	ret = usbh_hid_set_machine(ctx->hid, hdev->speed, hdev->dev_addr, 
 			if_desc, hid_desc, ep_desc, if_desc->bNumEndpoints );
@@ -133,9 +136,10 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 //! Process the hid keyboard 
 static int hid_keyboard_process( void* data ) 
 {
-	keyb_hid_context_t* ctx = (keyb_hid_context_t*)data;
+	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)data;
 	dbprintf("Hid machine setup ok");
 	while (usbh_hid_is_device_ready(ctx->hid)) {
+#if 0
 			if( new_keyboard_data ) {
 				new_keyboard_data = false;
 				dbprintf("Keyboard modif %02x", keyboard_modifiers );
@@ -147,6 +151,7 @@ static int hid_keyboard_process( void* data )
 			dbprintf("Button: %02x x: %i y: %i", (unsigned)mouse_buttons, mouse_x, mouse_y );
 			new_mouse_data = false;
 		}
+#endif
 		isix_wait_ms(25);
 	}
 	dbprintf("KBD or mouse disconnected err %i", usbh_hid_error(ctx->hid));
@@ -162,7 +167,9 @@ static const struct usbh_driver drv_ops = {
 };
 /* ------------------------------------------------------------------ */ 
 //Initialize core hid driver
-const struct usbh_driver* usbh_hid_keyboard_init( void ) {
+const struct usbh_driver* usbh_hid_keyboard_init( const usbh_hid_kbd_ops_t* kbd_ops  ) 
+{
+	g_kbd_ops = kbd_ops;
 	return &drv_ops;
 }
 /* ------------------------------------------------------------------ */ 
