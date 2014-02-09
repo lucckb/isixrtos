@@ -222,6 +222,7 @@ static void HIDatDisconnect(void *p) {
 	HIDfreeChannels(hd);
 	hd->errno = USBHLIB_ERROR_NO_DEVICE;
 	hd->state = HID_EXIT;
+	hd->callback( hd, NULL, 0 );
 }
 
 

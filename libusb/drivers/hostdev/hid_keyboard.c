@@ -69,7 +69,7 @@ static int dcomp_endp_desc( const void* curr_desc )
 }
 /* ------------------------------------------------------------------ */
 
-
+//FIXME: Test only kbd parsing and send queue should be done
 static int new_keyboard_data;
 static unsigned keyboard_modifiers;
 static uint8_t keyboard_scan_code[KEYBOARD_MAX_PRESSED_KEYS];
@@ -85,6 +85,9 @@ static void report_irq_callback( usbh_hid_context_t* ctx, const uint8_t* pbuf, u
 	(void)len;
 	int new_num_lock, new_caps_lock;
 
+	if( len == 0 ) {	//Disconnection event
+		return;
+	}
 	for (i = 2; i < 2 + KEYBOARD_MAX_PRESSED_KEYS; ++i) {
 		if (pbuf[i] == 1 || pbuf[i] == 2 || pbuf[i] == 3) {
 			return ; /* error */
@@ -122,8 +125,7 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 	//Validate device descriptor
 	if ( dev_desc->bDeviceClass != 0 ||
 		 dev_desc->bDeviceSubClass != 0 ||
-		 dev_desc->bDeviceProtocol != 0 )
-	{
+		 dev_desc->bDeviceProtocol != 0 ) {
 		return usbh_driver_ret_not_found;
 	}
 	const usb_configuration_descriptor_t* cfg_desc = DESCRIPTOR_PCAST( cdesc, usb_configuration_descriptor_t );
