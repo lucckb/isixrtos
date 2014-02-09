@@ -68,10 +68,54 @@ static int dcomp_endp_desc( const void* curr_desc )
 	return DESCRIPTOR_SEARCH_NotFound;
 }
 /* ------------------------------------------------------------------ */
+
+
+static int new_keyboard_data;
+static unsigned keyboard_modifiers;
+static uint8_t keyboard_scan_code[KEYBOARD_MAX_PRESSED_KEYS];
+static int num_lock, caps_lock;
+static uint8_t last_report = 0;
+static uint8_t report = 0;
+static int send_rep_error = -1;
+
+
+static void report_irq_callback( usbh_hid_context_t* ctx, const uint8_t* pbuf, uint8_t len )
+{
+	uint32_t i;
+	(void)len;
+	int new_num_lock, new_caps_lock;
+
+	for (i = 2; i < 2 + KEYBOARD_MAX_PRESSED_KEYS; ++i) {
+		if (pbuf[i] == 1 || pbuf[i] == 2 || pbuf[i] == 3) {
+			return ; /* error */
+		}
+	}
+	keyboard_modifiers = pbuf[0];
+	new_caps_lock = new_num_lock = 0;
+	for (i = 0; i < KEYBOARD_MAX_PRESSED_KEYS; ++i) {
+		keyboard_scan_code[i] = pbuf[i + 2];
+		if (keyboard_scan_code[i] == NUM_LOCK_SCAN_CODE)
+			new_num_lock = 1;
+		if (keyboard_scan_code[i] == CAPS_LOCK_SCAN_CODE)
+			new_caps_lock = 1;
+	}
+	new_keyboard_data = 1;
+
+	if (num_lock == 0 && new_num_lock == 1)
+		report ^= KEYBOARD_NUM_LOCK_LED;
+	if (caps_lock == 0 && new_caps_lock == 1)
+		report ^= KEYBOARD_CAPS_LOCK_LED;
+	num_lock = new_num_lock;
+	caps_lock = new_caps_lock;
+	if( report != last_report ) {
+		send_rep_error = usbh_hid_sent_report( ctx , &report, sizeof report );
+		last_report = report;
+	}
+}
+/* ------------------------------------------------------------------ */
 /* Driver autodetection and attaching */
 static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data ) 
 {
-	(void)data;
 	const usb_device_descriptor_t* dev_desc = &hdev->dev_desc;
 	const void* cdesc = hdev->cdesc;
 	uint16_t cdsize = hdev->cdsize;
@@ -93,7 +137,7 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 	if ( ret != DESCRIPTOR_SEARCH_COMP_Found ) {
 		return usbh_driver_ret_not_found;
 	}
-	const usb_hid_main_descriptor_t* hid_desc = DESCRIPTOR_PCAST( cdesc, usb_hid_main_descriptor_t );
+	//const usb_hid_main_descriptor_t* hid_desc = DESCRIPTOR_PCAST( cdesc, usb_hid_main_descriptor_t );
 	//Find the endpoint descriptor
 	ret = usb_get_next_descriptor_comp( &cdsize, &cdesc, dcomp_endp_desc );
 	if ( ret != DESCRIPTOR_SEARCH_COMP_Found ) {
@@ -126,7 +170,7 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)*data;
 	ctx->hid = usbh_hid_core_new_ctx();
 	ret = usbh_hid_set_machine(ctx->hid, hdev->speed, hdev->dev_addr, 
-			if_desc, hid_desc, ep_desc, if_desc->bNumEndpoints );
+			if_desc->bInterfaceNumber, 8,  ep_desc, if_desc->bNumEndpoints, report_irq_callback );
 	if (ret != USBHLIB_SUCCESS) {
 		return ret;
 	}
@@ -139,19 +183,14 @@ static int hid_keyboard_process( void* data )
 	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)data;
 	dbprintf("Hid machine setup ok");
 	while (usbh_hid_is_device_ready(ctx->hid)) {
-#if 0
 			if( new_keyboard_data ) {
 				new_keyboard_data = false;
 				dbprintf("Keyboard modif %02x", keyboard_modifiers );
+				dbprintf("Lrep %02x err %i", last_report, send_rep_error );
 				for( int i=0;i<KEYBOARD_MAX_PRESSED_KEYS; ++i ) {
 					dbprintf("Code %02x", keyboard_scan_code[i] );
 				}
 			}
-		if( new_mouse_data ) {
-			dbprintf("Button: %02x x: %i y: %i", (unsigned)mouse_buttons, mouse_x, mouse_y );
-			new_mouse_data = false;
-		}
-#endif
 		isix_wait_ms(25);
 	}
 	dbprintf("KBD or mouse disconnected err %i", usbh_hid_error(ctx->hid));

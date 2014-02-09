@@ -23,19 +23,20 @@ struct usbh_hid_context {
 	usb_pid_t        pid_in;
 	int              ch_num_in;
 	unsigned         timer_in;
+	usbh_hid_report_callback_t callback;
 	uint16_t         length_in;
+	uint16_t		 length_out;
 	uint16_t         min_length_in;
 	uint8_t          dev_addr;
 	uint8_t          iface;
-	uint8_t          protocol;
 	uint8_t          ep_addr_in;
 	uint8_t          interval_in;
-	uint8_t          report_out;
+	uint8_t          buffer_out[MAX_LS_INTERRUPT_PACKET_SIZE];
 	uint8_t          buffer_in[MAX_LS_INTERRUPT_PACKET_SIZE];
 };
 
 /** Simplified mouse and kayboard application interface **/
-
+#if 0
 int new_mouse_data;
 unsigned mouse_buttons;
 int mouse_x, mouse_y;
@@ -97,6 +98,8 @@ static uint8_t KeyboardAction(uint8_t const *pbuf, uint8_t report) {
 	return report;
 }
 
+#endif
+
 /** Full implementation of the HID core machine **/
 
 static void HIDfreeChannels(usbh_hid_context_t *hd) {
@@ -116,7 +119,6 @@ static int HIDstateMachine(void *p) {
 	usbh_transaction_result_t trr;
 	int                       res;
 	uint32_t                  len;
-	uint8_t                   report;
 
 	switch (hd->state) {
 		case HID_INIT:
@@ -125,12 +127,11 @@ static int HIDstateMachine(void *p) {
 				USBHopenChannel(hd->ch_num_in, hd->dev_addr, hd->ep_addr_in,
 						hd->speed, INTERRUPT_TRANSFER, hd->length_in);
 				hd->timer_in = 1;
-				hd->report_out = 0; /* all LEDs off */
 				hd->errno = USBHLIB_SUCCESS;
 				hd->pid_in = PID_DATA0;
-				if (hd->protocol == KEYBOARD_PROTOCOL)
+				if (hd->length_out > 0 )
 					hd->state = HID_REPORT_OUT;
-				else /* MOUSE_PROTOCOL */
+				else 
 					hd->state = HID_POLL_IN;
 			}
 			else {
@@ -163,15 +164,9 @@ static int HIDstateMachine(void *p) {
 				hd->errno = USBHLIB_SUCCESS;
 				hd->state = HID_POLL_IN;
 				if (len >= hd->min_length_in) {
-					if (hd->protocol == KEYBOARD_PROTOCOL) {
-						report = KeyboardAction(hd->buffer_in, hd->report_out);
-						if (hd->report_out != report) {
-							hd->report_out = report;
-							hd->state = HID_REPORT_OUT;
-						}
-					}
-					else { /* MOUSE_PROTOCOL */
-						MouseAction((hid_mouse_boot_report_t const *)hd->buffer_in);
+					hd->callback( hd, hd->buffer_in, len );
+					if( hd->length_out > 0 ) {
+						hd->state = HID_REPORT_OUT;
 					}
 				}
 			}
@@ -196,10 +191,12 @@ static int HIDstateMachine(void *p) {
 				hd->state = HID_EXIT;
 			break;
 		case HID_REPORT_OUT:
-			res = usbh_hid_set_report(0, hd->iface, 0, &hd->report_out, 1);
+			res = usbh_hid_set_report( 0, hd->iface, 0, hd->buffer_out, hd->length_out );
 			hd->errno = res;
-			if (res == USBHLIB_SUCCESS)
+			if (res == USBHLIB_SUCCESS) {
 				hd->state = HID_POLL_IN;
+				hd->length_out = 0;
+			}
 			else if (res != USBHLIB_IN_PROGRESS)
 				hd->state = HID_EXIT;
 			break;
@@ -230,31 +227,17 @@ static void HIDatDisconnect(void *p) {
 
 int usbh_hid_set_machine( usbh_hid_context_t* hid_ctx,
 		usb_speed_t speed, uint8_t dev_addr,
-		usb_interface_descriptor_t const *if_desc,
-		usb_hid_main_descriptor_t const *hid_desc,
+		uint8_t ifc_no, uint16_t min_len,
 		usb_endpoint_descriptor_t const *ep_desc,
-		unsigned ep_count) {
-	(void)hid_desc;
+		unsigned ep_count, usbh_hid_report_callback_t callback ) {
 	unsigned i;
 	if( !hid_ctx ) {
 		return USBHLIB_ERROR_NO_MEM;
 	}
-	if (if_desc->bInterfaceClass != HUMAN_INTERFACE_DEVICE_CLASS ||
-			if_desc->bInterfaceSubClass != BOOT_INTERFACE_SUBCLASS) {
+	if( !callback ) {
 		return USBHLIB_ERROR_INVALID_PARAM;
 	}
-
-	if (if_desc->bInterfaceProtocol == MOUSE_PROTOCOL) {
-		hid_ctx->min_length_in = 3;
-		MouseInit();
-	}
-	else if (if_desc->bInterfaceProtocol == KEYBOARD_PROTOCOL) {
-		hid_ctx->min_length_in = 8;
-		KeyboardInit();
-	}
-	else {
-		return USBHLIB_ERROR_INVALID_PARAM;
-	}
+	hid_ctx->min_length_in = min_len;
 
 	for (i = 0; i < ep_count; ++i) {
 		if ((ep_desc[i].bEndpointAddress & ENDP_DIRECTION_MASK) == ENDP_IN &&
@@ -283,12 +266,11 @@ int usbh_hid_set_machine( usbh_hid_context_t* hid_ctx,
 	hid_ctx->timer_in = 1;
 	hid_ctx->length_in = ep_desc[i].wMaxPacketSize;
 	hid_ctx->dev_addr = dev_addr;
-	hid_ctx->iface = if_desc->bInterfaceNumber;
-	hid_ctx->protocol = if_desc->bInterfaceProtocol;
+	hid_ctx->iface = ifc_no;
 	hid_ctx->ep_addr_in = ep_desc[i].bEndpointAddress;
 	hid_ctx->interval_in = ep_desc[i].bInterval;
-	hid_ctx->report_out = 0;
-
+	hid_ctx->length_out = 0;
+	hid_ctx->callback = callback;
 	return usbh_set_class_machine(HIDstateMachine, HIDatSoF,
 			HIDatDisconnect, hid_ctx );
 }
@@ -312,4 +294,19 @@ usbh_hid_context_t* usbh_hid_core_new_ctx(void) {
 	void* mem =  malloc( sizeof( usbh_hid_context_t ) );
 	memset( mem, 0, sizeof( usbh_hid_context_t ));
 	return mem;
+}
+
+/*  Send report allowed only in interruppt contest  */
+int usbh_hid_sent_report( usbh_hid_context_t* hid_ctx, 
+		const uint8_t *rptout, uint16_t size )
+{
+	if( hid_ctx->length_out > 0 ) {
+		return USBHLIB_ERROR_BUSY;
+	}
+	if( size > sizeof( hid_ctx->length_out ) ) {
+		size = sizeof( hid_ctx->length_out );
+	}
+	memcpy( hid_ctx->buffer_out, rptout, size );
+	hid_ctx->length_out = size;
+	return USBHLIB_SUCCESS;
 }
