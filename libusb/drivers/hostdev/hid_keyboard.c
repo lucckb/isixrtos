@@ -42,7 +42,9 @@ static int dcomp_keyboard_interface( const void* curr_desc)
 	if( hdr->Type == INTERFACE_DESCRIPTOR ) {
 		const usb_interface_descriptor_t* ifc = DESCRIPTOR_PCAST( curr_desc, usb_interface_descriptor_t );
 		if( ifc->bInterfaceClass ==  HUMAN_INTERFACE_DEVICE_CLASS &&
-			ifc->bInterfaceSubClass == BOOT_INTERFACE_SUBCLASS ) {
+			ifc->bInterfaceSubClass == BOOT_INTERFACE_SUBCLASS &&
+			ifc->bInterfaceProtocol == KEYBOARD_PROTOCOL )
+		{
 				return DESCRIPTOR_SEARCH_Found;
 		}
 	}
@@ -126,14 +128,17 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 	if ( dev_desc->bDeviceClass != 0 ||
 		 dev_desc->bDeviceSubClass != 0 ||
 		 dev_desc->bDeviceProtocol != 0 ) {
+		dbprintf("Dev class not match");
 		return usbh_driver_ret_not_found;
 	}
 	const usb_configuration_descriptor_t* cfg_desc = DESCRIPTOR_PCAST( cdesc, usb_configuration_descriptor_t );
 	int ret = usb_get_next_descriptor_comp( &cdsize, &cdesc, dcomp_keyboard_interface ); 
 	if ( ret != DESCRIPTOR_SEARCH_COMP_Found ) {
+		dbprintf("Descriptor not match");
 		return usbh_driver_ret_not_found;
 	}
 	const usb_interface_descriptor_t *if_desc = DESCRIPTOR_PCAST( cdesc , usb_interface_descriptor_t );
+	dbprintf("CLASS %i SUBCLAS %i BOOT %i", if_desc->bInterfaceClass, if_desc->bInterfaceSubClass, if_desc->bInterfaceProtocol );
 	//OK search for main hid descriptor
 	ret = usb_get_next_descriptor_comp( &cdsize, &cdesc, dcomp_hid_desc ); 
 	if ( ret != DESCRIPTOR_SEARCH_COMP_Found ) {

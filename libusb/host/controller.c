@@ -112,6 +112,7 @@ static void usbhost_os_task( void* unused_os_arg )
 			}
 			{
 				struct usbhost_driver_item* i;
+				ctx.drv = NULL;
 				list_for_each_entry( &ctx.usb_drivers, i, inode ) {
 					const int ret = i->drv->attached(&ctx.dev, &ctx.dev.data);
 					if( ret == usbh_driver_ret_configured ) {
@@ -126,6 +127,7 @@ static void usbhost_os_task( void* unused_os_arg )
 				}
 				if( !ctx.drv ) {
 					ctx.err = USBHLIB_ERROR_NO_DRIVER;
+					isix_sem_signal( ctx.lock );
 					dbprintf("Device driver not found %i", ctx.err );
 					continue;
 				}
