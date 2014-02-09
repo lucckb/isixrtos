@@ -24,6 +24,7 @@
 #include <usb/core/usbh_hid_req.h>
 #include <usb/core/usbh_hid_core.h>
 #include <usb/host/usb_device_struct.h>
+#include <usb/core/usbh_std_req.h>
 #include <isix.h>
 /* ------------------------------------------------------------------ */
 //Keyboard interface comparision for joystick
@@ -73,6 +74,7 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 	{
 		return usbh_driver_ret_not_found;
 	}
+	const usb_configuration_descriptor_t* cfg_desc = DESCRIPTOR_PCAST( cdesc, usb_configuration_descriptor_t );
 	int ret = usb_get_next_descriptor_comp( &cdsize, &cdesc, dcomp_keyboard_interface ); 
 	if ( ret != DESCRIPTOR_SEARCH_COMP_Found ) {
 		return usbh_driver_ret_not_found;
@@ -91,13 +93,18 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 	}
 	const usb_endpoint_descriptor_t *ep_desc = DESCRIPTOR_PCAST (cdesc, usb_endpoint_descriptor_t );
 	
+	/* Set device configuration */
+	ret = usbh_set_configuration( USBH_SYNC, cfg_desc->bConfigurationValue );
+	if (ret != USBHLIB_SUCCESS) {
+		return ret;
+	}
 	/* Set hid boot protocol */
-	ret = usbh_hid_set_boot_protocol(1, if_desc->bInterfaceNumber, HID_BOOT_PROTOCOL);
+	ret = usbh_hid_set_boot_protocol( USBH_SYNC, if_desc->bInterfaceNumber, HID_BOOT_PROTOCOL );
 	if (ret != USBHLIB_SUCCESS) {
 		return ret;
 	}
 	/* Set infinity idle time. This request is optional for mouse. */
-	ret = usbh_hid_set_idle(1, if_desc->bInterfaceNumber, 0, 0);
+	ret = usbh_hid_set_idle( USBH_SYNC, if_desc->bInterfaceNumber, 0, 0 );
 	if (ret != USBHLIB_SUCCESS &&
 		(if_desc->bInterfaceProtocol != MOUSE_PROTOCOL || ret != USBHLIB_ERROR_STALL)) {
 		return ret;
@@ -126,9 +133,9 @@ static int hid_keyboard_process( void* data )
 			dbprintf("Button: %02x x: %i y: %i", (unsigned)mouse_buttons, mouse_x, mouse_y );
 			new_mouse_data = false;
 		}
-		isix_wait_ms(250);
+		isix_wait_ms(25);
 	}
-	dbprintf("KBD or mouse disconnected");
+	dbprintf("KBD or mouse disconnected err %i", usbh_hid_error());
 	return 0;
 }
 /* ------------------------------------------------------------------ */ 

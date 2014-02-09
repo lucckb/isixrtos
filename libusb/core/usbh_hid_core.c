@@ -293,3 +293,8 @@ int usbh_hid_set_machine(usb_speed_t speed, uint8_t dev_addr,
 int usbh_hid_is_device_ready() {
   return HIDdata.state != HID_EXIT;
 }
+
+
+int usbh_hid_error(void) {
+	return HIDdata.errno;
+}

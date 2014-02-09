@@ -23,6 +23,8 @@ int usbh_hid_set_machine(usb_speed_t, uint8_t,
 
 int usbh_hid_is_device_ready(void);
 
+int usbh_hid_error(void);
+
 #ifdef __cplusplus
 }
 #endif
