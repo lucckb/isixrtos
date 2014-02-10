@@ -136,7 +136,7 @@ static void report_irq_callback( usbh_hid_context_t* ctx, const uint8_t* pbuf, u
 static void report_irq_callback( usbh_hid_context_t* hid,
 		void* user_data, const uint8_t* pbuf, uint8_t len ) 
 {
-	if( len + 2 != KEYBOARD_MAX_PRESSED_KEYS ) {
+	if( KEYBOARD_MAX_PRESSED_KEYS + 2 != len ) {
 		return;
 	}
 	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)user_data;
