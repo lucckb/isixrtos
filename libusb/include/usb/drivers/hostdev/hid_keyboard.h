@@ -41,8 +41,9 @@ enum usbh_keyb_hid_scan_bits_enum {
 
 struct usbh_keyb_hid_event {
 	usbh_keyb_hid_context_t* kbd_id;	//! Keyboard initializer
-	uint8_t key;						//! Translated key to UE char
-	uint8_t scan_bits;					//!Special scan bits keys
+	uint8_t keys[6];					//! Translated key to UE char
+	uint8_t scan_bits;					//! Special scan bits keys
+	uint8_t n_scan_codes;				//! Number of scan codes
 	uint8_t scan_codes[6];				//! Scan code extra key
 };
 typedef struct usbh_keyb_hid_event usbh_keyb_hid_event_t;

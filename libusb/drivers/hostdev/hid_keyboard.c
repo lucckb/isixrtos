@@ -29,6 +29,73 @@
 #include <stdlib.h>
 #include <string.h>
 /* ------------------------------------------------------------------ */ 
+static  const  uint8_t  hid_keybrd_codes[] = {
+  0,     0,    0,    0,   31,   50,   48,   33, 
+  19,   34,   35,   36,   24,   37,   38,   39,       /* 0x00 - 0x0F */
+  52,    51,   25,   26,   17,   20,   32,   21,
+  23,   49,   18,   47,   22,   46,    2,    3,       /* 0x10 - 0x1F */
+  4,    5,    6,    7,    8,    9,   10,   11, 
+  43,  110,   15,   16,   61,   12,   13,   27,       /* 0x20 - 0x2F */
+  28,   29,   42,   40,   41,    1,   53,   54,  
+  55,   30,  112,  113,  114,  115,  116,  117,       /* 0x30 - 0x3F */
+  118,  119,  120,  121,  122,  123,  124,  125,  
+  126,   75,   80,   85,   76,   81,   86,   89,       /* 0x40 - 0x4F */
+  79,   84,   83,   90,   95,  100,  105,  106,
+  108,   93,   98,  103,   92,   97,  102,   91,       /* 0x50 - 0x5F */
+  96,  101,   99,  104,   45,  129,    0,    0, 
+  0,    0,    0,    0,    0,    0,    0,    0,       /* 0x60 - 0x6F */
+  0,    0,    0,    0,    0,    0,    0,    0,
+  0,    0,    0,    0,    0,    0,    0,    0,       /* 0x70 - 0x7F */
+  0,    0,    0,    0,    0,  107,    0,   56,
+  0,    0,    0,    0,    0,    0,    0,    0,       /* 0x80 - 0x8F */
+  0,    0,    0,    0,    0,    0,    0,    0,
+  0,    0,    0,    0,    0,    0,    0,    0,       /* 0x90 - 0x9F */
+  0,    0,    0,    0,    0,    0,    0,    0,
+  0,    0,    0,    0,    0,    0,    0,    0,       /* 0xA0 - 0xAF */
+  0,    0,    0,    0,    0,    0,    0,    0, 
+  0,    0,    0,    0,    0,    0,    0,    0,       /* 0xB0 - 0xBF */
+  0,    0,    0,    0,    0,    0,    0,    0, 
+  0,    0,    0,    0,    0,    0,    0,    0,       /* 0xC0 - 0xCF */
+  0,    0,    0,    0,    0,    0,    0,    0, 
+  0,    0,    0,    0,    0,    0,    0,    0,       /* 0xD0 - 0xDF */
+  58,   44,   60,  127,   64,   57,   62,  128        /* 0xE0 - 0xE7 */
+};
+/* ------------------------------------------------------------------ */ 
+static  const  uint8_t  hid_keybrd_key[] = {
+  '\0',  '`',  '1',  '2',  '3',  '4',  '5',  '6',
+  '7',  '8',  '9',  '0',  '-',  '=',  '\0', '\r',
+  '\t',  'q',  'w',  'e',  'r',  't',  'y',  'u', 
+  'i',  'o',  'p',  '[',  ']',  '\\',
+  '\0',  'a',  's',  'd',  'f',  'g',  'h',  'j',  
+  'k',  'l',  ';',  '\'', '\0', '\n',
+  '\0',  '\0', 'z',  'x',  'c',  'v',  'b',  'n', 
+  'm',  ',',  '.',  '/',  '\0', '\0',
+  '\0',  '\0', '\0', ' ',  '\0', '\0', '\0', '\0', 
+  '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+  '\0',  '\0', '\0', '\0', '\0', '\r', '\0', '\0', 
+  '\0', '\0', '\0', '\0', '\0', '\0',
+  '\0',  '\0', '7',  '4',  '1',
+  '\0',  '/',  '8',  '5',  '2',
+  '0',   '*',  '9',  '6',  '3',
+  '.',   '-',  '+',  '\0', '\n', '\0', '\0', '\0', '\0', '\0', '\0',
+  '\0',  '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', 
+  '\0', '\0', '\0', '\0'
+};
+/* ------------------------------------------------------------------ */ 
+static  const  uint8_t  hid_keybrd_shiftkey[] = {
+  '\0', '~',  '!',  '@',  '#',  '$',  '%',  '^',  '&',  '*',  '(',  ')',
+  '_',  '+',  '\0', '\0', '\0', 'Q',  'W',  'E',  'R',  'T',  'Y',  'U', 
+  'I',  'O',  'P',  '{',  '}',  '|',  '\0', 'A',  'S',  'D',  'F',  'G', 
+  'H',  'J',  'K',  'L',  ':',  '"',  '\0', '\n', '\0', '\0', 'Z',  'X',  
+  'C',  'V',  'B',  'N',  'M',  '<',  '>',  '?',  '\0', '\0',  '\0', '\0',
+  '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', 
+  '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+  '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', 
+  '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+  '\0', '\0', '\0', '\0', '\0', '\0', '\0',    '\0', '\0', '\0', '\0', '\0',
+  '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'
+};
+/* ------------------------------------------------------------------ */ 
 //Keyboard context
 typedef struct usbh_keyb_hid_context {
 	usbh_hid_context_t* hid;		//Hid machine state context
@@ -39,6 +106,8 @@ typedef struct usbh_keyb_hid_context {
 	bool caps_lock;					//Caps lock
 	uint8_t last_report;			//Last report
 	uint8_t report;					//Report 
+	uint8_t nbr_keys_last;
+	uint8_t keys_last[ KEYBOARD_MAX_PRESSED_KEYS ];
 } usbh_keyb_hid_context_t;
 
 /* ------------------------------------------------------------------ */ 
@@ -109,14 +178,41 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 		ctx->evt.scan_bits = pbuf[0];
 		bool new_caps_lock = false;
 		bool new_num_lock = false;
+		int nbr_keys = 0;
+		uint8_t keys[ KEYBOARD_MAX_PRESSED_KEYS ];
+		ctx->evt.n_scan_codes = 0;
 		for (int i = 0; i < KEYBOARD_MAX_PRESSED_KEYS; ++i) {
-			ctx->evt.scan_codes[i] = pbuf[i + 2];
-			if (ctx->evt.scan_codes[i] == NUM_LOCK_SCAN_CODE)
+			uint8_t ckey = pbuf[i + 2];
+			if ( ckey == NUM_LOCK_SCAN_CODE )
 				new_num_lock = true;
-			if (ctx->evt.scan_codes[i] == CAPS_LOCK_SCAN_CODE)
+			if ( ckey == CAPS_LOCK_SCAN_CODE )
 				new_caps_lock = true;
+			if( ckey != 0 ) {
+				keys[nbr_keys++] = ckey;
+				int j;
+				for( j = 0; j<ctx->nbr_keys_last; ++j ) {
+					if( ckey == ctx->keys_last[j] ) {
+						break;
+					}
+				}
+				if( j == ctx->nbr_keys_last ) {
+					ctx->evt.scan_codes[ ctx->evt.n_scan_codes++ ] = ckey;
+				}
+			}
+		}
+		//Translate scan codes to keys
+		for( int i = 0; i<ctx->evt.n_scan_codes; ++i ) {
+			uint8_t sck = ctx->evt.scan_codes[i];
+			if( ctx->evt.scan_bits & 
+				(usbh_keyb_hid_scan_bit_l_shift|usbh_keyb_hid_scan_bit_r_shift) ) {
+				ctx->evt.keys[nbr_keys] =  hid_keybrd_shiftkey[hid_keybrd_codes[sck]];
+			} else {
+				ctx->evt.keys[nbr_keys] = hid_keybrd_key[hid_keybrd_codes[sck]];
+			}
 		}
 		new_keyboard_data = true;
+		ctx->nbr_keys_last = nbr_keys;
+		memcpy( ctx->keys_last, keys, sizeof keys );
 
 		if (ctx->num_lock == false && new_num_lock == true)
 			ctx->report ^= KEYBOARD_NUM_LOCK_LED;
@@ -128,9 +224,9 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 			usbh_hid_sent_report( hid , &ctx->report, sizeof ctx->report );
 			ctx->last_report = ctx->report;
 		}
-	}
-	if( new_keyboard_data ) {
-		isix_sem_signal_isr( ctx->report_sem );
+		if( new_keyboard_data ) {
+			isix_sem_signal_isr( ctx->report_sem );
+		}
 	}
 }
 /* ------------------------------------------------------------------ */
@@ -226,10 +322,18 @@ static int hid_keyboard_process( void* data )
 			free( ctx );
 			return USBHLIB_SUCCESS;
 		} else {	//Normal item
+#if 1
 			dbprintf("Keyboard modif %02x", ctx->evt.scan_bits );
-			for( int i=0;i<KEYBOARD_MAX_PRESSED_KEYS; ++i ) {
+			for( int i=0;i<ctx->evt.n_scan_codes; ++i ) {
 				dbprintf("Code %02x", ctx->evt.scan_codes[i] );
+				dbprintf("Key pressed [%c][%02x]", ctx->evt.keys[i], ctx->evt.keys[i] );
 			}
+#else		
+			for( int i=0; i<ctx->evt.n_scan_codes; ++i ) {
+				if( ctx->evt.keys[i] != 0 ) 
+					tiny_printf("%c", ctx->evt.keys[i] );
+			}
+#endif
 		}
 	}
 }
