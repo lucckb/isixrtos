@@ -80,56 +80,9 @@ static int dcomp_endp_desc( const void* curr_desc )
 	return DESCRIPTOR_SEARCH_NotFound;
 }
 /* ------------------------------------------------------------------ */
-#if 0
-//FIXME: Test only kbd parsing and send queue should be done
-static int new_keyboard_data;
-static unsigned keyboard_modifiers;
-static uint8_t keyboard_scan_code[KEYBOARD_MAX_PRESSED_KEYS];
-static int num_lock, caps_lock;
-static uint8_t last_report = 0;
-static uint8_t report = 0;
-static int send_rep_error = -1;
-
-
-static void report_irq_callback( usbh_hid_context_t* ctx, const uint8_t* pbuf, uint8_t len )
-{
-	uint32_t i;
-	(void)len;
-	int new_num_lock, new_caps_lock;
-
-	if( len == 0 ) {	//Disconnection event
-		return;
-	}
-	for (i = 2; i < 2 + KEYBOARD_MAX_PRESSED_KEYS; ++i) {
-		if (pbuf[i] == 1 || pbuf[i] == 2 || pbuf[i] == 3) {
-			return ; /* error */
-		}
-	}
-	keyboard_modifiers = pbuf[0];
-	new_caps_lock = new_num_lock = 0;
-	for (i = 0; i < KEYBOARD_MAX_PRESSED_KEYS; ++i) {
-		keyboard_scan_code[i] = pbuf[i + 2];
-		if (keyboard_scan_code[i] == NUM_LOCK_SCAN_CODE)
-			new_num_lock = 1;
-		if (keyboard_scan_code[i] == CAPS_LOCK_SCAN_CODE)
-			new_caps_lock = 1;
-	}
-	new_keyboard_data = 1;
-
-	if (num_lock == 0 && new_num_lock == 1)
-		report ^= KEYBOARD_NUM_LOCK_LED;
-	if (caps_lock == 0 && new_caps_lock == 1)
-		report ^= KEYBOARD_CAPS_LOCK_LED;
-	num_lock = new_num_lock;
-	caps_lock = new_caps_lock;
-	if( report != last_report ) {
-		send_rep_error = usbh_hid_sent_report( ctx , &report, sizeof report );
-		last_report = report;
-	}
-}
-#else
 /** HID machine state callback
  * @param[in] ctx HID context
+ * @param[in] user_data Private user data
  * @param[in] pbuf Report buffer
  * @param[in] Report buffer len. If 0 disconnection event
  */
@@ -180,7 +133,6 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 		isix_sem_signal_isr( ctx->report_sem );
 	}
 }
-#endif
 /* ------------------------------------------------------------------ */
 /* Driver autodetection and attaching */
 static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data ) 
@@ -259,30 +211,6 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 	return usbh_driver_ret_configured;
 }
 /* ------------------------------------------------------------------ */ 
-#if 0
-//! Process the hid keyboard 
-static int hid_keyboard_process( void* data ) 
-{
-	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)data;
-	dbprintf("Hid machine setup ok");
-	while (usbh_hid_is_device_ready(ctx->hid)) {
-			if( new_keyboard_data ) {
-				new_keyboard_data = false;
-				dbprintf("Keyboard modif %02x", keyboard_modifiers );
-				dbprintf("Lrep %02x err %i", last_report, send_rep_error );
-				for( int i=0;i<KEYBOARD_MAX_PRESSED_KEYS; ++i ) {
-					dbprintf("Code %02x", keyboard_scan_code[i] );
-				}
-			}
-		isix_wait_ms(25);
-	}
-	dbprintf("KBD or mouse disconnected err %i", usbh_hid_error(ctx->hid));
-	free( ctx->hid );
-	isix_sem_destroy( ctx->report_sem );
-	free( ctx );
-	return USBHLIB_SUCCESS;
-}
-#else
 static int hid_keyboard_process( void* data ) 
 {
 	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)data;
@@ -305,7 +233,6 @@ static int hid_keyboard_process( void* data )
 		}
 	}
 }
-#endif
 
 /* ------------------------------------------------------------------ */ 
 //! Driver Ops structure
