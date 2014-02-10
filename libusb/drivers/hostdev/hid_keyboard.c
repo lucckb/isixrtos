@@ -27,16 +27,26 @@
 #include <usb/core/usbh_std_req.h>
 #include <isix.h>
 #include <stdlib.h>
+#include <string.h>
 /* ------------------------------------------------------------------ */ 
+//Keyboard context
 typedef struct usbh_keyb_hid_context {
-	usbh_hid_context_t *hid;
+	usbh_hid_context_t* hid;		//Hid machine state context
+	sem_t* report_sem;				//Notify semaphore
+	usbh_keyb_hid_event_t evt;		//Keyboard event data
+	bool disconnect;				//Disconnection event
+	bool num_lock;					//Num lock
+	bool caps_lock;					//Caps lock
+	uint8_t last_report;			//Last report
+	uint8_t report;					//Report 
 } usbh_keyb_hid_context_t;
+
 /* ------------------------------------------------------------------ */ 
 //Keyboard operator struct
  static const usbh_hid_kbd_ops_t* g_kbd_ops;
 /* ------------------------------------------------------------------ */
 //Keyboard interface comparision for joystick
-static int dcomp_keyboard_interface( const void* curr_desc)
+static int dcomp_keyboard_interface( const void* curr_desc )
 {
 	const usb_descriptor_header_t* hdr = DESCRIPTOR_PCAST( curr_desc, usb_descriptor_header_t );
 	if( hdr->Type == INTERFACE_DESCRIPTOR ) {
@@ -70,7 +80,7 @@ static int dcomp_endp_desc( const void* curr_desc )
 	return DESCRIPTOR_SEARCH_NotFound;
 }
 /* ------------------------------------------------------------------ */
-
+#if 0
 //FIXME: Test only kbd parsing and send queue should be done
 static int new_keyboard_data;
 static unsigned keyboard_modifiers;
@@ -117,6 +127,60 @@ static void report_irq_callback( usbh_hid_context_t* ctx, const uint8_t* pbuf, u
 		last_report = report;
 	}
 }
+#else
+/** HID machine state callback
+ * @param[in] ctx HID context
+ * @param[in] pbuf Report buffer
+ * @param[in] Report buffer len. If 0 disconnection event
+ */
+static void report_irq_callback( usbh_hid_context_t* hid,
+		void* user_data, const uint8_t* pbuf, uint8_t len ) 
+{
+	if( len + 2 != KEYBOARD_MAX_PRESSED_KEYS ) {
+		return;
+	}
+	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)user_data;
+	bool new_keyboard_data = false;
+	if( len == 0 ) {
+		//Disconnection event
+		ctx->disconnect = true;
+		new_keyboard_data = true;
+	} else {
+		ctx->disconnect = false;
+		//Detect ab error and exit without update
+		for (int i = 2; i < 2 + KEYBOARD_MAX_PRESSED_KEYS; ++i) {
+			if (pbuf[i] == 1 || pbuf[i] == 2 || pbuf[i] == 3) {
+				return ; /* error */
+			}
+		}
+		ctx->evt.scan_bits = pbuf[0];
+		bool new_caps_lock = false;
+		bool new_num_lock = false;
+		for (int i = 0; i < KEYBOARD_MAX_PRESSED_KEYS; ++i) {
+			ctx->evt.scan_codes[i] = pbuf[i + 2];
+			if (ctx->evt.scan_codes[i] == NUM_LOCK_SCAN_CODE)
+				new_num_lock = true;
+			if (ctx->evt.scan_codes[i] == CAPS_LOCK_SCAN_CODE)
+				new_caps_lock = true;
+		}
+		new_keyboard_data = true;
+
+		if (ctx->num_lock == false && new_num_lock == true)
+			ctx->report ^= KEYBOARD_NUM_LOCK_LED;
+		if (ctx->caps_lock == false && new_caps_lock == true )
+			ctx->report ^= KEYBOARD_CAPS_LOCK_LED;
+		ctx->num_lock = new_num_lock;
+		ctx->caps_lock = new_caps_lock;
+		if( ctx->report != ctx->last_report ) {
+			usbh_hid_sent_report( hid , &ctx->report, sizeof ctx->report );
+			ctx->last_report = ctx->report;
+		}
+	}
+	if( new_keyboard_data ) {
+		isix_sem_signal_isr( ctx->report_sem );
+	}
+}
+#endif
 /* ------------------------------------------------------------------ */
 /* Driver autodetection and attaching */
 static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data ) 
@@ -175,15 +239,27 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 		return USBHLIB_ERROR_NO_MEM;
 	}
 	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)*data;
+	memset( ctx, 0, sizeof(usbh_keyb_hid_context_t) );
+	//Setup the report sem
+	ctx->report_sem = isix_sem_create_limited( NULL, 0, 1 );
+	if( !ctx->report_sem ) {
+		free( ctx );
+		*data = NULL;
+		return USBHLIB_ERROR_OS;
+	}
 	ctx->hid = usbh_hid_core_new_ctx();
 	ret = usbh_hid_set_machine(ctx->hid, hdev->speed, hdev->dev_addr, 
-			if_desc->bInterfaceNumber, 8,  ep_desc, if_desc->bNumEndpoints, report_irq_callback );
+			if_desc->bInterfaceNumber, 8,  ep_desc, if_desc->bNumEndpoints, report_irq_callback , ctx );
 	if (ret != USBHLIB_SUCCESS) {
+		isix_sem_destroy( ctx->report_sem );
+		free( ctx );
+		*data = NULL;
 		return ret;
 	}
 	return usbh_driver_ret_configured;
 }
 /* ------------------------------------------------------------------ */ 
+#if 0
 //! Process the hid keyboard 
 static int hid_keyboard_process( void* data ) 
 {
@@ -202,9 +278,35 @@ static int hid_keyboard_process( void* data )
 	}
 	dbprintf("KBD or mouse disconnected err %i", usbh_hid_error(ctx->hid));
 	free( ctx->hid );
+	isix_sem_destroy( ctx->report_sem );
 	free( ctx );
 	return USBHLIB_SUCCESS;
 }
+#else
+static int hid_keyboard_process( void* data ) 
+{
+	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)data;
+	while( true ) {
+		if( isix_sem_wait( ctx->report_sem, ISIX_TIME_INFINITE ) != ISIX_EOK ) {
+			return USBHLIB_ERROR_OS;
+		}
+		//New event arrived
+		if( ctx->disconnect ) {
+			dbprintf("KBD or mouse disconnected err %i", usbh_hid_error(ctx->hid));
+			free( ctx->hid );
+			isix_sem_destroy( ctx->report_sem );
+			free( ctx );
+			return USBHLIB_SUCCESS;
+		} else {	//Normal item
+			dbprintf("Keyboard modif %02x", ctx->evt.scan_bits );
+			for( int i=0;i<KEYBOARD_MAX_PRESSED_KEYS; ++i ) {
+				dbprintf("Code %02x", ctx->evt.scan_codes[i] );
+			}
+		}
+	}
+}
+#endif
+
 /* ------------------------------------------------------------------ */ 
 //! Driver Ops structure
 static const struct usbh_driver drv_ops = {

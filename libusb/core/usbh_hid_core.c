@@ -24,6 +24,7 @@ struct usbh_hid_context {
 	int              ch_num_in;
 	unsigned         timer_in;
 	usbh_hid_report_callback_t callback;
+	void*			 user_data;
 	uint16_t         length_in;
 	uint16_t		 length_out;
 	uint16_t         min_length_in;
@@ -164,7 +165,7 @@ static int HIDstateMachine(void *p) {
 				hd->errno = USBHLIB_SUCCESS;
 				hd->state = HID_POLL_IN;
 				if (len >= hd->min_length_in) {
-					hd->callback( hd, hd->buffer_in, len );
+					hd->callback( hd, hd->user_data ,hd->buffer_in, len );
 					if( hd->length_out > 0 ) {
 						hd->state = HID_REPORT_OUT;
 					}
@@ -222,15 +223,17 @@ static void HIDatDisconnect(void *p) {
 	HIDfreeChannels(hd);
 	hd->errno = USBHLIB_ERROR_NO_DEVICE;
 	hd->state = HID_EXIT;
-	hd->callback( hd, NULL, 0 );
+	hd->callback( hd, hd->user_data ,NULL, 0 );
 }
 
 
-int usbh_hid_set_machine( usbh_hid_context_t* hid_ctx,
-		usb_speed_t speed, uint8_t dev_addr,
-		uint8_t ifc_no, uint16_t min_len,
-		usb_endpoint_descriptor_t const *ep_desc,
-		unsigned ep_count, usbh_hid_report_callback_t callback ) {
+int usbh_hid_set_machine( usbh_hid_context_t *hid_ctx,
+				  usb_speed_t speed, uint8_t dev_addr,
+				  uint8_t ifc_no, uint16_t min_len,
+                  usb_endpoint_descriptor_t const *ep_desc, unsigned ep_count, 
+				  usbh_hid_report_callback_t callback, void *user_data )
+{
+
 	unsigned i;
 	if( !hid_ctx ) {
 		return USBHLIB_ERROR_NO_MEM;
@@ -272,6 +275,7 @@ int usbh_hid_set_machine( usbh_hid_context_t* hid_ctx,
 	hid_ctx->interval_in = ep_desc[i].bInterval;
 	hid_ctx->length_out = 0;
 	hid_ctx->callback = callback;
+	hid_ctx->user_data = user_data;
 	return usbh_set_class_machine(HIDstateMachine, HIDatSoF,
 			HIDatDisconnect, hid_ctx );
 }
