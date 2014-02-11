@@ -179,8 +179,9 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 		bool new_caps_lock = false;
 		bool new_num_lock = false;
 		int nbr_keys = 0;
+		int nbr_keys_new = 0;
 		uint8_t keys[ KEYBOARD_MAX_PRESSED_KEYS ];
-		ctx->evt.n_scan_codes = 0;
+		uint8_t keys_new[ KEYBOARD_MAX_PRESSED_KEYS ];
 		for (int i = 0; i < KEYBOARD_MAX_PRESSED_KEYS; ++i) {
 			uint8_t ckey = pbuf[i + 2];
 			if ( ckey == NUM_LOCK_SCAN_CODE )
@@ -196,19 +197,23 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 					}
 				}
 				if( j == ctx->nbr_keys_last ) {
-					ctx->evt.scan_codes[ ctx->evt.n_scan_codes++ ] = ckey;
+					keys_new[ nbr_keys_new++ ] = ckey;
 				}
 			}
 		}
 		//Translate scan codes to keys
-		for( int i = 0; i<ctx->evt.n_scan_codes; ++i ) {
-			uint8_t sck = ctx->evt.scan_codes[i];
+		if( nbr_keys_new == 1 ) {
+			uint8_t sck = keys_new[0];
 			if( ctx->evt.scan_bits & 
 				(usbh_keyb_hid_scan_bit_l_shift|usbh_keyb_hid_scan_bit_r_shift) ) {
-				ctx->evt.keys[i] =  hid_keybrd_shiftkey[hid_keybrd_codes[sck]];
+				ctx->evt.key =  hid_keybrd_shiftkey[hid_keybrd_codes[sck]];
 			} else {
-				ctx->evt.keys[i] = hid_keybrd_key[hid_keybrd_codes[sck]];
+				ctx->evt.key = hid_keybrd_key[hid_keybrd_codes[sck]];
 			}
+			ctx->evt.scan_code = sck;
+		} else {
+			ctx->evt.scan_code = 0;
+			ctx->evt.key = 0;
 		}
 		new_keyboard_data = true;
 		ctx->nbr_keys_last = nbr_keys;
@@ -250,7 +255,6 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 		return usbh_driver_ret_not_found;
 	}
 	const usb_interface_descriptor_t *if_desc = DESCRIPTOR_PCAST( cdesc , usb_interface_descriptor_t );
-	dbprintf("CLASS %i SUBCLAS %i BOOT %i", if_desc->bInterfaceClass, if_desc->bInterfaceSubClass, if_desc->bInterfaceProtocol );
 	//OK search for main hid descriptor
 	ret = usb_get_next_descriptor_comp( &cdsize, &cdesc, dcomp_hid_desc ); 
 	if ( ret != DESCRIPTOR_SEARCH_COMP_Found ) {
@@ -304,6 +308,9 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 		*data = NULL;
 		return ret;
 	}
+	if( g_kbd_ops && g_kbd_ops->connected ) {
+		g_kbd_ops->connected( ctx );
+	}
 	return usbh_driver_ret_configured;
 }
 /* ------------------------------------------------------------------ */ 
@@ -316,24 +323,17 @@ static int hid_keyboard_process( void* data )
 		}
 		//New event arrived
 		if( ctx->disconnect ) {
-			dbprintf("KBD or mouse disconnected err %i", usbh_hid_error(ctx->hid));
+			if( g_kbd_ops && g_kbd_ops->disconnected ) {
+				g_kbd_ops->disconnected( ctx );
+			}
 			free( ctx->hid );
 			isix_sem_destroy( ctx->report_sem );
 			free( ctx );
 			return USBHLIB_SUCCESS;
 		} else {	//Normal item
-#if 1
-			dbprintf("Keyboard modif %02x", ctx->evt.scan_bits );
-			for( int i=0;i<ctx->evt.n_scan_codes; ++i ) {
-				dbprintf("Code %02x", ctx->evt.scan_codes[i] );
-				dbprintf("Key pressed [%c][%02x]", ctx->evt.keys[i], ctx->evt.keys[i] );
+			if( g_kbd_ops && g_kbd_ops->report ) {
+				g_kbd_ops->report( ctx , &ctx->evt );
 			}
-#else		
-			for( int i=0; i<ctx->evt.n_scan_codes; ++i ) {
-				if( ctx->evt.keys[i] != 0 ) 
-					tiny_printf("%c", ctx->evt.keys[i] );
-			}
-#endif
 		}
 	}
 }
