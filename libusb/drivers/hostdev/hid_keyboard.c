@@ -205,9 +205,9 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 			uint8_t sck = ctx->evt.scan_codes[i];
 			if( ctx->evt.scan_bits & 
 				(usbh_keyb_hid_scan_bit_l_shift|usbh_keyb_hid_scan_bit_r_shift) ) {
-				ctx->evt.keys[nbr_keys] =  hid_keybrd_shiftkey[hid_keybrd_codes[sck]];
+				ctx->evt.keys[i] =  hid_keybrd_shiftkey[hid_keybrd_codes[sck]];
 			} else {
-				ctx->evt.keys[nbr_keys] = hid_keybrd_key[hid_keybrd_codes[sck]];
+				ctx->evt.keys[i] = hid_keybrd_key[hid_keybrd_codes[sck]];
 			}
 		}
 		new_keyboard_data = true;
