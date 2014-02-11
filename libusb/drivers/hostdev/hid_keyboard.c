@@ -158,9 +158,6 @@ static int dcomp_endp_desc( const void* curr_desc )
 static void report_irq_callback( usbh_hid_context_t* hid,
 		void* user_data, const uint8_t* pbuf, uint8_t len ) 
 {
-	if( KEYBOARD_MAX_PRESSED_KEYS + 2 != len ) {
-		return;
-	}
 	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)user_data;
 	bool new_keyboard_data = false;
 	if( len == 0 ) {
@@ -169,6 +166,9 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 		new_keyboard_data = true;
 	} else {
 		ctx->disconnect = false;
+		if( KEYBOARD_MAX_PRESSED_KEYS + 2 != len ) {
+			return;
+		}
 		//Detect ab error and exit without update
 		for (int i = 2; i < 2 + KEYBOARD_MAX_PRESSED_KEYS; ++i) {
 			if (pbuf[i] == 1 || pbuf[i] == 2 || pbuf[i] == 3) {
@@ -231,10 +231,9 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 		new_keyboard_data = true;
 		ctx->nbr_keys_last = nbr_keys;
 		memcpy( ctx->keys_last, keys, sizeof keys );
-
-		if( new_keyboard_data ) {
-			isix_sem_signal_isr( ctx->report_sem );
-		}
+	}
+	if( new_keyboard_data ) {
+		isix_sem_signal_isr( ctx->report_sem );
 	}
 }
 /* ------------------------------------------------------------------ */
