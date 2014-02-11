@@ -201,11 +201,24 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 				}
 			}
 		}
+		//Handle caps/num lock and outgoing report
+		if (ctx->num_lock == false && new_num_lock == true)
+			ctx->report ^= KEYBOARD_NUM_LOCK_LED;
+		if (ctx->caps_lock == false && new_caps_lock == true )
+			ctx->report ^= KEYBOARD_CAPS_LOCK_LED;
+		ctx->num_lock = new_num_lock;
+		ctx->caps_lock = new_caps_lock;
+		if( ctx->report != ctx->last_report ) {
+			usbh_hid_sent_report( hid , &ctx->report, sizeof ctx->report );
+			ctx->last_report = ctx->report;
+		}
 		//Translate scan codes to keys
 		if( nbr_keys_new == 1 ) {
 			uint8_t sck = keys_new[0];
-			if( ctx->evt.scan_bits & 
-				(usbh_keyb_hid_scan_bit_l_shift|usbh_keyb_hid_scan_bit_r_shift) ) {
+			uint8_t cap_letter = 
+				(ctx->evt.scan_bits&(usbh_keyb_hid_scan_bit_l_shift|usbh_keyb_hid_scan_bit_r_shift))?1:0;
+			cap_letter ^= ( ctx->report & KEYBOARD_CAPS_LOCK_LED )?1:0; 
+			if( cap_letter ) {
 				ctx->evt.key =  hid_keybrd_shiftkey[hid_keybrd_codes[sck]];
 			} else {
 				ctx->evt.key = hid_keybrd_key[hid_keybrd_codes[sck]];
@@ -219,16 +232,6 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 		ctx->nbr_keys_last = nbr_keys;
 		memcpy( ctx->keys_last, keys, sizeof keys );
 
-		if (ctx->num_lock == false && new_num_lock == true)
-			ctx->report ^= KEYBOARD_NUM_LOCK_LED;
-		if (ctx->caps_lock == false && new_caps_lock == true )
-			ctx->report ^= KEYBOARD_CAPS_LOCK_LED;
-		ctx->num_lock = new_num_lock;
-		ctx->caps_lock = new_caps_lock;
-		if( ctx->report != ctx->last_report ) {
-			usbh_hid_sent_report( hid , &ctx->report, sizeof ctx->report );
-			ctx->last_report = ctx->report;
-		}
 		if( new_keyboard_data ) {
 			isix_sem_signal_isr( ctx->report_sem );
 		}
