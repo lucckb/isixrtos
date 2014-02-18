@@ -341,10 +341,19 @@ static int hid_keyboard_process( void* data )
 }
 
 /* ------------------------------------------------------------------ */ 
+//! Handle string descriptor
+static void hid_keyboard_enum_desc( enum usbh_driver_desc_type desc, const char *str )
+{
+	if( g_kbd_ops && g_kbd_ops->enum_desc ) {
+		g_kbd_ops->enum_desc( desc, str );
+	}
+}
+/* ------------------------------------------------------------------ */ 
 //! Driver Ops structure
 static const struct usbh_driver drv_ops = {
 	attached:  hid_keyboard_attached,
-	process:   hid_keyboard_process
+	process:   hid_keyboard_process,
+	enum_desc: hid_keyboard_enum_desc
 };
 /* ------------------------------------------------------------------ */ 
 //Initialize core hid driver

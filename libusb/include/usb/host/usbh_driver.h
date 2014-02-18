@@ -19,6 +19,7 @@
 /* ------------------------------------------------------------------ */ 
 #include <stdint.h>
 #include <stdbool.h>
+#include <usb/host/usbh_driver_desc_type.h>
 /* ------------------------------------------------------------------ */ 
 #ifdef __cplusplus
 extern "C" {
@@ -35,6 +36,7 @@ enum usbh_driver_ret {
 struct usbh_driver {
 	int (*attached)( const struct usbhost_device* hdev, void** data );
 	int (*process)(void* data);		//! Process data
+	void (*enum_desc)( enum usbh_driver_desc_type desc, const char *str );
 };
 
 typedef struct usbh_driver usbh_driver_t;

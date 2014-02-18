@@ -124,6 +124,44 @@ static void usbhost_os_task( void* unused_os_arg )
 						break;
 					}
 				}
+				if( ctx.drv->enum_desc ) {
+					char sbuf[64] = { 0 };
+					//Read string descriptor
+					if( ctx.dev.dev_desc.iManufacturer ) {
+						unsigned len = sizeof sbuf;
+						ctx.err = usbh_get_string_descriptor_ascii(USBH_SYNC, 
+								ctx.dev.dev_desc.iManufacturer, sbuf ,&len );
+						if( ctx.err != USBHLIB_SUCCESS ) {
+							dbprintf("Unable to read manufacturer string descriptor");
+						} else {
+							ctx.drv->enum_desc( usbh_driver_desc_manufacturer, sbuf );
+						}
+					} 
+					//Read device descriptor
+					sbuf[0] = '\0';
+					if( ctx.dev.dev_desc.iProduct ) {
+						unsigned len = sizeof sbuf;
+						ctx.err = usbh_get_string_descriptor_ascii(USBH_SYNC, 
+								ctx.dev.dev_desc.iProduct, sbuf ,&len );
+						if( ctx.err != USBHLIB_SUCCESS ) {
+							dbprintf("Unable to read product string descriptor");
+						} else {
+							ctx.drv->enum_desc( usbh_driver_desc_product, sbuf );
+						}
+					} 
+					//Read serial descriptor
+					sbuf[0] = '\0';
+					if( ctx.dev.dev_desc.iSerialNumber ) {
+						unsigned len = sizeof sbuf;
+						ctx.err = usbh_get_string_descriptor_ascii(USBH_SYNC, 
+								ctx.dev.dev_desc.iProduct, sbuf ,&len );
+						if( ctx.err != USBHLIB_SUCCESS ) {
+							dbprintf("Unable to read product string descriptor");
+						} else {
+							ctx.drv->enum_desc( usbh_driver_desc_serial, sbuf );
+						}
+					} 
+				}
 				if( !ctx.drv ) {
 					ctx.err = USBHLIB_ERROR_NO_DRIVER;
 					isix_sem_signal( ctx.lock );

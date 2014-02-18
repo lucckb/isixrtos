@@ -30,7 +30,7 @@ struct usbhost_device {
 	usb_speed_t speed;					//Device speed
 	uint8_t dev_addr;					//Device address
 	void* cdesc;						//Config descriptor pointer
-	uint16_t	cdsize;					//Config descriptor size
+	uint16_t cdsize;					//Config descriptor size
 	void *data;							//Configuration data
 };
 

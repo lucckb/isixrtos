@@ -20,7 +20,7 @@ int usbh_set_configuration(int, uint8_t);
 int usbh_clear_endpoint_halt(int, uint8_t);
 int usbh_get_device_descriptor(int, uint8_t *, uint16_t);
 int usbh_get_conf_descriptor(int, uint8_t, uint8_t *, uint16_t);
-int usbh_get_string_descriptor_ascii(int, uint8_t, char *, unsigned *);
+int usbh_get_string_descriptor_ascii(int synch, uint8_t desc_idx, char *desc, unsigned * len);
 
 #ifdef __cplusplus
 }

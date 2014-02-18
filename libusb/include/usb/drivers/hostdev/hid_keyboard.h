@@ -23,6 +23,7 @@ extern "C" {
 /* ------------------------------------------------------------------ */ 
 #include <stdint.h>
 #include <stdbool.h>
+#include <usb/host/usbh_driver_desc_type.h>
 /* ------------------------------------------------------------------ */ 
 struct usbh_driver;
 struct usbh_keyb_hid_context;
@@ -56,6 +57,7 @@ struct usbh_hid_kbd_ops {
 	void ( *connected )( const usbh_keyb_hid_context_t* id );			//New keyb event
 	void ( *disconnected )( const usbh_keyb_hid_context_t* id );		//Disconnect even	t
 	void ( *report )( const usbh_keyb_hid_context_t *id, const usbh_keyb_hid_event_t* evt ); // Report event
+	void (*enum_desc)( enum usbh_driver_desc_type desc, const char *str );
 };
 typedef struct usbh_hid_kbd_ops usbh_hid_kbd_ops_t; 
 /* ------------------------------------------------------------------ */ 
