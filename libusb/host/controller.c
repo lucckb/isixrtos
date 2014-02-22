@@ -134,7 +134,7 @@ static void usbhost_os_task( void* unused_os_arg )
 						if( ctx.err != USBHLIB_SUCCESS ) {
 							dbprintf("Unable to read manufacturer string descriptor");
 						} else {
-							ctx.drv->enum_desc( usbh_driver_desc_manufacturer, sbuf );
+							ctx.drv->enum_desc( ctx.dev.data, usbh_driver_desc_manufacturer, sbuf );
 						}
 					} 
 					//Read device descriptor
@@ -146,7 +146,7 @@ static void usbhost_os_task( void* unused_os_arg )
 						if( ctx.err != USBHLIB_SUCCESS ) {
 							dbprintf("Unable to read product string descriptor");
 						} else {
-							ctx.drv->enum_desc( usbh_driver_desc_product, sbuf );
+							ctx.drv->enum_desc( ctx.dev.data, usbh_driver_desc_product, sbuf );
 						}
 					} 
 					//Read serial descriptor
@@ -158,7 +158,7 @@ static void usbhost_os_task( void* unused_os_arg )
 						if( ctx.err != USBHLIB_SUCCESS ) {
 							dbprintf("Unable to read product string descriptor");
 						} else {
-							ctx.drv->enum_desc( usbh_driver_desc_serial, sbuf );
+							ctx.drv->enum_desc( ctx.dev.data, usbh_driver_desc_serial, sbuf );
 						}
 					} 
 				}

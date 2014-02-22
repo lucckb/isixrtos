@@ -342,10 +342,10 @@ static int hid_keyboard_process( void* data )
 
 /* ------------------------------------------------------------------ */ 
 //! Handle string descriptor
-static void hid_keyboard_enum_desc( enum usbh_driver_desc_type desc, const char *str )
+static void hid_keyboard_enum_desc( void *data, enum usbh_driver_desc_type desc, const char *str )
 {
 	if( g_kbd_ops && g_kbd_ops->enum_desc ) {
-		g_kbd_ops->enum_desc( desc, str );
+		g_kbd_ops->enum_desc( data, desc, str );
 	}
 }
 /* ------------------------------------------------------------------ */ 

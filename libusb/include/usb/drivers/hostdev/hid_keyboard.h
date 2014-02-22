@@ -55,9 +55,9 @@ typedef struct usbh_keyb_hid_event usbh_keyb_hid_event_t;
 //! USB keyboard device operations
 struct usbh_hid_kbd_ops {
 	void ( *connected )( const usbh_keyb_hid_context_t* id );			//New keyb event
-	void ( *disconnected )( const usbh_keyb_hid_context_t* id );		//Disconnect even	t
+	void ( *disconnected )( const usbh_keyb_hid_context_t* id );		//Disconnect event
 	void ( *report )( const usbh_keyb_hid_context_t *id, const usbh_keyb_hid_event_t* evt ); // Report event
-	void (*enum_desc)( enum usbh_driver_desc_type desc, const char *str );
+	void (*enum_desc)( const usbh_keyb_hid_context_t* id, enum usbh_driver_desc_type desc, const char *str );
 };
 typedef struct usbh_hid_kbd_ops usbh_hid_kbd_ops_t; 
 /* ------------------------------------------------------------------ */ 

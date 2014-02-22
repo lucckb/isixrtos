@@ -35,8 +35,8 @@ enum usbh_driver_ret {
 //!Private usbhdriver struct
 struct usbh_driver {
 	int (*attached)( const struct usbhost_device* hdev, void** data );
-	int (*process)(void* data);		//! Process data
-	void (*enum_desc)( enum usbh_driver_desc_type desc, const char *str );
+	int (*process)( void* data );		//! Process data
+	void (*enum_desc)( void* data, enum usbh_driver_desc_type desc, const char *str );
 };
 
 typedef struct usbh_driver usbh_driver_t;
