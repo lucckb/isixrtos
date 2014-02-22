@@ -124,6 +124,12 @@ static void usbhost_os_task( void* unused_os_arg )
 						break;
 					}
 				}
+				if( !ctx.drv ) {
+					ctx.err = USBHLIB_ERROR_NO_DRIVER;
+					isix_sem_signal( ctx.lock );
+					dbprintf("Device driver not found %i", ctx.err );
+					continue;
+				}
 				if( ctx.drv->enum_desc ) {
 					char sbuf[64] = { 0 };
 					//Read string descriptor
@@ -161,12 +167,6 @@ static void usbhost_os_task( void* unused_os_arg )
 							ctx.drv->enum_desc( ctx.dev.data, usbh_driver_desc_serial, sbuf );
 						}
 					} 
-				}
-				if( !ctx.drv ) {
-					ctx.err = USBHLIB_ERROR_NO_DRIVER;
-					isix_sem_signal( ctx.lock );
-					dbprintf("Device driver not found %i", ctx.err );
-					continue;
 				}
 			}
 			isix_sem_signal( ctx.lock );
