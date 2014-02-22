@@ -350,7 +350,7 @@ static void hid_keyboard_enum_desc( void *data, enum usbh_driver_desc_type desc,
 }
 /* ------------------------------------------------------------------ */ 
 //! Driver Ops structure
-static const struct usbh_driver drv_ops = {
+static const usbh_driver_t drv_ops = {
 	attached:  hid_keyboard_attached,
 	process:   hid_keyboard_process,
 	enum_desc: hid_keyboard_enum_desc

@@ -58,7 +58,7 @@ typedef struct usbh_joy_hid_event usbh_joy_hid_event_t;
 struct usbh_hid_joystick_ops {
 	void ( *connected )( const usbh_hid_joy_context_t* id );			//New keyb event
 	void ( *disconnected )( const usbh_hid_joy_context_t* id );		//Disconnect event
-	void ( *report )( const usbh_hid_joy_context_t *id,  const usbh_joy_hid_event_t* evt ); // Report event
+	void ( *report )( const usbh_hid_joy_context_t *id, const usbh_joy_hid_event_t* evt ); // Report event
 	void (*enum_desc)( const usbh_hid_joy_context_t *id, enum usbh_driver_desc_type desc, const char *str );
 	void (*enum_joyinfo)( const usbh_hid_joy_context_t* id, const usbh_hid_joystick_info_t* info );
 };
@@ -66,7 +66,7 @@ typedef struct usbh_hid_joystick_ops usbh_hid_joystick_ops_t;
 /* ------------------------------------------------------------------ */ 
 //! Initialize the joystick HID driver
 const struct usbh_driver*
-	usbh_hid_joystick_init( const usbh_hid_joystick_info_t* joy_ops );
+	usbh_hid_joystick_init( const usbh_hid_joystick_ops_t* joy_ops );
 /* ------------------------------------------------------------------ */ 
 #ifdef __cplusplus
 }
