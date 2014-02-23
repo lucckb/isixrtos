@@ -148,14 +148,14 @@
 			enum HID_Parse_ErrorCodes_t
 			{
 				HID_PARSE_Successful                  = 0, /**< Successful parse of the HID report descriptor, no error. */
-				HID_PARSE_HIDStackOverflow            = 1, /**< More than \ref HID_STATETABLE_STACK_DEPTH nested PUSHes in the report. */
-				HID_PARSE_HIDStackUnderflow           = 2, /**< A POP was found when the state table stack was empty. */
-				HID_PARSE_InsufficientReportItems     = 3, /**< More than \ref HID_MAX_REPORTITEMS report items in the report. */
-				HID_PARSE_UnexpectedEndCollection     = 4, /**< An END COLLECTION item found without matching COLLECTION item. */
-				HID_PARSE_InsufficientCollectionPaths = 5, /**< More than \ref HID_MAX_COLLECTIONS collections in the report. */
-				HID_PARSE_UsageListOverflow           = 6, /**< More than \ref HID_USAGE_STACK_DEPTH usages listed in a row. */
-				HID_PARSE_InsufficientReportIDItems   = 7, /**< More than \ref HID_MAX_REPORT_IDS report IDs in the device. */
-				HID_PARSE_NoUnfilteredReportItems     = 8, /**< All report items from the device were filtered by the filtering callback routine. */
+				HID_PARSE_HIDStackOverflow            = 513, /**< More than \ref HID_STATETABLE_STACK_DEPTH nested PUSHes in the report. */
+				HID_PARSE_HIDStackUnderflow           = 514, /**< A POP was found when the state table stack was empty. */
+				HID_PARSE_InsufficientReportItems     = 515, /**< More than \ref HID_MAX_REPORTITEMS report items in the report. */
+				HID_PARSE_UnexpectedEndCollection     = 516, /**< An END COLLECTION item found without matching COLLECTION item. */
+				HID_PARSE_InsufficientCollectionPaths = 517, /**< More than \ref HID_MAX_COLLECTIONS collections in the report. */
+				HID_PARSE_UsageListOverflow           = 518, /**< More than \ref HID_USAGE_STACK_DEPTH usages listed in a row. */
+				HID_PARSE_InsufficientReportIDItems   = 519, /**< More than \ref HID_MAX_REPORT_IDS report IDs in the device. */
+				HID_PARSE_NoUnfilteredReportItems     = 520, /**< All report items from the device were filtered by the filtering callback routine. */
 			};
 
 		/* Type Defines: */

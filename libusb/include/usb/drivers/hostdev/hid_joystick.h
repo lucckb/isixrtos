@@ -32,13 +32,14 @@ typedef struct usbh_hid_joy_context usbh_hid_joy_context_t;
 
 //!Joystick info
 struct usbh_hid_joystick_info {
-	uint8_t has_throttle : 1;			//! Joystick has throotle
+	uint8_t has_rx : 1;					//! Joystick has Rx channel
+	uint8_t has_ry : 1;					//! Joystick has Ry channel
 	uint8_t has_hat : 1;				//! Joystic has hat
 	uint8_t buttons_count;				//! Joystic button count
-	short XY_min;						//! XY min value
-	short XY_max;						//! XY max value
-	short throttle_min;					//! Throttle minimum value
-	short throttle_max;					//! Throttle maximum value
+	short xy_min;						//! XY min value
+	short xy_max;						//! XY max value
+	short rxy_min;						//! Throttle minimum value
+	short rxy_max;						//! Throttle maximum value
 	short hat_min;						//! Hat minimum value
 	short hat_max;						//! Hat maximum value
 };
@@ -49,7 +50,9 @@ struct usbh_joy_hid_event {
 	unsigned buttons;		//! Button bitmaps
 	short X;				//! X axis
 	short Y;				//! Y axis
-	short throttle;			//! Throttle
+	short rX;				//! RX axis
+	short rY;				//! RY axis
+	short rZ;				//! Rz report
 	short hat;				//! Hat switch
 };
 typedef struct usbh_joy_hid_event usbh_joy_hid_event_t;
