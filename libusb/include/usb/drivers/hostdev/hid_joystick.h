@@ -41,6 +41,7 @@ struct usbh_joy_hid_event {
 	uint16_t rY;				//! RY axis
 	uint16_t rZ;				//! Rz report
 	uint16_t hat;				//! Hat switch
+	uint16_t slider;			//! Slider value
 	uint8_t n_buttons;			//! Number of buttons in report
 	union {
 		uint8_t has_bits;
@@ -52,6 +53,7 @@ struct usbh_joy_hid_event {
 			uint8_t rY: 1;			//!  Has RY in report
 			uint8_t rZ: 1;			//!  Has RZ in report
 			uint8_t hat : 1;		//!  Has Hat in report
+			uint8_t slider : 1;		//!  Has slider value
 		} has;
 	}; 
 };

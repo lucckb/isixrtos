@@ -50,6 +50,8 @@ enum { USAGE_RX						= 0x33 };
 enum { USAGE_RY						= 0x34 };
 /** HID Report usage for Rx movement */
 enum { USAGE_RZ						= 0x35 };
+/** HID Report usage for Rx movement */
+enum { USAGE_SLIDER					= 0x36 };
 /** HID Report usage for Hat switch */
 enum { USAGE_HAT_SW					= 0x39 };
 /* ------------------------------------------------------------------ */ 
@@ -175,6 +177,7 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 				 	(report_it->Attributes.Usage.Usage == USAGE_Z)                   ||
 				 	(report_it->Attributes.Usage.Usage == USAGE_RZ)                  ||
 				 	(report_it->Attributes.Usage.Usage == USAGE_HAT_SW)              ||
+					(report_it->Attributes.Usage.Usage == USAGE_SLIDER)              ||
 				 	(report_it->Attributes.Usage.Usage == USAGE_RX)                  ||
 				  	(report_it->Attributes.Usage.Usage == USAGE_RY))                 &&
 				 	(report_it->ItemType                == HID_REPORT_ITEM_In)) {
@@ -205,6 +208,9 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 				} else if( report_it->Attributes.Usage.Usage == USAGE_HAT_SW ) {
 					ctx->evt.hat = report_it->Value;
 					ctx->evt.has.hat = 1;
+				} else if( report_it->Attributes.Usage.Usage == USAGE_SLIDER ) {
+					ctx->evt.slider = value;
+					ctx->evt.has.slider = 1;
 				}
 				new_data = true;
 			}
