@@ -150,9 +150,11 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 	bool new_data = false;
 	if( len == 0 ) {	//! Disconnection event
 		ctx->disconnect = true;
+		new_data = true;
 	} else {	// Process the rest of data
 		ctx->evt.n_buttons = 0;
 		ctx->evt.buttons = 0;
+		ctx->evt.has_bits = 0;
 		ctx->evt.has_bits = 0;
 		for( size_t report_no = 0; report_no < ctx->hid_info.TotalReportItems; ++report_no ) {
 			HID_ReportItem_t* report_it = &ctx->hid_info.ReportItems[report_no];
@@ -209,7 +211,7 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 
 		}
 	}
-	if( new_data) {
+	if( new_data ) {
 		isix_sem_signal_isr( ctx->report_sem );
 	}
 }
