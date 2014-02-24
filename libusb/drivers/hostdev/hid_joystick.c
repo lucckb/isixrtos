@@ -42,6 +42,8 @@ enum { USAGE_JOYSTICK              = 0x04 };
 enum { USAGE_X                     = 0x30 };
 /** HID Report Descriptor Usage value for a Y axis movement. */
 enum { USAGE_Y                     = 0x31 };
+/** HID Report Descriptor Usage value for a Y axis movement. */
+enum { USAGE_Z                     = 0x32 };
 /** HID Report usage for Rx movement */
 enum { USAGE_RX						= 0x33 };
 /** HID Report usage for Rx movement */
@@ -143,13 +145,15 @@ static bool dcomp_hid_joystick( HID_ReportItem_t* const CurrentItem )
 static void report_irq_callback( usbh_hid_context_t* hid,
 		void* user_data, const uint8_t* pbuf, uint8_t len ) 
 {
+	(void)hid;
 	usbh_hid_joy_context_t* ctx = (usbh_hid_joy_context_t*)user_data;
 	bool new_data = false;
 	if( len == 0 ) {	//! Disconnection event
 		ctx->disconnect = true;
 	} else {	// Process the rest of data
-		unsigned btn_no = 0;
+		ctx->evt.n_buttons = 0;
 		ctx->evt.buttons = 0;
+		ctx->evt.has_bits = 0;
 		for( size_t report_no = 0; report_no < ctx->hid_info.TotalReportItems; ++report_no ) {
 			HID_ReportItem_t* report_it = &ctx->hid_info.ReportItems[report_no];
 			bool found = false;
@@ -160,12 +164,13 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 					continue;
 				}
 				//! Pass the button info
-				ctx->evt.buttons |= report_it->Value << btn_no++;
+				ctx->evt.buttons |= report_it->Value << ctx->evt.n_buttons++;
 				new_data = true;
 			}
 			else if ((report_it->Attributes.Usage.Page   == USAGE_PAGE_GENERIC_DCTRL) &&
 				 	((report_it->Attributes.Usage.Usage == USAGE_X)                  ||
-				 	(report_it->Attributes.Usage.Usage == USAGE_Y)                  ||
+				 	(report_it->Attributes.Usage.Usage == USAGE_Y)                   ||
+				 	(report_it->Attributes.Usage.Usage == USAGE_Z)                   ||
 				 	(report_it->Attributes.Usage.Usage == USAGE_RZ)                  ||
 				 	(report_it->Attributes.Usage.Usage == USAGE_HAT_SW)              ||
 				 	(report_it->Attributes.Usage.Usage == USAGE_RX)                  ||
@@ -176,19 +181,28 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 				if(!(found)) {
 					continue;
 				}
-				int16_t value = HID_ALIGN_DATA(report_it, int16_t);
+				uint16_t value = HID_ALIGN_DATA(report_it, uint16_t);
 				if( report_it->Attributes.Usage.Usage == USAGE_X ) {
 					ctx->evt.X = value;
+					ctx->evt.has.X = 1;
 				} else if( report_it->Attributes.Usage.Usage == USAGE_Y ) {
 					ctx->evt.Y = value;
+					ctx->evt.has.Y = 1;
+				} else if( report_it->Attributes.Usage.Usage == USAGE_Z ) {
+					ctx->evt.Z = value;
+					ctx->evt.has.Z = 1;
 				} else if( report_it->Attributes.Usage.Usage == USAGE_RX ) {
 					ctx->evt.rX = value;
+					ctx->evt.has.rX = 1;
 				} else if( report_it->Attributes.Usage.Usage == USAGE_RY ) {
 					ctx->evt.rY = value;
+					ctx->evt.has.rY = 1;
 				} else if ( report_it->Attributes.Usage.Usage == USAGE_RZ ) {
 					ctx->evt.rZ = value;
+					ctx->evt.has.rZ = 1;
 				} else if( report_it->Attributes.Usage.Usage == USAGE_HAT_SW ) {
 					ctx->evt.hat = report_it->Value;
+					ctx->evt.has.hat = 1;
 				}
 				new_data = true;
 			}

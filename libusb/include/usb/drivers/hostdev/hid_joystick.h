@@ -30,30 +30,30 @@ extern "C" {
 struct usbh_hid_joy_context;
 typedef struct usbh_hid_joy_context usbh_hid_joy_context_t;
 
-//!Joystick info
-struct usbh_hid_joystick_info {
-	uint8_t has_rx : 1;					//! Joystick has Rx channel
-	uint8_t has_ry : 1;					//! Joystick has Ry channel
-	uint8_t has_hat : 1;				//! Joystic has hat
-	uint8_t buttons_count;				//! Joystic button count
-	short xy_min;						//! XY min value
-	short xy_max;						//! XY max value
-	short rxy_min;						//! Throttle minimum value
-	short rxy_max;						//! Throttle maximum value
-	short hat_min;						//! Hat minimum value
-	short hat_max;						//! Hat maximum value
-};
-typedef struct usbh_hid_joystick_info usbh_hid_joystick_info_t;
 
 //! Joystick keyboard hid event
 struct usbh_joy_hid_event {
-	unsigned buttons;		//! Button bitmaps
-	short X;				//! X axis
-	short Y;				//! Y axis
-	short rX;				//! RX axis
-	short rY;				//! RY axis
-	short rZ;				//! Rz report
-	short hat;				//! Hat switch
+	uint32_t buttons;			//! Button bitmaps
+	uint16_t X;					//! X axis
+	uint16_t Y;					//! Y axis
+	uint16_t Z;					//! Z axis
+	uint16_t rX;				//! RX axis
+	uint16_t rY;				//! RY axis
+	uint16_t rZ;				//! Rz report
+	uint16_t hat;				//! Hat switch
+	uint8_t n_buttons;			//! Number of buttons in report
+	union {
+		uint8_t has_bits;
+		struct {
+			uint8_t X: 1;			//! Has X report
+			uint8_t Y: 1;			//! Has Y report
+			uint8_t Z: 1;			//! Has Z report
+			uint8_t rX: 1;			//!  Has RX in report
+			uint8_t rY: 1;			//!  Has RY in report
+			uint8_t rZ: 1;			//!  Has RZ in report
+			uint8_t hat : 1;		//!  Has Hat in report
+		} has;
+	}; 
 };
 typedef struct usbh_joy_hid_event usbh_joy_hid_event_t;
 
@@ -63,7 +63,6 @@ struct usbh_hid_joystick_ops {
 	void ( *disconnected )( const usbh_hid_joy_context_t* id );		//Disconnect event
 	void ( *report )( const usbh_hid_joy_context_t *id, const usbh_joy_hid_event_t* evt ); // Report event
 	void (*enum_desc)( const usbh_hid_joy_context_t *id, enum usbh_driver_desc_type desc, const char *str );
-	void (*enum_joyinfo)( const usbh_hid_joy_context_t* id, const usbh_hid_joystick_info_t* info );
 };
 typedef struct usbh_hid_joystick_ops usbh_hid_joystick_ops_t;
 /* ------------------------------------------------------------------ */ 
