@@ -212,6 +212,22 @@ static inline void dac_set_channel2_data(uint32_t dac_align, uint16_t data)
   *(__IO uint32_t *)tmp = data;
 }
 /* ------------------------------------------------------------------ */
+/** Get adres of data dac register according to align */
+static inline volatile void* dac_get_channel1_dreg( uint32_t dac_align ) 
+{ 
+  uint32_t tmp = (uint32_t)DAC_BASE; 
+  tmp += DHR12R1_OFFSET + dac_align;
+  return (volatile void*)(tmp);
+}
+/* ------------------------------------------------------------------ */
+/** Get adres of data dac register according to align */
+static inline volatile void* dac_get_channel2_dreg( uint32_t dac_align )
+{ 
+  uint32_t tmp = (uint32_t)DAC_BASE; 
+  tmp += DHR12R2_OFFSET + dac_align;
+  return (volatile void*)(tmp);
+}
+/* ------------------------------------------------------------------ */
 /**
   * @brief  Set the specified data holding register value for dual channel DAC.
   * @param  DAC_Align: Specifies the data alignment for dual channel DAC.
