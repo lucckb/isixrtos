@@ -342,7 +342,7 @@ static inline void dma_double_buffer_mode_cmd(DMA_Stream_TypeDef* DMAy_Streamx, 
   * @retval None
   */
 static inline void dma_memory_target_config(DMA_Stream_TypeDef* DMAy_Streamx, void* MemoryBaseAddr,
-                           void* DMA_MemoryTarget)
+                           uint32_t DMA_MemoryTarget)
 {
 
   /* Check the Memory target to be configured */
@@ -358,6 +358,23 @@ static inline void dma_memory_target_config(DMA_Stream_TypeDef* DMAy_Streamx, vo
   }
 }
 /* ---------------------------------------------------------------------------- */
+static inline void* dma_get_memory_target( DMA_Stream_TypeDef* DMAy_Streamx, 
+		uint32_t DMA_MemoryTarget )
+{
+
+  /* Check the Memory target to be configured */
+  if (DMA_MemoryTarget != DMA_Memory_0)
+  {
+    /* Write to DMAy Streamx M1AR */
+    return (void*)DMAy_Streamx->M1AR;
+  }
+  else
+  {
+    /* Write to DMAy Streamx M0AR */
+    return (void*)DMAy_Streamx->M0AR;
+  }
+}
+/* ---------------------------------------------------------------------------- */
 /**
   * @brief  Returns the current memory target used by double buffer transfer.
   * @param  DMAy_Streamx: where y can be 1 or 2 to select the DMA and x can be 0
@@ -367,7 +384,7 @@ static inline void dma_memory_target_config(DMA_Stream_TypeDef* DMAy_Streamx, vo
 static inline uint32_t dma_get_current_memory_target(DMA_Stream_TypeDef* DMAy_Streamx)
 {
   /* Get the current memory target */
-  return ((DMAy_Streamx->CR & DMA_SxCR_CT) != 0);
+  return ((DMAy_Streamx->CR & DMA_SxCR_CT) != 0)?(1):(0);
 }
 /* ---------------------------------------------------------------------------- */
 /**
