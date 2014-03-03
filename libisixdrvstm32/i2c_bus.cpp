@@ -206,7 +206,6 @@ i2c_host::i2c_host( busid _i2c, unsigned clk_speed )
 		//! Not supported yet
 		terminate();
 	}
-	i2c_cmd( dcast(m_i2c), true );
 	i2c_init( dcast(m_i2c), clk_speed, I2C_Mode_I2C, I2C_DutyCycle_2, 1, 
 			  I2C_Ack_Enable, I2C_AcknowledgedAddress_7bit, CONFIG_PCLK1_HZ );
 	if( m_i2c == I2C1 ) {
@@ -222,6 +221,7 @@ i2c_host::i2c_host( busid _i2c, unsigned clk_speed )
 	}
 	//Enable DMA in i2c
 	i2c_dma_cmd( dcast(m_i2c), true );
+	i2c_cmd( dcast(m_i2c), true );
 }
 /* ------------------------------------------------------------------ */ 
 /** Destructor */
