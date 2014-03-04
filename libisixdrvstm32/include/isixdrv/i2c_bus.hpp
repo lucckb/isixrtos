@@ -24,10 +24,12 @@ namespace stm32 {
 namespace drv {
 /* ------------------------------------------------------------------ */ 
 extern "C" {
-	void i2c1_ev_isr_vector(void) __attribute__ ((interrupt));
-	void i2c1_er_isr_vector(void) __attribute__ ((interrupt));
-	void i2c2_ev_isr_vector(void) __attribute__ ((interrupt));
-	void i2c2_er_isr_vector(void) __attribute__ ((interrupt));
+	void i2c1_ev_isr_vector() __attribute__ ((interrupt));
+	void i2c1_er_isr_vector() __attribute__ ((interrupt));
+	void i2c2_ev_isr_vector() __attribute__ ((interrupt));
+	void i2c2_er_isr_vector() __attribute__ ((interrupt));
+	void dma1_stream0_isr_vector() __attribute__((interrupt));
+	void dma1_stream7_isr_vector() __attribute__((interrupt));
 }
 /* ------------------------------------------------------------------ */ 
 class i2c_host : private fnd::noncopyable {
@@ -35,10 +37,12 @@ class i2c_host : private fnd::noncopyable {
 	static constexpr auto IRQ_SUB = 7;
 	static constexpr auto TRANSACTION_TIMEOUT = 5000;
 	
-	friend void i2c1_ev_isr_vector(void);
-	friend void i2c1_er_isr_vector(void);
-	friend void i2c2_ev_isr_vector(void);
-	friend void i2c2_er_isr_vector(void);
+	friend void i2c1_ev_isr_vector();
+	friend void i2c1_er_isr_vector();
+	friend void i2c2_ev_isr_vector();
+	friend void i2c2_er_isr_vector();
+	friend void dma1_stream0_isr_vector();
+	friend void dma1_stream7_isr_vector();
 public:
 	enum class busid { //! Interface independent bus ID
 		i2c1,			//I2C1 
@@ -80,6 +84,8 @@ private:
 	void ev_irq();
 	//Error event handler
 	void err_irq();
+	//! Event DMA transfer complete
+	void ev_dma_tc();
 private:
 	void* const m_i2c;					//! I2C 
 	volatile uint8_t m_err_flag {};		//! Error code
