@@ -23,11 +23,25 @@
 #include <stm32gpio.h>
 #include <cstdlib>
 #include <config.h>
-//#include <foundation/dbglog.h>
+/* ------------------------------------------------------------------ */ 
+#ifdef CONFIG_ISIXDRV_I2C_DEBUG 
+#include <foundation/dbglog.h>
+#else
 #define dbprintf(...) do {} while(0)
+#endif
 /* ------------------------------------------------------------------ */ 
 namespace stm32 {
 namespace drv {
+/* ------------------------------------------------------------------ */
+#ifdef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
+namespace {
+#if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
+	static constexpr void* m_i2c = I2C1;
+#elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2
+	static constexpr void* m_i2c = I2C2;
+#endif
+}
+#endif
 /* ------------------------------------------------------------------ */ 
 //! Unnnamed namespace for internal functions
 namespace {
@@ -225,8 +239,18 @@ namespace {
 #endif
 //! Objects for interrupt handlers
 namespace {
+#ifndef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 	i2c_host* obj_i2c1;
 	i2c_host* obj_i2c2;
+#else
+#if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
+	i2c_host* obj_i2c1;
+	constexpr i2c_host* obj_i2c2 = nullptr;
+#elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C ==CONFIG_ISIXDRV_I2C_2
+	i2c_host* obj_i2c2;
+	constexpr i2c_host* obj_i2c1 = nullptr;
+#endif
+#endif
 }
 /* ------------------------------------------------------------------ */ 
 /** Constructor
@@ -234,8 +258,13 @@ namespace {
 	* @param[in] clk_speed CLK speed in HZ
 	*/
 i2c_host::i2c_host( busid _i2c, unsigned clk_speed )
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C)
 	: m_i2c( to_i2c(_i2c) )
+#endif
 {
+#if defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) 
+	static_cast<void>(_i2c);
+#endif
 	using namespace stm32;
 	if( m_i2c == I2C1 ) {
 		rcc_apb1_periph_clock_cmd( RCC_APB1Periph_I2C1, true );
@@ -243,14 +272,18 @@ i2c_host::i2c_host( busid _i2c, unsigned clk_speed )
 		if( obj_i2c1 ) {
 			terminate();
 		}
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 		obj_i2c1 = this;
+#endif
 	} else if ( m_i2c == I2C2 ) {
 		rcc_apb1_periph_clock_cmd( RCC_APB1Periph_I2C2, true );
 		gpio_clock_enable( I2C2_PORT, true );
 		if(obj_i2c2) {
 			terminate();
 		}
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 		obj_i2c2 = this;
+#endif
 	}
 	afio_config( dcast(m_i2c) );
 	if( m_i2c == I2C1 ) {
@@ -284,10 +317,10 @@ i2c_host::i2c_host( busid _i2c, unsigned clk_speed )
 /** Destructor */
 i2c_host::~i2c_host()
 {
-	if( obj_i2c1 == this ) {
+	if( dcast(m_i2c) == I2C1 ) {
 		nvic_irq_enable( I2C1_EV_IRQn, false );
 		nvic_irq_enable( I2C1_ER_IRQn, false );
-	} else {
+	} else if( dcast(m_i2c) == I2C2 ) {
 		nvic_irq_enable( I2C2_EV_IRQn, false );
 		nvic_irq_enable( I2C2_ER_IRQn, false );
 	}
@@ -340,9 +373,7 @@ int i2c_host::transfer_7bit(uint8_t addr, const void* wbuffer, short wsize, void
 	else if(rbuffer)
 		m_addr = addr | I2C_OAR1_ADD0;
 	m_rx_len = (rbuffer!=nullptr)?(rsize):(0);
-	m_tx_len = (wbuffer!=nullptr)?(wsize):(0);
 	m_rx_buf = reinterpret_cast<uint8_t*>(rbuffer);
-	m_tx_buf = reinterpret_cast<const uint8_t*>(wbuffer);
 	//Clear status flags
 	i2c_get_last_event( dcast(m_i2c));
 	//Enable I2C irq
@@ -398,13 +429,13 @@ void i2c_host::ev_irq()
 			m_addr |= I2C_OAR1_ADD0;
 			i2c_generate_start( dcast(m_i2c), true );
 			//ACK config
-			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
+			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
 		}
 		else {
 			i2c_generate_stop(dcast(m_i2c),true);
 			i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
 			m_notify.signal_isr();
-			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
+			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 		}
 		//Data synch barrier
 		dsb();
@@ -420,17 +451,17 @@ void i2c_host::ev_irq()
 				i2c_acknowledge_config( dcast(m_i2c), false );
 				i2c_it_config(dcast(m_i2c), I2C_IT_BUF, true );
 			}
-		//dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
+		dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_RECEIVED:
 		m_rx_buf[0] = i2c_receive_data( dcast(m_i2c) );
 		ev_finalize();
-		//dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
+		dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
 	break;
 		
 	default:
-		//dbprintf("Unknown event %08x", event );
+		dbprintf("Unknown event %08x", event );
 		ev_finalize( err_invstate );
 		break;
 	}
@@ -482,6 +513,7 @@ void i2c_host::ev_dma_tc()
 }
 /* ------------------------------------------------------------------ */ 
 extern "C" {
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	/* Irq ev handler */
 	void __attribute__ ((interrupt)) i2c1_ev_isr_vector()
 	{
@@ -492,6 +524,8 @@ extern "C" {
 	{
 		if( obj_i2c1 ) obj_i2c1->err_irq();
 	}
+#endif
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	/* Irq ev handler */
 	void __attribute__ ((interrupt)) i2c2_ev_isr_vector()
 	{
@@ -502,32 +536,41 @@ extern "C" {
 	{
 		if( obj_i2c2 ) obj_i2c2->err_irq();
 	}
+#endif
 #ifndef STM32MCU_MAJOR_TYPE_F1
 	//I2C1 RX
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	__attribute__((interrupt)) void dma1_stream0_isr_vector()
 	{
 		dma_clear_flag( DMA1_Stream0, DMA_FLAG_TCIF0|DMA_FLAG_TEIF0 );
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
 	}
+#endif
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2DMARX
 	__attribute__((interrupt)) void dma1_stream7_isr_vector()
 	{
 		dma_clear_flag( DMA1_Stream7, DMA_FLAG_TCIF7|DMA_FLAG_TEIF7 );
 		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
 	}
+#endif
 #else
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	//I2C1 RX
 	__attribute__((interrupt)) void dma1_channel7_isr_vector() 
 	{
 		stm32::dma_clear_flag( DMA1_FLAG_TC7 );	
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
 	}
+#endif
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2
 	//I2C2 RX
 	__attribute__((interrupt)) void dma1_channel5_isr_vector() 
 	{
 		stm32::dma_clear_flag( DMA1_FLAG_TC5 );
 		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
 	}
+#endif
 #endif
 }
 /* ------------------------------------------------------------------ */ 
