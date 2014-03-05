@@ -58,6 +58,7 @@ public:
 		err_pec = - 5004,				//! parity check error
 		err_bus_timeout = -5005, 		//! bus timeout
 		err_timeout = - 5006,			//! timeout error
+		err_invstate = - 5007,			//! Invalid machine state
 		err_unknown = - 5008,
 	};
 	/** Constructor
@@ -84,14 +85,19 @@ private:
 	void ev_irq();
 	//Error event handler
 	void err_irq();
+	//!Ev irq DMA version
+	void ev_irq_dma();
+	//!Ev irq noDMA version
+	void ev_irq_no_dma();
 	//! Event DMA transfer complete
 	void ev_dma_tc();
 	//! Finalize transaction
-	void ev_finalize();
+	void ev_finalize( int err = 0 );
 private:
 	void* const m_i2c;					//! I2C 
 	volatile uint8_t m_err_flag {};		//! Error code
 	volatile uint8_t m_addr {};			//! Current addr
+	volatile bool m_use_dma {};			//! Use DMA on BIG tran
 	volatile uint16_t m_rx_len {};		//! RX trans
 	volatile uint16_t m_tx_len {};		//! TX trans
 	uint8_t* m_rx_buf {};				//! RX buffer

@@ -23,7 +23,8 @@
 #include <stm32gpio.h>
 #include <cstdlib>
 #include <config.h>
-#include <foundation/dbglog.h>
+//#include <foundation/dbglog.h>
+#define dbprintf(...) do {} while(0)
 /* ------------------------------------------------------------------ */ 
 namespace stm32 {
 namespace drv {
@@ -128,7 +129,6 @@ namespace {
 		rx,
 		tx
 	};
-
 	inline DMA_Stream_TypeDef* _i2c_stream( I2C_TypeDef* i2c, dma_dir d ) {
 		if( i2c == I2C1 ) {	
 			if( d == dma_dir::rx ) {
@@ -326,34 +326,30 @@ int i2c_host::transfer_7bit(uint8_t addr, const void* wbuffer, short wsize, void
 {
 	using namespace stm32;
 	int ret;
-	if( (ret=m_lock.wait(isix::ISIX_TIME_INFINITE))<0 )
-	{
+	if( (ret=m_lock.wait(isix::ISIX_TIME_INFINITE))<0 ) {
 		return ret;
 	}
 	//Disable I2C irq
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
 	if( wbuffer )
 		i2c_dma_tx_config( dcast(m_i2c), wbuffer, wsize );
-	if( rbuffer )
+	if( rsize > 1)
 		i2c_dma_rx_config( dcast(m_i2c), rbuffer, rsize );
 	if(wbuffer)
-	{
 		m_addr = addr & ~(I2C_OAR1_ADD0);
-	}
 	else if(rbuffer)
-	{
 		m_addr = addr | I2C_OAR1_ADD0;
-	}
 	m_rx_len = (rbuffer!=nullptr)?(rsize):(0);
 	m_tx_len = (wbuffer!=nullptr)?(wsize):(0);
 	m_rx_buf = reinterpret_cast<uint8_t*>(rbuffer);
 	m_tx_buf = reinterpret_cast<const uint8_t*>(wbuffer);
 	//Clear status flags
-	const auto rev = i2c_get_last_event( dcast(m_i2c));
-	dbprintf("EVINIT %08x", rev );
-	//i2c_receive_data(dcast(m_i2c));
+	i2c_get_last_event( dcast(m_i2c));
 	//Enable I2C irq
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, true );
+	//DMA last transfer
+	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
+	i2c_acknowledge_config( dcast(m_i2c), true );
 	//Send the start
 	i2c_generate_start(dcast(m_i2c), true );
 	ret = m_notify.wait( TRANSACTION_TIMEOUT );
@@ -402,49 +398,55 @@ void i2c_host::ev_irq()
 			m_addr |= I2C_OAR1_ADD0;
 			i2c_generate_start( dcast(m_i2c), true );
 			//ACK config
-			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
+			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
 		}
 		else {
 			i2c_generate_stop(dcast(m_i2c),true);
 			i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
 			m_notify.signal_isr();
-			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
+			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 		}
+		//Data synch barrier
+		dsb();
 	}
 	break;
 
 	//Master mode selected
 	case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	//EV7
-		if( m_rx_len == 1 ) {
-			i2c_acknowledge_config( dcast(m_i2c), false );
-		} else {
-			i2c_dma_last_transfer_cmd( dcast(m_i2c), true );
-			i2c_dma_rx_enable( dcast(m_i2c) );
-		}
-		dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
+			if( m_rx_len > 1 ) {
+				i2c_dma_last_transfer_cmd( dcast(m_i2c), true );
+				i2c_dma_rx_enable( dcast(m_i2c) );
+			} else {
+				i2c_acknowledge_config( dcast(m_i2c), false );
+				i2c_it_config(dcast(m_i2c), I2C_IT_BUF, true );
+			}
+		//dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_RECEIVED:
 		m_rx_buf[0] = i2c_receive_data( dcast(m_i2c) );
 		ev_finalize();
-		dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
+		//dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
 	break;
 		
 	default:
-		dbprintf("Unknown event %08x", event );
-		ev_finalize();
+		//dbprintf("Unknown event %08x", event );
+		ev_finalize( err_invstate );
 		break;
 	}
 }
 /* ------------------------------------------------------------------ */
 //! Finalize transaction
-void i2c_host::ev_finalize() 
+void i2c_host::ev_finalize( int err )
 {
 	i2c_generate_stop(dcast(m_i2c),true);
-	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
+	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 	i2c_dma_rx_disable( dcast(m_i2c) );
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	i2c_acknowledge_config( dcast(m_i2c), true );
+	if( err ) {
+		m_err_flag = err;
+	}
 	//ACK config
 	m_notify.signal_isr();
 }
@@ -477,7 +479,6 @@ void i2c_host::ev_dma_tc()
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	//ACK config
 	m_notify.signal_isr();
-	dbprintf("DMA_TC ");
 }
 /* ------------------------------------------------------------------ */ 
 extern "C" {
