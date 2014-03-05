@@ -219,11 +219,15 @@ static inline void wfi( void ) { asm volatile("nop");  }
 //! NOP command definition
 static inline void nop(void) { asm volatile("nop"); }
 /*----------------------------------------------------------*/
-//!Wait for ebvent
+//!Wait for event
 static inline void wfe(void) { asm volatile("wfe"); }
 
 /*----------------------------------------------------------*/
-
+//! Sync instructions
+static inline void dmb(void) { asm volatile("dmb"); }
+static inline void dsb(void) { asm volatile("dsb"); }
+static inline void isb(void) { asm volatile("isb"); }
+/*----------------------------------------------------------*/
 /** KR register bit mask */
 enum {
 	KR_KEY_Reload  = 0xAAAA,
