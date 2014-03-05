@@ -49,6 +49,18 @@ namespace {
 		std::abort();
 #endif
 	}
+	static constexpr auto I2C1_PORT = GPIOB;
+	static constexpr auto I2C1_SDA_PIN_ = 7;
+	static constexpr auto I2C1_SCL_PIN_ = 6;
+	static constexpr auto I2C1_SDA_PIN = 1U<<I2C1_SDA_PIN_;
+	static constexpr auto I2C1_SCL_PIN = 1U<<I2C1_SCL_PIN_;
+	static constexpr auto I2C2_PORT = GPIOB;
+	static constexpr auto I2C2_SDA_PIN_ = 11;
+	static constexpr auto I2C2_SCL_PIN_ = 10;
+	static constexpr auto I2C2_SDA_PIN = 1U<<I2C2_SDA_PIN_;
+	static constexpr auto I2C2_SCL_PIN = 1U<<I2C2_SCL_PIN_;
+	static constexpr auto I2C1_PINS = I2C1_SDA_PIN|I2C1_SCL_PIN;
+	static constexpr auto I2C2_PINS = I2C2_SDA_PIN|I2C2_SCL_PIN;
 }
 /** DMA Function depends on device STM32F1 and F2/F4 have incompatibile DMA controller */
 #ifdef STM32MCU_MAJOR_TYPE_F1
@@ -81,6 +93,7 @@ namespace {
 	//DMA RX enable
 	inline void i2c_dma_rx_enable( I2C_TypeDef * const i2c )
 	{
+		stm32::dma_irq_enable( i2c2rxdma(i2c), DMA_IT_TC );
 		stm32::dma_channel_enable( i2c2rxdma(i2c) );
 	}
 	//DMA TX enable
@@ -91,7 +104,22 @@ namespace {
 	//DMA RX enable
 	inline void i2c_dma_rx_disable( I2C_TypeDef * const i2c )
 	{
+		stm32::dma_irq_disable( i2c2rxdma(i2c), DMA_IT_TC );
 		stm32::dma_channel_disable( i2c2rxdma(i2c) );
+	}
+	//AFIO optional config
+	inline void afio_config( I2C_TypeDef * const  ) {}
+	
+	//I2C dma NVIC On
+	inline void i2c_dma_irq_on( I2C_TypeDef * const i2c , int prio, int sub ); 
+	{
+		if( i2c == I2C1 ) {
+			stm32::nvic_set_priority( DMA1_Channel7_IRQn, prio, sub );
+			stm32::nvic_irq_enable( DMA1_Channel7_IRQn, true );
+		} else if( i2c == I2C2 ) {
+			stm32::nvic_set_priority( DMA1_Channel5_IRQn, prio, sub );
+			stm32::nvic_irq_enable( DMA1_Channel5_IRQn, true );
+		}
 	}
 }
 #else
@@ -100,6 +128,7 @@ namespace {
 		rx,
 		tx
 	};
+
 	inline DMA_Stream_TypeDef* _i2c_stream( I2C_TypeDef* i2c, dma_dir d ) {
 		if( i2c == I2C1 ) {	
 			if( d == dma_dir::rx ) {
@@ -124,7 +153,7 @@ namespace {
 		}
 		return 0;
 	}
-
+	// DMA tx config
 	inline void i2c_dma_tx_config( I2C_TypeDef * const i2c, const void *buf, unsigned short len )
 	{
 		using namespace stm32;
@@ -135,9 +164,8 @@ namespace {
 				  DMA_MemoryBurst_Single | DMA_PeripheralBurst_Single | DMA_MemoryDataSize_Byte,
 				  DMA_FIFOMode_Disable | DMA_FIFOThreshold_HalfFull,
 				  len, &i2c->DR, const_cast<volatile void*>(buf) );
-
-		dbprintf("DMATX %i", len );
 	}
+	//DMA rx config
 	inline void i2c_dma_rx_config( I2C_TypeDef * const i2c, void *buf, unsigned short len )
 	{
 		using namespace stm32;
@@ -148,45 +176,57 @@ namespace {
 				  DMA_MemoryBurst_Single | DMA_PeripheralBurst_Single | DMA_MemoryDataSize_Byte,
 				  DMA_FIFOMode_Disable | DMA_FIFOThreshold_HalfFull,
 				  len, &i2c->DR, const_cast<volatile void*>(buf) );
-		dbprintf("DMARX %i", len );
 	}
+	//DMA tx enable
 	inline void i2c_dma_tx_enable( I2C_TypeDef * const i2c )
 	{
 		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::tx), true );
 	}
+	//DMA rx enable
 	inline void i2c_dma_rx_enable( I2C_TypeDef * const i2c )
 	{
 		dma_it_config( _i2c_stream(i2c,dma_dir::rx), DMA_IT_TC, true );
 		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::rx), true );
 	}
+	//DMA tx disable
 	inline void i2c_dma_tx_disable( I2C_TypeDef * const i2c )
 	{
 		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::tx), false );
 	}
+	//DMA rx disable
 	inline void i2c_dma_rx_disable( I2C_TypeDef * const i2c )
 	{
 		dma_it_config( _i2c_stream(i2c,dma_dir::rx), DMA_IT_TC, false );
 		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::rx), false );
 	}
+	//AFIO optional config
+	inline void afio_config( I2C_TypeDef * const i2c )
+	{
+		if( i2c == I2C1 ) {
+			gpio_pin_AF_config( I2C1_PORT, I2C1_SDA_PIN_, GPIO_AF_I2C1 );
+			gpio_pin_AF_config( I2C1_PORT, I2C1_SCL_PIN_, GPIO_AF_I2C1 );
+		} else if( i2c == I2C2 ) {
+			gpio_pin_AF_config( I2C2_PORT, I2C2_SDA_PIN_, GPIO_AF_I2C2 );
+			gpio_pin_AF_config( I2C2_PORT, I2C2_SCL_PIN_, GPIO_AF_I2C2 );
+
+		}
+	}
+	//DMA nvic on
+	inline void i2c_dma_irq_on( I2C_TypeDef * const i2c, int prio, int sub ) {
+		if( i2c == I2C1 ) {
+			nvic_set_priority( DMA1_Stream0_IRQn, prio, sub );
+			nvic_irq_enable( DMA1_Stream0_IRQn, true );
+		} else if( i2c == I2C2 ) {
+			nvic_set_priority( DMA1_Stream7_IRQn, prio, sub );
+			nvic_irq_enable( DMA1_Stream7_IRQn, true );
+		}
+	}
 }
 #endif
-//! Defines
+//! Objects for interrupt handlers
 namespace {
 	i2c_host* obj_i2c1;
 	i2c_host* obj_i2c2;
-
-	static constexpr auto I2C1_PORT = GPIOB;
-	static constexpr auto I2C1_SDA_PIN_ = 7;
-	static constexpr auto I2C1_SCL_PIN_ = 6;
-	static constexpr auto I2C1_SDA_PIN = 1U<<I2C1_SDA_PIN_;
-	static constexpr auto I2C1_SCL_PIN = 1U<<I2C1_SCL_PIN_;
-	static constexpr auto I2C2_PORT = GPIOB;
-	static constexpr auto I2C2_SDA_PIN_ = 11;
-	static constexpr auto I2C2_SCL_PIN_ = 10;
-	static constexpr auto I2C2_SDA_PIN = 1U<<I2C2_SDA_PIN_;
-	static constexpr auto I2C2_SCL_PIN = 1U<<I2C2_SCL_PIN_;
-	static constexpr auto I2C1_PINS = I2C1_SDA_PIN|I2C1_SCL_PIN;
-	static constexpr auto I2C2_PINS = I2C2_SDA_PIN|I2C2_SCL_PIN;
 }
 /* ------------------------------------------------------------------ */ 
 /** Constructor
@@ -200,27 +240,23 @@ i2c_host::i2c_host( busid _i2c, unsigned clk_speed )
 	if( m_i2c == I2C1 ) {
 		rcc_apb1_periph_clock_cmd( RCC_APB1Periph_I2C1, true );
 		gpio_clock_enable( I2C1_PORT, true );
-#ifndef STM32MCU_MAJOR_TYPE_F1
-		gpio_pin_AF_config( I2C1_PORT, I2C1_SDA_PIN_, GPIO_AF_I2C1 );
-		gpio_pin_AF_config( I2C1_PORT, I2C1_SCL_PIN_, GPIO_AF_I2C1 );
-#endif
-		gpio_abstract_config_ext( I2C1_PORT, I2C1_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
 		if( obj_i2c1 ) {
 			terminate();
 		}
 		obj_i2c1 = this;
-	} else if( m_i2c == I2C2 ) {
+	} else if ( m_i2c == I2C2 ) {
 		rcc_apb1_periph_clock_cmd( RCC_APB1Periph_I2C2, true );
 		gpio_clock_enable( I2C2_PORT, true );
-#ifndef STM32MCU_MAJOR_TYPE_F1
-		gpio_pin_AF_config( I2C2_PORT, I2C2_SDA_PIN_, GPIO_AF_I2C2 );
-		gpio_pin_AF_config( I2C2_PORT, I2C2_SCL_PIN_, GPIO_AF_I2C2 );
-#endif
-		gpio_abstract_config_ext( I2C2_PORT, I2C2_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
 		if(obj_i2c2) {
 			terminate();
 		}
 		obj_i2c2 = this;
+	}
+	afio_config( dcast(m_i2c) );
+	if( m_i2c == I2C1 ) {
+		gpio_abstract_config_ext( I2C1_PORT, I2C1_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
+	} else if( m_i2c == I2C2 ) {
+		gpio_abstract_config_ext( I2C2_PORT, I2C2_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
 	} else {
 		//! Not supported yet
 		terminate();
@@ -233,16 +269,13 @@ i2c_host::i2c_host( busid _i2c, unsigned clk_speed )
 		nvic_set_priority( I2C1_ER_IRQn, IRQ_PRIO, IRQ_SUB );
 		nvic_irq_enable( I2C1_ER_IRQn, true );
 		nvic_irq_enable( I2C1_EV_IRQn, true );
-		nvic_set_priority( DMA1_Stream0_IRQn, IRQ_PRIO, IRQ_SUB );
-		nvic_irq_enable( DMA1_Stream0_IRQn, true );
 	} else if( m_i2c == I2C2 ) {
 		nvic_set_priority( I2C2_ER_IRQn, IRQ_PRIO, IRQ_SUB );
 		nvic_irq_enable( I2C2_ER_IRQn, true );
 		nvic_set_priority( I2C2_EV_IRQn, IRQ_PRIO, IRQ_SUB );
 		nvic_irq_enable( I2C2_EV_IRQn, true );
-		nvic_set_priority( DMA1_Stream7_IRQn, IRQ_PRIO, IRQ_SUB );
-		nvic_irq_enable( DMA1_Stream7_IRQn, true );
 	}
+	i2c_dma_irq_on( dcast(m_i2c), IRQ_PRIO, IRQ_SUB );
 	//Enable DMA in i2c
 	i2c_dma_cmd( dcast(m_i2c), true );
 	i2c_cmd( dcast(m_i2c), true );
@@ -311,8 +344,10 @@ int i2c_host::transfer_7bit(uint8_t addr, const void* wbuffer, short wsize, void
 	{
 		m_addr = addr | I2C_OAR1_ADD0;
 	}
-	m_rx_trans = (rbuffer!=nullptr);
-	m_tx_trans = (wbuffer!=nullptr);
+	m_rx_len = (rbuffer!=nullptr)?(rsize):(0);
+	m_tx_len = (wbuffer!=nullptr)?(wsize):(0);
+	m_rx_buf = reinterpret_cast<uint8_t*>(rbuffer);
+	m_tx_buf = reinterpret_cast<const uint8_t*>(wbuffer);
 	//Clear status flags
 	const auto rev = i2c_get_last_event( dcast(m_i2c));
 	dbprintf("EVINIT %08x", rev );
@@ -362,16 +397,14 @@ void i2c_host::ev_irq()
 	case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	//EV8
 	{
 		i2c_dma_tx_disable( dcast(m_i2c) );
-		if(m_rx_trans)
-		{
+		if( m_rx_len ) {
 			//Change address to read
 			m_addr |= I2C_OAR1_ADD0;
 			i2c_generate_start( dcast(m_i2c), true );
 			//ACK config
 			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
 		}
-		else
-		{
+		else {
 			i2c_generate_stop(dcast(m_i2c),true);
 			i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
 			m_notify.signal_isr();
@@ -382,33 +415,38 @@ void i2c_host::ev_irq()
 
 	//Master mode selected
 	case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	//EV7
-		i2c_dma_last_transfer_cmd( dcast(m_i2c), true );
-		i2c_dma_rx_enable( dcast(m_i2c) );
-		dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED");
+		if( m_rx_len == 1 ) {
+			i2c_acknowledge_config( dcast(m_i2c), false );
+		} else {
+			i2c_dma_last_transfer_cmd( dcast(m_i2c), true );
+			i2c_dma_rx_enable( dcast(m_i2c) );
+		}
+		dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
 	break;
 
-	//Master byte rcv
 	case I2C_EVENT_MASTER_BYTE_RECEIVED:
-		i2c_generate_stop(dcast(m_i2c),true);
-		i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
-		i2c_dma_rx_disable( dcast(m_i2c) );
-		i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
-		//ACK config
-		m_notify.signal_isr();
+		m_rx_buf[0] = i2c_receive_data( dcast(m_i2c) );
+		ev_finalize();
 		dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
 	break;
-
-	//Stop generated event
+		
 	default:
-		i2c_dma_tx_disable( dcast(m_i2c) );
-		i2c_dma_rx_disable( dcast(m_i2c) );
-		i2c_it_config( dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
-		i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
-		i2c_generate_stop( dcast(m_i2c), true );
-		m_notify.signal_isr();
-		dbprintf("Unknown %08x", event );
-	break;
+		dbprintf("Unknown event %08x", event );
+		ev_finalize();
+		break;
 	}
+}
+/* ------------------------------------------------------------------ */
+//! Finalize transaction
+void i2c_host::ev_finalize() 
+{
+	i2c_generate_stop(dcast(m_i2c),true);
+	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
+	i2c_dma_rx_disable( dcast(m_i2c) );
+	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
+	i2c_acknowledge_config( dcast(m_i2c), true );
+	//ACK config
+	m_notify.signal_isr();
 }
 /* ------------------------------------------------------------------ */
 //Error event handler
@@ -420,7 +458,6 @@ void i2c_host::err_irq()
 	uint16_t event = i2c_get_last_event( dcast(m_i2c) );
 	if(event & EVENT_ERROR_MASK)
 	{
-
 		i2c_clear_it_pending_bit( dcast(m_i2c), EVENT_ERROR_MASK );
 		m_err_flag = event >> 8;
 		i2c_it_config( dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
@@ -464,6 +501,7 @@ extern "C" {
 	{
 		if( obj_i2c2 ) obj_i2c2->err_irq();
 	}
+#ifndef STM32MCU_MAJOR_TYPE_F1
 	//I2C1 RX
 	__attribute__((interrupt)) void dma1_stream0_isr_vector()
 	{
@@ -476,6 +514,20 @@ extern "C" {
 		dma_clear_flag( DMA1_Stream7, DMA_FLAG_TCIF7|DMA_FLAG_TEIF7 );
 		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
 	}
+#else
+	//I2C1 RX
+	__attribute__((interrupt)) void dma1_channel7_isr_vector() 
+	{
+		stm32::dma_clear_flag( DMA1_FLAG_TC7 );	
+		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
+	}
+	//I2C2 RX
+	__attribute__((interrupt)) void dma1_channel5_isr_vector() 
+	{
+		stm32::dma_clear_flag( DMA1_FLAG_TC5 );
+		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
+	}
+#endif
 }
 /* ------------------------------------------------------------------ */ 
 }

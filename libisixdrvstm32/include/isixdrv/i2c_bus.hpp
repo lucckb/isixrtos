@@ -86,12 +86,16 @@ private:
 	void err_irq();
 	//! Event DMA transfer complete
 	void ev_dma_tc();
+	//! Finalize transaction
+	void ev_finalize();
 private:
 	void* const m_i2c;					//! I2C 
 	volatile uint8_t m_err_flag {};		//! Error code
 	volatile uint8_t m_addr {};			//! Current addr
-	volatile bool m_rx_trans {};		//! RX trans
-	volatile bool m_tx_trans {};		//! TX trans
+	volatile uint16_t m_rx_len {};		//! RX trans
+	volatile uint16_t m_tx_len {};		//! TX trans
+	uint8_t* m_rx_buf {};				//! RX buffer
+	const uint8_t* m_tx_buf {};			//! TX buf
 	isix::semaphore m_lock {1, 1};		//! Lock semaphore
 	isix::semaphore m_notify { 0, 1 };	//! Notify semaphore
 
