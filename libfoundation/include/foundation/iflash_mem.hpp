@@ -5,31 +5,78 @@
  *      Author: lucck
  */
 
-#ifndef IFLASH_MEM_HPP_
-#define IFLASH_MEM_HPP_
+#pragma once
 
+#include "noncopyable.hpp"
+#include <cstddef>
 /* ------------------------------------------------------------------ */
 namespace fnd {
 /* ------------------------------------------------------------------ */
-class iflash_mem
+class iflash_mem : private noncopyable
 {
 public:
+	static constexpr auto err_not_supported = -256;
+	//! Capability bits
+	enum cap_bits {
+		cap_pg_no_erase = 0x01,	//! Can write page without erase
+	};
 	//Page offset type
-	typedef unsigned short poffs_t;
+	typedef unsigned int poffs_t;
 	//Page address type
-	typedef unsigned short paddr_t;
+	typedef unsigned int paddr_t;
 	//Page len
-	typedef unsigned short pglen_t;
+	typedef unsigned int pglen_t;
+	//! Wirtual destructor
+	virtual ~iflash_mem() {
+	}
 	//Read one element from flash return bytes written or error
-	virtual int read_halfword(paddr_t pg, poffs_t pa, unsigned short &val) const = 0;
+	virtual int read_halfword(paddr_t /* pg */, poffs_t /* pa */, unsigned short &/* val */) const
+	{
+		return err_not_supported;
+	}
 	//Write one lement to flash return bytes written or error
-	virtual int write_halfword(paddr_t pg, poffs_t pa, unsigned short val) = 0;
+	virtual int write_halfword(paddr_t /*pg*/, poffs_t /* pa */, unsigned short /* val */)
+	{
+		return err_not_supported;
+	}
 	//Read one element from flash return bytes written or error
-	virtual int read_word(paddr_t pg, poffs_t pa, unsigned &val) const = 0;
+	virtual int read_word(paddr_t /* pg */, poffs_t /* pa */, unsigned &/* val */) const
+	{
+		return err_not_supported;
+	}
 	//Write one lement to flash return bytes written or error
-	virtual int write_word(paddr_t pg, poffs_t pa, unsigned val) = 0;
+	virtual int write_word(paddr_t /* pg */, poffs_t /* pa */, unsigned /* val */)
+	{
+		return err_not_supported;
+	}
+	/** Read data from selected address 
+	 * @param[in] pg Page address
+	 * @param[in] pa Page offset
+	 * @param[in] ptr Pointer to write
+	 * @param[in] len Size of buffer
+	 * @return error code or 0 if success */
+	virtual int write( paddr_t /* pg */, poffs_t /* pa */,const void* /* ptr */, size_t /* len */ ) {
+		return err_not_supported;
+	}
+	/** Read data from selected address 
+	 * @param[in] pg Page address
+	 * @param[in] pa Page offset
+	 * @param[out] ptr Pointer to read
+	 * @param[in] len Size of buffer
+	 * @return error code or 0 if success
+	 * */
+	virtual int read( paddr_t /* pg */, poffs_t /* pa */,void* /* ptr  */ , size_t /* len */) const {
+		return err_not_supported;
+	}
+	//! Write void data to memory
 	//Erase page return status
-	virtual int page_erase(paddr_t pa) = 0;
+	virtual int page_erase(paddr_t /* pa */) {
+		return err_not_supported;
+	}
+	//Get capabilties bits
+	virtual int get_capabilities() const {
+		return err_not_supported;
+	}
 	//Get pagesize
 	virtual poffs_t page_size() const = 0;
 	//Get numpages
@@ -39,4 +86,3 @@ public:
 /* ------------------------------------------------------------------ */
 }
 /* ------------------------------------------------------------------ */
-#endif /* IFLASH_MEM_HPP_ */

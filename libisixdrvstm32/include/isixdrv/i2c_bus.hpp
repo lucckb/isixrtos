@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 #pragma once
-#include <foundation/noncopyable.hpp>
+#include <foundation/ibus.hpp>
 #include <cstdint>
 #include <isix.h>
 #ifdef _HAVE_CONFIG_H
@@ -55,7 +55,7 @@ extern "C" {
 #endif
 }
 /* ------------------------------------------------------------------ */ 
-class i2c_host : private fnd::noncopyable {
+class i2c_bus : public fnd::bus::ibus {
 	static constexpr auto IRQ_PRIO = 1;
 	static constexpr auto IRQ_SUB = 7;
 	static constexpr auto TRANSACTION_TIMEOUT = 5000;
@@ -84,25 +84,26 @@ public:
 	//! Error code
 	enum err {
 		err_ok = 0,						//! all is ok
-		err_bus = -5000,				//! bus error
-		err_arbitration_lost = -5001,
-		err_ack_failure = -5002,
-		err_overrun = - 5003,
-		err_pec = - 5004,				//! parity check error
-		err_bus_timeout = -5005, 		//! bus timeout
-		err_timeout = - 5006,			//! timeout error
-		err_invstate = - 5007,			//! Invalid machine state
-		err_unknown = - 5008,
+		err_bus = -1024,				//! bus error
+		err_arbitration_lost = -1025,
+		err_ack_failure = -1026,
+		err_overrun = -1027,
+		err_pec = -1028,				//! parity check error
+		err_bus_timeout = -1029, 		//! bus timeout
+		err_timeout = -1030,			//! timeout error
+		err_invstate = -1031,			//! Invalid machine state
+		err_invaddr = -1032,			//! Invalid address
+		err_unknown = -1033				//! Unknown error
 	};
 	/** Constructor
 	 * @param[in] _i2c Interface bus ID
 	 * @param[in] clk_speed CLK speed in HZ
 	 */
-	i2c_host( busid _i2c, unsigned clk_speed=100000 );
+	i2c_bus( busid _i2c, unsigned clk_speed=100000 );
 	/** 
 	 * Destructor
 	 */
-	~i2c_host();
+	virtual ~i2c_bus();
 	/** Transfer one byte over i2c interface
 	 * @param[in] addr I2C address
 	 * @param[in] wbuffer Memory pointer for write
@@ -110,7 +111,7 @@ public:
 	 * @param[out] rbuffer Read data buffer pointer
 	 * @param[in] rsize Read buffer sizes
 	 * @return Error code or success */
-	int transfer_7bit(uint8_t addr, const void* wbuffer, short wsize, void* rbuffer, short rsize);
+	virtual int transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize);
 private:
 	//! Get hardware error code
 	int get_hwerror(void) const;

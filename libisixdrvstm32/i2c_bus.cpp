@@ -50,10 +50,10 @@ namespace {
 		return reinterpret_cast<I2C_TypeDef*>(p);
 	}
 	//Cast to i2c type
-	inline void* to_i2c( i2c_host::busid id ) {
+	inline void* to_i2c( i2c_bus::busid id ) {
 		switch( id ) {
-			case i2c_host::busid::i2c1: return I2C1;
-			case i2c_host::busid::i2c2: return I2C2;
+			case i2c_bus::busid::i2c1: return I2C1;
+			case i2c_bus::busid::i2c2: return I2C2;
 			default: return nullptr;
 		}
 	}
@@ -240,15 +240,15 @@ namespace {
 //! Objects for interrupt handlers
 namespace {
 #ifndef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
-	i2c_host* obj_i2c1;
-	i2c_host* obj_i2c2;
+	i2c_bus* obj_i2c1;
+	i2c_bus* obj_i2c2;
 #else
 #if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
-	i2c_host* obj_i2c1;
-	constexpr i2c_host* obj_i2c2 = nullptr;
+	i2c_bus* obj_i2c1;
+	constexpr i2c_bus* obj_i2c2 = nullptr;
 #elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C ==CONFIG_ISIXDRV_I2C_2
-	i2c_host* obj_i2c2;
-	constexpr i2c_host* obj_i2c1 = nullptr;
+	i2c_bus* obj_i2c2;
+	constexpr i2c_bus* obj_i2c1 = nullptr;
 #endif
 #endif
 }
@@ -257,7 +257,7 @@ namespace {
 	* @param[in] _i2c Interface bus ID
 	* @param[in] clk_speed CLK speed in HZ
 	*/
-i2c_host::i2c_host( busid _i2c, unsigned clk_speed )
+i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed )
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C)
 	: m_i2c( to_i2c(_i2c) )
 #endif
@@ -315,7 +315,7 @@ i2c_host::i2c_host( busid _i2c, unsigned clk_speed )
 }
 /* ------------------------------------------------------------------ */ 
 /** Destructor */
-i2c_host::~i2c_host()
+i2c_bus::~i2c_bus()
 {
 	if( dcast(m_i2c) == I2C1 ) {
 		nvic_irq_enable( I2C1_EV_IRQn, false );
@@ -328,7 +328,7 @@ i2c_host::~i2c_host()
 }
 /* ------------------------------------------------------------------ */ 
 /* Get hwerror */
-int i2c_host::get_hwerror(void) const
+int i2c_bus::get_hwerror(void) const
 {
 	static const int err_tbl[] =
 	{
@@ -355,9 +355,12 @@ int i2c_host::get_hwerror(void) const
 * @param[out] rbuffer Read data buffer pointer
 * @param[in] rsize Read buffer sizes
 * @return Error code or success */
-int i2c_host::transfer_7bit(uint8_t addr, const void* wbuffer, short wsize, void* rbuffer, short rsize)
+int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize)
 {
 	using namespace stm32;
+	if( (addr>0xFF) || (addr&1) ) {
+		return err_invaddr;
+	}
 	int ret;
 	if( (ret=m_lock.wait(isix::ISIX_TIME_INFINITE))<0 ) {
 		return ret;
@@ -403,7 +406,7 @@ int i2c_host::transfer_7bit(uint8_t addr, const void* wbuffer, short wsize, void
 	return ret;
 }
 /* ------------------------------------------------------------------ */ 
-void i2c_host::ev_irq()
+void i2c_bus::ev_irq()
 {
 	using namespace stm32;
 	auto event = i2c_get_last_event(dcast(m_i2c));
@@ -468,7 +471,7 @@ void i2c_host::ev_irq()
 }
 /* ------------------------------------------------------------------ */
 //! Finalize transaction
-void i2c_host::ev_finalize( int err )
+void i2c_bus::ev_finalize( int err )
 {
 	i2c_generate_stop(dcast(m_i2c),true);
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
@@ -483,7 +486,7 @@ void i2c_host::ev_finalize( int err )
 }
 /* ------------------------------------------------------------------ */
 //Error event handler
-void i2c_host::err_irq()
+void i2c_bus::err_irq()
 {
 	static constexpr auto EVENT_ERROR_MASK = 0xff00;
 	using namespace stm32;
@@ -502,7 +505,7 @@ void i2c_host::err_irq()
 }
 /* ------------------------------------------------------------------ */ 
 //Dma trasfer complete
-void i2c_host::ev_dma_tc() 
+void i2c_bus::ev_dma_tc() 
 {
 	i2c_generate_stop(dcast(m_i2c),true);
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
