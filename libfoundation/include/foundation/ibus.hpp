@@ -36,8 +36,17 @@ public:
 	 * @param[out] rbuffer Read data buffer pointer
 	 * @param[in] rsize Read buffer sizes
 	 * @return Error code or success */
-	virtual int transfer( unsigned /* address */, const void* /* wbuffer */, size_t /* wsize */,
-			void* /*  rbuffer */, size_t /* rsize */ ) = 0;
+	virtual int 
+		transfer( unsigned  address, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize ) = 0;
+	/** Double non continous transaction write 
+	 * @param[in] addr I2C address
+	 * @param[in] wbuf1 Write buffer first transaction
+	 * @param[in] wsize1 Transaction size 1
+	 * @param[in] wbuf2 Write buffer first transaction
+	 * @param[in] wsize2 Transaction size 1
+	 * @return error code or success */
+	virtual int 
+		write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 ) = 0;
 };
 
 /* ------------------------------------------------------------------ */ 

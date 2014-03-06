@@ -111,7 +111,19 @@ public:
 	 * @param[out] rbuffer Read data buffer pointer
 	 * @param[in] rsize Read buffer sizes
 	 * @return Error code or success */
-	virtual int transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize);
+	virtual int 
+		transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize);
+	
+	/** Double non continous transaction write 
+	 * @param[in] addr I2C address
+	 * @param[in] wbuf1 Write buffer first transaction
+	 * @param[in] wsize1 Transaction size 1
+	 * @param[in] wbuf2 Write buffer first transaction
+	 * @param[in] wsize2 Transaction size 1
+	 * @return error code or success */
+	virtual int 
+		write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 );
+
 private:
 	//! Get hardware error code
 	int get_hwerror(void) const;
@@ -136,6 +148,8 @@ private:
 	volatile bool m_use_dma {};			//! Use DMA on BIG tran
 	volatile uint16_t m_rx_len {};		//! RX trans
 	uint8_t* m_rx_buf {};				//! RX buffer
+	const uint8_t* m_tx2_buf {};		//! Second transaction buffer pointer
+	uint16_t m_tx2_len {};				//! Second transaction len
 	isix::semaphore m_lock {1, 1};		//! Lock semaphore
 	isix::semaphore m_notify { 0, 1 };	//! Notify semaphore
 

@@ -15,6 +15,7 @@
  *
  * =====================================================================================
  */
+//TODO: Code should be revieved when eeprom is complete 
 #include <isixdrv/i2c_bus.hpp>
 #include <stm32system.h>
 #include <stm32i2c.h>
@@ -405,6 +406,21 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	m_lock.signal();
 	return ret;
 }
+/* ------------------------------------------------------------------ */
+
+/** Double non continous transaction write 
+	* @param[in] addr I2C address
+	* @param[in] wbuf1 Write buffer first transaction
+	* @param[in] wsize1 Transaction size 1
+	* @param[in] wbuf2 Write buffer first transaction
+	* @param[in] wsize2 Transaction size 1
+	* @return error code or success */
+int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 )
+{
+	m_tx2_len = (wbuf2!=nullptr)?(wsize2):(0);
+	m_tx2_buf = reinterpret_cast<const uint8_t*>(wbuf2);
+	return transfer( addr, wbuf1, wsize1, nullptr, 0 );
+}
 /* ------------------------------------------------------------------ */ 
 void i2c_bus::ev_irq()
 {
@@ -435,13 +451,18 @@ void i2c_bus::ev_irq()
 			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
 		}
 		else {
-			i2c_generate_stop(dcast(m_i2c),true);
-			i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
-			m_notify.signal_isr();
+			if( m_tx2_len == 0 ) {
+				ev_finalize();
+			} else {
+				i2c_dma_tx_config( dcast(m_i2c), m_tx2_buf, m_tx2_len );
+				i2c_dma_tx_enable( dcast(m_i2c) );
+				m_tx2_len = 0;
+				m_tx2_buf = nullptr;
+			}
 			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 		}
 		//Data synch barrier
-		dsb();
+		dsb(); isb(); nop(); nop();
 	}
 	break;
 
