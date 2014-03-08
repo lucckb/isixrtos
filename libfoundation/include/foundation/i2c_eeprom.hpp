@@ -29,6 +29,11 @@ public:
 	enum class type : unsigned char {
 		m24c16
 	};
+	//! Error code
+	enum error {
+		err_addr_range = -2048,
+
+	};
 	/** @param[in] bus Input bus owner
 	 *  @param[in] bus_addr Bus memory address
 	 *  @param[in] dev_type Device type
@@ -56,13 +61,26 @@ public:
 		return cap_pg_no_erase;
 	}
 	//Get pagesize
-	virtual poffs_t page_size() const = 0;
+	virtual poffs_t page_size() const {
+		return pg_size();
+	}
 	//Get numpages
-	virtual paddr_t num_pages() const = 0;
+	virtual paddr_t num_pages() const {
+		return pg_count();
+	}
 private:
 	fnd::bus::ibus& m_bus;			//! Bus controller
 	const unsigned char m_addr;		//! Memory base addres
 	const type m_type;				//! Memory type
+private:
+	static constexpr iflash_mem::poffs_t _page_size_table[] = { 16 };
+	static constexpr iflash_mem::paddr_t _page_count_table[] = { 128 };
+	paddr_t pg_size( ) const {
+		return _page_size_table[int(m_type)];
+	}
+	poffs_t pg_count( ) const {
+		return _page_count_table[int(m_type)];
+	}
 };
 /* ------------------------------------------------------------------ */ 
 }

@@ -535,6 +535,11 @@ void i2c_bus::ev_dma_tc()
 	//ACK config
 	m_notify.signal_isr();
 }
+/* ------------------------------------------------------------------ */
+void i2c_bus::mdelay( unsigned timeout ) 
+{
+	isix::isix_wait_ms( timeout );
+}
 /* ------------------------------------------------------------------ */ 
 extern "C" {
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)

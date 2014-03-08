@@ -25,6 +25,20 @@ namespace bus {
 //I2C virtual bus
 class ibus : private noncopyable {
 public:
+	//! Error code
+	enum err {
+		err_ok = 0,						//! all is ok
+		err_bus = -1024,				//! bus error
+		err_arbitration_lost = -1025,
+		err_ack_failure = -1026,
+		err_overrun = -1027,
+		err_pec = -1028,				//! parity check error
+		err_bus_timeout = -1029, 		//! bus timeout
+		err_timeout = -1030,			//! timeout error
+		err_invstate = -1031,			//! Invalid machine state
+		err_invaddr = -1032,			//! Invalid address
+		err_unknown = -1033				//! Unknown error
+	};
 	//! Destructor
 	virtual ~ibus() {
 
@@ -47,6 +61,9 @@ public:
 	 * @return error code or success */
 	virtual int 
 		write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 ) = 0;
+
+	//! Delay amount of msec
+	virtual void mdelay( unsigned ms ) = 0;
 };
 
 /* ------------------------------------------------------------------ */ 

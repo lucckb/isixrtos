@@ -81,20 +81,6 @@ public:
 		i2c1,			//I2C1 
 		i2c2			//I2C2
 	};
-	//! Error code
-	enum err {
-		err_ok = 0,						//! all is ok
-		err_bus = -1024,				//! bus error
-		err_arbitration_lost = -1025,
-		err_ack_failure = -1026,
-		err_overrun = -1027,
-		err_pec = -1028,				//! parity check error
-		err_bus_timeout = -1029, 		//! bus timeout
-		err_timeout = -1030,			//! timeout error
-		err_invstate = -1031,			//! Invalid machine state
-		err_invaddr = -1032,			//! Invalid address
-		err_unknown = -1033				//! Unknown error
-	};
 	/** Constructor
 	 * @param[in] _i2c Interface bus ID
 	 * @param[in] clk_speed CLK speed in HZ
@@ -124,6 +110,8 @@ public:
 	virtual int 
 		write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 );
 
+	/** Mdelay bus tout impl */
+	virtual void mdelay( unsigned timeout );
 private:
 	//! Get hardware error code
 	int get_hwerror(void) const;
