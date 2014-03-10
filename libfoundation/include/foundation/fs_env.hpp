@@ -94,11 +94,13 @@ private:
 	//! Flash read cluster 
 	int flash_read( unsigned fpg, unsigned clust, unsigned csize, void *buf, size_t len );
 	//! Flash read cluster 
-	int flash_write( unsigned fpg, unsigned clust, unsigned csize, void *buf, size_t len );
+	int flash_write( unsigned fpg, unsigned clust, unsigned csize, const void *buf, size_t len );
 	//! Reclaim the memory
 	int reclaim();
 	//! Find free node
 	int find_free_cluster( unsigned pg, unsigned csize, unsigned sclust );
+	//! Delete active inode chain
+	int delete_chain( unsigned pg, unsigned csize, unsigned cclu );
 private:
 	iflash_mem& m_flash;	       			//! Flash memory private data
 	const iflash_mem::paddr_t m_pg_base;	//! Base page
