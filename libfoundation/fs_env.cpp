@@ -178,6 +178,7 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 				fc2 = find_free_cluster( pg, csize, fc1 + 1 );
 				char ibuf[ csize ];
 				unsigned twlen;
+				unsigned wlen;
 				if( c == 0 ) {
 					auto hdr = reinterpret_cast<fnode_0*>( ibuf );
 					hdr->id_next = env_id;
@@ -185,24 +186,24 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 					hdr->crc = crcc();
 					hdr->type = 0;
 					hdr->next = (buf_len<=(csize-sizeof(fnode_0)))?(node_end):(fc2);
-					const int wlen = (buf_len<=(csize-sizeof(fnode_0)))?(buf_len):
+					wlen = (buf_len<=(csize-sizeof(fnode_0)))?(buf_len):
 								 	 (csize-sizeof(fnode_0));
 					std::memcpy( hdr->data, buf, wlen );
-					buf = reinterpret_cast<const char*>(buf) + wlen;
-					buf_len -= wlen;
 					twlen = sizeof(fnode_0) + wlen;
+					dbprintf("WRCLU %i -> %i", fc1, hdr->next );
 				} else {
 					auto hdr = reinterpret_cast<fnode_1*>( ibuf );
 					hdr->type = 1;
 					hdr->next = (buf_len<=(csize-sizeof(fnode_1)))?(node_end):(fc2);
-					const int wlen = (buf_len<=(csize-sizeof(fnode_1)))?(buf_len):
+					wlen = (buf_len<=(csize-sizeof(fnode_1)))?(buf_len):
 								 	 (csize-sizeof(fnode_1));
 					std::memcpy( hdr->data, buf, wlen );
-					buf = reinterpret_cast<const char*>(buf) + wlen;
-					buf_len -= wlen;
 					twlen = sizeof(fnode_1) + wlen;
+					dbprintf("WRCLUX %i -> %i", fc1, hdr->next );
 				}
 				ret = flash_write( pg, fc1, csize, ibuf, twlen );
+				buf = reinterpret_cast<const char*>(buf) + wlen;
+				buf_len -= wlen;
 				fc1 = fc2;
 				if( ret ) break;
 			}
@@ -246,6 +247,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 			auto rrl = buf_len>(csize-sizeof(fnode_0))?(csize-sizeof(fnode_0)):(buf_len);
 			std::memcpy( buf, reinterpret_cast<fnode_0*>(lbuf)->data, rrl );
 			buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
+			dbprintf("WRCLU %i -> %i", clu, node.next );
 			clu = node.next;
 			while( clu!=node_end && buf_len>0 ) {
 				ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
@@ -258,7 +260,8 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 				rrl = buf_len>(csize-sizeof(fnode_1))?(csize-sizeof(fnode_1)):(buf_len);
 				std::memcpy( buf, reinterpret_cast<fnode_1*>(lbuf)->data, rrl );
 				buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
-				clu = node.next;
+				dbprintf("WRCLU %i -> %i", clu,  reinterpret_cast<fnode_1*>(lbuf)->next);
+				clu = reinterpret_cast<fnode_1*>(lbuf)->next;
 			}
 		}
 	}
@@ -440,7 +443,7 @@ int fs_env::flash_read( unsigned fpg, unsigned clust, unsigned csize,  void *buf
 		const auto poffs = (clust * csize)%pg_size;
 		const auto rll = (len>pg_size)?(pg_size):(len);
 		if( rll <= 0 ) break;
-		dbprintf("flash_read(paddr: %i poffs %i, len %i)", paddr, poffs, rll );
+//		dbprintf("flash_read(paddr: %i poffs %i, len %i)", paddr, poffs, rll );
 		ret=m_flash.read( paddr, poffs, buf, rll );
 		if( ret ) break;
 		len-=rll;
