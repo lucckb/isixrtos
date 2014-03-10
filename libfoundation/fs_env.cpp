@@ -232,12 +232,12 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 	}
 	auto ret = init_fs( pg, csize );
 	fnode_0 node;
+	crc16 ccrc;
 	if( ret >= 0 ) {
 		ret = find_first( env_id, pg, csize, &node );
 	}
 	if( ret > 0 ) {
 		unsigned clu = ret;
-		crc16 ccrc;
 		char lbuf[csize];
 		ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
 		if( !ret ) {
@@ -246,6 +246,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 			}
 			auto rrl = buf_len>(csize-sizeof(fnode_0))?(csize-sizeof(fnode_0)):(buf_len);
 			std::memcpy( buf, reinterpret_cast<fnode_0*>(lbuf)->data, rrl );
+			ccrc( buf, rrl );
 			buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
 			dbprintf("WRCLU %i -> %i", clu, node.next );
 			clu = node.next;
@@ -259,10 +260,17 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 				}
 				rrl = buf_len>(csize-sizeof(fnode_1))?(csize-sizeof(fnode_1)):(buf_len);
 				std::memcpy( buf, reinterpret_cast<fnode_1*>(lbuf)->data, rrl );
+				ccrc( buf, rrl );
 				buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
 				dbprintf("WRCLU %i -> %i", clu,  reinterpret_cast<fnode_1*>(lbuf)->next);
 				clu = reinterpret_cast<fnode_1*>(lbuf)->next;
 			}
+		}
+	}
+	if( !ret ) {
+		if( ccrc() != node.crc ) {
+			dbprintf("CRC mismatch");
+			return err_fs_fmt;
 		}
 	}
 	return ret;
@@ -474,6 +482,8 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 /* ------------------------------------------------------------------ */
 //! Reclaim the filesystem
 int fs_env::reclaim() {
+	dbprintf("Reclaim called but not implemented !");
+	throw 1;
 	return 0;
 }
 /* ------------------------------------------------------------------ */ 
