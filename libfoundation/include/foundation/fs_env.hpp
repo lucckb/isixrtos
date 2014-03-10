@@ -21,6 +21,10 @@
 /**  Filesystem implementation */
 namespace fnd {
 namespace filesystem {
+/* ------------------------------------------------------------------ */
+namespace detail {
+	struct fnode_0;
+}
 /* ------------------------------------------------------------------ */ 
 //! Env FS class implementation
 class fs_env {
@@ -36,6 +40,7 @@ public:
 		err_no_id	  =  -8193,
 		err_range_id  = -8194,
 		err_fs_full =  -8195,
+		err_fs_fmt = -8196
 	};
 	/** Environment fs constructor 
 	 * @param[in] flash_mem Flash memory controller
@@ -59,7 +64,7 @@ public:
 	 *   @param[in] len Buffer length
 	 *   @return Error code on failed
 	 */
-	int get( unsigned env_id, const void* buf, size_t buf_len );
+	int get( unsigned env_id, void* buf, size_t buf_len );
 
 	/** Unset environment variable
 	 *   @param[in] env_id Environment identifier
@@ -90,7 +95,7 @@ private:
 	//! Get pages avail
 	iflash_mem::paddr_t calc_npages( int n_pg ) const;
 	//! Find first entry by ID
-	int find_first( unsigned id, unsigned pg, unsigned cs );
+	int find_first( unsigned id, unsigned pg, unsigned cs, detail::fnode_0* node = nullptr );
 	//! Flash read cluster 
 	int flash_read( unsigned fpg, unsigned clust, unsigned csize, void *buf, size_t len );
 	//! Flash read cluster 

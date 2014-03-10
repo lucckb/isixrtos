@@ -25,7 +25,7 @@
 namespace fnd {
 namespace filesystem {
 /* ------------------------------------------------------------------ */
-namespace {
+namespace detail {
 /* ------------------------------------------------------------------ */ 
 //! Page header
 struct pg_hdr {
@@ -118,6 +118,7 @@ private:
 	*/
 int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 {
+	using namespace detail;
 	unsigned csize, pg;
 	++env_id;
 	if( env_id >= node_end ) {
@@ -216,14 +217,52 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 	*   @param[in] len Buffer length
 	*   @return Error code on failed
 	*/
-int fs_env::get( unsigned env_id, const void* buf, size_t buf_len )
+int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 {
+	using namespace detail;
+	unsigned csize, pg;
 	++env_id;
 	if( env_id >= node_end ) {
 		dbprintf("Invalid input identifier");
 		return err_invalid_id;
 	}
-	return 0;
+	if( buf_len > std::numeric_limits<decltype(fnode_0::id_next)>::max() ) {
+		return err_range_id;
+	}
+	auto ret = init_fs( pg, csize );
+	fnode_0 node;
+	if( ret >= 0 ) {
+		ret = find_first( env_id, pg, csize, &node );
+	}
+	if( ret > 0 ) {
+		unsigned clu = ret;
+		crc16 ccrc;
+		char lbuf[csize];
+		ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
+		if( !ret ) {
+			if( buf_len > node.len ) {
+				buf_len = node.len;
+			}
+			auto rrl = buf_len>(csize-sizeof(fnode_0))?(csize-sizeof(fnode_0)):(buf_len);
+			std::memcpy( buf, reinterpret_cast<fnode_0*>(lbuf)->data, rrl );
+			buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
+			clu = node.next;
+			while( clu!=node_end && buf_len>0 ) {
+				ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
+				if( ret ) break;
+				if( reinterpret_cast<fnode_1*>(lbuf)->type == 0 ) {
+					//TODO: Reformat FS if any errors here
+					ret = err_fs_fmt;
+					break;
+				}
+				rrl = buf_len>(csize-sizeof(fnode_1))?(csize-sizeof(fnode_1)):(buf_len);
+				std::memcpy( buf, reinterpret_cast<fnode_1*>(lbuf)->data, rrl );
+				buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
+				clu = node.next;
+			}
+		}
+	}
+	return ret;
 }
 /* ------------------------------------------------------------------ */
 /** Unset environment variable
@@ -232,6 +271,7 @@ int fs_env::get( unsigned env_id, const void* buf, size_t buf_len )
 	*/
 int fs_env::unset( unsigned env_id )
 {
+	using namespace detail;
 	++env_id;
 	if( env_id >= node_end ) {
 		dbprintf("Invalid input identifier");
@@ -253,6 +293,7 @@ int fs_env::unset( unsigned env_id )
 //!Unset internal witohout mod
 int fs_env::delete_chain( unsigned pg, unsigned csize, unsigned cclu )
 {
+	using namespace detail;
 	int ret;
 	//Read node
 	for(unsigned pclu ;cclu!=node_end;) {
@@ -277,6 +318,7 @@ int fs_env::delete_chain( unsigned pg, unsigned csize, unsigned cclu )
 //! Find free node
 int fs_env::find_free_cluster( unsigned pg, unsigned csize, unsigned sclust )
 {	
+	using namespace detail;
 	const auto pg_size = m_flash.page_size();
 	auto ncs = (m_npages * pg_size)/csize;
 	fnode_0 node;
@@ -313,18 +355,22 @@ int fs_env::init_fs( unsigned& pg, unsigned& csize )
 }
 /* ------------------------------------------------------------------ */
 //! Find first entry by ID
-int fs_env::find_first( unsigned id , unsigned pg, unsigned cs )
+int fs_env::find_first( unsigned id , unsigned pg, unsigned cs, detail::fnode_0* node )
 {
+	using namespace detail;
 	const auto pg_size = m_flash.page_size();
 	auto ncs = (m_npages * pg_size)/cs;
+	fnode_0 tmpn;
+	if( node == nullptr ) {
+		node = &tmpn;
+	}
 	///dbprintf("find_first() ncs: %i npgs: %i pg_size %i cs: %i", ncs, m_npages, pg_size, cs );
 	int ret;
-	fnode_0 node;
 	bool found = false;
 	for( unsigned c=1; c<ncs; ++c ) {
-		ret = flash_read( pg, c, cs, &node, sizeof node );
+		ret = flash_read( pg, c, cs, node, sizeof(*node) );
 		if( ret ) break;
-		if( node.type == 0 && node.id_next == id ) {
+		if( node->type == 0 && node->id_next == id ) {
 			ret = c;
 			found = true;
 			break;
@@ -333,13 +379,14 @@ int fs_env::find_first( unsigned id , unsigned pg, unsigned cs )
 	if( !ret && !found ) {
 		ret = err_invalid_id;
 	}
-	dbprintf("Find first ret %i", ret );
+	//dbprintf("Find first ret %i", ret );
 	return ret;
 }
 /* ------------------------------------------------------------------ */
 //! Format memory headers
 int fs_env::format( unsigned& clust_size ) 
 {
+	using namespace detail;
 	unsigned avail_mem = m_npages * m_flash.page_size();
 	if( avail_mem > 8192 ) {
 		clust_size = 64;
@@ -389,11 +436,11 @@ int fs_env::flash_read( unsigned fpg, unsigned clust, unsigned csize,  void *buf
 	const unsigned n_wr = csize/pg_size + (csize%pg_size?(1):(0));
 	int ret;
 	for( unsigned n=0; n<n_wr; ++n ) {
-		const auto paddr = fpg + (clust * csize)/pg_size + n;
+		const auto paddr = fpg + (clust * csize )/pg_size + n;
 		const auto poffs = (clust * csize)%pg_size;
-		const auto rll = (len>pg_size)?(pg_size):(len%pg_size);
+		const auto rll = (len>pg_size)?(pg_size):(len);
 		if( rll <= 0 ) break;
-		//dbprintf("flash_read(paddr: %i poffs %i, len %i)", paddr, poffs, len );
+		dbprintf("flash_read(paddr: %i poffs %i, len %i)", paddr, poffs, rll );
 		ret=m_flash.read( paddr, poffs, buf, rll );
 		if( ret ) break;
 		len-=rll;
@@ -411,7 +458,7 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 	for( unsigned n=0; n<n_wr; ++n ) {
 		const auto paddr = fpg + (clust * csize)/pg_size + n;
 		const auto poffs = (clust * csize)%pg_size;
-		const auto wrl = (len>pg_size)?(pg_size):(len%pg_size);
+		const auto wrl = (len>pg_size)?(pg_size):(len);
 		if( wrl <= 0 ) break;
 		dbprintf("flash_write(paddr: %i poffs %i, len %i)", paddr, poffs, wrl );
 		ret=m_flash.write( paddr, poffs, buf, wrl );
@@ -430,6 +477,7 @@ int fs_env::reclaim() {
 //! Check sturcture header and if it is invalid format it
 int fs_env::find_valid_page( unsigned& clust_size )
 {
+	using namespace detail;
 	int ret;
 	pg_hdr hdr;
 	do {
@@ -457,7 +505,7 @@ int fs_env::find_valid_page( unsigned& clust_size )
 				break;
 			}
 	} while(0);
-	dbprintf("R: %i %04x %i", ret, hdr.id, hdr.clust_len );
+	//dbprintf("R: %i %04x %i", ret, hdr.id, hdr.clust_len );
 	return ret;
 }
 /* ------------------------------------------------------------------ */ 
