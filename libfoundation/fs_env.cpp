@@ -149,6 +149,9 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 				if( ret>=0 ) {
 					dbprintf("Check chains again");
 					ret = check_chains( pg, csize, nclu );
+					if( ret == int(nclu) ) {
+						ret = err_success;
+					}
 				}
 			}
 		} else {
@@ -493,27 +496,31 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 //! Reclaim the filesystem
 int fs_env::reclaim_random()
 {
-#if 0
 	using namespace detail;
+	unsigned csize;
+	auto ret = find_valid_page(csize);
+	if( ret != err_hdr_first ) {
+		if( err_hdr_second ) {
+			ret = err_fs_fmt;
+		}
+		return ret;
+	}
 	const auto pg_size = m_flash.page_size();
 	auto ncs = (m_npages * pg_size)/csize;
 	fnode_0 node;
-	bool found = false;
-	int ret;
-	for( unsigned c=sclust; c<ncs; ++c ) {
-		ret = flash_read( pg, c, csize, &node, sizeof node );
+	for( unsigned c=1; c<ncs; ++c ) {
+		ret = flash_read( m_pg_base, c, csize, &node, sizeof node );
 		if( ret ) break;
-		if( node.id_next == node_unused ) {
-			found = true; ret = c;
-			break;
+		if( node.id_next == node_dirty ) {
+			node.id_next = node_unused;
+			dbprintf("Erase cluster %i", c );
+			ret = flash_write( m_pg_base, c, csize, &node, sizeof node );
+			if( ret ) {
+				break;
+			}
 		}
 	}
-	if( !ret && !found ) {
-		 ret = err_fs_full;
-	}
 	return ret;
-#endif
-	return 0;
 }
 /* ------------------------------------------------------------------ */
 //! Reclaim the filesystem
