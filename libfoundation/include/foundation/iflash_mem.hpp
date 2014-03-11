@@ -68,7 +68,6 @@ public:
 	virtual int read( paddr_t /* pg */, poffs_t /* pa */,void* /* ptr  */ , size_t /* len */) const {
 		return err_not_supported;
 	}
-	//! Write void data to memory
 	//Erase page return status
 	virtual int page_erase(paddr_t /* pa */) {
 		return err_not_supported;

@@ -21,6 +21,8 @@
 #include <foundation/dbglog.h>
 #include <limits>
 #include <cstring>
+//TODO: Format and erase invalid code clusters
+//TODO: Reclaim on the flash memories
 /* ------------------------------------------------------------------ */ 
 namespace fnd {
 namespace filesystem {
@@ -378,6 +380,7 @@ int fs_env::init_fs( unsigned& pg, unsigned& csize )
 		ret = err_success;
 		dbprintf("init_fs -> alt_page");
 	}
+	dbprintf("init_fs PG base %i alt %i size %i", m_pg_base, m_pg_alt, m_npages );
 	return ret;
 }
 /* ------------------------------------------------------------------ */

@@ -46,8 +46,8 @@ public:
 	 * @param[in] n_page number of pages used 0 all from beginning
        					 negative n from end */
 	fs_env( iflash_mem& flash_mem , unsigned n_pg = 0 ) 
-		: m_flash( flash_mem ), m_pg_base( calc_page(n_pg) ),
-		  m_pg_alt( calc_alt_page(n_pg) ), m_npages( calc_npages(n_pg) )
+		: m_flash( flash_mem ), m_npages( calc_npages(n_pg) ),
+		 m_pg_base( calc_page(n_pg) ), m_pg_alt( calc_alt_page(n_pg) )
 	{}
 	/**  Store data in non volatile memory
 	 *   @param[in] env_id Environment identifier
@@ -76,10 +76,11 @@ private:
 	iflash_mem::paddr_t calc_page( int n_pg ) const;
 	//! Calculate alternate page
 	iflash_mem::paddr_t calc_alt_page( int n_pg ) const {
-		if( !(m_flash.get_capabilities()&iflash_mem::cap_pg_no_erase) )
-			return calc_page( n_pg ) + n_pg / 2;
-		else 
+		if( !(m_flash.get_capabilities()&iflash_mem::cap_pg_no_erase) ) {
+			return calc_page( n_pg ) + m_npages;
+		} else {
 			return calc_page( n_pg );
+		}
 	}
 	//! Can random erase
 	bool can_random_access() const {
@@ -119,9 +120,9 @@ private:
 	int check_chains( unsigned pg, unsigned csize, unsigned rclu );
 private:
 	iflash_mem& m_flash;	       			//! Flash memory private data
+	const unsigned m_npages;				//! Number of pages
 	const iflash_mem::paddr_t m_pg_base;	//! Base page
 	const iflash_mem::paddr_t m_pg_alt;		//! Alternate page
-	const unsigned m_npages;				//! Number of pages
 };
 /* ------------------------------------------------------------------ */ 
 }
