@@ -236,7 +236,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 			std::memcpy( buf, reinterpret_cast<fnode_0*>(lbuf)->data, rrl );
 			ccrc( buf, rrl );
 			buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
-			dbprintf("WRCLU %i -> %i", clu, node.next );
+			dbprintf("RDCLU %i -> %i", clu, node.next );
 			clu = node.next;
 			while( clu!=node_end && buf_len>0 ) {
 				ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
@@ -250,7 +250,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 				std::memcpy( buf, reinterpret_cast<fnode_1*>(lbuf)->data, rrl );
 				ccrc( buf, rrl );
 				buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
-				dbprintf("WRCLU %i -> %i", clu,  reinterpret_cast<fnode_1*>(lbuf)->next);
+				dbprintf("RDCLU %i -> %i", clu,  reinterpret_cast<fnode_1*>(lbuf)->next);
 				clu = reinterpret_cast<fnode_1*>(lbuf)->next;
 			}
 		}
@@ -372,9 +372,11 @@ int fs_env::init_fs( unsigned& pg, unsigned& csize )
 	} else if( ret == err_hdr_first ) {
 		pg = m_pg_base;
 		ret = err_success;
+		dbprintf("init_fs -> base_page");
 	} else if( ret == err_hdr_second ) {
 		pg = m_pg_alt;
 		ret = err_success;
+		dbprintf("init_fs -> alt_page");
 	}
 	return ret;
 }
