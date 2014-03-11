@@ -21,7 +21,6 @@
 #include <foundation/dbglog.h>
 #include <limits>
 #include <cstring>
-//TODO: Format and erase invalid code clusters
 //TODO: Reclaim on the flash memories
 //TODO: CRC check on each cluster for consistency
 /* ------------------------------------------------------------------ */ 
@@ -550,8 +549,12 @@ int fs_env::reclaim_random()
 //! Reclaim the filesystem
 int fs_env::reclaim_nonrandom()
 {
-	dbprintf("Reclaim FL called but not implemented !");
-	return 0;
+#if 0
+	clust_size = get_clust_size();
+	const pg_hdr hdr { pg_hdr::id_valid, uint16_t(clust_size) };
+	ret = m_flash.write( m_pg_base, 0, &hdr, sizeof hdr );
+#endif
+	return -777;
 }
 /* ------------------------------------------------------------------ */ 
 //! Check sturcture header and if it is invalid format it
