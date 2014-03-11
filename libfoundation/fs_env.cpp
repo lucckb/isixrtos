@@ -279,10 +279,11 @@ int fs_env::unset( unsigned env_id )
 	unsigned csize, pg;
 	auto ret = init_fs( pg, csize );
 	if( ret >= 0 ) {
-		int ret = find_first( env_id, pg, csize );
+		ret = find_first( env_id, pg, csize );
 		if( ret == err_invalid_id ) {
 			ret = err_no_id;
-		} else if( ret > 0 ) {
+		} 
+		if( ret > 0 ) {
 			ret = delete_chain( pg, csize, ret );
 		}
 	}
