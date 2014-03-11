@@ -23,6 +23,7 @@
 #include <cstring>
 //TODO: Format and erase invalid code clusters
 //TODO: Reclaim on the flash memories
+//TODO: CRC check on each cluster for consistency
 /* ------------------------------------------------------------------ */ 
 namespace fnd {
 namespace filesystem {
@@ -44,7 +45,7 @@ struct pg_hdr {
 static constexpr uint16_t node_unused = 0x7FFF;
 static constexpr uint16_t node_dirty = 0;
 static constexpr uint16_t node_end = node_unused - 1;
-
+static constexpr uint16_t node_cleanup[] = { 0xFFFF, 0xFFFF };
 //! Node type 0
 struct fnode_0 {
 	uint16_t type : 1;
@@ -413,20 +414,37 @@ int fs_env::find_first( unsigned id , unsigned pg, unsigned cs, detail::fnode_0*
 	return ret;
 }
 /* ------------------------------------------------------------------ */
+//! Erase all pages beginning from startup pg
+int fs_env::erase_all_random( unsigned pg )
+{
+	using namespace detail;
+	const auto pg_size = m_flash.page_size();
+	const auto cs = get_clust_size();
+	auto ncs = (m_npages * pg_size)/cs;
+	int ret;
+	for( unsigned c = 0; c < ncs; ++c ) {
+		ret = flash_write( pg , c, cs, node_cleanup, sizeof node_cleanup );
+		if( ret ) break;
+	}
+	return ret;
+}
+/* ------------------------------------------------------------------ */
 //! Format memory headers
 int fs_env::format( unsigned& clust_size ) 
 {
 	using namespace detail;
-	unsigned avail_mem = m_npages * m_flash.page_size();
-	if( avail_mem > 8192 ) {
-		clust_size = 64;
-	} else {
-		clust_size = 32;
+	auto ret = erase_all_pages( m_pg_base );
+	if( ret ) {
+		return ret;
 	}
+	clust_size = get_clust_size();
 	const pg_hdr hdr { pg_hdr::id_valid, uint16_t(clust_size) };
-	auto ret = m_flash.write( m_pg_base, 0, &hdr, sizeof hdr );
-	if( !ret && !can_random_access() ) {
-		ret = m_flash.page_erase( m_pg_alt );
+	ret = m_flash.write( m_pg_base, 0, &hdr, sizeof hdr );
+	if( ret ) {
+		return ret;
+	}
+	if( !can_random_access() ) {
+		ret = erase_all_pages( m_pg_alt );
 		dbprintf("Page erase %i", ret );
 	}
 	return ret;

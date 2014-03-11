@@ -118,6 +118,23 @@ private:
 	int delete_chain( unsigned pg, unsigned csize, unsigned cclu );
 	//! Check fre chain
 	int check_chains( unsigned pg, unsigned csize, unsigned rclu );
+	//!Erase all eeprom
+	int erase_all_random( unsigned pg );
+	//Erase all flashmem
+	int erase_all_nonrandom( unsigned pg );
+	//! Erase all pages beginning from startup pg
+	int erase_all_pages( unsigned pg ) {
+		if( can_random_access() ) {
+			return erase_all_random(pg);
+		} else {
+			return m_flash.page_erase( pg );
+		}
+	}
+	//! Get cluster size
+	unsigned get_clust_size() const {
+		unsigned avail_mem = m_npages * m_flash.page_size();
+		return (avail_mem>8192)?(64):(32);
+	}
 private:
 	iflash_mem& m_flash;	       			//! Flash memory private data
 	const unsigned m_npages;				//! Number of pages
