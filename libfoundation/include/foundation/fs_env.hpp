@@ -31,7 +31,6 @@ class fs_env {
 public:
 	//! Error codes
 	enum error {
-		err_no_clusters = 4,
 		err_hdr_not_found = 3,
 		err_hdr_second = 2,
 		err_hdr_first = 1,
@@ -40,7 +39,7 @@ public:
 		err_no_id	  =  -8193,
 		err_range_id  = -8194,
 		err_fs_full =  -8195,
-		err_fs_fmt = -8196
+		err_fs_fmt = -8196,
 	};
 	/** Environment fs constructor 
 	 * @param[in] flash_mem Flash memory controller
@@ -100,12 +99,24 @@ private:
 	int flash_read( unsigned fpg, unsigned clust, unsigned csize, void *buf, size_t len );
 	//! Flash read cluster 
 	int flash_write( unsigned fpg, unsigned clust, unsigned csize, const void *buf, size_t len );
+	//! Reclaim eeprom memory
+	int reclaim_random();
+	//! Reclaim flash memory
+	int reclaim_nonrandom();
 	//! Reclaim the memory
-	int reclaim();
+	int reclaim() {
+		if( can_random_access() ) {
+			return reclaim_random();
+		} else {
+			return reclaim_nonrandom();
+		}
+	}
 	//! Find free node
 	int find_free_cluster( unsigned pg, unsigned csize, unsigned sclust );
 	//! Delete active inode chain
 	int delete_chain( unsigned pg, unsigned csize, unsigned cclu );
+	//! Check fre chain
+	int check_chains( unsigned pg, unsigned csize, unsigned rclu );
 private:
 	iflash_mem& m_flash;	       			//! Flash memory private data
 	const iflash_mem::paddr_t m_pg_base;	//! Base page

@@ -139,35 +139,20 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 	}
 	if( ret == 0 ) {
 		const unsigned nclu = buf_len/csize + (buf_len%csize?(1):(0));
-		unsigned fnd_clu = 0;
-		for( int retries = 0; retries < 2; ++retries )
-		{
-			for( unsigned c = 0, fc =0; c<nclu; ++c ) {
-				fc = find_free_cluster( pg, csize, fc + 1 );
-				if( fc > 0 ) {
-					if( ++fnd_clu == nclu ) {
-						break;
-					}
-				} else if( fc == err_no_clusters )  {
-					ret = reclaim();
-					if( ! ret ) 
-						ret = init_fs( pg, csize );
-				    fnd_clu = 0;
-					break;
-		
-				} else {
-					ret = fc;
-					break;
+		ret = check_chains( pg, csize, nclu );
+		if( ret != int(nclu) ) {
+			if( ret == err_fs_full ) {
+				ret = reclaim();
+				if( !ret ) {
+					ret = init_fs( pg, csize );
 				}
-				if( ret ) break;
-				if( fnd_clu == nclu ) break;
+				if( ret>=0 ) {
+					dbprintf("Check chains again");
+					ret = check_chains( pg, csize, nclu );
+				}
 			}
-			if( fnd_clu == nclu ) {
-				break;
-			}
-		}
-		if( fnd_clu < nclu ) {
-			ret  = err_fs_full;
+		} else {
+			ret = err_success;
 		}
 		if( !ret ) {
 			crc16 crcc;
@@ -326,6 +311,29 @@ int fs_env::delete_chain( unsigned pg, unsigned csize, unsigned cclu )
 	return ret;
 }
 /* ------------------------------------------------------------------ */
+//! Check fre chain
+int fs_env::check_chains( unsigned pg, unsigned csize, unsigned rclu )
+{
+	int ret;
+	unsigned fnd_clu = 0;
+	for( unsigned c=0, fc=1; c<rclu; ++c ) {
+		ret = find_free_cluster( pg, csize, fc + 1 );
+		if( ret > 0 ) {
+			if( ++fnd_clu == rclu ) {
+				break;
+			}
+			fc = ret;
+		} else {
+			break;
+		}
+		if( fnd_clu == rclu ) break;
+	}
+	if( ret >= 0 ) {
+		ret = fnd_clu;
+	} 
+	return ret;
+}
+/* ------------------------------------------------------------------ */
 //! Find free node
 int fs_env::find_free_cluster( unsigned pg, unsigned csize, unsigned sclust )
 {	
@@ -344,7 +352,7 @@ int fs_env::find_free_cluster( unsigned pg, unsigned csize, unsigned sclust )
 		}
 	}
 	if( !ret && !found ) {
-		 ret = err_no_clusters;
+		 ret = err_fs_full;
 	}
 	return ret;
 }
@@ -359,8 +367,10 @@ int fs_env::init_fs( unsigned& pg, unsigned& csize )
 		dbprintf("Page not found format requied CS %i RET %i", csize, ret );
 	} else if( ret == err_hdr_first ) {
 		pg = m_pg_base;
+		ret = err_success;
 	} else if( ret == err_hdr_second ) {
 		pg = m_pg_alt;
+		ret = err_success;
 	}
 	return ret;
 }
@@ -481,9 +491,35 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 }
 /* ------------------------------------------------------------------ */
 //! Reclaim the filesystem
-int fs_env::reclaim() {
-	dbprintf("Reclaim called but not implemented !");
-	throw 1;
+int fs_env::reclaim_random()
+{
+#if 0
+	using namespace detail;
+	const auto pg_size = m_flash.page_size();
+	auto ncs = (m_npages * pg_size)/csize;
+	fnode_0 node;
+	bool found = false;
+	int ret;
+	for( unsigned c=sclust; c<ncs; ++c ) {
+		ret = flash_read( pg, c, csize, &node, sizeof node );
+		if( ret ) break;
+		if( node.id_next == node_unused ) {
+			found = true; ret = c;
+			break;
+		}
+	}
+	if( !ret && !found ) {
+		 ret = err_fs_full;
+	}
+	return ret;
+#endif
+	return 0;
+}
+/* ------------------------------------------------------------------ */
+//! Reclaim the filesystem
+int fs_env::reclaim_nonrandom()
+{
+	dbprintf("Reclaim FL called but not implemented !");
 	return 0;
 }
 /* ------------------------------------------------------------------ */ 
@@ -518,7 +554,6 @@ int fs_env::find_valid_page( unsigned& clust_size )
 				break;
 			}
 	} while(0);
-	//dbprintf("R: %i %04x %i", ret, hdr.id, hdr.clust_len );
 	return ret;
 }
 /* ------------------------------------------------------------------ */ 
