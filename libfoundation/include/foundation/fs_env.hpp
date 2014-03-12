@@ -6,12 +6,12 @@
  *    Description:  Filesystem envinronment implementation
  *
  *        Version:  1.0
- *        Created:  03/07/2014 12:59:52 PM
+ *        Created:  03/07/2014 18:59:52
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  Lucjan Bryndza (lb), Lucjan_B1@verifone.com
- *   Organization:  VERIFONE
+ *         Author:  Lucjan Bryndza (lb)
+ *   Organization:
  *
  * =====================================================================================
  */
@@ -35,11 +35,10 @@ public:
 		err_hdr_second = 2,
 		err_hdr_first = 1,
 		err_success = 0,
-		err_invalid_id = -8192,
-		err_no_id	  =  -8193,
-		err_range_id  = -8194,
-		err_fs_full =  -8195,
-		err_fs_fmt = -8196,
+		err_invalid_id = -8192,		/* Identifier not found  */
+		err_range_id  = -8193,		/* Ivalid range */
+		err_fs_full =  -8195,		/* File system full */
+		err_fs_fmt = -8196,			/* Filesystem format error reformat required */
 	};
 	/** Environment fs constructor 
 	 * @param[in] flash_mem Flash memory controller
@@ -71,6 +70,10 @@ public:
 	 */
 	int unset( unsigned env_id );
 
+	/** Format the whole storage memory on demand 
+	 *  @return error status code
+	 */
+	int format( );
 private:
 	//! Get first page address
 	iflash_mem::paddr_t calc_page( int n_pg ) const;
@@ -90,8 +93,6 @@ private:
 	int init_fs( unsigned& pg, unsigned& csize );
 	//! Check if storage memory is formated
 	int find_valid_page( unsigned& clust_size );
-	//! Format flash and return cluster size
-	int format( unsigned& clust_size );
 	//! Get pages avail
 	iflash_mem::paddr_t calc_npages( int n_pg ) const;
 	//! Find first entry by ID
@@ -127,7 +128,7 @@ private:
 		if( can_random_access() ) {
 			return erase_all_random(pg);
 		} else {
-			return m_flash.page_erase( pg );
+			return erase_all_nonrandom(pg);
 		}
 	}
 	//! Get cluster size

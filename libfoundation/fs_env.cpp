@@ -18,11 +18,14 @@
 
 #include <foundation/fs_env.hpp>
 #include <cstdint>
-#include <foundation/dbglog.h>
 #include <limits>
 #include <cstring>
-//TODO: Reclaim on the flash memories
-//TODO: CRC check on each cluster for consistency
+/* ------------------------------------------------------------------ */
+#ifdef CONFIG_LIBFOUNDATION_ENV_FS_DEBUG
+#include <foundation/dbglog.h>
+#else
+#define dbprintf(...) do {} while(0)
+#endif
 /* ------------------------------------------------------------------ */ 
 namespace fnd {
 namespace filesystem {
@@ -244,7 +247,6 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 				ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
 				if( ret ) break;
 				if( reinterpret_cast<fnode_1*>(lbuf)->type == 0 ) {
-					//TODO: Reformat FS if any errors here
 					ret = err_fs_fmt;
 					break;
 				}
@@ -282,9 +284,6 @@ int fs_env::unset( unsigned env_id )
 	auto ret = init_fs( pg, csize );
 	if( ret >= 0 ) {
 		ret = find_first( env_id, pg, csize );
-		if( ret == err_invalid_id ) {
-			ret = err_no_id;
-		} 
 		if( ret > 0 ) {
 			ret = delete_chain( pg, csize, ret );
 		}
@@ -368,7 +367,8 @@ int fs_env::init_fs( unsigned& pg, unsigned& csize )
 {
 	auto ret = find_valid_page(csize);
 	if( ret == err_hdr_not_found ) {
-		ret = format(csize);
+		ret = format();
+		csize = get_clust_size();
 		pg = m_pg_base;
 		dbprintf("Page not found format requied CS %i RET %i", csize, ret );
 	} else if( ret == err_hdr_first ) {
@@ -409,7 +409,6 @@ int fs_env::find_first( unsigned id , unsigned pg, unsigned cs, detail::fnode_0*
 	if( !ret && !found ) {
 		ret = err_invalid_id;
 	}
-	//dbprintf("Find first ret %i", ret );
 	return ret;
 }
 /* ------------------------------------------------------------------ */
@@ -428,15 +427,27 @@ int fs_env::erase_all_random( unsigned pg )
 	return ret;
 }
 /* ------------------------------------------------------------------ */
+int fs_env::erase_all_nonrandom( unsigned pg )
+{
+	int ret;
+	for( unsigned p = 0; p < m_npages; ++p ) {
+		ret = m_flash.page_erase( pg + p );
+		if( ret ) {
+			break;
+		}
+	}
+	return ret;
+}
+/* ------------------------------------------------------------------ */
 //! Format memory headers
-int fs_env::format( unsigned& clust_size ) 
+int fs_env::format() 
 {
 	using namespace detail;
 	auto ret = erase_all_pages( m_pg_base );
 	if( ret ) {
 		return ret;
 	}
-	clust_size = get_clust_size();
+	const auto clust_size = get_clust_size();
 	const pg_hdr hdr { pg_hdr::id_valid, uint16_t(clust_size) };
 	ret = m_flash.write( m_pg_base, 0, &hdr, sizeof hdr );
 	if( ret ) {
@@ -549,12 +560,36 @@ int fs_env::reclaim_random()
 //! Reclaim the filesystem
 int fs_env::reclaim_nonrandom()
 {
-#if 0
-	clust_size = get_clust_size();
-	const pg_hdr hdr { pg_hdr::id_valid, uint16_t(clust_size) };
-	ret = m_flash.write( m_pg_base, 0, &hdr, sizeof hdr );
-#endif
-	return -777;
+	using namespace detail;
+	unsigned csize;
+	auto ret = find_valid_page( csize );
+	if( ret < 0 ) {
+		return ret;
+	}
+	const auto pa_from = ret==err_hdr_first?m_pg_base:m_pg_alt;
+	const auto pa_to =   ret==err_hdr_first?m_pg_alt:m_pg_base;
+	const auto pg_size = m_flash.page_size();
+	auto ncs = (m_npages * pg_size)/csize;
+	unsigned char buf[csize];
+	auto node = reinterpret_cast<fnode_0*>(buf);
+	for( unsigned c=1; c<ncs; ++c ) {
+		ret = flash_read( pa_from, c, csize, buf, csize );
+		if( ret ) break;
+		if( node->id_next!=node_dirty && node->id_next!=node_unused ) {
+			dbprintf("Copy cluster %i", c );
+			ret = flash_write( pa_to, c, csize, buf, csize );
+			if( ret ) {
+				break;
+			}
+		}
+	}
+	ret = erase_all_nonrandom( pa_from );
+	if( ret ) {
+		return ret;
+	}
+	const pg_hdr hdr2 { pg_hdr::id_valid, uint16_t(csize) };
+	ret = m_flash.write( pa_to, 0, &hdr2, sizeof hdr2 );
+	return ret;
 }
 /* ------------------------------------------------------------------ */ 
 //! Check sturcture header and if it is invalid format it
