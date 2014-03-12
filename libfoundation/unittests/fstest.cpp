@@ -26,8 +26,10 @@
 int main( int argc, const char** argv) {
 	
 	try {
-		//fnd::fs_eeprom test( 128, 16 , false );
-		fnd::fs_eeprom test( 8, 128 , true );
+		// EEPROM type EMULATION
+		fnd::fs_eeprom test( 128, 16 , false );
+		//FLASH LIKE EMULATION
+		//fnd::fs_eeprom test( 8, 128 , true );
 		fnd::filesystem::fs_env env { test };
 		static constexpr auto sx1 = "A teraz bedzie dlugi na kilka chainow przynajmniem moze nie tak calkiem %li";
 		char s1[ 512 ];
