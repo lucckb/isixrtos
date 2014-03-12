@@ -340,11 +340,12 @@ int i2c_bus::get_hwerror(void) const
 		err_pec,
 		err_unknown,
 		err_bus_timeout,
+		err_invstate
 	};
-	for(int i=0; i<7; i++)
-	{
-		if(m_err_flag & (1<<i))
+	for(int i=0; i<8; i++) {
+		if(m_err_flag & (1<<i)) {
 			return err_tbl[i];
+		}
 	}
 	return 0;
 }
@@ -486,21 +487,22 @@ void i2c_bus::ev_irq()
 		
 	default:
 		dbprintf("Unknown event %08x", event );
-		ev_finalize( err_invstate );
+		ev_finalize( true );
 		break;
 	}
 }
 /* ------------------------------------------------------------------ */
 //! Finalize transaction
-void i2c_bus::ev_finalize( int err )
+void i2c_bus::ev_finalize( bool inv_state )
 {
 	i2c_generate_stop(dcast(m_i2c),true);
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 	i2c_dma_rx_disable( dcast(m_i2c) );
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	i2c_acknowledge_config( dcast(m_i2c), true );
-	if( err ) {
-		m_err_flag = err;
+	if( inv_state ) {
+		static constexpr auto inv_state_bit = 0x80;
+		m_err_flag |= inv_state_bit;
 	}
 	//ACK config
 	m_notify.signal_isr();

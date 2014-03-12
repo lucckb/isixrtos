@@ -126,7 +126,7 @@ private:
 	//! Event DMA transfer complete
 	void ev_dma_tc();
 	//! Finalize transaction
-	void ev_finalize( int err = 0 );
+	void ev_finalize( bool state_err = false );
 private:
 #ifndef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 	void* const m_i2c;					//! I2C
