@@ -68,7 +68,7 @@ private:
 private:
 	const poffs_t m_page_size;
 	const paddr_t m_num_pages;
-	mutable std::fstream m_file { "eeprom.bin" };
+	mutable std::fstream m_file; 
 	const bool m_emulate_flash;
 };
 /* ------------------------------------------------------------------ */ 
