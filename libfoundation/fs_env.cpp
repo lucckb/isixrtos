@@ -166,9 +166,17 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 			crc16 crcc;
 			crcc( buf, buf_len );
 			auto fc1 = find_free_cluster( pg, csize, 1 );
+			if( fc1 < 0 ) {
+				dbprintf("Hardware failure %i", fc1 );
+				return ret;
+			}
 			int fc2;
 			for( unsigned c=0; c<nclu; ++c ) {
 				fc2 = find_free_cluster( pg, csize, fc1 + 1 );
+				if( fc2 < 0 ) {
+					dbprintf("Hardware failure2 %i", fc2 );
+					return ret;
+				}
 				char ibuf[ csize ];
 				unsigned twlen;
 				unsigned wlen;
@@ -499,6 +507,7 @@ int fs_env::flash_read( unsigned fpg, unsigned clust, unsigned csize,  void *buf
 	const auto max_clust = (m_npages * pg_size)/csize;
 	int ret = err_internal;
 	if( clust > max_clust ) {
+		dbprintf("Cluster %i doesn't exists", clust );
 		ret = err_fs_fmt;
 		return ret;
 	}
@@ -524,7 +533,8 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 	const auto max_clust = (m_npages * pg_size)/csize;
 	int ret = err_internal;
 	if( clust > max_clust ) {
-		ret = err_fs_fmt;
+		dbprintf("Cluster %i doesn't exists", clust );
+		ret = err_internal;
 		return ret;
 	}
 	for( unsigned n=0; n<n_wr; ++n ) {
