@@ -496,7 +496,12 @@ int fs_env::flash_read( unsigned fpg, unsigned clust, unsigned csize,  void *buf
 {
 	const auto pg_size = m_flash.page_size();
 	const unsigned n_wr = csize/pg_size + (csize%pg_size?(1):(0));
+	const auto max_clust = (m_npages * pg_size)/csize;
 	int ret = err_internal;
+	if( clust > max_clust ) {
+		ret = err_fs_fmt;
+		return ret;
+	}
 	for( unsigned n=0; n<n_wr; ++n ) {
 		const auto paddr = fpg + (clust * csize )/pg_size + n;
 		const auto poffs = (clust * csize)%pg_size;
@@ -516,7 +521,12 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 {
 	const auto pg_size = m_flash.page_size();
 	const unsigned n_wr = csize/pg_size + (csize%pg_size?(1):(0));
+	const auto max_clust = (m_npages * pg_size)/csize;
 	int ret = err_internal;
+	if( clust > max_clust ) {
+		ret = err_fs_fmt;
+		return ret;
+	}
 	for( unsigned n=0; n<n_wr; ++n ) {
 		const auto paddr = fpg + (clust * csize)/pg_size + n;
 		const auto poffs = (clust * csize)%pg_size;
