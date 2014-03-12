@@ -68,9 +68,12 @@ int fs_eeprom::write( paddr_t pg, poffs_t pa ,const void* ptr , size_t len )
 		for( size_t s = 0; s < len; ++s ) {
 			buf[s] &= reinterpret_cast<const unsigned char*>(ptr)[s];
 		}
+		m_file.seekp( pg*m_page_size + pa, m_file.beg );
+		m_file.write( reinterpret_cast<const char*>(buf), len );
+	} else {
+		m_file.seekp( pg*m_page_size + pa, m_file.beg );
+		m_file.write( reinterpret_cast<const char*>(ptr), len );
 	}
-	m_file.seekp( pg*m_page_size + pa, m_file.beg );
-	m_file.write( reinterpret_cast<const char*>(ptr), len );
 	return 0;
 }
 /* ------------------------------------------------------------------ */ 
