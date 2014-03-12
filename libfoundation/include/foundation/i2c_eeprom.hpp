@@ -55,7 +55,8 @@ public:
 	 * */
 	virtual int read( paddr_t pg, poffs_t pa, void* ptr, size_t len ) const;
 	//! Destructor
-	virtual ~i2c_eeprom();
+	virtual ~i2c_eeprom() {
+	}
 	//Get capabilties bits
 	virtual int get_capabilities() const {
 		return cap_pg_no_erase;
