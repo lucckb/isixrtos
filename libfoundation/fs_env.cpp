@@ -238,24 +238,28 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 				buf_len = node.len;
 			}
 			auto rrl = buf_len>(csize-sizeof(fnode_0))?(csize-sizeof(fnode_0)):(buf_len);
-			std::memcpy( buf, reinterpret_cast<fnode_0*>(lbuf)->data, rrl );
+			{
+				const auto n = reinterpret_cast<fnode_0*>(lbuf);
+				std::memcpy( buf, n, rrl );
+			}
 			ccrc( buf, rrl );
 			buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
 			dbprintf("RDCLU %i -> %i", clu, node.next );
 			clu = node.next;
 			while( clu!=node_end && buf_len>0 ) {
 				ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
-				if( ret ) break;
-				if( reinterpret_cast<fnode_1*>(lbuf)->type == 0 ) {
+				const auto nnode1 = reinterpret_cast<fnode_1*>(lbuf);
+				if( ret ) break;	
+				if( nnode1 == 0 ) {
 					ret = err_fs_fmt;
 					break;
 				}
 				rrl = buf_len>(csize-sizeof(fnode_1))?(csize-sizeof(fnode_1)):(buf_len);
-				std::memcpy( buf, reinterpret_cast<fnode_1*>(lbuf)->data, rrl );
+				std::memcpy( buf, nnode1->data, rrl );
 				ccrc( buf, rrl );
 				buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
-				dbprintf("RDCLU %i -> %i", clu,  reinterpret_cast<fnode_1*>(lbuf)->next);
-				clu = reinterpret_cast<fnode_1*>(lbuf)->next;
+				dbprintf("RDCLU %i -> %i", clu,  nnode1->next);
+				clu = nnode1->next;
 			}
 		}
 	}
@@ -295,7 +299,7 @@ int fs_env::unset( unsigned env_id )
 int fs_env::delete_chain( unsigned pg, unsigned csize, unsigned cclu )
 {
 	using namespace detail;
-	int ret;
+	int ret = err_internal;
 	//Read node
 	for(unsigned pclu ;cclu!=node_end;) {
 		fnode_0 node;
@@ -419,7 +423,7 @@ int fs_env::erase_all_random( unsigned pg )
 	const auto pg_size = m_flash.page_size();
 	const auto cs = get_clust_size();
 	auto ncs = (m_npages * pg_size)/cs;
-	int ret;
+	int ret = err_internal;
 	for( unsigned c = 0; c < ncs; ++c ) {
 		ret = flash_write( pg , c, cs, node_cleanup, sizeof node_cleanup );
 		if( ret ) break;
@@ -429,7 +433,7 @@ int fs_env::erase_all_random( unsigned pg )
 /* ------------------------------------------------------------------ */
 int fs_env::erase_all_nonrandom( unsigned pg )
 {
-	int ret;
+	int ret = err_internal;
 	for( unsigned p = 0; p < m_npages; ++p ) {
 		ret = m_flash.page_erase( pg + p );
 		if( ret ) {
@@ -492,7 +496,7 @@ int fs_env::flash_read( unsigned fpg, unsigned clust, unsigned csize,  void *buf
 {
 	const auto pg_size = m_flash.page_size();
 	const unsigned n_wr = csize/pg_size + (csize%pg_size?(1):(0));
-	int ret;
+	int ret = err_internal;
 	for( unsigned n=0; n<n_wr; ++n ) {
 		const auto paddr = fpg + (clust * csize )/pg_size + n;
 		const auto poffs = (clust * csize)%pg_size;
@@ -512,7 +516,7 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 {
 	const auto pg_size = m_flash.page_size();
 	const unsigned n_wr = csize/pg_size + (csize%pg_size?(1):(0));
-	int ret;
+	int ret = err_internal;
 	for( unsigned n=0; n<n_wr; ++n ) {
 		const auto paddr = fpg + (clust * csize)/pg_size + n;
 		const auto poffs = (clust * csize)%pg_size;
