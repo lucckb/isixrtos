@@ -1,0 +1,6 @@
+project (Test)
+cmake_minimum_required(VERSION 2.8)
+add_executable ( ftest  fstest.cpp fs_eeprom.cpp "../../../isixrtos/libfoundation/fs_env.cpp"  )
+include_directories ("${PROJECT_SOURCE_DIR}/include" "../../../isixrtos/libfoundation/include" )
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -Wextra")
+SET(CMAKE_CXX_FLAGS_DEBUG "-DCONFIG_LIBFOUNDATION_ENV_FS_DEBUG")
