@@ -240,7 +240,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 			auto rrl = buf_len>(csize-sizeof(fnode_0))?(csize-sizeof(fnode_0)):(buf_len);
 			{
 				const auto n = reinterpret_cast<fnode_0*>(lbuf);
-				std::memcpy( buf, n, rrl );
+				std::memcpy( buf, n->data, rrl );
 			}
 			ccrc( buf, rrl );
 			buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
@@ -250,7 +250,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 				ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
 				const auto nnode1 = reinterpret_cast<fnode_1*>(lbuf);
 				if( ret ) break;	
-				if( nnode1 == 0 ) {
+				if( nnode1->type == 0 ) {
 					ret = err_fs_fmt;
 					break;
 				}
@@ -323,7 +323,7 @@ int fs_env::delete_chain( unsigned pg, unsigned csize, unsigned cclu )
 //! Check fre chain
 int fs_env::check_chains( unsigned pg, unsigned csize, unsigned rclu )
 {
-	int ret;
+	int ret = err_internal;
 	unsigned fnd_clu = 0;
 	for( unsigned c=0, fc=1; c<rclu; ++c ) {
 		ret = find_free_cluster( pg, csize, fc + 1 );
@@ -351,7 +351,7 @@ int fs_env::find_free_cluster( unsigned pg, unsigned csize, unsigned sclust )
 	auto ncs = (m_npages * pg_size)/csize;
 	fnode_0 node;
 	bool found = false;
-	int ret;
+	int ret = err_internal;
 	for( unsigned c=sclust; c<ncs; ++c ) {
 		ret = flash_read( pg, c, csize, &node, sizeof node );
 		if( ret ) break;
@@ -399,7 +399,7 @@ int fs_env::find_first( unsigned id , unsigned pg, unsigned cs, detail::fnode_0*
 		node = &tmpn;
 	}
 	///dbprintf("find_first() ncs: %i npgs: %i pg_size %i cs: %i", ncs, m_npages, pg_size, cs );
-	int ret;
+	int ret = err_internal;
 	bool found = false;
 	for( unsigned c=1; c<ncs; ++c ) {
 		ret = flash_read( pg, c, cs, node, sizeof(*node) );

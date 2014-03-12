@@ -11,7 +11,16 @@ namespace fnd {
 	*/
 fs_eeprom::fs_eeprom( int n_pages, int page_size, bool emulate_flash )
 	:  m_page_size( page_size ), m_num_pages( n_pages ), m_emulate_flash(emulate_flash)
-{
+{	
+	static constexpr auto filename = "eeprom.bin";
+	{
+		//Check if file not exist and create it
+		std::ifstream iff ( filename );
+		if( !iff.good() ) {
+			std::ofstream off( filename , std::ofstream::out|std::ofstream::trunc );
+		}
+	}
+	m_file.open( filename );
 	m_file.exceptions( std::ios::failbit );
 	m_file.seekp( 0, m_file.end );
 	auto size = m_file.tellp();
