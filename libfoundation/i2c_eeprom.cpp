@@ -60,11 +60,11 @@ int i2c_eeprom::write( paddr_t pg, poffs_t pa, const void* ptr, size_t len )
 	if( pg  > pg_count() ) {
 		return err_addr_range;
 	}
-	const unsigned offset = pg * pa;
+	const unsigned offset = pg * pg_size() + pa;
 	int ret;
 	for( int retry=0; retry<5; ++retry ) {
 		if( m_type <= type::m24c16 ) {
-			uint8_t i2c_a = (offset >> 8) + m_addr;
+			uint8_t i2c_a = ((offset >> 8)<<1) + m_addr;
 			uint8_t addr = offset;
 			ret  = m_bus.write( i2c_a, &addr, sizeof addr, ptr, len );
 		} else {
@@ -96,10 +96,10 @@ int i2c_eeprom::read( paddr_t pg, poffs_t pa, void* ptr, size_t len ) const
 	if( pg  > pg_count() ) {
 		return err_addr_range;
 	}
-	const unsigned offset = pg * pa;
-	int ret;
+	const unsigned offset = pg * pg_size() + pa;
+	int ret = err_invalid_type;
 	if( m_type <= type::m24c16 ) {
-		uint8_t i2c_a = (offset >> 8) + m_addr;
+		uint8_t i2c_a = ((offset >> 8)<<1) + m_addr;
 		uint8_t addr = offset;
 		ret = m_bus.transfer( i2c_a, &addr, sizeof addr, ptr, len );
 	} else {
