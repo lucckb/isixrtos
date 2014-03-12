@@ -1,0 +1,3 @@
+-I./include
+-I../../../isixrtos/libfoundation/include
+-std=c++11

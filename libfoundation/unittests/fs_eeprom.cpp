@@ -60,6 +60,15 @@ int fs_eeprom::page_erase( paddr_t pa )
 int fs_eeprom::write( paddr_t pg, poffs_t pa ,const void* ptr , size_t len )
 {
 	check_range( pg, pa, len );
+	//!If it is flash memory emulate flash behavior
+	if( m_emulate_flash ) {
+		unsigned char buf[len];
+		m_file.seekg( pg*m_page_size + pa , m_file.beg );
+		m_file.read( reinterpret_cast<char*>(buf), len );
+		for( size_t s = 0; s < len; ++s ) {
+			buf[s] &= reinterpret_cast<const unsigned char*>(ptr)[s];
+		}
+	}
 	m_file.seekp( pg*m_page_size + pa, m_file.beg );
 	m_file.write( reinterpret_cast<const char*>(ptr), len );
 	return 0;
