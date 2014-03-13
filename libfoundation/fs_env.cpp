@@ -145,18 +145,17 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 	if( ret == 0 ) {
 		const unsigned nclu = buf_len/csize + (buf_len%csize?(1):(0));
 		ret = check_chains( pg, csize, nclu );
-		if( ret != int(nclu) ) {
-			if( ret == err_fs_full ) {
-				ret = reclaim();
-				if( !ret ) {
-					ret = init_fs( pg, csize );
-				}
-				if( ret>=0 ) {
-					dbprintf("Check chains again");
-					ret = check_chains( pg, csize, nclu );
-					if( ret == int(nclu) ) {
-						ret = err_success;
-					}
+		if( ret==err_fs_full || ( ret>0 && ret<int(nclu) )  ) {
+			ret = reclaim();
+			if( !ret ) {
+				ret = init_fs( pg, csize );
+			}
+			if( ret>=0 ) {
+				ret = check_chains( pg, csize, nclu );
+				if( ret == int(nclu) ) {
+					ret = err_success;
+				} else if( ret>0 && ret<int(nclu)) {
+					ret = err_fs_full;
 				}
 			}
 		} else {
@@ -172,11 +171,6 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 			}
 			int fc2;
 			for( unsigned c=0; c<nclu; ++c ) {
-				fc2 = find_free_cluster( pg, csize, fc1 + 1 );
-				if( fc2 < 0 ) {
-					dbprintf("Hardware failure2 %i", fc2 );
-					return ret;
-				}
 				char ibuf[ csize ];
 				unsigned twlen;
 				unsigned wlen;
@@ -186,18 +180,36 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 					hdr->len = buf_len;
 					hdr->crc = crcc();
 					hdr->type = 0;
-					hdr->next = (buf_len<=(csize-sizeof(fnode_0)))?(node_end):(fc2);
-					wlen = (buf_len<=(csize-sizeof(fnode_0)))?(buf_len):
-								 	 (csize-sizeof(fnode_0));
+					if( buf_len <= (csize-sizeof(fnode_0)) ) {
+						hdr->next = node_end;
+						wlen = buf_len;
+					} else {
+						fc2 = find_free_cluster( pg, csize, fc1 + 1 );
+						if( fc2 < 0 ) {
+							dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
+							return ret;
+						}
+						hdr->next = fc2;
+						wlen = csize-sizeof(fnode_0);
+					}
 					std::memcpy( hdr->data, buf, wlen );
 					twlen = sizeof(fnode_0) + wlen;
 					dbprintf("WRCLU %i -> %i", fc1, hdr->next );
 				} else {
 					auto hdr = reinterpret_cast<fnode_1*>( ibuf );
 					hdr->type = 1;
-					hdr->next = (buf_len<=(csize-sizeof(fnode_1)))?(node_end):(fc2);
-					wlen = (buf_len<=(csize-sizeof(fnode_1)))?(buf_len):
-								 	 (csize-sizeof(fnode_1));
+					if( buf_len<=(csize-sizeof(fnode_1)) ) {
+						hdr->next = node_end;
+						wlen = buf_len;
+					} else {
+						fc2 = find_free_cluster( pg, csize, fc1 + 1 );
+						if( fc2 < 0 ) {
+							dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
+							return ret;
+						}
+						hdr->next = fc2;
+						wlen = csize-sizeof(fnode_1);
+					}
 					std::memcpy( hdr->data, buf, wlen );
 					twlen = sizeof(fnode_1) + wlen;
 					dbprintf("WRCLUX %i -> %i", fc1, hdr->next );
@@ -205,8 +217,8 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 				ret = flash_write( pg, fc1, csize, ibuf, twlen );
 				buf = reinterpret_cast<const char*>(buf) + wlen;
 				buf_len -= wlen;
-				fc1 = fc2;
 				if( ret ) break;
+				fc1 = fc2;
 			}
 		}
 	}
@@ -359,10 +371,13 @@ int fs_env::find_free_cluster( unsigned pg, unsigned csize, unsigned sclust )
 	auto ncs = (m_npages * pg_size)/csize;
 	fnode_0 node;
 	bool found = false;
-	int ret = err_internal;
+	int ret = err_success;
 	for( unsigned c=sclust; c<ncs; ++c ) {
 		ret = flash_read( pg, c, csize, &node, sizeof node );
-		if( ret ) break;
+		if( ret ) {
+			dbprintf("Free cluster err ret %i", ret );
+			break;
+		}
 		if( node.id_next == node_unused ) {
 			found = true; ret = c;
 			break;
