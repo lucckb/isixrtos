@@ -116,6 +116,8 @@ private:
 			return reclaim_nonrandom();
 		}
 	}
+	//! Calculate required cluster for buffer usage
+	size_t buf_len_to_n_clust( unsigned csize, size_t buf_len );
 	//! Find free node
 	int find_free_cluster( unsigned pg, unsigned csize, unsigned sclust );
 	//! Delete active inode chain

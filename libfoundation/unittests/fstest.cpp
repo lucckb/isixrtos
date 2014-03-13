@@ -31,6 +31,17 @@ int main( int argc, const char** argv) {
 		//FLASH LIKE EMULATION
 		//fnd::fs_eeprom test( 8, 128 , true );
 		fnd::filesystem::fs_env env { test };
+		if( 0 ) {
+			auto m_env = env;
+			static constexpr auto str1 = "Ala ma kota a kot ma ale no i co panie z tego wyniknie to nie wiadomo";
+			static constexpr auto str2 = "Walentina to walientina podniebmna mis byly kwiaty dla gagarina a teraz jest valentina twist A teraz Pan odwiedzi nas przyjedzie do Polski bo wszyscy na niego czekaja";
+			dbprintf("String length for str2 %i", std::strlen(str2) );
+			static char buf[2048] = { 0 };
+			int envret2 = m_env.set( 5 , str2, std::strlen(str2) );
+			dbprintf("Set env errno %i", envret2 );
+			int envret3 = m_env.get(5, buf, sizeof buf );
+			dbprintf("Get env errno %i str: %s", envret3, buf );
+		}
 		static constexpr auto sx1 = "A teraz bedzie dlugi na kilka chainow przynajmniem moze nie tak calkiem %li";
 		char s1[ 512 ];
 		std::snprintf(s1, sizeof s1, sx1, time(NULL) );

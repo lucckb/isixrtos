@@ -143,7 +143,7 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 		}
 	}
 	if( ret == 0 ) {
-		const unsigned nclu = buf_len/csize + (buf_len%csize?(1):(0));
+		const unsigned nclu = buf_len_to_n_clust( csize, buf_len );
 		ret = check_chains( pg, csize, nclu );
 		if( ret==err_fs_full || ( ret>0 && ret<int(nclu) )  ) {
 			ret = reclaim();
@@ -169,7 +169,7 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 				dbprintf("Hardware failure %i", fc1 );
 				return ret;
 			}
-			int fc2 = 0;
+			int fc2 = node_end;
 			for( unsigned c=0; c<nclu; ++c ) {
 				char ibuf[ csize ];
 				unsigned twlen;
@@ -313,6 +313,19 @@ int fs_env::unset( unsigned env_id )
 		}
 	}
 	return ret;
+}
+/* ------------------------------------------------------------------ */ 
+//! Calculate required cluster for buffer usage
+size_t fs_env::buf_len_to_n_clust( unsigned csize, size_t buf_len )
+{
+	using namespace detail;
+	int ret = buf_len - ( csize - sizeof(fnode_0) );
+	if( ret <= 0 ) {
+		return 1;
+	} else {
+		csize -= sizeof(fnode_1);
+		return unsigned(ret)/csize + (unsigned(ret)%csize?(1U):(0U)) + 1U;
+	}
 }
 /* ------------------------------------------------------------------ */ 
 //!Unset internal witohout mod
