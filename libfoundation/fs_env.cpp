@@ -246,42 +246,49 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 	auto ret = init_fs( pg, csize );
 	fnode_0 node;
 	crc16 ccrc;
-	if( ret >= 0 ) {
-		ret = find_first( env_id, pg, csize, &node );
+	if( ret < 0 ) {
+		return ret;
 	}
-	if( ret > 0 ) {
-		unsigned clu = ret;
-		char lbuf[csize];
+	ret = find_first( env_id, pg, csize, &node );
+	if( ret <= 0 ) {
+		return ret;
+	}
+	unsigned clu = ret;
+	char lbuf[csize];
+	ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
+	if( ret ) {
+		return ret;
+	}
+	if( buf_len < node.len ) {
+		ret = err_buf_ovrflow;
+		return ret;
+	}
+	if( buf_len > node.len ) {
+		buf_len = node.len;
+	}
+	auto rrl = buf_len>(csize-sizeof(fnode_0))?(csize-sizeof(fnode_0)):(buf_len);
+	{
+		const auto n = reinterpret_cast<fnode_0*>(lbuf);
+		std::memcpy( buf, n->data, rrl );
+	}
+	ccrc( buf, rrl );
+	buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
+	dbprintf("RDCLU %i -> %i", clu, node.next );
+	clu = node.next;
+	while( clu!=node_end && buf_len>0 ) {
 		ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
-		if( !ret ) {
-			if( buf_len > node.len ) {
-				buf_len = node.len;
-			}
-			auto rrl = buf_len>(csize-sizeof(fnode_0))?(csize-sizeof(fnode_0)):(buf_len);
-			{
-				const auto n = reinterpret_cast<fnode_0*>(lbuf);
-				std::memcpy( buf, n->data, rrl );
-			}
-			ccrc( buf, rrl );
-			buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
-			dbprintf("RDCLU %i -> %i", clu, node.next );
-			clu = node.next;
-			while( clu!=node_end && buf_len>0 ) {
-				ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
-				const auto nnode1 = reinterpret_cast<fnode_1*>(lbuf);
-				if( ret ) break;	
-				if( nnode1->type == 0 ) {
-					ret = err_fs_fmt;
-					break;
-				}
-				rrl = buf_len>(csize-sizeof(fnode_1))?(csize-sizeof(fnode_1)):(buf_len);
-				std::memcpy( buf, nnode1->data, rrl );
-				ccrc( buf, rrl );
-				buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
-				dbprintf("RDCLU %i -> %i", clu,  nnode1->next);
-				clu = nnode1->next;
-			}
+		const auto nnode1 = reinterpret_cast<fnode_1*>(lbuf);
+		if( ret ) break;	
+		if( nnode1->type == 0 ) {
+			ret = err_fs_fmt;
+			break;
 		}
+		rrl = buf_len>(csize-sizeof(fnode_1))?(csize-sizeof(fnode_1)):(buf_len);
+		std::memcpy( buf, nnode1->data, rrl );
+		ccrc( buf, rrl );
+		buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
+		dbprintf("RDCLU %i -> %i", clu,  nnode1->next);
+		clu = nnode1->next;
 	}
 	if( !ret ) {
 		if( ccrc() != node.crc ) {

@@ -41,7 +41,8 @@ public:
 		err_range_id  = -8193,		/** Ivalid range */
 		err_fs_full =  -8195,		/** File system full */
 		err_fs_fmt = -8196,			/**  Filesystem format error reformat required */
-		err_internal = -8197		/** Internal error (critical) */
+		err_internal = -8197,		/** Internal error (critical) */
+		err_buf_ovrflow = -8198	    /** Buffer is to small to handle variable */
 	};
 	/** Environment fs constructor 
 	 * @param[in] flash_mem Flash memory controller
