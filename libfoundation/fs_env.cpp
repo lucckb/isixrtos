@@ -169,7 +169,7 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 				dbprintf("Hardware failure %i", fc1 );
 				return ret;
 			}
-			int fc2;
+			int fc2 = 0;
 			for( unsigned c=0; c<nclu; ++c ) {
 				char ibuf[ csize ];
 				unsigned twlen;
