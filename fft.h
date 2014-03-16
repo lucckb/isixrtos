@@ -79,11 +79,12 @@ namespace _internal
 		}
 		#else
 		//TODO: Cortex M3 biteverse use RBIT AND ASR in CM3
-		inline unsigned bitrev( unsigned v, int m )
+		inline unsigned bitrev( unsigned value, int m )
 		{
-			
+			unsigned result;
+			asm ("rbit %0, %1" : "=r" (result) : "r" (value) );
+			return result >> ( 32 - m );
 		}
-		#error Bit reverse not implemented yet
 		#endif
 		//Constant class definition
 		template<typename T, typename K> class scaledV
