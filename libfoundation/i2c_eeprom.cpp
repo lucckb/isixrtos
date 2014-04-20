@@ -19,6 +19,9 @@
 #include <cstdint>
 /* ------------------------------------------------------------------ */
 namespace fnd {
+/* ------------------------------------------------------------------ */ 
+constexpr iflash_mem::poffs_t i2c_eeprom::_page_size_table[];
+constexpr iflash_mem::paddr_t i2c_eeprom::_page_count_table[];
 /* ------------------------------------------------------------------ */
 namespace {
 	 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
