@@ -594,7 +594,7 @@ extern "C" {
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
 	}
 #endif
-#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2
+#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2 RX
 	__attribute__((interrupt)) void dma1_channel5_isr_vector() 
 	{
