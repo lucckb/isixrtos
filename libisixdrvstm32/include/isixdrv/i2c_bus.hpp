@@ -35,6 +35,10 @@ namespace stm32 {
 namespace drv {
 /* ------------------------------------------------------------------ */ 
 extern "C" {
+#ifdef STM32MCU_MAJOR_TYPE_F1
+	__attribute__((interrupt)) void dma1_channel7_isr_vector();
+	__attribute__((interrupt)) void dma1_channel5_isr_vector(); 
+#endif
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C)
 	void i2c1_ev_isr_vector() __attribute__ ((interrupt));
 	void i2c1_er_isr_vector() __attribute__ ((interrupt));
@@ -76,6 +80,8 @@ class i2c_bus : public fnd::bus::ibus {
 	friend void i2c2_er_isr_vector();
 	friend void dma1_stream7_isr_vector();
 #endif
+	friend void dma1_channel7_isr_vector();
+	friend void dma1_channel5_isr_vector();
 public:
 	enum class busid { //! Interface independent bus ID
 		i2c1,			//I2C1 
@@ -85,7 +91,11 @@ public:
 	 * @param[in] _i2c Interface bus ID
 	 * @param[in] clk_speed CLK speed in HZ
 	 */
-	i2c_bus( busid _i2c, unsigned clk_speed=100000 );
+#ifdef CONFIG_PCLK1_HZ 
+	i2c_bus( busid _i2c, unsigned clk_speed=100000, unsigned pclk1 = CONFIG_PCLK1_HZ );
+#else
+	i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 );
+#endif
 	/** 
 	 * Destructor
 	 */

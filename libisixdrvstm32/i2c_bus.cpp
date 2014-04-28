@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 //TODO: Code should be revieved when eeprom is complete 
+//TODO: Check for STM32F1 platform
 #include <isixdrv/i2c_bus.hpp>
 #include <stm32system.h>
 #include <stm32i2c.h>
@@ -83,9 +84,15 @@ namespace {
 /** DMA Function depends on device STM32F1 and F2/F4 have incompatibile DMA controller */
 #ifdef STM32MCU_MAJOR_TYPE_F1
 namespace {
+	//! RXDMA channel config
 	constexpr DMA_Channel_TypeDef* i2c2rxdma( I2C_TypeDef * const i2c )
 	{
 		return i2c==I2C1?(DMA1_Channel7):(DMA1_Channel5);
+	}
+	//! TXDMA coannel config
+	constexpr DMA_Channel_TypeDef* i2c2txdma( I2C_TypeDef * const i2c )
+	{
+		return i2c==I2C1?(DMA1_Channel6):(DMA1_Channel4);
 	}
 	//i2c TX DMA config
 	inline void i2c_dma_tx_config( I2C_TypeDef * const i2c, const void *buf, unsigned short len )
@@ -129,7 +136,7 @@ namespace {
 	inline void afio_config( I2C_TypeDef * const  ) {}
 	
 	//I2C dma NVIC On
-	inline void i2c_dma_irq_on( I2C_TypeDef * const i2c , int prio, int sub ); 
+	inline void i2c_dma_irq_on( I2C_TypeDef * const i2c , int prio, int sub )
 	{
 		if( i2c == I2C1 ) {
 			stm32::nvic_set_priority( DMA1_Channel7_IRQn, prio, sub );
@@ -260,7 +267,7 @@ namespace {
 	* @param[in] _i2c Interface bus ID
 	* @param[in] clk_speed CLK speed in HZ
 	*/
-i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed )
+i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C)
 	: m_i2c( to_i2c(_i2c) )
 #endif
@@ -298,7 +305,7 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed )
 		terminate();
 	}
 	i2c_init( dcast(m_i2c), clk_speed, I2C_Mode_I2C, I2C_DutyCycle_2, 1, 
-			  I2C_Ack_Enable, I2C_AcknowledgedAddress_7bit, CONFIG_PCLK1_HZ );
+			  I2C_Ack_Enable, I2C_AcknowledgedAddress_7bit, pclk1 );
 	i2c_acknowledge_config( dcast(m_i2c), true );
 	if( m_i2c == I2C1 ) {
 		nvic_set_priority( I2C1_EV_IRQn, IRQ_PRIO, IRQ_SUB );
@@ -533,7 +540,7 @@ void i2c_bus::err_irq()
 void i2c_bus::ev_dma_tc() 
 {
 	i2c_generate_stop(dcast(m_i2c),true);
-	i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
+	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
 	i2c_dma_rx_disable( dcast(m_i2c) );
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	//ACK config
