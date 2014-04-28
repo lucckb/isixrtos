@@ -23,7 +23,9 @@
 #include <stm32dma.h>
 #include <stm32gpio.h>
 #include <cstdlib>
+#ifdef _HAVE_CONFIG_H
 #include <config.h>
+#endif
 /* ------------------------------------------------------------------ */ 
 #ifdef CONFIG_ISIXDRV_I2C_DEBUG 
 #include <foundation/dbglog.h>
