@@ -7,9 +7,9 @@
 extern "C" {
 #endif
 
-
+#ifndef __packed
 #define __packed  __attribute__ ((__packed__))
-
+#endif
 
 /** Definitions from the USB standards **/
 
