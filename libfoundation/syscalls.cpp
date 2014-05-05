@@ -11,11 +11,12 @@
 #include "foundation/tiny_alloc.h"
 
 #else /*COMPILED_UNDER_ISIX*/
-
 #include <isix.h>
 #endif
 /* -------------------------------------------------------------- */
 #include <cstring>
+#include <cstdarg>
+#include "foundation/tiny_vaprintf.h"
 /* -------------------------------------------------------------- */
 
 #ifndef COMPILED_UNDER_ISIX
@@ -39,7 +40,7 @@
 #endif /*COMPILED_UNDER_ISIX*/
 
 /* -------------------------------------------------------------- */
-#ifndef  CONFIG_ENABLE_EXCEPTIONS
+#ifndef  __EXCEPTIONS
 void* operator new( size_t n ) throw()
 {
     if(n==0) n++;
@@ -175,7 +176,6 @@ void *realloc(void */*ptr*/, size_t /*size*/)
 	return NULL;
 }
 
-
 void *_malloc_r(struct _reent */*r*/, size_t size)
 {
 	return foundation_alloc(size);
@@ -200,13 +200,16 @@ void __verbose_terminate_handler()
 {
 	terminate_process();
 }
-
+int __snprintf_lite(char *__buf, size_t __bufsize, const char *__fmt, va_list __ap)
+{
+	return fnd::tiny_vaprintf( &__buf, __bufsize, __fmt, __ap );
+}
 }//namespace __gnu_cxx
 
 
 /* -------------------------------------------------------------- */
 //Bad function call handler if no exception
-#if (__cplusplus > 199711L) && !defined(CONFIG_ENABLE_EXCEPTIONS)
+#if (__cplusplus > 199711L) && !defined(__EXCEPTIONS)
 namespace std
 {
 	  void
@@ -280,7 +283,9 @@ namespace std
 	  void
 	  __throw_regex_error()
 	  { terminate_process(); for(;;); }
-
+	void
+	__throw_out_of_range_fmt(const char* , ...)
+	  { terminate_process(); for(;;); }
 }
 #endif
 /* -------------------------------------------------------------- */
