@@ -24,6 +24,7 @@
 #include <stm32dma.h>
 #include <stm32gpio.h>
 #include <cstdlib>
+#include <new>
 #ifdef _HAVE_CONFIG_H
 #include <config.h>
 #endif
