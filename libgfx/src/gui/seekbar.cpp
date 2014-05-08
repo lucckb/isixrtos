@@ -65,6 +65,12 @@ void seekbar::report_event( const input::event_info& ev )
 			ret |= emit( btn_event );
 		}
 	}
+
+	if( ev.type == input::event_info::EV_CHANGE )
+	{
+		modified();
+	}
+
 	if( ret )
 	{
 		event btn_event( this, event::evtype::EV_CHANGE );
