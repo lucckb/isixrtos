@@ -19,8 +19,8 @@ class seekbar: public widget
 {
 public:
 	//Constructor
-	explicit seekbar( rectangle const& rect,layout const& layout, window &win )
-		: widget( rect, layout, win )
+	explicit seekbar( rectangle const& rect,layout const& layout, window &win, bool selectable = true )
+		: widget( rect, layout, win, selectable )
 	{}
 	//Destructor
 	virtual ~seekbar() {};
