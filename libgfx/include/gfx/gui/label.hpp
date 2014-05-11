@@ -43,6 +43,7 @@ protected:
 	virtual void repaint();
 private:
 	detail::string m_caption;
+	coord_t draw_text_wdt;
 };
 /* ------------------------------------------------------------------ */
 } /* namespace gui */
