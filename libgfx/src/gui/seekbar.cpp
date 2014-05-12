@@ -25,6 +25,7 @@ void seekbar::repaint()
 	const auto cx = c.cx() - 2*r;
 	const auto sex = (int(cx) * int(m_value))/int(m_max);
 	const auto ycirc = c.y()+c.cy()/2;
+
 	if( m_psex != sex )
 	{
 		auto gdiw = make_wgdi();
@@ -32,11 +33,17 @@ void seekbar::repaint()
 		gdiw.set_fill(true);
 		gdiw.draw_circle( x+m_psex ,ycirc, r );
 	}
+
 	gdi.fill_area( x, y , sex, ys, false );
 	gdi.fill_area( x+sex, y, cx-sex, ys, true );
 	gdi.set_fg_color( colorspace::brigh(get_layout().bg(), luma));
 	gdi.set_fill( true );
 	gdi.draw_circle( x+sex,ycirc, r);
+
+	gdi.set_fg_color( colorspace::brigh(get_layout().bg(), luma/2));
+	gdi.set_fill( false );
+	gdi.draw_circle( x+sex,ycirc, r);
+
 	m_psex = sex;
 }
 /* ------------------------------------------------------------------ */
