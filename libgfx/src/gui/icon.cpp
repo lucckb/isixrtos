@@ -20,8 +20,7 @@ icon::icon( rectangle const& rect,layout const& layout ,window &win )
 //Repaint the window
 void icon::repaint()
 {
-	if( m_bitmap )
-	{
+	if( m_bitmap ) {
 		const auto c = get_coord() + get_owner().get_coord();
 		auto gdi = make_wgdi();
 		const auto tx = c.x() + (c.cx() - m_bitmap->width)/2;

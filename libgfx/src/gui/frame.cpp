@@ -41,7 +41,7 @@ void frame::execute()
 void frame::add_window( window* window )
 {
 	m_windows.push_back( window );
-	repaint(true);
+	repaint( true );
 }
 
 /* ------------------------------------------------------------------ */
@@ -49,7 +49,7 @@ void frame::add_window( window* window )
 void frame::delete_window( window* window )
 {
 	m_windows.remove( window );
-	repaint(true);
+	repaint( true );
 }
 /* ------------------------------------------------------------------ */ 
 /** Refresh frame manual requirement */

@@ -49,7 +49,8 @@ void window::repaint( bool force )
 	if( m_flags & flags::selectborder )
 	{
 		{
-			const auto s = (*m_current_widget)->get_coord() + get_coord() + 1;
+			const auto s = (*m_current_widget)->get_coord() + get_coord() ;
+			//DBG END
 			draw_line_box( s, gdi );
 		}
 		if( m_redraw_widget != m_widgets.end() )
