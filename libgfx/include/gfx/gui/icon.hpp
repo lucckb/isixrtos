@@ -27,8 +27,14 @@ public:
 		m_bitmap = nullptr;
 	}
 protected:
-	//Repaint the label
+	//! Repaint the label
 	virtual void repaint();
+	//! Report an event after component global change event
+	virtual void report_event( const input::event_info& ev ) {
+		if( ev.type == input::event_info::EV_CHANGE ) {
+			modified();
+		}
+	}
 private:
 	const bitmap_t *m_bitmap {};
 };
