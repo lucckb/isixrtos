@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 
-#ifndef GFX_GUI_FRAME_HPP_
-#define GFX_GUI_FRAME_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <foundation/noncopyable.hpp>
 #include <gfx/input/event_info.hpp>
@@ -30,10 +29,14 @@ class frame : private fnd::noncopyable
 {
 	static constexpr auto system_events_qsize = 64;
 public:
+	struct errno { enum {
+		success = 0,
+		wnd_not_found = -4096
+	};};
 	//Standard constructor
-	frame( drv::disp_base &display, color_t color = color::Black):
-		m_events_queue( system_events_qsize ),
-		m_disp( display ), m_color( color )
+	frame( drv::disp_base &display, color_t color = color::Black )
+		: m_events_queue( system_events_qsize ),
+		  m_disp( display ), m_color( color )
 	{
 	}
 	/** Refresh frame manual requirement */
@@ -71,7 +74,7 @@ public:
 		m_default_win_layout.fg( color );
 	}
 	//Focus on the window
-	void set_focus( window* window );
+	int set_focus( window* win );
 protected:
 	//Repaint visible
 	void repaint( bool force );
@@ -91,6 +94,4 @@ private:
 
 /* ------------------------------------------------------------------ */
 }}
-/* ------------------------------------------------------------------ */
-#endif /* GUI_MANAGER_HPP_ */
 /* ------------------------------------------------------------------ */

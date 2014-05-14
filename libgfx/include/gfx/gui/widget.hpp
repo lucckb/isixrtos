@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 
-#ifndef GFX_GUI_WIDGET_HPP_
-#define GFX_GUI_WIDGET_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/types.hpp>
 #include <memory>
@@ -113,4 +112,3 @@ private:
 /* ------------------------------------------------------------------ */
 }}
 /* ------------------------------------------------------------------ */
-#endif /* GFX_GUI_WIDGET_HPP_ */

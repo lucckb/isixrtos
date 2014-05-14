@@ -11,6 +11,7 @@
 #include <gfx/drivers/disp/disp_base.hpp>
 #include <isix.h>
 #include <foundation/dbglog.h>
+#include <algorithm>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
@@ -74,6 +75,20 @@ void frame::repaint( bool force )
 {
 	if( ! m_windows.empty() )
 		m_windows.front()->repaint( force );
+}
+/* ------------------------------------------------------------------ */
+//Focus on the window
+int frame::set_focus( window* win )
+{
+	auto elem = std::find_if( std::begin(m_windows), std::end(m_windows), 
+			[&]( const window* w ) { return w == win; } );
+	if( elem != m_windows.end() ) {
+		repaint( true );
+		return errno::success;
+	} else {
+		dbprintf("ERROR: Window %p not found", win );
+		return errno::wnd_not_found;
+	}
 }
 /* ------------------------------------------------------------------ */
 }	//ns gui

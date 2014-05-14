@@ -6,8 +6,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_EDITBOX_HPP_
-#define GFX_GUI_EDITBOX_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/widget.hpp>
 #include <gfx/gui/detail/defines.hpp>
@@ -97,5 +96,4 @@ private:	//Private constants
 } /* namespace gui */
 } /* namespace gfx */
 
-#endif /* EDITBOX_HPP_ */
 /* ------------------------------------------------------------------ */

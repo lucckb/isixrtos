@@ -6,8 +6,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_PRIMITIVES_HPP_
-#define GFX_GUI_PRIMITIVES_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/types.hpp>
 #include <gfx/disp/bitmap_fonts.hpp>
@@ -76,4 +75,3 @@ static inline rectangle operator+( const rectangle &r1, coord_t size )
 /* ------------------------------------------------------------------ */
 }}
 
-#endif /* PRIMITIVES_HPP_ */
