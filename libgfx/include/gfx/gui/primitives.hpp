@@ -39,10 +39,9 @@ private:
 
 /* ------------------------------------------------------------------ */
 //Basic layout class
-class layout
-{
+class layout {
 public:
-	layout(color_t fg, color_t bg, color_t sel, const font_t* const font = &disp::fonts::font_default)
+	layout( color_t fg, color_t bg, color_t sel = 0, const font_t* const font = &disp::fonts::font_default )
 		: mbg(bg), mfg(fg), msel(sel),mfont(font), minherited(false)
 	{}
 	layout() {}
