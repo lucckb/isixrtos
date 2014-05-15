@@ -33,6 +33,13 @@ public:
 	{
 		return m_caption;
 	}
+
+	virtual void report_event( const input::event_info& ev ) {
+		if( ev.type == input::event_info::EV_CHANGE ) {
+			modified();
+		}
+	}
+	
 protected:
 	// On repaint the widget return true when changed
 	virtual void repaint();

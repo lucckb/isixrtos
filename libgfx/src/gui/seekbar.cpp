@@ -14,6 +14,10 @@ namespace gui {
 //Repaint virtual function
 void seekbar::repaint()
 {
+	// do not repaint if value was not changed
+	if (m_value == m_pvalue) return;
+	m_pvalue = m_value;
+
 	constexpr auto luma = 32;
 	auto gdi = make_gdi( );
 	gdi.set_fg_color( get_layout().sel() );
