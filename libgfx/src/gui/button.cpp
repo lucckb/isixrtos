@@ -22,7 +22,9 @@ void button::repaint()
 	gdi.fill_area( c.x()+1, c.y()+1, c.cx()-2, c.cy()-2, true );
 	const auto tx = c.x() + (c.cx() - gdi.get_text_width(m_caption.c_str()))/2;
 	const auto ty = c.y() + (c.cy() - gdi.get_text_height())/2;
+
 	gdi.draw_text( tx, ty, m_caption.c_str());
+
 	if( !pushed() )
 	{
 		//FRM1
