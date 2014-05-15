@@ -90,10 +90,10 @@ struct event_info
 	};
 	unsigned time;  //! Timestamp
 	evtype type;    //! Event type
-	union
-	{
+	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
-		int param;
+		int param;						//! Optional param
+		void *target; 		    //! Optional target address
 	};
 };
 /* ------------------------------------------------------------------ */

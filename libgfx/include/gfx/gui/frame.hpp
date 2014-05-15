@@ -40,7 +40,7 @@ public:
 	{
 	}
 	/** Refresh frame manual requirement */
-	int update();
+	int update( window* target_win = nullptr );
 	/** Execute gui main loop */
 	void execute();
 	/** Send gui event handler */
@@ -75,8 +75,10 @@ public:
 	}
 	//Focus on the window
 	int set_focus( window* win );
-protected:
-	//Repaint visible
+private:
+	/** Repaint visible area 
+	 * @param[in] force Force repaint independent of component refresh
+	 */
 	void repaint( bool force );
 private:
 	//Private events queue
