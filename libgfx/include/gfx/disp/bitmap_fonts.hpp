@@ -33,6 +33,7 @@ struct font_t {
 namespace fonts
 {
 	extern const font_t font_default;
+	extern const font_t font_small;
 }
 /* ------------------------------------------------------------------ */
 }} //Namespace end
