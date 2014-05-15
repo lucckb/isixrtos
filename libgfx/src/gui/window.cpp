@@ -116,8 +116,9 @@ void window::select_prev()
 void window::add_widget( widget * const w )
 {
 	m_widgets.push_front( w );
-	if( w->selectable() )
+	if( w->selectable() ) {
 		m_current_widget = m_widgets.begin();
+	}
 }
 /* ------------------------------------------------------------------ */
 void window::delete_widget( widget * const w )
