@@ -24,11 +24,13 @@ void frame::execute()
 	repaint( true );
 	for( input::event_info ev;; )
 	{
+		bool force = false;
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
 		{
 			if( ev.type == input::event_info::evtype::EV_CHANGE && ev.target != nullptr )  {
 				auto tgtwin = reinterpret_cast<window*>( ev.target );
 				tgtwin->report_event( ev );
+				force = true;
 				dbprintf("Single window %p refresh req" , tgtwin );
 			} else if( !m_windows.empty() ) {
 				m_windows.front()->report_event( ev );
@@ -36,7 +38,7 @@ void frame::execute()
 		}
 		{
 			const auto tbeg = isix::isix_get_jiffies();
-			repaint(false);
+			repaint( force );
 			dbprintf("Repaint time %i", isix::isix_get_jiffies()-tbeg);
 		}
 	}
