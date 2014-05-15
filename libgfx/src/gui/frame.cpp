@@ -11,6 +11,7 @@
 #include <gfx/drivers/disp/disp_base.hpp>
 #include <isix.h>
 #include <foundation/dbglog.h>
+#include <algorithm>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
@@ -25,7 +26,11 @@ void frame::execute()
 	{
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
 		{
-			if( !m_windows.empty() ) {
+			if( ev.type == input::event_info::evtype::EV_CHANGE && ev.target != nullptr )  {
+				auto tgtwin = reinterpret_cast<window*>( ev.target );
+				tgtwin->report_event( ev );
+				dbprintf("Single window %p refresh req" , tgtwin );
+			} else if( !m_windows.empty() ) {
 				m_windows.front()->report_event( ev );
 			}
 		}
@@ -41,7 +46,7 @@ void frame::execute()
 void frame::add_window( window* window )
 {
 	m_windows.push_back( window );
-	repaint(true);
+	repaint( true );
 }
 
 /* ------------------------------------------------------------------ */
@@ -49,16 +54,16 @@ void frame::add_window( window* window )
 void frame::delete_window( window* window )
 {
 	m_windows.remove( window );
-	repaint(true);
+	repaint( true );
 }
 /* ------------------------------------------------------------------ */ 
 /** Refresh frame manual requirement */
-int frame::update() 
+int frame::update( window* target_win )
 {
 	const gfx::input::event_info ei  {
 		isix::isix_get_jiffies(),
 		gfx::input::event_info::evtype::EV_CHANGE,
-		{ .param = 0 }
+		{ .target = target_win }
 	};
 	return report_event( ei );
 }
@@ -74,6 +79,22 @@ void frame::repaint( bool force )
 {
 	if( ! m_windows.empty() )
 		m_windows.front()->repaint( force );
+}
+/* ------------------------------------------------------------------ */
+//Focus on the window
+int frame::set_focus( window* win )
+{
+	auto elem = std::find_if( std::begin(m_windows), std::end(m_windows), 
+			[&]( const window* w ) { return w == win; } );
+	if( elem != m_windows.end() ) {
+		m_windows.erase( elem );
+		m_windows.push_front( *elem );
+		repaint( true );
+		return errno::success;
+	} else {
+		dbprintf("ERROR: Window %p not found", win );
+		return errno::wnd_not_found;
+	}
 }
 /* ------------------------------------------------------------------ */
 }	//ns gui

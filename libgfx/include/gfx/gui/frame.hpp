@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 
-#ifndef GFX_GUI_FRAME_HPP_
-#define GFX_GUI_FRAME_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <foundation/noncopyable.hpp>
 #include <gfx/input/event_info.hpp>
@@ -30,14 +29,18 @@ class frame : private fnd::noncopyable
 {
 	static constexpr auto system_events_qsize = 64;
 public:
+	struct errno { enum {
+		success = 0,
+		wnd_not_found = -4096
+	};};
 	//Standard constructor
-	frame( drv::disp_base &display, color_t color = color::Black):
-		m_events_queue( system_events_qsize ),
-		m_disp( display ), m_color( color )
+	frame( drv::disp_base &display, color_t color = color::Black )
+		: m_events_queue( system_events_qsize ),
+		  m_disp( display ), m_color( color )
 	{
 	}
 	/** Refresh frame manual requirement */
-	int update();
+	int update( window* target_win = nullptr );
 	/** Execute gui main loop */
 	void execute();
 	/** Send gui event handler */
@@ -71,9 +74,11 @@ public:
 		m_default_win_layout.fg( color );
 	}
 	//Focus on the window
-	void set_focus( window* window );
-protected:
-	//Repaint visible
+	int set_focus( window* win );
+private:
+	/** Repaint visible area 
+	 * @param[in] force Force repaint independent of component refresh
+	 */
 	void repaint( bool force );
 private:
 	//Private events queue
@@ -91,6 +96,4 @@ private:
 
 /* ------------------------------------------------------------------ */
 }}
-/* ------------------------------------------------------------------ */
-#endif /* GUI_MANAGER_HPP_ */
 /* ------------------------------------------------------------------ */

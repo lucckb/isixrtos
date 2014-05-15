@@ -5,9 +5,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-
-#ifndef GFX_GUI_CHOICE_MENU_HPP_
-#define GFX_GUI_CHOICE_MENU_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/widget.hpp>
 
@@ -94,4 +92,3 @@ private:
 } /* namespace gfx */
 
 /* ------------------------------------------------------------------ */
-#endif /* CHOICE_MENU_HPP_ */

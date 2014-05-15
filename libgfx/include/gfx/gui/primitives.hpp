@@ -6,8 +6,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_PRIMITIVES_HPP_
-#define GFX_GUI_PRIMITIVES_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/types.hpp>
 #include <gfx/disp/bitmap_fonts.hpp>
@@ -40,10 +39,9 @@ private:
 
 /* ------------------------------------------------------------------ */
 //Basic layout class
-class layout
-{
+class layout {
 public:
-	layout(color_t fg, color_t bg, color_t sel, const font_t* const font = &disp::fonts::font_default)
+	layout( color_t fg, color_t bg, color_t sel = 0, const font_t* const font = &disp::fonts::font_default )
 		: mbg(bg), mfg(fg), msel(sel),mfont(font), minherited(false)
 	{}
 	layout() {}
@@ -76,4 +74,3 @@ static inline rectangle operator+( const rectangle &r1, coord_t size )
 /* ------------------------------------------------------------------ */
 }}
 
-#endif /* PRIMITIVES_HPP_ */

@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_DETAIL_DEFINES_HPP_
-#define GFX_GUI_DETAIL_DEFINES_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/types.hpp>
 #include <list>
@@ -35,5 +34,3 @@ template <typename K, typename V> using map = std::map<K,V>;
 }
 }
 
-/* ------------------------------------------------------------------ */
-#endif /* GFX_GUI_DETAIL_DEFINES_HPP_ */

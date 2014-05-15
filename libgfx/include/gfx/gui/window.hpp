@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_WINDOW_HPP_
-#define GFX_GUI_WINDOW_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/object.hpp>
 #include <gfx/types.hpp>
@@ -36,7 +35,7 @@ public:
 	};
 	//Get window
 	window( const rectangle &coord, frame &frm, unsigned flags = 0 )
-		: m_coord( coord ),m_frm ( frm ), m_flags(flags)
+		: m_coord( coord ),m_frm ( frm ), m_flags( flags )
 	{
 		m_frm.add_window( this );
 	}
@@ -96,5 +95,3 @@ private:
 
 /* ------------------------------------------------------------------ */
 
-#endif /* GFX_GUI_WINDOW_HPP_ */
-/* ------------------------------------------------------------------ */
