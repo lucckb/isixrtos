@@ -78,8 +78,10 @@ public:
 private:
 	/** Repaint visible area 
 	 * @param[in] force Force repaint independent of component refresh
+	 * @param[in] all   Redraw all windows
+	 * @param[in] force_clr Force clear background
 	 */
-	void repaint( bool force );
+	void repaint( bool force, bool all, bool force_clr = false );
 private:
 	//Private events queue
 	isix::fifo<input::event_info> m_events_queue;

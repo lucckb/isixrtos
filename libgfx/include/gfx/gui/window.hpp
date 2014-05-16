@@ -40,8 +40,11 @@ public:
 		m_frm.add_window( this );
 	}
 
-	// On repaint the widget return true when changed
-	void repaint( bool force );
+	/**  On repaint the widget return true when changed
+	 * @param[in] force Force repaint 
+	 * @param[in] force_clr Force clear background
+	 */
+	void repaint( bool force, bool force_clr );
 
 	//! Report input event
 	void report_event( const input::event_info& ev );

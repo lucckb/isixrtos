@@ -15,13 +15,12 @@
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
-
 /* ------------------------------------------------------------------ */
 /** Execute gui main loop */
 void frame::execute()
 {
 	m_disp.clear(color::Black);
-	repaint( true );
+	repaint( true , true );
 	for( input::event_info ev;; )
 	{
 		bool force = false;
@@ -31,14 +30,13 @@ void frame::execute()
 				auto tgtwin = reinterpret_cast<window*>( ev.target );
 				tgtwin->report_event( ev );
 				force = true;
-				dbprintf("Single window %p refresh req" , tgtwin );
 			} else if( !m_windows.empty() ) {
 				m_windows.front()->report_event( ev );
 			}
 		}
 		{
 			const auto tbeg = isix::isix_get_jiffies();
-			repaint( force );
+			repaint( force , false );
 			dbprintf("Repaint time %i", isix::isix_get_jiffies()-tbeg);
 		}
 	}
@@ -48,7 +46,7 @@ void frame::execute()
 void frame::add_window( window* window )
 {
 	m_windows.push_back( window );
-	repaint( true );
+	repaint( true, true, true );
 }
 
 /* ------------------------------------------------------------------ */
@@ -56,7 +54,7 @@ void frame::add_window( window* window )
 void frame::delete_window( window* window )
 {
 	m_windows.remove( window );
-	repaint( true );
+	repaint( true, true, true );
 }
 /* ------------------------------------------------------------------ */ 
 /** Refresh frame manual requirement */
@@ -77,10 +75,16 @@ int frame::report_event( const input::event_info &event )
 }
 /* ------------------------------------------------------------------ */
 //Repaint first windows
-void frame::repaint( bool force )
+void frame::repaint( bool force, bool all, bool force_clr )
 {
-	if( ! m_windows.empty() )
-		m_windows.front()->repaint( force );
+	if( all ) {
+		for( const auto item : m_windows ) {
+			item->repaint( force , force_clr );
+		}
+	} else {
+		if( ! m_windows.empty() )
+			m_windows.front()->repaint( force, force_clr );
+	}
 }
 /* ------------------------------------------------------------------ */
 //Focus on the window
@@ -91,7 +95,7 @@ int frame::set_focus( window* win )
 	if( elem != m_windows.end() ) {
 		m_windows.erase( elem );
 		m_windows.push_front( *elem );
-		repaint( true );
+		repaint( true, true, true );
 		return errno::success;
 	} else {
 		dbprintf("ERROR: Window %p not found", win );

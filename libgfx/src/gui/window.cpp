@@ -28,12 +28,15 @@ namespace
 }
 /* ------------------------------------------------------------------ */
 // On repaint the widget return true when changed
-void window::repaint( bool force )
+void window::repaint( bool force, bool force_clr )
 {
 	const auto& lay = m_layout.inherit()?get_owner().get_def_win_layout():m_layout;
 	disp::gdi gdi( get_owner().get_display(), lay.sel(), lay.bg(), lay.font() );
 	{
-		if( m_flags & flags::fill )
+		//NOTE: Force clear is reqired when one windows
+		// is replaced with another for example on focus 
+		// set and changing
+		if( (m_flags & flags::fill) && force_clr )
 		{
 			gdi.fill_area( m_coord.x(), m_coord.y(), m_coord.cx(), m_coord.cy(), true );
 		}
