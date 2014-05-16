@@ -45,7 +45,7 @@ void frame::execute()
 //Add widget to frame
 void frame::add_window( window* window )
 {
-	m_windows.push_back( window );
+	m_windows.push_front( window );
 	repaint( true, true, true );
 }
 
