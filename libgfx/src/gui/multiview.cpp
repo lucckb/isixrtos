@@ -61,7 +61,7 @@ void multiview::gui_draw_frame()
 // Add gui line of text
 void multiview::gui_add_line()
 {
-	auto gdi = make_wgdi( );
+	auto gdi = make_gdi();
 	const auto c = get_coord() + get_owner().get_coord();
 	if( m_last_x == INVAL ) {
 		m_last_x = c.x() + text_margin;
