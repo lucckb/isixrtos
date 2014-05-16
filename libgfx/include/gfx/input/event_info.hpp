@@ -82,18 +82,21 @@ struct event_info
 	/** Event type */
 	enum evtype	: unsigned short
 	{
-		EV_SW,		/** Plug unplug event */
+		EV_USER,	/** User event */
 		EV_KEY,		/** Keyboard event  */
 		EV_MOUSE,	/** Relative event  */
 		EV_CLICK,	/** Click event  (Inherited) */
-		EV_CHANGE	/* Component changed */
+		EV_CHANGE	/** Component changed */
 	};
 	unsigned time;  //! Timestamp
 	evtype type;    //! Event type
 	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
-		int param;						//! Optional param
-		void *target; 		    //! Optional target address
+		struct {
+			int param1;					//! User message 1
+			int param2;					//! User message 2
+		} user;							//! User message part
+		void *target; 		    		//! Optional target address
 	};
 };
 /* ------------------------------------------------------------------ */
