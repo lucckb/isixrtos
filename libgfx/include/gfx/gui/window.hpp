@@ -91,6 +91,7 @@ private:
 	rectangle m_coord;
 	frame &m_frm;
 	unsigned m_flags;
+	bool m_changed {};			//! Changed variable if windows handler force change
 };
 /* ------------------------------------------------------------------ */
 

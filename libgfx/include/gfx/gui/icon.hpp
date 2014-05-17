@@ -32,7 +32,7 @@ protected:
 	//! Report an event after component global change event
 	virtual void report_event( const input::event_info& ev ) {
 		using evinfo = input::event_info;
-		if( ev.type == evinfo::EV_CHANGE  || ev.type == evinfo::EV_USER ) {
+		if( ev.type == evinfo::EV_CHANGE ) {
 			modified();
 		}
 	}

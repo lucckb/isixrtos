@@ -19,16 +19,13 @@ namespace gui {
 /** Execute gui main loop */
 void frame::execute()
 {
-	m_disp.clear(color::Black);
-	repaint( true , true );
+	m_disp.clear( color::Black );
+	repaint( true , nullptr );
 	for( input::event_info ev;; )
 	{
-		bool force = false;
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK ) {
 			if( ev.window == nullptr && !m_windows.empty() ) {
 				ev.window = m_windows.front();
-			} else {
-				force = true;
 			}
 			if( ev.window ) {
 				ev.window->report_event( ev );
@@ -36,7 +33,7 @@ void frame::execute()
 		}
 		{
 			const auto tbeg = isix::isix_get_jiffies();
-			repaint( force , false );
+			repaint( false , ev.window );
 			dbprintf("Repaint time %i", isix::isix_get_jiffies()-tbeg);
 		}
 	}
@@ -46,15 +43,14 @@ void frame::execute()
 void frame::add_window( window* window )
 {
 	m_windows.push_front( window );
-	repaint( true, true, true );
+	repaint( true, nullptr, true );
 }
-
 /* ------------------------------------------------------------------ */
 //Delete the widget
 void frame::delete_window( window* window )
 {
 	m_windows.remove( window );
-	repaint( true, true, true );
+	repaint( true, nullptr, true );
 }
 /* ------------------------------------------------------------------ */ 
 /** Refresh frame manual requirement */
@@ -76,15 +72,14 @@ int frame::report_event( const input::event_info &event )
 }
 /* ------------------------------------------------------------------ */
 //Repaint first windows
-void frame::repaint( bool force, bool all, bool force_clr )
+void frame::repaint( bool force, window *wnd, bool force_clr )
 {
-	if( all ) {
+	if( wnd == nullptr ) {
 		for( const auto item : m_windows ) {
 			item->repaint( force , force_clr );
 		}
 	} else {
-		if( ! m_windows.empty() )
-			m_windows.front()->repaint( force, force_clr );
+		wnd->repaint( force, force_clr );
 	}
 }
 /* ------------------------------------------------------------------ */
@@ -96,7 +91,7 @@ int frame::set_focus( window* win )
 	if( elem != m_windows.end() ) {
 		m_windows.erase( elem );
 		m_windows.push_front( *elem );
-		repaint( true, true, true );
+		repaint( true, nullptr, true );
 		return errno::success;
 	} else {
 		dbprintf("ERROR: Window %p not found", win );

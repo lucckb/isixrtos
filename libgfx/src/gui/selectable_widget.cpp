@@ -15,18 +15,23 @@ namespace gui {
 //* Report input event
 void selectable_widget::report_event( const input::event_info& ev )
 {
+	using evinfo = gfx::input::event_info;
 	bool ret {};
-	if( m_push_key > 0 && m_push_key == ev.keyb.key )
-	{
-		const auto cpush = ( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN );
-		dbprintf("Pushed %i", cpush);
-		if( cpush )
+	if( ev.type == evinfo::EV_KEY ) {
+		if( m_push_key > 0 && m_push_key == ev.keyb.key )
 		{
-			event btn_event( this, event::evtype::EV_CLICK );
-			ret |= emit( btn_event );
+			const auto cpush = ( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN );
+			dbprintf("Pushed %i", cpush);
+			if( cpush )
+			{
+				event btn_event( this, event::evtype::EV_CLICK );
+				ret |= emit( btn_event );
+			}
+			ret |= cpush != m_pushed;
+			m_pushed = cpush;
 		}
-		ret |= cpush != m_pushed;
-		m_pushed = cpush;
+	} else if( ev.type == evinfo::EV_CHANGE ) {
+		ret = true;
 	}
 	if( ret ) {
 		modified();

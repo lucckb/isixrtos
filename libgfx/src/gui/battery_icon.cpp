@@ -30,6 +30,7 @@ battery_icon::battery_icon( rectangle const& rect,layout const& layout ,window &
 //! On repaint widget event
 void battery_icon::repaint() 
 {
+	dbprintf("battery_icon -> Repaint %u", m_percent );
 	constexpr auto luma = 48;
 	const auto bat_top_width = 3;
 	const auto c = get_coord() + get_owner().get_coord();
@@ -75,14 +76,13 @@ void battery_icon::repaint()
 	// Battery top
 //	const auto bat_top_y = y0 + ( y0 + h )/4 - 1;
 //	gdi.fill_area( x0 + w, bat_top_y , bat_top_width, h/2 , true );
-	dbprintf("Repaint %u", m_percent );
 }
 /* ------------------------------------------------------------------ */
 //! Report input event handling 
 void battery_icon::report_event( const input::event_info& ev )
 {
 	using evinfo = input::event_info;
-	if( ev.type == evinfo::EV_CHANGE || ev.type == evinfo::EV_USER ) {
+	if( ev.type == evinfo::EV_CHANGE ) {
 		modified();
 	}
 }

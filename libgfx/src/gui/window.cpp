@@ -30,6 +30,7 @@ namespace
 // On repaint the widget return true when changed
 void window::repaint( bool force, bool force_clr )
 {
+	force |= m_changed;
 	const auto& lay = m_layout.inherit()?get_owner().get_def_win_layout():m_layout;
 	disp::gdi gdi( get_owner().get_display(), lay.sel(), lay.bg(), lay.font() );
 	{
@@ -66,8 +67,8 @@ void window::repaint( bool force, bool force_clr )
 void window::report_event( const input::event_info& ev )
 {
 	using evinfo = input::event_info;
-	//Emit signal to others
-	emit( event( this, ev ) );
+	//! Emit signal to the to the window callbacks
+	m_changed = emit( event( this, ev ) );
 	if( ev.type != evinfo::EV_CHANGE && ev.type != evinfo::EV_USER ) {
 		auto widget = current_widget();
 		if( widget )
@@ -82,11 +83,9 @@ void window::report_event( const input::event_info& ev )
 //Select next component
 void window::select_next()
 {
-	if( m_current_widget != m_widgets.end() )
-	{
+	if( m_current_widget != m_widgets.end() ) {
 		m_redraw_widget = m_current_widget;
-		for( size_t s=m_widgets.size(),i=0; i<s; ++s )
-		{
+		for( size_t s=m_widgets.size(),i=0; i<s; ++s ) {
 			if( ++m_current_widget == m_widgets.end() )
 				m_current_widget = m_widgets.begin();
 			if( (*m_current_widget)->selectable() )
