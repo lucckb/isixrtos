@@ -36,12 +36,10 @@ void window::repaint( bool force, bool force_clr )
 		//NOTE: Force clear is reqired when one windows
 		// is replaced with another for example on focus 
 		// set and changing
-		if( (m_flags & flags::fill) && force_clr )
-		{
+		if( (m_flags & flags::fill) && force_clr ) {
 			gdi.fill_area( m_coord.x(), m_coord.y(), m_coord.cx(), m_coord.cy(), true );
 		}
-		if( m_flags & flags::border )
-		{
+		if( m_flags & flags::border ) {
 			draw_line_box( m_coord, gdi );
 		}
 	}
@@ -49,15 +47,13 @@ void window::repaint( bool force, bool force_clr )
 		item->redraw( force );
 	}
 	//If border outside component is required
-	if( m_flags & flags::selectborder )
-	{
+	if( m_flags & flags::selectborder ) {
 		{
 			const auto s = (*m_current_widget)->get_coord() + get_coord() ;
 			//DBG END
 			draw_line_box( s, gdi );
 		}
-		if( m_redraw_widget != m_widgets.end() )
-		{
+		if( m_redraw_widget != m_widgets.end() ) {
 			const auto s = (*m_redraw_widget)->get_coord() + get_coord() + 1;
 			disp::gdi gdic( get_owner().get_display(), (m_flags&flags::fill)?(lay.bg()):(color_t(color::Black)) );
 			draw_line_box( s, gdic );
@@ -69,9 +65,10 @@ void window::repaint( bool force, bool force_clr )
 //Report event
 void window::report_event( const input::event_info& ev )
 {
+	using evinfo = input::event_info;
 	//Emit signal to others
 	emit( event( this, ev ) );
-	if( ev.type != input::event_info::EV_CHANGE ) {
+	if( ev.type != evinfo::EV_CHANGE && ev.type != evinfo::EV_USER ) {
 		auto widget = current_widget();
 		if( widget )
 			widget->report_event( ev );

@@ -31,7 +31,8 @@ protected:
 	virtual void repaint();
 	//! Report an event after component global change event
 	virtual void report_event( const input::event_info& ev ) {
-		if( ev.type == input::event_info::EV_CHANGE ) {
+		using evinfo = input::event_info;
+		if( ev.type == evinfo::EV_CHANGE  || ev.type == evinfo::EV_USER ) {
 			modified();
 		}
 	}

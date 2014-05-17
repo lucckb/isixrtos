@@ -32,11 +32,11 @@ public:
 	}
 
 	virtual void report_event( const input::event_info& ev ) {
-		if( ev.type == input::event_info::EV_CHANGE ) {
+		using evinfo = input::event_info;
+		if( ev.type == evinfo::EV_CHANGE || ev.type == evinfo::EV_USER ) {
 			modified();
 		}
 	}
-	
 protected:
 	//Repaint the label
 	virtual void repaint();
