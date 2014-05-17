@@ -86,7 +86,6 @@ struct event_info
 	{
 		EV_PAINT,	/** Repaint all windows without propagate as report event */
 		EV_WINDOW,	/** User window event */
-		EV_WIDGET,	/** User message to widget directly*/
 		EV_KEY,		/** Keyboard event  */
 		EV_MOUSE,	/** Relative event  */
 		/** Events raised by the component callbacks 
@@ -96,10 +95,7 @@ struct event_info
 	};
 	unsigned time;  //! Timestamp
 	evtype type;    //! Event type
-	union {
-		gui::window *window; 		    	//! Optional window address EV_PAINT, EV_WINDOW
-		gui::widget *widget;				//! Direct widget address mandatory for EV_WIDGET
-	};
+	gui::window *window; 		    	//! Optional window address EV_PAINT, EV_WINDOW
 	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
 		struct {						//! For EV_WINDOW , EV_WIDGET 

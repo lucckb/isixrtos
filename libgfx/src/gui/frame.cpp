@@ -43,7 +43,7 @@ void frame::execute()
 				rpt_wnd = m_windows.front();
 			}
 			if( rpt_wnd ) {
-				ev.window->report_event( ev );
+				rpt_wnd->report_event( ev );
 			}
 		}
 		{
