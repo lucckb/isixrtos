@@ -5,11 +5,12 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_INPUT_EVENT_INFO_HPP_
-#define GFX_INPUT_EVENT_INFO_HPP_
-
+#pragma once 
 /* ------------------------------------------------------------------ */
 namespace gfx {
+namespace gui {
+	class window;
+}
 namespace input {
 
 /* ------------------------------------------------------------------ */
@@ -90,17 +91,16 @@ struct event_info
 	};
 	unsigned time;  //! Timestamp
 	evtype type;    //! Event type
+	gui::window *window; 		    	//! Optional target address
 	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
 		struct {
 			int param1;					//! User message 1
 			int param2;					//! User message 2
 		} user;							//! User message part
-		void *target; 		    		//! Optional target address
 	};
 };
 /* ------------------------------------------------------------------ */
 }	//ns gui
 }	//ns gfx
 
-#endif /* EVENT_INFO_HPP_ */

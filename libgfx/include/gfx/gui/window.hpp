@@ -60,7 +60,7 @@ public:
 		return m_coord; 
 	}
 	//! Get owner
-	const frame& get_owner() const {
+	frame& get_owner() const {
 		return m_frm;
 	}
 	//! Set layout	

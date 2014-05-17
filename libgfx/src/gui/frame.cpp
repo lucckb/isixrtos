@@ -24,14 +24,14 @@ void frame::execute()
 	for( input::event_info ev;; )
 	{
 		bool force = false;
-		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
-		{
-			if( ev.type == input::event_info::evtype::EV_CHANGE && ev.target != nullptr )  {
-				auto tgtwin = reinterpret_cast<window*>( ev.target );
-				tgtwin->report_event( ev );
+		if( m_events_queue.pop( ev ) == isix::ISIX_EOK ) {
+			if( ev.window == nullptr && !m_windows.empty() ) {
+				ev.window = m_windows.front();
+			} else {
 				force = true;
-			} else if( !m_windows.empty() ) {
-				m_windows.front()->report_event( ev );
+			}
+			if( ev.window ) {
+				ev.window->report_event( ev );
 			}
 		}
 		{
@@ -63,7 +63,8 @@ int frame::update( window* target_win )
 	const gfx::input::event_info ei  {
 		isix::isix_get_jiffies(),
 		gfx::input::event_info::evtype::EV_CHANGE,
-		{ .target = target_win }
+		target_win,
+		{}
 	};
 	return report_event( ei );
 }
