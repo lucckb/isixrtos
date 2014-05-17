@@ -72,8 +72,6 @@ void editbox::report_event( const input::event_info& ev )
 		{
 			dbprintf("Unknown kbd mode %i", m_kbdmode );
 		}
-	} else if( ev.type == event::evtype::EV_CHANGE ) {
-		//EV change require repaint
 	} else {
 		dbprintf("Unhandled event type %i", ev.type );
 	}

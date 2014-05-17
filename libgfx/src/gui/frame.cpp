@@ -19,49 +19,70 @@ namespace gui {
 /** Execute gui main loop */
 void frame::execute()
 {
+	//TODO: Replace by semaphore guard (but now we are not using exception
+	//so it should be save if don't use sem guards
+	using evinfo = input::event_info;
 	m_disp.clear( color::Black );
-	repaint( true , nullptr );
-	for( input::event_info ev;; )
+	repaint( true , nullptr , false );
+	for( evinfo ev;; )
 	{
+		window* rpt_wnd = nullptr;
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK ) {
-			if( ev.window == nullptr && !m_windows.empty() ) {
-				ev.window = m_windows.front();
+			m_lock.wait( isix::ISIX_TIME_INFINITE );
+			if( ev.type == evinfo::EV_PAINT ) {
+				// EV_PAINT argument is not dispatched to the component like other events
+				// After the execution event is dropped
+				repaint( ev.paint.force, ev.window, ev.paint.clrbg );
+				m_lock.signal();
+				continue;
 			}
-			if( ev.window ) {
+			if( ev.type == evinfo::EV_WINDOW && ev.window != nullptr ) {
+				rpt_wnd = ev.window;
+			}
+			if( rpt_wnd == nullptr && !m_windows.empty() ) {
+				rpt_wnd = m_windows.front();
+			}
+			if( rpt_wnd ) {
 				ev.window->report_event( ev );
 			}
 		}
 		{
 			const auto tbeg = isix::isix_get_jiffies();
-			repaint( false , ev.window );
+			repaint( false, rpt_wnd, false );
 			dbprintf("Repaint time %i", isix::isix_get_jiffies()-tbeg);
 		}
+		m_lock.signal();
 	}
 }
 /* ------------------------------------------------------------------ */
 //Add widget to frame
 void frame::add_window( window* window )
 {
+	m_lock.wait( isix::ISIX_TIME_INFINITE );
 	m_windows.push_front( window );
-	repaint( true, nullptr, true );
+	m_lock.signal( );
+	queue_repaint( true, nullptr, true );
 }
 /* ------------------------------------------------------------------ */
 //Delete the widget
 void frame::delete_window( window* window )
 {
+	m_lock.wait( isix::ISIX_TIME_INFINITE );
 	m_windows.remove( window );
-	repaint( true, nullptr, true );
+	m_lock.signal( );
+	queue_repaint( true, nullptr, true );
 }
 /* ------------------------------------------------------------------ */ 
 /** Refresh frame manual requirement */
-int frame::update( window* target_win )
+int frame::queue_repaint( bool force, window* wnd, bool force_clr )
 {
-	const gfx::input::event_info ei  {
+	gfx::input::event_info ei  {
 		isix::isix_get_jiffies(),
-		gfx::input::event_info::evtype::EV_CHANGE,
-		target_win,
+		gfx::input::event_info::evtype::EV_PAINT,
+		wnd,
 		{}
 	};
+	ei.paint = { force, force_clr };
 	return report_event( ei );
 }
 /* ------------------------------------------------------------------ */
@@ -86,15 +107,18 @@ void frame::repaint( bool force, window *wnd, bool force_clr )
 //Focus on the window
 int frame::set_focus( window* win )
 {
+	m_lock.wait( isix::ISIX_TIME_INFINITE );
 	auto elem = std::find_if( std::begin(m_windows), std::end(m_windows), 
 			[&]( const window* w ) { return w == win; } );
 	if( elem != m_windows.end() ) {
 		m_windows.erase( elem );
 		m_windows.push_front( *elem );
-		repaint( true, nullptr, true );
+		queue_repaint( true, nullptr, true );
+		m_lock.signal();
 		return errno::success;
 	} else {
 		dbprintf("ERROR: Window %p not found", win );
+		m_lock.signal();
 		return errno::wnd_not_found;
 	}
 }

@@ -42,8 +42,6 @@ public:
 protected:
 	//! Repaint the window
 	virtual void repaint();
-	//! On incomming event reporting
-	virtual void report_event( const input::event_info& ev );
 private:
 	unsigned char m_percent {};			//! Private percent value 
 };

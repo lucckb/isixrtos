@@ -30,8 +30,6 @@ void selectable_widget::report_event( const input::event_info& ev )
 			ret |= cpush != m_pushed;
 			m_pushed = cpush;
 		}
-	} else if( ev.type == evinfo::EV_CHANGE ) {
-		ret = true;
 	}
 	if( ret ) {
 		modified();

@@ -29,13 +29,6 @@ public:
 protected:
 	//! Repaint the label
 	virtual void repaint();
-	//! Report an event after component global change event
-	virtual void report_event( const input::event_info& ev ) {
-		using evinfo = input::event_info;
-		if( ev.type == evinfo::EV_CHANGE ) {
-			modified();
-		}
-	}
 private:
 	const bitmap_t *m_bitmap {};
 };

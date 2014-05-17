@@ -56,34 +56,28 @@ void seekbar::report_event( const input::event_info& ev )
 {
 	using namespace gfx::input;
 	bool ret {};
-	if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN )
-	{
-		if( ev.keyb.key == kbdcodes::os_arrow_down )
-		{
-			m_value += m_step;
-			if( m_value > m_max ) m_value = m_max;
-			else ret = true;
-		}
-		else if( ev.keyb.key == kbdcodes::os_arrow_up )
-		{
-			m_value -= m_step;
-			if( m_value < m_min ) m_value = m_min;
-			else ret = true;
-		}
-		else if(  ev.keyb.key == kbdcodes::enter )
-		{
-			event btn_event( this, event::evtype::EV_CLICK );
-			ret |= emit( btn_event );
+	if( ev.type == event_info::EV_KEY ) {
+		if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN ) {
+			if( ev.keyb.key == kbdcodes::os_arrow_down )
+			{
+				m_value += m_step;
+				if( m_value > m_max ) m_value = m_max;
+				else ret = true;
+			}
+			else if( ev.keyb.key == kbdcodes::os_arrow_up )
+			{
+				m_value -= m_step;
+				if( m_value < m_min ) m_value = m_min;
+				else ret = true;
+			}
+			else if(  ev.keyb.key == kbdcodes::enter )
+			{
+				event btn_event( this, event::evtype::EV_CLICK );
+				ret |= emit( btn_event );
+			}
 		}
 	}
-
-	if( ev.type == input::event_info::EV_CHANGE )
-	{
-		modified();
-	}
-
-	if( ret )
-	{
+	if( ret ) {
 		event btn_event( this, event::evtype::EV_CHANGE );
 		emit( btn_event );
 		modified();

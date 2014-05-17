@@ -30,13 +30,6 @@ public:
 	{
 		return m_caption;
 	}
-
-	virtual void report_event( const input::event_info& ev ) {
-		using evinfo = input::event_info;
-		if( ev.type == evinfo::EV_CHANGE ) {
-			modified();
-		}
-	}
 protected:
 	//Repaint the label
 	virtual void repaint();

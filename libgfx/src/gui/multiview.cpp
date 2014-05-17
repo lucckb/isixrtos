@@ -90,6 +90,7 @@ void multiview::gui_add_line()
 //! Report an event
 void multiview::report_event( const input::event_info& ev )
 {
+	//! TODO: Should be fixed here to WIDGET user MSG
 	if( ev.type == input::event_info::EV_CHANGE ) {
 		if( !m_line.empty() || m_clear_req ) {
 			modified();

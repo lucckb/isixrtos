@@ -69,7 +69,7 @@ void window::report_event( const input::event_info& ev )
 	using evinfo = input::event_info;
 	//! Emit signal to the to the window callbacks
 	m_changed = emit( event( this, ev ) );
-	if( ev.type != evinfo::EV_CHANGE && ev.type != evinfo::EV_USER ) {
+	if( ev.type != evinfo::EV_WINDOW ) {
 		auto widget = current_widget();
 		if( widget )
 			widget->report_event( ev );

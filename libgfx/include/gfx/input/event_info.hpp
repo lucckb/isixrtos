@@ -10,6 +10,7 @@
 namespace gfx {
 namespace gui {
 	class window;
+	class widget;
 }
 namespace input {
 
@@ -83,21 +84,32 @@ struct event_info
 	/** Event type */
 	enum evtype	: unsigned short
 	{
-		EV_USER,	/** User event */
+		EV_PAINT,	/** Repaint all windows without propagate as report event */
+		EV_WINDOW,	/** User window event */
+		EV_WIDGET,	/** User message to widget directly*/
 		EV_KEY,		/** Keyboard event  */
 		EV_MOUSE,	/** Relative event  */
-		EV_CLICK,	/** Click event  (Inherited) */
+		/** Events raised by the component callbacks 
+		 * on emit widget level*/
+		EV_CLICK,	/** Click event  */
 		EV_CHANGE	/** Component changed */
 	};
 	unsigned time;  //! Timestamp
 	evtype type;    //! Event type
-	gui::window *window; 		    	//! Optional target address
+	union {
+		gui::window *window; 		    	//! Optional window address EV_PAINT, EV_WINDOW
+		gui::widget *widget;				//! Direct widget address mandatory for EV_WIDGET
+	};
 	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
-		struct {
+		struct {						//! For EV_WINDOW , EV_WIDGET 
 			int param1;					//! User message 1
 			int param2;					//! User message 2
 		} user;							//! User message part
+		struct {						//! For EV_PAINT  message
+			bool force;					//! Force component redraw
+			bool clrbg;					//! Clear background
+		}  paint;
 	};
 };
 /* ------------------------------------------------------------------ */

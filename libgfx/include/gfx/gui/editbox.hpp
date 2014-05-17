@@ -59,8 +59,7 @@ public:
 		m_value = value;
 	}
 	//Set text value
-	const detail::string& value() const
-	{
+	const detail::string& value() const {
 		return m_value;
 	}
 	//* Report input event

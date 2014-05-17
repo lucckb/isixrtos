@@ -40,7 +40,9 @@ public:
 	{
 	}
 	/** Refresh frame manual requirement */
-	int update( window* target_win = nullptr );
+	int update( window* target_win = nullptr ) {
+		return queue_repaint( true, target_win, false );
+	}
 	/** Execute gui main loop */
 	void execute();
 	/** Send gui event handler */
@@ -81,10 +83,14 @@ private:
 	 * @param[in] wnd Window to repaint if empty 
 	 * @param[in] force_clr Force clear background
 	 */
-	void repaint( bool force, window* wnd, bool force_clr = false );
+	void repaint( bool force, window* wnd, bool force_clr );
+	/** Private update function safe from other threads */
+	int queue_repaint( bool force, window* wnd, bool force_clr );
 private:
 	//Private events queue
 	isix::fifo<input::event_info> m_events_queue;
+	//! Isix lock container data
+	isix::semaphore m_lock { 1, 1 };
 	//Windows container
 	detail::container<window*> m_windows;
 	//Display

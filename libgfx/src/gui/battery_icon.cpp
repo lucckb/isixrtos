@@ -78,15 +78,6 @@ void battery_icon::repaint()
 //	gdi.fill_area( x0 + w, bat_top_y , bat_top_width, h/2 , true );
 }
 /* ------------------------------------------------------------------ */
-//! Report input event handling 
-void battery_icon::report_event( const input::event_info& ev )
-{
-	using evinfo = input::event_info;
-	if( ev.type == evinfo::EV_CHANGE ) {
-		modified();
-	}
-}
-/* ------------------------------------------------------------------ */ 
 }
 }
 /* ------------------------------------------------------------------ */ 
