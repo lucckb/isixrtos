@@ -36,7 +36,10 @@ public:
 	virtual ~battery_icon() {
 	}
 	//! Set percent value
-	void percent( int value ) {
+	void percent( unsigned char value ) {
+		if( m_percent > 100 ) {
+			m_percent = 100;
+		}
 		m_percent = value;
 	}
 protected:

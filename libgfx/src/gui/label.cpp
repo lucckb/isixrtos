@@ -6,6 +6,7 @@
  */
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/label.hpp>
+#include <foundation/dbglog.h>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
@@ -23,7 +24,6 @@ void label::repaint()
 	auto gdi = make_wgdi();
 	const auto ty = c.y() + (c.cy() - gdi.get_text_height())/2;
 	auto text_wdt = 0;
-
 	// draw text
 	if( !m_caption.empty() )
 		text_wdt = gdi.draw_text( c.x(), ty, m_caption.c_str() );

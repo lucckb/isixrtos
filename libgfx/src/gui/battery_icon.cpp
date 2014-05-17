@@ -30,7 +30,6 @@ battery_icon::battery_icon( rectangle const& rect,layout const& layout ,window &
 //! On repaint widget event
 void battery_icon::repaint() 
 {
-	dbprintf("battery_icon -> Repaint %u", m_percent );
 	constexpr auto luma = 48;
 	const auto bat_top_width = 3;
 	const auto c = get_coord() + get_owner().get_coord();

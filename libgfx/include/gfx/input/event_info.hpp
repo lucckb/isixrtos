@@ -99,8 +99,9 @@ struct event_info
 	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
 		struct {						//! For EV_WINDOW , EV_WIDGET 
-			int param1;					//! User message 1
-			int param2;					//! User message 2
+			unsigned param1;			//! User message 1
+			unsigned param2;			//! User message 2
+			unsigned param3;			//! User message 3
 		} user;							//! User message part
 		struct {						//! For EV_PAINT  message
 			bool force;					//! Force component redraw
