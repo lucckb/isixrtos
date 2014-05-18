@@ -6,8 +6,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GDI_HPP_
-#define GFX_GDI_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/drivers/disp/disp_base.hpp>
 #include <gfx/disp/bitmap_fonts.hpp>
@@ -126,6 +125,20 @@ public:
 	 */
 	int draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap );
 
+	/** Change brightnes of fg color 
+	 * @param[in] luma Luminance change value 
+	 */
+	void bright_fg_color( int luma ) {
+		m_color = colorspace::brigh( m_color, luma );
+	}
+
+	/** Change brightnes of fg color 
+	 * @param[in] luma Luminance change value 
+	 */
+	void bright_bg_color( int luma ) {
+		m_bg_color = colorspace::brigh( m_bg_color, luma );
+	}
+
 	/** Set foreground color in GDI object
 	   * @param[in] color  foreground color
 	*/
@@ -173,6 +186,4 @@ private:
 };
 /* ------------------------------------------------------------------ */
 }}
-/* ------------------------------------------------------------------ */
-#endif /* GDI_HPP_ */
 /* ------------------------------------------------------------------ */
