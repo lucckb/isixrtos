@@ -16,10 +16,8 @@ namespace input {
 
 /* ------------------------------------------------------------------ */
 /** Keybd codes */
-struct kbdcodes
-{
-	enum keyboard : char
-	{
+struct kbdcodes {
+	enum keyboard : char {
 		//Control Code for ASCII
 		select_all	= 0x1,
 		copy		= 0x3,		//Ctrl+C
@@ -38,10 +36,8 @@ struct kbdcodes
 
 /* ------------------------------------------------------------------ */
 /* Mouse codes */
-struct mousecodes
-{
-	enum mouse : char
-	{
+struct mousecodes {
+	enum mouse : char {
 		any_button, left_button, middle_button, right_button
 	};
 };
@@ -49,8 +45,7 @@ struct mousecodes
 namespace detail {
 
 	/** Keyboard tag event */
-    struct keyboard_tag
-	{
+    struct keyboard_tag {
 		typedef unsigned char control_key_type;         //! Control keys
 		typedef unsigned char key_type;                 //! Key defs
 		enum class status : unsigned char               //! Key status
@@ -59,11 +54,9 @@ namespace detail {
 			UP                                          //! Key is up
 		} stat;         
 		key_type key;                                   //! Current key
-		union
-		{
+		union {
 			control_key_type ctrl;                      //! Control events
-			struct
-			{
+			struct {
 				unsigned char lctrl:1;                  //! Left control press
 				unsigned char lshift:1;                 //! Left shift press
 				unsigned char lalt : 1;                 //! Left alt
@@ -72,18 +65,19 @@ namespace detail {
 				unsigned char rshift:1;                 //! Right shift
 				unsigned char ralt:1;                   //! Right alt
 				unsigned char rgui: 1;                  //! Right gui
-
 			} ctrlbits;
 		};
-
+	};
+	union argument {
+		unsigned uint;	//! Unsigned type
+		int 	 sint;	//! Signed type
+		void *   ptr;	//! Pointer type
 	};
 } // ns detail
 /* ------------------------------------------------------------------ */
-struct event_info
-{
+struct event_info {
 	/** Event type */
-	enum evtype	: unsigned short
-	{
+	enum evtype	: unsigned short {
 		EV_PAINT,	/** Repaint all windows without propagate as report event */
 		EV_WINDOW,	/** User window event */
 		EV_KEY,		/** Keyboard event  */
@@ -99,9 +93,9 @@ struct event_info
 	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
 		struct {						//! For EV_WINDOW , EV_WIDGET 
-			unsigned param1;			//! User message 1
-			unsigned param2;			//! User message 2
-			unsigned param3;			//! User message 3
+			detail::argument param1;			//! User message 1
+			detail::argument param2;			//! User message 2
+			detail::argument param3;			//! User message 3
 		} user;							//! User message part
 		struct {						//! For EV_PAINT  message
 			bool force;					//! Force component redraw
