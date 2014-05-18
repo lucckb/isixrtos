@@ -69,8 +69,7 @@ void editbox::report_event( const input::event_info& ev )
 			ret = handle_joy( ev.keyb );
 		else if( m_kbdmode == kbd_mode::joy )
 			ret = handle_qwerty( ev.keyb );
-		else
-		{
+		else {
 			dbprintf("Unknown kbd mode %i", m_kbdmode );
 		}
 	} else {
@@ -86,47 +85,38 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 {
 	using namespace gfx::input;
 	bool ret {};
-	if( evk.stat == input::detail::keyboard_tag::status::DOWN && !m_readonly)
-	{
+	if( evk.stat == input::detail::keyboard_tag::status::DOWN && !m_readonly) {
 		const auto c = get_coord() + get_owner().get_coord();
-		if( evk.key == kbdcodes::os_arrow_right )
-		{
-			if( m_cursor_pos<m_value.size() )
-			{
+		if( evk.key == kbdcodes::os_arrow_right ) {
+			if( m_cursor_pos<m_value.size() ) {
 				++m_cursor_pos;
 				auto gdi = make_wgdi( );
 				const auto new_cur_x =  gdi.get_text_width( m_value[m_cursor_pos]) + m_cursor_x;
 				if( new_cur_x  < c.x()+c.cx()-text_margin*2)
 					m_cursor_x = new_cur_x;
 			}
-			else
-			{
+			else {
 				m_cursor_pos = 0;
 				m_cursor_x = c.x()+text_margin;
 			}
 			ret = true;
 		}
-		else if( evk.key == kbdcodes::os_arrow_left )
-		{
+		else if( evk.key == kbdcodes::os_arrow_left ) {
 			m_value.insert(m_cursor_pos, 1, insert_ch());
 		}
-		if( evk.key == kbdcodes::os_arrow_up )
-		{
+		if( evk.key == kbdcodes::os_arrow_up ) {
 			m_value[m_cursor_pos] = ch_inc( m_value[m_cursor_pos] );
 			ret = true;
 		}
-		else if( evk.key == kbdcodes::os_arrow_down )
-		{
+		else if( evk.key == kbdcodes::os_arrow_down ) {
 			m_value[m_cursor_pos] = ch_dec( m_value[m_cursor_pos] );
 			ret = true;
 		}
-		else if( evk.key == kbdcodes::enter)
-		{
+		else if( evk.key == kbdcodes::enter) {
 			event btn_event( this, event::evtype::EV_CLICK );
 			ret |= emit( btn_event );
 		}
-		if( ret )
-		{
+		if( ret ) {
 			event btn_event( this, event::evtype::EV_CHANGE );
 			ret |= emit( btn_event );
 		}
@@ -138,8 +128,7 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 //Get insert char
 char editbox::insert_ch()
 {
-	switch( m_type )
-	{
+	switch( m_type ) {
 		default:
 			return '!';
 		case type::float_pos:
