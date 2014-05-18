@@ -47,13 +47,14 @@ namespace detail {
 	/** Keyboard tag event */
     struct keyboard_tag {
 		typedef unsigned char control_key_type;         //! Control keys
-		typedef unsigned char key_type;                 //! Key defs
+		typedef unsigned char key_type;		        //! Key defs
 		enum class status : unsigned char               //! Key status
 		{
 			DOWN,                                       //! Key is down
 			UP                                          //! Key is up
 		} stat;         
 		key_type key;                                   //! Current key
+		key_type scan;									//! Scan code
 		union {
 			control_key_type ctrl;                      //! Control events
 			struct {

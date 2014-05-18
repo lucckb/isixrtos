@@ -64,6 +64,7 @@ void editbox::report_event( const input::event_info& ev )
 {
 	bool ret {};
 	if(ev.type == event::evtype::EV_KEY ) {
+		// dbprintf("Keycode %04x", ev.keyb.key );
 		if( m_kbdmode == kbd_mode::joy )
 			ret = handle_joy( ev.keyb );
 		else if( m_kbdmode == kbd_mode::joy )
