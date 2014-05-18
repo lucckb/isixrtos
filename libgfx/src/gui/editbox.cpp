@@ -46,15 +46,15 @@ void editbox::repaint()
 	gdi.draw_line( m_cursor_x, c.y()+text_margin, m_cursor_x, c.y()+c.cy()-4 );
 
 	//FRM1
-	gdi.set_fg_color( colorspace::brigh( get_layout().bg(), -luma ) );
+	gdi.bright_fg_color( -luma );
 	gdi.draw_line(c.x(), c.y()+c.cy(), c.x()+c.cx(), c.y()+c.cy() );
 	gdi.draw_line(c.x()+c.cx(), c.y()+1, c.x()+c.cx(), c.y()+c.cy() );
 	//FRM2
-	gdi.set_fg_color( colorspace::brigh( get_layout().bg(), -luma2 ) );
+	gdi.bright_fg_color( -luma2 );
 	gdi.draw_line(c.x()+1, c.y()+c.cy()-1, c.x()+c.cx(), c.y()-1+c.cy() );
 	gdi.draw_line(c.x()+c.cx()-1, c.y()+1, c.x()+c.cx()-1, c.y()+c.cy() );
 	//FRM3
-	gdi.set_fg_color( colorspace::brigh( get_layout().bg(), luma ) );
+	gdi.bright_fg_color( luma );
 	gdi.draw_line(c.x()+1, c.y(), c.x()+c.cx()-1, c.y() );
 	gdi.draw_line(c.x(), c.y(), c.x(), c.y()+c.cy()-2 );
 }
