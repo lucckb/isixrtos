@@ -35,7 +35,6 @@ class multiview : public widget
 	static constexpr coord_t text_margin = 2;
 	static constexpr auto INVAL = -1;
 public:
-
 	 /** Multi edit layout constructor
 	  * @param[in] rect Rectangle layout
 	  * @param[in] layout Input layout
@@ -45,12 +44,10 @@ public:
 			 window &win )
 	 	 : widget( rect, layout, win, false )
 	 {
-	 }
-	 
+	 } 
 	 //! Destructor
 	 virtual ~multiview() {
 	 }
-	
 	 /** Add one line to multiedit 
 	  * @param[in] value String value 
 	  */
@@ -58,15 +55,12 @@ public:
 	 void append( const T& value ) {
 		 m_line += value;
 	 }
-
 	 /** Clear the window  */
 	 void clear() {
 		m_clear_req = true;
 	 }
-
 	 //! Report an event
 	virtual void report_event( const input::event_info& ev );
-
 private:
 	 //! Gui draw frame
 	 void gui_draw_frame();
