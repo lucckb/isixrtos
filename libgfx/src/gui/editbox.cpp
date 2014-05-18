@@ -26,16 +26,14 @@ void editbox::repaint()
 	gdi.fill_area( c.x()+1, c.y()+1, c.cx()-2, c.cy()-2, true );
 	//Draw after the cursor
 	auto x = m_cursor_x;
-	for(auto it = m_value.begin()+m_cursor_pos; it!=m_value.end(); ++it )
-	{
+	for(auto it = m_value.begin()+m_cursor_pos; it!=m_value.end(); ++it ) {
 		if( x + gdi.get_text_width(*it) >= c.x()+c.cx()-text_margin*2 )
 			break;
 		x = gdi.draw_text( x , ty, *it );
 	}
 	//Draw before the cursor
 	x = m_cursor_x;
-	for(auto it = m_value.begin()+m_cursor_pos-1; m_cursor_pos>0&&it>=m_value.begin(); --it )
-	{
+	for(auto it = m_value.begin()+m_cursor_pos-1; m_cursor_pos>0&&it>=m_value.begin(); --it ) {
 		const auto tw = gdi.get_text_width(*it);
 		if( x - tw < c.x()+text_margin )
 			break;

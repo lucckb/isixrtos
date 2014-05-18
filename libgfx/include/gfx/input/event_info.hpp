@@ -69,10 +69,24 @@ namespace detail {
 			} ctrlbits;
 		};
 	};
+	//! User message arguments
 	union argument {
 		unsigned uint;	//! Unsigned type
 		int 	 sint;	//! Signed type
 		void *   ptr;	//! Pointer type
+	};
+	//! Data for hotplug event
+	struct hotplug {
+		enum class device : unsigned char {	//! Hotplug device identifier
+			keyboard,
+			mouse,
+			joystick
+		} devtype;
+		enum class type : bool {	//! Event type
+			plug,
+			unplug
+		} htype;
+		const void *devid;		//! Device private data
 	};
 } // ns detail
 /* ------------------------------------------------------------------ */
@@ -83,6 +97,7 @@ struct event_info {
 		EV_WINDOW,	/** User window event */
 		EV_KEY,		/** Keyboard event  */
 		EV_MOUSE,	/** Relative event  */
+		EV_HOTPLUG, /** Hotplug event for ex Insert remove kbd/mouse etc */
 		/** Events raised by the component callbacks 
 		 * on emit widget level*/
 		EV_CLICK,	/** Click event  */
@@ -102,6 +117,7 @@ struct event_info {
 			bool force;					//! Force component redraw
 			bool clrbg;					//! Clear background
 		}  paint;
+		detail::hotplug hotplug;		//! Hotplug event
 	};
 };
 /* ------------------------------------------------------------------ */

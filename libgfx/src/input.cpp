@@ -25,6 +25,7 @@ int input_class::input_report_key(  detail::keyboard_tag::status status ,
 		{
 			status,
 			key,
+			0,
 			ctl
 		}
 	};
