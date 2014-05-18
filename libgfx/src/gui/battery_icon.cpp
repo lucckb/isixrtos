@@ -43,7 +43,7 @@ void battery_icon::repaint()
 	const auto y0 = c.y();
 
 	// outer rect
-	gdi.set_fg_color(colorspace::brigh(get_layout().bg(), 0));
+	gdi.bright_fg_color( 0 );
 	gdi.draw_line(x0, y0, x0 + w, y0);
 	gdi.draw_line(x0, y0 + h, x0 + w, y0 + h);
 	gdi.draw_line(x0, y0 + 1, x0, y0 + h - 1);
@@ -55,7 +55,7 @@ void battery_icon::repaint()
 	gdi.draw_line(x0 + w + 3, y0 + 4, x0 + w + 3, y0 + h - 4);
 
 	// inner rect
-	gdi.set_fg_color(colorspace::brigh(get_layout().bg(), luma));
+	gdi.bright_fg_color( luma );
 	gdi.draw_line(x0 + 1, y0 + 1, x0 + w - 1, y0 + 1);
 	gdi.draw_line(x0 + 1, y0 + h - 1, x0 + w - 1, y0 + h - 1);
 	gdi.draw_line(x0 + 1, y0 + 2, x0 + 1, y0 + h - 2);
@@ -64,7 +64,7 @@ void battery_icon::repaint()
 	// inner fill
 	gdi.set_fg_color(gfx::color::LightGreen);
 	gdi.fill_area(x0 + 3, y0 + 3, w1, h - 5);
-	gdi.set_fg_color(colorspace::brigh(get_layout().bg(), -luma));
+	gdi.bright_fg_color( -luma );
 	gdi.fill_area(x0 + 3 + w1, y0 + 3, w2, h - 5);
 
 //	dbprintf("percent value %u", m_percent );
