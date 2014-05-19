@@ -77,14 +77,26 @@ namespace detail {
 	};
 	//! Data for hotplug event
 	struct hotplug {
+		bool connected() const {
+			return htype == type::plug;
+		}
+		bool is_keyboard() const {
+			return devtype == device::keyboard; 
+		}
+		bool is_joystick() const {
+			return devtype == device::joystick;
+		}
+		bool is_mouse() const {
+			return devtype == device::mouse;
+		}
 		enum class device : unsigned char {	//! Hotplug device identifier
 			keyboard,
 			mouse,
 			joystick
 		} devtype;
 		enum class type : bool {	//! Event type
+			unplug,
 			plug,
-			unplug
 		} htype;
 		const void *devid;		//! Device private data
 	};

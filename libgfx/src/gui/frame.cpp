@@ -43,6 +43,7 @@ void frame::execute()
 			}
 			//! Dispatch hotplug event to all widows 
 			if( ev.type == evinfo::EV_HOTPLUG ) {
+				rpt_wnd = nullptr;
 				for( const auto item : m_windows ) {
 					item->report_event( ev );
 				}
@@ -52,7 +53,7 @@ void frame::execute()
 			}
 		}
 		{
-			const auto tbeg = isix::isix_get_jiffies();
+			//const auto tbeg = isix::isix_get_jiffies();
 			repaint( false, rpt_wnd, false );
 #if 0 //Debug stuff for profiling
 			dbprintf("Repaint time %i", isix::isix_get_jiffies()-tbeg);
