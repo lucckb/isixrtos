@@ -24,8 +24,7 @@ void frame::execute()
 	using evinfo = input::event_info;
 	m_disp.clear( color::Black );
 	repaint( true , nullptr , false );
-	for( evinfo ev;; )
-	{
+	for( evinfo ev;; ) {
 		window* rpt_wnd = nullptr;
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK ) {
 			m_lock.wait( isix::ISIX_TIME_INFINITE );
@@ -42,7 +41,13 @@ void frame::execute()
 			if( rpt_wnd == nullptr && !m_windows.empty() ) {
 				rpt_wnd = m_windows.front();
 			}
-			if( rpt_wnd ) {
+			//! Dispatch hotplug event to all widows 
+			if( ev.type == evinfo::EV_HOTPLUG ) {
+				for( const auto item : m_windows ) {
+					item->report_event( ev );
+				}
+			}
+			else if( rpt_wnd ) {
 				rpt_wnd->report_event( ev );
 			}
 		}

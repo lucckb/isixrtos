@@ -13,9 +13,7 @@
 namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */
-namespace
-{
-
+namespace {
 	//Draw the single line box
 	void draw_line_box( const rectangle &r, disp::gdi &gdi )
 	{
@@ -24,7 +22,6 @@ namespace
 		gdi.draw_line(r.x(),r.y(),r.x(), r.y()+r.cy() );
 		gdi.draw_line(r.x()+r.cx(),r.y(),r.x()+r.cx(), r.y()+r.cy() );
 	}
-
 }
 /* ------------------------------------------------------------------ */
 // On repaint the widget return true when changed
@@ -69,6 +66,12 @@ void window::report_event( const input::event_info& ev )
 	using evinfo = input::event_info;
 	//! Emit signal to the to the window callbacks
 	m_changed = emit( event( this, ev ) );
+	//  Don't dispatch hotplug event to to the
+	//  widgets only only windows got this event
+	//  it should be dispatched
+	if( ev.type == evinfo::EV_HOTPLUG ) {
+		return;
+	}
 	if( ev.type != evinfo::EV_WINDOW ) {
 		auto widget = current_widget();
 		if( widget )
