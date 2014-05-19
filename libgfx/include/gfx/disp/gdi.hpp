@@ -11,6 +11,7 @@
 #include <gfx/drivers/disp/disp_base.hpp>
 #include <gfx/disp/bitmap_fonts.hpp>
 #include <gfx/disp/static_bitmap.hpp>
+#include <algorithm>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace disp {
@@ -151,6 +152,12 @@ public:
 	*/
 	void set_bg_color( color_t color ) {
 		m_bg_color = color;
+	}
+
+	/** Swap FG and BG colors
+	 */
+	void swap_colors() {
+		std::swap( m_color, m_bg_color );
 	}
 
 	/** Set font in GDI context
