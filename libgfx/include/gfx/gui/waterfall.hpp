@@ -3,7 +3,7 @@
  *
  *       Filename:  waterfall.hpp
  *
- *    Description:  I Waterfall implementation for example fft watterfall
+ *    Description:  Waterfall implementation for example fft watterfall
  *
  *        Version:  1.0
  *        Created:  19.05.2014 20:56:11
@@ -26,7 +26,7 @@ namespace gui {
 /** Watterfall class widget implementation. 
  *  Watterfall is an waterfall update widget for 
  *  example for FFT watterfal function for detect frequencies*/
-class waterfall :  public widget {
+class waterfall : public widget {
 public:
 	/** Waterfall constructor 
 	 * @param[in] rect Widget size
@@ -37,10 +37,21 @@ public:
 	waterfall( rectangle const& rect, layout const& layout, 
 			   window &win, size_t in_len )
 		: widget( rect, layout, win ), m_length( in_len )
-		{
-		}
+	{
+	}
+	//! Virtual destructor
+	virtual ~waterfall() {
+	}
+	 //! Report an event
+	virtual void report_event( const input::event_info& ev );
+protected:
+	 //! On repaint the widget return true when changed
+	 virtual void repaint();
 private:
-	size_t m_length;
+	 //! Draw GUI frame
+	 void draw_frame();
+private:
+	size_t m_length;			//! Handle length of input waterfal msg
 };
 /* ------------------------------------------------------------------ */ 
 }	//gui
