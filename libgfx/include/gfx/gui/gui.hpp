@@ -17,7 +17,7 @@
 #include "editbox.hpp"
 #include "multiview.hpp"
 #include "battery_icon.hpp"
-
+#include "waterfall.hpp"
 
 
 

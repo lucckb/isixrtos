@@ -40,7 +40,7 @@ public:
 	  * @param[in] layout Input layout
 	  * @param[in] win Window input
 	  */
-	 explicit multiview( rectangle const& rect, layout const& layout, 
+	 multiview( rectangle const& rect, layout const& layout, 
 			 window &win )
 	 	 : widget( rect, layout, win, false )
 	 {
