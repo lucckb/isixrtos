@@ -23,9 +23,12 @@
 namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */ 
+
 /** Watterfall class widget implementation. 
  *  Watterfall is an waterfall update widget for 
- *  example for FFT watterfal function for detect frequencies*/
+ *  example for FFT watterfal function for detect frequencies
+ */
+
 class waterfall : public widget {
 	static constexpr auto c_margin = 2;
 public:
@@ -36,8 +39,9 @@ public:
 	 * @param[in] in_len Message input size 
 	 */
 	waterfall( rectangle const& rect, layout const& layout, 
-			   window &win, size_t in_len )
-		: widget( rect, layout, win ), m_length( in_len )
+			   window &win, size_t in_len, unsigned top_freq )
+		: widget( rect, layout, win ), 
+		  m_length( in_len ), m_top_freq( top_freq )
 	{
 	}
 	//! Virtual destructor
@@ -47,7 +51,7 @@ public:
 	virtual void report_event( const input::event_info& ev );
 	//! New fft data
 	void new_data( const unsigned short* ptr ) {
-		m_data_ptr =  ptr;
+		m_data_ptr = ptr;
 	}
 protected:
 	 //! On repaint the widget return true when changed
@@ -55,9 +59,13 @@ protected:
 private:
 	 //! Draw GUI frame
 	 void draw_frame();
+	 //! Draw frequency selection line
+	 void draw_select_line();
 private:
-	const size_t m_length;			//! Handle length of input waterfal msg
+	const size_t m_length;					//! Handle length of input waterfal msg
 	const unsigned short *m_data_ptr {};	//! Data pointer
+	const short m_top_freq;					//! Top frequency
+	unsigned short m_freq_sel {};			//! Frequency selection line
 };
 /* ------------------------------------------------------------------ */ 
 }	//gui

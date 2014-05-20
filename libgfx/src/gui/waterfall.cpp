@@ -62,6 +62,19 @@ void waterfall::draw_frame()
 	gdi.draw_line(c.x(), c.y(), c.x(), c.y()+c.cy()-2 );
 }
 /* ------------------------------------------------------------------ */ 
+//! Draw frequency selection line
+void waterfall::draw_select_line()
+{
+	if( m_freq_sel > 0 ) {
+		const auto c = get_coord() + get_owner().get_coord();
+		const auto lwidth = c.cx() - c_margin * 2;
+		const auto xpos = (int(m_freq_sel) * int(lwidth) ) / int( m_top_freq ) + c.x() + c_margin;
+		auto gdi = make_gdi();
+		gdi.set_fg_color( color::White );
+		gdi.draw_line( xpos , c.y()+1, xpos , c.y()+c.cy()-2 );
+	}
+}
+/* ------------------------------------------------------------------ */ 
 //! Handle waterfall event info
 void waterfall::report_event( const input::event_info&  )
 {
@@ -92,6 +105,8 @@ void waterfall::repaint()
 	}
 	//Draw bottom gui frame
 	draw_frame();
+	//Draw selection waterfall line
+	draw_select_line();
 	m_data_ptr = nullptr;
 }
 /* ------------------------------------------------------------------ */ 
