@@ -24,7 +24,7 @@ namespace gui {
 /* ------------------------------------------------------------------ */ 
 namespace {
 	//! Convert amplitude to color
-	static inline color_t ampl2color( unsigned char a ) {
+	inline color_t ampl2color( unsigned char a ) {
         if( (a<43) )
             return rgb( 0,0, 255*(a)/43);
         if( (a>=43) && (a<87) )
