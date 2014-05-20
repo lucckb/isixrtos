@@ -27,6 +27,7 @@ namespace gui {
  *  Watterfall is an waterfall update widget for 
  *  example for FFT watterfal function for detect frequencies*/
 class waterfall : public widget {
+	static constexpr auto c_margin = 2;
 public:
 	/** Waterfall constructor 
 	 * @param[in] rect Widget size
@@ -44,6 +45,10 @@ public:
 	}
 	 //! Report an event
 	virtual void report_event( const input::event_info& ev );
+	//! New fft data
+	void new_data( const unsigned short* ptr ) {
+		m_data_ptr =  ptr;
+	}
 protected:
 	 //! On repaint the widget return true when changed
 	 virtual void repaint();
@@ -51,7 +56,8 @@ private:
 	 //! Draw GUI frame
 	 void draw_frame();
 private:
-	size_t m_length;			//! Handle length of input waterfal msg
+	const size_t m_length;			//! Handle length of input waterfal msg
+	const unsigned short *m_data_ptr {};	//! Data pointer
 };
 /* ------------------------------------------------------------------ */ 
 }	//gui

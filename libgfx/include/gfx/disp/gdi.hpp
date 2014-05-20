@@ -68,7 +68,7 @@ public:
 	coord_t get_text_height( ) const;
 
 
-	/** Set PIXEL
+	/** Set Pixel
 	 * @param[in] x position X
 	 * @param[in] y position Y
      * @param[in] bg use bg color
@@ -77,6 +77,15 @@ public:
 	{
 		m_gdev.set_pixel( x, y, bg?m_bg_color:m_color );
 	}
+
+	/** Set pixel using color 
+	 * @param[in] x position X
+	 * @param[in] y position Y
+	 * @param[in] color Pixel color */
+	void set_pixel_color( coord_t x, coord_t y, color_t color ) {
+		m_gdev.set_pixel( x, y, color );
+	}
+
 	/* Draw line using current grephics context parameter
 	 * @param[in] x0 start line point horiz
 	 * @param[in] y0 start line point vert

@@ -15,11 +15,31 @@
  *
  * =====================================================================================
  */
+
 #include <gfx/gui/waterfall.hpp>
 #include <foundation/dbglog.h>
 /* ------------------------------------------------------------------ */ 
 namespace gfx {
 namespace gui {
+/* ------------------------------------------------------------------ */ 
+namespace {
+	//! Convert amplitude to color
+	static inline color_t ampl2color( unsigned char a ) {
+        if( (a<43) )
+            return rgb( 0,0, 255*(a)/43);
+        if( (a>=43) && (a<87) )
+            return rgb( 0, 255*(a-43)/43, 255 );
+        if( (a>=87) && (a<120) )
+            return rgb( 0,255, 255-(255*(a-87)/32));
+        if( (a>=120) && (a<154) )
+            return rgb( (255*(a-120)/33), 255, 0);
+        if( (a>=154) && (a<217) )
+            return rgb( 255, 255 - (255*(a-154)/62), 0);
+        if( (a>=217)  )
+            return rgb( 255, 0, 128*(a-217)/38);
+		return color::White;
+	}
+}
 /* ------------------------------------------------------------------ */ 
 //! GUI dram frame
 void waterfall::draw_frame()
@@ -43,20 +63,36 @@ void waterfall::draw_frame()
 }
 /* ------------------------------------------------------------------ */ 
 //! Handle waterfall event info
-void waterfall::report_event( const input::event_info& ev )
+void waterfall::report_event( const input::event_info&  )
 {
-	dbprintf( "WATERFALL UNHANDLED event %i", ev.type );
-	/*  Howto select data from FFT 
-	 *  (FFT_SIZE * i / SCREEN_SIZE 
-	 *  Color?? X=V/256 RGB=( X, 0, 255 - X )
-	 */
+	if( m_data_ptr ) {
+		modified();
+	}
 }
 /* ------------------------------------------------------------------ */ 
 //! Handle repaint 
 void waterfall::repaint()
 {
+	if( !m_data_ptr ) {
+		draw_frame();
+		dbprintf("Invalid repaint");
+		return;
+	}
+	//Update waterall scrol down before
+	auto gdi = make_gdi();
+	const auto c = get_coord() + get_owner().get_coord();
+	const auto lwidth = c.cx() - c_margin * 2;
+	//! Scroll the first line down
+	gdi.scroll( c.x() + c_margin , c.y()+1, lwidth,
+			c.cy() , -1, get_owner().get_layout().bg() 
+	);
+	for( gfx::coord_t i = 0; i < lwidth; ++i ) {
+		const auto ampl = m_data_ptr[ ( i *  m_length ) / lwidth ] / 256;
+		gdi.set_pixel_color( i + c.x() + c_margin, c.y()+1, ampl2color( ampl ) );
+	}
 	//Draw bottom gui frame
 	draw_frame();
+	m_data_ptr = nullptr;
 }
 /* ------------------------------------------------------------------ */ 
 }
