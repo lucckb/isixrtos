@@ -74,6 +74,7 @@ namespace detail {
 		unsigned uint;	//! Unsigned type
 		int 	 sint;	//! Signed type
 		void *   ptr;	//! Pointer type
+		const void* cptr;	//! Const pointer to void
 	};
 	//! Data for hotplug event
 	struct hotplug {

@@ -71,7 +71,7 @@ void editbox::report_event( const input::event_info& ev )
 			dbprintf("Unknown kbd mode %i", m_kbdmode );
 		}
 	} else {
-		dbprintf("Unhandled event type %i", ev.type );
+		//dbprintf("Unhandled event type %i", ev.type );
 	}
 	if( ret ) {
 		modified();
