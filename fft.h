@@ -265,7 +265,7 @@ void fft_complex( std::complex<T> *x, const std::complex<T> * const in, int m )
 }
 /*-----------------------------------------------------------*/
 // Real fft
-// Input: 2^m complex points in time domain
+// Input: 2^m real points in time domain
 // Output: (2^m)*2 complex points in frequency domain
 template<typename T, typename K=short>
 void fft_real( std::complex<T> *xc, const T * const x, int m )
