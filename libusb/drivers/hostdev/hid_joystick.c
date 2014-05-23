@@ -286,7 +286,7 @@ static int hid_joystick_attached( const usbhost_device_t* hdev, void** data )
 		}
 		ret = usbh_hid_process_report( buf, hlen, &ctx->hid_info, dcomp_hid_joystick );
 		if( ret != HID_PARSE_Successful ) {
-			dbprintf(" hid_process_report fail - Probably not a joystick" );
+			dbprintf(" hid_process_report fail - Probably not a joystick, ret=%d", ret );
 			free( *data );
 			*data = NULL;
 			return ret;
