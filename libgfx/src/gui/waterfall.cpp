@@ -58,12 +58,12 @@ namespace {
 		while (num_pixels-- > 0) {
 			p = ampl2color(*source);
 			if (e >= mid)
-			p = colorspace::average(p, ampl2color(*(source+1)));
+				p = colorspace::average(p, ampl2color(*(source+1)));
 			pen.set_pixel_color( xpos++, ypos, p );
 			e += src_width;
 			if (e >= tgt_width) {
-			e -= tgt_width;
-			source++;
+				e -= tgt_width;
+				source++;
 			} /* if */
 		} /* while */
 		if (tgt_width > src_width) {

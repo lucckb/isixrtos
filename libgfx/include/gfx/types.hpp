@@ -135,9 +135,9 @@ namespace gfx
 		//! Calculate average of two pixels format independent
 		static inline constexpr color_t average( color_t color1, color_t color2 )
 		{
-			return rgb( ( int(color_t_R(color1)) * int(color_t_R(color2)) ) / 2,
-						( int(color_t_G(color1)) * int(color_t_G(color2)) ) / 2,
-						( int(color_t_B(color1)) * int(color_t_B(color2)) ) / 2
+			return rgb( ( int(color_t_R(color1)) + int(color_t_R(color2)) ) / 2,
+						( int(color_t_G(color1)) + int(color_t_G(color2)) ) / 2,
+						( int(color_t_B(color1)) + int(color_t_B(color2)) ) / 2
 					  );
 		}
 	}
