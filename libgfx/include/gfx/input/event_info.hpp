@@ -114,7 +114,8 @@ struct event_info {
 		/** Events raised by the component callbacks 
 		 * on emit widget level*/
 		EV_CLICK,	/** Click event  */
-		EV_CHANGE	/** Component changed */
+		EV_CHANGE,	/** Component changed */
+		EV_JOY_REPORT,	/** Joystick report */
 	};
 	unsigned time;  //! Timestamp
 	evtype type;    //! Event type
