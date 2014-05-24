@@ -39,9 +39,10 @@ public:
 	 * @param[in] in_len Message input size 
 	 */
 	waterfall( rectangle const& rect, layout const& layout, 
-			   window &win, size_t in_len, unsigned top_freq )
-		: widget( rect, layout, win ), 
-		  m_length( in_len ), m_top_freq( top_freq )
+		window &win, size_t fft_len, unsigned short fsample_2,
+		unsigned short f0, unsigned short f1 )
+		: widget( rect, layout, win ), m_fftlen( fft_len ), 
+		m_f0( f0 ), m_f1( f1 ), m_fs2( fsample_2 )
 	{
 	}
 	//! Virtual destructor
@@ -50,7 +51,7 @@ public:
 	 //! Report an event
 	virtual void report_event( const input::event_info& ev );
 	//! New fft data
-	void new_data( const unsigned short* ptr ) {
+	void new_data( const  short* ptr ) {
 		m_data_ptr = ptr;
 	}
 protected:
@@ -62,9 +63,11 @@ private:
 	 //! Draw frequency selection line
 	 void draw_select_line();
 private:
-	const size_t m_length;					//! Handle length of input waterfal msg
-	const unsigned short *m_data_ptr {};	//! Data pointer
-	const short m_top_freq;					//! Top frequency
+	const size_t m_fftlen;					//! Handle length of input waterfal msg
+	const short *m_data_ptr {};				//! Data pointer
+	const unsigned short m_f0;				//! Frequency Low
+	const unsigned short m_f1;				//! Frequency high
+	const unsigned short m_fs2;				//! Sample frequency/2
 	unsigned short m_freq_sel {};			//! Frequency selection line
 };
 /* ------------------------------------------------------------------ */ 

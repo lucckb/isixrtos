@@ -65,6 +65,7 @@ void waterfall::draw_frame()
 //! Draw frequency selection line
 void waterfall::draw_select_line()
 {
+#if 0
 	if( m_freq_sel > 0 ) {
 		const auto c = get_coord() + get_owner().get_coord();
 		const auto lwidth = c.cx() - c_margin * 2;
@@ -73,6 +74,7 @@ void waterfall::draw_select_line()
 		gdi.set_fg_color( color::White );
 		gdi.draw_line( xpos , c.y()+1, xpos , c.y()+c.cy()-2 );
 	}
+#endif
 }
 /* ------------------------------------------------------------------ */ 
 //! Handle waterfall event info
@@ -95,12 +97,15 @@ void waterfall::repaint()
 	auto gdi = make_gdi();
 	const auto c = get_coord() + get_owner().get_coord();
 	const auto lwidth = c.cx() - c_margin * 2;
+	const auto fftI0 = int( m_fftlen * int(m_f0) ) / int(m_fs2);
+	const auto fftI1 = int( m_fftlen * int(m_f1) ) / int(m_fs2);
+	const auto fftmax =  fftI1 - fftI0;
 	//! Scroll the first line down
 	gdi.scroll( c.x() + c_margin , c.y()+1, lwidth,
 			c.cy() , -1, get_owner().get_layout().bg() 
 	);
 	for( gfx::coord_t i = 0; i < lwidth; ++i ) {
-		const auto ampl = m_data_ptr[ ( i *  m_length ) / lwidth ] / 256;
+		const auto ampl = m_data_ptr[ ( i *  fftmax ) / lwidth + fftI0 ] / 128;
 		gdi.set_pixel_color( i + c.x() + c_margin, c.y()+1, ampl2color( ampl ) );
 	}
 	//Draw bottom gui frame
