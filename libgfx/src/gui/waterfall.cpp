@@ -42,7 +42,8 @@ namespace {
 		return color::White;
 	}
 	/** Scale line average */
-	void print_line_avg( disp::gdi& pen, const short *source, int src_width, int tgt_width, int xpos, int ypos )
+	void print_line_avg( disp::gdi& pen, const short *source, 
+		 int src_width, int tgt_width, int xpos, int ypos )
 	{
 		/* N.B. because of several simplifications of the algorithm,
 		*      the zoom range is restricted between 0.5 and 2. That
