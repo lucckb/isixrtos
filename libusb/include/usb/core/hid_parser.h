@@ -97,7 +97,7 @@
 			 *  value in the user project makefile, passing the define to the compiler using the -D compiler
 			 *  switch.
 			 */
-			#define HID_USAGE_STACK_DEPTH         8
+			#define HID_USAGE_STACK_DEPTH         12
 		#endif
 
 		#if !defined(HID_MAX_COLLECTIONS)
@@ -117,7 +117,7 @@
 			 *  but this can be overridden by defining \c HID_MAX_REPORTITEMS to another value in the user project
 			 *  makefile, and passing the define to the compiler using the -D compiler switch.
 			 */
-			#define HID_MAX_REPORTITEMS           20
+			#define HID_MAX_REPORTITEMS           24
 		#endif
 
 		#if !defined(HID_MAX_REPORT_IDS)
