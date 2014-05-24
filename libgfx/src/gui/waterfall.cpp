@@ -39,6 +39,34 @@ namespace {
             return rgb( 255, 0, 128*(a-217)/38);
 		return color::White;
 	}
+	/** Scale line average */
+	void scale_line_avg( color_t *target, const color_t *source, int src_width, int tgt_width )
+	{
+	/* N.B. because of several simplifications of the algorithm,
+	*      the zoom range is restricted between 0.5 and 2. That
+	*      is: tgt_width must be >= src_width/2 and <= 2*SrcWidth.
+	*/
+	int num_pixels = tgt_width;
+	int mid = tgt_width / 2;
+	int e = 0;
+	color_t p;
+	auto average = []( color_t a, color_t b ) { return ( a + b ) >> 1; };
+	if (tgt_width > src_width)
+		num_pixels--;
+	while (num_pixels-- > 0) {
+		p = *source;
+		if (e >= mid)
+		p = average(p, *(source+1));
+		*target++ = p;
+		e += src_width;
+		if (e >= tgt_width) {
+		e -= tgt_width;
+		source++;
+		} /* if */
+	} /* while */
+	if (tgt_width > src_width)
+		*target = *source;
+	}
 }
 /* ------------------------------------------------------------------ */ 
 //! GUI dram frame
