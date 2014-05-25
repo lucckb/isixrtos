@@ -24,7 +24,7 @@ namespace gui {
 /* ------------------------------------------------------------------ */ 
 namespace {
 	//! Convert amplitude to color
-	inline color_t ampl2color( unsigned short a ) {
+	inline color_t ampl2color( short a ) {
 		static constexpr auto scale = 128;
 		a /= scale;
         if( (a<43) )
