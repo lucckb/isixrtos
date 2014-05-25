@@ -67,20 +67,18 @@ void waterfall::draw_frame()
 //! Draw frequency selection line
 void waterfall::draw_select_line()
 {
-#if 0
 	if( m_freq_sel > 0 ) {
 		const auto c = get_coord() + get_owner().get_coord();
 		const auto lwidth = c.cx() - c_margin * 2;
-		const auto xpos = (int(m_freq_sel) * int(lwidth) ) / int( m_top_freq ) + c.x() + c_margin;
+		const auto xpos = (int(m_freq_sel) * int(lwidth) ) / int( m_f1 ) + c.x() + c_margin;
 		auto gdi = make_gdi();
 		gdi.set_fg_color( color::White );
 		gdi.draw_line( xpos , c.y()+1, xpos , c.y()+c.cy()-2 );
 	}
-#endif
 }
 /* ------------------------------------------------------------------ */ 
 //! Handle waterfall event info
-void waterfall::report_event( const input::event_info&  )
+void waterfall::report_event( const input::event_info& )
 {
 	if( m_data_ptr ) {
 		modified();
@@ -92,7 +90,6 @@ void waterfall::repaint()
 {
 	if( !m_data_ptr ) {
 		draw_frame();
-		dbprintf("Invalid repaint");
 		return;
 	}
 	//Update waterall scrol down before
