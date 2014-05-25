@@ -88,7 +88,7 @@ void window::select_next()
 {
 	if( m_current_widget != m_widgets.end() ) {
 		m_redraw_widget = m_current_widget;
-		for( size_t s=m_widgets.size(),i=0; i<s; ++s ) {
+		for( size_t s=m_widgets.size(),i=0; i<s; ++i ) {
 			if( ++m_current_widget == m_widgets.end() )
 				m_current_widget = m_widgets.begin();
 			if( (*m_current_widget)->selectable() )
@@ -103,7 +103,7 @@ void window::select_prev()
 	if( m_current_widget != m_widgets.end() )
 	{
 		m_redraw_widget = m_current_widget;
-		for( size_t s=m_widgets.size(),i=0; i<s; ++s )
+		for( size_t s=m_widgets.size(),i=0; i<s; ++i )
 		{
 			if( m_current_widget == m_widgets.begin() )
 				m_current_widget = --m_widgets.end();
