@@ -41,35 +41,6 @@ namespace {
             return rgb( 255, 0, 128*(a-217)/38);
 		return color::White;
 	}
-	/** Scale line average */
-	void print_line_avg( disp::gdi& pen, const short *source, 
-		 int src_width, int tgt_width, int xpos, int ypos )
-	{
-		/* N.B. because of several simplifications of the algorithm,
-		*      the zoom range is restricted between 0.5 and 2. That
-		*      is: tgt_width must be >= src_width/2 and <= 2*SrcWidth.
-		*/
-		int num_pixels = tgt_width;
-		int mid = tgt_width / 2;
-		int e = 0;
-		color_t p;
-		if (tgt_width > src_width)
-			num_pixels--;
-		while (num_pixels-- > 0) {
-			p = ampl2color(*source);
-			if (e >= mid)
-				p = colorspace::average(p, ampl2color(*(source+1)));
-			pen.set_pixel_color( xpos++, ypos, p );
-			e += src_width;
-			if (e >= tgt_width) {
-				e -= tgt_width;
-				source++;
-			} /* if */
-		} /* while */
-		if (tgt_width > src_width) {
-			pen.set_pixel_color( xpos, ypos, ampl2color(*source) );
-		}
-	}
 }
 /* ------------------------------------------------------------------ */ 
 //! GUI dram frame
@@ -127,21 +98,26 @@ void waterfall::repaint()
 	//Update waterall scrol down before
 	auto gdi = make_gdi();
 	const auto c = get_coord() + get_owner().get_coord();
-	const auto lwidth = c.cx() - c_margin * 2;
-	const auto fftI0 = int( m_fftlen * int(m_f0) ) / int(m_fs2);
-	const auto fftI1 = int( m_fftlen * int(m_f1) ) / int(m_fs2);
-	const auto fftwidth =  fftI1 - fftI0;
+	const int lwidth = c.cx() - c_margin * 2;
+	const int fftI0 = int( int(m_fftlen) * int(m_f0) ) / int(m_fs2);
+	const int fftI1 = int( int(m_fftlen) * int(m_f1) ) / int(m_fs2);
+	const int fftwidth =  fftI1 - fftI0;
 	//! Scroll the first line down
 	gdi.scroll( c.x() + c_margin , c.y()+1, lwidth,
 			c.cy() , -1, get_owner().get_layout().bg() 
 	);
-	/*
-	for( gfx::coord_t i = 0; i < lwidth; ++i ) {
-		const auto ampl = m_data_ptr[ ( i *  fftmax ) / lwidth + fftI0 ] / 128;
-		gdi.set_pixel_color( i + c.x() + c_margin, c.y()+1, ampl2color( ampl ) );
+	for( gfx::coord_t u = 0; u < lwidth; ++u ) {
+		if( u == 0 ) {
+			gdi.set_pixel_color( u + c.x() + c_margin, c.y()+1, ampl2color( m_data_ptr[fftI0] ) );
+		}
+		else {
+			//! Average pixel algorithm
+			int v = (u * fftwidth) / lwidth + fftI0;
+			int a = (u * fftwidth) % lwidth; 
+			auto level = ((lwidth-a)*int(m_data_ptr[v]))/lwidth + (a*m_data_ptr[v+1])/lwidth;
+			gdi.set_pixel_color( u + c.x() + c_margin, c.y()+1, ampl2color( level ) );
+		}
 	}
-	*/
-	print_line_avg( gdi, m_data_ptr+fftI0, fftwidth, lwidth, c.x()+c_margin, c.y()+1 );
 	//Draw bottom gui frame
 	draw_frame();
 	//Draw selection waterfall line
