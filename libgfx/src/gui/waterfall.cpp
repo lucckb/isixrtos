@@ -78,10 +78,34 @@ void waterfall::draw_select_line()
 }
 /* ------------------------------------------------------------------ */ 
 //! Handle waterfall event info
-void waterfall::report_event( const input::event_info& )
+void waterfall::report_event( const input::event_info& ev )
 {
+	using evinfo = input::event_info;
 	if( m_data_ptr ) {
 		modified();
+	}
+	if( ev.type == evinfo::EV_KEY ) {
+		bool mflag = false;
+		if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN ) {
+			if( ev.keyb.key == input::kbdcodes::os_arrow_left ) {
+				if( m_freq_sel > m_f0 ) {
+					--m_freq_sel;
+					mflag = true;
+				}
+			}
+			else if( ev.keyb.key == input::kbdcodes::os_arrow_right ) {
+				if( m_freq_sel < m_f1 ) {
+					++m_freq_sel;
+					mflag = true;
+				}
+			}
+		}
+		if( mflag ) {
+			//Report change event
+			modified();
+			event btn_event( this, event::evtype::EV_CHANGE );
+			emit( btn_event );
+		}
 	}
 }
 /* ------------------------------------------------------------------ */ 

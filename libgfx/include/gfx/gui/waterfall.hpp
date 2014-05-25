@@ -42,7 +42,8 @@ public:
 		window &win, size_t fft_len, unsigned short fsample_2,
 		unsigned short f0, unsigned short f1 )
 		: widget( rect, layout, win ), m_fftlen( fft_len ), 
-		m_f0( f0 ), m_f1( f1 ), m_fs2( fsample_2 )
+		m_f0( f0 ), m_f1( f1 ), m_fs2( fsample_2 ),
+		m_freq_sel( (f0 + f1) / 2 )
 	{
 	}
 	//! Virtual destructor
@@ -68,7 +69,7 @@ private:
 	const unsigned short m_f0;				//! Frequency Low
 	const unsigned short m_f1;				//! Frequency high
 	const unsigned short m_fs2;				//! Sample frequency/2
-	unsigned short m_freq_sel { };		//! Frequency selection line
+	unsigned short m_freq_sel;				//! Frequency selected
 };
 /* ------------------------------------------------------------------ */ 
 }	//gui
