@@ -30,7 +30,7 @@ battery_icon::battery_icon( rectangle const& rect,layout const& layout ,window &
 //! On repaint widget event
 void battery_icon::repaint() 
 {
-	constexpr auto luma = 48;
+	constexpr auto luma = 32;
 	const auto bat_top_width = 3;
 	const auto c = get_coord() + get_owner().get_coord();
 	auto gdi = make_gdi();
@@ -43,7 +43,8 @@ void battery_icon::repaint()
 	const auto y0 = c.y();
 
 	// outer rect
-	gdi.bright_fg_color( 0 );
+	gdi.set_fg_color(get_layout().bg());
+
 	gdi.draw_line(x0, y0, x0 + w, y0);
 	gdi.draw_line(x0, y0 + h, x0 + w, y0 + h);
 	gdi.draw_line(x0, y0 + 1, x0, y0 + h - 1);
@@ -62,19 +63,11 @@ void battery_icon::repaint()
 	gdi.draw_line(x0 + w - 1, y0 + 2, x0 + w - 1, y0 + h - 2);
 
 	// inner fill
-	gdi.set_fg_color(gfx::color::LightGreen);
+	gdi.set_fg_color(get_layout().fg());
 	gdi.fill_area(x0 + 3, y0 + 3, w1, h - 5);
-	gdi.bright_fg_color( -luma );
-	gdi.fill_area(x0 + 3 + w1, y0 + 3, w2, h - 5);
 
-//	dbprintf("percent value %u", m_percent );
-//	dbprintf("gdi_fill_area(%u, %u, %u, %u)", x0, y0, w1, h );
-//	gdi.fill_area( x0, y0, w1, h );
-//	dbprintf("gdi_fill_area(%u, %u, %u, %u)", x0+w1, y0, w2, h );
-//	gdi.fill_area( x0 + w1 , y0, w2, h , true );
-	// Battery top
-//	const auto bat_top_y = y0 + ( y0 + h )/4 - 1;
-//	gdi.fill_area( x0 + w, bat_top_y , bat_top_width, h/2 , true );
+	gdi.set_fg_color(get_layout().bg());
+	gdi.fill_area(x0 + 3 + w1, y0 + 3, w2, h - 5);
 }
 /* ------------------------------------------------------------------ */
 }

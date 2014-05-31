@@ -18,7 +18,6 @@ void seekbar::repaint()
 	if (m_value == m_pvalue) return;
 	m_pvalue = m_value;
 
-	constexpr auto luma = 32;
 	auto gdi = make_gdi( );
 	gdi.set_fg_color( get_layout().sel() );
 	const auto c = get_coord() + get_owner().get_coord();
@@ -38,15 +37,40 @@ void seekbar::repaint()
 		gdiw.draw_circle( x+m_psex ,ycirc, r );
 	}
 
-	gdi.fill_area( x, y , sex, ys, false );
-	gdi.fill_area( x+sex, y, cx-sex, ys, true );
-	gdi.set_fg_color( colorspace::brigh(get_layout().bg(), luma));
+	// left part
+	gdi.set_fg_color( colorspace::brigh( get_layout().sel(), 192 ) );
+	gdi.draw_line(x + 1, y, x + sex, y);
+	gdi.draw_line(x, y + 1, x, y + ys - 1);
+
+	gdi.set_fg_color( colorspace::brigh( get_layout().sel(), 0 ) );
+	gdi.fill_area( x + 1, y + 1 , sex - 1, ys - 1, false );
+
+	gdi.set_fg_color( colorspace::brigh( get_layout().sel(), -16 ) );
+	gdi.draw_line(x + 1, y + ys, x + sex, y + ys);
+
+	// right part
+	gdi.set_fg_color( colorspace::brigh( get_layout().fg(), 192 ) );
+	gdi.draw_line(x + sex, y, x + cx - 1, y);
+
+	gdi.set_fg_color( colorspace::brigh( get_layout().fg(), -96 ) );
+	gdi.draw_line(x + cx, y + 1, x + cx, y + ys - 1);
+	gdi.draw_line(x + sex, y + ys, x + cx -1, y + ys);
+
+	gdi.set_fg_color( colorspace::brigh( get_layout().fg(), 0 ) );
+	gdi.fill_area( x + sex, y + 1, cx - sex, ys - 1, true );
+
+	// ball
+	gdi.set_fg_color( colorspace::brigh(get_layout().bg(), 32));
 	gdi.set_fill( true );
 	gdi.draw_circle( x+sex,ycirc, r);
 
-	gdi.set_fg_color( colorspace::brigh(get_layout().bg(), luma/2));
+	gdi.set_fg_color( colorspace::brigh(get_layout().bg(), -32));
 	gdi.set_fill( false );
 	gdi.draw_circle( x+sex,ycirc, r);
+
+	gdi.set_fg_color( colorspace::brigh(get_layout().bg(), 32));
+	gdi.draw_circle( x+sex,ycirc, r - 1);
+
 
 	m_psex = sex;
 }
