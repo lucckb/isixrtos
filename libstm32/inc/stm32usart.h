@@ -93,8 +93,11 @@ static inline void usart_init(USART_TypeDef* USARTx, uint32_t baudrate, uint16_t
   USARTx->CR3 = (uint16_t)tmpreg;
 
 /*---------------------------- USART BRR Configuration -----------------------*/
-
+#ifndef STM32MCU_MAJOR_TYPE_F1
   if ((USARTx == USART1) || (USARTx == USART6))
+#else
+  if( USARTx == USART1 ) 
+#endif
   {
     apbclock = pclk2;
   }
