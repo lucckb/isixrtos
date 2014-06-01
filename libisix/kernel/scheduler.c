@@ -7,10 +7,16 @@
 #include <prv/list.h>
 #include <prv/semaphore.h>
 #include <prv/irqtimers.h>
-#include <prv/multiple_objects.h>
 
 #ifndef ISIX_DEBUG_SCHEDULER
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
+#endif
+
+#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
+#include <isix/printk.h>
+#else
+#undef isix_printk
+#define isix_printk(...) do {} while(0)
 #endif
 
 /*-----------------------------------------------------------------------*/
@@ -21,16 +27,19 @@ void __attribute__((weak)) isix_kernel_panic_callback( const char* file, int lin
 }
 /*-----------------------------------------------------------------------*/
 //Current task pointer
-volatile bool isix_scheduler_running;
+volatile bool _isix_scheduler_running;
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
-task_t * volatile isix_current_task = NULL;
+task_t * volatile _isix_current_task = NULL;
 
 /*-----------------------------------------------------------------------*/
 //Sched lock counter
-static volatile unsigned short critical_count = 0;
+static _port_atomic_int_t critical_count;
 
+/*-----------------------------------------------------------------------*/
+// Task reschedule lock for spinlock
+static _port_atomic_t sem_schedule_lock = { 0, 1 };
 /*-----------------------------------------------------------------------*/
 //Binary tree of task ready to execute
 static list_entry_t ready_task;
@@ -54,12 +63,11 @@ static list_entry_t free_prio_elem;
 /*-----------------------------------------------------------------------*/
 //Global jiffies var
 static volatile tick_t jiffies;
-
+//Skiped jiffies when scheduler is locked
+static _port_atomic_int_t jiffies_skipped;
 //Number of deleted task
 static volatile unsigned number_of_task_deleted;
-
 //Number of priorities
-
 static volatile prio_t number_of_priorities;
 
 /*-----------------------------------------------------------------------*/
@@ -67,7 +75,7 @@ static volatile prio_t number_of_priorities;
 void isix_kernel_panic( const char *file, int line, const char *msg )
 {
     //Go to critical sections forever
-	isixp_enter_critical();
+	_isixp_enter_critical();
 #if ISIX_DEBUG_SCHEDULER
 	isix_printk("OOPS-PANIC: Please reset board %s:%i [%s]", file, line, msg );
     task_ready_t *i;
@@ -82,7 +90,7 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
               isix_printk("\t\t-> task %08x prio %d state %d",j,j->prio,j->state);
          }
     }
-    isix_printk("Sleeping tasks\n");
+    isix_printk("Sleeping tasks");
     list_for_each_entry(p_waiting_task,j,inode)
     {
         isix_printk("\t->Task: %08x prio: %d state %d jiffies %d",j,j->prio,j->state,j->jiffies);
@@ -94,65 +102,67 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler
-void isixp_enter_critical(void)
+void _isixp_enter_critical(void)
 {
-	if(critical_count==0)
+	if( port_atomic_inc( &critical_count ) == 1 ) 
 	{
 		port_set_interrupt_mask();
 	}
-    critical_count++;
+    port_flush_memory();
 }
 
 /*-----------------------------------------------------------------------*/
 //Unlock scheduler
-void isixp_exit_critical(void)
+void _isixp_exit_critical(void)
 {
-	critical_count--;
-	if(critical_count == 0 )
+	if( port_atomic_dec( &critical_count ) == 0 )
     {
 		port_clear_interrupt_mask();
     }
+	port_flush_memory();
 }
 
 /*-----------------------------------------------------------------------*/
 //Scheduler is called in switch context
-void isixp_schedule(void)
+/**
+ * NOTE: The process not require _isixp_enter_critical because
+ * it is protected itself by pend svc vector lock 
+ */
+void _isixp_schedule(void)
 {
-
-    //Enter to the critical section
-	isixp_enter_critical();
-
+	if( port_atomic_sem_read_val( &sem_schedule_lock ) )
+	{
+		return;
+	}
     //Remove executed task and add at end
-    if(isix_current_task->state & TASK_READY)
+    if(_isix_current_task->state & TASK_READY)
     {
-        isix_current_task->state &= ~TASK_RUNNING;
-        list_delete(&isix_current_task->inode);
-        list_insert_end(&isix_current_task->prio_elem->task_list,&isix_current_task->inode);
+        _isix_current_task->state &= ~TASK_RUNNING;
+        list_delete(&_isix_current_task->inode);
+        list_insert_end(&_isix_current_task->prio_elem->task_list,&_isix_current_task->inode);
     }
     task_ready_t * current_prio;
     //Get first ready prio
     current_prio = list_get_first(&ready_task,inode,task_ready_t);
-    isix_printk("Scheduler: actual prio %d prio list %08x\n",current_prio->prio,current_prio);
+    isix_printk("Scheduler: actual prio %d prio list %08x",current_prio->prio,current_prio);
     //Get first ready task
-    isix_printk("Scheduler: prev task %08x\n",isix_current_task);
-    isix_current_task = list_get_first(&current_prio->task_list,inode,task_t);
-    isix_current_task->state |= TASK_RUNNING;
-    if(isix_current_task->prio != current_prio->prio)
+    isix_printk("Scheduler: prev task %08x",_isix_current_task);
+    _isix_current_task = list_get_first(&current_prio->task_list,inode,task_t);
+    _isix_current_task->state |= TASK_RUNNING;
+    if(_isix_current_task->prio != current_prio->prio)
     {
     	isix_bug("Task priority doesn't match to element priority");
     }
-    isix_printk("Scheduler: new task %08x\n",isix_current_task);
-    isixp_exit_critical();
+    isix_printk("Scheduler: new task %08x",_isix_current_task);
 }
 
 /*-----------------------------------------------------------------------*/
 //Time call from isr
-void isixp_schedule_time(void)
+static void internal_schedule_time(void)
 {
-
 	//Increment sys tick
 	jiffies++;
-	if(!isix_scheduler_running)
+	if(!_isix_scheduler_running)
 	{
 		return;
 	}
@@ -169,7 +179,7 @@ void isixp_schedule_time(void)
     		jiffies>=(task_c = list_get_first(p_waiting_task,inode,task_t))->jiffies
       )
     {
-    	isix_printk("SchedulerTime: sched_time %d task_time %d\n",jiffies,task_c->jiffies);
+    	isix_printk("SchedulerTime: sched_time %d task_time %d",jiffies,task_c->jiffies);
         task_c->state &= ~TASK_SLEEPING;
         task_c->state |= TASK_READY;
         list_delete(&task_c->inode);
@@ -180,31 +190,46 @@ void isixp_schedule_time(void)
             	isix_bug( "TASK waiting on empty sem");
             }
         	task_c->state &= ~TASK_SEM_WKUP;
+			port_atomic_dec( &task_c->sem->sem_task_count );
             task_c->sem = NULL;
             task_c->state &= ~TASK_WAITING;
             list_delete(&task_c->inode_sem);
-            isix_printk("SchedulerTime: Timeout delete from sem list\n");
+            isix_printk("SchedulerTime: Timeout delete from sem list");
         }
-#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
-        if(task_c->state & TASK_WAITING_MULTIPLE)
-        {
-        	task_c->state &= ~(TASK_WAITING_MULTIPLE|TASK_MULTIPLE_WKUP);
-        }
-#endif
-        if(isixp_add_task_to_ready_list(task_c)<0)
+        if(_isixp_add_task_to_ready_list(task_c)<0)
         {
             isix_bug("Add task to ready list fail");
         }
     }
-    //Handle time from vtimers
-    isixp_vtimer_handle_time( jiffies );
+	//Handle timvtimers
+    _isixp_vtimer_handle_time( jiffies );
+}
+/*-----------------------------------------------------------------------*/
+static void unused_func(void ) {}
+void isix_systime_handler(void) __attribute__ ((weak, alias("unused_func")));
+/*-----------------------------------------------------------------------*/
+//Schedule time handled from timer context
+void _isixp_schedule_time() 
+{
+	//Call isix system time handler if used
+    isix_systime_handler();
+    if( port_atomic_sem_read_val( &sem_schedule_lock ) ) {
+		port_atomic_inc( &jiffies_skipped );
+	} else {
+		//Increment system ticks
+		_isixp_enter_critical();
+		//Internal schedule time
+		internal_schedule_time();
+		//Clear interrupt mask
+		_isixp_exit_critical();
+	}
 }
 /*-----------------------------------------------------------------------*/
 //Try get task ready from free list if is not exist allocate memory
 static task_ready_t *alloc_task_ready_t(void)
 {
    task_ready_t *prio = NULL;
-   if(list_isempty(&free_prio_elem)==true)
+   if(list_isempty(&free_prio_elem))
    {
        isix_bug("Priority list not available");
    }
@@ -214,7 +239,7 @@ static task_ready_t *alloc_task_ready_t(void)
         prio = list_get_first(&free_prio_elem,inode,task_ready_t);
         list_delete(&prio->inode);
         prio->prio = 0;
-        isix_printk("alloc_task_ready_t: get from list node 0x%08x\n",prio);
+        isix_printk("alloc_task_ready_t: get from list node 0x%08x",prio);
    }
    return prio;
 }
@@ -224,17 +249,15 @@ static task_ready_t *alloc_task_ready_t(void)
 static inline void free_task_ready_t(task_ready_t *prio)
 {
     list_insert_end(&free_prio_elem,&prio->inode);
-    isix_printk("free_task_ready_t move 0x%08x to unused list\n",prio);
+    isix_printk("free_task_ready_t move 0x%08x to unused list",prio);
 }
 
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list
-int isixp_add_task_to_ready_list(task_t *task)
+int _isixp_add_task_to_ready_list(task_t *task)
 {
     if(task->prio > number_of_priorities)
     	return ISIX_ENOPRIO;
-	//Scheduler lock
-    isixp_enter_critical();
     //Find task equal entry
     task_ready_t *prio_i;
     list_for_each_entry(&ready_task,prio_i,inode)
@@ -242,18 +265,16 @@ int isixp_add_task_to_ready_list(task_t *task)
         //If task equal entry is found add this task to end list
         if(prio_i->prio==task->prio)
         {
-            isix_printk("AddTaskToReadyList: found prio %d equal node %08x\n",prio_i->prio,prio_i);
+            isix_printk("AddTaskToReadyList: found prio %d equal node %08x",prio_i->prio,prio_i);
             //Set pointer to priority struct
             task->prio_elem = prio_i;
             //Add task at end of ready list
             list_insert_end(&prio_i->task_list,&task->inode);
-            //Unlock scheduler
-            isixp_exit_critical();
             return 0;
         }
         else if(task->prio < prio_i->prio)
         {
-           isix_printk("AddTaskToReadyList: Insert %d node %08x\n",prio_i->prio,prio_i);
+           isix_printk("AddTaskToReadyList: Insert %d node %08x",prio_i->prio,prio_i);
            break;
         }
     }
@@ -269,36 +290,31 @@ int isixp_add_task_to_ready_list(task_t *task)
     list_init(&prio_n->task_list);
     list_insert_end(&prio_n->task_list,&task->inode);
     list_insert_before(&prio_i->inode,&prio_n->inode);
-    isix_printk("AddTaskToReadyList: Add new node %08x with prio %d\n",prio_n,prio_n->prio);
-    isixp_exit_critical();
+    isix_printk("AddTaskToReadyList: Add new node %08x with prio %d",prio_n,prio_n->prio);
     return ISIX_EOK;
 }
 
 /*-----------------------------------------------------------------------*/
 //Delete task from ready list
-void isixp_delete_task_from_ready_list(task_t *task)
+void _isixp_delete_task_from_ready_list(task_t *task)
 {
     //Scheduler lock
-   isixp_enter_critical();
    list_delete(&task->inode);
    //Check for task on priority structure
-   if(list_isempty(&task->prio_elem->task_list)==true)
+   if(list_isempty(&task->prio_elem->task_list))
    {
         //Task list is empty remove element
-        isix_printk("DeleteTskFromRdyLst: Remove prio list elem\n");
+        isix_printk("DeleteTskFromRdyLst: Remove prio list elem");
         list_delete(&task->prio_elem->inode);
         free_task_ready_t(task->prio_elem);
    }
-   //Scheduler unlock
-   isixp_exit_critical();
 }
 
 /*-----------------------------------------------------------------------*/
 //Move selected task to waiting list
-void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
+void _isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
 {
     //Scheduler lock
-    isixp_enter_critical();
     task->jiffies = jiffies + timeout;
     if(task->jiffies < jiffies)
     {
@@ -308,7 +324,7 @@ void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     	{
     	   if(task->jiffies<waitl->jiffies) break;
     	}
-    	isix_printk("MoveTaskToWaiting: OVERFLOW insert in time list at %08x\n",&waitl->inode);
+    	isix_printk("MoveTaskToWaiting: OVERFLOW insert in time list at %08x",&waitl->inode);
     	list_insert_before(&waitl->inode,&task->inode);
     }
     else
@@ -319,41 +335,30 @@ void isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     	{
     	    if(task->jiffies<waitl->jiffies) break;
     	}
-    	isix_printk("MoveTaskToWaiting: NO overflow insert in time list at %08x\n",&waitl->inode);
+    	isix_printk("MoveTaskToWaiting: NO overflow insert in time list at %08x",&waitl->inode);
     	list_insert_before(&waitl->inode,&task->inode);
     }
-    //Scheduler unlock
-    isixp_exit_critical();
 }
 
 /*--------------------------------------------------------------*/
 //Add task to semaphore list
-void isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
+void _isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 {
-    //Scheduler lock
-    isixp_enter_critical();
     //Insert on waiting list in time order
     task_t *taskl;
     list_for_each_entry(sem_list,taskl,inode_sem)
     {
     	if(task->prio<taskl->prio) break;
     }
-    isix_printk("MoveTaskToSem: insert in time list at %08x\n",taskl);
+    isix_printk("MoveTaskToSem: insert in time list at %08x",taskl);
     list_insert_before(&taskl->inode_sem,&task->inode_sem);
-
-    //Scheduler unlock
-    isixp_exit_critical();
-
 }
 /*-----------------------------------------------------------------------*/
 //Add task list to delete
-void isixp_add_task_to_delete_list(task_t *task)
+void _isixp_add_task_to_delete_list(task_t *task)
 {
-    //lock scheduler
-    isixp_enter_critical();
     list_insert_end(&dead_task,&task->inode);
     number_of_task_deleted++;
-    isixp_exit_critical();
 }
 
 /*-----------------------------------------------------------------------*/
@@ -363,7 +368,7 @@ static inline void cleanup_tasks(void)
 {
     if( number_of_task_deleted > 0 )
     {
-        isixp_enter_critical();
+        _isixp_enter_critical();
         if(!list_isempty(&dead_task))
         {
         	task_t *task_del = list_get_first(&dead_task,inode,task_t);
@@ -374,10 +379,9 @@ static inline void cleanup_tasks(void)
         	isix_free(task_del);
         	number_of_task_deleted--;
         }
-        isixp_exit_critical();
+        _isixp_exit_critical();
     }
 }
-
 /*-----------------------------------------------------------------------*/
 //Idle task function do nothing and lower priority
 ISIX_TASK_FUNC(idle_task,p)
@@ -399,14 +403,7 @@ ISIX_TASK_FUNC(idle_task,p)
 //Get currrent jiffies
 tick_t isix_get_jiffies(void)
 {
-    tick_t t1,t2;
-    do
-    {
-        t1 = jiffies;
-        t2 = jiffies;
-    }
-    while(t1!=t2);
-    return t2;
+    return jiffies;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -438,23 +435,24 @@ void isix_init(prio_t num_priorities)
     //Lower priority is the idle task
     isix_task_create(idle_task,NULL,ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities);
     //Initialize virtual timers infrastructure
-    isixp_vtimer_init();
-    //Initialize multiple objects infrastructure
-    ixixp_multiple_objects_init();
+    _isixp_vtimer_init();
 }
 
 /*-----------------------------------------------------------------------*/
 /* This function start scheduler after main function */
+#ifndef ISIX_CONFIG_SHUTDOWN_API
 void isix_start_scheduler(void) __attribute__((noreturn));
+#endif
 void isix_start_scheduler(void)
 {
    jiffies = 0;		//Zero jiffies if it was previously run
-   isix_scheduler_running = true;
+   _isix_scheduler_running = true;
    //Restore context and run OS
    port_start_first_task();
+#ifndef ISIX_CONFIG_SHUTDOWN_API
    while(1);    //Prevent compiler warning
+#endif
 }
-
 /*-----------------------------------------------------------------------*/
 //Get maxium available priority
 prio_t isix_get_min_priority(void)
@@ -465,5 +463,47 @@ prio_t isix_get_min_priority(void)
 //Return scheduler active
 bool isix_is_scheduler_active(void)
 {
-    return isix_scheduler_running;
+    return _isix_scheduler_running;
 }
+
+/*-----------------------------------------------------------------------*/
+#ifdef ISIX_CONFIG_SHUTDOWN_API
+/**
+ * Shutdown scheduler and return to main
+ * @note It can be called only a once just before
+ * the system shutdown for battery power save
+ */
+void isix_shutdown_scheduler(void)
+{
+	_isix_scheduler_running = false;
+	port_yield();
+}
+/*-----------------------------------------------------------------------*/
+/** Function called at end of isix execution onlt
+ * when shutdown API is enabled
+ */
+void __isixp_finalize() {
+	cleanup_tasks();
+}
+/*-----------------------------------------------------------------------*/
+/** Temporary lock task reschedule */
+void _isixp_lock_scheduler() 
+{
+	port_atomic_sem_inc( &sem_schedule_lock );
+}
+/*-----------------------------------------------------------------------*/
+/** Temporary unlock task reschedule */
+void _isixp_unlock_scheduler() 
+{
+	if( port_atomic_sem_dec( &sem_schedule_lock ) == 1 ) {
+		_isixp_enter_critical();
+		while( jiffies_skipped.counter > 0 ) {
+			internal_schedule_time();
+			--jiffies_skipped.counter;
+		}
+		_isixp_exit_critical();
+	}
+}
+/*-----------------------------------------------------------------------*/
+#endif
+/*-----------------------------------------------------------------------*/

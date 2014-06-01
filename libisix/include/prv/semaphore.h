@@ -3,34 +3,27 @@
 
 
 #include <prv/list.h>
-
-/*--------------------------------------------------------------*/
-enum ihandle_type
-{
-	IHANDLE_T_SEM=1,
-	IHANDLE_T_FIFO=2
-};
+#include <isix/port_atomic.h>
 
 /*--------------------------------------------------------------*/
 
 //Structure of semaphore
 struct sem_struct
 {
-    enum ihandle_type type;
 	//Semaphore val
-    int value;
+  	_port_atomic_t value; 
     //Task val waiting for semaphore
     list_entry_t sem_task;
+	//Atomic true if list is empty
+	_port_atomic_int_t sem_task_count;
     //Resource type
     bool static_mem;
-    //Semaphore limit value
-    int limit_value;
 };
 
 /*--------------------------------------------------------------*/
 
 //Semaphore can by destroyed
-static inline bool isixp_sem_can_destroy(sem_t *sem)
+static inline bool _isixp_sem_can_destroy(sem_t *sem)
 {
    return list_isempty(&sem->sem_task);
 }

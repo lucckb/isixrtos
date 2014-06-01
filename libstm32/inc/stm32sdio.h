@@ -76,8 +76,8 @@ namespace stm32 {
   */
 static inline void sdio_deinit(void)
 {
-  rcc_apb2_periph_reset_cmd(RCC_APB2Periph_SDIO, ENABLE);
-  rcc_apb2_periph_reset_cmd(RCC_APB2Periph_SDIO, DISABLE);
+  rcc_apb2_periph_reset_cmd(RCC_APB2Periph_SDIO, true);
+  rcc_apb2_periph_reset_cmd(RCC_APB2Periph_SDIO, false);
 }
 /*----------------------------------------------------------*/
 /**

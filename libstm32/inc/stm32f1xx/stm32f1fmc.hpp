@@ -21,10 +21,10 @@ public:
 	enum errno
 	{
 	  ERRNO_COMPLETE = 0,
-	  ERRNO_BUSY = -1,
-	  ERRNO_PG = -2,
-	  ERRNO_WRP = -3,
-	  ERRNO_TIMEOUT = -4
+	  ERRNO_BUSY = -8192,
+	  ERRNO_PG = -8193,
+	  ERRNO_WRP = -8194, 
+	  ERRNO_TIMEOUT = -8195
 	};
 public:
 	//Default constructor

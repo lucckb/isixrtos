@@ -6,8 +6,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_OBJECT_HPP_
-#define GFX_GUI_OBJECT_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <foundation/noncopyable.hpp>
 #include <gfx/input/event_info.hpp>
@@ -29,7 +28,7 @@ struct event : public input::event_info
 		: event_info( event), sender(_sender)
 	{}
 	event( object *_sender, evtype _type )
-		: sender(_sender )
+		: sender( _sender )
 	{
 		type = _type;
 	}
@@ -73,6 +72,4 @@ private:
 /* ------------------------------------------------------------------ */
 }
 }
-/* ------------------------------------------------------------------ */
-#endif /* OBJECT_HPP_ */
 /* ------------------------------------------------------------------ */

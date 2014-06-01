@@ -21,7 +21,7 @@ static void *signal_stack;
 static sigset_t sigblock_mask;
 /*-----------------------------------------------------------------------*/
 //Create of stack context
-unsigned long* isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, void *param)
+unsigned long* _isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, void *param)
 {
     ucontext_t* uc = calloc(1,sizeof(ucontext_t));
     if( uc == NULL )
@@ -57,12 +57,12 @@ void isix_systime_handler(void) __attribute__ ((weak, alias("unused_func")));
 static void schedule_time(void)
 {
        //Increment system ticks
-	   isixp_enter_critical();
+	   _isixp_enter_critical();
        //Call isix system time handler if used
        isix_systime_handler();
-       isixp_schedule_time();
+       _isixp_schedule_time();
        //Clear interrupt mask
-	   isixp_exit_critical();
+	   _isixp_exit_critical();
        //Yeld
        port_yield();
 }
@@ -91,8 +91,8 @@ void port_clear_interrupt_mask(void)
 //Yield to another task
 void port_yield( void )
 {
-    isixp_schedule();
-    setcontext( (ucontext_t*)isix_current_task->top_stack );
+    _isixp_schedule();
+    setcontext( (ucontext_t*)_isix_current_task->top_stack );
 }
 
 /*-----------------------------------------------------------------------*/
@@ -116,10 +116,10 @@ static void timer_interrupt(int j, siginfo_t *si, void *old_context)
 
 #ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
-     if(isix_scheduler_running)
+     if(_isix_scheduler_running)
      {
         /* save running thread, jump to scheduler */
-        swapcontext((ucontext_t*)isix_current_task->top_stack ,&signal_context);
+        swapcontext((ucontext_t*)_isix_current_task->top_stack ,&signal_context);
      }
 #endif
 }
@@ -163,9 +163,9 @@ void port_start_first_task( void )
     {
         perror("itimer");
     }
-    isixp_schedule();
-    printf("first task uccontext %p\n",isix_current_task->top_stack);
-    setcontext( (ucontext_t*)isix_current_task->top_stack  );
+    _isixp_schedule();
+    printf("first task uccontext %p\n",_isix_current_task->top_stack);
+    setcontext( (ucontext_t*)_isix_current_task->top_stack  );
 }
 
 /*-----------------------------------------------------------------------*/

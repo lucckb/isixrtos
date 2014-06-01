@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_LABEL_HPP_
-#define GFX_GUI_LABEL_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/widget.hpp>
 /* ------------------------------------------------------------------ */
@@ -31,14 +30,14 @@ public:
 	{
 		return m_caption;
 	}
+protected:
 	//Repaint the label
 	virtual void repaint();
 private:
 	detail::string m_caption;
+	coord_t draw_text_wdt;
 };
 /* ------------------------------------------------------------------ */
 } /* namespace gui */
 } /* namespace gfx */
-/* ------------------------------------------------------------------ */
-#endif /* LABEL_HPP_ */
 /* ------------------------------------------------------------------ */

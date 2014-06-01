@@ -22,6 +22,8 @@ TODO: (not acutal now!!!)
 - Add basic documentation
 - Add grabbage colection on kfree/kmalloc node or change scheduler algorithm 
   to assign constant priority innode
+TODO2013:
 
+TODO: Sem create delete fix !!! 
 
 

@@ -95,18 +95,22 @@ namespace gfx
 	//Color space utilities
 	namespace colorspace
 	{
+		//! Convert to rgb565 format
 		static inline constexpr color_t rgb565( uint16_t value )
 		{
 			return rgb( (value&0x1f)<<3, ((value>>5)&0x3f)<<2, ((value>>11)&0x1f)<<3 );
 		}
+		//! Convert to bgr565 format
 		static inline constexpr color_t bgr565( uint16_t value )
 		{
 			return rgb( ((value>>11)&0x1f)<<3, ((value>>5)&0x3f)<<2, (value&0x1f)<<3 );
 		}
+		//! Convert to bgr332 format
 		static inline constexpr color_t bgr332( uint8_t value )
 		{
 			return (value==0xff)?(rgb(255,255,255)):(rgb( (value&0x07)<<5, ((value>>3)&0x07)<<5, ((value>>6)&0x03)<<6 ));
 		}
+		//! Change brightness of color
 		static inline color_t brigh( color_t color, int bright )
 		{
 			int r = color_t_R(color) + bright;
@@ -120,12 +124,21 @@ namespace gfx
 			else if(b < 0) b = 0;
 			return rgb(r,g,b);
 		}
+		//! Convert color to luminance
 		static inline constexpr uint8_t luminance( color_t color )
 		{
 			return ( color_t_R(color)*color_t_R(color) +
 					 color_t_B(color) +
 					 color_t_G(color)*color_t_G(color)*color_t_G(color)
 				    );
+		}
+		//! Calculate average of two pixels format independent
+		static inline constexpr color_t average( color_t color1, color_t color2 )
+		{
+			return rgb( ( int(color_t_R(color1)) + int(color_t_R(color2)) ) / 2,
+						( int(color_t_G(color1)) + int(color_t_G(color2)) ) / 2,
+						( int(color_t_B(color1)) + int(color_t_B(color2)) ) / 2
+					  );
 		}
 	}
 	//Standard html5 color defs

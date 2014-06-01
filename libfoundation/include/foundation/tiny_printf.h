@@ -21,10 +21,9 @@ extern "C" {
 int tiny_printf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 
 /* ------------------------------------------------------------ */
+
 /** Snprintf replacement without floating point aritmethic */
 int tiny_snprintf(char *out, unsigned long len,  const char *format, ...) __attribute__ ((format (printf, 3, 4)));
-
-
 /* ------------------------------------------------------------ */
 
 void register_printf_putc_handler_syslock(int (*fputc)(int, void*),void *arg,

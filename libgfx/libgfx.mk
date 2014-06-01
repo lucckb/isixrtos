@@ -11,16 +11,19 @@ LIBGFX_DRV_CPPSRC = $(LIBGFX_DRVDISP_SRC_DIR)/ili9341.cpp
 LIBGFX_CPPSRC =  $(LIBGFXSRC_DIR)/gdi.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/editbox.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/seekbar.cpp
+LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/battery_icon.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/selectable_widget.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/choice_menu.cpp
-LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/widget.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/window.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/button.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/label.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/icon.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/frame.cpp
+LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/multiview.cpp
+LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/waterfall.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/input.cpp
 LIBGFX_CPPSRC += $(LIBGFXFONTSRC_DIR)/default.cpp
+LIBGFX_CPPSRC += $(LIBGFXFONTSRC_DIR)/small.cpp
 
 
 LIBGFX_OBJS = $(LIBGFX_CPPSRC:%.cpp=%.o) $(LIBGFX_DRV_CPPSRC:%.cpp=%.o) 

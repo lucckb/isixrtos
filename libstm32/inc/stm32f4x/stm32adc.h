@@ -477,7 +477,7 @@ static inline bool adc_get_software_start_conv_status(ADC_TypeDef* ADCx)
 {
 
   /* Check the status of SWSTART bit */
-  return ((ADCx->CR2 & ADC_CR2_JSWSTART) != (uint32_t)RESET);
+  return ((ADCx->CR2 & ADC_CR2_JSWSTART) != (uint32_t)0);
 
 }
 /* ---------------------------------------------------------------------------- */
@@ -902,7 +902,7 @@ static inline void adc_software_start_injected_conv(ADC_TypeDef* ADCx)
 static inline bool ADC_GetSoftwareStartInjectedConvCmdStatus(ADC_TypeDef* ADCx)
 {
     /* Check the status of JSWSTART bit */
-  return ((ADCx->CR2 & ADC_CR2_JSWSTART) != (uint32_t)RESET);
+  return ((ADCx->CR2 & ADC_CR2_JSWSTART) != (uint32_t)0);
 }
 /* ---------------------------------------------------------------------------- */
 /**
@@ -1022,7 +1022,7 @@ static inline bool adc_get_flag_status(ADC_TypeDef* ADCx, uint8_t ADC_FLAG)
 {
 
   /* Check the status of the specified ADC flag */
-  return  ((ADCx->SR & ADC_FLAG) != (uint8_t)RESET);
+  return  ((ADCx->SR & ADC_FLAG) != (uint8_t)0);
 }
 /* ---------------------------------------------------------------------------- */
 /**
@@ -1066,7 +1066,7 @@ static inline bool adc_get_it_status(ADC_TypeDef* ADCx, uint16_t ADC_IT)
   enablestatus = (ADCx->CR1 & ((uint32_t)0x01 << (uint8_t)ADC_IT)) ;
 
   /* Check the status of the specified ADC interrupt */
-  return (((ADCx->SR & itmask) != (uint32_t)RESET) && enablestatus);
+  return (((ADCx->SR & itmask) != (uint32_t)0) && enablestatus);
 }
 /* ---------------------------------------------------------------------------- */
 /**

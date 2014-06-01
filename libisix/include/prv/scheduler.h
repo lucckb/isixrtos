@@ -23,10 +23,6 @@ typedef struct task_ready_struct
 #define TASK_RUNNING (1<<3)        //Task is running
 #define TASK_DEAD    (1<<4)        //Task is dead
 #define TASK_SEM_WKUP (1<<5)       //After sem wakeup
-#ifdef ISIX_CONFIG_USE_MULTIOBJECTS
-#define TASK_WAITING_MULTIPLE (1<<6)    //After sem wakeup
-#define TASK_MULTIPLE_WKUP (1<<7)       //After wait for multiple wkup
-#endif
 /*-----------------------------------------------------------------------*/
 
 //Definition of task operations
@@ -50,55 +46,59 @@ struct task_struct
 
 /*-----------------------------------------------------------------------*/
 //Current executed task
-extern struct task_struct *volatile isix_current_task;
+extern struct task_struct *volatile _isix_current_task;
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
-extern volatile bool isix_scheduler_running;
+extern volatile bool _isix_scheduler_running;
 
 
 /*-----------------------------------------------------------------------*/
 //Scheduler function called on context switch in IRQ and Yield
-void isixp_schedule(void);
+void _isixp_schedule(void);
 
 /*-----------------------------------------------------------------------*/
 //Sched timer cyclic call
-void isixp_schedule_time(void);
+void _isixp_schedule_time(void);
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler and disable selected interrupt
-void isixp_enter_critical(void);
+void _isixp_enter_critical(void);
 
 /*-----------------------------------------------------------------------*/
 //Lock scheduler and reenable selected interrupt;
-void isixp_exit_critical(void);
+void _isixp_exit_critical(void);
 
 /*-----------------------------------------------------------------------*/
 //Add selected task to waiting list
-void isixp_add_task_to_waiting_list(struct task_struct *task, tick_t timeout);
+void _isixp_add_task_to_waiting_list(struct task_struct *task, tick_t timeout);
 
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list
-int isixp_add_task_to_ready_list(struct task_struct *task);
+int _isixp_add_task_to_ready_list(struct task_struct *task);
 
 /*--------------------------------------------------------------*/
 //Private add task to semaphore list
-void isixp_add_task_to_sem_list(list_entry_t *sem_list,struct task_struct *task);
+void _isixp_add_task_to_sem_list(list_entry_t *sem_list,struct task_struct *task);
 
 /*-----------------------------------------------------------------------*/
 //Delete task from ready list
-void isixp_delete_task_from_ready_list(struct task_struct *task);
+void _isixp_delete_task_from_ready_list(struct task_struct *task);
 
 /*-----------------------------------------------------------------------*/
 //Add task list to delete
-void isixp_add_task_to_delete_list(struct task_struct *task);
+void _isixp_add_task_to_delete_list(struct task_struct *task);
 
 /*-----------------------------------------------------------------------*/
-
 //Process base stack initialization
-unsigned long* isixp_task_init_stack(unsigned long *sp,task_func_ptr_t pfun,void *param);
+unsigned long* _isixp_task_init_stack(unsigned long *sp,task_func_ptr_t pfun,void *param);
 
 /*-----------------------------------------------------------------------*/
-
+//Lock the scheduler
+void _isixp_lock_scheduler();
+/*-----------------------------------------------------------------------*/
+//Unlock the scheduler
+void _isixp_unlock_scheduler();
+/*-----------------------------------------------------------------------*/
 #endif
 

@@ -6,8 +6,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_SELECTABLE_WIDGET_HPP_
-#define GFX_GUI_SELECTABLE_WIDGET_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/widget.hpp>
 /* ------------------------------------------------------------------ */
@@ -27,7 +26,7 @@ public:
 	void pushkey( short key ) {m_push_key = key; }
 public:
 	//* Report input event
-	virtual bool report_event( const input::event_info& ev );
+	virtual void report_event( const input::event_info& ev );
 private:
 	bool m_pushed {};
 	short m_push_key { -1 };
@@ -37,4 +36,3 @@ private:
 } /* namespace gfx */
 
 /* ------------------------------------------------------------------ */
-#endif /* SELECTABLE_WIDGET_HPP_ */

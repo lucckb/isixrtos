@@ -6,8 +6,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_EDITBOX_HPP_
-#define GFX_GUI_EDITBOX_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/widget.hpp>
 #include <gfx/gui/detail/defines.hpp>
@@ -60,14 +59,14 @@ public:
 		m_value = value;
 	}
 	//Set text value
-	const detail::string& value() const
-	{
+	const detail::string& value() const {
 		return m_value;
 	}
+	//* Report input event
+	virtual void report_event( const input::event_info& ev );
+protected:
 	// On repaint the widget return true when changed
 	virtual void repaint();
-	//* Report input event
-	virtual bool report_event( const input::event_info& ev );
 private:
 	//Handle joy KBD
 	bool handle_joy( const input::detail::keyboard_tag &key_tag );
@@ -96,5 +95,4 @@ private:	//Private constants
 } /* namespace gui */
 } /* namespace gfx */
 
-#endif /* EDITBOX_HPP_ */
 /* ------------------------------------------------------------------ */

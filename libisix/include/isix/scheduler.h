@@ -26,8 +26,8 @@ typedef uint8_t prio_t;
 //! Yield the current process
 static inline void isix_yield()
 {
-	extern volatile bool isix_scheduler_running;
-	if(isix_scheduler_running)
+	extern volatile bool _isix_scheduler_running;
+	if(_isix_scheduler_running)
 		port_yield();
 }
 
@@ -61,8 +61,20 @@ tick_t isix_get_jiffies(void);
 
 /*-----------------------------------------------------------------------*/
 //!Start the scheduler
+#ifdef ISIX_CONFIG_SHUTDOWN_API
+void isix_start_scheduler(void);
+#else
 void isix_start_scheduler(void) __attribute__((noreturn));
-
+#endif
+/*-----------------------------------------------------------------------*/
+#ifdef ISIX_CONFIG_SHUTDOWN_API
+/**
+ * Shutdown scheduler and return to main
+ * @note It can be called only a once just before
+ * the system shutdown for battery power save
+ */
+void isix_shutdown_scheduler(void);
+#endif
 /*-----------------------------------------------------------------------*/
 /** Initialize base OS structure before call main
  * @param[in] num_priorities Number of available tasks priorities

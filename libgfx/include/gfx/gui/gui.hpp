@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 
-#ifndef GFX_GUI_GUI_HPP_
-#define GFX_GUI_GUI_HPP_
+#pragma once
 
 #include "button.hpp"
 #include "choice_menu.hpp"
@@ -16,8 +15,9 @@
 #include "window.hpp"
 #include "seekbar.hpp"
 #include "editbox.hpp"
-
-#endif /*GFX_GUI_GUI_HPP_*/
+#include "multiview.hpp"
+#include "battery_icon.hpp"
+#include "waterfall.hpp"
 
 
 

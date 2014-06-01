@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_WINDOW_HPP_
-#define GFX_GUI_WINDOW_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/object.hpp>
 #include <gfx/types.hpp>
@@ -36,27 +35,54 @@ public:
 	};
 	//Get window
 	window( const rectangle &coord, frame &frm, unsigned flags = 0 )
-		: m_coord( coord ),m_frm ( frm ), m_flags(flags)
+		: m_coord( coord ),m_frm ( frm ), m_flags( flags )
 	{
 		m_frm.add_window( this );
 	}
-	// On repaint the widget return true when changed
-	virtual void repaint();
-	//* Report input event
-	virtual bool report_event( const input::event_info& ev );
+
+	/**  On repaint the widget return true when changed
+	 * @param[in] force Force repaint 
+	 * @param[in] force_clr Force clear background
+	 */
+	void repaint( bool force, bool force_clr );
+
+	//! Report input event
+	void report_event( const input::event_info& ev );
+	
+	//! Add widget
 	void add_widget( widget * const w );
+
+	//! Delete widget
 	void delete_widget( widget * const w );
-	const rectangle& get_coord() const { return m_coord; }
-	frame& get_owner() { return m_frm; }
-	void set_layout( const layout &lay ) { m_layout = lay; }
-	//Select next item
+	
+	//! Get coord	
+	const rectangle& get_coord() const { 
+		return m_coord; 
+	}
+	//! Get owner
+	frame& get_owner() const {
+		return m_frm;
+	}
+	//! Set layout	
+	void set_layout( const layout &lay ) { 
+		m_layout = lay; 
+	}
+	//! Select next item
 	void select_next();
-	//Select prev item
+
+	//! Select prev item
 	void select_prev();
-	//Get base layout
-	const layout& get_layout() const { return m_layout.inherit()?m_frm.get_def_win_layout():m_layout; }
+
+	//! Get base layout
+	const layout& get_layout() const {
+		return m_layout.inherit()?m_frm.get_def_win_layout():m_layout; 
+	}
+
 	//Get current selected widget
-	widget* current_widget() const { return (m_current_widget!=m_widgets.end())?(*m_current_widget):(nullptr); }
+	widget* current_widget() const {
+		return (m_current_widget!=m_widgets.end())
+			?(*m_current_widget):(nullptr); 
+	}
 private:
 	detail::container<widget*> m_widgets;
 	detail::container<widget*>::iterator m_current_widget { m_widgets.end() };
@@ -65,6 +91,7 @@ private:
 	rectangle m_coord;
 	frame &m_frm;
 	unsigned m_flags;
+	bool m_changed {};			//! Changed variable if windows handler force change
 };
 /* ------------------------------------------------------------------ */
 
@@ -72,5 +99,3 @@ private:
 
 /* ------------------------------------------------------------------ */
 
-#endif /* GFX_GUI_WINDOW_HPP_ */
-/* ------------------------------------------------------------------ */

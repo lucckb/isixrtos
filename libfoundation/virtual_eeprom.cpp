@@ -74,7 +74,7 @@ virtual_eeprom::virtual_eeprom(iflash_mem &_flash, unsigned flash_sector)
 /* ------------------------------------------------------------------ */
 int virtual_eeprom::find_free_slot() const
 {
-	const int eaddr = (flash.page_size() / sizeof(eeitem) ) * sizeof(eeitem)
+	const uint32_t eaddr = (flash.page_size() / sizeof(eeitem) ) * sizeof(eeitem)
 				- sizeof(eeitem) + sizeof(uint16_t);
 	for( iflash_mem::poffs_t poffs=sizeof(uint16_t); poffs<=eaddr; poffs += sizeof(eeitem) )
 	{

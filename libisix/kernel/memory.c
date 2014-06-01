@@ -6,12 +6,12 @@
  *      Author: lucck
  */
 /*------------------------------------------------------*/
-//TODO: memory should not block interrupts
 #include <isix/memory.h>
 #include <isix/types.h>
 #include <isix/semaphore.h>
 #include <prv/semaphore.h>
 #include <prv/scheduler.h>
+#include <isix/config.h>
 
 #ifndef ISIX_DEBUG_MEMORY
 #define ISIX_DEBUG_MEMORY ISIX_DBG_OFF
@@ -21,14 +21,14 @@
 #if ISIX_DEBUG_MEMORY == ISIX_DBG_ON
 #include <isix/printk.h>
 #else
-#define isix_printk(...)
+#undef isix_printk
+#define isix_printk(...) do {} while(0)
 #endif
 
 /*------------------------------------------------------*/
 
 #define MAGIC 0x19790822
-#define ALIGN_TYPE      void *
-#define ALIGN_MASK      (sizeof(ALIGN_TYPE) - 1)
+#define ALIGN_MASK      (ISIX_CONFIG_BYTE_ALIGNMENT_SIZE - 1)
 #define ALIGN_SIZE(p)   (((size_t)(p) + ALIGN_MASK) & ~ALIGN_MASK)
 
 struct header
@@ -63,7 +63,7 @@ static void mem_lock_init(void)
 //!Lock the memory
 static void mem_lock(void)
 {
-	if(isix_scheduler_running)
+	if(_isix_scheduler_running)
 		isix_sem_wait( &mem_sem, ISIX_TIME_INFINITE );
 }
 
@@ -71,7 +71,7 @@ static void mem_lock(void)
 //!Unlock the memory
 static void mem_unlock(void)
 {
-	if(isix_scheduler_running)
+	if(_isix_scheduler_running)
 		isix_sem_signal( &mem_sem );
 }
 

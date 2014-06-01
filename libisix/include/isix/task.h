@@ -14,7 +14,6 @@ namespace isix {
 #ifndef __cplusplus
 //!Definition of task function in C mode
 #define ISIX_TASK_FUNC(FUNC, ARG)							\
-	void FUNC(void *ARG) __attribute__ ((noreturn));	\
 	void FUNC(void *ARG)
 
 #endif
@@ -29,7 +28,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
 
 /*-----------------------------------------------------------------------*/
 //! Private version of change prio function
-int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield);
+int _isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield);
 
 /*-----------------------------------------------------------------------*/
 /** Change the task/thread priority
@@ -39,7 +38,7 @@ int isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield);
  */
 static inline int isix_task_change_prio( task_t* task, prio_t new_prio )
 {
-	return isixp_task_change_prio(task,new_prio,true);
+	return _isixp_task_change_prio(task,new_prio,true);
 }
 
 /*-----------------------------------------------------------------------*/
@@ -77,11 +76,19 @@ int isix_set_task_private_data( task_t *task, void *data );
 void* isix_get_task_private_data( task_t *task );
 
 /*-----------------------------------------------------------------------*/
+/**
+ *	Isix get task priority utility function
+ *	@param[in] task Task control object
+ *	@return current task priority
+ */
+ prio_t isix_get_task_priority( const task_t* task );
+
+/*-----------------------------------------------------------------------*/
 /** Check of the available stack space
  * @param[in] task Task control block
  * @return Size of the number of bytes used by the task/thread
  */
-#if ISIX_CONFIG_TASK_STACK_CHECK == ISIX_ON
+#ifdef ISIX_CONFIG_TASK_STACK_CHECK
 size_t isix_free_stack_space(const task_t *task);
 #endif
 
@@ -120,12 +127,16 @@ namespace isix {
 class task_base
 {
 public:
+	/** Default constructor (empty) */
+	task_base()
+		: task_id(NULL)
+	{}
 	/** Construct the task
 	 * @param[in] stack_depth Stack depth of the thread/task
 	 * @param[in] priority Thread/task priority
 	 */
 #ifdef WITH_ISIX_TCPIP_LIB
-	explicit task_base(std::size_t stack_depth, prio_t priority, bool tcpip=false)
+	void start_thread(std::size_t stack_depth, prio_t priority, bool tcpip=false)
 	{
 		if(tcpip)
 			task_id = isix_task_create_tcpip( start_task, this, stack_depth, priority );
@@ -133,16 +144,17 @@ public:
 			task_id = isix_task_create( start_task, this, stack_depth, priority );
 	}
 #else
-	explicit task_base(std::size_t stack_depth, prio_t priority)
+	void start_thread(std::size_t stack_depth, prio_t priority)
 	{
 		task_id = isix_task_create( start_task, this, stack_depth, priority );
 	}
-#endif
-	//! Destruct the task/thread object
 	virtual ~task_base()
 	{
-		isix_task_delete(task_id);
+		if( task_id ) {
+			isix_task_delete(task_id);
+		}
 	}
+#endif
 	/** Get thread task id
 	 * @return Task control object
 	 */
@@ -154,19 +166,18 @@ public:
 protected:
 	/** Pure virtual method for the object main thread */
 	virtual void main() = 0;
-
 private:
-	__attribute__ ((noreturn)) static void start_task(void *ptr)
+	static void start_task(void *ptr)
 	{
 		static_cast<task_base*>(ptr)->main();
-		while(1) isix_wait(-1);
+		static_cast<task_base*>(ptr)->task_id = NULL;
 	}
 private:
 	task_base(const task_base&);
 	task_base& operator=(const task_base&);
 private:
-	task_t *task_id;
-};
+	task_t* task_id;
+}; 
 
 /*-----------------------------------------------------------------------*/
 }

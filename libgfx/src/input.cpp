@@ -21,9 +21,11 @@ int input_class::input_report_key(  detail::keyboard_tag::status status ,
 	{
 		isix::isix_get_jiffies(),
 		event_info::evtype::EV_KEY,
+		nullptr,
 		{
 			status,
 			key,
+			0,
 			ctl
 		}
 	};

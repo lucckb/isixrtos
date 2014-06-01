@@ -94,8 +94,8 @@ else
 COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F1
 endif
 endif
-#CXXFLAGS += -std=gnu++11
-ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb
+CXXFLAGS += -std=c++11
+ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb $(COMMON_FLAGS)
 LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
 CPFLAGS =  -S
 ARFLAGS = rcs
@@ -171,9 +171,7 @@ clean:
 
 
 program: $(TARGET).elf
-	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c 'script $(SCRIPTS_DIR)/flash-begin-$(MCU_VARIANT).script' \
-	-c "flash write_image erase unlock $(TARGET).elf" -c 'script $(SCRIPTS_DIR)/flash-end-$(MCU_VARIANT).script' \
-	-c shutdown || true
+	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c "program $(TARGET).elf verify reset" 
 
 .PHONY : devrst
 devrst:

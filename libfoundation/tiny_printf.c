@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "foundation/tiny_printf.h"
+#include "foundation/tiny_vaprintf.h"
 /* ------------------------------------------------------------ */
 //Function pointer to putchar
 static int (*fn_putc)(int,void* ) = NULL;
@@ -142,7 +143,7 @@ static int printi(char **out, size_t len, int i, int b, int sg, int width, int p
 	} do {} while(0)
 
 
-static int print(char **out, size_t len, const char *format, va_list args )
+int tiny_vaprintf(char **out, size_t len, const char *format, va_list args )
 {
 	enum { m_hh, m_h, m_n, m_l };
 	register int width, pad;
@@ -177,7 +178,7 @@ static int print(char **out, size_t len, const char *format, va_list args )
 				modf = m_h;
 				format++;
 			}
-			else if( *format == 'l')
+			else if( *format == 'l' || *format == 'z' )
 			{
 				modf = m_l;
 				format++;
@@ -254,22 +255,25 @@ static int print(char **out, size_t len, const char *format, va_list args )
 /* ------------------------------------------------------------ */
 int tiny_printf(const char *format, ...)
 {
-		int result;
-		va_list args;
-		va_start( args, format );
-		if(fn_lock && fn_unlock) fn_lock();
-        result = print( NULL,0, format, args );
-        if(fn_lock && fn_unlock) fn_unlock();
-        return  result;
+	int result;
+	va_list args;
+	va_start( args, format );
+	if(fn_lock && fn_unlock) fn_lock();
+    result = tiny_vaprintf( NULL,0, format, args );
+    if(fn_lock && fn_unlock) fn_unlock();
+	va_end( format );
+    return  result;
 }
 
 /*----------------------------------------------------------*/
 
 int tiny_snprintf(char *out, unsigned long max_len, const char *format, ...)
 {
-        va_list args;
-        va_start( args, format );
-        return print( &out, max_len, format, args );
+    va_list args;
+    va_start( args, format );
+    int ret =  tiny_vaprintf( &out, max_len, format, args );
+	va_end( format );
+	return ret;
 }
 
 /*----------------------------------------------------------*/

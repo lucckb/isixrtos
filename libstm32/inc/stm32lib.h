@@ -18,6 +18,7 @@
 #error Selected MCU type is invalid
 #endif
 
+#include "stm32fxxx_usart.h"
 #include "stm32gpio.h"
 
 #endif /* STM32LIB_H_ */

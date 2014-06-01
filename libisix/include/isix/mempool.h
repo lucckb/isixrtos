@@ -85,10 +85,22 @@ public:
 	 */
 	T* alloc()
 	{
-		return static_cast<T*>( isix_mempool_alloc(m_mp) );
+		void* mem = isix_mempool_alloc(m_mp);
+		T* obj = new(mem) T;
+		return obj;
 	}
+#if __cplusplus > 199711L
+	template <typename... ARGS>
+		T* alloc(ARGS... args) noexcept
+		{
+			void* mem = isix_mempool_alloc(m_mp);
+			T* obj = new(mem) T(args...);
+			return obj;
+		}
+#endif
 	void free( T* p )
 	{
+		p->~T();
 		isix_mempool_free( m_mp, p );
 	}
 	/** Check if the fifo object is in valid state

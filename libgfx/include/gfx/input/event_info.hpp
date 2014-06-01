@@ -5,19 +5,19 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_INPUT_EVENT_INFO_HPP_
-#define GFX_INPUT_EVENT_INFO_HPP_
-
+#pragma once 
 /* ------------------------------------------------------------------ */
 namespace gfx {
+namespace gui {
+	class window;
+	class widget;
+}
 namespace input {
 
 /* ------------------------------------------------------------------ */
 /** Keybd codes */
-struct kbdcodes
-{
-	enum keyboard : char
-	{
+struct kbdcodes {
+	enum keyboard : char {
 		//Control Code for ASCII
 		select_all	= 0x1,
 		copy		= 0x3,		//Ctrl+C
@@ -36,10 +36,8 @@ struct kbdcodes
 
 /* ------------------------------------------------------------------ */
 /* Mouse codes */
-struct mousecodes
-{
-	enum mouse : char
-	{
+struct mousecodes {
+	enum mouse : char {
 		any_button, left_button, middle_button, right_button
 	};
 };
@@ -47,21 +45,19 @@ struct mousecodes
 namespace detail {
 
 	/** Keyboard tag event */
-    struct keyboard_tag
-	{
+    struct keyboard_tag {
 		typedef unsigned char control_key_type;         //! Control keys
-		typedef unsigned char key_type;                 //! Key defs
+		typedef unsigned char key_type;		        //! Key defs
 		enum class status : unsigned char               //! Key status
 		{
 			DOWN,                                       //! Key is down
 			UP                                          //! Key is up
 		} stat;         
 		key_type key;                                   //! Current key
-		union
-		{
+		key_type scan;									//! Scan code
+		union {
 			control_key_type ctrl;                      //! Control events
-			struct
-			{
+			struct {
 				unsigned char lctrl:1;                  //! Left control press
 				unsigned char lshift:1;                 //! Left shift press
 				unsigned char lalt : 1;                 //! Left alt
@@ -70,33 +66,75 @@ namespace detail {
 				unsigned char rshift:1;                 //! Right shift
 				unsigned char ralt:1;                   //! Right alt
 				unsigned char rgui: 1;                  //! Right gui
-
 			} ctrlbits;
 		};
-
+	};
+	//! User message arguments
+	union argument {
+		unsigned uint;	//! Unsigned type
+		int 	 sint;	//! Signed type
+		void *   ptr;	//! Pointer type
+		const void* cptr;	//! Const pointer to void
+	};
+	//! Data for hotplug event
+	struct hotplug {
+		bool connected() const {
+			return htype == type::plug;
+		}
+		bool is_keyboard() const {
+			return devtype == device::keyboard; 
+		}
+		bool is_joystick() const {
+			return devtype == device::joystick;
+		}
+		bool is_mouse() const {
+			return devtype == device::mouse;
+		}
+		enum class device : unsigned char {	//! Hotplug device identifier
+			keyboard,
+			mouse,
+			joystick
+		} devtype;
+		enum class type : bool {	//! Event type
+			unplug,
+			plug,
+		} htype;
+		const void *devid;		//! Device private data
 	};
 } // ns detail
 /* ------------------------------------------------------------------ */
-struct event_info
-{
+struct event_info {
 	/** Event type */
-	enum evtype	: unsigned short
-	{
-		EV_SW,		/** Plug unplug event */
+	enum evtype	: unsigned short {
+		EV_PAINT,	/** Repaint all windows without propagate as report event */
+		EV_WINDOW,	/** User window event */
 		EV_KEY,		/** Keyboard event  */
 		EV_MOUSE,	/** Relative event  */
-		EV_CLICK,	/** Click event  (Inherited) */
-		EV_CHANGE	/* Component changed */
+		EV_HOTPLUG, /** Hotplug event for ex Insert remove kbd/mouse etc */
+		/** Events raised by the component callbacks 
+		 * on emit widget level*/
+		EV_CLICK,	/** Click event  */
+		EV_CHANGE,	/** Component changed */
+		EV_JOY_REPORT,	/** Joystick report */
 	};
 	unsigned time;  //! Timestamp
 	evtype type;    //! Event type
-	union
-	{
+	gui::window *window; 		    	//! Optional window address EV_PAINT, EV_WINDOW
+	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
+		struct {						//! For EV_WINDOW , EV_WIDGET 
+			detail::argument param1;			//! User message 1
+			detail::argument param2;			//! User message 2
+			detail::argument param3;			//! User message 3
+		} user;							//! User message part
+		struct {						//! For EV_PAINT  message
+			bool force;					//! Force component redraw
+			bool clrbg;					//! Clear background
+		}  paint;
+		detail::hotplug hotplug;		//! Hotplug event
 	};
 };
 /* ------------------------------------------------------------------ */
 }	//ns gui
 }	//ns gfx
 
-#endif /* EVENT_INFO_HPP_ */

@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_BITMAP_FONTS_HPP_
-#define GFX_BITMAP_FONTS_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace disp {
@@ -33,11 +32,10 @@ struct font_t {
 namespace fonts
 {
 	extern const font_t font_default;
+	extern const font_t font_small;
 }
 /* ------------------------------------------------------------------ */
 }} //Namespace end
-/* ------------------------------------------------------------------ */
-#endif /* BITMAP_FONTS_HPP_ */
 /* ------------------------------------------------------------------ */
 /* Howto generate ISO8859-2 font
  * convbdf -c -s 0x20 -l 0xF3 -x 0x80-0xA0 -x 0xA2-0xA2

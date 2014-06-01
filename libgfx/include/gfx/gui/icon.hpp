@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef GFX_GUI_ICON_HPP_
-#define GFX_GUI_ICON_HPP_
+#pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/widget.hpp>
 /* ------------------------------------------------------------------ */
@@ -21,15 +20,14 @@ public:
 	//Destructor
 	virtual ~icon() {}
 	//Set image
-	void image( const bitmap_t& bitmap )
-	{
+	void image( const bitmap_t& bitmap ) {
 		m_bitmap = &bitmap;
 	}
-	void image()
-	{
+	void image() {
 		m_bitmap = nullptr;
 	}
-	//Repaint the label
+protected:
+	//! Repaint the label
 	virtual void repaint();
 private:
 	const bitmap_t *m_bitmap {};
@@ -37,6 +35,4 @@ private:
 /* ------------------------------------------------------------------ */
 } /* namespace gui */
 } /* namespace gfx */
-/* ------------------------------------------------------------------ */
-#endif /* GFX_GUI_ICON_HPP_ */
 /* ------------------------------------------------------------------ */

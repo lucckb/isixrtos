@@ -246,6 +246,7 @@ enum { GPIO_AF_TIM14   =   0x09  };  /* TIM14 Alternate Function mapping */
   */
 enum {  GPIO_AF_OTG_FS    =  0xA };  /* OTG_FS Alternate Function mapping */
 enum {  GPIO_AF_OTG_HS    =  0xA };  /* OTG_HS Alternate Function mapping */
+enum {  GPIO_AF_OTG2_HS    =  0xA };  /* OTG_HS Alternate Function mapping */
 /**
   * @brief   AF 11 selection
   */

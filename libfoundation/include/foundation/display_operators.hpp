@@ -112,7 +112,7 @@ namespace lcd {
 		D& operator<<(D &o,double value)
 	{
 		char buf[32];
-		fnd::fnd_ftoa(value,buf,4);
+		fnd::fnd_dtoa(value,buf,4);
 		o << buf;
 		return o;
 	}

@@ -67,10 +67,10 @@ void ili9341::blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 /* ------------------------------------------------------------------ */
 /* Vertical scroll */
 /** Rotate screen
- * @param x,y - source region
- * @param cx,cy   - region length
- * @param lines   - lines to scrol pos or neg
- * @param bgcolor -background color
+ * @param[in]  x,y 		Source region
+ * @param[in]  cx,cy  	Region length
+ * @param[in]  lines  	Lines to scrol pos or neg
+ * @param[in]  bgcolor 	Background color
  */
 void ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lines, color_t bgcolor )
 {
