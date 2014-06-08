@@ -479,12 +479,14 @@ void isix_shutdown_scheduler(void)
 	port_yield();
 }
 /*-----------------------------------------------------------------------*/
-/** Function called at end of isix execution onlt
+/** Function called at end of isix execution only
  * when shutdown API is enabled
  */
 void __isixp_finalize() {
 	cleanup_tasks();
 }
+/*-----------------------------------------------------------------------*/
+#endif /* ISIX_CONFIG_SHUTDOWN_API  */
 /*-----------------------------------------------------------------------*/
 /** Temporary lock task reschedule */
 void _isixp_lock_scheduler() 
@@ -504,6 +506,4 @@ void _isixp_unlock_scheduler()
 		_isixp_exit_critical();
 	}
 }
-/*-----------------------------------------------------------------------*/
-#endif
 /*-----------------------------------------------------------------------*/
