@@ -56,11 +56,7 @@ void frame::execute()
 			}
 		}
 		{
-			//const auto tbeg = isix::isix_get_jiffies();
 			repaint( false, rpt_wnd, false );
-#if 0 //Debug stuff for profiling
-			dbprintf("Repaint time %i", isix::isix_get_jiffies()-tbeg);
-#endif
 		}
 		m_lock.signal();
 	}
