@@ -17,18 +17,27 @@ namespace input {
 /* ------------------------------------------------------------------ */
 /** Keybd codes */
 struct kbdcodes {
-	enum keyboard : char {
+	enum keyboard : unsigned char {
 		//Control Code for ASCII
 		extend_code = 0x0,
 		select_all	= 0x1,
 		copy		= 0x3,		//Ctrl+C
 		backspace	= 0x8,	tab		= 0x9,
-		enter_n		= 0xD,	enter	= 0xD,	enter_r = 0xD,
+		enter_n		= 0xA,	enter	= 0xA,	enter_r = 0xA,
 		escape		= 0x10,
 		//System Code for OS
 		os_pageup, os_pagedown,
 		os_arrow_left, os_arrow_up, os_arrow_right, os_arrow_down,
 		os_insert, os_del
+	};
+};
+struct scancodes {
+	//! Scan codes
+	enum kbdscan : unsigned char {
+		arrow_up = 0x52,
+		arrow_down = 0x51,
+		arrow_right = 0x4f,
+		arrow_left = 0x50
 	};
 };
 
