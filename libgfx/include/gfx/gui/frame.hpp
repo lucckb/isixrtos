@@ -7,7 +7,7 @@
 
 #pragma once
 /* ------------------------------------------------------------------ */
-#include <foundation/noncopyable.hpp>
+#include <gfx/gui/object.hpp>
 #include <gfx/input/event_info.hpp>
 #include <gfx/gui/detail/defines.hpp>
 #include <gfx/gui/primitives.hpp>
@@ -25,8 +25,7 @@ namespace gui {
 class window;
 /* ------------------------------------------------------------------ */
 /* Gui Manager master class */
-class frame : private fnd::noncopyable
-{
+class frame : public object {
 	static constexpr auto system_events_qsize = 64;
 public:
 	struct errno { enum {
