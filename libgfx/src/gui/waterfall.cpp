@@ -81,21 +81,22 @@ void waterfall::draw_select_line()
 void waterfall::report_event( const input::event_info& ev )
 {
 	using evinfo = input::event_info;
+	using kstat  = input::detail::keyboard_tag::status;
 	if( m_data_ptr ) {
 		modified();
 	}
 	if( ev.type == evinfo::EV_KEY ) {
 		bool mflag = false;
-		if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN ) {
+		if( ev.keyb.stat==kstat::DOWN || ev.keyb.stat==kstat::RPT ) {
 			if( ev.keyb.key == input::kbdcodes::os_arrow_left ) {
 				if( m_freq_sel > m_f0 ) {
-					--m_freq_sel;
+					m_freq_sel -= c_freq_step;
 					mflag = true;
 				}
 			}
 			else if( ev.keyb.key == input::kbdcodes::os_arrow_right ) {
 				if( m_freq_sel < m_f1 ) {
-					++m_freq_sel;
+					m_freq_sel += c_freq_step;
 					mflag = true;
 				}
 			}
