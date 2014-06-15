@@ -89,7 +89,19 @@ static inline int isix_vtimer_start_ms(vtimer_t* timer, tick_t timeout)
 {
 	return isix_vtimer_start( timer, timeout>0?isix_ms2tick(timeout):0 );
 }
-
+/*-----------------------------------------------------------------------*/
+/**
+ * Start one shoot timer execution ms period
+ * @param timer	Pointer to the timer structure
+ * @param fun Function to be called in interrupt context
+ * @param arg Argument passed to the function
+ * @param timeout Timeout
+ * @return success if ISIX_EOK else isix error
+ */
+static inline int isix_vtimer_one_shoot_ms( vtimer_t* timer, void (*func)(void*), void *arg, tick_t timeout ) 
+{
+	return isix_vtimer_one_shoot( timer, func, arg, timeout>0?isix_ms2tick(timeout):0 );
+}
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }	//end namespace
@@ -104,17 +116,14 @@ static inline int isix_vtimer_start_ms(vtimer_t* timer, tick_t timeout)
 namespace isix {
 /*-----------------------------------------------------------------------*/
 //! C++ wrapper for the vtime
-class virtual_timer
-{
+class virtual_timer {
 public:
 	//! Create virtual timer object
-	virtual_timer()
-	{
+	virtual_timer() {
 		timer = isix_vtimer_create( vtimer_func, this );
 	}
 	//! Destroy the virtual timer object
-	~virtual_timer()
-	{
+	~virtual_timer() {
 		isix_vtimer_destroy( timer );
 	}
 	//! Check that object is valid
@@ -125,13 +134,11 @@ public:
 	int start_ms(tick_t timeout) { return isix_vtimer_start( timer, timeout ); }
 	//! Stop the timer
 	int stop() { return isix_vtimer_stop( timer ); }
-
 protected:
 	//! Virtual function called on time
 	virtual void handle_timer() = 0;
 private:
-	static void vtimer_func(void *ptr)
-	{
+	static void vtimer_func(void *ptr) {
 		static_cast<virtual_timer*>(ptr)->handle_timer();
 	}
 private:
