@@ -37,14 +37,17 @@ public:
 	 * @param[in] rect Widget size
 	 * @param[in] layout Widget layout colors and fonts
 	 * @param[in] win Parent window owner
-	 * @param[in] in_len Message input size 
+	 * @param[in] fft_len FFT calcululator lenghth
+	 * @param[in] fsample_2 Sampling frequency
+	 * @param[in] f0 Starting frequency
+	 * @param[in] f1 End frequency
+	 * @param[in] f_sel Selected frequency
 	 */
 	waterfall( rectangle const& rect, layout const& layout, 
 		window &win, size_t fft_len, unsigned short fsample_2,
-		unsigned short f0, unsigned short f1 )
+		unsigned short f0, unsigned short f1, unsigned short f_sel )
 		: widget( rect, layout, win ), m_fftlen( fft_len ), 
-		m_f0( f0 ), m_f1( f1 ), m_fs2( fsample_2 ),
-		m_freq_sel( (f0 + f1) / 2 )
+		m_f0( f0 ), m_f1( f1 ), m_fs2( fsample_2 ), m_freq_sel( f_sel )
 	{
 	}
 	//! Virtual destructor
