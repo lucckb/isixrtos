@@ -56,6 +56,10 @@ public:
 	void new_data( const  short* ptr ) {
 		m_data_ptr = ptr;
 	}
+	//! Get selected frequency
+	unsigned short freq_sel() const {
+		return m_freq_sel;
+	}
 protected:
 	 //! On repaint the widget return true when changed
 	 virtual void repaint();
