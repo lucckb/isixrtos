@@ -58,7 +58,8 @@ namespace detail {
 		enum class status : unsigned char               //! Key status
 		{
 			DOWN,                                       //! Key is down
-			UP                                          //! Key is up
+			UP,                                          //! Key is up
+			RPT,										//! Rpt key event
 		} stat;         
 		key_type key;                                   //! Current key
 		key_type scan;									//! Scan code
