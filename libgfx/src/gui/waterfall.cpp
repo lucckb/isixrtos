@@ -70,8 +70,9 @@ void waterfall::draw_select_line()
 	if( m_freq_sel > 0 ) {
 		const auto c = get_coord() + get_owner().get_coord();
 		const auto lwidth = c.cx() - c_margin * 2;
-		const auto xpos = (int(m_freq_sel) * int(lwidth) ) / int( m_f1 ) + c.x() + c_margin;
-		auto gdi = make_gdi();
+		const auto p0 = ( int(m_freq_sel-m_f0) * int(lwidth) ) / int(m_f1-m_f0);
+		const auto xpos = p0 + c.x() + c_margin;
+		auto gdi = make_gdi(); 
 		gdi.set_fg_color( color::White );
 		gdi.draw_line( xpos , c.y()+1, xpos , c.y()+c.cy()-2 );
 	}
