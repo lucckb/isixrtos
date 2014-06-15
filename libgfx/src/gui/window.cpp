@@ -81,10 +81,6 @@ void window::report_event( const input::event_info& ev )
 			widget->report_event( ev );
 		}
 	}
-	//! FIXME: Debug only
-	if( ev.type == evinfo::EV_KEY ) {
-		dbprintf( "Key %02x Scan %02x %s", ev.keyb.key, ev.keyb.scan, (bool(ev.keyb.stat)?"UP":"DOWN") );
-	}
 }
 /* ------------------------------------------------------------------ */
 //Select next component
