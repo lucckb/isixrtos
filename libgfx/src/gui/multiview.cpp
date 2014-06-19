@@ -12,7 +12,7 @@
  *
  *         Author:  Lucjan Bryndza (LB), lucck(at)boff(dot)pl
  *   Organization:  BoFF
- *
+ *	 Backspace is only operational on the last line of the code
  * =====================================================================================
  */
 
@@ -71,6 +71,12 @@ void multiview::gui_add_line()
 		if( ch == '\r' ) {
 			//Continue if the character is <CR>
 			continue;
+		} else if( ch == gfx::input::kbdcodes::backspace ) {
+			auto pos = m_last_x - m_char_width;
+			if( pos >= 0 ) {
+				gdi.fill_area( pos, yp, m_char_width, gdi.get_text_height(), true );
+				m_last_x = pos;
+			}
 		}
 		if( m_last_x + gdi.get_text_width(ch)>=c.x()+c.cx()-text_margin*2 || ch=='\n' ) {
 			gdi.scroll( 
@@ -80,22 +86,13 @@ void multiview::gui_add_line()
 			m_last_x = c.x() + text_margin;
 		} 
 		if( std::isprint( ch ) ) {
-			m_last_x = gdi.draw_text( m_last_x , yp, ch );
+			const auto npos = gdi.draw_text( m_last_x , yp, ch );
+			m_char_width = (m_last_x!=INVAL)?(npos - m_last_x):(npos);
+			m_last_x = npos;
 		}
 	}
 }
 
-/* ------------------------------------------------------------------ */
-//! Report an event
-void multiview::report_event( const input::event_info& ev )
-{
-	//! TODO: Should be fixed here to WIDGET user MSG
-	if( ev.type == input::event_info::EV_CHANGE ) {
-		if( !m_line.empty() || m_clear_req ) {
-			modified();
-		}
-	}
-}
 /* ------------------------------------------------------------------ */
 // Clear gui BOX
 void multiview::gui_clear_box()

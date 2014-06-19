@@ -59,8 +59,6 @@ public:
 	 void clear() {
 		m_clear_req = true;
 	 }
-	 //! Report an event
-	virtual void report_event( const input::event_info& ev );
 private:
 	 //! Gui draw frame
 	 void gui_draw_frame();
@@ -74,6 +72,7 @@ protected:
 private:
 	detail::string m_line;	//! Temporary line buffer
 	bool m_clear_req {};	//! Clear req
+	short m_char_width {};	//! Previous char width for backspace handle
 	int m_last_x { INVAL };	//! Last char position in line
 };
 /* ------------------------------------------------------------------ */ 
