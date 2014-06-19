@@ -28,12 +28,17 @@ public:
 	const detail::string& caption() const {
 		return m_caption;
 	}
+	void sel_color( bool use_sel ) {
+		m_sel_color = use_sel;
+	}
 protected:
 	//Repaint the label
 	virtual void repaint();
 private:
+	static constexpr auto c_default = -1;
 	detail::string m_caption;
 	coord_t draw_text_wdt;
+	bool m_sel_color {};
 };
 /* ------------------------------------------------------------------ */
 } /* namespace gui */

@@ -22,6 +22,9 @@ void label::repaint()
 {
 	const auto c = get_coord() + get_owner().get_coord();
 	auto gdi = make_gdi();
+	if( m_sel_color ) {
+		gdi.set_fg_color( get_layout().sel() );
+	}
 	const auto ty = c.y() + (c.cy() - gdi.get_text_height())/2;
 	auto text_wdt = 0;
 	// draw text
