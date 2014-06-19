@@ -54,8 +54,7 @@ public:
 	void kbdmode( kbd_mode kbdmode ) { m_kbdmode = kbdmode; }
 	//Get field value
 	template< typename T>
-	void value( const T value )
-	{
+	void value( const T value ) {
 		m_value = value;
 	}
 	//Set text value
