@@ -24,15 +24,46 @@ namespace cpu {
      {
     	 return std::complex<R>( mac(acc.real(), x.real(), y), mac(acc.imag(), x.imag(), y) );
      }
+#ifndef __arm__
     /* Saturated cast between values */
     template <typename RetT, typename ValT >
-        constexpr inline RetT saturated_cast( ValT val )
+        inline RetT saturated_cast( ValT val )
         {
             return (val>std::numeric_limits<RetT>::max() )?
             (std::numeric_limits<RetT>::max()):
             ( (std::numeric_limits<RetT>::min()>val)?(std::numeric_limits<RetT>::min()):(val) );
         }
-
+#else
+	namespace {
+	namespace detail {
+		//! Saturated cast signed
+		inline __attribute__((always_inline)) 
+			int32_t ssat( int32_t val, int bits ) 
+		{
+			int32_t out;
+			asm volatile("ssat %0, %1, %2" : "=r" (out) : "I" (bits), "r" (val) ) ;
+			return out;
+		}
+		//! Saturated cast signed
+		inline __attribute__((always_inline)) 
+			int32_t usat( int32_t val, int bits ) 
+		{
+			int32_t out;
+			asm volatile("usat %0, %1, %2" : "=r" (out) : "I" (bits), "r" (val) ) ;
+			return out;
+		}
+	}}
+    /* Saturated cast between values */
+    template <typename RetT, typename ValT >
+        inline RetT saturated_cast( ValT val )
+	{
+		if( std::numeric_limits<RetT>::is_signed ) {
+			return detail::ssat( val, std::numeric_limits<RetT>::digits+1 );
+		} else {
+			return detail::usat( val, std::numeric_limits<RetT>::digits );
+		}
+	}
+#endif
 /* ------------------------------------------------------------------------- */
 }}
 

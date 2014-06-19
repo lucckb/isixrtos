@@ -78,7 +78,6 @@ namespace _internal
 			return v >> (32 - m);
 		}
 		#else
-		//TODO: Cortex M3 biteverse use RBIT AND ASR in CM3
 		inline unsigned bitrev( unsigned value, int m )
 		{
 			unsigned result;
