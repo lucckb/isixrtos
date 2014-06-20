@@ -26,12 +26,10 @@ void editbox::repaint()
 	gdi.fill_area( c.x()+1, c.y()+1, c.cx()-2, c.cy()-2, true );
 	//Draw after the cursor
 	auto x = m_cursor_x;
-	if( !m_char_erase ) {
-		for(auto it = m_value.begin()+m_cursor_pos; it!=m_value.end(); ++it ) {
-			if( x + gdi.get_text_width(*it) >= c.x()+c.cx()-text_margin*2 )
-				break;
-			x = gdi.draw_text( x , ty, *it );
-		}
+	for(auto it = m_value.begin()+m_cursor_pos; it!=m_value.end(); ++it ) {
+		if( x + gdi.get_text_width(*it) >= c.x()+c.cx()-text_margin*2 )
+			break;
+		x = gdi.draw_text( x , ty, *it );
 	}
 	//Draw before the cursor
 	x = m_cursor_x;
@@ -152,7 +150,7 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 	using namespace gfx::input;
 	bool ret {};
 	if( (evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && !m_readonly) {
-		dbprintf("Key %02x", evk.key );
+		dbprintf("Key %02x scan %02x", evk.key, evk.scan );
 		if( evk.key == kbdcodes::os_arrow_right ) {
 			cursor_forward();
 			ret = true;
@@ -164,9 +162,8 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 			ret |= emit( btn_event );
 		} else if( evk.key == kbdcodes::backspace ) {
 			// Backspace handle
-			if( !m_value.empty() ) {
-				m_char_erase = true;
-				m_value.erase( m_cursor_pos, 1 );
+			if( m_cursor_pos <= m_value.size() ) {
+				m_value.erase( m_cursor_pos-1, 1 );
 				cursor_backward();
 				ret = true; 
 			}
