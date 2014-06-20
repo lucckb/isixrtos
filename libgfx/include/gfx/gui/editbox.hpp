@@ -17,17 +17,16 @@ namespace gui {
 /* Edit box widget for editing values */
 class editbox: public widget
 {
+	using keystat = gfx::input::detail::keyboard_tag::status;
 public:
-	enum class type	 : char
-	{
+	enum class type	 : char {
 		text,				//Text edit
 		float_pos,		//Floating point type
 		float_neg,		//Negative floating point
 		integer_pos,		//Integer positive
 		integer_neg,		//Integer negative
 	};
-	enum class kbd_mode : char
-	{
+	enum class kbd_mode : char {
 		joy,		//Joystick mode
 		qwerty		//Full kbd mode
 	};
@@ -76,6 +75,8 @@ private:
 	char ch_dec( char ch ) const;
 	//Insert character get
 	char insert_ch();
+	//! Move cursor forward
+	void cursor_forward();
 private:
 	short m_min_len { 0 };					//Minimum len
 	short m_max_len { 0 };					//Maximum len
