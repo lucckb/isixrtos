@@ -77,6 +77,8 @@ private:
 	char insert_ch();
 	//! Move cursor forward
 	void cursor_forward();
+	//! Cursor move backward
+	void cursor_backward();
 private:
 	short m_min_len { 0 };					//Minimum len
 	short m_max_len { 0 };					//Maximum len
@@ -87,6 +89,7 @@ private:
 	size_t m_cursor_pos {};					//Current cursor position
 	int m_cursor_x {};						//Cursor position on screen
 	char m_mask {};							//Mask character enabled
+	bool m_char_erase { };					//Only if erase is required
 private:	//Private constants
 	static constexpr coord_t text_margin = 2;
 };
