@@ -95,6 +95,17 @@ void editbox::cursor_forward()
 	}
 }
 /* ------------------------------------------------------------------ */
+//! Goto cursor end
+void editbox::cursor_end() 
+{
+	m_cursor_pos = m_value.size();
+	const auto c = get_coord() + get_owner().get_coord();
+	auto gdi = make_wgdi( );
+	const auto new_cur_x =  gdi.get_text_width( m_value[m_cursor_pos]) + m_cursor_x;
+	if( new_cur_x  < c.x()+c.cx()-text_margin*2 )
+		m_cursor_x = new_cur_x;
+}
+/* ------------------------------------------------------------------ */
 //! Move cursor backward
 void editbox::cursor_backward() 
 {
@@ -150,7 +161,6 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 	using namespace gfx::input;
 	bool ret {};
 	if( (evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && !m_readonly) {
-		dbprintf("Key %02x scan %02x", evk.key, evk.scan );
 		if( evk.key == kbdcodes::os_arrow_right ) {
 			cursor_forward();
 			ret = true;
@@ -160,6 +170,8 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 		} else if( evk.key == kbdcodes::enter) {
 			event btn_event( this, event::evtype::EV_CLICK );
 			ret |= emit( btn_event );
+			clear();
+			ret = true;
 		} else if( evk.key == kbdcodes::backspace ) {
 			// Backspace handle
 			if( m_cursor_pos <= m_value.size() ) {
@@ -167,6 +179,10 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 				cursor_backward();
 				ret = true; 
 			}
+		} else if( !evk.key && evk.scan==scancodes::end ) {
+			cursor_end();
+			ret = true;
+
 		} else if( isprint( evk.key ) ) {
 			if( m_value.size() <= m_cursor_pos ) {
 				m_value += evk.key;
@@ -182,6 +198,15 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 		ret |= emit( btn_event );
 	}
 	return ret;
+}
+/* ------------------------------------------------------------------ */
+//! Clear the box
+void editbox::clear() 
+{
+	const auto c = get_coord() + get_owner().get_coord();
+	m_cursor_x = c.x() + text_margin;
+	m_cursor_pos = 0;
+	m_value.clear();
 }
 /* ------------------------------------------------------------------ */
 //Get insert char

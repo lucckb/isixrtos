@@ -60,6 +60,8 @@ public:
 	const detail::string& value() const {
 		return m_value;
 	}
+	//! Clear the entry box
+	void clear();
 	//* Report input event
 	virtual void report_event( const input::event_info& ev );
 protected:
@@ -79,6 +81,8 @@ private:
 	void cursor_forward();
 	//! Cursor move backward
 	void cursor_backward();
+	//! Cursor to end 
+	void cursor_end();
 private:
 	short m_min_len { 0 };					//Minimum len
 	short m_max_len { 0 };					//Maximum len
