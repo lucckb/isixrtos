@@ -174,7 +174,7 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 			ret = true;
 		} else if( evk.key == kbdcodes::backspace ) {
 			// Backspace handle
-			if( m_cursor_pos <= m_value.size() ) {
+			if( m_cursor_pos-1 <= m_value.size() ) {
 				m_value.erase( m_cursor_pos-1, 1 );
 				cursor_backward();
 				ret = true; 
