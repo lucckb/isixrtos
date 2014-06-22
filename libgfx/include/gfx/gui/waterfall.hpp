@@ -78,6 +78,7 @@ private:
 	const unsigned short m_f1;				//! Frequency high
 	const unsigned short m_fs2;				//! Sample frequency/2
 	unsigned short m_freq_sel;				//! Frequency selected
+	gfx::coord_t m_last_line_pos {};		//! Last line position
 };
 /* ------------------------------------------------------------------ */ 
 }	//gui

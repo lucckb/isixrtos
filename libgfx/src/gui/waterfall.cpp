@@ -72,9 +72,15 @@ void waterfall::draw_select_line()
 		const auto lwidth = c.cx() - c_margin * 2;
 		const auto p0 = ( int(m_freq_sel-m_f0) * int(lwidth) ) / int(m_f1-m_f0);
 		const auto xpos = p0 + c.x() + c_margin;
-		auto gdi = make_gdi(); 
+		auto gdi = make_wgdi(); 
 		gdi.set_fg_color( color::White );
+		if( m_last_line_pos ) {
+			gdi.swap_colors();
+			gdi.draw_line( m_last_line_pos , c.y()+1, m_last_line_pos , c.y()+c.cy()-2 );
+			gdi.swap_colors();
+		}
 		gdi.draw_line( xpos , c.y()+1, xpos , c.y()+c.cy()-2 );
+		m_last_line_pos = xpos;
 	}
 }
 /* ------------------------------------------------------------------ */ 
@@ -107,6 +113,7 @@ void waterfall::report_event( const input::event_info& ev )
 			modified();
 			event btn_event( this, event::evtype::EV_CHANGE );
 			emit( btn_event );
+			dbprintf("Modified!!");
 		}
 	}
 }
@@ -116,6 +123,7 @@ void waterfall::repaint()
 {
 	if( !m_data_ptr ) {
 		draw_frame();
+		draw_select_line();
 		return;
 	}
 	//Update waterall scrol down before
