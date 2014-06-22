@@ -63,6 +63,10 @@ public:
 	unsigned short freq_sel() const {
 		return m_freq_sel;
 	}
+	//! Set watterfall readonly
+	void readonly( bool ro ) {
+		m_readonly = ro;
+	}
 protected:
 	 //! On repaint the widget return true when changed
 	 virtual void repaint();
@@ -79,6 +83,7 @@ private:
 	const unsigned short m_fs2;				//! Sample frequency/2
 	unsigned short m_freq_sel;				//! Frequency selected
 	gfx::coord_t m_last_line_pos {};		//! Last line position
+	bool m_readonly {};						//! If component is RO
 };
 /* ------------------------------------------------------------------ */ 
 }	//gui

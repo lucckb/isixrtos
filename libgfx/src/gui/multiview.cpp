@@ -86,6 +86,9 @@ void multiview::gui_add_line()
 			m_last_x = c.x() + text_margin;
 		} 
 		if( std::isprint( ch ) ) {
+			if( m_alternate_color ) {
+				gdi.set_fg_color( get_layout().sel() );
+			}
 			const auto npos = gdi.draw_text( m_last_x , yp, ch );
 			m_char_width = (m_last_x!=INVAL)?(npos - m_last_x):(npos);
 			m_last_x = npos;

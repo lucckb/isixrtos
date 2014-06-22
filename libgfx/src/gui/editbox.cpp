@@ -162,6 +162,7 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 	bool ret {};
 	if( (evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && !m_readonly && !evk.ctrl )
 	{
+		m_raw_key = 0;
 		if( evk.key == kbdcodes::os_arrow_right ) {
 			cursor_forward();
 			ret = true;
@@ -171,27 +172,31 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 		} else if( evk.key == kbdcodes::enter) {
 			event btn_event( this, event::evtype::EV_CLICK );
 			ret |= emit( btn_event );
-			clear();
+			m_raw_key = evk.key;
 			ret = true;
 		} else if( evk.key == kbdcodes::backspace ) {
 			// Backspace handle
 			if( m_cursor_pos-1 <= m_value.size() ) {
 				m_value.erase( m_cursor_pos-1, 1 );
 				cursor_backward();
+				m_raw_key = evk.key;
 				ret = true; 
 			}
 		} else if( !evk.key && evk.scan==scancodes::end ) {
 			cursor_end();
 			ret = true;
 
-		} else if( isprint( evk.key ) ) {
-			if( m_value.size() <= m_cursor_pos ) {
-				m_value += evk.key;
-			} else {
-				m_value[m_cursor_pos] = evk.key;
+		} else { 
+			m_raw_key = evk.key;
+			if( isprint( evk.key ) ) {
+				if( m_value.size() <= m_cursor_pos ) {
+					m_value += evk.key;
+				} else {
+					m_value[m_cursor_pos] = evk.key;
+				}
+				cursor_forward();
+				ret = true;
 			}
-			cursor_forward();
-			ret = true;
 		}
 	}
 	if( ret ) {

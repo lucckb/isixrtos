@@ -92,7 +92,7 @@ void waterfall::report_event( const input::event_info& ev )
 	if( m_data_ptr ) {
 		modified();
 	}
-	if( ev.type == evinfo::EV_KEY ) {
+	if( ev.type == evinfo::EV_KEY && !m_readonly ) {
 		bool mflag = false;
 		if( ev.keyb.stat==kstat::DOWN || ev.keyb.stat==kstat::RPT ) {
 			if( ev.keyb.key == input::kbdcodes::os_arrow_left ) {
