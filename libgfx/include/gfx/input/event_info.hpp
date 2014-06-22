@@ -38,7 +38,9 @@ struct scancodes {
 		arrow_down = 0x51,
 		arrow_right = 0x4f,
 		arrow_left = 0x50,
-		end = 0x4d
+		end = 0x4d,
+		T = 0x17,
+		R = 0x15,
 	};
 };
 
