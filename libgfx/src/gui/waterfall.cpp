@@ -113,7 +113,6 @@ void waterfall::report_event( const input::event_info& ev )
 			modified();
 			event btn_event( this, event::evtype::EV_CHANGE );
 			emit( btn_event );
-			dbprintf("Modified!!");
 		}
 	}
 }
