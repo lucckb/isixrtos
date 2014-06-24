@@ -17,20 +17,30 @@ namespace input {
 /* ------------------------------------------------------------------ */
 /** Keybd codes */
 struct kbdcodes {
-	enum keyboard : char {
+	enum keyboard : unsigned char {
 		//Control Code for ASCII
+		extend_code = 0x0,
 		select_all	= 0x1,
 		copy		= 0x3,		//Ctrl+C
 		backspace	= 0x8,	tab		= 0x9,
-		enter_n		= 0xA,	enter	= 0xD,	enter_r = 0xD,
-		alt			= 0x12,
-		paste		= 0x16,		//Ctrl+V
-		cut			= 0x18,		//Ctrl+X
-		escape		= 0x1B,
+		enter_n		= 0xA,	enter	= 0xA,	enter_r = 0xA,
+		escape		= 0x10,
 		//System Code for OS
-		os_pageup		= 0x21,	os_pagedown,
-		os_arrow_left	= 0x25, os_arrow_up, os_arrow_right, os_arrow_down,
-		os_insert		= 0x2D, os_del
+		os_pageup, os_pagedown,
+		os_arrow_left, os_arrow_up, os_arrow_right, os_arrow_down,
+		os_insert, os_del
+	};
+};
+struct scancodes {
+	//! Scan codes
+	enum kbdscan : unsigned char {
+		arrow_up = 0x52,
+		arrow_down = 0x51,
+		arrow_right = 0x4f,
+		arrow_left = 0x50,
+		end = 0x4d,
+		T = 0x17,
+		R = 0x15,
 	};
 };
 
@@ -51,7 +61,8 @@ namespace detail {
 		enum class status : unsigned char               //! Key status
 		{
 			DOWN,                                       //! Key is down
-			UP                                          //! Key is up
+			UP,                                          //! Key is up
+			RPT,										//! Rpt key event
 		} stat;         
 		key_type key;                                   //! Current key
 		key_type scan;									//! Scan code

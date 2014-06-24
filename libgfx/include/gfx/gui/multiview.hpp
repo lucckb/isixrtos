@@ -40,10 +40,8 @@ public:
 	  * @param[in] layout Input layout
 	  * @param[in] win Window input
 	  */
-	 multiview( rectangle const& rect, layout const& layout, 
-			 window &win )
-	 	 : widget( rect, layout, win, false )
-	 {
+	 multiview( rectangle const& rect, layout const& layout, window &win )
+	 	 : widget( rect, layout, win, false ) {
 	 } 
 	 //! Destructor
 	 virtual ~multiview() {
@@ -59,8 +57,10 @@ public:
 	 void clear() {
 		m_clear_req = true;
 	 }
-	 //! Report an event
-	virtual void report_event( const input::event_info& ev );
+	 /** Use alternate color */
+	 void alternalte_color( bool en ) {
+		 m_alternate_color = en;
+	 }
 private:
 	 //! Gui draw frame
 	 void gui_draw_frame();
@@ -74,7 +74,9 @@ protected:
 private:
 	detail::string m_line;	//! Temporary line buffer
 	bool m_clear_req {};	//! Clear req
+	short m_char_width {};	//! Previous char width for backspace handle
 	int m_last_x { INVAL };	//! Last char position in line
+	bool m_alternate_color {};	//! Use alternate colorscheme
 };
 /* ------------------------------------------------------------------ */ 
 }}

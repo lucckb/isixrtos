@@ -70,10 +70,17 @@ void waterfall::draw_select_line()
 	if( m_freq_sel > 0 ) {
 		const auto c = get_coord() + get_owner().get_coord();
 		const auto lwidth = c.cx() - c_margin * 2;
-		const auto xpos = (int(m_freq_sel) * int(lwidth) ) / int( m_f1 ) + c.x() + c_margin;
-		auto gdi = make_gdi();
+		const auto p0 = ( int(m_freq_sel-m_f0) * int(lwidth) ) / int(m_f1-m_f0);
+		const auto xpos = p0 + c.x() + c_margin;
+		auto gdi = make_wgdi(); 
 		gdi.set_fg_color( color::White );
+		if( m_last_line_pos ) {
+			gdi.swap_colors();
+			gdi.draw_line( m_last_line_pos , c.y()+1, m_last_line_pos , c.y()+c.cy()-2 );
+			gdi.swap_colors();
+		}
 		gdi.draw_line( xpos , c.y()+1, xpos , c.y()+c.cy()-2 );
+		m_last_line_pos = xpos;
 	}
 }
 /* ------------------------------------------------------------------ */ 
@@ -81,21 +88,22 @@ void waterfall::draw_select_line()
 void waterfall::report_event( const input::event_info& ev )
 {
 	using evinfo = input::event_info;
+	using kstat  = input::detail::keyboard_tag::status;
 	if( m_data_ptr ) {
 		modified();
 	}
-	if( ev.type == evinfo::EV_KEY ) {
+	if( ev.type == evinfo::EV_KEY && !m_readonly ) {
 		bool mflag = false;
-		if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN ) {
+		if( ev.keyb.stat==kstat::DOWN || ev.keyb.stat==kstat::RPT ) {
 			if( ev.keyb.key == input::kbdcodes::os_arrow_left ) {
 				if( m_freq_sel > m_f0 ) {
-					--m_freq_sel;
+					m_freq_sel -= c_freq_step;
 					mflag = true;
 				}
 			}
 			else if( ev.keyb.key == input::kbdcodes::os_arrow_right ) {
 				if( m_freq_sel < m_f1 ) {
-					++m_freq_sel;
+					m_freq_sel += c_freq_step;
 					mflag = true;
 				}
 			}
@@ -114,6 +122,7 @@ void waterfall::repaint()
 {
 	if( !m_data_ptr ) {
 		draw_frame();
+		draw_select_line();
 		return;
 	}
 	//Update waterall scrol down before

@@ -102,6 +102,20 @@ static inline utick_t isix_get_ujiffies(void)
     	/  (utick_t)port_get_hres_jiffies_timer_max_value();
     return t;
 }
+/* ----------------------------------------------------------------------*/
+/** Check if isix timer elapsed or not
+ *   @param[in] t1 Variable with the initial timer value
+     @param[in] timeout Excepted timeout 
+	 @return true if timer elapsed otherwise false
+*/
+static inline bool isix_timer_elapsed( tick_t t1, tick_t timeout )
+{
+	tick_t t2 = isix_get_jiffies();
+	if( t2 >= t1) 	//Not overflow
+		return t2 - t1 > timeout;
+	else   	       //Overflow
+		return t1 - t2 > timeout;
+}
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }	//end namespace

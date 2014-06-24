@@ -83,6 +83,7 @@ protected:
 			m_win.get_owner().get_def_layout():
 			m_layout; 
 	}
+
 	//! Get parent object
 	const window& get_owner() const { 
 		return m_win; 
@@ -91,15 +92,16 @@ protected:
 	//Make gdi
 	disp::gdi make_gdi( ) {
 		const auto l = m_layout.inherit()?m_win.get_owner().get_def_layout():m_layout;
-		return std::move(disp::gdi( m_win.get_owner().get_display(), l.fg(), l.bg(), l.font() ));
+		return std::move(
+			disp::gdi( m_win.get_owner().get_display(), l.fg(), l.bg(), l.font() )
+		);
 	}
 
 	//Make win gdi
 	disp::gdi make_wgdi() {
 		const auto l = m_win.get_layout();
 		return std::move(
-			disp::gdi(m_win.get_owner().get_display(),
-				l.fg(),l.bg(),l.font() )
+			disp::gdi(m_win.get_owner().get_display(), l.fg(),l.bg(),l.font() )
 		);
 	}
 private:

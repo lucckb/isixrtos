@@ -17,17 +17,16 @@ namespace gui {
 /* Edit box widget for editing values */
 class editbox: public widget
 {
+	using keystat = gfx::input::detail::keyboard_tag::status;
 public:
-	enum class type	 : char
-	{
+	enum class type	 : char {
 		text,				//Text edit
 		float_pos,		//Floating point type
 		float_neg,		//Negative floating point
 		integer_pos,		//Integer positive
 		integer_neg,		//Integer negative
 	};
-	enum class kbd_mode : char
-	{
+	enum class kbd_mode : char {
 		joy,		//Joystick mode
 		qwerty		//Full kbd mode
 	};
@@ -39,6 +38,10 @@ public:
 	//Destructor
 	virtual ~editbox()
 	{}
+	//! Get raw key
+	char raw_key() const {
+		return m_raw_key;
+	}
 	//Get value
 	template <typename T> T get() const;
 	//Set mask character
@@ -54,14 +57,15 @@ public:
 	void kbdmode( kbd_mode kbdmode ) { m_kbdmode = kbdmode; }
 	//Get field value
 	template< typename T>
-	void value( const T value )
-	{
+	void value( const T value ) {
 		m_value = value;
 	}
 	//Set text value
 	const detail::string& value() const {
 		return m_value;
 	}
+	//! Clear the entry box
+	void clear();
 	//* Report input event
 	virtual void report_event( const input::event_info& ev );
 protected:
@@ -77,6 +81,12 @@ private:
 	char ch_dec( char ch ) const;
 	//Insert character get
 	char insert_ch();
+	//! Move cursor forward
+	void cursor_forward();
+	//! Cursor move backward
+	void cursor_backward();
+	//! Cursor to end 
+	void cursor_end();
 private:
 	short m_min_len { 0 };					//Minimum len
 	short m_max_len { 0 };					//Maximum len
@@ -87,6 +97,7 @@ private:
 	size_t m_cursor_pos {};					//Current cursor position
 	int m_cursor_x {};						//Cursor position on screen
 	char m_mask {};							//Mask character enabled
+	char m_raw_key {};						//!Raw key
 private:	//Private constants
 	static constexpr coord_t text_margin = 2;
 };

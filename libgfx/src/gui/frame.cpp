@@ -38,6 +38,9 @@ void frame::execute()
 				m_lock.signal();
 				continue;
 			}
+			//! Emit the info on the frame level
+			emit( event( this, ev ) );
+			//! Window handling event
 			if( ev.type == evinfo::EV_WINDOW && ev.window != nullptr ) {
 				rpt_wnd = ev.window;
 			}
@@ -56,11 +59,7 @@ void frame::execute()
 			}
 		}
 		{
-			//const auto tbeg = isix::isix_get_jiffies();
 			repaint( false, rpt_wnd, false );
-#if 0 //Debug stuff for profiling
-			dbprintf("Repaint time %i", isix::isix_get_jiffies()-tbeg);
-#endif
 		}
 		m_lock.signal();
 	}

@@ -65,7 +65,7 @@ void editbox::report_event( const input::event_info& ev )
 		// dbprintf("Keycode %04x", ev.keyb.key );
 		if( m_kbdmode == kbd_mode::joy )
 			ret = handle_joy( ev.keyb );
-		else if( m_kbdmode == kbd_mode::joy )
+		else if( m_kbdmode == kbd_mode::qwerty )
 			ret = handle_qwerty( ev.keyb );
 		else {
 			dbprintf("Unknown kbd mode %i", m_kbdmode );
@@ -77,26 +77,61 @@ void editbox::report_event( const input::event_info& ev )
 		modified();
 	}
 }
+/* ------------------------------------------------------------------ */ 
+//! Move cursor forward
+void editbox::cursor_forward()
+{
+	const auto c = get_coord() + get_owner().get_coord();
+	if( m_cursor_pos<m_value.size() ) {
+		++m_cursor_pos;
+		auto gdi = make_wgdi( );
+		const auto new_cur_x =  gdi.get_text_width( m_value[m_cursor_pos]) + m_cursor_x;
+		if( new_cur_x  < c.x()+c.cx()-text_margin*2)
+			m_cursor_x = new_cur_x;
+	}
+	else {
+		m_cursor_pos = 0;
+		m_cursor_x = c.x() + text_margin;
+	}
+}
+/* ------------------------------------------------------------------ */
+//! Goto cursor end
+void editbox::cursor_end() 
+{
+	m_cursor_pos = m_value.size();
+	const auto c = get_coord() + get_owner().get_coord();
+	auto gdi = make_wgdi( );
+	const auto new_cur_x =  gdi.get_text_width( m_value[m_cursor_pos]) + m_cursor_x;
+	if( new_cur_x  < c.x()+c.cx()-text_margin*2 )
+		m_cursor_x = new_cur_x;
+}
+/* ------------------------------------------------------------------ */
+//! Move cursor backward
+void editbox::cursor_backward() 
+{
+	const auto c = get_coord() + get_owner().get_coord();
+	if( m_cursor_pos > 0 ) {
+		--m_cursor_pos;
+	} else {
+		m_cursor_pos = m_value.size() - 1;	
+	}
+	auto gdi = make_wgdi( );
+	const auto new_cur_x =  m_cursor_x - gdi.get_text_width( m_value[m_cursor_pos] );
+	if( new_cur_x > c.x()+text_margin ) {
+		m_cursor_x = new_cur_x;
+	} else {
+		m_cursor_x = c.x() + text_margin;
+	}
+}
 /* ------------------------------------------------------------------ */
 //Handle joy KBD
 bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 {
 	using namespace gfx::input;
 	bool ret {};
-	if( evk.stat == input::detail::keyboard_tag::status::DOWN && !m_readonly) {
-		const auto c = get_coord() + get_owner().get_coord();
+	if( (evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && !m_readonly) {
 		if( evk.key == kbdcodes::os_arrow_right ) {
-			if( m_cursor_pos<m_value.size() ) {
-				++m_cursor_pos;
-				auto gdi = make_wgdi( );
-				const auto new_cur_x =  gdi.get_text_width( m_value[m_cursor_pos]) + m_cursor_x;
-				if( new_cur_x  < c.x()+c.cx()-text_margin*2)
-					m_cursor_x = new_cur_x;
-			}
-			else {
-				m_cursor_pos = 0;
-				m_cursor_x = c.x()+text_margin;
-			}
+			cursor_forward();
 			ret = true;
 		}
 		else if( evk.key == kbdcodes::os_arrow_left ) {
@@ -105,23 +140,80 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 		if( evk.key == kbdcodes::os_arrow_up ) {
 			m_value[m_cursor_pos] = ch_inc( m_value[m_cursor_pos] );
 			ret = true;
-		}
-		else if( evk.key == kbdcodes::os_arrow_down ) {
+		} else if( evk.key == kbdcodes::os_arrow_down ) {
 			m_value[m_cursor_pos] = ch_dec( m_value[m_cursor_pos] );
 			ret = true;
-		}
-		else if( evk.key == kbdcodes::enter) {
+		} else if( evk.key == kbdcodes::enter) {
 			event btn_event( this, event::evtype::EV_CLICK );
 			ret |= emit( btn_event );
 		}
-		if( ret ) {
-			event btn_event( this, event::evtype::EV_CHANGE );
-			ret |= emit( btn_event );
-		}
+	}
+	if( ret ) {
+		event btn_event( this, event::evtype::EV_CHANGE );
+		ret |= emit( btn_event );
 	}
 	return ret;
 }
+/* ------------------------------------------------------------------ */
+//Handle querty KBD
+bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
+{
+	using namespace gfx::input;
+	bool ret {};
+	if( (evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && !m_readonly && !evk.ctrl )
+	{
+		m_raw_key = 0;
+		if( evk.key == kbdcodes::os_arrow_right ) {
+			cursor_forward();
+			ret = true;
+		} else if( evk.key == kbdcodes::os_arrow_left ) {
+			cursor_backward();
+			ret = true;
+		} else if( evk.key == kbdcodes::enter) {
+			event btn_event( this, event::evtype::EV_CLICK );
+			ret |= emit( btn_event );
+			m_raw_key = evk.key;
+			ret = true;
+		} else if( evk.key == kbdcodes::backspace ) {
+			// Backspace handle
+			if( m_cursor_pos-1 <= m_value.size() ) {
+				m_value.erase( m_cursor_pos-1, 1 );
+				cursor_backward();
+				m_raw_key = evk.key;
+				ret = true; 
+			}
+		} else if( !evk.key && evk.scan==scancodes::end ) {
+			cursor_end();
+			ret = true;
 
+		} else { 
+			m_raw_key = evk.key;
+			if( isprint( evk.key ) ) {
+				if( m_value.size() <= m_cursor_pos ) {
+					m_value += evk.key;
+				} else {
+					m_value[m_cursor_pos] = evk.key;
+				}
+				cursor_forward();
+				ret = true;
+			}
+		}
+	}
+	if( ret ) {
+		event btn_event( this, event::evtype::EV_CHANGE );
+		ret |= emit( btn_event );
+	}
+	return ret;
+}
+/* ------------------------------------------------------------------ */
+//! Clear the box
+void editbox::clear() 
+{
+	const auto c = get_coord() + get_owner().get_coord();
+	m_cursor_x = c.x() + text_margin;
+	m_cursor_pos = 0;
+	m_value.clear();
+}
 /* ------------------------------------------------------------------ */
 //Get insert char
 char editbox::insert_ch()
@@ -200,13 +292,6 @@ char editbox::ch_dec( char ch ) const
 		break;
 	}
 	return ch;
-}
-/* ------------------------------------------------------------------ */
-//Handle querty KBD
-bool editbox::handle_qwerty( const input::detail::keyboard_tag& /*evk*/ )
-{
-	dbprintf("Querty mode not suported yet");
-	return false;
 }
 /* ------------------------------------------------------------------ */
 } /* namespace gui */
