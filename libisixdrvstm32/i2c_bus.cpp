@@ -474,6 +474,7 @@ void i2c_bus::ev_irq()
 		}
 		//Data synch barrier
 		dsb(); isb(); nop(); nop();
+		dsb(); isb(); nop(); nop();
 	}
 	break;
 
