@@ -23,10 +23,13 @@ void frame::execute()
 	//so it should be save if don't use sem guards
 	using evinfo = input::event_info;
 	m_disp.clear( color::Black );
-	repaint( true , nullptr , false );
+
+//	repaint( true , nullptr , false );
+
 	for( evinfo ev;; ) {
 		window* rpt_wnd = nullptr;
-		if( m_events_queue.pop( ev ) == isix::ISIX_EOK ) {
+		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
+		{
 			m_lock.wait( isix::ISIX_TIME_INFINITE );
 			if( ev.type == evinfo::EV_PAINT ) {
 				// EV_PAINT argument is not dispatched to the component like other events
@@ -68,7 +71,7 @@ void frame::add_window( window* window )
 	m_lock.wait( isix::ISIX_TIME_INFINITE );
 	m_windows.push_front( window );
 	m_lock.signal( );
-	queue_repaint( true, nullptr, true );
+	//queue_repaint( true, nullptr, true );
 }
 /* ------------------------------------------------------------------ */
 //Delete the widget
@@ -114,18 +117,18 @@ void frame::repaint( bool force, window *wnd, bool force_clr )
 //Focus on the window
 int frame::set_focus( window* win )
 {
-	m_lock.wait( isix::ISIX_TIME_INFINITE );
+	m_focus_lock.wait( isix::ISIX_TIME_INFINITE );
 	auto elem = std::find_if( std::begin(m_windows), std::end(m_windows), 
 			[&]( const window* w ) { return w == win; } );
 	if( elem != m_windows.end() ) {
 		m_windows.erase( elem );
 		m_windows.push_front( *elem );
-		queue_repaint( true, nullptr, true );
-		m_lock.signal();
+		queue_repaint( true, win, true );
+		m_focus_lock.signal();
 		return errno::success;
 	} else {
 		dbprintf("ERROR: Window %p not found", win );
-		m_lock.signal();
+		m_focus_lock.signal();
 		return errno::wnd_not_found;
 	}
 }
