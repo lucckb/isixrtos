@@ -56,6 +56,10 @@ public:
 		return m_style==style::normal?m_curr_item:m_sel_item;
 	}
 
+	int selection_item() const {
+		return m_items[selection()].first;
+	}
+
 	/** Set selection if selected something is changed */
 	void selection(int sel) {
 		if( m_style==style::normal ) m_curr_item = sel;

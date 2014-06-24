@@ -15,8 +15,8 @@ namespace gui {
 void seekbar::repaint()
 {
 	// do not repaint if value was not changed
-	if (m_value == m_pvalue) return;
-	m_pvalue = m_value;
+	//if (m_value == m_pvalue) return;
+	//m_pvalue = m_value;
 
 	auto gdi = make_gdi( );
 	gdi.set_fg_color( get_layout().sel() );

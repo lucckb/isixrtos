@@ -91,6 +91,9 @@ private:
 	isix::fifo<input::event_info> m_events_queue;
 	//! Isix lock container data
 	isix::semaphore m_lock { 1, 1 };
+
+	isix::semaphore m_focus_lock { 1, 1 };
+	
 	//Windows container
 	detail::container<window*> m_windows;
 	//Display
