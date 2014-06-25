@@ -77,11 +77,14 @@ public:
 	const layout& get_layout() const {
 		return m_layout.inherit()?m_frm.get_def_win_layout():m_layout; 
 	}
-
-	//Get current selected widget
+	//!Get current selected widget
 	widget* current_widget() const {
 		return (m_current_widget!=m_widgets.end())
 			?(*m_current_widget):(nullptr); 
+	}
+	//! Return true if window has focus
+	bool has_focus() const {
+		return m_frm.get_active_window() == this;
 	}
 private:
 	detail::container<widget*> m_widgets;

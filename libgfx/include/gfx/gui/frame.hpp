@@ -11,12 +11,8 @@
 #include <gfx/input/event_info.hpp>
 #include <gfx/gui/detail/defines.hpp>
 #include <gfx/gui/primitives.hpp>
+#include <gfx/drivers/disp/disp_base.hpp>
 #include <isix.h>
-/* ------------------------------------------------------------------ */
-namespace gfx {
-namespace drv {
-	class disp_base;
-}}
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
@@ -76,6 +72,18 @@ public:
 	}
 	//Focus on the window
 	int set_focus( window* win );
+	//! Get active window
+	window* get_active_window() const {
+		return m_windows.front();
+	}
+	//! Get width
+	coord_t width() const {
+		return m_disp.get_width();
+	}
+	//! Get height
+	coord_t height() const {
+		return m_disp.get_height();
+	}
 private:
 	/** Repaint visible area 
 	 * @param[in] force Force repaint independent of component refresh

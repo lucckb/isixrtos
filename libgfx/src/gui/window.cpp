@@ -45,10 +45,9 @@ void window::repaint( bool force, bool force_clr )
 		item->redraw( force );
 	}
 	//If border outside component is required
-	if( m_flags & flags::selectborder ) {
+	if( (m_flags & flags::selectborder) && has_focus() ) {
 		{
-			const auto s = (*m_current_widget)->get_coord() + get_coord() ;
-			//DBG END
+			const auto s = (*m_current_widget)->get_coord() + get_coord();
 			draw_line_box( s, gdi );
 		}
 		if( m_redraw_widget != m_widgets.end() ) {

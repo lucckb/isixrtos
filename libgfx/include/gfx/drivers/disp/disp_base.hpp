@@ -40,11 +40,9 @@ class disp_base
 	disp_base& operator=(const disp_base&) = delete;
 public:
 	disp_base( coord_t width, coord_t height )
-		: m_width( width ), m_height( height )
-	{
+		: m_width( width ), m_height( height ) {
 	}
-	virtual ~disp_base()
-	{
+	virtual ~disp_base() {
 	}
 	/* Set PIXEL */
 	virtual void set_pixel( coord_t x, coord_t y, color_t color ) = 0;
