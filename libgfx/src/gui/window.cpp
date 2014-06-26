@@ -47,7 +47,7 @@ void window::repaint( bool force, bool force_clr )
 	//If border outside component is required
 	if( (m_flags & flags::selectborder) && has_focus() ) {
 		{
-			const auto s = (*m_current_widget)->get_coord() + get_coord();
+			const auto s = (*m_current_widget)->get_coord() + get_coord() + 1;
 			draw_line_box( s, gdi );
 		}
 		if( m_redraw_widget != m_widgets.end() ) {

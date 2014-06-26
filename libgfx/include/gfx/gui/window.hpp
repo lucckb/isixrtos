@@ -24,10 +24,8 @@ class widget;
 class window : public object
 {
 public:
-	struct flags
-	{
-		enum  : unsigned
-		{
+	struct flags {
+		enum  : unsigned {
 			fill = 			0x01,			//Fill background
 			border = 		0x02,			//Draw border
 			selectborder =  0x04			//Select border

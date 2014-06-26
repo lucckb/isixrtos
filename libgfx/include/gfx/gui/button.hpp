@@ -24,12 +24,10 @@ public:
 	{}
 	//Set caption
 	template< typename T>
-	void caption( const T caption )
-	{
+	void caption( const T caption ) {
 		m_caption = caption;
 	}
-	const detail::string& caption() const
-	{
+	const detail::string& caption() const {
 		return m_caption;
 	}
 protected:
