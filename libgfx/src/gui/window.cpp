@@ -27,6 +27,10 @@ namespace {
 // On repaint the widget return true when changed
 void window::repaint( bool force, bool force_clr )
 {
+	if( force && has_focus() ) {
+		event focus_event( this, event::evtype::EV_FOCUS );
+		emit( focus_event );
+	}
 	force |= m_changed;
 	const auto& lay = m_layout.inherit()?get_owner().get_def_win_layout():m_layout;
 	disp::gdi gdi( get_owner().get_display(), lay.sel(), lay.bg(), lay.font() );

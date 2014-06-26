@@ -126,6 +126,7 @@ struct event_info {
 		 * on emit widget level*/
 		EV_CLICK,	/** Click event  */
 		EV_CHANGE,	/** Component changed */
+		EV_FOCUS,	/** Focus get or focus lost */
 		EV_JOY_REPORT,	/** Joystick report */
 	};
 	unsigned time;  //! Timestamp

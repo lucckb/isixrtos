@@ -45,7 +45,7 @@ void frame::execute()
 				rpt_wnd = ev.window;
 			}
 			if( rpt_wnd == nullptr && !m_windows.empty() ) {
-				rpt_wnd = m_windows.front();
+				rpt_wnd = m_windows.back();
 			}
 			//! Dispatch hotplug event to all widows 
 			if( ev.type == evinfo::EV_HOTPLUG ) {
@@ -69,7 +69,7 @@ void frame::execute()
 void frame::add_window( window* window )
 {
 	m_lock.wait( isix::ISIX_TIME_INFINITE );
-	m_windows.push_front( window );
+	m_windows.push_back( window );
 	m_lock.signal( );
 	//queue_repaint( true, nullptr, true );
 }
@@ -122,7 +122,7 @@ int frame::set_focus( window* win )
 			[&]( const window* w ) { return w == win; } );
 	if( elem != m_windows.end() ) {
 		m_windows.erase( elem );
-		m_windows.push_front( *elem );
+		m_windows.push_back( *elem );
 		queue_repaint( true, win, true );
 		m_focus_lock.signal();
 		return errno::success;

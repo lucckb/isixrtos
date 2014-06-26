@@ -74,7 +74,7 @@ public:
 	int set_focus( window* win );
 	//! Get active window
 	window* get_active_window() const {
-		return m_windows.front();
+		return m_windows.back();
 	}
 	//! Get width
 	coord_t width() const {
@@ -98,9 +98,8 @@ private:
 	isix::fifo<input::event_info> m_events_queue;
 	//! Isix lock container data
 	isix::semaphore m_lock { 1, 1 };
-
+	//! Lock focus
 	isix::semaphore m_focus_lock { 1, 1 };
-	
 	//Windows container
 	detail::container<window*> m_windows;
 	//Display
