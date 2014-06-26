@@ -214,8 +214,21 @@ private:
 private:
 	sem_t *sem;
 };
-
-
+/*--------------------------------------------------------------*/
+class sem_lock {
+public:
+	sem_lock( semaphore& _sem )
+		: m_sem( _sem ) {
+		_sem.wait( ISIX_TIME_INFINITE );
+	}
+	~sem_lock() {
+		m_sem.signal();
+	}
+private:
+	sem_lock(const sem_lock&);
+	sem_lock& operator=(const sem_lock&);
+	semaphore& m_sem;
+};
 /*--------------------------------------------------------------*/
 }
 #endif /* __cplusplus */
