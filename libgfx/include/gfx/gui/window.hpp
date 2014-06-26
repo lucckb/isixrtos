@@ -70,6 +70,9 @@ public:
 
 	//! Select prev item
 	void select_prev();
+	
+	//! Select wiget directly
+	void select( widget * const w );
 
 	//! Get base layout
 	const layout& get_layout() const {

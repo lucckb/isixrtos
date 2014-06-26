@@ -114,15 +114,25 @@ void window::select_prev()
 	}
 }
 /* ------------------------------------------------------------------ */
-void window::add_widget( widget * const w )
+//! Select wiget directly
+void window::select( widget * const w ) 
 {
-	m_widgets.push_front( w );
-	if( w->selectable() ) {
-		m_current_widget = m_widgets.begin();
+	auto elem = std::find_if( std::begin(m_widgets), std::end(m_widgets), 
+			[&]( const widget* wdg ) { return w == wdg; } );
+	if( elem != m_widgets.end() && w->selectable() ) {
+		m_current_widget = elem;
 	}
 }
 /* ------------------------------------------------------------------ */
-void window::delete_widget( widget * const w )
+void window::add_widget( widget* const w )
+{
+	m_widgets.push_back( w );
+	if( m_current_widget==m_widgets.end() && w->selectable() ) {
+		select( w );
+	}
+}
+/* ------------------------------------------------------------------ */
+void window::delete_widget( widget* const w )
 {
 	m_widgets.remove( w );
 	m_current_widget = m_widgets.empty()||!w->selectable()?m_widgets.end():m_widgets.begin();
