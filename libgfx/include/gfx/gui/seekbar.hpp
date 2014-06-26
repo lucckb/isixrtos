@@ -30,6 +30,14 @@ public:
 	short value() const { return m_value; }
 	//Set step
 	void step(short step) { m_step = step; }
+	//! Min value
+	void min_value( short _min ) {
+		m_min = _min;
+	}
+	//! Max value
+	void max_value( short _max ) {
+		m_max = _max;
+	}
 protected:
 	//Repaint virtual function
 	virtual void repaint();
