@@ -32,6 +32,9 @@ struct event : public input::event_info
 	{
 		type = _type;
 	}
+	bool match( object& o ) const {
+		return sender == &o;
+	}
 	virtual ~event() {}
 	object * const sender;
 };

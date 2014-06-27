@@ -79,16 +79,17 @@ void seekbar::repaint()
 void seekbar::report_event( const input::event_info& ev )
 {
 	using namespace gfx::input;
+	using kstat = input::detail::keyboard_tag::status;
 	bool ret {};
 	if( ev.type == event_info::EV_KEY ) {
-		if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN ) {
-			if( ev.keyb.key == kbdcodes::os_arrow_down )
+		if( ev.keyb.stat==kstat::DOWN || ev.keyb.stat==kstat::RPT ) {
+			if( ev.keyb.key == kbdcodes::os_arrow_up )
 			{
 				m_value += m_step;
 				if( m_value > m_max ) m_value = m_max;
 				else ret = true;
 			}
-			else if( ev.keyb.key == kbdcodes::os_arrow_up )
+			else if( ev.keyb.key == kbdcodes::os_arrow_down )
 			{
 				m_value -= m_step;
 				if( m_value < m_min ) m_value = m_min;
