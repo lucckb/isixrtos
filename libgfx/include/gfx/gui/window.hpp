@@ -37,7 +37,9 @@ public:
 	{
 		m_frm.add_window( this );
 	}
-
+	virtual ~window() {
+		m_frm.delete_window( this );
+	}
 	/**  On repaint the widget return true when changed
 	 * @param[in] force Force repaint 
 	 * @param[in] force_clr Force clear background

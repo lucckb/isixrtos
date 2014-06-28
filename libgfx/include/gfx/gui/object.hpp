@@ -47,6 +47,8 @@ using event_handle = std::weak_ptr<std::pair<event::evtype,event_signal>>;
 class object  : private fnd::noncopyable
 {
 public:
+	virtual ~object() {
+	}
 	event_handle connect( event_signal evt_h, event::evtype evt_t  )
 	{
 		auto ret = std::make_shared<std::pair<event::evtype,event_signal>>( std::make_pair(evt_t, evt_h) );

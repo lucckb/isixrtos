@@ -103,11 +103,9 @@ void window::select_next()
 //Select prev component
 void window::select_prev()
 {
-	if( m_current_widget != m_widgets.end() )
-	{
+	if( m_current_widget != m_widgets.end() ) {
 		m_redraw_widget = m_current_widget;
-		for( size_t s=m_widgets.size(),i=0; i<s; ++i )
-		{
+		for( size_t s=m_widgets.size(),i=0; i<s; ++i ) {
 			if( m_current_widget == m_widgets.begin() )
 				m_current_widget = --m_widgets.end();
 			else

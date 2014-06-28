@@ -11,15 +11,19 @@
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
-
 /* ------------------------------------------------------------------ */
-class label: public widget
-{
+class label: public widget {
 public:
+	struct flags {
+		enum : unsigned {
+			center 		= 0x01		//Center text
+		};
+	};
 	//Destructor
 	virtual ~label(){ }
 	//Constructor
-	label(rectangle const& rect,layout const& layout ,window &win);
+	label( rectangle const& rect,layout const& layout, 
+			window &win, unsigned flags = 0 );
 	//Label no reports any events
 	template< typename T>
 	void caption( const T caption ) {
@@ -39,6 +43,7 @@ private:
 	detail::string m_caption;
 	coord_t draw_text_wdt;
 	bool m_sel_color {};
+	unsigned m_flags {};
 };
 /* ------------------------------------------------------------------ */
 } /* namespace gui */

@@ -30,12 +30,10 @@ void frame::execute()
 		window* rpt_wnd = nullptr;
 		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
 		{
-			m_lock.wait( isix::ISIX_TIME_INFINITE );
 			if( ev.type == evinfo::EV_PAINT ) {
 				// EV_PAINT argument is not dispatched to the component like other events
 				// After the execution event is dropped
 				repaint( ev.paint.force, ev.window, ev.paint.clrbg );
-				m_lock.signal();
 				continue;
 			}
 			//! Emit the info on the frame level
@@ -44,12 +42,16 @@ void frame::execute()
 			if( ev.type == evinfo::EV_WINDOW && ev.window != nullptr ) {
 				rpt_wnd = ev.window;
 			}
-			if( rpt_wnd == nullptr && !m_windows.empty() ) {
-				rpt_wnd = m_windows.back();
+			{
+				isix::sem_lock _lck( m_lock );
+				if( rpt_wnd == nullptr && !m_windows.empty() ) {
+					rpt_wnd = m_windows.back();
+				}
 			}
 			//! Dispatch hotplug event to all widows 
 			if( ev.type == evinfo::EV_HOTPLUG ) {
 				rpt_wnd = nullptr;
+				isix::sem_lock _lck( m_lock );
 				for( const auto item : m_windows ) {
 					item->report_event( ev );
 				}
@@ -61,25 +63,22 @@ void frame::execute()
 		{
 			repaint( false, rpt_wnd, false );
 		}
-		m_lock.signal();
 	}
 }
 /* ------------------------------------------------------------------ */
 //Add widget to frame
 void frame::add_window( window* window )
 {
-	m_lock.wait( isix::ISIX_TIME_INFINITE );
+	isix::sem_lock _lck( m_lock );
 	m_windows.push_back( window );
-	m_lock.signal( );
 	//queue_repaint( true, nullptr, true );
 }
 /* ------------------------------------------------------------------ */
 //Delete the widget
 void frame::delete_window( window* window )
 {
-	m_lock.wait( isix::ISIX_TIME_INFINITE );
+	isix::sem_lock _lck( m_lock );
 	m_windows.remove( window );
-	m_lock.signal( );
 	queue_repaint( true, nullptr, true );
 }
 /* ------------------------------------------------------------------ */ 
@@ -117,7 +116,7 @@ void frame::repaint( bool force, window *wnd, bool force_clr )
 //Focus on the window
 int frame::set_focus( window* win )
 {
-	m_focus_lock.wait( isix::ISIX_TIME_INFINITE );
+	isix::sem_lock _lck( m_lock );
 	auto elem = std::find_if( std::begin(m_windows), std::end(m_windows), 
 			[&]( const window* w ) { return w == win; } );
 	if( elem != m_windows.end() ) {
@@ -125,11 +124,9 @@ int frame::set_focus( window* win )
 		m_prev_focus_wnd = m_windows.back();
 		m_windows.push_back( *elem );
 		queue_repaint( true, win, true );
-		m_focus_lock.signal();
 		return errno::success;
 	} else {
 		dbprintf("ERROR: Window %p not found", win );
-		m_focus_lock.signal();
 		return errno::wnd_not_found;
 	}
 }
