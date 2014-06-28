@@ -41,7 +41,7 @@ void window::repaint( bool force, bool force_clr )
 		if( (m_flags & flags::fill) && force_clr ) {
 			gdi.fill_area( m_coord.x(), m_coord.y(), m_coord.cx(), m_coord.cy(), true );
 		}
-		if( m_flags & flags::border ) {
+		if( m_flags & flags::border && has_focus() ) {
 			draw_line_box( m_coord, gdi );
 		}
 	}
