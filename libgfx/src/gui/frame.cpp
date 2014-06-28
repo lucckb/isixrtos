@@ -122,6 +122,7 @@ int frame::set_focus( window* win )
 			[&]( const window* w ) { return w == win; } );
 	if( elem != m_windows.end() ) {
 		m_windows.erase( elem );
+		m_prev_focus_wnd = m_windows.back();
 		m_windows.push_back( *elem );
 		queue_repaint( true, win, true );
 		m_focus_lock.signal();

@@ -4,7 +4,7 @@
  *  Created on: 30 wrz 2013
  *      Author: lucck
  */
-
+/* ------------------------------------------------------------------ */
 #pragma once
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/object.hpp>
@@ -70,8 +70,16 @@ public:
 	void set_text_color( color_t color ) {
 		m_default_win_layout.fg( color );
 	}
-	//Focus on the window
+	//! Focus on the window
 	int set_focus( window* win );
+	//! Focus on previous window
+	int focus_prev() {
+		if( m_prev_focus_wnd ) {
+			return set_focus( m_prev_focus_wnd );
+		} else {
+			return errno::wnd_not_found;
+		}
+	}
 	//! Get active window
 	window* get_active_window() const {
 		return m_windows.back();
@@ -109,6 +117,7 @@ private:
 	//Default layout
 	layout m_default_win_layout { color_t(~m_color), m_color, color::Red };					/* Window layout */
 	layout m_default_layout { color::Black, color::LightGray, color::BlueViolet  } ;		/* Component layout */
+	window* m_prev_focus_wnd {};	//! Window with prev focus
 };
 
 /* ------------------------------------------------------------------ */
