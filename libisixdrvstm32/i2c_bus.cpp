@@ -472,9 +472,6 @@ void i2c_bus::ev_irq()
 			}
 			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 		}
-		//Data synch barrier
-		dsb(); isb(); nop(); nop();
-		dsb(); isb(); nop(); nop();
 	}
 	break;
 

@@ -29,6 +29,22 @@
  * #define CONFIG_ISIXDRV_I2C_USE_FIXED_I2C 1 
  * Value 1 , 2 , 3  are allowed if not defined all is enabled
  */
+/** CAUTION On some F20x devices exists bug in I2C hardware !! 
+	Description
+	In case of a repeated Start, the “Setup time for a repeated Start condition” (named Tsu;sta in
+	the I2C specification) can be slightly violated when the I2C operates in Master Standard
+	mode at a frequency between 88 kHz and 100 kHz.
+	The issue can occur only in the following configuration:
+	 - in Master mode
+	in Standard mode at a frequency between 88 kHz and 100 kHz (no issue in Fast-mode)
+	SCL rise time:
+	–
+	If the slave does not stretch the clock and the SCL rise time is more than 300 ns (if
+	the SCL rise time is less than 300 ns, the issue cannot occur)
+	–
+	If the slave stretches the clock
+	The setup time can be violated independently of the APB peripheral frequency.
+ */
 //#define CONFIG_ISIXDRV_I2C_USE_FIXED_I2C CONFIG_ISIXDRV_I2C_1 
 /* ------------------------------------------------------------------ */ 
 namespace stm32 {
