@@ -120,6 +120,14 @@ void waterfall::report_event( const input::event_info& ev )
 //! Handle repaint 
 void waterfall::repaint()
 {
+	if( m_readonly ) {
+		auto gdi = make_gdi();
+		const auto c = get_coord() + get_owner().get_coord();
+		gdi.set_bg_color( get_layout().sel() );
+		gdi.fill_area( c.x(), c.y(), c.cx(), c.cy(), true );
+		draw_frame();
+		return;
+	}
 	if( !m_data_ptr ) {
 		draw_frame();
 		draw_select_line();

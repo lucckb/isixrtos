@@ -66,6 +66,7 @@ public:
 	//! Set watterfall readonly
 	void readonly( bool ro ) {
 		m_readonly = ro;
+		modified();
 	}
 protected:
 	 //! On repaint the widget return true when changed
