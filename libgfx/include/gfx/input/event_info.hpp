@@ -41,6 +41,7 @@ struct scancodes {
 		end = 0x4d,
 		T = 0x17,
 		R = 0x15,
+		A = 0x04
 	};
 };
 
