@@ -31,7 +31,8 @@ namespace gui {
 
 class waterfall : public widget {
 	static constexpr auto c_margin = 2;
-	static constexpr auto c_freq_step = 10;
+	static constexpr auto c_freq_step = 8;
+	static constexpr auto c_freq_fast_step = 50;
 public:
 	/** Waterfall constructor 
 	 * @param[in] rect Widget size

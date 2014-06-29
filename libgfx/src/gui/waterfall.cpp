@@ -97,13 +97,13 @@ void waterfall::report_event( const input::event_info& ev )
 		if( ev.keyb.stat==kstat::DOWN || ev.keyb.stat==kstat::RPT ) {
 			if( ev.keyb.key == input::kbdcodes::os_arrow_left ) {
 				if( m_freq_sel > m_f0 ) {
-					m_freq_sel -= c_freq_step;
+					m_freq_sel -= (ev.keyb.ctrlbits.lctrl)?(c_freq_fast_step):(c_freq_step);
 					mflag = true;
 				}
 			}
 			else if( ev.keyb.key == input::kbdcodes::os_arrow_right ) {
 				if( m_freq_sel < m_f1 ) {
-					m_freq_sel += c_freq_step;
+					m_freq_sel += (ev.keyb.ctrlbits.lctrl)?(c_freq_fast_step):(c_freq_step);
 					mflag = true;
 				}
 			}
