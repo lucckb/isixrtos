@@ -199,7 +199,7 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 			}
 		}
 	}
-	if( ret ) {
+	if( ret && m_raw_key ) {
 		event btn_event( this, event::evtype::EV_CHANGE );
 		ret |= emit( btn_event );
 	}
