@@ -8,6 +8,6 @@
 #ifndef STM32F2RTC_H_
 #define STM32F2RTC_H_
 
-#include "../stm32f4x/stm32tim.h"
+#include "../stm32f4x/stm32rtc.h"
 
 #endif /* STM32RTC_H_ */

@@ -34,9 +34,6 @@
  extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"
-
 
 /** @defgroup RTC_Hour_Formats 
   * @{

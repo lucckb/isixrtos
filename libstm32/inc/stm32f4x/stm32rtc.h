@@ -9,6 +9,7 @@
 #define STM32F4RTC_H_
 /* ---------------------------------------------------------------------------- */
 #include <stm32lib.h>
+#include "stm32f4x/stm32f4xx_rtc.h"
 /* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus
 namespace stm32 {
@@ -52,7 +53,7 @@ static inline bool rtc_enter_init_mode(void)
   uint32_t initstatus = 0x00;
 
   /* Check if the Initialization mode is set */
-  if ((RTC->ISR & RTC_ISR_INITF) == (uint32_t)RESET)
+  if ( !(RTC->ISR & RTC_ISR_INITF) )
   {
     /* Set the Initialization mode */
     RTC->ISR = (uint32_t)RTC_INIT_MASK;
@@ -63,13 +64,9 @@ static inline bool rtc_enter_init_mode(void)
       initstatus = RTC->ISR & RTC_ISR_INITF;
       initcounter++;
     } while((initcounter != INITMODE_TIMEOUT) && (initstatus == 0x00));
-
-    if ((RTC->ISR & RTC_ISR_INITF) != RESET)
-    {
+    if ( RTC->ISR & RTC_ISR_INITF ) {
       return false;
-    }
-    else
-    {
+    } else {
       return true;
     }
   }
@@ -203,12 +200,9 @@ static inline bool rtc_wait_for_synchro(void)
     synchrocounter++;
   } while((synchrocounter != SYNCHRO_TIMEOUT) && (synchrostatus == 0x00));
 
-  if ((RTC->ISR & RTC_ISR_RSF) != RESET)
-  {
+  if ( RTC->ISR & RTC_ISR_RSF ) {
     return false;
-  }
-  else
-  {
+  } else {
     return true;
   }
 
@@ -345,7 +339,7 @@ static inline bool rtc_set_time(uint32_t RTC_Format, uint8_t hours, uint8_t minu
 
   if (RTC_Format == RTC_Format_BIN)
   {
-    if ((RTC->CR & RTC_CR_FMT) != (uint32_t)RESET)
+    if ( (RTC->CR & RTC_CR_FMT) )
     {
     }
     else
@@ -355,7 +349,7 @@ static inline bool rtc_set_time(uint32_t RTC_Format, uint8_t hours, uint8_t minu
   }
   else
   {
-    if ((RTC->CR & RTC_CR_FMT) != (uint32_t)RESET)
+    if ( (RTC->CR & RTC_CR_FMT) )
     {
       tmpreg = _private_RTC_Bcd2ToByte(hours);
     }
@@ -621,7 +615,7 @@ static inline void rtc_set_alarm(uint32_t RTC_Format, uint32_t RTC_Alarm,
 
   if (RTC_Format == RTC_Format_BIN)
   {
-    if ((RTC->CR & RTC_CR_FMT) != (uint32_t)RESET)
+    if ( (RTC->CR & RTC_CR_FMT) )
     {
     }
     else
@@ -631,7 +625,7 @@ static inline void rtc_set_alarm(uint32_t RTC_Format, uint32_t RTC_Alarm,
   }
   else
   {
-    if ((RTC->CR & RTC_CR_FMT) != (uint32_t)RESET)
+    if ( (RTC->CR & RTC_CR_FMT) )
     {
       tmpreg = _private_RTC_Bcd2ToByte(hours);
     }
@@ -777,7 +771,7 @@ static inline bool rtc_alarm_cmd(uint32_t RTC_Alarm, bool enable)
       alarmcounter++;
     } while((alarmcounter != INITMODE_TIMEOUT) && (alarmstatus == 0x00));
 
-    if ((RTC->ISR & (RTC_Alarm >> 8)) == RESET)
+    if (!(RTC->ISR & (RTC_Alarm >> 8)) )
     {
       return true;
     }
@@ -994,7 +988,7 @@ static inline bool rtc_wake_up_cmd(bool enable)
       wutcounter++;
     } while((wutcounter != INITMODE_TIMEOUT) && (wutwfstatus == 0x00));
 
-    if ((RTC->ISR & RTC_ISR_WUTWF) == RESET)
+    if (!(RTC->ISR & RTC_ISR_WUTWF) )
     {
       return true;
     }
@@ -1795,7 +1789,7 @@ static inline bool rtc_get_flag_status(uint32_t RTC_FLAG)
   tmpreg = (uint32_t)(RTC->ISR & RTC_FLAGS_MASK);
 
   /* Return the status of the flag */
-  return ((tmpreg & RTC_FLAG) != (uint32_t)RESET);
+  return ((tmpreg & RTC_FLAG) != 0 );
 
 }
 /* ---------------------------------------------------------------------------- */
@@ -1844,7 +1838,7 @@ static inline bool rtc_get_it_status(uint32_t RTC_IT)
   tmpreg = (uint32_t)((RTC->ISR & (uint32_t)(RTC_IT >> 4)));
 
   /* Get the status of the Interrupt */
-  return ((enablestatus != (uint32_t)RESET) && ((tmpreg & 0x0000FFFF) != (uint32_t)RESET));
+  return ((enablestatus != (uint32_t)0) && ((tmpreg & 0x0000FFFF) != (uint32_t)0));
 }
 /* ---------------------------------------------------------------------------- */
 /**
