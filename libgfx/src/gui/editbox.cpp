@@ -15,7 +15,7 @@
 namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */
-// On repaint the widget return true when changed
+//! On repaint the widget return true when changed
 void editbox::repaint()
 {
 	constexpr auto luma = 128;
