@@ -160,8 +160,9 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 {
 	using namespace gfx::input;
 	bool ret {};
-	if( (evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && !m_readonly && !evk.ctrl )
-	{
+	if( (evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && 
+		!m_readonly && (!evk.ctrl || evk.ctrlbits.lshift || evk.ctrlbits.rshift )
+	) {
 		m_raw_key = 0;
 		if( evk.key == kbdcodes::os_arrow_right ) {
 			cursor_forward();
