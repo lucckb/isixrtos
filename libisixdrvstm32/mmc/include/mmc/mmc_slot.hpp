@@ -12,7 +12,7 @@
 #include "mmc/immc_det_pin.hpp"
 #include "mmc/mmc_error_codes.hpp"
 #include <isix.h>
-
+#include <functional>
 
 namespace drv {
 namespace mmc {
@@ -20,15 +20,15 @@ namespace mmc {
 class mmc_host;
 class mmc_card;
 
-class mmc_slot: public fnd::noncopyable
-{
+class mmc_slot: public fnd::noncopyable {
 public:
-	enum status
-	{
+	//! Card status
+	enum status {
 		card_removed =  0x1,
 		card_inserted = 0x2
 	};
 	static const int C_no_block = -1;
+	using callback_t = std::function<void(status)>;
 public:
 	//Constructor
 	mmc_slot( mmc_host &host, immc_det_pin &det_pin );
@@ -38,13 +38,15 @@ public:
 	int get_card( mmc_card* &card );
 	//Wait for change status
 	int check( int timeout = isix::ISIX_TIME_INFINITE );
-	//Check if card connected
+	//Register notification callback
+	void connect( callback_t cb ) {
+		m_callback = cb;
+	}
 private:
 	//Raw insertion handler
 	void det_card_insertion_callback();
 	//Detect class insertion hander executed in interrupt content
-	static void det_card_insertion_raw_callback( void* instance )
-	{
+	static void det_card_insertion_raw_callback( void* instance ) {
 		static_cast<mmc_slot*>(instance)->det_card_insertion_callback();
 	}
 private:
@@ -57,6 +59,7 @@ private:
 	volatile bool 					m_p_card_inserted;
 	volatile bool 					m_init_req;
 	isix::semaphore 				m_card_sem;
+	callback_t						m_callback;
 };
 
 } /* namespace drv */

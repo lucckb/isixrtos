@@ -34,16 +34,20 @@ mmc_slot::mmc_slot( mmc_host &host, immc_det_pin &det_pin  )
 void mmc_slot::det_card_insertion_callback()
 {
 	bool inserted = m_det_pin.get();
-	if( !m_p_card_inserted && inserted )
-	{
+	if( !m_p_card_inserted && inserted ) {
 		m_event = card_inserted;
 		m_init_req = true;
 		m_card_sem.signal_isr();
+		if( m_callback ) {
+			m_callback( card_inserted );
+		}
 	}
-	else if( m_p_card_inserted && !inserted )
-	{
+	else if( m_p_card_inserted && !inserted ) {
 		m_event = card_removed;
 		m_card_sem.signal_isr();
+		if( m_callback ) {
+			m_callback( card_removed );
+		}
 	}
 	m_p_card_inserted = inserted;
 }
@@ -51,8 +55,7 @@ void mmc_slot::det_card_insertion_callback()
 //Destructor
 mmc_slot::~mmc_slot()
 {
-	if( m_det_timer )
-	{
+	if( m_det_timer ) {
 		isix::isix_vtimer_stop( m_det_timer );
 		isix::isix_vtimer_destroy( m_det_timer );
 		m_det_timer = NULL;
@@ -65,16 +68,12 @@ mmc_slot::~mmc_slot()
 int mmc_slot::get_card( mmc_card* &card )
 {
 	int ret = MMC_CARD_NOT_PRESENT;
-	if( m_det_pin.get() )
-	{
-		if( !m_card  || m_init_req )
-		{
+	if( m_det_pin.get() ) {
+		if( !m_card  || m_init_req ) {
 			ret = mmc_card::detect( m_host, m_card );
 			m_init_req = false;
 			if(!ret) card = m_card;
-		}
-		else
-		{
+		} else {
 			ret = MMC_OK;
 			card = m_card;
 		}
@@ -86,12 +85,9 @@ int mmc_slot::get_card( mmc_card* &card )
 //Wait for change status
 int mmc_slot::check( int timeout )
 {
-	if( timeout < 0 )
-	{
+	if( timeout < 0 ) {
 		return m_det_pin.get()?card_inserted:card_removed;
-	}
-	else
-	{
+	} else {
 		int ret = m_card_sem.wait( timeout );
 		if( ret ) return ret;
 		ret = m_event;
