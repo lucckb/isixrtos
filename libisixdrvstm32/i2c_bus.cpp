@@ -442,13 +442,13 @@ void i2c_bus::ev_irq()
 	//Send address
 	case I2C_EVENT_MASTER_MODE_SELECT:		//EV5
 		i2c_send_f7bit_address(dcast(m_i2c), m_addr );
-		dbprintf("I2C_EVENT_MASTER_MODE_SELECT");
+		//dbprintf("I2C_EVENT_MASTER_MODE_SELECT");
 	break;
 
 	//Send bytes in tx mode
 	case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:	//EV6
 			i2c_dma_tx_enable( dcast(m_i2c) );
-			dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
+			//dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	//EV8
@@ -459,7 +459,7 @@ void i2c_bus::ev_irq()
 			m_addr |= I2C_OAR1_ADD0;
 			i2c_generate_start( dcast(m_i2c), true );
 			//ACK config
-			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
+			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
 		}
 		else {
 			if( m_tx2_len == 0 ) {
@@ -470,7 +470,7 @@ void i2c_bus::ev_irq()
 				m_tx2_len = 0;
 				m_tx2_buf = nullptr;
 			}
-			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
+			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 		}
 	}
 	break;
@@ -484,13 +484,13 @@ void i2c_bus::ev_irq()
 				i2c_acknowledge_config( dcast(m_i2c), false );
 				i2c_it_config(dcast(m_i2c), I2C_IT_BUF, true );
 			}
-		dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
+		//dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_RECEIVED:
 		m_rx_buf[0] = i2c_receive_data( dcast(m_i2c) );
 		ev_finalize();
-		dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
+		//dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
 	break;
 		
 	default:
@@ -529,10 +529,10 @@ void i2c_bus::err_irq()
 		m_err_flag = event >> 8;
 		i2c_it_config( dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
 		i2c_generate_stop( dcast(m_i2c),true );
-		m_notify.signal_isr();
 		i2c_dma_rx_disable( dcast(m_i2c) );
 		i2c_dma_tx_disable( dcast(m_i2c) );
 	}
+	m_notify.signal_isr();
 }
 /* ------------------------------------------------------------------ */ 
 //Dma trasfer complete

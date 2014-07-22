@@ -60,10 +60,13 @@ namespace
 // Config defs
 
 //USE dma stream number valid no are 3 or 6
-#ifndef SDDRV_DMA_STREAM_NO
-#define SDDRV_DMA_STREAM_NO 3
+#ifndef CONFIG_SDDRV_DMA_STREAM_NO
+#define CONFIG_SDDRV_DMA_STREAM_NO 3
 #endif
-
+//! Initialize or not dma channel by default yes
+#ifndef CONFIG_SDDRV_INIT_DMA_GPIO_CLKS
+#define CONFIG_SDDRV_INIT_DMA_GPIO_CLKS 1
+#endif 
 // Config defs end
 #define _SD_SDIO_cat(x, y) x##y
 #define _SD_SDIO_cat3(x, y, z) x##y##z
@@ -71,16 +74,16 @@ namespace
 #define _SD_SDIO_STREAM_prv3(x, y, z)  _SD_SDIO_cat3(x, y, z)
 
 
-#define SD_SDIO_DMA_FLAG_TCIF         _SD_SDIO_STREAM_prv( DMA_FLAG_TCIF, SDDRV_DMA_STREAM_NO )
-#define SD_SDIO_DMA_FLAG_FEIF         _SD_SDIO_STREAM_prv( DMA_FLAG_FEIF, SDDRV_DMA_STREAM_NO )
-#define SD_SDIO_DMA_STREAM            _SD_SDIO_STREAM_prv( DMA2_Stream, SDDRV_DMA_STREAM_NO )
-#define SD_SDIO_DMA_FLAG_HTIF         _SD_SDIO_STREAM_prv( DMA_FLAG_HTIF, SDDRV_DMA_STREAM_NO )
-#define SD_SDIO_DMA_FLAG_DMEIF        _SD_SDIO_STREAM_prv( DMA_FLAG_DMEIF, SDDRV_DMA_STREAM_NO )
-#define SD_SDIO_DMA_FLAG_TEIF         _SD_SDIO_STREAM_prv( DMA_FLAG_TEIF, SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_FLAG_TCIF         _SD_SDIO_STREAM_prv( DMA_FLAG_TCIF, CONFIG_SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_FLAG_FEIF         _SD_SDIO_STREAM_prv( DMA_FLAG_FEIF, CONFIG_SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_STREAM            _SD_SDIO_STREAM_prv( DMA2_Stream, CONFIG_SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_FLAG_HTIF         _SD_SDIO_STREAM_prv( DMA_FLAG_HTIF, CONFIG_SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_FLAG_DMEIF        _SD_SDIO_STREAM_prv( DMA_FLAG_DMEIF, CONFIG_SDDRV_DMA_STREAM_NO )
+#define SD_SDIO_DMA_FLAG_TEIF         _SD_SDIO_STREAM_prv( DMA_FLAG_TEIF, CONFIG_SDDRV_DMA_STREAM_NO )
 #define SD_SDIO_DMA_CHANNEL           DMA_Channel_4
-#define SD_SDIO_DMA_IRQn              _SD_SDIO_STREAM_prv3(DMA2_Stream,SDDRV_DMA_STREAM_NO,_IRQn)
+#define SD_SDIO_DMA_IRQn              _SD_SDIO_STREAM_prv3(DMA2_Stream,CONFIG_SDDRV_DMA_STREAM_NO,_IRQn)
 #define SDIO_FIFO_ADDRESS             ((void*)0x40012C80)
-#if (SDDRV_DMA_STREAM_NO<=3)
+#if (CONFIG_SDDRV_DMA_STREAM_NO<=3)
 #define SD_SDIO_DMA_SR DMA2->LISR
 #else
 #define SD_SDIO_DMA_SR DMA2->HISR
@@ -254,8 +257,10 @@ mmc_host_sdio::mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz )
 	, m_transfer_error(0)
 {
 	  using namespace stm32;
+#if CONFIG_SDDRV_INIT_DMA_GPIO_CLKS == 1
 	  /* SDIO Peripheral Low Level Init */
 	  rcc_ahb1_periph_clock_cmd(RCC_AHB1Periph_GPIOC | RCC_AHB1Periph_GPIOD, true);
+#endif
 #if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	  gpio_pin_AF_config(GPIOC, GPIO_PinSource8, GPIO_AF_SDIO);
 	  gpio_pin_AF_config(GPIOC, GPIO_PinSource9, GPIO_AF_SDIO);
@@ -267,8 +272,10 @@ mmc_host_sdio::mmc_host_sdio( unsigned pclk2, int spi_speed_limit_khz )
 			  GPIO_MODE_ALTERNATE, GPIO_PUPD_PULLUP, GPIO_SPEED_25MHZ, GPIO_OTYPE_PP );
 	  gpio_config( GPIOD, 2, GPIO_MODE_ALTERNATE, GPIO_PUPD_PULLUP, GPIO_SPEED_25MHZ, GPIO_OTYPE_PP );
 	  gpio_config( GPIOC, 12, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, GPIO_SPEED_25MHZ, GPIO_OTYPE_PP );
+#if CONFIG_SDDRV_INIT_DMA_GPIO_CLKS == 1 
 	  //Configure DMA
 	  rcc_ahb1_periph_clock_cmd( RCC_AHB1Periph_DMA2, true );
+#endif /* CONFIG_SDDRV_INIT_DMA_GPIO_CLKS */
 #else
 #error F1 not implemented yet
 #endif

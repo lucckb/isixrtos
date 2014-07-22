@@ -27,7 +27,8 @@ class i2c_eeprom : public iflash_mem {
 public:
 	//! Memory type
 	enum class type : unsigned char {
-		m24c16
+		m24c16,
+
 	};
 	//! Error code
 	enum error {
