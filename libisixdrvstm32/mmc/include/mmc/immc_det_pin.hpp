@@ -18,6 +18,8 @@ namespace mmc {
 class immc_det_pin	: private fnd::noncopyable
 {
 public:
+	virtual ~immc_det_pin() {
+	}
 	virtual bool get() const = 0;
 };
 /*----------------------------------------------------------*/
