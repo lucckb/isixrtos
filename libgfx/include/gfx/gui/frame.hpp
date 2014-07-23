@@ -71,14 +71,20 @@ public:
 		m_default_win_layout.fg( color );
 	}
 	//! Focus on the window
-	int set_focus( window* win );
+	int set_focus( window* win, window* back_win = nullptr );
 	//! Focus on previous window
 	int focus_prev() {
 		if( m_prev_focus_wnd ) {
-			return set_focus( m_prev_focus_wnd );
+			auto cf = m_prev_focus_wnd;
+			m_prev_focus_wnd = nullptr;
+			return set_focus( cf );
 		} else {
 			return errno::wnd_not_found;
 		}
+	}
+	//! If previous focus is empty
+	bool has_focus_prev() const {
+		return m_prev_focus_wnd != nullptr;
 	}
 	//! Get active window
 	window* get_active_window() const {

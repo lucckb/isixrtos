@@ -79,7 +79,7 @@ void frame::delete_window( window* window )
 {
 	isix::sem_lock _lck( m_lock );
 	m_windows.remove( window );
-	queue_repaint( true, nullptr, true );
+	//queue_repaint( true, nullptr, true );
 }
 /* ------------------------------------------------------------------ */ 
 /** Refresh frame manual requirement */
@@ -114,14 +114,16 @@ void frame::repaint( bool force, window *wnd, bool force_clr )
 }
 /* ------------------------------------------------------------------ */
 //Focus on the window
-int frame::set_focus( window* win )
+int frame::set_focus( window* win, window* back_win )
 {
 	isix::sem_lock _lck( m_lock );
 	auto elem = std::find_if( std::begin(m_windows), std::end(m_windows), 
 			[&]( const window* w ) { return w == win; } );
 	if( elem != m_windows.end() ) {
 		m_windows.erase( elem );
-		m_prev_focus_wnd = m_windows.back();
+		if( back_win ) {
+			m_prev_focus_wnd = back_win;
+		}
 		m_windows.push_back( *elem );
 		queue_repaint( true, win, true );
 		return errno::success;
