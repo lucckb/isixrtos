@@ -310,7 +310,7 @@ int editbox::value_int() const
 void editbox::value( int value ) 
 {
 	char buf[32];
-	fnd::fnd_itoa( buf, value, m_min_len, 0 );
+	fnd::fnd_itoa( buf, value, m_min_len, '0');
 	m_value = buf;
 }
 /* ------------------------------------------------------------------ */
