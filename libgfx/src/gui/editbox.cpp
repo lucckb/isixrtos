@@ -135,8 +135,10 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 			cursor_forward();
 			ret = true;
 		}
-		else if( evk.key==kbdcodes::os_arrow_left && m_cursor_pos < m_max_len ) {
-			m_value.insert(m_cursor_pos, 1, insert_ch());
+		else if( evk.key==kbdcodes::os_arrow_left ) {
+			if( !m_max_len || m_cursor_pos < m_max_len ) {
+				m_value.insert(m_cursor_pos, 1, insert_ch());
+			}
 		}
 		if( evk.key == kbdcodes::os_arrow_up ) {
 			m_value[m_cursor_pos] = ch_inc( m_value[m_cursor_pos] );
@@ -190,9 +192,11 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 
 		} else { 
 			m_raw_key = evk.key;
-			if( isprint( evk.key ) && m_cursor_pos < m_max_len ) {
+			if( isprint( evk.key ) ) {
 				if( m_value.size() <= m_cursor_pos ) {
-					m_value += evk.key;
+					if( !m_max_len || m_cursor_pos < m_max_len ) {
+						m_value += evk.key;
+					}
 				} else {
 					m_value[m_cursor_pos] = evk.key;
 				}
