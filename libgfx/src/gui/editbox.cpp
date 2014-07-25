@@ -10,7 +10,8 @@
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/editbox.hpp>
 #include <foundation/dbglog.h>
-
+#include <foundation/utils.h>
+#include <cstdlib>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {
@@ -101,7 +102,7 @@ void editbox::cursor_end()
 	m_cursor_pos = m_value.size();
 	const auto c = get_coord() + get_owner().get_coord();
 	auto gdi = make_wgdi( );
-	const auto new_cur_x =  gdi.get_text_width( m_value[m_cursor_pos]) + m_cursor_x;
+	const auto new_cur_x =  gdi.get_text_width( m_value[m_cursor_pos] ) + m_cursor_x;
 	if( new_cur_x  < c.x()+c.cx()-text_margin*2 )
 		m_cursor_x = new_cur_x;
 }
@@ -110,7 +111,7 @@ void editbox::cursor_end()
 void editbox::cursor_backward() 
 {
 	const auto c = get_coord() + get_owner().get_coord();
-	if( m_cursor_pos > 0 ) {
+	if( m_cursor_pos > m_min_len ) {
 		--m_cursor_pos;
 	} else {
 		m_cursor_pos = m_value.size() - 1;	
@@ -129,12 +130,12 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 {
 	using namespace gfx::input;
 	bool ret {};
-	if( (evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && !m_readonly) {
+	if( ( evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && !m_readonly ) {
 		if( evk.key == kbdcodes::os_arrow_right ) {
 			cursor_forward();
 			ret = true;
 		}
-		else if( evk.key == kbdcodes::os_arrow_left ) {
+		else if( evk.key==kbdcodes::os_arrow_left && m_cursor_pos < m_max_len ) {
 			m_value.insert(m_cursor_pos, 1, insert_ch());
 		}
 		if( evk.key == kbdcodes::os_arrow_up ) {
@@ -143,7 +144,7 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 		} else if( evk.key == kbdcodes::os_arrow_down ) {
 			m_value[m_cursor_pos] = ch_dec( m_value[m_cursor_pos] );
 			ret = true;
-		} else if( evk.key == kbdcodes::enter) {
+		} else if( evk.key == kbdcodes::enter ) {
 			event btn_event( this, event::evtype::EV_CLICK );
 			ret |= emit( btn_event );
 		}
@@ -155,7 +156,7 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 	return ret;
 }
 /* ------------------------------------------------------------------ */
-//Handle querty KBD
+//! Handle querty KBD
 bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 {
 	using namespace gfx::input;
@@ -170,7 +171,7 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 		} else if( evk.key == kbdcodes::os_arrow_left ) {
 			cursor_backward();
 			ret = true;
-		} else if( evk.key == kbdcodes::enter) {
+		} else if( evk.key == kbdcodes::enter ) {
 			event btn_event( this, event::evtype::EV_CLICK );
 			ret |= emit( btn_event );
 			m_raw_key = evk.key;
@@ -189,7 +190,7 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 
 		} else { 
 			m_raw_key = evk.key;
-			if( isprint( evk.key ) ) {
+			if( isprint( evk.key ) && m_cursor_pos < m_max_len ) {
 				if( m_value.size() <= m_cursor_pos ) {
 					m_value += evk.key;
 				} else {
@@ -293,6 +294,20 @@ char editbox::ch_dec( char ch ) const
 		break;
 	}
 	return ch;
+}
+/* ------------------------------------------------------------------ */
+//! Get int value
+int editbox::value_int() const
+{
+	return std::atoi( m_value.c_str() );
+}
+/* ------------------------------------------------------------------ */ 
+//! Set int value
+void editbox::value( int value ) 
+{
+	char buf[32];
+	fnd::fnd_itoa( buf, value, m_min_len, 0 );
+	m_value = buf;
 }
 /* ------------------------------------------------------------------ */
 } /* namespace gui */

@@ -2,7 +2,7 @@
 /*
  * editbox.hpp
  *
- *  Created on: 14 paź 2013
+ *  Created on: 14 paz 2013
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
@@ -19,67 +19,82 @@ class editbox: public widget
 {
 	using keystat = gfx::input::detail::keyboard_tag::status;
 public:
-	enum class type	 : char {
-		text,				//Text edit
-		float_pos,		//Floating point type
-		float_neg,		//Negative floating point
-		integer_pos,		//Integer positive
-		integer_neg,		//Integer negative
+	//! Edit box type
+	enum class type	: char {
+		text,				//! Text edit
+		float_pos,			//! Floating point type
+		float_neg,			//! Negative floating point
+		integer_pos,		//! Integer positive
+		integer_neg,		//! Integer negative
 	};
+	//! Keyboard mode
 	enum class kbd_mode : char {
-		joy,		//Joystick mode
-		qwerty		//Full kbd mode
+		joy,		//! Joystick mode
+		qwerty		//! Full kbd mode
 	};
-	//Constructor
-	editbox( rectangle const& rect,layout const& layout ,window &win )
+	//! Constructor
+	editbox( rectangle const& rect, layout const& layout, window &win )
 	 : widget( rect, layout, win ),
-	   m_cursor_x((get_coord() + get_owner().get_coord()).x()+text_margin)
+	   m_cursor_x( (get_coord() + get_owner().get_coord()).x()+text_margin )
 	{}
-	//Destructor
+	//! Destructor
 	virtual ~editbox()
 	{}
 	//! Get raw key
 	char raw_key() const {
 		return m_raw_key;
 	}
-	//Get value
-	template <typename T> T get() const;
-	//Set mask character
-	void mask( char mask_ch = '*') { m_mask = mask_ch; }
-	//Set minimum length
-	void min_len( short min_len_ ) { m_min_len = min_len_; }
-	//Set maximum len
-	void max_len( short max_len_ ) { m_max_len = max_len_; }
-	//Read only
-	bool readonly() const { return m_readonly; }
-	void readonly( bool readonly ) { m_readonly  = readonly; }
+	//! Set mask character
+	void mask( char mask_ch = '*') { 
+		m_mask = mask_ch; 
+	}
+	//! Set edit mode
+	void set_mode( type etype, short min_len = 0, short max_len = 0 )  {
+		m_type =  etype;
+		m_min_len = min_len;
+		m_max_len = max_len;
+	}
+	//! Read only get
+	bool readonly() const { 
+		return m_readonly; 
+	}
+	//! Read only set
+	void readonly( bool readonly ) { 
+		m_readonly = readonly; 
+	}
 	//Set full kbdmode
-	void kbdmode( kbd_mode kbdmode ) { m_kbdmode = kbdmode; }
-	//Get field value
+	void kbdmode( kbd_mode kbdmode ) { 
+		m_kbdmode = kbdmode; 
+	}
+	//! Get field value
 	template< typename T>
 	void value( const T value ) {
 		m_value = value;
 	}
-	//Set text value
+	//! Set text value
 	const detail::string& value() const {
 		return m_value;
 	}
+	//! Get int value
+	int value_int() const;
+	//! Set int value
+	void value( int value );
 	//! Clear the entry box
 	void clear();
 	//* Report input event
 	virtual void report_event( const input::event_info& ev );
 protected:
-	// On repaint the widget return true when changed
+	//! On repaint the widget return true when changed
 	virtual void repaint();
 private:
-	//Handle joy KBD
+	//! Handle joy KBD
 	bool handle_joy( const input::detail::keyboard_tag &key_tag );
-	//Handle querty KBD
+	//! Handle querty KBD
 	bool handle_qwerty( const input::detail::keyboard_tag &key_tag );
-	//Increment decrement character according criteria
+	//! Increment decrement character according criteria
 	char ch_inc( char ch ) const;
 	char ch_dec( char ch ) const;
-	//Insert character get
+	//! Insert character get
 	char insert_ch();
 	//! Move cursor forward
 	void cursor_forward();
@@ -88,8 +103,8 @@ private:
 	//! Cursor to end 
 	void cursor_end();
 private:
-	short m_min_len { 0 };					//Minimum len
-	short m_max_len { 0 };					//Maximum len
+	unsigned short m_min_len {  };			//Minimum len
+	unsigned short m_max_len {  };			//Maximum len
 	type m_type {type::text};				//Widget type
 	detail::string m_value;					//Default value
 	bool m_readonly {};						//Is readonly

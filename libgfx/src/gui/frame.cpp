@@ -19,8 +19,6 @@ namespace gui {
 /** Execute gui main loop */
 void frame::execute()
 {
-	//TODO: Replace by semaphore guard (but now we are not using exception
-	//so it should be save if don't use sem guards
 	using evinfo = input::event_info;
 	m_disp.clear( color::Black );
 

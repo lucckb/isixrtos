@@ -6,15 +6,14 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------ */
-#ifndef UTILS_H_
-#define UTILS_H_
+#pragma once
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
 namespace fnd {
 extern "C" {
 #endif
 /* ------------------------------------------------------------ */
-//Convert string to unsigned
+//! Convert string to unsigned
 unsigned fnd_atoui(const char *str);
 
 /* ------------------------------------------------------------ */
@@ -24,8 +23,7 @@ void fnd_uitoa(char *str, unsigned val , int fmt, char fmtch, int base);
 //Convert int to ascii
 static inline void fnd_itoa(char *str, int val , int fmt, char fmtch )
 {
-	if(val < 0 )
-	{
+	if(val < 0 ) {
 		val = -val;
 		*str++ = '-';
 	}
@@ -52,8 +50,6 @@ void fnd_dtoa(double value, char* str, int prec);
 void fnd_ftoa(float value, char* str, int prec);
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
- }
- }
+ }}
 #endif
 /* ------------------------------------------------------------ */
-#endif /* UTILS_H_ */
