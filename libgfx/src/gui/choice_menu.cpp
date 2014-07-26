@@ -31,8 +31,7 @@ int choice_menu::calc_max_items() const
 //Repaint virtual function
 void choice_menu::repaint()
 {
-	if( m_items )
-	{
+	if( m_items ) {
 		auto gdi_sel = make_wgdi( );
 		auto gdi_nsel = make_wgdi( );
 		gdi_nsel.set_bg_color( get_owner().get_layout().bg() );
@@ -42,13 +41,11 @@ void choice_menu::repaint()
 		const auto ystart = coo.y() + y_margin;
 		const auto boxpos = m_curr_item>m_max_box_items-1?m_max_box_items-1:m_curr_item;
 		for( int c=0,s=m_curr_item-boxpos>0?m_curr_item-boxpos:0;
-			  c<m_max_box_items; ++c,++s )
-		{
+			  c<std::min(m_max_box_items, m_num_items); ++c,++s ) {
 			auto &gdi = m_curr_item==s?gdi_sel:gdi_nsel;
 			const auto y = ystart + c * ymul;
 			auto x = coo.x()+x_margin_left;
-			if( m_style == style::select )
-			{
+			if( m_style == style::select ) {
 				gdi.fill_area( x, y, ymul, ymul, true );
 				x+= gdi_sel.get_text_height();
 			}
@@ -56,15 +53,13 @@ void choice_menu::repaint()
 			const auto cxf = coo.x()+coo.cx()-xf-x_margin_right;
 			if( cxf > 0)
 				gdi.fill_area( xf, y, cxf , ymul, true );
-			if( m_style == style::select )
-			{
+			if( m_style == style::select ) {
 				gdi.set_fill(true);
 				const auto r = gdi_sel.get_text_height() /2 ;
 				const auto xc = coo.x()+x_margin_left + r;
 				const auto yc = y + r;
 				gdi.draw_circle( xc, yc, r - slider_space - 1 );
-				if( m_sel_item == s )
-				{
+				if( m_sel_item == s ) {
 					auto lgdi = make_gdi( );
 					lgdi.set_fill(true);
 					lgdi.draw_circle(xc, yc, (r - slider_space - 1)/2 );
@@ -95,16 +90,18 @@ void choice_menu::repaint()
 	{
 		static constexpr coord_t min_slider = 10;
 		const auto c = get_coord() + get_owner().get_coord();
-		const auto twidth = c.cy() - y_margin*2;
-		const auto sel_width_ =  m_max_box_items *( twidth ) / m_num_items;
-		const auto sel_width = sel_width_<min_slider?min_slider:sel_width_;
-		const auto ypos = (sel_width * m_curr_item ) / (m_num_items+1);
+		const auto twidth = c.cy() - y_margin * 2;
+		const auto sel_width_ =  twidth/m_num_items;
+		const auto sel_width = std::max<coord_t>( sel_width_, min_slider );
+		const auto ypos = ( sel_width * m_curr_item );
 		auto gdi = make_gdi();
 		constexpr auto luma = -128;
 		gdi.set_fg_color( colorspace::brigh( get_layout().bg(), luma ) );
-		gdi.fill_area(c.x()+c.cx()-x_margin_right+slider_space, c.y()+y_margin ,x_margin_right-slider_space-2 ,  twidth );
+		gdi.fill_area(c.x()+c.cx()-x_margin_right+slider_space, 
+			c.y()+y_margin ,x_margin_right-slider_space-2 , twidth );
 		//Selected part
-		gdi.fill_area(c.x()+c.cx()-x_margin_right+slider_space, c.y()+y_margin+ypos ,x_margin_right-slider_space-2 , sel_width, true );
+		gdi.fill_area(c.x()+c.cx()-x_margin_right+slider_space, 
+			c.y()+y_margin+ypos ,x_margin_right-slider_space-2 , sel_width, true );
 	}
 }
 
@@ -114,8 +111,7 @@ void choice_menu::items( const item *items )
 {
 	m_items = items;
 	m_num_items = 0;
-	if( m_items )
-	{
+	if( m_items ) {
 		for( size_t i=0; m_items[i].first; ++i, ++m_num_items );
 	}
 }

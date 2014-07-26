@@ -120,7 +120,7 @@ int frame::set_focus( window* win, window* back_win )
 	if( elem != m_windows.end() ) {
 		m_windows.erase( elem );
 		if( back_win ) {
-			m_prev_focus_wnd = back_win;
+			m_win_stack.push( back_win );
 		}
 		m_windows.push_back( *elem );
 		queue_repaint( true, win, true );

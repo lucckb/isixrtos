@@ -22,8 +22,7 @@ class choice_menu : public widget
 {
 public:
 	//! Menu style
-	enum class style : char
-	{
+	enum class style : char {
 		normal,		//! Normal one item select menu
 		select		//! Select item menu
 	};
@@ -44,7 +43,7 @@ public:
 	virtual ~choice_menu() {}
 
 	//Set menu items
-	void items( const item *items=nullptr);
+	void items( const item *items = nullptr );
 
 	// Report input event
 	virtual void report_event( const input::event_info& ev );

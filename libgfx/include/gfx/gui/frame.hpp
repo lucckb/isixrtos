@@ -12,6 +12,7 @@
 #include <gfx/gui/detail/defines.hpp>
 #include <gfx/gui/primitives.hpp>
 #include <gfx/drivers/disp/disp_base.hpp>
+#include <stack>
 #include <isix.h>
 /* ------------------------------------------------------------------ */
 namespace gfx {
@@ -72,19 +73,20 @@ public:
 	}
 	//! Focus on the window
 	int set_focus( window* win, window* back_win = nullptr );
-	//! Focus on previous window
-	int focus_prev() {
-		if( m_prev_focus_wnd ) {
-			auto cf = m_prev_focus_wnd;
-			m_prev_focus_wnd = nullptr;
+
+	//!  Pop focus on prev window
+	int pop_focus() {
+		if( !m_win_stack.empty() ) {
+			auto cf = m_win_stack.top();
+			m_win_stack.pop();
 			return set_focus( cf );
 		} else {
 			return errno::wnd_not_found;
 		}
 	}
 	//! If previous focus is empty
-	bool has_focus_prev() const {
-		return m_prev_focus_wnd != nullptr;
+	bool stack_empty() const {
+		return m_win_stack.empty();
 	}
 	//! Get active window
 	window* get_active_window() const {
@@ -121,7 +123,7 @@ private:
 	//Default layout
 	layout m_default_win_layout { color_t(~m_color), m_color, color::Red };					/* Window layout */
 	layout m_default_layout { color::Black, color::LightGray, color::BlueViolet  } ;		/* Component layout */
-	window* m_prev_focus_wnd {};	//! Window with prev focus
+	std::stack<window*> m_win_stack;
 };
 
 /* ------------------------------------------------------------------ */
