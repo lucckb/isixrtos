@@ -36,7 +36,7 @@ void editbox::repaint()
 	x = m_cursor_x;
 	for(auto it = m_value.begin()+m_cursor_pos-1; m_cursor_pos>0&&it>=m_value.begin(); --it ) {
 		const auto tw = gdi.get_text_width(*it);
-		if( x - tw < c.x()+text_margin )
+		if( x - tw < c.x() + text_margin )
 			break;
 		x -= tw;
 		gdi.draw_text( x , ty, *it );
@@ -46,16 +46,16 @@ void editbox::repaint()
 
 	//FRM1
 	gdi.bright_fg_color( -luma );
-	gdi.draw_line(c.x(), c.y()+c.cy(), c.x()+c.cx(), c.y()+c.cy() );
-	gdi.draw_line(c.x()+c.cx(), c.y()+1, c.x()+c.cx(), c.y()+c.cy() );
+	gdi.draw_line( c.x(), c.y()+c.cy(), c.x()+c.cx(), c.y()+c.cy() );
+	gdi.draw_line( c.x()+c.cx(), c.y()+1, c.x()+c.cx(), c.y()+c.cy() );
 	//FRM2
 	gdi.bright_fg_color( -luma2 );
-	gdi.draw_line(c.x()+1, c.y()+c.cy()-1, c.x()+c.cx(), c.y()-1+c.cy() );
-	gdi.draw_line(c.x()+c.cx()-1, c.y()+1, c.x()+c.cx()-1, c.y()+c.cy() );
+	gdi.draw_line( c.x()+1, c.y()+c.cy()-1, c.x()+c.cx(), c.y()-1+c.cy() );
+	gdi.draw_line( c.x()+c.cx()-1, c.y()+1, c.x()+c.cx()-1, c.y()+c.cy() );
 	//FRM3
 	gdi.bright_fg_color( luma );
-	gdi.draw_line(c.x()+1, c.y(), c.x()+c.cx()-1, c.y() );
-	gdi.draw_line(c.x(), c.y(), c.x(), c.y()+c.cy()-2 );
+	gdi.draw_line( c.x()+1, c.y(), c.x()+c.cx()-1, c.y() );
+	gdi.draw_line( c.x(), c.y(), c.x(), c.y()+c.cy()-2 );
 }
 /* ------------------------------------------------------------------ */
 //* Report input event
@@ -64,12 +64,16 @@ void editbox::report_event( const input::event_info& ev )
 	bool ret {};
 	if(ev.type == event::evtype::EV_KEY ) {
 		// dbprintf("Keycode %04x", ev.keyb.key );
-		if( m_kbdmode == kbd_mode::joy )
+		if( m_kbdmode == kbd_mode::joy ) {
 			ret = handle_joy( ev.keyb );
-		else if( m_kbdmode == kbd_mode::qwerty )
+		} else if( m_kbdmode == kbd_mode::qwerty ) {
 			ret = handle_qwerty( ev.keyb );
-		else {
+		} else {
 			dbprintf("Unknown kbd mode %i", m_kbdmode );
+		}
+		//! Limit handler callback
+		if( m_limit_hwnd ) { 
+			m_limit_hwnd( m_value );
 		}
 	} else {
 		//dbprintf("Unhandled event type %i", ev.type );
@@ -136,8 +140,8 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 			ret = true;
 		}
 		else if( evk.key==kbdcodes::os_arrow_left ) {
-			if( !m_max_len || m_cursor_pos < m_max_len ) {
-				m_value.insert(m_cursor_pos, 1, insert_ch());
+			if( !m_max_len || m_value.size()<m_max_len ) {
+				m_value.insert( m_cursor_pos, 1, insert_ch() );
 			}
 		}
 		if( evk.key == kbdcodes::os_arrow_up ) {

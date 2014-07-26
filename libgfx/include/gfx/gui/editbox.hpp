@@ -19,6 +19,8 @@ class editbox: public widget
 {
 	using keystat = gfx::input::detail::keyboard_tag::status;
 public:
+	//! Limit handler for 
+	using limit_handler = std::function<void(detail::string&)>;
 	//! Edit box type
 	enum class type	: char {
 		text,				//! Text edit
@@ -53,6 +55,10 @@ public:
 		m_type =  etype;
 		m_min_len = min_len;
 		m_max_len = max_len;
+	}
+	//! Set limit handler
+	void set_limit_handler( limit_handler hwnd ) {
+		m_limit_hwnd = hwnd;
 	}
 	//! Read only get
 	bool readonly() const { 
@@ -113,6 +119,7 @@ private:
 	int m_cursor_x {};						//Cursor position on screen
 	char m_mask {};							//Mask character enabled
 	char m_raw_key {};						//!Raw key
+	limit_handler m_limit_hwnd;				//! Limit handler
 private:	//Private constants
 	static constexpr coord_t text_margin = 2;
 };

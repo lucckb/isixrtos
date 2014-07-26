@@ -18,7 +18,6 @@ choice_menu::choice_menu( rectangle const& rect,
 	  m_max_box_items(calc_max_items())
 {
 }
-
 /* ------------------------------------------------------------------ */
 //Calculate max number of items using current font
 int choice_menu::calc_max_items() const
