@@ -38,11 +38,14 @@ struct scancodes {
 		arrow_down = 0x51,
 		arrow_right = 0x4f,
 		arrow_left = 0x50,
+		escape = 0x29,
 		end = 0x4d,
 		T = 0x17,
 		R = 0x15,
 		A = 0x04,
-		L = 0x0f
+		L = 0x0f,
+		C = 0x06,
+		D = 0x07,
 	};
 };
 
