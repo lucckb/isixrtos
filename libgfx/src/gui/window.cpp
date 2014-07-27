@@ -45,7 +45,9 @@ void window::repaint( bool force, bool force_clr )
 			if( m_flags & flags::border ) {
 				draw_line_box( m_coord, gdi );
 			} else if( (m_flags & flags::fill) && force_clr ) {
-				disp::gdi gdic( get_owner().get_display(), (m_flags&flags::fill)?(lay.bg()):(color_t(color::Black)) );
+				disp::gdi gdic( get_owner().get_display(), 
+					(m_flags&flags::fill)?(lay.bg()):(color_t(color::Black)) 
+				);
 				draw_line_box( m_coord, gdic );
 			}
 		}
