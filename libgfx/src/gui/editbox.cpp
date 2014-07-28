@@ -115,7 +115,7 @@ void editbox::cursor_end()
 void editbox::cursor_backward() 
 {
 	const auto c = get_coord() + get_owner().get_coord();
-	if( m_cursor_pos > m_min_len ) {
+	if( m_cursor_pos > 0 ) {
 		--m_cursor_pos;
 	} else {
 		m_cursor_pos = m_value.size() - 1;	
@@ -184,7 +184,7 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 			ret = true;
 		} else if( evk.key == kbdcodes::backspace ) {
 			// Backspace handle
-			if( m_cursor_pos-1 <= m_value.size() ) {
+			if( m_cursor_pos-1<=m_value.size() && m_value.size()>m_min_len ) {
 				m_value.erase( m_cursor_pos-1, 1 );
 				cursor_backward();
 				m_raw_key = evk.key;
@@ -196,7 +196,7 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 
 		} else { 
 			m_raw_key = evk.key;
-			if( isprint( evk.key ) ) {
+			if( key_match( evk.key ) ) {
 				if( m_value.size() <= m_cursor_pos ) {
 					if( !m_max_len || m_cursor_pos < m_max_len ) {
 						m_value += evk.key;
@@ -217,12 +217,11 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 }
 /* ------------------------------------------------------------------ */
 //! Clear the box
-void editbox::clear() 
+void editbox::to_begin() 
 {
 	const auto c = get_coord() + get_owner().get_coord();
 	m_cursor_x = c.x() + text_margin;
 	m_cursor_pos = 0;
-	m_value.clear();
 }
 /* ------------------------------------------------------------------ */
 //Get insert char
@@ -303,6 +302,24 @@ char editbox::ch_dec( char ch ) const
 	}
 	return ch;
 }
+/* ------------------------------------------------------------------ */ 
+//! If key matches the selected format
+bool editbox::key_match( int ch ) const
+{
+	switch( m_type ) {
+	case type::text:
+		return std::isprint( ch );
+	case type::integer_neg:
+		return std::isdigit( ch ) || ch == '-';
+	case type::integer_pos:
+		return std::isdigit( ch );
+	case type::float_pos:
+		return isdigit( ch ) || ch=='E' || ch=='e' || ch=='.';
+	case type::float_neg:
+		return isdigit( ch ) || ch=='E' || ch=='e' || ch=='.' || ch=='-';
+	}
+	return false;
+}
 /* ------------------------------------------------------------------ */
 //! Get int value
 int editbox::value_int() const
@@ -316,6 +333,7 @@ void editbox::value( int value )
 	char buf[32];
 	fnd::fnd_itoa( buf, value, m_min_len, '0');
 	m_value = buf;
+	to_begin();
 }
 /* ------------------------------------------------------------------ */
 } /* namespace gui */

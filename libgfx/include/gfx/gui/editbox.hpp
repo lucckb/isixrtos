@@ -76,6 +76,10 @@ public:
 	template< typename T>
 	void value( const T value ) {
 		m_value = value;
+		if( m_value.size() < m_min_len ) {
+			m_value.resize( m_min_len, ' ' );
+		}
+		to_begin();
 	}
 	//! Set text value
 	const detail::string& value() const {
@@ -86,7 +90,10 @@ public:
 	//! Set int value
 	void value( int value );
 	//! Clear the entry box
-	void clear();
+	void clear() {
+		to_begin();
+		m_value.clear();
+	}
 	//* Report input event
 	virtual void report_event( const input::event_info& ev );
 protected:
@@ -108,6 +115,10 @@ private:
 	void cursor_backward();
 	//! Cursor to end 
 	void cursor_end();
+	//! Move cursor to begin
+	void to_begin();
+	//! If key matches the selected format
+	bool key_match( int ch ) const;
 private:
 	unsigned short m_min_len {  };			//Minimum len
 	unsigned short m_max_len {  };			//Maximum len
