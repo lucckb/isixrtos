@@ -472,6 +472,7 @@ void i2c_bus::ev_irq()
 			}
 			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 		}
+		dsb(); isb(); nop(); nop();
 	}
 	break;
 

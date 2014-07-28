@@ -15,7 +15,7 @@
  *
  * =====================================================================================
  */
-
+#include <config.h>
 #include <foundation/fs_env.hpp>
 #include <cstdint>
 #include <limits>
@@ -229,7 +229,7 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 	*   @param[in] env_id Environment identifier
 	*   @param[in] buf Pointer to buffer for store data
 	*   @param[in] len Buffer length
-	*   @return Error code on failed
+	*   @return If success return number of bytes or negative error code
 	*/
 int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 {
@@ -266,6 +266,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 	if( buf_len > node.len ) {
 		buf_len = node.len;
 	}
+	const auto real_read = buf_len;
 	auto rrl = buf_len>(csize-sizeof(fnode_0))?(csize-sizeof(fnode_0)):(buf_len);
 	{
 		const auto n = reinterpret_cast<fnode_0*>(lbuf);
@@ -293,10 +294,10 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 	if( !ret ) {
 		if( ccrc() != node.crc ) {
 			dbprintf("CRC mismatch");
-			return err_fs_fmt;
+			ret = err_fs_fmt;
 		}
 	}
-	return ret;
+	return (ret)?(ret):(real_read);
 }
 /* ------------------------------------------------------------------ */
 /** Unset environment variable

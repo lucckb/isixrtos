@@ -56,7 +56,7 @@ public:
 	 *   @param[in] env_id Environment identifier
 	 *   @param[in] buf Pointer to buffer for store data
 	 *   @param[in] len Buffer length
-	 *   @return Error code on failed
+	 *   @return Error code
 	 */
 	int set( unsigned env_id, const void* buf, size_t buf_len );
 
@@ -64,18 +64,18 @@ public:
 	 *   @param[in] env_id Environment identifier
 	 *   @param[in] buf Pointer to buffer for store data
 	 *   @param[in] len Buffer length
-	 *   @return Error code on failed
+	 *   @return Return number of bytes read or negative error code
 	 */
 	int get( unsigned env_id, void* buf, size_t buf_len );
 
 	/** Unset environment variable
 	 *   @param[in] env_id Environment identifier
-	 *   @return Error code on failed
+	 *   @return Error code
 	 */
 	int unset( unsigned env_id );
 
 	/** Format the whole storage memory on demand 
-	 *  @return error status code
+	 *  @return Error code
 	 */
 	int format( );
 private:
