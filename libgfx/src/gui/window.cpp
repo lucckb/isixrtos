@@ -79,7 +79,7 @@ void window::report_event( const input::event_info& ev )
 	//  Don't dispatch hotplug event to to the
 	//  widgets only only windows got this event
 	//  it should be dispatched
-	if( ev.type == evinfo::EV_HOTPLUG ) {
+	if( ev.type==evinfo::EV_HOTPLUG || ev.type==evinfo::EV_TIMER ) {
 		return;
 	}
 	if( ev.type != evinfo::EV_WINDOW ) {

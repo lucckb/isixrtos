@@ -21,6 +21,7 @@ LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/icon.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/frame.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/multiview.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/waterfall.cpp
+LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/gui/timer.cpp
 LIBGFX_CPPSRC += $(LIBGFXSRC_DIR)/input.cpp
 LIBGFX_CPPSRC += $(LIBGFXFONTSRC_DIR)/default.cpp
 LIBGFX_CPPSRC += $(LIBGFXFONTSRC_DIR)/small.cpp

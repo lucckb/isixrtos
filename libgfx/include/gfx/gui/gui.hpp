@@ -10,6 +10,7 @@
 #include "button.hpp"
 #include "choice_menu.hpp"
 #include "frame.hpp"
+#include "timer.hpp"
 #include "icon.hpp"
 #include "label.hpp"
 #include "window.hpp"

@@ -47,14 +47,21 @@ void frame::execute()
 				}
 			}
 			//! Dispatch hotplug event to all widows 
-			if( ev.type == evinfo::EV_HOTPLUG ) {
+			if( ev.type==evinfo::EV_HOTPLUG ) {
+				rpt_wnd = nullptr;
+				isix::sem_lock _lck( m_lock );
+				for( const auto item : m_windows ) {
+					item->report_event( ev );
+				}
+			} 
+			if( ev.type==evinfo::EV_TIMER && !ev.window ) {
 				rpt_wnd = nullptr;
 				isix::sem_lock _lck( m_lock );
 				for( const auto item : m_windows ) {
 					item->report_event( ev );
 				}
 			}
-			else if( rpt_wnd ) {
+			if( rpt_wnd ) {
 				rpt_wnd->report_event( ev );
 			}
 		}

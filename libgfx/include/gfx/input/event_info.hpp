@@ -11,6 +11,7 @@ namespace gfx {
 namespace gui {
 	class window;
 	class widget;
+	class timer;
 }
 namespace input {
 
@@ -130,6 +131,11 @@ namespace detail {
 		} htype;
 		const void *devid;		//! Device private data
 	};
+	//! Structure for the GUI timer
+	struct timer {
+		int id;	
+		gfx::gui::timer* owner;
+	};
 } // ns detail
 /* ------------------------------------------------------------------ */
 struct event_info {
@@ -145,11 +151,12 @@ struct event_info {
 		EV_CLICK,	/** Click event  */
 		EV_CHANGE,	/** Component changed */
 		EV_FOCUS,	/** Focus get or focus lost */
+		EV_TIMER,	/** EV timer event */
 		EV_JOY_REPORT,	/** Joystick report */
 	};
 	unsigned time;  //! Timestamp
 	evtype type;    //! Event type
-	gui::window *window; 		    	//! Optional window address EV_PAINT, EV_WINDOW
+	gui::window *window; 		    	//! Optional window address EV_PAINT, EV_WINDOW, EV_TIMER
 	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
 		struct {						//! For EV_WINDOW , EV_WIDGET 
@@ -162,6 +169,7 @@ struct event_info {
 			bool clrbg;					//! Clear background
 		}  paint;
 		detail::hotplug hotplug;		//! Hotplug event
+		detail::timer timer;			//! Timer event
 	};
 };
 /* ------------------------------------------------------------------ */
