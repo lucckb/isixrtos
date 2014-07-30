@@ -42,6 +42,14 @@ public:
 	int start();
 	//! Stop timer
 	int stop();
+	//! Restart timer
+	int restart() {
+		auto err = stop();
+		if( !err ) {
+			err = start();
+		}
+		return err;
+	}
 	//! Change value time
 	void operator()( unsigned elapse ) {
 		m_elapse = elapse;
