@@ -80,11 +80,9 @@ int timer::start()
 int timer::stop()
 {
 	int ret { einval };
-	if( m_cyclic ) {
-		if( m_started ) {
-			ret =  isix::isix_vtimer_stop( m_sys_timer );
-			m_started = false;
-		}
+	if( m_started || !m_cyclic ) {
+		ret =  isix::isix_vtimer_stop( m_sys_timer );
+		m_started = false;
 	}
 	return ret;
 }
