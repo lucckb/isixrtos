@@ -40,6 +40,7 @@ struct scancodes {
 		arrow_left = 0x50,
 		escape = 0x29,
 		end = 0x4d,
+		del = 0x4c,
 		F1 = 0x3a,
 		F2 = 0x3b,
 		F3 = 0x3c,
