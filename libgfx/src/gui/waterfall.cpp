@@ -118,13 +118,17 @@ void waterfall::report_event( const input::event_info& ev )
 }
 /* ------------------------------------------------------------------ */ 
 //! Handle repaint 
-void waterfall::repaint(  bool /* focus */  )
+void waterfall::repaint( bool focus )
 {
 	if( m_readonly ) {
+		if( !focus && !is_modified() ) {
+			return;
+		}
 		auto gdi = make_gdi();
 		const auto c = get_coord() + get_owner().get_coord();
+		const int lwidth = c.cx() - c_margin * 2;
 		gdi.set_bg_color( get_layout().sel() );
-		gdi.fill_area( c.x(), c.y(), c.cx(), c.cy(), true );
+		gdi.fill_area( c.x() + c_margin, c.y(), lwidth, c.cy(), true );
 		draw_frame();
 		return;
 	}
