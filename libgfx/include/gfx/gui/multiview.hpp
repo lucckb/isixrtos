@@ -70,7 +70,7 @@ private:
 	 void gui_clear_box();
 protected:
 	 //! On repaint the widget return true when changed
-	 virtual void repaint();
+	 virtual void repaint( bool focus );
 private:
 	detail::string m_line;	//! Temporary line buffer
 	bool m_clear_req {};	//! Clear req

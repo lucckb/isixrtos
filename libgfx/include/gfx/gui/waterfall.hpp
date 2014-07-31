@@ -71,7 +71,7 @@ public:
 	}
 protected:
 	 //! On repaint the widget return true when changed
-	 virtual void repaint();
+	 virtual void repaint( bool focus );
 private:
 	 //! Draw GUI frame
 	 void draw_frame();

@@ -44,7 +44,7 @@ public:
 	}
 protected:
 	//! Repaint the window
-	virtual void repaint();
+	virtual void repaint( bool focus );
 private:
 	unsigned char m_percent {};			//! Private percent value 
 };

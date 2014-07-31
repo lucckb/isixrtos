@@ -31,7 +31,6 @@ void window::repaint( bool force, bool force_clr )
 		event focus_event( this, event::evtype::EV_FOCUS );
 		emit( focus_event );
 	}
-	force |= m_changed;
 	const auto& lay = m_layout.inherit()?get_owner().get_def_win_layout():m_layout;
 	disp::gdi gdi( get_owner().get_display(), lay.sel(), lay.bg(), lay.font() );
 	{
@@ -53,7 +52,7 @@ void window::repaint( bool force, bool force_clr )
 		}
 	}
 	for( const auto item : m_widgets ) {
-		item->redraw( force );
+		item->redraw( force, m_changed );
 	}
 	//If border outside component is required
 	if( (m_flags & flags::selectborder) && has_focus() ) {

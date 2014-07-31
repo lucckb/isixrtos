@@ -20,7 +20,7 @@ label::label( rectangle const& rect,layout const& layout ,
 }
 /* ------------------------------------------------------------------ */
 //Repaint the lable
-void label::repaint()
+void label::repaint( bool /* focus */ )
 {
 	const auto c = get_coord() + get_owner().get_coord();
 	auto gdi = make_gdi();

@@ -28,7 +28,7 @@ battery_icon::battery_icon( rectangle const& rect,layout const& layout ,window &
 }
 /* ------------------------------------------------------------------ */
 //! On repaint widget event
-void battery_icon::repaint() 
+void battery_icon::repaint( bool /* focus */ ) 
 {
 	constexpr auto luma = 32;
 	const auto bat_top_width = 3;

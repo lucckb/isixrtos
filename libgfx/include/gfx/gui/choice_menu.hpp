@@ -66,7 +66,7 @@ public:
 	}
 protected:
 	//! Repaint virtual function
-	virtual void repaint();
+	virtual void repaint( bool focus );
 private:
 	//Calc maximum item value
 	int calc_max_items() const;

@@ -24,8 +24,11 @@ namespace gui {
 
 /* ------------------------------------------------------------------ */ 
 //! On repaint the widget return true when changed
-void multiview::repaint()
+void multiview::repaint( bool focus )
 {
+	if( focus ) {
+		m_last_x = INVAL;
+	}
 	if( m_clear_req ) {
 		gui_clear_box();
 	} else {

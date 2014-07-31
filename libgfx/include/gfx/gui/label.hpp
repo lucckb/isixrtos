@@ -37,7 +37,7 @@ public:
 	}
 protected:
 	//Repaint the label
-	virtual void repaint();
+	virtual void repaint( bool focus );
 private:
 	static constexpr auto c_default = -1;
 	detail::string m_caption;

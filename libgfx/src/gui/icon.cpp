@@ -18,7 +18,7 @@ icon::icon( rectangle const& rect,layout const& layout ,window &win )
 }
 /* ------------------------------------------------------------------ */
 //Repaint the window
-void icon::repaint()
+void icon::repaint( bool /* focus */ )
 {
 	auto gdi = make_wgdi();
 	const auto c = get_coord() + get_owner().get_coord();

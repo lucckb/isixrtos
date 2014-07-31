@@ -40,7 +40,7 @@ public:
 	}
 protected:
 	//Repaint virtual function
-	virtual void repaint();
+	virtual void repaint( bool focus );
 private:
 	short m_min { 0 };			//Minimum value
 	short m_max { 100 };		//Maximum value

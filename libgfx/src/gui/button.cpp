@@ -13,7 +13,7 @@ namespace gui {
 
 /* ------------------------------------------------------------------ */
 // On repaint the window return true when changed
-void button::repaint()
+void button::repaint( bool /* focus */ )
 {
 	constexpr auto luma = 128;
 	constexpr auto luma2 = luma/2;

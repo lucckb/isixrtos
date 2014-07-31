@@ -27,7 +27,6 @@ public:
 		: m_coord(rect), m_layout(layout), 
 		m_win(win), m_selectable(selectable)
 	{
-		//TODO: FIXME THIS
 		m_win.add_widget( this );
 	}
 
@@ -61,9 +60,9 @@ public:
 	}
 
 	/** Redraw the window only if windows state is changed */
-	void redraw( bool force ) {
-		if( force || is_modified() ) {
-			repaint();
+	void redraw( bool force, bool win_changed ) {
+		if( force || win_changed || is_modified() ) {
+			repaint( force && m_win.has_focus() );
 			m_modified = false;
 		}
 	}
@@ -75,7 +74,7 @@ protected:
 	}
 
 	// On repaint the widget return true when changed
-	virtual void repaint() = 0;
+	virtual void repaint( bool focus ) = 0;
 
 	//Get base layout
 	const layout& get_layout() const { 

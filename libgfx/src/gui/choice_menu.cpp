@@ -28,7 +28,7 @@ int choice_menu::calc_max_items() const
 }
 /* ------------------------------------------------------------------ */
 //Repaint virtual function
-void choice_menu::repaint()
+void choice_menu::repaint( bool /* focus */ )
 {
 	if( m_items ) {
 		auto gdi_sel = make_wgdi( );

@@ -12,7 +12,7 @@ namespace gfx {
 namespace gui {
 /* ------------------------------------------------------------------ */
 //Repaint virtual function
-void seekbar::repaint()
+void seekbar::repaint( bool /* focus */ )
 {
 	// do not repaint if value was not changed
 	//if (m_value == m_pvalue) return;

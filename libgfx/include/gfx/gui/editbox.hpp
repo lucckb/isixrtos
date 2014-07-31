@@ -98,7 +98,7 @@ public:
 	virtual void report_event( const input::event_info& ev );
 protected:
 	//! On repaint the widget return true when changed
-	virtual void repaint();
+	virtual void repaint( bool focus );
 private:
 	//! Handle joy KBD
 	bool handle_joy( const input::detail::keyboard_tag &key_tag );

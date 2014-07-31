@@ -28,7 +28,7 @@ public:
 	}
 protected:
 	//! Repaint the label
-	virtual void repaint();
+	virtual void repaint( bool focus );
 private:
 	const bitmap_t *m_bitmap {};
 };

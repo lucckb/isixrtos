@@ -118,7 +118,7 @@ void waterfall::report_event( const input::event_info& ev )
 }
 /* ------------------------------------------------------------------ */ 
 //! Handle repaint 
-void waterfall::repaint()
+void waterfall::repaint(  bool /* focus */  )
 {
 	if( m_readonly ) {
 		auto gdi = make_gdi();
