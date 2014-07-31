@@ -102,7 +102,7 @@ void multiview::gui_clear_box()
 {
 	auto gdi = make_gdi( );
 	const auto c = get_coord() + get_owner().get_coord();
-	gdi.fill_area(c.x()+1, c.y()+1, c.cx()-2, c.cy()-2);
+	gdi.fill_area(c.x()+1, c.y()+1, c.cx()-2, c.cy()-2, true );
 	m_clear_req = false;
 	m_last_x = INVAL;
 }
