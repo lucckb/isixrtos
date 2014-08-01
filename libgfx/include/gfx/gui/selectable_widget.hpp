@@ -21,7 +21,12 @@ public:
 		: widget( rect, layout, win )
 	{}
 	virtual ~selectable_widget() {}
-	void pushed( bool pushed ) { m_pushed = pushed; }
+	void pushed( bool pushed ) { 
+		if( pushed != m_pushed ) {
+			modified();
+		}
+		m_pushed = pushed; 
+	}
 	bool pushed() const { return m_pushed; }
 	void pushkey( short key ) {m_push_key = key; }
 public:
