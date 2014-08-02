@@ -19,12 +19,9 @@
  * =====================================================================================
  */
 
-
 #pragma once
-
 /* ------------------------------------------------------------------ */ 
 #include <gfx/gui/widget.hpp>
-
 /* ------------------------------------------------------------------ */ 
 namespace gfx {
 namespace gui {
@@ -66,6 +63,8 @@ private:
 	 void gui_draw_frame();
 	 //! Repaint and add one line to the gui engine
 	 void gui_add_line();
+	 //! Gui all lines 
+	 void gui_all_lines();
 	 //! Clear entire box
 	 void gui_clear_box();
 protected:

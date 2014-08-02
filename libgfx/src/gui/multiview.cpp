@@ -21,7 +21,19 @@
 /* ------------------------------------------------------------------ */ 
 namespace gfx {
 namespace gui {
-
+/* ------------------------------------------------------------------ */
+namespace {
+	// remove backspaces from a std::string
+	void remove_backspaces( std::string& s )
+	{
+	std::string::size_type i;
+	while ((i = s.find ('\b')) != std::string::npos)
+		if (i == 0)
+		s.erase (0, 1); // backspace at start, just erase it
+		else
+		s.erase (i - 1, 2); // erase character before backspace (and backspace)
+	} // end of removeBackspaces
+}
 /* ------------------------------------------------------------------ */ 
 //! On repaint the widget return true when changed
 void multiview::repaint( bool focus )
@@ -32,7 +44,11 @@ void multiview::repaint( bool focus )
 	if( m_clear_req ) {
 		gui_clear_box();
 	} else {
-		gui_add_line();
+		if( focus ) {
+			gui_all_lines();
+		} else {
+			gui_add_line();
+		}
 	}
 	gui_draw_frame();
 }
@@ -70,7 +86,7 @@ void multiview::gui_add_line()
 	}
 	const auto yp = c.y() + c.cy() - 2 - gdi.get_text_height();
 	//Draw test
-	for( char ch : m_line ) {
+	for( auto ch : m_line ) {
 		if( ch == '\r' ) {
 			//Continue if the character is <CR>
 			continue;
@@ -98,7 +114,6 @@ void multiview::gui_add_line()
 		}
 	}
 }
-
 /* ------------------------------------------------------------------ */
 // Clear gui BOX
 void multiview::gui_clear_box()
@@ -108,6 +123,52 @@ void multiview::gui_clear_box()
 	gdi.fill_area(c.x()+1, c.y()+1, c.cx()-2, c.cy()-2, true );
 	m_clear_req = false;
 	m_last_x = INVAL;
+}
+/* ------------------------------------------------------------------ */
+//! Called when whole window should be repaint
+void multiview::gui_all_lines()
+{
+	remove_backspaces( m_line );
+	auto gdi = make_gdi();
+	const auto c = get_coord() + get_owner().get_coord();
+	const auto max_x = c.x() + c.cx() - text_margin * 2;
+	const auto min_x = c.x() + text_margin;
+	const auto txth = gdi.get_text_height();
+	//! Calculate numer required lines
+	int xc { min_x };
+	int yc {};
+	for( auto ch : m_line ) {
+		if( ch == '\n' ) {
+			xc =  min_x;
+			yc += txth;
+		} else if( ch == '\r' ) {
+			continue;
+		} else if( std::isprint( ch ) ) {
+			xc += gdi.get_text_width( ch );
+			if( xc > max_x ) {
+				yc += txth;
+				xc = min_x;
+			}
+		}
+	}
+	//! Draw begin from valid line
+	yc = c.y() + c.cy() - 2 - txth - yc;
+	xc = min_x;
+	for( auto ch: m_line ) {
+		if( ch == '\n' ) {
+			xc =  min_x;
+			yc += txth;
+		} else if( ch == '\r' ) {
+			continue;
+		} else if( std::isprint( ch ) ) {
+			xc = gdi.draw_text( xc, yc, ch );
+			if( xc > max_x ) {
+				yc += txth;
+				xc = min_x;
+			}
+		}
+	}
+	m_last_x = xc;
 }
 /* ------------------------------------------------------------------ */ 
 } //ns gui
