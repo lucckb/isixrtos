@@ -60,6 +60,7 @@ struct scancodes {
 		L = 0x0f,
 		C = 0x06,
 		D = 0x07,
+		S = 0x16,
 	};
 };
 
