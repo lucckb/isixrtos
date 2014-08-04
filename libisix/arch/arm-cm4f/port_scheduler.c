@@ -184,7 +184,9 @@ void  __attribute__((naked)) port_start_first_task( void )
 {
 #ifdef ISIX_CONFIG_SHUTDOWN_API
 	__asm volatile(
+		"push {r4-r11}\t\n"
 		"svc 0\t\n"
+		"pop {r4-r11}\t\n"
 		"bx lr\t\n"
 	 );
 #else
