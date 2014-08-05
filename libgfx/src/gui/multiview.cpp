@@ -134,27 +134,40 @@ void multiview::gui_all_lines()
 	const auto max_x = c.x() + c.cx() - text_margin * 2;
 	const auto min_x = c.x() + text_margin;
 	const auto txth = gdi.get_text_height();
+	const auto max_h = c.cy() - 2;
 	//! Calculate numer required lines
-	int xc { min_x };
-	int yc {};
-	for( auto ch : m_line ) {
+	int xc { max_x };
+	int yc { max_h - txth };
+	int lc { 0 };
+	auto it = m_line.size()-1;
+	for( ; it>0; --it ) {
+		const auto ch = m_line[it];
 		if( ch == '\n' ) {
-			xc =  min_x;
-			yc += txth;
+			xc =  max_x;
+			yc -= txth;
+			++lc;
 		} else if( ch == '\r' ) {
 			continue;
 		} else if( std::isprint( ch ) ) {
-			xc += gdi.get_text_width( ch );
-			if( xc > max_x ) {
-				yc += txth;
-				xc = min_x;
+			xc -= gdi.get_text_width( ch );
+			if( xc < min_x ) {
+				yc -= txth;
+				xc = max_x;
+				++lc;
 			}
 		}
+		if( 0 && yc < 0 ) {
+			--lc;
+		}
+		if( yc <=0 ) {
+			break;
+		}
 	}
-	//! Draw begin from valid line
-	yc = c.y() + c.cy() - 2 - txth - yc;
+	//! Draw begin from valid line 
+	yc = c.y() + max_h - txth - lc*txth;
 	xc = min_x;
-	for( auto ch: m_line ) {
+	for( unsigned i=it; i<m_line.size(); ++i) {
+		const auto ch = m_line[i];
 		if( ch == '\n' ) {
 			xc =  min_x;
 			yc += txth;
@@ -162,7 +175,7 @@ void multiview::gui_all_lines()
 			continue;
 		} else if( std::isprint( ch ) ) {
 			xc = gdi.draw_text( xc, yc, ch );
-			if( xc > max_x ) {
+			if( xc + gdi.get_text_width(ch) > max_x ) {
 				yc += txth;
 				xc = min_x;
 			}
