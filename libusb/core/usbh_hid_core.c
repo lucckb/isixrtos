@@ -32,8 +32,8 @@ struct usbh_hid_context {
 	uint8_t          iface;
 	uint8_t          ep_addr_in;
 	uint8_t          interval_in;
-	uint8_t          buffer_out[MAX_LS_INTERRUPT_PACKET_SIZE];
-	uint8_t          buffer_in[MAX_LS_INTERRUPT_PACKET_SIZE];
+	uint8_t          buffer_out[MAX_FS_INTERRUPT_PACKET_SIZE];
+	uint8_t          buffer_in[MAX_FS_INTERRUPT_PACKET_SIZE];
 };
 
 /** Full implementation of the HID core machine **/
@@ -189,7 +189,7 @@ int usbh_hid_set_machine( usbh_hid_context_t *hid_ctx,
 		return USBHLIB_ERROR_NOT_FOUND;
 
 	/* Independent on speed, the size of in_buffer is 8 bytes. */
-	if (ep_desc[i].wMaxPacketSize > MAX_LS_INTERRUPT_PACKET_SIZE ||
+	if (ep_desc[i].wMaxPacketSize > MAX_FS_INTERRUPT_PACKET_SIZE ||
 			ep_desc[i].wMaxPacketSize < hid_ctx->min_length_in)
 		return USBHLIB_ERROR_INVALID_PARAM;
 
