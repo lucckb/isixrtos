@@ -33,23 +33,24 @@ void window::repaint( bool force, bool force_clr )
 	}
 	const auto& lay = m_layout.inherit()?get_owner().get_def_win_layout():m_layout;
 	disp::gdi gdi( get_owner().get_display(), lay.sel(), lay.bg(), lay.font() );
-	{
+	if( force_clr ) {
 		//NOTE: Force clear is reqired when one windows
 		// is replaced with another for example on focus 
 		// set and changing
-		if( (m_flags & flags::fill) && force_clr ) {
+		if( (m_flags & flags::fill) ) {
 			gdi.fill_area( m_coord.x(), m_coord.y(), m_coord.cx(), m_coord.cy(), true );
 		}
-		if( has_focus() ) {
-			if( m_flags & flags::border ) {
-				draw_line_box( m_coord, gdi );
-			} else if( (m_flags & flags::fill) && force_clr ) {
+		//! Window border
+		if( m_flags & flags::border ) {
+			draw_line_box( m_coord, gdi );
+		} else {
+			if( m_flags & flags::fill ) {
 				disp::gdi gdic( get_owner().get_display(), 
 					(m_flags&flags::fill)?(lay.bg()):(color_t(color::Black)) 
 				);
 				draw_line_box( m_coord, gdic );
 			}
-		}
+		} 
 	}
 	for( const auto item : m_widgets ) {
 		item->redraw( force, m_changed );
