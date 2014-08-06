@@ -149,23 +149,25 @@ void multiview::gui_all_lines()
 		} else if( ch == '\r' ) {
 			continue;
 		} else if( std::isprint( ch ) ) {
-			xc -= gdi.get_text_width( ch );
+			const auto cw = gdi.get_text_width( ch );
+			xc -= cw;
 			if( xc < min_x ) {
 				yc -= txth;
-				xc = max_x;
+				xc = max_x-cw;
 				++lc;
 			}
 		}
-		if( 0 && yc < 0 ) {
-			--lc;
-		}
-		if( yc <=0 ) {
+		if( yc <= txth  ) {
 			break;
 		}
 	}
 	//! Draw begin from valid line 
 	yc = c.y() + max_h - txth - lc*txth;
 	xc = min_x;
+	if( xc + gdi.get_text_width(m_line[it]) >= max_x ) {
+		yc += txth;
+		xc = min_x;
+	}
 	for( unsigned i=it; i<m_line.size(); ++i) {
 		const auto ch = m_line[i];
 		if( ch == '\n' ) {
@@ -174,11 +176,11 @@ void multiview::gui_all_lines()
 		} else if( ch == '\r' ) {
 			continue;
 		} else if( std::isprint( ch ) ) {
-			xc = gdi.draw_text( xc, yc, ch );
-			if( xc + gdi.get_text_width(ch) > max_x ) {
+			if( xc + gdi.get_text_width(ch) >= max_x ) {
 				yc += txth;
 				xc = min_x;
 			}
+			xc = gdi.draw_text( xc, yc, ch );
 		}
 	}
 	m_last_x = xc;

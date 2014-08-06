@@ -50,6 +50,10 @@ public:
 	 void append( const T& value ) {
 		 m_line += value;
 	 }
+	 /** Set the buffer */
+	 void clear_buffer() {
+		 m_line.clear();
+	 }
 	 /** Clear the window  */
 	 void clear() {
 		m_clear_req = true;
