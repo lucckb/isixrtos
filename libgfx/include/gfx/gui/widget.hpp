@@ -54,6 +54,10 @@ public:
 		return m_selectable; 
 	}
 
+	void selectable(bool select_mode) {
+		m_selectable = select_mode;
+	}
+
 	//! Widget is changed
 	bool is_modified() const {
 		return m_modified;
@@ -107,7 +111,7 @@ private:
 	rectangle m_coord;								/* Current coordinate */
 	layout m_layout;								/* Component layout */
 	window &m_win;									/* GUI manager */
-	const bool m_selectable;  						/* Widget is selectable */
+	bool m_selectable;  							/* Widget is selectable */
 	bool m_modified {};								/* Widget is changed  */
 };
 /* ------------------------------------------------------------------ */
