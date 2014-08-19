@@ -121,7 +121,7 @@ void choice_menu::report_event( const input::event_info& ev )
 	using namespace gfx::input;
 	bool ret {};
 	if( ev.type == event_info::EV_KEY ) {
-		if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN ) {
+		if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN || ev.keyb.stat == input::detail::keyboard_tag::status::RPT) {
 			if( ev.keyb.key == kbdcodes::os_arrow_down ) {
 				if(++m_curr_item == m_num_items) --m_curr_item;
 				else ret = true;
