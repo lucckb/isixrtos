@@ -26,7 +26,7 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 	const unsigned long rDFSR = (*((volatile unsigned long *)(0xE000ED30)));
 	const unsigned long rAFSR = (*((volatile unsigned long *)(0xE000ED3C)));
 	tiny_printf("[BAFR=%08lx]\t[CFSR=%08lx]\t[HFSR=%08lx]\t[DFSR=%08lx]\r\n",rBFAR,rCFSR,rHFSR,rDFSR);
-	tiny_printf("[AFSR=%08lx] [SP=%p]\r\n", rAFSR, SP );
+	tiny_printf("[AFSR=%08lx] [SP=%p]\r\n", rAFSR, (void*)(SP) );
 	for(;;) wfi();
 }
 /* ------------------------------------------------------------------ */
