@@ -133,32 +133,49 @@ void editbox::cursor_backward()
 bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 {
 	using namespace gfx::input;
-	bool ret {};
-	if( ( evk.stat==keystat::DOWN || evk.stat==keystat::RPT ) && !m_readonly ) {
-		if( evk.key == kbdcodes::os_arrow_right ) {
-			cursor_forward();
-			ret = true;
+	bool ret {false};
+
+	if (evk.stat==keystat::UP)
+	{
+		if (!char_rpt_flag)
+		{
+			if (evk.key == kbdcodes::os_arrow_right) cursor_forward();
+			if (evk.key == kbdcodes::os_arrow_left) cursor_backward();
 		}
-		else if( evk.key==kbdcodes::os_arrow_left ) {
-			if( !m_max_len || m_value.size()<m_max_len ) {
-				m_value.insert( m_cursor_pos, 1, insert_ch() );
+		char_rpt_flag = false;
+		ret = true;
+	}
+
+	if (evk.stat==keystat::RPT)
+	{
+		if ((evk.key == kbdcodes::os_arrow_right) && (!char_rpt_flag))
+		{
+			m_value.insert(m_cursor_pos, 1, insert_ch());
+			char_rpt_flag = true;
+		}
+		
+		if ((evk.key == kbdcodes::os_arrow_left) && (!char_rpt_flag))
+		{
+			if (m_cursor_pos > 0)
+			{
+				m_value.erase(m_cursor_pos - 1, 1);
+				cursor_backward();
 			}
+			char_rpt_flag = true;
 		}
+	}
+
+	if(evk.stat==keystat::DOWN || evk.stat==keystat::RPT)
+	{
 		if( evk.key == kbdcodes::os_arrow_up ) {
 			m_value[m_cursor_pos] = ch_inc( m_value[m_cursor_pos] );
 			ret = true;
 		} else if( evk.key == kbdcodes::os_arrow_down ) {
 			m_value[m_cursor_pos] = ch_dec( m_value[m_cursor_pos] );
 			ret = true;
-		} else if( evk.key == kbdcodes::enter ) {
-			event btn_event( this, event::evtype::EV_CLICK );
-			ret |= emit( btn_event );
 		}
 	}
-	if( ret ) {
-		event btn_event( this, event::evtype::EV_CHANGE );
-		ret |= emit( btn_event );
-	}
+
 	return ret;
 }
 /* ------------------------------------------------------------------ */
@@ -229,7 +246,7 @@ char editbox::insert_ch()
 {
 	switch( m_type ) {
 		default:
-			return '!';
+			return 'A';
 		case type::float_pos:
 		case type::float_neg:
 			return '.';
@@ -245,7 +262,12 @@ char editbox::ch_inc( char ch ) const
 	switch( m_type )
 	{
 	case type::text:
-		if( ++ch == 0 ) ch = ' ';
+		if (((ch >= '0') && (ch < '9')) || ((ch >= 'A') && (ch < 'Z')) || ((ch >= 'a') && (ch < 'z'))) ch++;
+		else if (ch == '9') ch = ' ';
+		else if (ch == 'Z') ch = 'a';
+		else if (ch == 'z') ch = '0';
+		else if (ch == ' ') ch = 'A';
+		else ch = ' ';
 		break;
 	case type::integer_pos:
 		if(ch>='0' && ch<'9') ch++;
@@ -278,7 +300,12 @@ char editbox::ch_dec( char ch ) const
 	switch( m_type )
 	{
 	case type::text:
-		if( --ch == 0 ) ch = ' ';
+		if (((ch > '0') && (ch <= '9')) || ((ch > 'A') && (ch <= 'Z')) || ((ch > 'a') && (ch <= 'z'))) ch--;
+		else if (ch == '0') ch = 'z';
+		else if (ch == 'A') ch = ' ';
+		else if (ch == 'a') ch = 'Z';
+		else if (ch == ' ') ch = '9';
+		else ch = ' ';
 		break;
 	case type::integer_pos:
 		if(ch>'0' && ch<='9') ch--;
