@@ -46,8 +46,6 @@ private:
 	short m_max { 100 };		//Maximum value
 	short m_value { };			//Current value
 	short m_step { 1 };			//Step value
-	short m_psex { 0 };			//Previous X value
-//	short m_pvalue { 32767 }; 		// previous value
 };
 
 /* ------------------------------------------------------------------ */
