@@ -28,9 +28,17 @@ public:
 		enum  : unsigned {
 			fill = 			0x01,			//Fill background
 			border = 		0x02,			//Draw border
-			selectborder =  0x04			//Select border
+			selectborder =  0x04,			//Select border
 		};
 	};
+
+	struct style {
+		enum  : unsigned {
+			single_border = 		0,			//Single border
+			double_border = 		1,			//Double border
+		};
+	};
+
 	//Get window
 	window( const rectangle &coord, frame &frm, unsigned flags = 0 )
 		: m_coord( coord ),m_frm ( frm ), m_flags( flags )
@@ -76,6 +84,11 @@ public:
 	//! Select wiget directly
 	void select( widget * const w );
 
+	void border_style(unsigned border)
+	{
+		m_border_style = border;
+	}
+
 	//! Get base layout
 	const layout& get_layout() const {
 		return m_layout.inherit()?m_frm.get_def_win_layout():m_layout; 
@@ -97,6 +110,7 @@ private:
 	rectangle m_coord;
 	frame &m_frm;
 	unsigned m_flags;
+	unsigned m_border_style { style::single_border };
 	bool m_changed {};			//! Changed variable if windows handler force change
 };
 /* ------------------------------------------------------------------ */

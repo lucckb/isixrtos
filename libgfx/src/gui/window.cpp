@@ -59,12 +59,31 @@ void window::repaint( bool force, bool force_clr )
 	if( (m_flags & flags::selectborder) && has_focus() ) {
 		{
 			const auto s = (*m_current_widget)->get_coord() + get_coord() + 1;
+			
 			draw_line_box( s, gdi );
+
+			if (m_border_style == style::double_border)
+			{
+				if ((s.x() > 0) && (s.y() > 0))
+				{
+					const auto s2 = rectangle(s.x() - 1, s.y() - 1, s.cx() + 2, s.cy() + 2);
+					draw_line_box( s2, gdi );
+				}
+			}
 		}
 		if( m_redraw_widget != m_widgets.end() ) {
 			const auto s = (*m_redraw_widget)->get_coord() + get_coord() + 1;
 			disp::gdi gdic( get_owner().get_display(), (m_flags&flags::fill)?(lay.bg()):(color_t(color::Black)) );
 			draw_line_box( s, gdic );
+			
+			if (m_border_style == style::double_border)
+			{
+				if ((s.x() > 0) && (s.y() > 0))
+				{
+					const auto s2 = rectangle(s.x() - 1, s.y() - 1, s.cx() + 2, s.cy() + 2);
+					draw_line_box( s2, gdic );
+				}
+			}
 		}
 	}
 }
