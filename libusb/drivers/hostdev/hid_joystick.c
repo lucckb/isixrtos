@@ -31,6 +31,7 @@
 #include <isix.h>
 #include <stdlib.h>
 #include <string.h>
+
 /* ------------------------------------------------------------------ */ 
 //HID joystick specific constants
 enum { USAGE_PAGE_BUTTON       =  0x09 };
@@ -181,7 +182,6 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 				 	(report_it->Attributes.Usage.Usage == USAGE_RX)                  ||
 				  	(report_it->Attributes.Usage.Usage == USAGE_RY))                 &&
 				 	(report_it->ItemType                == HID_REPORT_ITEM_In)) {
-			
 				found = usbh_hid_get_report_item_info( pbuf, report_it );
 				if(!(found)) {
 					continue;
@@ -206,7 +206,13 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 					ctx->evt.rZ = value;
 					ctx->evt.has.rZ = 1;
 				} else if( report_it->Attributes.Usage.Usage == USAGE_HAT_SW ) {
-					ctx->evt.hat = report_it->Value;
+					// empirical fix for hat switch value					
+					if (report_it->Value >= report_it->Attributes.Logical.Minimum)
+						ctx->evt.hat = report_it->Value - report_it->Attributes.Logical.Minimum;
+					else
+						ctx->evt.hat = 0x0f;
+
+//					ctx->evt.hat = report_it->Value;
 					ctx->evt.has.hat = 1;
 				} else if( report_it->Attributes.Usage.Usage == USAGE_SLIDER ) {
 					ctx->evt.slider = value;
@@ -228,6 +234,7 @@ static int hid_joystick_attached( const usbhost_device_t* hdev, void** data )
 	const usb_device_descriptor_t* dev_desc = &hdev->dev_desc;
 	const void* cdesc = hdev->cdesc;
 	uint16_t cdsize = hdev->cdsize;
+
 	//Validate device descriptor
 	if ( dev_desc->bDeviceClass != 0 ||
 		 dev_desc->bDeviceSubClass != 0 ||
