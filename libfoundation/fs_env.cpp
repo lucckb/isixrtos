@@ -15,7 +15,9 @@
  *
  * =====================================================================================
  */
+#ifdef _HAVE_CONFIG_H
 #include <config.h>
+#endif
 #include <foundation/fs_env.hpp>
 #include <cstdint>
 #include <limits>
