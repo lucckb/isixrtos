@@ -124,6 +124,7 @@ static void usbhost_os_task( void* unused_os_arg )
 						break;
 					}
 				}
+
 				if( !ctx.drv ) {
 					ctx.err = USBHLIB_ERROR_NO_DRIVER;
 					isix_sem_signal( ctx.lock );
@@ -160,9 +161,9 @@ static void usbhost_os_task( void* unused_os_arg )
 					if( ctx.dev.dev_desc.iSerialNumber ) {
 						unsigned len = sizeof sbuf;
 						ctx.err = usbh_get_string_descriptor_ascii(USBH_SYNC, 
-								ctx.dev.dev_desc.iProduct, sbuf ,&len );
+								ctx.dev.dev_desc.iSerialNumber, sbuf ,&len );
 						if( ctx.err != USBHLIB_SUCCESS ) {
-							dbprintf("Unable to read product string descriptor");
+							dbprintf("Unable to read iSerialNumber string descriptor");
 						} else {
 							ctx.drv->enum_desc( ctx.dev.data, usbh_driver_desc_serial, sbuf );
 						}
@@ -268,5 +269,20 @@ int usbh_controller_detach_driver( const struct usbh_driver *drv )
 	isix_sem_signal( ctx.lock );
 	return USBHLIB_SUCCESS;
 }
+
+/* ------------------------------------------------------------------ */
+//!Get Vendor ID
+uint16_t usbh_get_id_vendor( void )
+{
+	return ctx.dev.dev_desc.idVendor;
+}
+
+/* ------------------------------------------------------------------ */
+//!Get Product ID
+uint16_t usbh_get_id_product( void )
+{
+	return ctx.dev.dev_desc.idProduct;
+}
+
 /* ------------------------------------------------------------------ */ 
 
