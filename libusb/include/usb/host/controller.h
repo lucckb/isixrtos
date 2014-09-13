@@ -27,11 +27,17 @@ int usbh_controller_attach_driver( const struct usbh_driver *drv );
 //!Detach driver from host
 int usbh_controller_detach_driver( const struct usbh_driver *drv );
 
-//Deinitialize controller driver
+//! Deinitialize controller driver
 int usbh_controller_deinit( void );
 
-// Get last library error
+//! Get last library error
 int usbh_controller_get_errno( void );
+
+//! Get Vendor ID
+uint16_t usbh_get_id_vendor( void );
+
+//! Get Product ID
+uint16_t usbh_get_id_product( void );
 
 /* ------------------------------------------------------------------ */ 
 #ifdef __cplusplus
