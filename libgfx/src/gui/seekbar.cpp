@@ -42,7 +42,10 @@ void seekbar::repaint( bool /* focus */ )
 	
 	// left part
 	gdi.set_fg_color( colorspace::brigh( get_layout().sel(), 192 ) );
-	gdi.draw_line(x + 1, y, x + sex, y);
+
+	if (x + cx > 0)
+		gdi.draw_line(x + 1, y, x + cx - 1, y);
+
 	if (x + ys > 0)
 		gdi.draw_line(x, y + 1, x, y + ys - 1);
 
@@ -52,23 +55,17 @@ void seekbar::repaint( bool /* focus */ )
 		gdi.fill_area( x + 1, y + 1 , sex - 1, ys - 1, false );
 	}
 
-	gdi.set_fg_color( colorspace::brigh( get_layout().sel(), -16 ) );
-	gdi.draw_line(x + 1, y + ys, x + sex, y + ys);
-
-	// right part
 	if (x + cx > 0)
 	{
-		gdi.set_fg_color( colorspace::brigh( get_layout().fg(), 192 ) );
-		gdi.draw_line(x + sex, y, x + cx - 1, y);
+		gdi.set_fg_color( colorspace::brigh( get_layout().sel(), -16 ) );
+		gdi.draw_line(x + 1, y + ys, x + cx - 1, y + ys);
 	}
 
+	// right part
 	gdi.set_fg_color( colorspace::brigh( get_layout().fg(), -96 ) );
 
 	if (y + ys > 0)
 		gdi.draw_line(x + cx, y + 1, x + cx, y + ys - 1);
-
-	if (x + cx > 0)
-		gdi.draw_line(x + sex, y + ys, x + cx - 1, y + ys);
 
 	if ((cx > sex) && (ys > 1))
 	{
@@ -92,6 +89,8 @@ void seekbar::repaint( bool /* focus */ )
 //* Report input event
 void seekbar::report_event( const input::event_info& ev )
 {
+	if (!m_report) return;
+
 	using namespace gfx::input;
 	using kstat = input::detail::keyboard_tag::status;
 	bool ret {};
