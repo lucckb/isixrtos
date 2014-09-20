@@ -38,6 +38,10 @@ public:
 	void max_value( short _max ) {
 		m_max = _max;
 	}
+	//! Reporting mode setup
+	void report_mode( bool mode) {
+		m_report = mode;
+	}
 protected:
 	//Repaint virtual function
 	virtual void repaint( bool focus );
@@ -46,6 +50,7 @@ private:
 	short m_max { 100 };		//Maximum value
 	short m_value { };			//Current value
 	short m_step { 1 };			//Step value
+	bool m_report { true };		//On key report flag
 };
 
 /* ------------------------------------------------------------------ */
