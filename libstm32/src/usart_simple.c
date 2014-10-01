@@ -70,7 +70,7 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 			RCC->APB1ENR |= RCC_APB1Periph_USART2;
 			//Configure GPIO port TxD and RxD
 			gpio_abstract_config( GPIOA,USART2_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
-			gpio_abstract_config( GPIOA,USART2_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
+			gpio_abstract_config( GPIOA,USART2_RX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
 		}
 		else
 		{
