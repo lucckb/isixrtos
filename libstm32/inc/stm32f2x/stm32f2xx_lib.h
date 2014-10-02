@@ -7,11 +7,10 @@
 
 #ifndef STM32F2XX_LIB_H_
 #define STM32F2XX_LIB_H_
-
 #include <stdbool.h>
 #include "stm32f2xx.h"
 #include "stm32f2xx_iwdg.h"
-#include "stm32f2xx_flash.h"
+#include "../stm32f2f4xx_flash.h"
 #include "stm32f2xx_rcc.h"
 #include "stm32f2xx_dma.h"
 #include "stm32f2xx_adc.h"
