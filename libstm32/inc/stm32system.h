@@ -300,6 +300,15 @@ static inline unsigned get_cpuid(unsigned pos)
 		return 0;
 }
 /*----------------------------------------------------------*/
+/** Return CPUID
+ * @param[in] word pos number
+ * @return value
+ */
+static inline const volatile void* get_cpuid_raw(void)
+{
+	return ((const volatile void *)( 0x1FFFF7E8));
+}
+/*----------------------------------------------------------*/
 /**
  * @brief  Initialize and start the SysTick counter and its interrupt.
  *
