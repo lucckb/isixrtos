@@ -634,7 +634,7 @@ static inline FLASH_Status flash_ob_launch(void)
   * @retval The FLASH User Option Bytes values: IWDG_SW(Bit0), RST_STOP(Bit1)
   *         and RST_STDBY(Bit2).
   */
-static inline uint8_t FLASH_OB_GetUser(void)
+static inline uint8_t flash_ob_get_user(void)
 {
   /* Return the User Option Byte */
   return (uint8_t)(FLASH->OPTCR >> 5);
