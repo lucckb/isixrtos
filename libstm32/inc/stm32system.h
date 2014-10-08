@@ -29,6 +29,13 @@ static const uint32_t AICR_SYSRESET_REQ = 4;
 //! Reset the system
 #define  AICR_SYSRESET_REQ  4
 #endif
+#ifdef STM32MCU_MAJOR_TYPE_F1
+#define STM32LIB_CPUID_ADDR 0x1FFF7A10
+#define STM32LIB_FLSIZ_ADDR 0x1FFFF7E0
+#else
+#define STM32LIB_CPUID_ADDR 0x1FFF7A10
+#define STM32LIB_FLSIZ_ADDR 0x1FFF7A22
+#endif
 /*----------------------------------------------------------*/
 static inline uint32_t _system_calc_priority(uint32_t preempt_prio, uint32_t sub_prio )
 {
@@ -285,7 +292,7 @@ static inline void nvic_system_reset(void)
  */
 static inline int flash_mem_size(void)
 {
-	return (*(vu16 *)(0x1FFFF7E0));
+	return (*(vu16 *)(STM32LIB_FLSIZ_ADDR));
 }
 /*----------------------------------------------------------*/
 /** Return CPUID
@@ -295,7 +302,7 @@ static inline int flash_mem_size(void)
 static inline unsigned get_cpuid(unsigned pos)
 {
 	if(pos<3)
-		return ((vu32 *)( 0x1FFFF7E8))[pos];
+		return ((vu32 *)(STM32LIB_CPUID_ADDR))[pos];
 	else
 		return 0;
 }
@@ -306,7 +313,7 @@ static inline unsigned get_cpuid(unsigned pos)
  */
 static inline const volatile void* get_cpuid_raw(void)
 {
-	return ((const volatile void *)( 0x1FFFF7E8));
+	return ((const volatile void *)(STM32LIB_CPUID_ADDR));
 }
 /*----------------------------------------------------------*/
 /**
@@ -341,7 +348,8 @@ static inline int systick_config(uint32_t ticks)
 
 #undef AIRCR_VECTKEY_MASK
 #undef  AICR_SYSRESET_REQ
-
+#undef STM32LIB_CPUID_ADDR
+#undef STM32LIB_FLSIZ_ADDR
 #endif
 /*----------------------------------------------------------*/
 #endif /*SYSTEM_H_*/
