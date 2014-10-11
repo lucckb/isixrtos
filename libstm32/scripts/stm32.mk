@@ -12,8 +12,11 @@ endif
 MCU_VARIANT ?= $(MCU_MAJOR_TYPE)$(MCU_MINOR_TYPE)
 
 #Skrypt linkera
+ifeq ($(USE_SBL_BOOTLOADER),y)
+SCRIPTLINK = stm32-$(MCU_VARIANT)-sbl
+else
 SCRIPTLINK = stm32-$(MCU_VARIANT)
-
+endif
 
 #CROSS COMPILE
 CROSS_COMPILE ?= arm-none-eabi-
@@ -106,6 +109,11 @@ ifeq ($(CPP_EXCEPTIONS),y)
 COMMON_FLAGS += -DCONFIG_ENABLE_EXCEPTIONS
 else
 CXXFLAGS += -fno-exceptions -fno-rtti
+endif
+
+#If using SBL bootloader is required
+ifeq ($(USE_SBL_BOOTLOADER),y)
+COMMON_FLAGS+=-DCONFIG_WITH_SBL_BOOTLOADER_ENABLED
 endif
 
 ifeq ($(LISTING),y)
