@@ -50,14 +50,20 @@ SECTIONS
 	    . = ALIGN(4);
         *(.text)                   /* remaining code */
         *(.text.*)                   /* remaining code */
+	    . = ALIGN(4);
         *(.rodata)                 /* read-only data (constants) */
         *(.rodata*)
+	    . = ALIGN(4);
         *(.glue_7)
         *(.glue_7t)
+	    . = ALIGN(4);
         *(.gnu.linkonce.t.*)
         *(.gnu.linkonce.r.*)
+	    . = ALIGN(4);
         *(.ARM.extab* .gnu.linkonce.armextab.*)
+	    . = ALIGN(4);
         *(.gcc_except_table)
+	    . = ALIGN(4);
         *(.vfp11_veneer)
        	.  = ALIGN(4);
         PROVIDE(__ctors_start__ = .);
