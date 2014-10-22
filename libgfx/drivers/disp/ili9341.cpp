@@ -26,7 +26,7 @@ color_t ili9341::get_pixel( coord_t x, coord_t y )
 {
 	bus_lock lock(m_bus);
 	uint8_t color[4];
-	set_viewport( x, y, x+1, y+1 );
+	set_viewport( x, y, 1, 1 );
 	command( dcmd::MEMORYREAD);
 	m_bus.read( color, sizeof color );
 	return rgb( color[3], color[2], color[1] );
@@ -49,7 +49,7 @@ void ili9341::clear( color_t color )
 void ili9341::set_pixel( coord_t x, coord_t y, color_t color )
 {
 	bus_lock lock(m_bus);
-	set_viewport( x, y, x+1, y+1 );
+	set_viewport( x, y, 1, 1 );
 	command( dcmd::MEMORYWRITE );
 	m_bus.write( &color, sizeof color );
 }
@@ -270,8 +270,8 @@ void ili9341::set_viewport( coord_t x, coord_t y, coord_t cx, coord_t cy )
 {
 	const auto x2 = x + cx - 1;
 	const auto y2 = y + cy - 1;
-	command( dcmd::COLADDRSET,  x>>8, x, x2>>8, x2 );
-	command( dcmd::PAGEADDRSET, y>>8, y, y2>>8, y2 );
+	command( dcmd::COLADDRSET,  x>>8, x, x2>>8, x2);
+	command( dcmd::PAGEADDRSET, y>>8, y, y2>>8, y2);
 }
 /* ------------------------------------------------------------------ */
 /* Fill area */
