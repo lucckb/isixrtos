@@ -83,6 +83,7 @@ namespace detail {
 			DOWN,                                       //! Key is down
 			UP,                                          //! Key is up
 			RPT,										//! Rpt key event
+			LNG,										//! Long press event
 		} stat;         
 		key_type key;                                   //! Current key
 		key_type scan;									//! Scan code
