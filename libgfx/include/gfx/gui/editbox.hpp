@@ -133,7 +133,7 @@ private:
 	limit_handler m_limit_hwnd;				//! Limit handler
 private:	//Private constants
 	static constexpr coord_t text_margin = 2;
-	bool char_rpt_flag { false };
+	bool long_flag { false };
 };
 /* ------------------------------------------------------------------ */
 

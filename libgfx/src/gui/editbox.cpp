@@ -133,50 +133,50 @@ void editbox::cursor_backward()
 bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 {
 	using namespace gfx::input;
-	bool ret {false};
 
 	if (evk.stat==keystat::UP)
 	{
-		if (!char_rpt_flag)
+		if (!long_flag)
 		{
 			if (evk.key == kbdcodes::os_arrow_right) cursor_forward();
 			if (evk.key == kbdcodes::os_arrow_left) cursor_backward();
 		}
-		char_rpt_flag = false;
-		ret = true;
 	}
 
-	if (evk.stat==keystat::RPT)
+	if (evk.stat==keystat::LNG)
 	{
-		if ((evk.key == kbdcodes::os_arrow_right) && (!char_rpt_flag))
+		if (evk.key == kbdcodes::os_arrow_right)
 		{
 			m_value.insert(m_cursor_pos, 1, insert_ch());
-			char_rpt_flag = true;
+			long_flag = true;
 		}
 		
-		if ((evk.key == kbdcodes::os_arrow_left) && (!char_rpt_flag))
+		if (evk.key == kbdcodes::os_arrow_left)
 		{
 			if (m_cursor_pos > 0)
 			{
 				m_value.erase(m_cursor_pos - 1, 1);
 				cursor_backward();
+				long_flag = true;
 			}
-			char_rpt_flag = true;
 		}
 	}
 
-	if(evk.stat==keystat::DOWN || evk.stat==keystat::RPT)
+	if (evk.stat==keystat::DOWN)
+		long_flag = false;
+
+	if (evk.stat==keystat::DOWN || evk.stat==keystat::RPT)
 	{
-		if( evk.key == kbdcodes::os_arrow_up ) {
+		if( evk.key == kbdcodes::os_arrow_up )
+		{
 			m_value[m_cursor_pos] = ch_inc( m_value[m_cursor_pos] );
-			ret = true;
-		} else if( evk.key == kbdcodes::os_arrow_down ) {
+		} else if( evk.key == kbdcodes::os_arrow_down )
+		{
 			m_value[m_cursor_pos] = ch_dec( m_value[m_cursor_pos] );
-			ret = true;
 		}
 	}
 
-	return ret;
+	return true;
 }
 /* ------------------------------------------------------------------ */
 //! Handle querty KBD
