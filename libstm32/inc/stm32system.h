@@ -227,8 +227,11 @@ static inline void wfi( void ) { asm volatile("nop");  }
 static inline void nop(void) { asm volatile("nop"); }
 /*----------------------------------------------------------*/
 //!Wait for event
+#ifndef PDEBUG
 static inline void wfe(void) { asm volatile("wfe"); }
-
+#else
+static inline void wfe( void ) { asm volatile("nop");  }
+#endif
 /*----------------------------------------------------------*/
 //! Sync instructions
 static inline void dmb(void) { asm volatile("dmb"); }
