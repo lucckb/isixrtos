@@ -226,7 +226,7 @@ void gdi::draw_line( coord_t x0, coord_t y0, coord_t x1, coord_t y1 )
 		if (x1 > x0)
 			m_gdev.fill(x0, y0, x1-x0+1, 1,  m_color);
 		else
-			m_gdev.fill(x0, y1, x0-x1+1, 1,  m_color);
+			m_gdev.fill(x1, y1, x0-x1+1, 1,  m_color);
 		return;
 	}
 	int dx, addx;
