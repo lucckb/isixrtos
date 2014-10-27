@@ -64,6 +64,17 @@ public:
 		if( m_style==style::normal ) m_curr_item = sel;
 		else m_sel_item = sel;
 	}
+
+	void selection_item(int sel) {
+		for (int n = 0; n < m_num_items; n++)
+		{
+			if (m_items[n].first == sel)
+			{
+				selection(n);
+				break;
+			}
+		}
+	}
 protected:
 	//! Repaint virtual function
 	virtual void repaint( bool focus );
