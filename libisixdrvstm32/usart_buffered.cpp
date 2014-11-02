@@ -127,9 +127,13 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 	{
 		gpio_clock_enable( USART2_PORT, true );
 		RCC->APB1ENR |= RCC_APB1Periph_USART2;
+
 		//Configure GPIO port TxD and RxD
-		gpio_abstract_config( USART2_PORT, USART2_TX_BIT, AGPIO_MODE_ALTERNATE_PP,  AGPIO_SPEED_HALF );
-		gpio_abstract_config( USART2_PORT, USART2_RX_BIT, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
+		gpio_config(USART2_PORT, USART2_TX_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+		gpio_config(USART2_PORT, USART2_RX_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+
+		gpio_pin_AF_config( USART2_PORT, USART2_TX_BIT, GPIO_AF_USART2 );
+		gpio_pin_AF_config( USART2_PORT, USART2_RX_BIT, GPIO_AF_USART2 );
 	}
 	else
 	{
@@ -346,7 +350,7 @@ void usart_buffered::isr()
 	}
 	if(tx_en && (usart_sr&USART_TXE) )
 	{
-		char ch;
+		unsigned char ch;
 		if( tx_queue.pop_isr(ch) == isix::ISIX_EOK )
 		{
 			usart->DR = ch;
@@ -395,13 +399,14 @@ int usart_buffered::gets(char *str, std::size_t max_len, isix::tick_t timeout)
 {
 	int res = isix::ISIX_EOK;
 	std::size_t l;
+	
 	for(l=0; l<max_len; l++)
 	{
-		res= getchar( str[l],timeout );
+		res = getchar((unsigned char&)str[l], timeout);
 		if(res==isix::ISIX_EOK )
 		{
-			if(str[l]=='\r') str[l] = '\0';
-			else if(str[l]=='\n') { str[l] = '\0'; break; }
+			if(str[l] == '\r') str[l] = '\0';
+			else if(str[l] == '\n') { str[l] = '\0'; break; }
 		}
 		else
 		{
@@ -420,7 +425,7 @@ int usart_buffered::get(void *buf, std::size_t max_len, isix::tick_t timeout)
     std::size_t l;
 	for(l=0; l<max_len; l++)
 	{
-		res= getchar ( fbuf[l],timeout );
+		res= getchar ((unsigned char &) fbuf[l],timeout );
 		if( res == isix::ISIX_ETIMEOUT )
 			return l;
 		else if(res<0)

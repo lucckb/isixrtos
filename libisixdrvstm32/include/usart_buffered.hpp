@@ -79,7 +79,7 @@ public:
 	}
 
 	//Getchar
-	int getchar(char &c, isix::tick_t timeout=isix::ISIX_TIME_INFINITE)
+	int getchar(unsigned char &c, isix::tick_t timeout=isix::ISIX_TIME_INFINITE)
 	{
 		return rx_queue.pop(c, timeout );
 	}
@@ -114,8 +114,8 @@ private:
 	USART_TypeDef * const usart;
 	const unsigned pclk1_hz;
 	const unsigned pclk2_hz;
-	isix::fifo<char> tx_queue;
-	isix::fifo<char> rx_queue;
+	isix::fifo<unsigned char> tx_queue;
+	isix::fifo<unsigned char> rx_queue;
 	const unsigned char irq_prio;
 	const unsigned char irq_sub;
 	volatile bool tx_en;
