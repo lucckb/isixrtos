@@ -30,6 +30,8 @@ extern "C"
 #endif
 }
 
+typedef isix::fifo<unsigned char> usart_queue;
+
 /*----------------------------------------------------------*/
 class usart_buffered
 {
@@ -114,8 +116,8 @@ private:
 	USART_TypeDef * const usart;
 	const unsigned pclk1_hz;
 	const unsigned pclk2_hz;
-	isix::fifo<unsigned char> tx_queue;
-	isix::fifo<unsigned char> rx_queue;
+	usart_queue tx_queue;
+	usart_queue rx_queue;
 	const unsigned char irq_prio;
 	const unsigned char irq_sub;
 	volatile bool tx_en;
