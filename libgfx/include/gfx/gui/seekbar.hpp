@@ -17,6 +17,13 @@ namespace gui {
 class seekbar: public widget
 {
 public:
+	struct style {
+		enum  : unsigned {
+			classic = 		0,			//classic with cicle
+			simple_bar = 	1,			//sinple bar wihout circle
+		};
+	};
+
 	//Constructor
 	explicit seekbar( rectangle const& rect,layout const& layout, window &win, bool selectable = true )
 		: widget( rect, layout, win, selectable )
@@ -42,10 +49,15 @@ public:
 	void report_mode( bool mode) {
 		m_report = mode;
 	}
+
+	void style( short new_style) {
+		m_style = new_style;
+	}
 protected:
 	//Repaint virtual function
 	virtual void repaint( bool focus );
 private:
+	short m_style { style::classic };
 	short m_min { 0 };			//Minimum value
 	short m_max { 100 };		//Maximum value
 	short m_value { };			//Current value

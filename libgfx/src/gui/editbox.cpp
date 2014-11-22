@@ -118,15 +118,18 @@ void editbox::cursor_backward()
 	if( m_cursor_pos > 0 ) {
 		--m_cursor_pos;
 	} else {
-		m_cursor_pos = m_value.size() - 1;	
+		m_cursor_pos = m_value.size();	
 	}
 	auto gdi = make_wgdi( );
-	const auto new_cur_x =  m_cursor_x - gdi.get_text_width( m_value[m_cursor_pos] );
-	if( new_cur_x > c.x()+text_margin ) {
-		m_cursor_x = new_cur_x;
-	} else {
-		m_cursor_x = c.x() + text_margin;
-	}
+	auto new_cur_x = c.x() + text_margin;
+
+	for (unsigned n = 0; n < m_cursor_pos; n++)
+		new_cur_x += gdi.get_text_width( m_value[n] );
+
+	const auto max_x = c.x() + c.cx() - text_margin * 2;
+	if (new_cur_x > max_x) new_cur_x = max_x;
+
+	m_cursor_x = new_cur_x;
 }
 /* ------------------------------------------------------------------ */
 //Handle joy KBD
@@ -262,11 +265,7 @@ char editbox::ch_inc( char ch ) const
 	switch( m_type )
 	{
 	case type::text:
-		if (((ch >= '0') && (ch < '9')) || ((ch >= 'A') && (ch < 'Z')) || ((ch >= 'a') && (ch < 'z'))) ch++;
-		else if (ch == '9') ch = ' ';
-		else if (ch == 'Z') ch = 'a';
-		else if (ch == 'z') ch = '0';
-		else if (ch == ' ') ch = 'A';
+		if (ch < 'z') ch++;
 		else ch = ' ';
 		break;
 	case type::integer_pos:
@@ -300,12 +299,8 @@ char editbox::ch_dec( char ch ) const
 	switch( m_type )
 	{
 	case type::text:
-		if (((ch > '0') && (ch <= '9')) || ((ch > 'A') && (ch <= 'Z')) || ((ch > 'a') && (ch <= 'z'))) ch--;
-		else if (ch == '0') ch = 'z';
-		else if (ch == 'A') ch = ' ';
-		else if (ch == 'a') ch = 'Z';
-		else if (ch == ' ') ch = '9';
-		else ch = ' ';
+		if (ch > ' ') ch--;
+		else ch = 'z';
 		break;
 	case type::integer_pos:
 		if(ch>'0' && ch<='9') ch--;
