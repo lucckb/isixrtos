@@ -165,6 +165,7 @@ struct event_info {
 			detail::argument param1;			//! User message 1
 			detail::argument param2;			//! User message 2
 			detail::argument param3;			//! User message 3
+			detail::argument param4;			//! User message 3
 		} user;							//! User message part
 		struct {						//! For EV_PAINT  message
 			bool force;					//! Force component redraw
