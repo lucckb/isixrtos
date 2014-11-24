@@ -15,7 +15,6 @@
  *
  * =====================================================================================
  */
-//TODO: Code should be revieved when eeprom is complete 
 //TODO: Check for STM32F1 platform
 #include <isixdrv/i2c_bus.hpp>
 #include <stm32system.h>
