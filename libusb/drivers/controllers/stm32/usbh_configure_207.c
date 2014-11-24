@@ -144,7 +144,8 @@ static int USBHcentralConfigure(uint32_t prio) {
 	} else {
 		gpio_clr( USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN );
 	}
-	gpio_config(USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_SPEED_2MHZ, GPIO_OTYPE_PP );
+	gpio_config(USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN, GPIO_MODE_OUTPUT, 
+			GPIO_PUPD_NONE, GPIO_SPEED_2MHZ, CONFIG_USBHOST_VBUS_OTYPE );
 
 #ifdef CONFIG_USBHOST_OVRCURR_ENABLE
     /* Configure the overcurrent input and enable its interrupt. */

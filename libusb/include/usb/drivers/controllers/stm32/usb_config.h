@@ -72,6 +72,9 @@
 #ifndef CONFIG_USBHOST_VBUS_GPIO_N 
 #error CONFIG_USBHOST_VBUS_ON is not defined
 #endif
+#ifndef CONFIG_USBHOST_VBUS_OTYPE
+#error  CONFIG_USBHOST_VBUS_OTYPE is not defined
+#endif
 
 #ifndef CONFIG_USBHOST_USB_IRQ_MASK_VALUE
 #error CONFIG_USBHOST_USB_IRQ_MASK_VALUE is not defined
