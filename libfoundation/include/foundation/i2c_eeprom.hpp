@@ -27,8 +27,8 @@ class i2c_eeprom : public iflash_mem {
 public:
 	//! Memory type
 	enum class type : unsigned char {
-		m24c16,
-
+		m24c16,		//! 24c16 type 
+		m24c128		//! 24c128 type
 	};
 	//! Error code
 	enum error {
@@ -75,8 +75,8 @@ private:
 	const unsigned char m_addr;		//! Memory base addres
 	const type m_type;				//! Memory type
 private:
-	static constexpr iflash_mem::poffs_t _page_size_table[] = { 16 };
-	static constexpr iflash_mem::paddr_t _page_count_table[] = { 128 };
+	static constexpr iflash_mem::poffs_t _page_size_table[] = { 16, 64 };
+	static constexpr iflash_mem::paddr_t _page_count_table[] = { 128, 256 };
 	paddr_t pg_size( ) const {
 		return _page_size_table[int(m_type)];
 	}

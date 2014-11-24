@@ -139,6 +139,8 @@ public:
 	/** Mdelay bus tout impl */
 	virtual void mdelay( unsigned timeout );
 private:
+	//! Hardware init
+	void gpio_initialize();
 	//! Get hardware error code
 	int get_hwerror(void) const;
 	//Interrupt event handler
@@ -166,7 +168,6 @@ private:
 	uint16_t m_tx2_len {};				//! Second transaction len
 	isix::semaphore m_lock {1, 1};		//! Lock semaphore
 	isix::semaphore m_notify { 0, 1 };	//! Notify semaphore
-
 };
 /* ------------------------------------------------------------------ */ 
 

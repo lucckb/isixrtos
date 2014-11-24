@@ -297,14 +297,7 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 #endif
 	}
 	afio_config( dcast(m_i2c) );
-	if( m_i2c == I2C1 ) {
-		gpio_abstract_config_ext( I2C1_PORT, I2C1_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
-	} else if( m_i2c == I2C2 ) {
-		gpio_abstract_config_ext( I2C2_PORT, I2C2_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
-	} else {
-		//! Not supported yet
-		terminate();
-	}
+	//FIXME: Previous GPIO
 	i2c_init( dcast(m_i2c), clk_speed, I2C_Mode_I2C, I2C_DutyCycle_2, 1, 
 			  I2C_Ack_Enable, I2C_AcknowledgedAddress_7bit, pclk1 );
 	i2c_acknowledge_config( dcast(m_i2c), true );
@@ -323,6 +316,25 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 	//Enable DMA in i2c
 	i2c_dma_cmd( dcast(m_i2c), true );
 	i2c_cmd( dcast(m_i2c), true );
+	gpio_initialize();
+}
+/* ------------------------------------------------------------------ */ 
+void i2c_bus::gpio_initialize()
+{
+	if( m_i2c == I2C1 ) {
+		if( !gpio_get( I2C1_PORT, I2C1_SDA_PIN_) ||  !gpio_get( I2C1_PORT, I2C1_SCL_PIN_ ) ) {
+			dbprintf("BUSY?");
+		}
+		gpio_abstract_config_ext( I2C1_PORT, I2C1_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
+	} else if( m_i2c == I2C2 ) {
+		if( !gpio_get( I2C2_PORT, I2C2_SDA_PIN_) ||  !gpio_get( I2C2_PORT, I2C2_SCL_PIN_ ) ) {
+			dbprintf("BUSY?");
+		}
+		gpio_abstract_config_ext( I2C2_PORT, I2C2_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
+	} else {
+		//! Not supported yet
+		terminate();
+	}
 }
 /* ------------------------------------------------------------------ */ 
 /** Destructor */
@@ -390,18 +402,18 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	m_rx_len = (rbuffer!=nullptr)?(rsize):(0);
 	m_rx_buf = reinterpret_cast<uint8_t*>(rbuffer);
 	//Clear status flags
-	i2c_get_last_event( dcast(m_i2c));
+	i2c_get_last_event( dcast(m_i2c) );
 	//Enable I2C irq
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, true );
 	//DMA last transfer
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	i2c_acknowledge_config( dcast(m_i2c), true );
-	//Send the start
 	i2c_generate_start(dcast(m_i2c), true );
 	ret = m_notify.wait( TRANSACTION_TIMEOUT );
 	if( ret != isix::ISIX_EOK ) {
 		i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
 		i2c_generate_stop(dcast(m_i2c), true );
+		nop(); nop(); nop(); nop();
 		m_lock.signal();
 		return err_timeout;
 	}
@@ -472,7 +484,7 @@ void i2c_bus::ev_irq()
 			}
 			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 		}
-		dsb(); isb(); nop(); nop();
+		//dsb(); isb(); nop(); nop();
 	}
 	break;
 
