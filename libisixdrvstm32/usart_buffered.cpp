@@ -127,13 +127,14 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 	{
 		gpio_clock_enable( USART2_PORT, true );
 		RCC->APB1ENR |= RCC_APB1Periph_USART2;
-
 		//Configure GPIO port TxD and RxD
-		gpio_config(USART2_PORT, USART2_TX_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
-		gpio_config(USART2_PORT, USART2_RX_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+		gpio_abstract_config( USART2_PORT, USART2_TX_BIT, AGPIO_MODE_ALTERNATE_PP,  AGPIO_SPEED_HALF );
+		gpio_abstract_config( USART2_PORT, USART2_RX_BIT, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
 
+#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 		gpio_pin_AF_config( USART2_PORT, USART2_TX_BIT, GPIO_AF_USART2 );
 		gpio_pin_AF_config( USART2_PORT, USART2_RX_BIT, GPIO_AF_USART2 );
+#endif
 	}
 	else
 	{
@@ -344,13 +345,13 @@ void usart_buffered::isr()
 	if( usart_sr & USART_RXNE  )
 	{
 		//Received data interrupt
-		unsigned char ch = usart->DR;
+		value_type ch = usart->DR;
 		//fifo_put(&hwnd->rx_fifo,ch);
 		rx_queue.push_isr(ch);
 	}
 	if(tx_en && (usart_sr&USART_TXE) )
 	{
-		unsigned char ch;
+		value_type ch;
 		if( tx_queue.pop_isr(ch) == isix::ISIX_EOK )
 		{
 			usart->DR = ch;
@@ -372,7 +373,7 @@ void usart_buffered::isr()
 
 /*----------------------------------------------------------*/
 //Put string
-int usart_buffered::puts(const char *str)
+int usart_buffered::puts(const value_type *str)
 {
 	int r = isix::ISIX_EOK;
 	while(*str)

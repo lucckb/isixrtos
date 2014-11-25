@@ -30,7 +30,6 @@ extern "C"
 #endif
 }
 
-typedef isix::fifo<unsigned char> usart_queue;
 
 /*----------------------------------------------------------*/
 class usart_buffered
@@ -45,7 +44,10 @@ class usart_buffered
 	friend void usart5_isr_vector(void);
 #endif
 public:
-
+	using value_type =  char;
+private:
+	using container_type = isix::fifo<value_type>;
+public:
 	enum parity			//Baud enumeration
 	{
 		parity_none,
@@ -73,7 +75,7 @@ public:
 	void set_parity(parity new_parity);
 
 	//Putchar
-	int putchar(char c, int timeout=isix::ISIX_TIME_INFINITE)
+	int putchar(value_type c, int timeout=isix::ISIX_TIME_INFINITE)
 	{
 		int result = tx_queue.push( c, timeout );
 		start_tx();
@@ -81,16 +83,19 @@ public:
 	}
 
 	//Getchar
-	int getchar(unsigned char &c, isix::tick_t timeout=isix::ISIX_TIME_INFINITE)
+	template <typename T>
+	int getchar( T &c, isix::tick_t timeout=isix::ISIX_TIME_INFINITE )
 	{
-		return rx_queue.pop(c, timeout );
+		value_type r;
+		auto ret = rx_queue.pop( r, timeout );
+		c = static_cast<T>(r);
+		return ret;
 	}
-
 	//Put string into the uart
-	int puts(const char *str);
+	int puts(const value_type *str);
 	int put(const void *buf, std::size_t buf_len);
 	//Get string into the uart
-	int gets(char *str, std::size_t max_len, isix::tick_t timeout=isix::ISIX_TIME_INFINITE);
+	int gets(value_type *str, std::size_t max_len, isix::tick_t timeout=isix::ISIX_TIME_INFINITE);
 	int get(void *buf, std::size_t max_len, isix::tick_t timeout);
 	int rx_avail() const { return rx_queue.size(); }
 	const isix::fifo_base& get_rxfifo() const { return rx_queue; } 
@@ -116,8 +121,8 @@ private:
 	USART_TypeDef * const usart;
 	const unsigned pclk1_hz;
 	const unsigned pclk2_hz;
-	usart_queue tx_queue;
-	usart_queue rx_queue;
+	container_type tx_queue;
+	container_type rx_queue;
 	const unsigned char irq_prio;
 	const unsigned char irq_sub;
 	volatile bool tx_en;
