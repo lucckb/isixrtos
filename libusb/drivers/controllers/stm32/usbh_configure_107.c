@@ -48,7 +48,7 @@ static int USBHcentralConfigure(uint32_t prio) {
 
   /* Configure VBUS power supply. */
   gpio_clr( USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN );
-  gpio_config( USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN, GPIO_MODE_2MHZ, GPIO_CNF_GPIO_PP );
+  gpio_config( USBHOST_VBUS_PORT, CONFIG_USBHOST_VBUS_PIN, GPIO_MODE_2MHZ, CONFIG_USBHOST_VBUS_OTYPE );
 #ifdef CONFIG_USBHOST_OVRCURR_ENABLE
   /* Configure the overcurrent input and enable its interrupt. */
   gpio_config( USBHOST_OVRCURR_PORT, USBHOST_OVRCURR_PIN, GPIO_MODE_INPUT, GPIO_CNF_IN_FLOAT );
