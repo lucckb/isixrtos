@@ -122,24 +122,29 @@ void choice_menu::report_event( const input::event_info& ev )
 {
 	using namespace gfx::input;
 	bool ret {};
-	if( ev.type == event_info::EV_KEY ) {
-		if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN || ev.keyb.stat == input::detail::keyboard_tag::status::RPT) {
-			if( ev.keyb.key == kbdcodes::os_arrow_down ) {
+	if( ev.type == event_info::EV_KEY ) 
+	{
+		if( ev.keyb.stat == input::detail::keyboard_tag::status::DOWN ) 
+		{
+			if( ev.keyb.key == kbdcodes::os_arrow_down ) 
+			{
 				if(++m_curr_item == m_num_items) --m_curr_item;
 				else ret = true;
 			}
-			else if( ev.keyb.key == kbdcodes::os_arrow_up ) {
+			else if( ev.keyb.key == kbdcodes::os_arrow_up ) 
+			{
 				if( --m_curr_item < 0 ) m_curr_item = 0;
 				else ret = true;
 			}
-			else if(  ev.keyb.key == kbdcodes::enter ) {
+			if( ev.keyb.key == kbdcodes::enter ) 
+			{
 				if( m_style == style::select ) {
 					m_sel_item = m_curr_item;
 				}
 				event btn_event( this, event::evtype::EV_CLICK );
 				ret |= emit( btn_event );
-			}
-		}
+			} 
+		} 
 	}
 	if( ret ) {
 		event btn_event( this, event::evtype::EV_CHANGE );
@@ -148,6 +153,7 @@ void choice_menu::report_event( const input::event_info& ev )
 	}
 }
 /* ------------------------------------------------------------------ */
+
 } /* namespace gui */
 } /* namespace gfx */
 /* ------------------------------------------------------------------ */
