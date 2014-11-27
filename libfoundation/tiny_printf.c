@@ -261,7 +261,7 @@ int tiny_printf(const char *format, ...)
 	if(fn_lock && fn_unlock) fn_lock();
     result = tiny_vaprintf( NULL,0, format, args );
     if(fn_lock && fn_unlock) fn_unlock();
-	va_end( format );
+	va_end( args );
     return  result;
 }
 
@@ -272,7 +272,7 @@ int tiny_snprintf(char *out, unsigned long max_len, const char *format, ...)
     va_list args;
     va_start( args, format );
     int ret =  tiny_vaprintf( &out, max_len, format, args );
-	va_end( format );
+	va_end( args );
 	return ret;
 }
 
