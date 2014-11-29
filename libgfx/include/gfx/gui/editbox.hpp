@@ -56,6 +56,11 @@ public:
 		m_min_len = min_len;
 		m_max_len = max_len;
 	}
+	//! Set max length
+	void set_max_length( short max_len ) {
+		m_max_len = max_len;
+	}
+
 	//! Set limit handler
 	void set_limit_handler( limit_handler hwnd ) {
 		m_limit_hwnd = hwnd;
@@ -120,8 +125,8 @@ private:
 	//! If key matches the selected format
 	bool key_match( int ch ) const;
 private:
-	unsigned short m_min_len {  };			//Minimum len
-	unsigned short m_max_len {  };			//Maximum len
+	unsigned short m_min_len { 0 };			//Minimum len
+	unsigned short m_max_len { 0 };			//Maximum len
 	type m_type {type::text};				//Widget type
 	detail::string m_value;					//Default value
 	bool m_readonly {};						//Is readonly

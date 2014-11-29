@@ -150,7 +150,9 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 	{
 		if (evk.key == kbdcodes::os_arrow_right)
 		{
-			m_value.insert(m_cursor_pos, 1, insert_ch());
+			if ((m_max_len == 0) || (m_value.size() < m_max_len))
+				m_value.insert(m_cursor_pos, 1, insert_ch());
+
 			long_flag = true;
 		}
 		
