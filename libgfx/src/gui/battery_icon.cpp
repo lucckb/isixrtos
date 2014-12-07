@@ -68,6 +68,55 @@ void battery_icon::repaint( bool /* focus */ )
 
 	gdi.set_fg_color(get_layout().bg());
 	gdi.fill_area(x0 + 3 + w1, y0 + 3, w2, h - 5);
+
+	if (m_charging)
+	{
+		// drawing charging icon
+		auto bx0 = x0 + 4;
+		auto by0 = y0 + 4;
+		auto bx1 = x0 + w - 4;
+		auto by1 = y0 + h - 4;
+		auto bxup = ((bx0 + bx1) * 5) / 9;
+		auto bxdn = ((bx0 + bx1) * 4) / 9;
+		auto bym = (by0 + by1) / 2;
+
+		if ((bx1 > bx0) && (by1 > by0))
+		{
+			gdi.set_fg_color(color::White);
+
+			gdi.draw_line(bx0, bym, bxup, by0);
+//			gdi.draw_line(bx0 + 1, bym, bxup + 1, by0);
+
+			gdi.draw_line(bxup, by0, bxup, bym);
+			gdi.draw_line(bxup, bym, bx1, bym);
+			gdi.draw_line(bx0, bym, bxdn, bym);
+			gdi.draw_line(bxdn, bym, bxdn, by1);
+			gdi.draw_line(bxdn, by1, bx1, bym);
+		}
+	}else if (m_full)
+	{
+		if (h > 12)
+		{
+			// drawing full (F) icon
+			auto by0 = y0 + 4;
+			auto by1 = y0 + h - 4;
+			auto fh = h - 8;
+			auto d = fh / 2;
+			auto x = x0 + w / 2 ;
+			auto x0 = x - d;
+			auto x1 = x + d;
+			
+			gdi.set_fg_color(color::White);
+			gdi.draw_line(x0, by0, x0, by1);
+			gdi.draw_line(x0 + 1, by0, x0 + 1, by1);
+
+			gdi.draw_line(x0, by0, x1, by0);
+			gdi.draw_line(x0, by0 + 1, x1, by0 + 1);
+
+			gdi.draw_line(x0, by0 + d, x + d / 4, by0 + d);
+			gdi.draw_line(x0, by0 + d + 1, x + d / 4, by0 + d + 1);
+		}
+	}
 }
 /* ------------------------------------------------------------------ */
 }

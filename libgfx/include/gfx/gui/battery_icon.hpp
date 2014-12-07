@@ -42,11 +42,18 @@ public:
 		}
 		m_percent = value;
 	}
+	void status(bool charging, bool full) {
+		m_charging = charging;
+		m_full = full;
+	}
+	
 protected:
 	//! Repaint the window
 	virtual void repaint( bool focus );
 private:
 	unsigned char m_percent {};			//! Private percent value 
+	bool m_charging { false };
+	bool m_full { false };
 };
 /* ------------------------------------------------------------------ */
 } }
