@@ -35,10 +35,15 @@ void label::repaint( bool /* focus */ )
 	// draw text
 	if( !m_caption.empty() )
 		text_wdt = gdi.draw_text( tx, ty, m_caption.c_str() );
+	else
+		text_wdt = tx;
 
 	// clear background part
 	if (text_wdt < draw_text_wdt)
-		gdi.fill_area(text_wdt, ty , draw_text_wdt - text_wdt, get_coord().cy(), true);
+	{
+		if (!(m_flags & flags::center))
+			gdi.fill_area(text_wdt, ty , draw_text_wdt - text_wdt, get_coord().cy(), true);
+	}
 
 	// save last text length
 	draw_text_wdt = text_wdt;
