@@ -164,8 +164,8 @@ private:
 	volatile bool m_use_dma {};			//! Use DMA on BIG tran
 	volatile uint16_t m_rx_len {};		//! RX trans
 	uint8_t* m_rx_buf {};				//! RX buffer
-	const uint8_t* m_tx2_buf {};		//! Second transaction buffer pointer
-	uint16_t m_tx2_len {};				//! Second transaction len
+	const uint8_t* m_tx2_buf {};	//! Second transaction buffer pointer
+	volatile uint16_t m_tx2_len {};		//! Second transaction len
 	isix::semaphore m_lock {1, 1};		//! Lock semaphore
 	isix::semaphore m_notify { 0, 1 };	//! Notify semaphore
 };

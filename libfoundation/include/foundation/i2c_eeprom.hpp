@@ -33,7 +33,8 @@ public:
 	//! Error code
 	enum error {
 		err_addr_range = -2048,
-		err_invalid_type = -2049
+		err_invalid_type = -2049,
+		err_invalid_len = -2050
 	};
 	/** @param[in] bus Input bus owner
 	 *  @param[in] bus_addr Bus memory address

@@ -28,6 +28,7 @@
 #include <config.h>
 #endif
 /* ------------------------------------------------------------------ */ 
+//#define CONFIG_ISIXDRV_I2C_DEBUG 
 #ifdef CONFIG_ISIXDRV_I2C_DEBUG 
 #include <foundation/dbglog.h>
 #else
@@ -381,6 +382,7 @@ int i2c_bus::get_hwerror(void) const
 int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize)
 {
 	using namespace stm32;
+	dbprintf("i2c_bus::transfer( addr=%u wsize=%u rsize=%u", addr, wsize, rsize );
 	if( (addr>0xFF) || (addr&1) ) {
 		return err_invaddr;
 	}
