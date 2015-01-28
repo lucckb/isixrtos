@@ -484,7 +484,7 @@ void i2c_bus::ev_irq()
 				m_tx2_buf = nullptr;
 			}
 			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
-			for( int d=0;d<100;++d ) nop();
+			for( int d=0;d<1000;++d ) nop();
 		}
 		//dsb(); isb(); nop(); nop();
 	}
