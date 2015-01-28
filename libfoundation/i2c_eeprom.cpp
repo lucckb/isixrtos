@@ -79,6 +79,7 @@ int i2c_eeprom::write( paddr_t pg, poffs_t pa, const void* ptr, size_t len )
 			break;
 		}
 	}
+	m_bus.mdelay( 20 );
 	return ret;
 }
 /* ------------------------------------------------------------------ */ 
