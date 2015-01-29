@@ -28,7 +28,7 @@
 #include <config.h>
 #endif
 /* ------------------------------------------------------------------ */ 
-//#define CONFIG_ISIXDRV_I2C_DEBUG 
+#define CONFIG_ISIXDRV_I2C_DEBUG 
 #ifdef CONFIG_ISIXDRV_I2C_DEBUG 
 #include <foundation/dbglog.h>
 #else
@@ -205,7 +205,6 @@ namespace {
 	//DMA tx enable
 	inline void i2c_dma_tx_enable( I2C_TypeDef * const i2c )
 	{
-		dma_it_config( _i2c_stream(i2c,dma_dir::tx), DMA_IT_TC, true );
 		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::tx), true );
 	}
 	//DMA rx enable
@@ -217,7 +216,6 @@ namespace {
 	//DMA tx disable
 	inline void i2c_dma_tx_disable( I2C_TypeDef * const i2c )
 	{
-		dma_it_config( _i2c_stream(i2c,dma_dir::tx), DMA_IT_TC, false );
 		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::tx), false );
 	}
 	//DMA rx disable
@@ -243,13 +241,9 @@ namespace {
 		if( i2c == I2C1 ) {
 			nvic_set_priority( DMA1_Stream0_IRQn, prio, sub );
 			nvic_irq_enable( DMA1_Stream0_IRQn, true );
-			nvic_set_priority( DMA1_Stream6_IRQn, prio, sub );
-			nvic_irq_enable( DMA1_Stream6_IRQn, true );
 		} else if( i2c == I2C2 ) {
 			nvic_set_priority( DMA1_Stream7_IRQn, prio, sub );
 			nvic_irq_enable( DMA1_Stream7_IRQn, true );
-			nvic_set_priority( DMA1_Stream2_IRQn, prio, sub );
-			nvic_irq_enable( DMA1_Stream2_IRQn, true );
 		}
 	}
 }
@@ -319,8 +313,6 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 		nvic_irq_enable( I2C2_EV_IRQn, true );
 	}
 	i2c_dma_irq_on( dcast(m_i2c), IRQ_PRIO, IRQ_SUB );
-	//Enable DMA in i2c
-	i2c_dma_cmd( dcast(m_i2c), true );
 	i2c_cmd( dcast(m_i2c), true );
 	gpio_initialize();
 }
@@ -388,7 +380,7 @@ int i2c_bus::get_hwerror(void) const
 int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize)
 {
 	using namespace stm32;
-	dbprintf("i2c_bus::transfer( addr=%u wsize=%u rsize=%u", addr, wsize, rsize );
+//	dbprintf("i2c_bus::transfer( addr=%u wsize=%u rsize=%u", addr, wsize, rsize );
 	if( (addr>0xFF) || (addr&1) ) {
 		return err_invaddr;
 	}
@@ -437,6 +429,7 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	return ret;
 }
 /* ------------------------------------------------------------------ */
+
 /** Double non continous transaction write 
 	* @param[in] addr I2C address
 	* @param[in] wbuf1 Write buffer first transaction
@@ -446,12 +439,10 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	* @return error code or success */
 int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 )
 {
-	dbprintf("i2cbus::write %u size1 %u size2 %u", addr, wsize1, wsize2 );
 	m_tx2_len = (wbuf2!=nullptr)?(wsize2):(0);
 	m_tx2_buf = reinterpret_cast<const uint8_t*>(wbuf2);
 	return transfer( addr, wbuf1, wsize1, nullptr, 0 );
 }
-
 /* ------------------------------------------------------------------ */ 
 void i2c_bus::ev_irq()
 {
@@ -462,31 +453,41 @@ void i2c_bus::ev_irq()
 	//Send address
 	case I2C_EVENT_MASTER_MODE_SELECT:		//EV5
 		i2c_send_f7bit_address(dcast(m_i2c), m_addr );
-		dbprintf("I2C_EVENT_MASTER_MODE_SELECT");
+		//dbprintf("I2C_EVENT_MASTER_MODE_SELECT");
 	break;
 
 	//Send bytes in tx mode
 	case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:	//EV6
-			dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
+			i2c_dma_cmd( dcast(m_i2c), true );
 			i2c_dma_tx_enable( dcast(m_i2c) );
+			//dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
+			if( m_tx2_len ) {
+				i2c_dma_tx_config( dcast(m_i2c), m_tx2_buf, m_tx2_len );
+				i2c_dma_cmd( dcast(m_i2c), true );
+				i2c_dma_tx_enable( dcast(m_i2c) );
+				m_tx2_len = 0;
+				m_tx2_buf = nullptr;
+			}
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	//EV8
 	{
+		i2c_dma_cmd( dcast(m_i2c), false );
 		i2c_dma_tx_disable( dcast(m_i2c) );
 		if( m_rx_len ) {
 			//Change address to read
 			m_addr |= I2C_OAR1_ADD0;
 			i2c_generate_start( dcast(m_i2c), true );
 			//ACK config
-			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
+			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
 		}
 		else {
 			if( m_tx2_len == 0 ) {
 				ev_finalize();
 			} else {
+				//TODO: It was previous here
 			}
-			dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
+			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 		}
 	}
 	break;
@@ -495,18 +496,19 @@ void i2c_bus::ev_irq()
 	case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	//EV7
 			if( m_rx_len > 1 ) {
 				i2c_dma_last_transfer_cmd( dcast(m_i2c), true );
+				i2c_dma_cmd( dcast(m_i2c), true );
 				i2c_dma_rx_enable( dcast(m_i2c) );
 			} else {
 				i2c_acknowledge_config( dcast(m_i2c), false );
 				i2c_it_config(dcast(m_i2c), I2C_IT_BUF, true );
 			}
-		dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
+		//dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_RECEIVED:
 		m_rx_buf[0] = i2c_receive_data( dcast(m_i2c) );
 		ev_finalize();
-		dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
+		//dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
 	break;
 		
 	default:
@@ -521,6 +523,7 @@ void i2c_bus::ev_finalize( bool inv_state )
 {
 	i2c_generate_stop(dcast(m_i2c),true);
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
+	i2c_dma_cmd( dcast(m_i2c), false );
 	i2c_dma_rx_disable( dcast(m_i2c) );
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	i2c_acknowledge_config( dcast(m_i2c), true );
@@ -545,21 +548,11 @@ void i2c_bus::err_irq()
 		m_err_flag = event >> 8;
 		i2c_it_config( dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
 		i2c_generate_stop( dcast(m_i2c),true );
+		i2c_dma_cmd( dcast(m_i2c), false );
 		i2c_dma_rx_disable( dcast(m_i2c) );
 		i2c_dma_tx_disable( dcast(m_i2c) );
 	}
 	m_notify.signal_isr();
-}
-/* ------------------------------------------------------------------ */
-void i2c_bus::ev_dma_tx_tc() 
-{
-	if( m_tx2_len > 0 ) {
-		i2c_dma_tx_disable( dcast(m_i2c) );
-		i2c_dma_tx_config( dcast(m_i2c), m_tx2_buf, m_tx2_len );
-		i2c_dma_tx_enable( dcast(m_i2c) );
-		m_tx2_len = 0;
-		m_tx2_buf = nullptr;
-	}
 }
 /* ------------------------------------------------------------------ */ 
 //Dma trasfer complete
@@ -567,11 +560,11 @@ void i2c_bus::ev_dma_tc()
 {
 	i2c_generate_stop(dcast(m_i2c),true);
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
+	i2c_dma_cmd( dcast(m_i2c), false );
 	i2c_dma_rx_disable( dcast(m_i2c) );
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	//ACK config
 	m_notify.signal_isr();
-	dbprintf("DMA TC");
 }
 /* ------------------------------------------------------------------ */
 void i2c_bus::mdelay( unsigned timeout ) 
@@ -612,27 +605,16 @@ extern "C" {
 		dma_clear_flag( DMA1_Stream0, DMA_FLAG_TCIF0|DMA_FLAG_TEIF0 );
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
 	}
-	__attribute__((interrupt)) void dma1_stream6_isr_vector()
-	{
-		dma_clear_flag( DMA1_Stream6, DMA_FLAG_TCIF6|DMA_FLAG_TEIF6 );
-		if( obj_i2c1 ) obj_i2c1->ev_dma_tx_tc();
-		dbprintf(">>>>>>>>>> TC_TX  >>>>> " );
-	}
 #endif
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2DMARX
-	__attribute__((interrupt)) void dma1_stream2_isr_vector()
-	{
-		dma_clear_flag( DMA1_Stream2, DMA_FLAG_TCIF2|DMA_FLAG_TEIF2 );
-		//if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
-	}
 	__attribute__((interrupt)) void dma1_stream7_isr_vector()
 	{
 		dma_clear_flag( DMA1_Stream7, DMA_FLAG_TCIF7|DMA_FLAG_TEIF7 );
-		//if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
+		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
 	}
 #endif
-#else  /* STM32MCU_MAJOR_TYPE_F1 */
+#else
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	//I2C1 RX
 	__attribute__((interrupt)) void dma1_channel7_isr_vector() 
