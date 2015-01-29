@@ -431,7 +431,6 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	return ret;
 }
 /* ------------------------------------------------------------------ */
-
 /** Double non continous transaction write 
 	* @param[in] addr I2C address
 	* @param[in] wbuf1 Write buffer first transaction
@@ -445,6 +444,7 @@ int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void*
 	m_tx2_buf = reinterpret_cast<const uint8_t*>(wbuf2);
 	return transfer( addr, wbuf1, wsize1, nullptr, 0 );
 }
+
 /* ------------------------------------------------------------------ */ 
 void i2c_bus::ev_irq()
 {
@@ -460,13 +460,14 @@ void i2c_bus::ev_irq()
 
 	//Send bytes in tx mode
 	case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:	//EV6
-			i2c_dma_tx_enable( dcast(m_i2c) );
 			//dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
 			if( m_tx2_len ) {
 				i2c_dma_tx_config( dcast(m_i2c), m_tx2_buf, m_tx2_len );
 				i2c_dma_tx_enable( dcast(m_i2c) );
 				m_tx2_len = 0;
 				m_tx2_buf = nullptr;
+			} else {
+				i2c_dma_tx_enable( dcast(m_i2c) );
 			}
 	break;
 
