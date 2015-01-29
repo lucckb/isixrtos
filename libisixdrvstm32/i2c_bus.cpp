@@ -462,6 +462,12 @@ void i2c_bus::ev_irq()
 	case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:	//EV6
 			i2c_dma_tx_enable( dcast(m_i2c) );
 			//dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
+			if( m_tx2_len ) {
+				i2c_dma_tx_config( dcast(m_i2c), m_tx2_buf, m_tx2_len );
+				i2c_dma_tx_enable( dcast(m_i2c) );
+				m_tx2_len = 0;
+				m_tx2_buf = nullptr;
+			}
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	//EV8
@@ -478,15 +484,10 @@ void i2c_bus::ev_irq()
 			if( m_tx2_len == 0 ) {
 				ev_finalize();
 			} else {
-				i2c_dma_tx_config( dcast(m_i2c), m_tx2_buf, m_tx2_len );
-				i2c_dma_tx_enable( dcast(m_i2c) );
-				m_tx2_len = 0;
-				m_tx2_buf = nullptr;
+				//TODO: It was previous here
 			}
 			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
-			for( int d=0;d<1000;++d ) nop();
 		}
-		//dsb(); isb(); nop(); nop();
 	}
 	break;
 
