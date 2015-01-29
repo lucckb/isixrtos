@@ -416,10 +416,10 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 		m_lock.signal();
 		return err_timeout;
 	}
-	i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
-	if( (ret=get_hwerror())  )
+	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
+	if( (ret=get_hwerror()) )
 	{
-		i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
+		i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
 		m_err_flag = 0;
 		m_lock.signal();
 		return ret;
@@ -458,37 +458,43 @@ void i2c_bus::ev_irq()
 
 	//Send bytes in tx mode
 	case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:	//EV6
-			i2c_dma_cmd( dcast(m_i2c), true );
-			i2c_dma_tx_enable( dcast(m_i2c) );
-			//dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
-			if( m_tx2_len ) {
-				i2c_dma_tx_config( dcast(m_i2c), m_tx2_buf, m_tx2_len );
+			if( m_tx2_len == 0 ) 
+			{
 				i2c_dma_cmd( dcast(m_i2c), true );
 				i2c_dma_tx_enable( dcast(m_i2c) );
-				m_tx2_len = 0;
-				m_tx2_buf = nullptr;
 			}
+			else {
+				i2c_send_data( dcast(m_i2c), *m_tx2_buf++ ); 
+				--m_tx2_len;
+			}
+			//dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	//EV8
 	{
-		i2c_dma_cmd( dcast(m_i2c), false );
-		i2c_dma_tx_disable( dcast(m_i2c) );
-		if( m_rx_len ) {
-			//Change address to read
-			m_addr |= I2C_OAR1_ADD0;
-			i2c_generate_start( dcast(m_i2c), true );
-			//ACK config
-			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
-		}
-		else {
-			if( m_tx2_len == 0 ) {
-				ev_finalize();
-			} else {
-				//TODO: It was previous here
+		if( m_tx2_len == 0 )
+		{
+			i2c_dma_cmd( dcast(m_i2c), true );
+			i2c_dma_tx_disable( dcast(m_i2c) );
+			if( m_rx_len ) 
+			{
+				//Change address to read
+				m_addr |= I2C_OAR1_ADD0;
+				i2c_generate_start( dcast(m_i2c), true );
+				//ACK config
+				//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
 			}
-			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
+			else 
+			{
+				ev_finalize();
+			}
+		} 
+		else 
+		{
+			i2c_send_data( dcast(m_i2c), *m_tx2_buf++ ); 
+			--m_tx2_len;
 		}
+		//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 	}
 	break;
 
@@ -523,8 +529,8 @@ void i2c_bus::ev_finalize( bool inv_state )
 {
 	i2c_generate_stop(dcast(m_i2c),true);
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
-	i2c_dma_cmd( dcast(m_i2c), false );
 	i2c_dma_rx_disable( dcast(m_i2c) );
+	i2c_dma_cmd( dcast(m_i2c), false );
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	i2c_acknowledge_config( dcast(m_i2c), true );
 	if( inv_state ) {
