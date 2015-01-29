@@ -69,10 +69,11 @@ extern "C" {
 #elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2
 	void i2c2_ev_isr_vector() __attribute__ ((interrupt));
 	void i2c2_er_isr_vector() __attribute__ ((interrupt));
-	void dma1_stream7_isr_vector() __attribute__((interrupt));
+	void dma1_stream2_isr_vector() __attribute__((interrupt));
 #else
 #error Unknown I2C
 #endif
+	void dma1_stream6_isr_vector() __attribute__((interrupt));
 }
 /* ------------------------------------------------------------------ */ 
 class i2c_bus : public fnd::bus::ibus {
@@ -86,6 +87,7 @@ class i2c_bus : public fnd::bus::ibus {
 	friend void i2c2_ev_isr_vector();
 	friend void i2c2_er_isr_vector();
 	friend void dma1_stream0_isr_vector();
+	friend void dma1_stream6_isr_vector();
 	friend void dma1_stream7_isr_vector();
 #elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1 
 	friend void i2c1_ev_isr_vector();
@@ -153,6 +155,7 @@ private:
 	void ev_irq_no_dma();
 	//! Event DMA transfer complete
 	void ev_dma_tc();
+	void ev_dma_tx_tc();
 	//! Finalize transaction
 	void ev_finalize( bool state_err = false );
 private:
@@ -163,7 +166,7 @@ private:
 	volatile uint8_t m_addr {};			//! Current addr
 	volatile bool m_use_dma {};			//! Use DMA on BIG tran
 	volatile uint16_t m_rx_len {};		//! RX trans
-	uint8_t* volatile m_rx_buf {};				//! RX buffer
+	uint8_t* volatile m_rx_buf {};		//! RX buffer
 	const uint8_t* volatile m_tx2_buf {};	//! Second transaction buffer pointer
 	volatile uint16_t m_tx2_len {};		//! Second transaction len
 	isix::semaphore m_lock {1, 1};		//! Lock semaphore
