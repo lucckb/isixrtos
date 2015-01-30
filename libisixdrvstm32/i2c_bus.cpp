@@ -506,7 +506,6 @@ void i2c_bus::ev_irq()
 	case I2C_EVENT_MASTER_BYTE_RECEIVED:
 		m_rx_buf[0] = i2c_receive_data( dcast(m_i2c) );
 		ev_finalize();
-		dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
 	break;
 	default:
 		//dbprintf("Unknown event %08x", event );
