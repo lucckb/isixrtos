@@ -151,11 +151,8 @@ private:
 	void err_irq();
 	//!Ev irq DMA version
 	void ev_irq_dma();
-	//!Ev irq noDMA version
-	void ev_irq_no_dma();
 	//! Event DMA transfer complete
 	void ev_dma_tc();
-	void ev_dma_tx_tc();
 	//! Finalize transaction
 	void ev_finalize( bool state_err = false );
 private:
@@ -164,11 +161,8 @@ private:
 #endif
 	volatile uint8_t m_err_flag {};		//! Error code
 	volatile uint8_t m_addr {};			//! Current addr
-	volatile bool m_use_dma {};			//! Use DMA on BIG tran
 	volatile uint16_t m_rx_len {};		//! RX trans
 	uint8_t* volatile m_rx_buf {};		//! RX buffer
-	const uint8_t* volatile m_tx2_buf {};	//! Second transaction buffer pointer
-	volatile uint16_t m_tx2_len {};		//! Second transaction len
 	isix::semaphore m_lock {1, 1};		//! Lock semaphore
 	isix::semaphore m_notify { 0, 1 };	//! Notify semaphore
 };

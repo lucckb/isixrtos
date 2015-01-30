@@ -24,6 +24,7 @@
 #include <stm32gpio.h>
 #include <cstdlib>
 #include <new>
+#include <cstring>
 #ifdef _HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -313,6 +314,7 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 		nvic_irq_enable( I2C2_EV_IRQn, true );
 	}
 	i2c_dma_irq_on( dcast(m_i2c), IRQ_PRIO, IRQ_SUB );
+	i2c_dma_cmd( dcast(m_i2c), true );
 	i2c_cmd( dcast(m_i2c), true );
 	gpio_initialize();
 }
@@ -389,7 +391,7 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 		return ret;
 	}
 	//Disable I2C irq
-	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
+	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 	if( wbuffer )
 		i2c_dma_tx_config( dcast(m_i2c), wbuffer, wsize );
 	if( rsize > 1)
@@ -403,28 +405,28 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	//Clear status flags
 	i2c_get_last_event( dcast(m_i2c) );
 	//Enable I2C irq
-	i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, true );
+	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, true );
 	//DMA last transfer
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	i2c_acknowledge_config( dcast(m_i2c), true );
 	i2c_generate_start(dcast(m_i2c), true );
 	ret = m_notify.wait( TRANSACTION_TIMEOUT );
 	if( ret != isix::ISIX_EOK ) {
-		i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
+		i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 		i2c_generate_stop(dcast(m_i2c), true );
 		nop(); nop(); nop(); nop();
 		m_lock.signal();
 		return err_timeout;
 	}
-	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
+	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 	if( (ret=get_hwerror()) )
 	{
-		i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
+		i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 		m_err_flag = 0;
 		m_lock.signal();
 		return ret;
 	}
-	i2c_it_config(dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
+	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 	m_lock.signal();
 	return ret;
 }
@@ -439,9 +441,17 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	* @return error code or success */
 int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 )
 {
-	m_tx2_len = (wbuf2!=nullptr)?(wsize2):(0);
-	m_tx2_buf = reinterpret_cast<const uint8_t*>(wbuf2);
-	return transfer( addr, wbuf1, wsize1, nullptr, 0 );
+	//m_tx2_len = (wbuf2!=nullptr)?(wsize2):(0);
+	//m_tx2_buf = reinterpret_cast<const uint8_t*>(wbuf2);
+	static uint8_t buffer[2048];
+	if( wsize2 > 0 ) {
+		std::memcpy( buffer, wbuf1, wsize1 );
+		std::memcpy( &buffer[wsize1], wbuf2, wsize2 );
+		return transfer( addr, buffer, wsize1+wsize2, nullptr, 0 );
+	}
+	else 
+		return transfer( addr, wbuf1, wsize1, nullptr, 0 );
+
 }
 /* ------------------------------------------------------------------ */ 
 void i2c_bus::ev_irq()
@@ -458,51 +468,34 @@ void i2c_bus::ev_irq()
 
 	//Send bytes in tx mode
 	case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:	//EV6
-			if( m_tx2_len == 0 ) 
-			{
-				i2c_dma_cmd( dcast(m_i2c), true );
-				i2c_dma_tx_enable( dcast(m_i2c) );
-			}
-			else {
-				i2c_send_data( dcast(m_i2c), *m_tx2_buf++ ); 
-				--m_tx2_len;
-			}
-			//dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
+		i2c_dma_tx_enable( dcast(m_i2c) );
+		//dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	//EV8
 	{
-		if( m_tx2_len == 0 )
+		i2c_dma_tx_disable( dcast(m_i2c) );
+		if( m_rx_len ) 
 		{
-			i2c_dma_cmd( dcast(m_i2c), true );
-			i2c_dma_tx_disable( dcast(m_i2c) );
-			if( m_rx_len ) 
-			{
-				//Change address to read
-				m_addr |= I2C_OAR1_ADD0;
-				i2c_generate_start( dcast(m_i2c), true );
-				//ACK config
-				//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
-			}
-			else 
-			{
-				ev_finalize();
-			}
-		} 
+			//Change address to read
+			m_addr |= I2C_OAR1_ADD0;
+			i2c_generate_start( dcast(m_i2c), true );
+			//ACK config
+			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
+		}
 		else 
 		{
-			i2c_send_data( dcast(m_i2c), *m_tx2_buf++ ); 
-			--m_tx2_len;
-		}
+			ev_finalize();
+		} 
 		//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 	}
 	break;
 
 	//Master mode selected
 	case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	//EV7
+	//case 0x00030084:
 			if( m_rx_len > 1 ) {
 				i2c_dma_last_transfer_cmd( dcast(m_i2c), true );
-				i2c_dma_cmd( dcast(m_i2c), true );
 				i2c_dma_rx_enable( dcast(m_i2c) );
 			} else {
 				i2c_acknowledge_config( dcast(m_i2c), false );
@@ -514,12 +507,15 @@ void i2c_bus::ev_irq()
 	case I2C_EVENT_MASTER_BYTE_RECEIVED:
 		m_rx_buf[0] = i2c_receive_data( dcast(m_i2c) );
 		ev_finalize();
-		//dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
+		dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
 	break;
-		
+#if 0
+	case 0x00030000:
+		break;
+#endif
 	default:
-		dbprintf("Unknown event %08x", event );
-		ev_finalize( true );
+		//dbprintf("Unknown event %08x", event );
+		//ev_finalize( true );
 		break;
 	}
 }
@@ -530,7 +526,7 @@ void i2c_bus::ev_finalize( bool inv_state )
 	i2c_generate_stop(dcast(m_i2c),true);
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 	i2c_dma_rx_disable( dcast(m_i2c) );
-	i2c_dma_cmd( dcast(m_i2c), false );
+	i2c_dma_tx_disable( dcast(m_i2c) );
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	i2c_acknowledge_config( dcast(m_i2c), true );
 	if( inv_state ) {
@@ -552,9 +548,8 @@ void i2c_bus::err_irq()
 	{
 		i2c_clear_it_pending_bit( dcast(m_i2c), EVENT_ERROR_MASK );
 		m_err_flag = event >> 8;
-		i2c_it_config( dcast(m_i2c), I2C_IT_EVT| I2C_IT_ERR, false );
+		i2c_it_config( dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 		i2c_generate_stop( dcast(m_i2c),true );
-		i2c_dma_cmd( dcast(m_i2c), false );
 		i2c_dma_rx_disable( dcast(m_i2c) );
 		i2c_dma_tx_disable( dcast(m_i2c) );
 	}
@@ -566,7 +561,6 @@ void i2c_bus::ev_dma_tc()
 {
 	i2c_generate_stop(dcast(m_i2c),true);
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
-	i2c_dma_cmd( dcast(m_i2c), false );
 	i2c_dma_rx_disable( dcast(m_i2c) );
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	//ACK config
