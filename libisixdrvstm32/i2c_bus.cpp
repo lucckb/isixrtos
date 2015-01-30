@@ -493,7 +493,6 @@ void i2c_bus::ev_irq()
 
 	//Master mode selected
 	case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	//EV7
-	//case 0x00030084:
 			if( m_rx_len > 1 ) {
 				i2c_dma_last_transfer_cmd( dcast(m_i2c), true );
 				i2c_dma_rx_enable( dcast(m_i2c) );
@@ -509,10 +508,6 @@ void i2c_bus::ev_irq()
 		ev_finalize();
 		dbprintf("I2C_EVENT_MASTER_BYTE_RECEIVED ");
 	break;
-#if 0
-	case 0x00030000:
-		break;
-#endif
 	default:
 		//dbprintf("Unknown event %08x", event );
 		//ev_finalize( true );
