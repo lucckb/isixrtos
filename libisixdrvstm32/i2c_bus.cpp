@@ -440,18 +440,10 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	* @param[in] wsize2 Transaction size 1
 	* @return error code or success */
 int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 )
-{
-	//m_tx2_len = (wbuf2!=nullptr)?(wsize2):(0);
-	//m_tx2_buf = reinterpret_cast<const uint8_t*>(wbuf2);
-	static uint8_t buffer[2048];
-	if( wsize2 > 0 ) {
-		std::memcpy( buffer, wbuf1, wsize1 );
-		std::memcpy( &buffer[wsize1], wbuf2, wsize2 );
-		return transfer( addr, buffer, wsize1+wsize2, nullptr, 0 );
-	}
-	else 
-		return transfer( addr, wbuf1, wsize1, nullptr, 0 );
-
+{   
+	m_tx2_len = (wbuf2!=nullptr)?(wsize2):(0);
+	m_tx2_buf = const_cast<const uint8_t * volatile>(reinterpret_cast<const uint8_t*>(wbuf2));
+	return transfer( addr, wbuf1, wsize1, nullptr, 0 );
 }
 /* ------------------------------------------------------------------ */ 
 void i2c_bus::ev_irq()
@@ -485,7 +477,15 @@ void i2c_bus::ev_irq()
 		}
 		else 
 		{
-			ev_finalize();
+			if( m_tx2_len == 0 )
+				ev_finalize();
+			else 
+			{
+				i2c_dma_tx_config( dcast(m_i2c), m_tx2_buf, m_tx2_len );
+				i2c_dma_tx_enable( dcast(m_i2c) );
+				m_tx2_len = 0;
+				m_tx2_buf = nullptr;
+			}
 		} 
 		//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 	}

@@ -163,6 +163,8 @@ private:
 	volatile uint8_t m_addr {};			//! Current addr
 	volatile uint16_t m_rx_len {};		//! RX trans
 	uint8_t* volatile m_rx_buf {};		//! RX buffer
+	volatile uint16_t m_tx2_len {};		//! RX trans
+	const uint8_t* volatile m_tx2_buf {};		//! RX buffer
 	isix::semaphore m_lock {1, 1};		//! Lock semaphore
 	isix::semaphore m_notify { 0, 1 };	//! Notify semaphore
 };
