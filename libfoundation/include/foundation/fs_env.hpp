@@ -115,10 +115,11 @@ private:
 	//! Reclaim flash memory
 	int reclaim_nonrandom();
 	//! Reclaim the memory
-	int reclaim() {
+	int reclaim() 
+	{
+		m_lru.clear();
+		m_last_free_clust = c_first_cluster;
 		if( can_random_access() ) {
-			m_lru.clear();
-			m_last_free_clust = c_first_cluster;
 			return reclaim_random();
 		} else {
 			return reclaim_nonrandom();
