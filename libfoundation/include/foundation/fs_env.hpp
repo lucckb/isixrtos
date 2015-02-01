@@ -28,7 +28,8 @@ namespace detail {
 }
 /* ------------------------------------------------------------------ */ 
 //! Env FS class implementation
-class fs_env {
+class fs_env 
+{
 	enum error_internal {
 		err_hdr_not_found = 3,
 		err_hdr_second = 2,
@@ -37,6 +38,9 @@ class fs_env {
 	static constexpr auto c_first_cluster = 1U;
 	static constexpr auto c_lru_size = 16;
 public:
+	//! Prevent copy
+	fs_env( const fs_env& ) = delete;
+	fs_env& operator=( const fs_env& ) = delete;
 	//! Error codes
 	enum error {
 		err_success = 0,

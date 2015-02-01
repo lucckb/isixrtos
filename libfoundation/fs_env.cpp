@@ -471,26 +471,26 @@ int fs_env::init_fs()
 		ret = format();
 		csize = get_initial_clust_size();
 		m_alt_page_in_use = false;
-		dbprintf("Page not found format requied CS %i RET %i", csize, ret );
+		dbprintf("===Page not found format requied CS %i RET %i", csize, ret );
 	} 
 	else if( ret == err_hdr_first ) 
 	{
 		m_alt_page_in_use = false;
 		ret = err_success;
-		dbprintf("init_fs -> base_page");
+		dbprintf("===init_fs -> base_page");
 	} 
 	else if( ret == err_hdr_second ) 
 	{
 		m_alt_page_in_use = true;
 		ret = err_success;
-		dbprintf("init_fs -> alt_page");
+		dbprintf("===init_fs -> alt_page");
 	}
 	if(ret==err_success) 
 	{
 		m_clust_size = csize;
 	}
-	dbprintf("init_fs PG base %i alt %i size %i wear_stat %u", 
-			m_pg_base, m_pg_alt, m_npages, m_wear_leveling );
+	dbprintf("===init_fs PG base %i alt %i size %i wear_stat %u clust_size %u", 
+			m_pg_base, m_pg_alt, m_npages, m_wear_leveling, m_clust_size );
 	return ret;
 }
 /* ------------------------------------------------------------------ */
@@ -509,6 +509,7 @@ int fs_env::find_first( unsigned id, detail::fnode_0* node )
 	bool found = false;
 	const auto p_rlu_clu = m_lru.get( id );
 	const auto start_clu = p_rlu_clu?(*p_rlu_clu):(c_first_cluster);
+	dbprintf("Find first begining from %u", start_clu );
 	for( unsigned c=start_clu; c<ncs; ++c ) 
 	{
 		ret = flash_read( get_page(), c, get_clust_size(), node, sizeof(*node) );
@@ -559,7 +560,6 @@ int fs_env::erase_all_nonrandom( unsigned pg )
 int fs_env::format() 
 {
 	using namespace detail;
-	m_clust_size = 0;
 	auto ret = erase_all_pages( m_pg_base );
 	if( ret ) {
 		return ret;
@@ -664,22 +664,22 @@ int fs_env::reclaim_random()
 	{
 		return err_fs_fmt;
 	}
-	if( !m_clust_size ) 
+	if( !get_clust_size() ) 
 	{
 		return err_internal;
 	}
 	int ret {};
 	const auto pg_size = m_flash.page_size();
-	auto ncs = (m_npages * pg_size)/m_clust_size;
+	auto ncs = (m_npages * pg_size)/get_clust_size();
 	fnode_0 node;
 	for( unsigned c=1; c<ncs; ++c ) 
 	{
-		ret = flash_read( m_pg_base, c, m_clust_size, &node, sizeof node );
+		ret = flash_read( m_pg_base, c, get_clust_size(), &node, sizeof node );
 		if( ret ) break;
 		if( node.id_next == node_dirty ) 
 		{
 			node.id_next = node_unused;
-			ret = flash_write( m_pg_base, c, m_clust_size, &node, sizeof node );
+			ret = flash_write( m_pg_base, c, get_clust_size(), &node, sizeof node );
 			if( ret ) {
 				break;
 			}

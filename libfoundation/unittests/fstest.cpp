@@ -32,7 +32,7 @@ int main( int argc, const char** /*  argv*/) {
 		fnd::fs_eeprom test( 8, 256 , true );
 		fnd::filesystem::fs_env env { test, true };
 		if( 1 ) {
-			auto m_env = env;
+			auto &m_env = env;
 			//static constexpr auto str1 = "Ala ma kota a kot ma ale no i co panie z tego wyniknie to nie wiadomo";
 			static constexpr auto str2 = "Walentina to walientina podniebmna mis byly kwiaty dla gagarina"
 				"a teraz jest valentina twist A teraz Pan odwiedzi nas przyjedzie do Polski bo wszyscy na niego czekaja";
