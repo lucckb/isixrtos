@@ -23,7 +23,6 @@
 #include <limits>
 #include <cstring>
 /* ------------------------------------------------------------------ */
-#define CONFIG_LIBFOUNDATION_ENV_FS_DEBUG
 #ifdef CONFIG_LIBFOUNDATION_ENV_FS_DEBUG
 #include <foundation/dbglog.h>
 #else
@@ -136,7 +135,8 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 		return err_range_id;
 	}
 	auto ret = init_fs();
-	if( ret >= 0 ) {
+	if( ret >= 0 ) 
+	{
 		ret = find_first( env_id );
 		if( ret == err_invalid_id ) {
 			ret = err_success;
@@ -144,46 +144,68 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 			ret = delete_chain( ret );
 		}
 	}
-	if( ret == 0 ) {
+	if( ret == 0 ) 
+	{
 		const unsigned nclu = buf_len_to_n_clust( buf_len );
 		ret = check_chains( nclu );
-		if( ret==err_fs_full || (ret>0&&ret<int(nclu)) ) {
-			ret = reclaim();
-			if( ret>=0 ) {
-				ret = check_chains( nclu );
-				if( ret == int(nclu) ) {
-					ret = err_success;
-				} else if( ret>0 && ret<int(nclu)) {
-					ret = err_fs_full;
+		if( m_wear_leveling )
+		{
+			if( ret==err_fs_full || (ret>0&&ret<int(nclu)) ) 
+			{
+				ret = reclaim();
+				if( ret>=0 ) 
+				{
+					ret = check_chains( nclu );
+					if( ret == int(nclu) ) {
+						ret = err_success;
+					} else if( ret>0 && ret<int(nclu)) {
+						ret = err_fs_full;
+					}
 				}
+			} 
+			else 
+			{
+				ret = err_success;
 			}
-		} else {
-			ret = err_success;
+		} 
+		else 
+		{
+			if( ret>0 && ret<int(nclu) ) 
+				ret = err_fs_full;
+			else
+				ret = err_success;
 		}
-		if( !ret ) {
+		if( !ret ) 
+		{
 			crc16 crcc;
 			crcc( buf, buf_len );
-			auto fc1 = find_free_cluster( 1 );
+			auto fc1 = find_free_cluster( get_first_cluster() );
 			if( fc1 < 0 ) {
 				dbprintf("Hardware failure %i", fc1 );
 				return ret;
 			}
 			int fc2 = node_end;
-			for( unsigned c=0; c<nclu; ++c ) {
+			for( unsigned c=0; c<nclu; ++c ) 
+			{
 				char ibuf[ get_clust_size() ];
 				unsigned twlen;
 				unsigned wlen;
-				if( c == 0 ) {
+				if( c == 0 ) 
+				{
 					auto hdr = reinterpret_cast<fnode_0*>( ibuf );
 					hdr->id_next = env_id;
 					hdr->len = buf_len;
 					hdr->crc = crcc();
 					hdr->type = 0;
-					if( buf_len <= (get_clust_size()-sizeof(fnode_0)) ) {
+					if( buf_len <= (get_clust_size()-sizeof(fnode_0)) ) 
+					{
 						hdr->next = node_end;
 						wlen = buf_len;
-					} else {
+					} 
+					else 
+					{
 						fc2 = find_free_cluster( fc1 + 1 );
+						m_last_free_clust = fc1;
 						if( fc2 < 0 ) {
 							dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
 							return ret;
@@ -194,13 +216,18 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 					std::memcpy( hdr->data, buf, wlen );
 					twlen = sizeof(fnode_0) + wlen;
 					dbprintf("WRCLU %i -> %i", fc1, hdr->next );
-				} else {
+				} 
+				else 
+				{
 					auto hdr = reinterpret_cast<fnode_1*>( ibuf );
 					hdr->type = 1;
-					if( buf_len<=(get_clust_size()-sizeof(fnode_1)) ) {
+					if( buf_len<=(get_clust_size()-sizeof(fnode_1)) ) 
+					{
 						hdr->next = node_end;
 						wlen = buf_len;
-					} else {
+					} 
+					else 
+					{
 						fc2 = find_free_cluster( fc1 + 1 );
 						if( fc2 < 0 ) {
 							dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
@@ -219,6 +246,8 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 				if( ret ) break;
 				fc1 = fc2;
 			}
+			//! Save the last cluster with wear level mode
+			m_last_free_clust = fc2;
 		}
 	}
 	return ret;
@@ -364,19 +393,24 @@ int fs_env::check_chains( unsigned rclu )
 {
 	int ret = err_internal;
 	unsigned fnd_clu = 0;
-	for( unsigned c=0, fc=1; c<rclu; ++c ) {
+	for( unsigned c=0, fc=get_first_cluster(); c<rclu; ++c ) 
+	{
 		ret = find_free_cluster( fc + 1 );
-		if( ret > 0 ) {
+		if( ret > 0 ) 
+		{
 			if( ++fnd_clu == rclu ) {
 				break;
 			}
 			fc = ret;
-		} else {
+		} 
+		else 
+		{
 			break;
 		}
 		if( fnd_clu == rclu ) break;
 	}
-	if( ret >= 0 ) {
+	if( ret >= 0 ) 
+	{
 		ret = fnd_clu;
 	} 
 	return ret;
@@ -391,13 +425,15 @@ int fs_env::find_free_cluster( unsigned sclust )
 	fnode_0 node;
 	bool found = false;
 	int ret = err_success;
-	for( unsigned c=sclust; c<ncs; ++c ) {
+	for( unsigned c=sclust; c<ncs; ++c ) 
+	{
 		ret = flash_read( get_page(), c, get_clust_size(), &node, sizeof node );
 		if( ret ) {
 			dbprintf("Free cluster err ret %i", ret );
 			break;
 		}
-		if( node.id_next == node_unused ) {
+		if( node.id_next==node_unused || (!m_wear_leveling&&node.id_next==node_dirty) )
+		{
 			found = true; ret = c;
 			break;
 		}
@@ -439,7 +475,8 @@ int fs_env::init_fs()
 	{
 		m_clust_size = csize;
 	}
-	dbprintf("init_fs PG base %i alt %i size %i", m_pg_base, m_pg_alt, m_npages );
+	dbprintf("init_fs PG base %i alt %i size %i wear_stat %u", 
+			m_pg_base, m_pg_alt, m_npages, m_wear_leveling );
 	return ret;
 }
 /* ------------------------------------------------------------------ */
@@ -476,7 +513,7 @@ int fs_env::erase_all_random( unsigned pg )
 {
 	using namespace detail;
 	const auto pg_size = m_flash.page_size();
-	const auto cs = get_clust_size();
+	const auto cs = get_initial_clust_size();
 	auto ncs = (m_npages * pg_size)/cs;
 	int ret = err_internal;
 	for( unsigned c = 0; c < ncs; ++c ) {
@@ -490,7 +527,8 @@ int fs_env::erase_all_nonrandom( unsigned pg )
 {
 	dbprintf("Erase all nonrandom %u", pg);
 	int ret = err_internal;
-	for( unsigned p = 0; p < m_npages; ++p ) {
+	for( unsigned p = 0; p < m_npages; ++p ) 
+	{
 		ret = m_flash.page_erase( pg + p );
 		if( ret ) {
 			break;
@@ -564,7 +602,7 @@ int fs_env::flash_read( unsigned fpg, unsigned clust, unsigned csize,  void *buf
 		const auto poffs = (clust * csize)%pg_size;
 		const auto rll = (len>pg_size)?(pg_size):(len);
 		if( rll <= 0 ) break;
-//		dbprintf("flash_read(paddr: %i poffs %i, len %i)", paddr, poffs, rll );
+		//dbprintf("flash_read(paddr: %i poffs %i, len %i)", paddr, poffs, rll );
 		ret=m_flash.read( paddr, poffs, buf, rll );
 		if( ret ) break;
 		len-=rll;
@@ -590,7 +628,7 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 		const auto poffs = (clust * csize)%pg_size;
 		const auto wrl = (len>pg_size)?(pg_size):(len);
 		if( wrl <= 0 ) break;
-		dbprintf("flash_write(paddr: %i poffs %i, len %i)", paddr, poffs, wrl );
+		//dbprintf("flash_write(paddr: %i poffs %i, len %i)", paddr, poffs, wrl );
 		ret=m_flash.write( paddr, poffs, buf, wrl );
 		if( ret ) break;
 		len-=wrl;
@@ -636,7 +674,7 @@ int fs_env::reclaim_random()
 int fs_env::reclaim_nonrandom()
 {
 	using namespace detail;
-	const auto pa_from =   m_alt_page_in_use?m_pg_alt:m_pg_base;
+	const auto pa_from = m_alt_page_in_use?m_pg_alt:m_pg_base;
 	const auto pa_to = m_alt_page_in_use?m_pg_base:m_pg_alt;
 	const auto pg_size = m_flash.page_size();
 	dbprintf("reclaim pa_from %u pa_to %u pg_size %u", pa_from, pa_to, pg_size );
@@ -644,10 +682,12 @@ int fs_env::reclaim_nonrandom()
 	unsigned char buf[get_clust_size()];
 	auto node = reinterpret_cast<fnode_0*>(buf);
 	int ret {};
-	for( unsigned c=1; c<ncs; ++c ) {
+	for( unsigned c=1; c<ncs; ++c ) 
+	{
 		ret = flash_read( pa_from, c, get_clust_size(), buf, get_clust_size() );
 		if( ret ) break;
-		if( node->id_next!=node_dirty && node->id_next!=node_unused ) {
+		if( node->id_next!=node_dirty && node->id_next!=node_unused ) 
+		{
 			dbprintf("Copy cluster %i", c );
 			ret = flash_write( pa_to, c, get_clust_size(), buf, get_clust_size() );
 			if( ret ) {
@@ -674,24 +714,30 @@ int fs_env::find_valid_page( unsigned& clust_size )
 	do {
 			ret = m_flash.read( m_pg_base, 0, &hdr, sizeof hdr );
 			if( ret ) break;
-			if( hdr.ok() ) {
+			if( hdr.ok() ) 
+			{
 				ret = err_hdr_first;
 				clust_size = hdr.clust_len;
 				break;
 			}
-			if( !can_random_access() ) {
+			if( !can_random_access() ) 
+			{
 				ret = m_flash.read( m_pg_alt, 0, &hdr, sizeof hdr );
 				if( ret ) break;
-				if( hdr.ok() ) {
+				if( hdr.ok() ) 
+				{
 					ret = err_hdr_second;
 					clust_size = hdr.clust_len;
 					break;
-				} else {
+				} 
+				else 
+				{
 					ret = err_hdr_not_found;
 					break;
 				}
 			}
-			else {
+			else 
+			{
 				ret = err_hdr_not_found;
 				break;
 			}

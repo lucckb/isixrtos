@@ -33,6 +33,7 @@ class fs_env {
 		err_hdr_second = 2,
 		err_hdr_first = 1
 	};
+	static constexpr auto c_first_cluster = 1U;
 public:
 	//! Error codes
 	enum error {
@@ -48,9 +49,10 @@ public:
 	 * @param[in] flash_mem Flash memory controller
 	 * @param[in] n_page number of pages used 0 all from beginning
        					 negative n from end */
-	fs_env( iflash_mem& flash_mem , unsigned n_pg = 0 ) 
+	fs_env( iflash_mem& flash_mem , bool wear_leveling = true, unsigned n_pg = 0 ) 
 		: m_flash( flash_mem ), m_npages( calc_npages(n_pg) ),
-		 m_pg_base( calc_page(n_pg) ), m_pg_alt( calc_alt_page(n_pg) )
+		 m_pg_base( calc_page(n_pg) ), m_pg_alt( calc_alt_page(n_pg) ),
+		 m_wear_leveling( wear_leveling | !can_random_access() )
 	{}
 	/**  Store data in non volatile memory
 	 *   @param[in] env_id Environment identifier
@@ -112,6 +114,7 @@ private:
 	//! Reclaim the memory
 	int reclaim() {
 		if( can_random_access() ) {
+			m_last_free_clust = c_first_cluster;
 			return reclaim_random();
 		} else {
 			return reclaim_nonrandom();
@@ -146,8 +149,13 @@ private:
 	unsigned get_page() const {
 		return m_alt_page_in_use?m_pg_alt:m_pg_base;
 	}
+	//! Get cluster size
 	unsigned get_clust_size() const {
 		return m_clust_size;
+	}
+	//! Get first cluster
+	unsigned get_first_cluster() const {
+		return m_wear_leveling?m_last_free_clust:c_first_cluster;
 	}
 private:
 	iflash_mem& m_flash;	       			//! Flash memory private data
@@ -156,6 +164,8 @@ private:
 	const iflash_mem::paddr_t m_pg_alt;		//! Alternate page
 	unsigned m_clust_size {};				//! Current cluster size
 	bool m_alt_page_in_use {};				//! Use second header
+	const bool m_wear_leveling {};		//! Disable wear leveling
+	unsigned m_last_free_clust { c_first_cluster };			//! Last free cluster
 };
 /* ------------------------------------------------------------------ */ 
 }

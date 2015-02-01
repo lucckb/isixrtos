@@ -27,10 +27,10 @@ int main( int argc, const char** argv) {
 	
 	try {
 		// EEPROM type EMULATION
-		//fnd::fs_eeprom test( 128, 16 , false );
+		fnd::fs_eeprom test( 128, 16 , false );
 		//FLASH LIKE EMULATION
-		fnd::fs_eeprom test( 8, 256 , true );
-		fnd::filesystem::fs_env env { test };
+		//fnd::fs_eeprom test( 8, 256 , true );
+		fnd::filesystem::fs_env env { test, true };
 		if( 1 ) {
 			auto m_env = env;
 			static constexpr auto str1 = "Ala ma kota a kot ma ale no i co panie z tego wyniknie to nie wiadomo";
@@ -61,7 +61,7 @@ int main( int argc, const char** argv) {
 		dbprintf("set R: %i", r1 );
 #endif
 #if 1
-		s2[0] = '\0';
+		s2[0] = '\0', false;
 		auto r2 = env.get( 0, s2, sizeof s2 );
 		dbprintf( "get R: %i [%s]", r2, s2 );
 #endif
