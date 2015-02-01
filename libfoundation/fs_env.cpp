@@ -255,7 +255,6 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 	if( !ret && lru_cache_elem ) 
 	{
 		m_lru.put( env_id, lru_cache_elem );
-		dbprintf("LRU env_id %i lru_cache_elem %i", env_id, lru_cache_elem );
 	}
 	return ret;
 }

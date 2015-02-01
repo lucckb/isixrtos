@@ -82,7 +82,7 @@ int main( int argc, const char** /*  argv*/) {
 			dbprintf(">>>>>>>Test ok");
 		}
 #endif
-#if 1
+#if 0
 		const auto r3 = env.unset( 124 );
 		dbprintf("unset R: %i", r3 );
 		r2 = env.get( 124, s2, sizeof s2 );
