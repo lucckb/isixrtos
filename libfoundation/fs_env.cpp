@@ -671,7 +671,6 @@ int fs_env::reclaim_random()
 		if( node.id_next == node_dirty ) 
 		{
 			node.id_next = node_unused;
-			dbprintf("Erase cluster %i", c );
 			ret = flash_write( m_pg_base, c, m_clust_size, &node, sizeof node );
 			if( ret ) {
 				break;
