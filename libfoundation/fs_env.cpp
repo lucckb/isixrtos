@@ -353,6 +353,10 @@ int fs_env::unset( unsigned env_id )
 		if( ret > 0 ) {
 			ret = delete_chain( ret );
 		}
+		if( !ret ) {
+			dbprintf("Invalidate lru node for %u", env_id );
+			m_lru.put( env_id, c_first_cluster );
+		}
 	}
 	return ret;
 }
@@ -460,6 +464,8 @@ int fs_env::init_fs()
 	}
 	unsigned csize;
 	auto ret = find_valid_page(csize);
+	m_lru.clear();
+	m_last_free_clust = c_first_cluster;
 	if( ret == err_hdr_not_found ) 
 	{
 		ret = format();
@@ -501,8 +507,9 @@ int fs_env::find_first( unsigned id, detail::fnode_0* node )
 	///dbprintf("find_first() ncs: %i npgs: %i pg_size %i cs: %i", ncs, m_npages, pg_size, cs );
 	int ret = err_internal;
 	bool found = false;
-	const auto rlu_clu = m_lru.get( id );
-	for( unsigned c=rlu_clu?*rlu_clu:1; c<ncs; ++c ) 
+	const auto p_rlu_clu = m_lru.get( id );
+	const auto start_clu = p_rlu_clu?(*p_rlu_clu):(c_first_cluster);
+	for( unsigned c=start_clu; c<ncs; ++c ) 
 	{
 		ret = flash_read( get_page(), c, get_clust_size(), node, sizeof(*node) );
 		if( ret ) break;
@@ -552,6 +559,7 @@ int fs_env::erase_all_nonrandom( unsigned pg )
 int fs_env::format() 
 {
 	using namespace detail;
+	m_clust_size = 0;
 	auto ret = erase_all_pages( m_pg_base );
 	if( ret ) {
 		return ret;
