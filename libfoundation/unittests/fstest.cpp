@@ -23,14 +23,45 @@
 #include <foundation/dbglog.h>
 #include <time.h>
 #include <cstdio>
+/*
+  zapisz pod 0
+potem zapisz pod 1, 2, 3
+potem znowu pod 0 (i to zero rośnie)
+{
+int res;
+char setup[744];
+u32 ticks;
+
+    dbprintf("eeprom_test");
+
+    for (unsigned n = 0; n < 30; n++)
+    {
+        dbprintf("iteration=%d", n);
+
+        ticks = isix::isix_get_jiffies();
+        res = app::getenv(0, setup, sizeof(setup));
+        ticks = isix::isix_get_jiffies() - ticks;
+        dbprintf("get res=%d, ticks=%d", res, ticks);
+
+        isix::isix_wait_ms(100 + n);
+
+        ticks = isix::isix_get_jiffies();
+        res = app::setenv(0, setup, sizeof(setup));
+        ticks = isix::isix_get_jiffies() - ticks;
+        dbprintf("set res=%d, ticks=%d", res, ticks);
+
+        isix::isix_wait_ms(100 - n);
+    }
+}
+ */
 int main( int argc, const char** /*  argv*/) {
 	
 	try {
 		// EEPROM type EMULATION
-		//fnd::fs_eeprom test( 128, 16 , false );
+		fnd::fs_eeprom test( 128, 16 , false );
 		//FLASH LIKE EMULATION
-		fnd::fs_eeprom test( 8, 256 , true );
-		fnd::filesystem::fs_env env { test, true };
+		//fnd::fs_eeprom test( 8, 256 , true );
+		fnd::filesystem::fs_env env { test, false };
 		if( 1 ) {
 			auto &m_env = env;
 			//static constexpr auto str1 = "Ala ma kota a kot ma ale no i co panie z tego wyniknie to nie wiadomo";
