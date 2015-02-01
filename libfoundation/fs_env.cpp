@@ -126,6 +126,7 @@ private:
 int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 {
 	using namespace detail;
+	unsigned short lru_cache_elem {};
 	++env_id;
 	if( env_id >= node_end ) {
 		dbprintf("Invalid input identifier");
@@ -185,6 +186,7 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 				return ret;
 			}
 			int fc2 = node_end;
+			lru_cache_elem = fc1;
 			for( unsigned c=0; c<nclu; ++c ) 
 			{
 				char ibuf[ get_clust_size() ];
@@ -250,6 +252,11 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 			m_last_free_clust = fc2;
 		}
 	}
+	if( !ret && lru_cache_elem ) 
+	{
+		m_lru.put( env_id, lru_cache_elem );
+		dbprintf("LRU env_id %i lru_cache_elem %i", env_id, lru_cache_elem );
+	}
 	return ret;
 }
 /* ------------------------------------------------------------------ */
@@ -277,9 +284,8 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 		return ret;
 	}
 	ret = find_first( env_id, &node );
-	if( ret <= 0 ) {
+	if( ret <= 0 )
 		return ret;
-	}
 	unsigned clu = ret;
 	char lbuf[get_clust_size()];
 	ret = flash_read( get_page(), clu, get_clust_size(), lbuf, get_clust_size() );
@@ -287,6 +293,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 		return ret;
 	}
 	if( buf_len < node.len ) {
+		dbprintf("buf_len < node.len: %u<%u", buf_len, node.len );
 		ret = err_buf_ovrflow;
 		return ret;
 	}
@@ -318,7 +325,8 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 		dbprintf("RDCLU %i -> %i", clu,  nnode1->next);
 		clu = nnode1->next;
 	}
-	if( !ret ) {
+	if( !ret ) 
+	{
 		if( ccrc() != node.crc ) {
 			dbprintf("CRC mismatch");
 			ret = err_fs_fmt;
@@ -493,10 +501,13 @@ int fs_env::find_first( unsigned id, detail::fnode_0* node )
 	///dbprintf("find_first() ncs: %i npgs: %i pg_size %i cs: %i", ncs, m_npages, pg_size, cs );
 	int ret = err_internal;
 	bool found = false;
-	for( unsigned c=1; c<ncs; ++c ) {
+	const auto rlu_clu = m_lru.get( id );
+	for( unsigned c=rlu_clu?*rlu_clu:1; c<ncs; ++c ) 
+	{
 		ret = flash_read( get_page(), c, get_clust_size(), node, sizeof(*node) );
 		if( ret ) break;
-		if( node->type == 0 && node->id_next == id ) {
+		if( node->type == 0 && node->id_next == id ) 
+		{
 			ret = c;
 			found = true;
 			break;

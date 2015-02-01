@@ -56,12 +56,12 @@ int main( int argc, const char** argv) {
 		auto r1 = env.set( 0, s1, std::strlen(s1)+1 );
 		dbprintf("set R: %i", r1 );
 #endif
-#if 0
+#if 1
 		r1 = env.set( 124, s3, std::strlen(s3)+1 );
 		dbprintf("set R: %i", r1 );
 #endif
 #if 1
-		s2[0] = '\0', false;
+		s2[0] = '\0';
 		auto r2 = env.get( 0, s2, sizeof s2 );
 		dbprintf( "get R: %i [%s]", r2, s2 );
 #endif
@@ -70,7 +70,7 @@ int main( int argc, const char** argv) {
 		r2 = env.get( 124, s2, sizeof s2 );
 		dbprintf( "get R: %i [%s]", r2, s2 );
 #endif
-#if 0
+#if 1
 		const auto r3 = env.unset( 124 );
 		dbprintf("unset R: %i", r3 );
 #endif

@@ -17,6 +17,7 @@
  */
 #pragma once
 #include <foundation/iflash_mem.hpp>
+#include <foundation/lrucache.hpp>
 /* ------------------------------------------------------------------ */
 /**  Filesystem implementation */
 namespace fnd {
@@ -34,6 +35,7 @@ class fs_env {
 		err_hdr_first = 1
 	};
 	static constexpr auto c_first_cluster = 1U;
+	static constexpr auto c_lru_size = 16;
 public:
 	//! Error codes
 	enum error {
@@ -52,7 +54,8 @@ public:
 	fs_env( iflash_mem& flash_mem , bool wear_leveling = true, unsigned n_pg = 0 ) 
 		: m_flash( flash_mem ), m_npages( calc_npages(n_pg) ),
 		 m_pg_base( calc_page(n_pg) ), m_pg_alt( calc_alt_page(n_pg) ),
-		 m_wear_leveling( wear_leveling | !can_random_access() )
+		 m_wear_leveling( wear_leveling | !can_random_access() ),
+		 m_lru( c_lru_size )
 	{}
 	/**  Store data in non volatile memory
 	 *   @param[in] env_id Environment identifier
@@ -114,6 +117,7 @@ private:
 	//! Reclaim the memory
 	int reclaim() {
 		if( can_random_access() ) {
+			m_lru.clear();
 			m_last_free_clust = c_first_cluster;
 			return reclaim_random();
 		} else {
@@ -166,6 +170,7 @@ private:
 	bool m_alt_page_in_use {};				//! Use second header
 	const bool m_wear_leveling {};		//! Disable wear leveling
 	unsigned m_last_free_clust { c_first_cluster };			//! Last free cluster
+	fnd::lru_cache<unsigned, unsigned short> m_lru;	//! LRU cache
 };
 /* ------------------------------------------------------------------ */ 
 }
