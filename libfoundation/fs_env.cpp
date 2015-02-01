@@ -23,6 +23,7 @@
 #include <limits>
 #include <cstring>
 /* ------------------------------------------------------------------ */
+#define CONFIG_LIBFOUNDATION_ENV_FS_DEBUG
 #ifdef CONFIG_LIBFOUNDATION_ENV_FS_DEBUG
 #include <foundation/dbglog.h>
 #else
@@ -126,7 +127,6 @@ private:
 int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 {
 	using namespace detail;
-	unsigned csize, pg;
 	++env_id;
 	if( env_id >= node_end ) {
 		dbprintf("Invalid input identifier");
@@ -135,25 +135,22 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 	if( buf_len > std::numeric_limits<decltype(fnode_0::id_next)>::max() ) {
 		return err_range_id;
 	}
-	auto ret = init_fs( pg, csize );
+	auto ret = init_fs();
 	if( ret >= 0 ) {
-		ret = find_first( env_id, pg, csize );
+		ret = find_first( env_id );
 		if( ret == err_invalid_id ) {
 			ret = err_success;
 		} else {
-			ret = delete_chain( pg, csize, ret );
+			ret = delete_chain( ret );
 		}
 	}
 	if( ret == 0 ) {
-		const unsigned nclu = buf_len_to_n_clust( csize, buf_len );
-		ret = check_chains( pg, csize, nclu );
-		if( ret==err_fs_full || ( ret>0 && ret<int(nclu) )  ) {
+		const unsigned nclu = buf_len_to_n_clust( buf_len );
+		ret = check_chains( nclu );
+		if( ret==err_fs_full || (ret>0&&ret<int(nclu)) ) {
 			ret = reclaim();
-			if( !ret ) {
-				ret = init_fs( pg, csize );
-			}
 			if( ret>=0 ) {
-				ret = check_chains( pg, csize, nclu );
+				ret = check_chains( nclu );
 				if( ret == int(nclu) ) {
 					ret = err_success;
 				} else if( ret>0 && ret<int(nclu)) {
@@ -166,14 +163,14 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 		if( !ret ) {
 			crc16 crcc;
 			crcc( buf, buf_len );
-			auto fc1 = find_free_cluster( pg, csize, 1 );
+			auto fc1 = find_free_cluster( 1 );
 			if( fc1 < 0 ) {
 				dbprintf("Hardware failure %i", fc1 );
 				return ret;
 			}
 			int fc2 = node_end;
 			for( unsigned c=0; c<nclu; ++c ) {
-				char ibuf[ csize ];
+				char ibuf[ get_clust_size() ];
 				unsigned twlen;
 				unsigned wlen;
 				if( c == 0 ) {
@@ -182,17 +179,17 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 					hdr->len = buf_len;
 					hdr->crc = crcc();
 					hdr->type = 0;
-					if( buf_len <= (csize-sizeof(fnode_0)) ) {
+					if( buf_len <= (get_clust_size()-sizeof(fnode_0)) ) {
 						hdr->next = node_end;
 						wlen = buf_len;
 					} else {
-						fc2 = find_free_cluster( pg, csize, fc1 + 1 );
+						fc2 = find_free_cluster( fc1 + 1 );
 						if( fc2 < 0 ) {
 							dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
 							return ret;
 						}
 						hdr->next = fc2;
-						wlen = csize-sizeof(fnode_0);
+						wlen = get_clust_size()-sizeof(fnode_0);
 					}
 					std::memcpy( hdr->data, buf, wlen );
 					twlen = sizeof(fnode_0) + wlen;
@@ -200,23 +197,23 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 				} else {
 					auto hdr = reinterpret_cast<fnode_1*>( ibuf );
 					hdr->type = 1;
-					if( buf_len<=(csize-sizeof(fnode_1)) ) {
+					if( buf_len<=(get_clust_size()-sizeof(fnode_1)) ) {
 						hdr->next = node_end;
 						wlen = buf_len;
 					} else {
-						fc2 = find_free_cluster( pg, csize, fc1 + 1 );
+						fc2 = find_free_cluster( fc1 + 1 );
 						if( fc2 < 0 ) {
 							dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
 							return ret;
 						}
 						hdr->next = fc2;
-						wlen = csize-sizeof(fnode_1);
+						wlen = get_clust_size()-sizeof(fnode_1);
 					}
 					std::memcpy( hdr->data, buf, wlen );
 					twlen = sizeof(fnode_1) + wlen;
 					dbprintf("WRCLUX %i -> %i", fc1, hdr->next );
 				}
-				ret = flash_write( pg, fc1, csize, ibuf, twlen );
+				ret = flash_write( get_page(), fc1, get_clust_size(), ibuf, twlen );
 				buf = reinterpret_cast<const char*>(buf) + wlen;
 				buf_len -= wlen;
 				if( ret ) break;
@@ -236,7 +233,6 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 {
 	using namespace detail;
-	unsigned csize, pg;
 	++env_id;
 	if( env_id >= node_end ) {
 		dbprintf("Invalid input identifier");
@@ -245,19 +241,19 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 	if( buf_len > std::numeric_limits<decltype(fnode_0::id_next)>::max() ) {
 		return err_range_id;
 	}
-	auto ret = init_fs( pg, csize );
+	auto ret = init_fs();
 	fnode_0 node;
 	crc16 ccrc;
 	if( ret < 0 ) {
 		return ret;
 	}
-	ret = find_first( env_id, pg, csize, &node );
+	ret = find_first( env_id, &node );
 	if( ret <= 0 ) {
 		return ret;
 	}
 	unsigned clu = ret;
-	char lbuf[csize];
-	ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
+	char lbuf[get_clust_size()];
+	ret = flash_read( get_page(), clu, get_clust_size(), lbuf, get_clust_size() );
 	if( ret ) {
 		return ret;
 	}
@@ -269,7 +265,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 		buf_len = node.len;
 	}
 	const auto real_read = buf_len;
-	auto rrl = buf_len>(csize-sizeof(fnode_0))?(csize-sizeof(fnode_0)):(buf_len);
+	auto rrl = buf_len>(get_clust_size()-sizeof(fnode_0))?(get_clust_size()-sizeof(fnode_0)):(buf_len);
 	{
 		const auto n = reinterpret_cast<fnode_0*>(lbuf);
 		std::memcpy( buf, n->data, rrl );
@@ -279,14 +275,14 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 	dbprintf("RDCLU %i -> %i", clu, node.next );
 	clu = node.next;
 	while( clu!=node_end && buf_len>0 ) {
-		ret = flash_read( pg, clu, csize, lbuf, sizeof lbuf );
+		ret = flash_read( get_page(), clu, get_clust_size(), lbuf, sizeof lbuf );
 		const auto nnode1 = reinterpret_cast<fnode_1*>(lbuf);
 		if( ret ) break;	
 		if( nnode1->type == 0 ) {
 			ret = err_fs_fmt;
 			break;
 		}
-		rrl = buf_len>(csize-sizeof(fnode_1))?(csize-sizeof(fnode_1)):(buf_len);
+		rrl = buf_len>(get_clust_size()-sizeof(fnode_1))?(get_clust_size()-sizeof(fnode_1)):(buf_len);
 		std::memcpy( buf, nnode1->data, rrl );
 		ccrc( buf, rrl );
 		buf_len -= rrl; buf = reinterpret_cast<char*>(buf) + rrl;
@@ -314,22 +310,22 @@ int fs_env::unset( unsigned env_id )
 		dbprintf("Invalid input identifier");
 		return err_invalid_id;
 	}
-	unsigned csize, pg;
-	auto ret = init_fs( pg, csize );
+	auto ret = init_fs();
 	if( ret >= 0 ) {
-		ret = find_first( env_id, pg, csize );
+		ret = find_first( env_id );
 		if( ret > 0 ) {
-			ret = delete_chain( pg, csize, ret );
+			ret = delete_chain( ret );
 		}
 	}
 	return ret;
 }
 /* ------------------------------------------------------------------ */ 
 //! Calculate required cluster for buffer usage
-size_t fs_env::buf_len_to_n_clust( unsigned csize, size_t buf_len )
+size_t fs_env::buf_len_to_n_clust( size_t buf_len )
 {
 	using namespace detail;
-	int ret = buf_len - ( csize - sizeof(fnode_0) );
+	unsigned csize = get_clust_size();
+	int ret = buf_len - ( get_clust_size() - sizeof(fnode_0) );
 	if( ret <= 0 ) {
 		return 1;
 	} else {
@@ -339,15 +335,15 @@ size_t fs_env::buf_len_to_n_clust( unsigned csize, size_t buf_len )
 }
 /* ------------------------------------------------------------------ */ 
 //!Unset internal witohout mod
-int fs_env::delete_chain( unsigned pg, unsigned csize, unsigned cclu )
+int fs_env::delete_chain( unsigned cclu )
 {
 	using namespace detail;
 	int ret = err_internal;
 	//Read node
 	for(unsigned pclu ;cclu!=node_end;) {
 		fnode_0 node;
-		dbprintf("unset() next %i", cclu );
-		ret = flash_read( pg, cclu, csize, &node, sizeof node );
+		dbprintf("delete_chain-> next %i", cclu );
+		ret = flash_read( get_page(), cclu, get_clust_size(), &node, sizeof node );
 		if( ret ) break;
 		pclu = cclu;
 		if( node.type == 0 ) {
@@ -357,19 +353,19 @@ int fs_env::delete_chain( unsigned pg, unsigned csize, unsigned cclu )
 		}
 		node.next = node_dirty;
 		node.id_next = node_dirty;
-		ret = flash_write( pg, pclu, csize, &node, sizeof node );
+		ret = flash_write( get_page(), pclu, get_clust_size(), &node, sizeof node );
 		if( ret ) break;
 	}
 	return ret;
 }
 /* ------------------------------------------------------------------ */
 //! Check fre chain
-int fs_env::check_chains( unsigned pg, unsigned csize, unsigned rclu )
+int fs_env::check_chains( unsigned rclu )
 {
 	int ret = err_internal;
 	unsigned fnd_clu = 0;
 	for( unsigned c=0, fc=1; c<rclu; ++c ) {
-		ret = find_free_cluster( pg, csize, fc + 1 );
+		ret = find_free_cluster( fc + 1 );
 		if( ret > 0 ) {
 			if( ++fnd_clu == rclu ) {
 				break;
@@ -387,16 +383,16 @@ int fs_env::check_chains( unsigned pg, unsigned csize, unsigned rclu )
 }
 /* ------------------------------------------------------------------ */
 //! Find free node
-int fs_env::find_free_cluster( unsigned pg, unsigned csize, unsigned sclust )
+int fs_env::find_free_cluster( unsigned sclust )
 {	
 	using namespace detail;
 	const auto pg_size = m_flash.page_size();
-	auto ncs = (m_npages * pg_size)/csize;
+	auto ncs = (m_npages * pg_size)/get_clust_size();
 	fnode_0 node;
 	bool found = false;
 	int ret = err_success;
 	for( unsigned c=sclust; c<ncs; ++c ) {
-		ret = flash_read( pg, c, csize, &node, sizeof node );
+		ret = flash_read( get_page(), c, get_clust_size(), &node, sizeof node );
 		if( ret ) {
 			dbprintf("Free cluster err ret %i", ret );
 			break;
@@ -413,33 +409,46 @@ int fs_env::find_free_cluster( unsigned pg, unsigned csize, unsigned sclust )
 }
 /* ------------------------------------------------------------------ */
 //Init fs  cal on every set and get env
-int fs_env::init_fs( unsigned& pg, unsigned& csize )
+int fs_env::init_fs()
 {
+	if( m_clust_size ) {
+		return err_success;
+	}
+	unsigned csize;
 	auto ret = find_valid_page(csize);
-	if( ret == err_hdr_not_found ) {
+	if( ret == err_hdr_not_found ) 
+	{
 		ret = format();
-		csize = get_clust_size();
-		pg = m_pg_base;
+		csize = get_initial_clust_size();
+		m_alt_page_in_use = false;
 		dbprintf("Page not found format requied CS %i RET %i", csize, ret );
-	} else if( ret == err_hdr_first ) {
-		pg = m_pg_base;
+	} 
+	else if( ret == err_hdr_first ) 
+	{
+		m_alt_page_in_use = false;
 		ret = err_success;
 		dbprintf("init_fs -> base_page");
-	} else if( ret == err_hdr_second ) {
-		pg = m_pg_alt;
+	} 
+	else if( ret == err_hdr_second ) 
+	{
+		m_alt_page_in_use = true;
 		ret = err_success;
 		dbprintf("init_fs -> alt_page");
+	}
+	if(ret==err_success) 
+	{
+		m_clust_size = csize;
 	}
 	dbprintf("init_fs PG base %i alt %i size %i", m_pg_base, m_pg_alt, m_npages );
 	return ret;
 }
 /* ------------------------------------------------------------------ */
 //! Find first entry by ID
-int fs_env::find_first( unsigned id , unsigned pg, unsigned cs, detail::fnode_0* node )
+int fs_env::find_first( unsigned id, detail::fnode_0* node )
 {
 	using namespace detail;
 	const auto pg_size = m_flash.page_size();
-	auto ncs = (m_npages * pg_size)/cs;
+	auto ncs = (m_npages * pg_size)/get_clust_size();
 	fnode_0 tmpn;
 	if( node == nullptr ) {
 		node = &tmpn;
@@ -448,7 +457,7 @@ int fs_env::find_first( unsigned id , unsigned pg, unsigned cs, detail::fnode_0*
 	int ret = err_internal;
 	bool found = false;
 	for( unsigned c=1; c<ncs; ++c ) {
-		ret = flash_read( pg, c, cs, node, sizeof(*node) );
+		ret = flash_read( get_page(), c, get_clust_size(), node, sizeof(*node) );
 		if( ret ) break;
 		if( node->type == 0 && node->id_next == id ) {
 			ret = c;
@@ -479,6 +488,7 @@ int fs_env::erase_all_random( unsigned pg )
 /* ------------------------------------------------------------------ */
 int fs_env::erase_all_nonrandom( unsigned pg )
 {
+	dbprintf("Erase all nonrandom %u", pg);
 	int ret = err_internal;
 	for( unsigned p = 0; p < m_npages; ++p ) {
 		ret = m_flash.page_erase( pg + p );
@@ -497,7 +507,7 @@ int fs_env::format()
 	if( ret ) {
 		return ret;
 	}
-	const auto clust_size = get_clust_size();
+	const auto clust_size = get_initial_clust_size();
 	const pg_hdr hdr { pg_hdr::id_valid, uint16_t(clust_size) };
 	ret = m_flash.write( m_pg_base, 0, &hdr, sizeof hdr );
 	if( ret ) {
@@ -593,24 +603,27 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 int fs_env::reclaim_random()
 {
 	using namespace detail;
-	unsigned csize;
-	auto ret = find_valid_page(csize);
-	if( ret != err_hdr_first ) {
-		if( err_hdr_second ) {
-			ret = err_fs_fmt;
-		}
-		return ret;
+	if( m_alt_page_in_use ) 
+	{
+		return err_fs_fmt;
 	}
+	if( !m_clust_size ) 
+	{
+		return err_internal;
+	}
+	int ret {};
 	const auto pg_size = m_flash.page_size();
-	auto ncs = (m_npages * pg_size)/csize;
+	auto ncs = (m_npages * pg_size)/m_clust_size;
 	fnode_0 node;
-	for( unsigned c=1; c<ncs; ++c ) {
-		ret = flash_read( m_pg_base, c, csize, &node, sizeof node );
+	for( unsigned c=1; c<ncs; ++c ) 
+	{
+		ret = flash_read( m_pg_base, c, m_clust_size, &node, sizeof node );
 		if( ret ) break;
-		if( node.id_next == node_dirty ) {
+		if( node.id_next == node_dirty ) 
+		{
 			node.id_next = node_unused;
 			dbprintf("Erase cluster %i", c );
-			ret = flash_write( m_pg_base, c, csize, &node, sizeof node );
+			ret = flash_write( m_pg_base, c, m_clust_size, &node, sizeof node );
 			if( ret ) {
 				break;
 			}
@@ -623,23 +636,20 @@ int fs_env::reclaim_random()
 int fs_env::reclaim_nonrandom()
 {
 	using namespace detail;
-	unsigned csize;
-	auto ret = find_valid_page( csize );
-	if( ret < 0 ) {
-		return ret;
-	}
-	const auto pa_from = ret==err_hdr_first?m_pg_base:m_pg_alt;
-	const auto pa_to =   ret==err_hdr_first?m_pg_alt:m_pg_base;
+	const auto pa_from =   m_alt_page_in_use?m_pg_alt:m_pg_base;
+	const auto pa_to = m_alt_page_in_use?m_pg_base:m_pg_alt;
 	const auto pg_size = m_flash.page_size();
-	auto ncs = (m_npages * pg_size)/csize;
-	unsigned char buf[csize];
+	dbprintf("reclaim pa_from %u pa_to %u pg_size %u", pa_from, pa_to, pg_size );
+	auto ncs = (m_npages * pg_size)/get_clust_size();
+	unsigned char buf[get_clust_size()];
 	auto node = reinterpret_cast<fnode_0*>(buf);
+	int ret {};
 	for( unsigned c=1; c<ncs; ++c ) {
-		ret = flash_read( pa_from, c, csize, buf, csize );
+		ret = flash_read( pa_from, c, get_clust_size(), buf, get_clust_size() );
 		if( ret ) break;
 		if( node->id_next!=node_dirty && node->id_next!=node_unused ) {
 			dbprintf("Copy cluster %i", c );
-			ret = flash_write( pa_to, c, csize, buf, csize );
+			ret = flash_write( pa_to, c, get_clust_size(), buf, get_clust_size() );
 			if( ret ) {
 				break;
 			}
@@ -649,8 +659,9 @@ int fs_env::reclaim_nonrandom()
 	if( ret ) {
 		return ret;
 	}
-	const pg_hdr hdr2 { pg_hdr::id_valid, uint16_t(csize) };
+	const pg_hdr hdr2 { pg_hdr::id_valid, uint16_t(get_clust_size()) };
 	ret = m_flash.write( pa_to, 0, &hdr2, sizeof hdr2 );
+	m_alt_page_in_use = !m_alt_page_in_use;
 	return ret;
 }
 /* ------------------------------------------------------------------ */ 

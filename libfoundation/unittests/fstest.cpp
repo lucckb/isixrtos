@@ -27,14 +27,15 @@ int main( int argc, const char** argv) {
 	
 	try {
 		// EEPROM type EMULATION
-		fnd::fs_eeprom test( 128, 16 , false );
+		//fnd::fs_eeprom test( 128, 16 , false );
 		//FLASH LIKE EMULATION
-		//fnd::fs_eeprom test( 8, 128 , true );
+		fnd::fs_eeprom test( 8, 256 , true );
 		fnd::filesystem::fs_env env { test };
 		if( 1 ) {
 			auto m_env = env;
 			static constexpr auto str1 = "Ala ma kota a kot ma ale no i co panie z tego wyniknie to nie wiadomo";
-			static constexpr auto str2 = "Walentina to walientina podniebmna mis byly kwiaty dla gagarina a teraz jest valentina twist A teraz Pan odwiedzi nas przyjedzie do Polski bo wszyscy na niego czekaja";
+			static constexpr auto str2 = "Walentina to walientina podniebmna mis byly kwiaty dla gagarina"
+				"a teraz jest valentina twist A teraz Pan odwiedzi nas przyjedzie do Polski bo wszyscy na niego czekaja";
 			dbprintf("String length for str2 %i", std::strlen(str2) );
 			static char buf[1222] = { 0 };
 			int envret2 = m_env.set( 5 , str2, std::strlen(str2) );

@@ -94,13 +94,13 @@ private:
 		return m_pg_base==m_pg_alt;
 	}
 	//! Init fs
-	int init_fs( unsigned& pg, unsigned& csize );
+	int init_fs();
 	//! Check if storage memory is formated
 	int find_valid_page( unsigned& clust_size );
 	//! Get pages avail
 	iflash_mem::paddr_t calc_npages( int n_pg ) const;
 	//! Find first entry by ID
-	int find_first( unsigned id, unsigned pg, unsigned cs, detail::fnode_0* node = nullptr );
+	int find_first( unsigned id, detail::fnode_0* node = nullptr );
 	//! Flash read cluster 
 	int flash_read( unsigned fpg, unsigned clust, unsigned csize, void *buf, size_t len );
 	//! Flash read cluster 
@@ -118,13 +118,13 @@ private:
 		}
 	}
 	//! Calculate required cluster for buffer usage
-	size_t buf_len_to_n_clust( unsigned csize, size_t buf_len );
+	size_t buf_len_to_n_clust( size_t buf_len );
 	//! Find free node
-	int find_free_cluster( unsigned pg, unsigned csize, unsigned sclust );
+	int find_free_cluster( unsigned sclust );
 	//! Delete active inode chain
-	int delete_chain( unsigned pg, unsigned csize, unsigned cclu );
+	int delete_chain( unsigned cclu );
 	//! Check fre chain
-	int check_chains( unsigned pg, unsigned csize, unsigned rclu );
+	int check_chains( unsigned rclu );
 	//!Erase all eeprom
 	int erase_all_random( unsigned pg );
 	//Erase all flashmem
@@ -138,15 +138,24 @@ private:
 		}
 	}
 	//! Get cluster size
-	unsigned get_clust_size() const {
+	unsigned get_initial_clust_size() const {
 		unsigned avail_mem = m_npages * m_flash.page_size();
 		return (avail_mem>8192)?(64):(32);
+	}
+	//! Get current used page
+	unsigned get_page() const {
+		return m_alt_page_in_use?m_pg_alt:m_pg_base;
+	}
+	unsigned get_clust_size() const {
+		return m_clust_size;
 	}
 private:
 	iflash_mem& m_flash;	       			//! Flash memory private data
 	const unsigned m_npages;				//! Number of pages
 	const iflash_mem::paddr_t m_pg_base;	//! Base page
 	const iflash_mem::paddr_t m_pg_alt;		//! Alternate page
+	unsigned m_clust_size {};				//! Current cluster size
+	bool m_alt_page_in_use {};				//! Use second header
 };
 /* ------------------------------------------------------------------ */ 
 }

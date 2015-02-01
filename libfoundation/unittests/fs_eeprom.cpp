@@ -1,6 +1,7 @@
 #include <foundation/fs_eeprom.hpp>
 #include <cstring>
 #include <stdexcept>
+#include <unistd.h>
 /* ------------------------------------------------------------------ */ 
 namespace fnd {
 /* ------------------------------------------------------------------ */ 
@@ -53,6 +54,7 @@ int fs_eeprom::page_erase( paddr_t pa )
 	std::memset( empty_page, 0xff, m_page_size );
 	m_file.seekp( pa*m_page_size, m_file.beg );
 	m_file.write( empty_page, m_page_size );
+	sleep(2);
 	return 0;
 }
 /* ------------------------------------------------------------------ */ 
@@ -70,9 +72,11 @@ int fs_eeprom::write( paddr_t pg, poffs_t pa ,const void* ptr , size_t len )
 		}
 		m_file.seekp( pg*m_page_size + pa, m_file.beg );
 		m_file.write( reinterpret_cast<const char*>(buf), len );
+		usleep( 20 );
 	} else {
 		m_file.seekp( pg*m_page_size + pa, m_file.beg );
 		m_file.write( reinterpret_cast<const char*>(ptr), len );
+		usleep(7000 + 3*len);
 	}
 	return 0;
 }
@@ -82,6 +86,7 @@ int fs_eeprom::read( paddr_t pg, poffs_t pa, void* ptr, size_t len ) const
 	check_range( pg, pa, len );
 	m_file.seekg( pg*m_page_size + pa , m_file.beg );
 	m_file.read( reinterpret_cast<char*>(ptr), len );
+	usleep( 5*len );
 	return 0;
 }
 /* ------------------------------------------------------------------ */ 
