@@ -23,17 +23,17 @@
 #include <foundation/dbglog.h>
 #include <time.h>
 #include <cstdio>
-int main( int argc, const char** argv) {
+int main( int argc, const char** /*  argv*/) {
 	
 	try {
 		// EEPROM type EMULATION
-		fnd::fs_eeprom test( 128, 16 , false );
+		//fnd::fs_eeprom test( 128, 16 , false );
 		//FLASH LIKE EMULATION
-		//fnd::fs_eeprom test( 8, 256 , true );
+		fnd::fs_eeprom test( 8, 256 , true );
 		fnd::filesystem::fs_env env { test, true };
 		if( 1 ) {
 			auto m_env = env;
-			static constexpr auto str1 = "Ala ma kota a kot ma ale no i co panie z tego wyniknie to nie wiadomo";
+			//static constexpr auto str1 = "Ala ma kota a kot ma ale no i co panie z tego wyniknie to nie wiadomo";
 			static constexpr auto str2 = "Walentina to walientina podniebmna mis byly kwiaty dla gagarina"
 				"a teraz jest valentina twist A teraz Pan odwiedzi nas przyjedzie do Polski bo wszyscy na niego czekaja";
 			dbprintf("String length for str2 %i", std::strlen(str2) );
@@ -64,15 +64,37 @@ int main( int argc, const char** argv) {
 		s2[0] = '\0';
 		auto r2 = env.get( 0, s2, sizeof s2 );
 		dbprintf( "get R: %i [%s]", r2, s2 );
+		if( std::strcmp( s2, s1) ) {
+			dbprintf(">>>>>>>Test failed s2!=s1");
+			return -1;
+		} else {
+			dbprintf(">>>>>>>Test ok");
+		}
 #endif
 #if 1
 		s2[0] = '\0';
 		r2 = env.get( 124, s2, sizeof s2 );
 		dbprintf( "get R: %i [%s]", r2, s2 );
+		if( std::strcmp( s2, s3) ) {
+			dbprintf(">>>>>>>Test failed s2!=s3");
+			return -1;
+		} else {
+			dbprintf(">>>>>>>Test ok");
+		}
 #endif
 #if 1
 		const auto r3 = env.unset( 124 );
 		dbprintf("unset R: %i", r3 );
+		r2 = env.get( 124, s2, sizeof s2 );
+		if( r2 != fnd::filesystem::fs_env::err_invalid_id )
+		{
+			dbprintf(">>>>>>>>>>>>>>> Error deleted id found!");
+			return -1;
+		}
+		else
+		{
+			dbprintf(">>>>>>>>>>>> Delete test passed");
+		}
 #endif
 	}
 	catch ( std::exception &e ) {
