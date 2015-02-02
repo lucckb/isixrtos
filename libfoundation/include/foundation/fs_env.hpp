@@ -110,6 +110,8 @@ private:
 	iflash_mem::paddr_t calc_npages( int n_pg ) const;
 	//! Find first entry by ID
 	int find_first( unsigned id, detail::fnode_0* node = nullptr );
+	//! Find next cluster
+	int find_next_cluster( unsigned cluster );
 	//! Flash read cluster 
 	int flash_read( unsigned fpg, unsigned clust, unsigned csize, void *buf, size_t len );
 	//! Flash read cluster 
@@ -166,6 +168,11 @@ private:
 	unsigned get_first_cluster() const {
 		return m_wear_leveling?m_last_free_clust:c_first_cluster;
 	}
+	//! Set chain without wear leveling
+	int write_non_existing( unsigned env_id, const void* buf, size_t buf_len, 
+			unsigned short& lru_cache_elem );
+	//! Set chain without wear leveling
+	int write_existing( unsigned env_id, const void* buf, size_t buf_len );
 private:
 	iflash_mem& m_flash;	       			//! Flash memory private data
 	const unsigned m_npages;				//! Number of pages

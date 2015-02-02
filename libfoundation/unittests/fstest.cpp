@@ -73,6 +73,7 @@ int main( int argc, const char** /*  argv*/) {
 			dbprintf("Set env errno %i", envret2 );
 			int envret3 = m_env.get(5, buf, sizeof buf );
 			dbprintf("Get env errno %i str: %s", envret3, buf );
+			return -1;
 		}
 		static constexpr auto sx1 = "A teraz bedzie dlugi na kilka chainow przynajmniem moze nie tak calkiem %li";
 		char s1[ 512 ];

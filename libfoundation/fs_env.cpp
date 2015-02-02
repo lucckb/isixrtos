@@ -50,6 +50,11 @@ static constexpr uint16_t node_unused = 0x7FFF;
 static constexpr uint16_t node_dirty = 0;
 static constexpr uint16_t node_end = node_unused - 1;
 static constexpr uint16_t node_cleanup[] = { 0xFFFF, 0xFFFF };
+//! Node header 
+struct fnode_h {
+	uint16_t type : 1;
+	uint16_t id_next: 15;
+} __attribute__((packed));
 //! Node type 0
 struct fnode_0 {
 	uint16_t type : 1;
@@ -117,6 +122,200 @@ private:
 /* ------------------------------------------------------------------ */
 } // ns
 /* ------------------------------------------------------------------ */
+//! Set chain without wear leveling
+int fs_env::write_existing( unsigned env_id, const void* buf, size_t buf_len )
+{
+	using namespace detail;
+	dbprintf("Write existing id %u len %u", env_id, buf_len );
+	char ibuf[ get_clust_size() ];
+	auto entry_node = reinterpret_cast<fnode_0*>( ibuf );
+	const auto req_clu = buf_len_to_n_clust( buf_len );
+	auto fc1 = find_first( env_id, entry_node );
+	if( fc1 <=0 )
+		return fc1;
+	const auto used_clu = buf_len_to_n_clust( entry_node->len );
+	const int clu_diff = req_clu - used_clu;
+	if( clu_diff > 0 ) {
+		dbprintf("Request area is too small req %i new clusters", clu_diff );
+		auto ret = check_chains( clu_diff );
+		if( ret>0 && ret<int(clu_diff) ) {
+			dbprintf("Error: No free space only %i clusters avail", ret );
+			return err_fs_full;
+		}
+	}
+	crc16 ccrc;
+	ccrc( buf, buf_len );
+	int fc2 { node_end };
+	int ret {};
+	for( unsigned c=0; c<req_clu; ++c ) {
+		unsigned twlen, wlen;
+		if( c == 0 ) {
+			entry_node->id_next = env_id;
+			entry_node->len = buf_len;
+			entry_node->crc = ccrc();
+			entry_node->type = 0;
+			if( buf_len <= (get_clust_size()-sizeof(fnode_0)) ) {
+				entry_node->next = node_end;
+				wlen = buf_len;
+			} else {
+				if( entry_node->next == node_end ) {
+					fc2 = find_free_cluster( fc1+1 );
+					if( fc2 < 0 ) { 
+						ret = fc2;
+						break;
+					}
+				} else {
+					fc2 = entry_node->next;
+				}
+				m_last_free_clust = fc1;
+				entry_node->next = fc2;
+				wlen = get_clust_size()-sizeof(fnode_0);
+			}
+			std::memcpy( entry_node->data, buf, wlen );
+			twlen = sizeof(fnode_0) + wlen;
+			dbprintf("WRCLUE %i -> %i", fc1, entry_node->next );
+		} else {
+			auto data_node = reinterpret_cast<fnode_1*>( ibuf );
+			data_node->type = 1;
+			const auto nextclu = find_next_cluster( fc1 );
+			if( nextclu<0 ) {
+				ret = nextclu;
+				break;
+			}
+			if( buf_len<=(get_clust_size()-sizeof(fnode_1)) ) { //It is the last cluster
+				data_node->next = node_end;
+				wlen = buf_len;
+				if( nextclu != node_end ) {
+					dbprintf("Too many clusters shrink to fit from %i", nextclu );
+					ret = delete_chain( nextclu );
+					if( ret ) {
+						dbprintf("Unable to delete chain %i", nextclu );
+						break;
+					}
+				}
+			} else {	//Not last cluster
+				if( nextclu == node_end ) {
+					fc2 = find_free_cluster( fc1 + 1 );
+					if( fc2 < 0 ) {
+						dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
+						return ret;
+					}
+					data_node->next = fc2;
+				} else {
+					data_node->next = nextclu;
+					fc2 = nextclu;
+				}
+				wlen = get_clust_size()-sizeof(fnode_1);
+			}
+			std::memcpy( data_node->data, buf, wlen );
+			twlen = sizeof(fnode_1) + wlen;
+			dbprintf("WRCLUXE %i -> %i", fc1, data_node->next );
+		}
+		ret = flash_write( get_page(), fc1, get_clust_size(), ibuf, twlen );
+		buf = reinterpret_cast<const char*>(buf) + wlen;
+		buf_len -= wlen;
+		if( ret ) break;
+		fc1 = fc2;
+	}
+	return ret;
+}
+/* ------------------------------------------------------------------ */
+//! Set chain without wear leveling
+int fs_env::write_non_existing( unsigned env_id, const void* buf, size_t buf_len,
+		unsigned short& lru_cache_elem )
+{
+	using namespace detail;
+	int ret {};
+	const unsigned nclu = buf_len_to_n_clust( buf_len );
+	ret = check_chains( nclu );
+	if( m_wear_leveling ) {
+		if( ret==err_fs_full || (ret>0&&ret<int(nclu)) ) {
+			ret = reclaim();
+			if( ret>=0 ) {
+				ret = check_chains( nclu );
+				if( ret == int(nclu) ) {
+					ret = err_success;
+				} else if( ret>0 && ret<int(nclu)) {
+					ret = err_fs_full;
+				}
+			}
+		} else {
+			ret = err_success;
+		}
+	} else {
+		if( ret>0 && ret<int(nclu) ) 
+			ret = err_fs_full;
+		else
+			ret = err_success;
+	}
+	if( !ret ) {
+		crc16 crcc;
+		crcc( buf, buf_len );
+		auto fc1 = find_free_cluster( get_first_cluster() );
+		if( fc1 < 0 ) {
+			dbprintf("Hardware failure %i", fc1 );
+			return ret;
+		}
+		int fc2 = node_end;
+		lru_cache_elem = fc1;
+		for( unsigned c=0; c<nclu; ++c ) {
+			char ibuf[ get_clust_size() ];
+			unsigned twlen;
+			unsigned wlen;
+			if( c == 0 ) {
+				auto hdr = reinterpret_cast<fnode_0*>( ibuf );
+				hdr->id_next = env_id;
+				hdr->len = buf_len;
+				hdr->crc = crcc();
+				hdr->type = 0;
+				if( buf_len <= (get_clust_size()-sizeof(fnode_0)) ) {
+
+					hdr->next = node_end;
+					wlen = buf_len;
+				} else {
+					fc2 = find_free_cluster( fc1 + 1 );
+					m_last_free_clust = fc1;
+					if( fc2 < 0 ) {
+						dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
+						return ret;
+					}
+					hdr->next = fc2;
+					wlen = get_clust_size()-sizeof(fnode_0);
+				}
+				std::memcpy( hdr->data, buf, wlen );
+				twlen = sizeof(fnode_0) + wlen;
+				dbprintf("WRCLU %i -> %i", fc1, hdr->next );
+			} else {
+				auto hdr = reinterpret_cast<fnode_1*>( ibuf );
+				hdr->type = 1;
+				if( buf_len<=(get_clust_size()-sizeof(fnode_1)) ) {
+					hdr->next = node_end;
+					wlen = buf_len;
+				} else {
+					fc2 = find_free_cluster( fc1 + 1 );
+					if( fc2 < 0 ) {
+						dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
+						return ret;
+					}
+					hdr->next = fc2;
+					wlen = get_clust_size()-sizeof(fnode_1);
+				}
+				std::memcpy( hdr->data, buf, wlen );
+				twlen = sizeof(fnode_1) + wlen;
+				dbprintf("WRCLUX %i -> %i", fc1, hdr->next );
+			}
+			ret = flash_write( get_page(), fc1, get_clust_size(), ibuf, twlen );
+			buf = reinterpret_cast<const char*>(buf) + wlen;
+			buf_len -= wlen;
+			if( ret ) break;
+			fc1 = fc2;
+		}
+		//! Save the last cluster with wear level mode
+		m_last_free_clust = fc2;
+	}
+	return ret;
+}
+/* ------------------------------------------------------------------ */
 /**  Store data in non volatile memory
 	*   @param[in] env_id Environment identifier
 	*   @param[in] buf Pointer to buffer for store data
@@ -136,121 +335,18 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 		return err_range_id;
 	}
 	auto ret = init_fs();
-	if( ret >= 0 ) 
-	{
-		ret = find_first( env_id );
-		if( ret == err_invalid_id ) {
-			ret = err_success;
-		} else {
-			ret = delete_chain( ret );
-		}
+	if( ret ) {
+		return ret;
 	}
-	if( ret == 0 ) 
-	{
-		const unsigned nclu = buf_len_to_n_clust( buf_len );
-		ret = check_chains( nclu );
-		if( m_wear_leveling )
-		{
-			if( ret==err_fs_full || (ret>0&&ret<int(nclu)) ) 
-			{
-				ret = reclaim();
-				if( ret>=0 ) 
-				{
-					ret = check_chains( nclu );
-					if( ret == int(nclu) ) {
-						ret = err_success;
-					} else if( ret>0 && ret<int(nclu)) {
-						ret = err_fs_full;
-					}
-				}
-			} 
-			else 
-			{
-				ret = err_success;
-			}
-		} 
-		else 
-		{
-			if( ret>0 && ret<int(nclu) ) 
-				ret = err_fs_full;
-			else
-				ret = err_success;
-		}
-		if( !ret ) 
-		{
-			crc16 crcc;
-			crcc( buf, buf_len );
-			auto fc1 = find_free_cluster( get_first_cluster() );
-			if( fc1 < 0 ) {
-				dbprintf("Hardware failure %i", fc1 );
-				return ret;
-			}
-			int fc2 = node_end;
-			lru_cache_elem = fc1;
-			for( unsigned c=0; c<nclu; ++c ) 
-			{
-				char ibuf[ get_clust_size() ];
-				unsigned twlen;
-				unsigned wlen;
-				if( c == 0 ) 
-				{
-					auto hdr = reinterpret_cast<fnode_0*>( ibuf );
-					hdr->id_next = env_id;
-					hdr->len = buf_len;
-					hdr->crc = crcc();
-					hdr->type = 0;
-					if( buf_len <= (get_clust_size()-sizeof(fnode_0)) ) 
-					{
-						hdr->next = node_end;
-						wlen = buf_len;
-					} 
-					else 
-					{
-						fc2 = find_free_cluster( fc1 + 1 );
-						m_last_free_clust = fc1;
-						if( fc2 < 0 ) {
-							dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
-							return ret;
-						}
-						hdr->next = fc2;
-						wlen = get_clust_size()-sizeof(fnode_0);
-					}
-					std::memcpy( hdr->data, buf, wlen );
-					twlen = sizeof(fnode_0) + wlen;
-					dbprintf("WRCLU %i -> %i", fc1, hdr->next );
-				} 
-				else 
-				{
-					auto hdr = reinterpret_cast<fnode_1*>( ibuf );
-					hdr->type = 1;
-					if( buf_len<=(get_clust_size()-sizeof(fnode_1)) ) 
-					{
-						hdr->next = node_end;
-						wlen = buf_len;
-					} 
-					else 
-					{
-						fc2 = find_free_cluster( fc1 + 1 );
-						if( fc2 < 0 ) {
-							dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
-							return ret;
-						}
-						hdr->next = fc2;
-						wlen = get_clust_size()-sizeof(fnode_1);
-					}
-					std::memcpy( hdr->data, buf, wlen );
-					twlen = sizeof(fnode_1) + wlen;
-					dbprintf("WRCLUX %i -> %i", fc1, hdr->next );
-				}
-				ret = flash_write( get_page(), fc1, get_clust_size(), ibuf, twlen );
-				buf = reinterpret_cast<const char*>(buf) + wlen;
-				buf_len -= wlen;
-				if( ret ) break;
-				fc1 = fc2;
-			}
-			//! Save the last cluster with wear level mode
-			m_last_free_clust = fc2;
-		}
+	ret = find_first( env_id );
+	if( ret > 0 && m_wear_leveling ) {
+		ret = delete_chain( ret );
+		if( ret ) return ret;
+	}
+	if( ret==err_invalid_id ) {
+		ret = write_non_existing( env_id, buf, buf_len, lru_cache_elem );
+	} else {
+		ret  = write_existing( env_id, buf, buf_len );
 	}
 	if( !ret && lru_cache_elem ) 
 	{
@@ -404,24 +500,19 @@ int fs_env::check_chains( unsigned rclu )
 {
 	int ret = err_internal;
 	unsigned fnd_clu = 0;
-	for( unsigned c=0, fc=get_first_cluster(); c<rclu; ++c ) 
-	{
+	for( unsigned c=0, fc=get_first_cluster(); c<rclu; ++c ) {
 		ret = find_free_cluster( fc + 1 );
-		if( ret > 0 ) 
-		{
+		if( ret > 0 ) {
 			if( ++fnd_clu == rclu ) {
 				break;
 			}
 			fc = ret;
-		} 
-		else 
-		{
+		} else {
 			break;
 		}
 		if( fnd_clu == rclu ) break;
 	}
-	if( ret >= 0 ) 
-	{
+	if( ret >= 0 ) {
 		ret = fnd_clu;
 	} 
 	return ret;
@@ -461,7 +552,7 @@ int fs_env::init_fs()
 	if( m_clust_size ) {
 		return err_success;
 	}
-	unsigned csize;
+	unsigned csize {};
 	auto ret = find_valid_page(csize);
 	m_lru.clear();
 	m_last_free_clust = c_first_cluster;
@@ -523,6 +614,27 @@ int fs_env::find_first( unsigned id, detail::fnode_0* node )
 	if( !ret && !found ) {
 		ret = err_invalid_id;
 	}
+	return ret;
+}
+/* ------------------------------------------------------------------ */
+//! Find next cluster and alloc if eof
+int fs_env::find_next_cluster( unsigned cluster )
+{
+	using namespace detail;
+	fnode_h hdr;
+	auto ret = flash_read( get_page(), cluster, get_clust_size(), &hdr, sizeof hdr );
+	if( ret ) {
+		return ret;
+	}
+	if( hdr.type==0 || hdr.id_next==node_dirty || 
+		hdr.id_next==node_unused || hdr.id_next<c_first_cluster ) 
+	{
+		dbprintf("Invalid type of next cluster: %u (%04x) %u", hdr.id_next, hdr.id_next, hdr.type );
+		ret = err_internal;
+	} else {
+		ret = hdr.id_next;
+	}
+	dbprintf("find_next_cluster(%i) -> %i",cluster, ret );
 	return ret;
 }
 /* ------------------------------------------------------------------ */
@@ -659,24 +771,20 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 int fs_env::reclaim_random()
 {
 	using namespace detail;
-	if( m_alt_page_in_use ) 
-	{
+	if( m_alt_page_in_use ) {
 		return err_fs_fmt;
 	}
-	if( !get_clust_size() ) 
-	{
+	if( !get_clust_size() ) {
 		return err_internal;
 	}
 	int ret {};
 	const auto pg_size = m_flash.page_size();
 	auto ncs = (m_npages * pg_size)/get_clust_size();
 	fnode_0 node;
-	for( unsigned c=1; c<ncs; ++c ) 
-	{
+	for( unsigned c=1; c<ncs; ++c ) {
 		ret = flash_read( m_pg_base, c, get_clust_size(), &node, sizeof node );
 		if( ret ) break;
-		if( node.id_next == node_dirty ) 
-		{
+		if( node.id_next == node_dirty ) {
 			node.id_next = node_unused;
 			ret = flash_write( m_pg_base, c, get_clust_size(), &node, sizeof node );
 			if( ret ) {
@@ -731,30 +839,23 @@ int fs_env::find_valid_page( unsigned& clust_size )
 	do {
 			ret = m_flash.read( m_pg_base, 0, &hdr, sizeof hdr );
 			if( ret ) break;
-			if( hdr.ok() ) 
-			{
+			if( hdr.ok() ) {
 				ret = err_hdr_first;
 				clust_size = hdr.clust_len;
 				break;
 			}
-			if( !can_random_access() ) 
-			{
+			if( !can_random_access() ) {
 				ret = m_flash.read( m_pg_alt, 0, &hdr, sizeof hdr );
 				if( ret ) break;
-				if( hdr.ok() ) 
-				{
+				if( hdr.ok() ) {
 					ret = err_hdr_second;
 					clust_size = hdr.clust_len;
 					break;
-				} 
-				else 
-				{
+				} else {
 					ret = err_hdr_not_found;
 					break;
 				}
-			}
-			else 
-			{
+			} else {
 				ret = err_hdr_not_found;
 				break;
 			}
