@@ -155,11 +155,20 @@ int fs_env::write_existing( unsigned env_id, const void* buf, size_t buf_len )
 			entry_node->crc = ccrc();
 			entry_node->type = 0;
 			if( buf_len <= (get_clust_size()-sizeof(fnode_0)) ) {
+				if( entry_node->next != node_end ) {
+					dbprintf("Too many clusters shrink to fit from %i", entry_node->next );
+					ret = delete_chain( entry_node->next );
+					if( ret ) {
+						dbprintf("Unable to delete chain %i", entry_node->next );
+						break;
+					}
+				}
 				entry_node->next = node_end;
 				wlen = buf_len;
 			} else {
 				if( entry_node->next == node_end ) {
 					fc2 = find_free_cluster( fc1+1 );
+					dbprintf("No next cluster in init entry! New allocated cluster is %i", fc2 );
 					if( fc2 < 0 ) { 
 						ret = fc2;
 						break;
@@ -196,6 +205,7 @@ int fs_env::write_existing( unsigned env_id, const void* buf, size_t buf_len )
 			} else {	//Not last cluster
 				if( nextclu == node_end ) {
 					fc2 = find_free_cluster( fc1 + 1 );
+					dbprintf("No next cluster! New allocated cluster is %i", fc2 );
 					if( fc2 < 0 ) {
 						dbprintf("Hardware failure2 %i->%i",fc1, fc2 );
 						return ret;
@@ -626,13 +636,13 @@ int fs_env::find_next_cluster( unsigned cluster )
 	if( ret ) {
 		return ret;
 	}
-	if( hdr.type==0 || hdr.id_next==node_dirty || 
-		hdr.id_next==node_unused || hdr.id_next<c_first_cluster ) 
-	{
-		dbprintf("Invalid type of next cluster: %u (%04x) %u", hdr.id_next, hdr.id_next, hdr.type );
-		ret = err_internal;
+	if( hdr.id_next==node_dirty || hdr.id_next==node_unused ) {
+		ret = node_end;
 	} else {
 		ret = hdr.id_next;
+	}
+	if( ret < int(c_first_cluster) ) {
+		ret = err_internal;
 	}
 	dbprintf("find_next_cluster(%i) -> %i",cluster, ret );
 	return ret;

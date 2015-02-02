@@ -67,11 +67,17 @@ int main( int argc, const char** /*  argv*/) {
 			//static constexpr auto str1 = "Ala ma kota a kot ma ale no i co panie z tego wyniknie to nie wiadomo";
 			static constexpr auto str2 = "Walentina to walientina podniebmna mis byly kwiaty dla gagarina"
 				"a teraz jest valentina twist A teraz Pan odwiedzi nas przyjedzie do Polski bo wszyscy na niego czekaja";
-			dbprintf("String length for str2 %i", std::strlen(str2) );
+			static constexpr auto strs2 = "to jest test krotki";
+			dbprintf("String length for str2 %i", std::strlen(str2)+1);
 			static char buf[1222] = { 0 };
-			int envret2 = m_env.set( 5 , str2, std::strlen(str2) );
+			int envret2 = m_env.set( 5 , str2, std::strlen(str2)+1);
 			dbprintf("Set env errno %i", envret2 );
 			int envret3 = m_env.get(5, buf, sizeof buf );
+			dbprintf("Get env errno %i str: %s", envret3, buf );
+			//! Small shrink test
+			envret2 = m_env.set( 5 , strs2, std::strlen(strs2) + 1);
+			dbprintf("Set env errno %i", envret2 );
+			envret3 = m_env.get(5, buf, sizeof buf );
 			dbprintf("Get env errno %i str: %s", envret3, buf );
 			return -1;
 		}
