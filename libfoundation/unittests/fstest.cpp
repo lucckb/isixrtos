@@ -61,13 +61,14 @@ int main( int argc, const char** /*  argv*/) {
 		fnd::fs_eeprom test( 128, 16 , false );
 		//FLASH LIKE EMULATION
 		//fnd::fs_eeprom test( 8, 256 , true );
-		fnd::filesystem::fs_env env { test, false };
-		if( 1 ) {
+		fnd::filesystem::fs_env env { test, true };
+		if( 1 ) 
+		{
 			auto &m_env = env;
 			//static constexpr auto str1 = "Ala ma kota a kot ma ale no i co panie z tego wyniknie to nie wiadomo";
 			static constexpr auto str2 = "Walentina to walientina podniebmna mis byly kwiaty dla gagarina"
 				"a teraz jest valentina twist A teraz Pan odwiedzi nas przyjedzie do Polski bo wszyscy na niego czekaja";
-			static constexpr auto strs2 = "to jest test krotki";
+			static constexpr auto strs2 = "to jest test krotki a teraz bedzie troche dluzszy ale nie za dlugi";
 			dbprintf("String length for str2 %i", std::strlen(str2)+1);
 			static char buf[1222] = { 0 };
 			int envret2 = m_env.set( 5 , str2, std::strlen(str2)+1);
@@ -79,7 +80,6 @@ int main( int argc, const char** /*  argv*/) {
 			dbprintf("Set env errno %i", envret2 );
 			envret3 = m_env.get(5, buf, sizeof buf );
 			dbprintf("Get env errno %i str: %s", envret3, buf );
-			return -1;
 		}
 		static constexpr auto sx1 = "A teraz bedzie dlugi na kilka chainow przynajmniem moze nie tak calkiem %li";
 		char s1[ 512 ];

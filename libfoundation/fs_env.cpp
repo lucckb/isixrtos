@@ -235,6 +235,7 @@ int fs_env::write_non_existing( unsigned env_id, const void* buf, size_t buf_len
 		unsigned short& lru_cache_elem )
 {
 	using namespace detail;
+	dbprintf("Starting execute non existing item %u buf_len %u", env_id, buf_len );
 	int ret {};
 	const unsigned nclu = buf_len_to_n_clust( buf_len );
 	ret = check_chains( nclu );
@@ -353,7 +354,7 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 		ret = delete_chain( ret );
 		if( ret ) return ret;
 	}
-	if( ret==err_invalid_id ) {
+	if( ret==err_invalid_id || m_wear_leveling ) {
 		ret = write_non_existing( env_id, buf, buf_len, lru_cache_elem );
 	} else {
 		ret  = write_existing( env_id, buf, buf_len );
