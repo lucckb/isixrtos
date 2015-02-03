@@ -38,6 +38,7 @@ class disp_base
 	//Make object noncopyable
 	disp_base(const disp_base&) = delete;
 	disp_base& operator=(const disp_base&) = delete;
+	static constexpr auto invalid_value = -1;
 public:
 	disp_base( coord_t width, coord_t height )
 		: m_width( width ), m_height( height ) {
@@ -75,6 +76,11 @@ public:
 	/* Set backlight percent */
 	virtual void backlight( int /*percent*/ )
 	{
+	}
+	/* Get backlight percent */
+	virtual int backlight() 
+	{
+		return invalid_value;
 	}
 	//Optional rendeer buff (can be used if vert scrool is not required )
 	virtual std::pair<color_t*,size_t> get_rbuf() = 0;

@@ -26,11 +26,14 @@ struct event : public input::event_info
 
 	event( object *_sender, const input::event_info &event)
 		: event_info( event), sender(_sender)
-	{}
+	{
+		window = nullptr;
+	}
 	event( object *_sender, evtype _type )
 		: sender( _sender )
 	{
 		type = _type;
+		window = nullptr;
 	}
 	bool match( object& o ) const {
 		return sender == &o;

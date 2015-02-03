@@ -53,7 +53,15 @@ public:
 	/* Set backlight percent */
 	virtual void backlight( int percent )
 	{
+		if( percent < 0 ) percent = 0;
+		else if( percent > 100 ) percent = 100;
 		m_bus.set_pwm( percent );
+		m_backlight = percent;
+	}
+	//! Get backlight
+	virtual int backlight() 
+	{
+		return m_backlight;
 	}
 	//Optional rendeer buff (can be used if vert scrool is not required )
 	virtual std::pair<color_t*,size_t> get_rbuf()
@@ -147,13 +155,14 @@ private:
 	void reset();
 	//Set viewport
 	void set_viewport( coord_t x, coord_t y, coord_t cx, coord_t cy );
+	//Move line
+	void move_line( coord_t x, coord_t cx, coord_t row_from, coord_t row_to );
 private:
 	disp_bus &m_bus;
 	rotation_t m_orient { rotation_t::rot_0 };
 	power_ctl_t m_pwrstate {};
-	//Move line
-	void move_line( coord_t x, coord_t cx, coord_t row_from, coord_t row_to );
 	uint8_t m_scr_buf[ (SCREEN_WIDTH>SCREEN_HEIGHT?SCREEN_WIDTH:SCREEN_HEIGHT)*3 + 1];
+	uint8_t m_backlight { 50 };
 };
 
 /* ------------------------------------------------------------------ */
