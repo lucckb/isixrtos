@@ -86,6 +86,10 @@ static void usbhost_os_task( void* unused_os_arg )
 				dbprintf("usbh_get_conf_descriptor %i", ctx.err );
 				continue;
 			}
+
+			// free config descriptor if previously allocated
+			if (ctx.dev.cdesc) free(ctx.dev.cdesc);
+
 			ctx.dev.cdsize = cfg_desc.wTotalLength;
 			ctx.dev.cdesc = malloc( cfg_desc.wTotalLength );
 			if( !ctx.dev.cdesc ) {
@@ -176,6 +180,13 @@ static void usbhost_os_task( void* unused_os_arg )
 			dbprintf("Process exit");
 		}
 	} while(true);
+
+	// free config descriptor
+	if (ctx.dev.cdesc)
+	{
+		free(ctx.dev.cdesc);
+		ctx.dev.cdesc = NULL;
+	}
 }
 
 /* ------------------------------------------------------------------ */ 
