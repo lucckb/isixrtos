@@ -113,7 +113,7 @@ private:
 	char ch_inc( char ch ) const;
 	char ch_dec( char ch ) const;
 	//! Insert character get
-	char insert_ch();
+	char insert_ch(char prev_char);
 	//! Move cursor forward
 	void cursor_forward();
 	//! Cursor move backward
