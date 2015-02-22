@@ -148,6 +148,11 @@ void window::select( widget * const w )
 	auto elem = std::find_if( std::begin(m_widgets), std::end(m_widgets), 
 			[&]( const widget* wdg ) { return w == wdg; } );
 	if( elem != m_widgets.end() && w->selectable() ) {
+		if (m_current_widget != elem)
+			m_redraw_widget = m_current_widget;
+		else
+			m_redraw_widget = m_widgets.end();
+
 		m_current_widget = elem;
 	}
 }

@@ -36,7 +36,7 @@ void seekbar::repaint( bool /* focus */ )
 		gdi.fill_area( c.x(), c.y(), c.cx(), y - c.y(), false );
 		gdi.fill_area( c.x(), y_bg, c.cx(), c.cy() - ys - (y - c.y()), false );
 		gdi.fill_area( c.x(), y, r, ys + 1, false );
-		gdi.fill_area( x + cx, y, r, ys + 1, false );
+		gdi.fill_area( x + cx, y, r + 1, ys + 1, false );
 		gdi.set_pixel(x, y);
 		gdi.set_pixel(x, y + ys);
 		gdi.set_pixel(x + cx, y);

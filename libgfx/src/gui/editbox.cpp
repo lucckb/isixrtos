@@ -151,8 +151,16 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 		if (evk.key == kbdcodes::os_arrow_right)
 		{
 			if ((m_max_len == 0) || (m_value.size() < m_max_len))
-				m_value.insert(m_cursor_pos, 1, insert_ch());
-
+			{
+				char prev_char;
+				if (m_cursor_pos > 0)
+					prev_char = m_value[m_cursor_pos - 1];
+				else
+					prev_char = 0;
+				
+				m_value.insert(m_cursor_pos, 1, insert_ch(prev_char));
+			}
+			
 			long_flag = true;
 		}
 		
@@ -247,11 +255,15 @@ void editbox::to_begin()
 }
 /* ------------------------------------------------------------------ */
 //Get insert char
-char editbox::insert_ch()
+char editbox::insert_ch(char prev_char)
 {
 	switch( m_type ) {
 		default:
-			return 'A';
+			if ((prev_char >= 'a') && (prev_char <= 'z'))
+				return 'a';
+			else
+				return 'A';
+		break;
 		case type::float_pos:
 		case type::float_neg:
 			return '.';
