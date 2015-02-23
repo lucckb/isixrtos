@@ -17,4 +17,7 @@
  */
 #include <gsm/at_parser.hpp>
 
+namespace gsm_modem {
 
+
+}
