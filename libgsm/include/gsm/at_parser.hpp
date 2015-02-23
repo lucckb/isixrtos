@@ -18,11 +18,7 @@
 #pragma once
 #include <array>
 #include <foundation/fixed_vector.hpp>
-/* ------------------------------------------------------------------ */ 
-namespace fnd {
-
-	class serial_port;
-}
+#include <foundation/serial_port.hpp>
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */
@@ -35,16 +31,20 @@ class at_parser
 	//! Make it noncopyable
 	at_parser& operator=( at_parser& ) = delete;
 	at_parser( at_parser& ) = delete;
+	static constexpr auto cmd_buffer_len = 512U;
 public:
+	enum ecapab : unsigned {
+		cap_ommits_colon = 1
+	};
 	//! Constructor for serial port
-	at_parser( fnd::serial_port& port );
+	at_parser( fnd::serial_port& port, unsigned capabilities );
 
 	//! Chat with the modem
-	char* chat( char inp[], const char at_cmd[]=nullptr, const char resp[]=nullptr,
+	char* chat( const char at_cmd[]=nullptr, const char resp[]=nullptr,
 			bool ignore_errors=false, bool empty_response=false );
 
 	// Chat and get he vector of string
-	resp_vec chatv( char inp[], const char at_cmd[]=nullptr, bool ignore_errors = false );
+	resp_vec chatv( const char at_cmd[]=nullptr, bool ignore_errors = false );
 
 	//! Remove whitespace at begginning and end of string
 	char* normalize( char* input );
@@ -53,10 +53,22 @@ public:
 	int error() const {
 		return m_error;
 	}
-
+	
+	//! Put line to the serial interface
+	int put_line( const char* line1, const char* line2=nullptr,
+			bool carriage_return = true );
 private:
-	fnd::serial_port& m_port;
-	int m_error {};
+	//! Require ommits colon
+	bool is_ommit_colon() const {
+		return m_capabilities & cap_ommits_colon;	
+	}
+	//Match the response string
+	bool match_response( const char* answer, const char* response_to_match );
+private:
+	fnd::serial_port& m_port;	//Serial port reference
+	int m_error {};				//Error code
+	char m_cmd_buffer[ cmd_buffer_len ] {};	//Command buffer
+	const unsigned m_capabilities {};	//Parser capabilities
 };
 /* ------------------------------------------------------------------ */
 }
