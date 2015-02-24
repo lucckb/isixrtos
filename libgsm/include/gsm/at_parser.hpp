@@ -19,6 +19,7 @@
 #include <array>
 #include <foundation/fixed_vector.hpp>
 #include <foundation/serial_port.hpp>
+#include "errors.hpp"
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */
@@ -32,6 +33,8 @@ class at_parser
 	at_parser& operator=( at_parser& ) = delete;
 	at_parser( at_parser& ) = delete;
 	static constexpr auto cmd_buffer_len = 512U;
+	static constexpr auto atcmd_maxlen = 64U;
+	static constexpr auto def_timeout = 250;
 public:
 	enum ecapab : unsigned {
 		cap_ommits_colon = 1
@@ -41,7 +44,7 @@ public:
 
 	//! Chat with the modem
 	char* chat( const char at_cmd[]=nullptr, const char resp[]=nullptr,
-			bool ignore_errors=false, bool empty_response=false );
+			bool ignore_errors=false, bool empty_response=false, char** pdu = nullptr );
 
 	// Chat and get he vector of string
 	resp_vec chatv( const char at_cmd[]=nullptr, bool ignore_errors = false );
@@ -64,6 +67,10 @@ private:
 	}
 	//Match the response string
 	bool match_response( const char* answer, const char* response_to_match );
+	// Report and decode error
+	void report_error( char* inp );
+	// Cut the response
+	char* cut_response( char* answer, const char* response_to_match );
 private:
 	fnd::serial_port& m_port;	//Serial port reference
 	int m_error {};				//Error code
