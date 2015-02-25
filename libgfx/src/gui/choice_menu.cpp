@@ -39,6 +39,23 @@ void choice_menu::repaint( bool /* focus */ )
 		const auto ymul = gdi_sel.get_text_height();
 		const auto ystart = coo.y() + y_margin;
 		const auto boxpos = m_curr_item>m_max_box_items-1?m_max_box_items-1:m_curr_item;
+		const auto itemsh = ymul * m_num_items;
+
+		// fill bottom background
+		if ((coo.cx() > (x_margin_left  + x_margin_right)) &&
+			(coo.cy() > (y_margin * 2)) &&
+			(itemsh < (coo.cy() - y_margin * 2)))
+		{
+			auto wgdi = make_wgdi( );
+			wgdi.set_fg_color( color::Red );
+			auto fillx = coo.x() + x_margin_left;
+			auto fillcx = coo.cx() - x_margin_left - x_margin_right;
+			auto filly = coo.y() + y_margin + itemsh;
+			auto fillcy = coo.cy() - itemsh - y_margin * 2;
+			wgdi.fill_area( fillx, filly, fillcx, fillcy, true );
+		}
+
+		// draw items
 		for( int c=0,s=m_curr_item-boxpos>0?m_curr_item-boxpos:0;
 			  c<std::min(m_max_box_items, m_num_items); ++c,++s ) {
 			auto &gdi = m_curr_item==s?gdi_sel:gdi_nsel;
@@ -66,6 +83,7 @@ void choice_menu::repaint( bool /* focus */ )
 			}
 		}
 	}
+	
 	//Draw frame corners
 	{
 		auto gdi = make_gdi( );
