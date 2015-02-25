@@ -416,7 +416,7 @@ int usart_buffered::gets(value_type *str, std::size_t max_len, isix::tick_t time
 		else
 		{
 		    str[l] = '\0';
-		    return res;
+		    return res==isix::ISIX_ETIMEOUT?l:res;
 		}
 	}
 	if(l>=max_len) str[l] = '\0';
@@ -433,8 +433,9 @@ int usart_buffered::get(void *buf, std::size_t max_len, isix::tick_t timeout)
 		res= getchar ((unsigned char &) fbuf[l],timeout );
 		if( res == isix::ISIX_ETIMEOUT )
 			return l;
-		else if(res<0)
+		else if(res<0) {
 			return res;
+		}
 	}
 	return l;
 }

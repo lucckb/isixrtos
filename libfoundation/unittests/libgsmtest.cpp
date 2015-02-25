@@ -18,7 +18,7 @@
 
 #include <foundation/dbglog.h>
 #include <serialport_unix.hpp>
-
+#include <gsm/at_parser.hpp>
 
 void print_flags( int fl ) 
 {
@@ -44,10 +44,25 @@ void print_flags( int fl )
 int libgsm_main( int /*argc*/, const char** /*  argv*/) {
 	dbprintf("libgsm test welcome");
 	fnd::serialport_unix m_ser( "/dev/ttyS0", 115200 );
+#if 0
 	char buf[128] {};
 	m_ser.puts("AT\r\n");
 	int res = m_ser.get( buf, sizeof buf, 200, 7 );
 	dbprintf("read %i = [%s]", res, buf );
 	print_flags(m_ser.tiocm_get());
+#endif
+	//Check AT parser
+	gsm_modem::at_parser at( m_ser );
+	char* r;
+#if 0
+	r = at.chat("+CMEE=1", nullptr, true, true );
+	dbprintf( "ret [%s] err [%i]", r, at.error() );
+	r = at.chat("+CMGF=1");
+	dbprintf( "ret [%s] err [%i]", r, at.error() );
+#endif
+	r = at.chat("+CSMS?","+CSMS:");
+	dbprintf( "ret [%s] err [%i]", r, at.error() );
+	r = at.chat("+CPMS?","+CPMS:");
+	dbprintf( "ret [%s] err [%i]", r, at.error() );
 	return 0;
 }

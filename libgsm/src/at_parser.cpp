@@ -15,7 +15,9 @@
  *
  * =====================================================================================
  */
+#include <foundation/dbglog.h>
 #include <gsm/at_parser.hpp>
+#include <gsm/gsm_event.hpp>
 #include <cstring>
 #include <cstddef>
 #include <algorithm>
@@ -26,17 +28,20 @@ namespace gsm_modem {
 //! Put line to the serial interface
 int at_parser::put_line( const char* line1, const char* line2, bool carriage_return )
 {
-	m_error = m_port.puts( line1 );
-	if( m_error ) return m_error;
+	auto ret = m_port.puts( line1 );
+	if( ret < 0 ) { m_error = ret; return m_error; }
 	if( line2 ) {
-		m_error = m_port.puts( line2 );
-		if( m_error ) return m_error;
+		ret = m_port.puts( line2 );
+		if( ret < 0 ) { m_error = ret; return m_error; }
 	}
-	if( carriage_return )
-		m_error = m_port.puts("\r\n");
-	else
-		m_error = m_port.puts("\n");
-	return m_error;
+	if( carriage_return ) {
+		ret = m_port.puts("\r\n");
+		if( ret < 0 ) { m_error = ret; return m_error; }
+	} else {
+		ret = m_port.puts("\n");
+		if( ret < 0 ) { m_error = ret; return m_error; }
+	}
+	return 0;
 }
 /* ------------------------------------------------------------------ */
 //Match the response string
@@ -75,6 +80,7 @@ char* at_parser::cut_response( char* answer, const char* response_to_match )
 //! Remove whitespace at begginning and end of string
 char* at_parser::normalize( char* input )
 {
+	if( !input ) return nullptr;
 	size_t start = 0, end = std::strlen(input);
 	bool changed { true };
 	while (start < end && changed)
@@ -113,14 +119,42 @@ void at_parser::report_error( char* inp )
 	else
 		m_error = error::at_error_first - std::atoi( inp );
 }
+/* ------------------------------------------------------------------ */
+// Get line and handle events
+char* at_parser::getline()
+{
+	bool event_occured {};
+	do {
+		auto ret = m_port.gets( m_cmd_buffer, sizeof m_cmd_buffer, def_timeout );
+		if( ret <= 0 ) { m_error = !ret?error::receive_timeout:ret; return nullptr; }
+		if( !m_event ) {
+			dbprintf("getline [%s]", m_cmd_buffer );
+			return m_cmd_buffer;
+		}
+		auto s = normalize(m_cmd_buffer);
+		if( match_response(s,"+CMT:") ||
+			match_response(s,"+CBM:") ||
+			match_response(s,"+CDS:") ||
+			match_response(s,"+CMTI:") ||
+			match_response(s,"+CBMI:") ||
+			match_response(s,"+CDSI:") ||
+			match_response(s,"RING") ||
+			match_response(s,"NO CARRIER") ||
+			(match_response(s,"+CLIP:") && std::strlen(s)>10 )) {
+				m_event->dispatch( s, *this );		
+				event_occured = true;
+			}
+	} while(event_occured);
+	dbprintf("getline [%s]", m_cmd_buffer );
+	return m_cmd_buffer;
+}
 /* ------------------------------------------------------------------ */ 
 //! Chat with the modem
 char* at_parser::chat( const char at_cmd[], const char resp[],
 	bool ignore_errors, bool empty_response, char **pdu  )
 {
 	char expect[ atcmd_maxlen ];
-	m_error = put_line( "AT", at_cmd );
-	if( m_error ) return nullptr;
+	if( put_line( "AT", at_cmd ) < 0 ) return nullptr;
 	if( std::strlen(at_cmd) >= sizeof(expect) ) {
 		m_error = error::buffer_overflow;
 		return nullptr;
@@ -138,17 +172,15 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 	}
 	char* inp {};
 	do {
-		m_error = m_port.gets( m_cmd_buffer, sizeof m_cmd_buffer, def_timeout );
-		if( m_error ) break;
-		inp = normalize( m_cmd_buffer );
-	} while( std::strlen(inp)==0 || (inp[0]=='A'&&inp[1]=='T'&&!std::strcmp(inp+2,at_cmd)) ||
+		inp = normalize( getline() );
+		if( !inp ) return nullptr;	
+	} while( inp[0]=='\0' || (inp[0]=='A'&&inp[1]=='T'&&!std::strcmp(inp+2,at_cmd)) ||
 		    ((!resp||!match_response(inp,resp)) && 
 			( expect[0] && match_response(inp,expect))));
 	//! Handle errors
 	if( match_response(inp,"+CME ERROR:") || match_response(inp,"+CMS ERROR:") ) {
 		if( ignore_errors ) {
 			m_cmd_buffer[0] = '\0';
-			m_error = error::success;
 			return m_cmd_buffer;	
 		} else {
 			report_error( inp );
@@ -158,16 +190,15 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 	if( match_response( inp, "ERROR" ) ) {
 		if( ignore_errors ) {
 			m_cmd_buffer[0] = '\0';
-			m_error = error::success;
 			return m_cmd_buffer;	
 		} else {
 			m_error = error::aterr_unspecified;
+			return nullptr;
 		}
 	}
 	//Return empty string if response is ok and caller says ok
 	if( empty_response && std::strcmp(inp,"OK") ) {
 		m_cmd_buffer[0] = '\0';
-		m_error = error::success;
 		return m_cmd_buffer;	
 	}
 	//Empty sms handling
@@ -176,9 +207,8 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 	if( pdu ) {
 		char* ps {};	
 		do {
-			m_error = m_port.gets( m_cmd_buffer, sizeof m_cmd_buffer, def_timeout );
-			if( m_error ) break;
-			ps = normalize( m_cmd_buffer );
+			ps = normalize( getline() );
+			if(!ps) return nullptr;
 		} while( ps[0]=='\0' && std::strcmp(ps,"OK") );
 		if( !std::strcmp(ps,"OK") ) {
 			got_ok = true;	
@@ -189,19 +219,30 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 	if( !resp ) { 	// No resp expected
 		if( !std::strcmp(inp,"OK") ) {
 			m_cmd_buffer[0] = '\0';
-			m_error = error::success;
 			return m_cmd_buffer;	
 		}
 		//else jump to error
 	} else {
-		//get final OK
-		do {
-			m_error = m_port.gets( m_cmd_buffer, sizeof m_cmd_buffer, def_timeout );
-			if( m_error ) break;
-			inp = normalize( m_cmd_buffer );
-
-		} while( inp[0]=='\0' );
+		char *result {};
+		if( match_response( inp, resp ) ) {
+			result = cut_response( inp, resp );	
+		} else {
+			result = inp;
+		}
+		if( got_ok ) {
+			return result;
+		} else {
+			do {
+				inp = normalize( getline() );
+				if(!inp) return nullptr;
+			} while( inp[0] == '\0');
+			if( !strcmp(inp,"OK") ) {
+				return result;
+			}
+		}
 	}
+	m_error = error::unexpected_resp;
+	return nullptr;
 }
 /* ------------------------------------------------------------------ */ 
 }

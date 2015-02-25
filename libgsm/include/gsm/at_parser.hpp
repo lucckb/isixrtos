@@ -25,6 +25,8 @@ namespace gsm_modem {
 /* ------------------------------------------------------------------ */
 //! Static vector of input string
 using resp_vec = fnd::fixed_vector<char*,8>;
+//Fwd decl
+class event;
 /* ------------------------------------------------------------------ */
 //At parser command class
 class at_parser 
@@ -40,7 +42,9 @@ public:
 		cap_ommits_colon = 1
 	};
 	//! Constructor for serial port
-	at_parser( fnd::serial_port& port, unsigned capabilities );
+	explicit at_parser( fnd::serial_port& port, unsigned capabilities = 0 )
+		: m_port( port ), m_capabilities( capabilities )
+	{}
 
 	//! Chat with the modem
 	char* chat( const char at_cmd[]=nullptr, const char resp[]=nullptr,
@@ -71,11 +75,14 @@ private:
 	void report_error( char* inp );
 	// Cut the response
 	char* cut_response( char* answer, const char* response_to_match );
+	// Get line and handle events
+	char* getline();
 private:
 	fnd::serial_port& m_port;	//Serial port reference
 	int m_error {};				//Error code
 	char m_cmd_buffer[ cmd_buffer_len ] {};	//Command buffer
 	const unsigned m_capabilities {};	//Parser capabilities
+	event* m_event {};
 };
 /* ------------------------------------------------------------------ */
 }

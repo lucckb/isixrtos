@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  errors.hpp
+ *       Filename:  gsm_event.hpp
  *
- *    Description:  Errors definition for at parser
+ *    Description:  GSM event dispatcher class
  *
  *        Version:  1.0
- *        Created:  24.02.2015 21:19:25
+ *        Created:  25.02.2015 19:51:30
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -17,17 +17,11 @@
  */
 
 #pragma once
-
+//TODO: Implement this one
 namespace gsm_modem {
-	struct error {
-		enum error_ {
-			success = 0,
-			buffer_overflow = -16384, 
-			aterr_unspecified =-16385,
-			lib_bug = -16386,
-			unexpected_resp = -16387,
-			receive_timeout = -16388,
-			at_error_first = -16400,
-		};
+	class at_parser;
+	class event {
+	public:
+		void dispatch( const char *, at_parser&  ) {}
 	};
 }

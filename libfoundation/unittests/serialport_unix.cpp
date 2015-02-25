@@ -272,7 +272,7 @@ int serialport_unix::put(const void *buf, std::size_t buf_len)
 //Get string into the uart
 int serialport_unix::gets(value_type *str, std::size_t max_len, int timeout ) 
 {
-	int res = {};
+	int res {};
 	std::size_t l;
 	
 	for(l=0; l<max_len; l++)
@@ -379,10 +379,9 @@ int serialport_unix::read_timeout( void* buf, size_t len, int timeout, size_t mi
 				break;
 			}
 		} else if( ret == 0 ) {
-			ret = -1;
-			break;
+			break;	//Timeout
 		} else {
-			break;
+			break; //Fatal error
 		}
 	} while( pos < min_len );
 	if( ret >= 0 ) ret = pos;
