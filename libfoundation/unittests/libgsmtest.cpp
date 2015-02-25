@@ -64,5 +64,14 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/) {
 #endif
 	r = at.chat("+CPIN?","+CPIN:");
 	dbprintf( "ret [%s] err [%i]", r, at.error() );
+	
+	gsm_modem::resp_vec vec;
+	int ri = at.chatv(vec, "+CPBR=1,250", "+CPBR:", false );
+	dbprintf( "chatv err=%i len %u", ri, vec.size() );
+	if( !ri ) {
+		for( const auto& v : vec ) {
+			dbprintf("entry->[%s]", v );
+		}
+	}
 	return 0;
 }

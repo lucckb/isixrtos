@@ -248,5 +248,58 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 	return nullptr;
 }
 /* ------------------------------------------------------------------ */ 
+// Chat and get he vector of string
+int at_parser::chatv( resp_vec& ans_vec, const char at_cmd[], const char response[],
+		bool ignore_errors )
+{
+	if( put_line( "AT", at_cmd ) < 0 ) return m_error;
+	char* inp;
+	do {
+		inp = normalize( getline() );	
+		if( !inp ) return m_error;	
+	} while(  inp[0]=='\0' || (inp[0]=='A'&&inp[1]=='T'&&!std::strcmp(inp+2,at_cmd)) );
+	//! Handle errors
+	if( match_response(inp,"+CME ERROR:") || match_response(inp,"+CMS ERROR:") ) {
+		if( ignore_errors ) {
+			return 0;
+		} else {
+			report_error( inp );
+			return m_error;
+		}
+	}
+	if( match_response( inp, "ERROR" ) ) {
+		if( ignore_errors ) {
+			return 0;	
+		} else {
+			m_error = error::aterr_unspecified;
+			return m_error;
+		}
+	}
+	size_t getln_pos {};
+	while(true) {
+		if( !std::strcmp(inp,"OK") ) {
+			return 0;
+		}
+		if( inp[0] != '\0' ) {
+			if( response && *response && match_response(inp,response) ) {
+				const auto resp = cut_response( inp, response );
+				ans_vec.push_back( resp );
+				//Calculate the position for extra response just outside the buffer
+				getln_pos = std::strlen(resp)+(resp-m_cmd_buffer)+sizeof('\0');
+			} else {
+				ans_vec.push_back( inp );
+				//Calculate the position for extra response just outside the buffer
+				getln_pos = std::strlen(inp)+(inp-m_cmd_buffer)+sizeof('\0');
+			}
+		}
+		do {
+			inp = normalize( getline(getln_pos) );
+			if(!inp) return m_error;
+		} while( inp[0] == '0' );
+	}
+	m_error = error::lib_bug;
+	return m_error;
+}
+/* ------------------------------------------------------------------ */ 
 }
 

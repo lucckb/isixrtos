@@ -36,7 +36,7 @@ class at_parser
 	at_parser( at_parser& ) = delete;
 	static constexpr auto cmd_buffer_len = 512U;
 	static constexpr auto atcmd_maxlen = 64U;
-	static constexpr auto def_timeout = 250;
+	static constexpr auto def_timeout = 5000;
 public:
 	enum ecapab : unsigned {
 		cap_ommits_colon = 1
@@ -51,10 +51,9 @@ public:
 			bool ignore_errors=false, bool empty_response=false, char** pdu = nullptr );
 
 	// Chat and get he vector of string
-	resp_vec chatv( const char at_cmd[]=nullptr, bool ignore_errors = false );
+	int chatv( resp_vec& ans_vec, const char at_cmd[]=nullptr, 
+			const char response[]=nullptr, bool ignore_errors = false );
 
-	//! Remove whitespace at begginning and end of string
-	char* normalize( char* input );
 
 	//! Get parser error
 	int error() const {
@@ -65,6 +64,9 @@ public:
 	int put_line( const char* line1, const char* line2=nullptr,
 			bool carriage_return = true );
 private:
+	//! Remove whitespace at begginning and end of string
+	char* normalize( char* input );
+
 	//! Require ommits colon
 	bool is_ommit_colon() const {
 		return m_capabilities & cap_ommits_colon;	
