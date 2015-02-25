@@ -24,7 +24,7 @@
 #include <cstdlib>
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 //! Put line to the serial interface
 int at_parser::put_line( const char* line1, const char* line2, bool carriage_return )
 {
@@ -121,17 +121,18 @@ void at_parser::report_error( char* inp )
 }
 /* ------------------------------------------------------------------ */
 // Get line and handle events
-char* at_parser::getline()
+char* at_parser::getline( size_t pos_from )
 {
 	bool event_occured {};
+	const auto begin_ptr = m_cmd_buffer+pos_from;
 	do {
-		auto ret = m_port.gets( m_cmd_buffer, sizeof m_cmd_buffer, def_timeout );
+		auto ret = m_port.gets( begin_ptr, sizeof(m_cmd_buffer)-pos_from, def_timeout );
 		if( ret <= 0 ) { m_error = !ret?error::receive_timeout:ret; return nullptr; }
 		if( !m_event ) {
-			dbprintf("getline [%s]", m_cmd_buffer );
-			return m_cmd_buffer;
+			dbprintf("getline [%s]", begin_ptr );
+			return begin_ptr;
 		}
-		auto s = normalize(m_cmd_buffer);
+		auto s = normalize(begin_ptr);
 		if( match_response(s,"+CMT:") ||
 			match_response(s,"+CBM:") ||
 			match_response(s,"+CDS:") ||
@@ -145,8 +146,8 @@ char* at_parser::getline()
 				event_occured = true;
 			}
 	} while(event_occured);
-	dbprintf("getline [%s]", m_cmd_buffer );
-	return m_cmd_buffer;
+	dbprintf("getline [%s]", begin_ptr );
+	return begin_ptr;
 }
 /* ------------------------------------------------------------------ */ 
 //! Chat with the modem
@@ -197,7 +198,7 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 		}
 	}
 	//Return empty string if response is ok and caller says ok
-	if( empty_response && std::strcmp(inp,"OK") ) {
+	if( empty_response && !std::strcmp(inp,"OK") ) {
 		m_cmd_buffer[0] = '\0';
 		return m_cmd_buffer;	
 	}
@@ -209,14 +210,14 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 		do {
 			ps = normalize( getline() );
 			if(!ps) return nullptr;
-		} while( ps[0]=='\0' && std::strcmp(ps,"OK") );
+		} while( ps[0]=='\0' && !std::strcmp(ps,"OK") );
 		if( !std::strcmp(ps,"OK") ) {
 			got_ok = true;	
 		} else {
 		  *pdu = ps;
 		}
 	}
-	if( !resp ) { 	// No resp expected
+	if( !resp || resp[0] == '\0' ) { 	// No resp expected
 		if( !std::strcmp(inp,"OK") ) {
 			m_cmd_buffer[0] = '\0';
 			return m_cmd_buffer;	
@@ -232,8 +233,10 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 		if( got_ok ) {
 			return result;
 		} else {
+			//Calculate the position for extra response just outside the buffer
+			const auto result_pos = std::strlen(result)+(result-m_cmd_buffer)+sizeof('\0');
 			do {
-				inp = normalize( getline() );
+				inp = normalize( getline(result_pos) );
 				if(!inp) return nullptr;
 			} while( inp[0] == '\0');
 			if( !strcmp(inp,"OK") ) {

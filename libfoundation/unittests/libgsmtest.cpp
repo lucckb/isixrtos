@@ -59,10 +59,10 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/) {
 	dbprintf( "ret [%s] err [%i]", r, at.error() );
 	r = at.chat("+CMGF=1");
 	dbprintf( "ret [%s] err [%i]", r, at.error() );
-#endif
 	r = at.chat("+CSMS?","+CSMS:");
 	dbprintf( "ret [%s] err [%i]", r, at.error() );
-	r = at.chat("+CPMS?","+CPMS:");
+#endif
+	r = at.chat("+CPIN?","+CPIN:");
 	dbprintf( "ret [%s] err [%i]", r, at.error() );
 	return 0;
 }

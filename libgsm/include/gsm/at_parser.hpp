@@ -76,7 +76,7 @@ private:
 	// Cut the response
 	char* cut_response( char* answer, const char* response_to_match );
 	// Get line and handle events
-	char* getline();
+	char* getline( size_t pos_from = 0U);
 private:
 	fnd::serial_port& m_port;	//Serial port reference
 	int m_error {};				//Error code
