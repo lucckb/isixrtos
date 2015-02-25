@@ -400,14 +400,14 @@ int usart_buffered::put(const void *buf, std::size_t buf_len)
 }
 
 /*----------------------------------------------------------*/
-int usart_buffered::gets(char *str, std::size_t max_len, isix::tick_t timeout)
+int usart_buffered::gets(value_type *str, std::size_t max_len, isix::tick_t timeout)
 {
 	int res = isix::ISIX_EOK;
 	std::size_t l;
 	
 	for(l=0; l<max_len; l++)
 	{
-		res = getchar((unsigned char&)str[l], timeout);
+		res = getchar( str[l], timeout );
 		if(res==isix::ISIX_EOK )
 		{
 			if(str[l] == '\r') str[l] = '\0';

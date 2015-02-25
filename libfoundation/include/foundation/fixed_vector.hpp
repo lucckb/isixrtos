@@ -77,6 +77,11 @@ public:
        return const_iterator(&front());
     }
 
+	const iterator cbegin() const 
+	{
+	   return begin();
+	}
+
     iterator end ()
     {
        return iterator(&elems[nelems]);
@@ -86,6 +91,10 @@ public:
     {
         return const_iterator(&elems[nelems]);
     }
+
+    const_iterator cend () const {
+		return end();
+	}
 
     size_type capacity () const
     {
@@ -138,6 +147,11 @@ public:
         return const_reverse_iterator(end());
     }
 
+    const_reverse_iterator crbegin() const 
+	{
+		return rbegin();
+	}
+
     reverse_iterator rend()
     {
         return reverse_iterator(begin());
@@ -147,6 +161,11 @@ public:
     {
        return const_reverse_iterator(begin());
     }
+
+    const_reverse_iterator crend() const 
+	{
+		return rend();
+	}
 
     size_type size() const
     {

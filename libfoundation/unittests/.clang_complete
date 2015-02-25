@@ -14,4 +14,5 @@
 /usr/include
 -I./include
 -I../../../isixrtos/libfoundation/include
+-I../../../isixrtos/libgsm/include
 -std=c++11

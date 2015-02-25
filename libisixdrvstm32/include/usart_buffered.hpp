@@ -12,10 +12,8 @@
 #include <isix.h>
 #include <stm32system.h>
 /*----------------------------------------------------------*/
-namespace stm32
-{
-namespace dev
-{
+namespace stm32 {
+namespace dev {
 /*----------------------------------------------------------*/
 extern "C"
 {
@@ -29,7 +27,6 @@ extern "C"
 	void usart5_isr_vector(void) __attribute__ ((interrupt));
 #endif
 }
-
 
 /*----------------------------------------------------------*/
 class usart_buffered
