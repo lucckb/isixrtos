@@ -54,18 +54,30 @@ namespace gsmlib
 	  int m_error {};
 	  char* m_comma_pos {};
 
+	//Check if pointer is in range
+	bool good() const {
+		
+		return ( (m_pos)>= m_buf && (m_pos) < m_eob );
+	}
+	bool bad() {
+		if( !good() ) {
+			m_error = error::parser_buf_overflow;
+			return true;
+		}
+		return false;
+	}
 	//Skip space
 	void seek_eol() {
-		for( ;m_pos<m_eob && *m_pos; ++m_pos );
+		for( ;good() && *m_pos; ++m_pos );
 	}
 	void skip_space() {
-		if( m_pos<=m_eob && *m_pos && *m_pos==' ' ) {
+		if( good() && *m_pos && *m_pos==' ' ) {
 			++m_pos;	
 		}
 	}
 	
 	void skip_all_spaces() {
-		if( m_pos<=m_eob && *m_pos && *m_pos==' ' ) {
+		if( good() && *m_pos && *m_pos==' ' ) {
 			++m_pos;	
 		}
 	}
@@ -88,15 +100,18 @@ namespace gsmlib
 	int error() const {
 		return m_error;
 	}
-    parser( char* s, size_t len );
 
 	//For test only
 	parser( const std::string& s ) 
-		: parser( new char[s.length()+1], s.length() )
+		: parser( new char[s.length()+1], s.length()+1 )
 	{
 		std::strcpy( m_buf, s.c_str() );
 	}
 
+	parser(char* s, size_t len )
+	: m_buf(s), m_pos(s), m_eob( s+len )
+	{
+	}
     // the following functions skip white space
     // parse a character, if absent throw a GsmException
     // return false if allowNoChar == true and character not encountered

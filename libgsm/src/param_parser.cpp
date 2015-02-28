@@ -1,4 +1,3 @@
-
 #include "gsm_parser.h"
 #include <cctype>
 #include <cassert>
@@ -6,7 +5,7 @@
 
 using namespace gsmlib;
 
-#define stringPrintf(...) 
+#define stringPrintf(x, ...) x ## #__VA_ARGS__
 #define throwParseException(x)  throw std::logic_error( x )
 //#define throwParseException(x) assert(0)
 #define _(x) x
@@ -15,10 +14,7 @@ using namespace gsmlib;
 int parser::parse_char(char c, bool allow_no_char) 
 {
 	skip_space();
-	if( m_pos >= m_eob ) {
-		m_error = error::parser_buf_overflow;
-		return m_error;
-	}
+	if( bad() ) return m_error;
 	if( *m_pos++ != c )
 	{
 		if (allow_no_char)
@@ -40,6 +36,7 @@ int parser::parse_char(char c, bool allow_no_char)
 int parser::check_empty_parameter(bool allow_no_parameter) 
 {
 	skip_space();
+	if( bad() ) return m_error;
 	if (*m_pos == ',' || *m_pos == '\0' )
 	{
 		if (allow_no_parameter)
@@ -88,7 +85,8 @@ char* parser::do_parse_string(bool string_with_quotation_marks)
 		{
 			// read till next """
 			beg = m_pos;
-			for( ;m_pos<m_eob && *m_pos && *m_pos!='"'; ++m_pos ) {}
+			for( ; good() && *m_pos && *m_pos!='"'; ++m_pos ) {}
+			if( bad() ) return nullptr;
 			if( *m_pos != '"') {
 				m_error = error::parser_quote_not_found;	
 				throwParseException( "Quote not found" );
@@ -100,7 +98,8 @@ char* parser::do_parse_string(bool string_with_quotation_marks)
 	else                          // std::string ends with "," or EOL
 	{
 		beg = m_pos;
-		for( ;m_pos<m_eob && *m_pos && *m_pos!=','; ++m_pos );
+		for( ;good() && *m_pos && *m_pos!=','; ++m_pos ) {}
+		if( bad() ) return nullptr;
 		if( *m_pos == ',' ) {
 			m_comma_pos = m_pos;
 			*m_pos = '\0';
@@ -124,10 +123,7 @@ char* parser::parse_string(bool allow_no_string,
 int parser::do_parse_int( int &val )
 {
 	skip_space();
-	if( m_pos >= m_eob ) {
-		m_error = error::parser_buf_overflow;
-		return m_error;
-	}
+	if( bad() ) return m_error;
 	char *eptr;
 	val = std::strtol( m_pos, &eptr, 10 );
 	if( eptr == m_pos ) {
@@ -135,16 +131,14 @@ int parser::do_parse_int( int &val )
 		throwParseException(_("expected number"));
 		return m_error;
 	} else {
-		m_pos = eptr;
+		//! Temporary to last char
+		if( eptr >= m_eob ) m_pos = const_cast<char*>(m_eob)-1;
+		else m_pos = eptr;
 	}
-	return 0;
+	return bad()?m_error:0;
 }
 
 
-parser::parser(char* s, size_t len )
-: m_buf(s), m_pos(s), m_eob( s+len )
-{
-}
 
 
 int parser::parse_string_list(vector<char*>& result, bool allow_no_list)
@@ -157,10 +151,11 @@ int parser::parse_string_list(vector<char*>& result, bool allow_no_list)
 		m_error = error::parser_unexpected_char;
 		return m_error;
 	}
+	if(bad()) return m_error;
 	if (*m_pos && *m_pos != ')')
 	{
 		//putBackChar();
-		while (1)
+		while (good())
 		{
 			result.push_back(parse_string());
 			int c = *m_pos++;
@@ -172,7 +167,7 @@ int parser::parse_string_list(vector<char*>& result, bool allow_no_list)
 				throwParseException(_("expected ')' or ','"));
 		}
 	}
-	return 0;
+	return bad()?m_error:0;
 }
 
 //TODO error value
@@ -184,16 +179,13 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 	int resultCapacity = 0;
 	const auto saveI = m_pos;
 
-	if( m_pos >= m_eob ) {
-		m_error = error::parser_buf_overflow;
-		throwParseException("Test 1");
-		return m_error;
-	}
+	if(bad()) return m_error;
 	if (check_empty_parameter(allow_no_list)) return m_error;
 
 	// check for the case of a integer list consisting of only one parameter
 	// some TAs omit the parentheses in this case
 	skip_space();
+	if(bad()) return m_error;
 	if (isdigit(*m_pos))
 	{
 		int num; 
@@ -222,11 +214,12 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 			throwParseException("test2");
 			return m_error;	//Got err
 		}
+		if(bad()) return m_error;
 		if ( *m_pos != ')')
 		{
 			//putBackChar();
 			int lastInt = -1;
-			while (1)
+			while (good())
 			{
 				int thisInt;
 				if( parse_int(thisInt) < 0 ) {
@@ -296,7 +289,7 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 		throwParseException(_("range of the form a- no allowed"));
 		return m_error;
 	}
-	return 0;
+	return bad()?m_error:0;
 }
 
 int parser::parse_parameter_range_list(vector<parameter_range>& result, bool allow_no_list)
@@ -398,10 +391,7 @@ int parser::parse_comma(bool allow_no_comma)
 		}
 	}
 	skip_space();
-	if( m_pos >= m_eob ) {
-		m_error = error::parser_buf_overflow;
-		return m_error;
-	}
+	if(bad()) return m_error;
 	if (*m_pos++ != ',')
 	{
 		if(allow_no_comma)
@@ -423,14 +413,11 @@ int parser::parse_comma(bool allow_no_comma)
 char* parser::parse_eol() 
 {
 	skip_all_spaces();
-	if( m_pos >= m_eob ) {
-		m_error = error::parser_buf_overflow;
-		return nullptr;
-	}
+	if(bad()) return nullptr;
 	const auto beg = m_pos;
 	seek_eol();
+	if(bad()) return nullptr;
 	*m_pos = '\0';
-
 	return beg;
 }
 
