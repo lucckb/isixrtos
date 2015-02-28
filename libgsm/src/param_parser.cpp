@@ -1,15 +1,8 @@
 #include "gsm_parser.h"
 #include <cctype>
 #include <cassert>
-#include <stdexcept>
 
-using namespace gsmlib;
-
-#define stringPrintf(x, ...) x ## #__VA_ARGS__
-#define throwParseException(x)  throw std::logic_error( x )
-//#define throwParseException(x) assert(0)
-#define _(x) x
-
+namespace gsm_modem {
 
 int parser::parse_char(char c, bool allow_no_char) 
 {
@@ -25,8 +18,6 @@ int parser::parse_char(char c, bool allow_no_char)
 		else
 		{
 			m_error = error::parser_unexpected_char;
-			//throwParseException(stringPrintf(_("expected '%c'"), c));
-			throwParseException( "excepted");
 			return m_error;
 		}
 	}
@@ -41,17 +32,14 @@ int parser::check_empty_parameter(bool allow_no_parameter)
 	{
 		if (allow_no_parameter)
 		{
-			//putBackChar();
 			return true;
 		}
 		else {
 			m_error = error::parser_expected_param;
-			throwParseException(_("expected parameter"));
 			return m_error;
 		}
 
 	}
-	//putBackChar();
 	return false;
 }
 
@@ -73,7 +61,6 @@ char* parser::do_parse_string(bool string_with_quotation_marks)
 			if ( beg==m_pos || *(m_pos-1)  != '"')
 			{
 				m_error = error::parser_unexpected_quote;
-				throwParseException(_("expected '\"'"));
 				return nullptr;
 			}
 
@@ -89,7 +76,6 @@ char* parser::do_parse_string(bool string_with_quotation_marks)
 			if( bad() ) return nullptr;
 			if( *m_pos != '"') {
 				m_error = error::parser_quote_not_found;	
-				throwParseException( "Quote not found" );
 				return nullptr;
 			} else {
 				*m_pos++ = '\0';
@@ -128,7 +114,6 @@ int parser::do_parse_int( int &val )
 	val = std::strtol( m_pos, &eptr, 10 );
 	if( eptr == m_pos ) {
 		m_error = error::parser_expected_number;	
-		throwParseException(_("expected number"));
 		return m_error;
 	} else {
 		//! Temporary to last char
@@ -161,10 +146,14 @@ int parser::parse_string_list(vector<char*>& result, bool allow_no_list)
 			int c = *m_pos++;
 			if (c == ')')
 				break;
-			if (c == 0)
-				throwParseException("c=-1");
-			if (c != ',')
-				throwParseException(_("expected ')' or ','"));
+			if (c == 0) {
+				m_error = error::parser_unexpected_eof;
+				return m_error;
+			}
+			if (c != ',') {
+				m_error = error::parser_expected_comma;
+				return m_error;
+			}
 		}
 	}
 	return bad()?m_error:0;
@@ -190,7 +179,6 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 	{
 		int num; 
 		if( parse_int(num) ) {
-			throwParseException("ex-dupa");
 			return m_error;
 		}
 		result.resize(num + 1, false);
@@ -211,7 +199,6 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 
 		if( parse_char('(') < 0 ) 
 		{
-			throwParseException("test2");
 			return m_error;	//Got err
 		}
 		if(bad()) return m_error;
@@ -223,7 +210,6 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 			{
 				int thisInt;
 				if( parse_int(thisInt) < 0 ) {
-					throwParseException("dupa2");
 					return m_error;
 				}
 				if (isRange)
@@ -261,13 +247,11 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 
 				if (c == 0) {
 					m_error = error::parser_unexpected_eof;
-					throwParseException("c=-1");
 					return m_error;
 				}
 
 				if (c != ',' && c != '-') {
 					m_error = error::parser_expected_min_and_coma;
-					throwParseException(_("expected ')', ',' or '-'"));
 					return m_error;
 				}
 
@@ -276,7 +260,6 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 				else                      // is '-'
 					if (isRange) {
 						m_error = error::parser_range_abc_not_allowed;
-						throwParseException(_("range of the form a-b-c not allowed"));
 						return m_error;
 					}
 					else
@@ -286,7 +269,6 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 	}
 	if (isRange) {
 		m_error = error::parser_range_a_not_allowed;
-		throwParseException(_("range of the form a- no allowed"));
 		return m_error;
 	}
 	return bad()?m_error:0;
@@ -321,8 +303,7 @@ int parser::parse_parameter_range(parameter_range& result, bool allow_no_paramet
 	if (check_empty_parameter(allow_no_parameter_range)) return m_error;
 
 	if( parse_char('(') < 0 ) {
-		m_error = error::parser_unexpected_char;
-		throwParseException("Unexcepted character");
+		return m_error;
 	}
 	result._parameter = parse_string();
 	parse_comma();
@@ -331,8 +312,7 @@ int parser::parse_parameter_range(parameter_range& result, bool allow_no_paramet
 		return m_error;	
 	}
 	if( parse_char(')') < 0 ) {
-		m_error = error::parser_unexpected_char;
-		throwParseException("Unexcepted character");
+		return m_error;
 	}
 
 	return m_error;
@@ -345,8 +325,6 @@ int parser::parse_range(int_range& result, bool allow_no_range, bool allow_non_r
 	if (check_empty_parameter(allow_no_range)) return m_error;
 
 	if( parse_char('(') < 0 ) {
-		m_error = error::parser_unexpected_char;
-		throwParseException("Unexcepted character");
 		return m_error;
 	}
 	if( parse_int( result.low ) < 0 ) {
@@ -363,7 +341,6 @@ int parser::parse_range(int_range& result, bool allow_no_range, bool allow_non_r
 	}
 	if( parse_char(')') < 0 ) {
 		m_error = error::parser_range_error;
-		throwParseException("Range error");
 		return m_error;
 	}
 	return m_error;
@@ -402,7 +379,6 @@ int parser::parse_comma(bool allow_no_comma)
 		else 
 		{
 			m_error = error::parser_expected_comma;
-			throwParseException(_("expected comma"));
 			return m_error;
 		}
 	}
@@ -427,7 +403,7 @@ int parser::check_eol()
 		return 0;
 	} else {
 		m_error = error::parser_eol_excepted;
-		throwParseException(_("expected end of line"));
+		return m_error;
 	}
 	return m_error;
 }
@@ -440,4 +416,7 @@ char* parser::get_eol()
 		return nullptr;
 	}
 	return m_pos;
+}
+
+//Namespace end
 }
