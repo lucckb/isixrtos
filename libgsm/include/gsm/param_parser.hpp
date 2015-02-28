@@ -53,7 +53,7 @@ public:
 	  char *m_pos {};
 	  const char* const m_eob {};
 	  int m_error {};
-	  char* m_comma_pos {};
+	  const char* m_comma_pos {};
 
 	//Check if pointer is in range
 	bool good() const {
