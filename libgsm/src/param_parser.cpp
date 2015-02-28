@@ -1,6 +1,7 @@
 #include "gsm_parser.h"
 #include <cctype>
 #include <cassert>
+#include <cstdlib>
 
 namespace gsm_modem {
 
@@ -305,10 +306,10 @@ int param_parser::parse_parameter_range(parameter_range& result, bool allow_no_p
 	if( parse_char('(') < 0 ) {
 		return m_error;
 	}
-	result._parameter = parse_string();
+	result.parameter = parse_string();
 	parse_comma();
 	//result._range = parse_range(false, true);
-	if( parse_range(result._range, false, true) < 0 ) {
+	if( parse_range(result.range, false, true) < 0 ) {
 		return m_error;	
 	}
 	if( parse_char(')') < 0 ) {

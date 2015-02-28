@@ -1,8 +1,7 @@
 #pragma once
 
-#include <string>
-#include <cstring>
 #include <vector>
+#include <cstddef>
 
 
 namespace gsm_modem
@@ -41,8 +40,8 @@ namespace gsm_modem
   // A valid integer range for a given parameter
   struct parameter_range
   {
-    std::string _parameter;
-    int_range _range;
+    const char* parameter;
+    int_range range;
   };
 
   class param_parser
@@ -97,16 +96,6 @@ namespace gsm_modem
     int do_parse_int( int& val );
 
   public:
-	int error() const {
-		return m_error;
-	}
-
-	//For test only
-	param_parser( const std::string& s ) 
-		: param_parser( new char[s.length()+1], s.length()+1 )
-	{
-		std::strcpy( m_buf, s.c_str() );
-	}
 
 	param_parser(char* s, size_t len )
 	: m_buf(s), m_pos(s), m_eob( s+len )
@@ -170,6 +159,15 @@ namespace gsm_modem
     // return std::string till end of line without whitespace
     // (does not change internal state)
     char* get_eol();
+
+	//Get the constant pointer for error pos
+	std::size_t pos() const {
+		return m_pos - m_buf;
+	}
+	//! Return the object error state
+	int error() const {
+		return m_error;
+	}
   };
 };
 
