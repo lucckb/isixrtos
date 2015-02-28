@@ -59,10 +59,17 @@ public:
 	int error() const {
 		return m_error;
 	}
-	
+	//! Get buffer size 
+	size_t bufsize() const {
+		return cmd_buffer_len;
+	}
 	//! Put line to the serial interface
 	int put_line( const char* line1, const char* line2=nullptr,
 			bool carriage_return = true );
+	//! Set event handler for the parser
+	void set_event_handler( event* ev ) {
+		m_event = ev;
+	}
 private:
 	//! Remove whitespace at begginning and end of string
 	char* normalize( char* input );

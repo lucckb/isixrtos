@@ -18,10 +18,15 @@
 
 #pragma once
 //TODO: Implement this one
+#include <foundation/dbglog.h>
+
+
 namespace gsm_modem {
 	class at_parser;
 	class event {
 	public:
-		void dispatch( const char *, at_parser&  ) {}
+		void dispatch( const char * str, at_parser&  ) {
+			dbprintf("TODO: impl. Dispatch event str %s", str );
+		}
 	};
 }

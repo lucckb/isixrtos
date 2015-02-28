@@ -27,6 +27,7 @@ namespace gsm_modem {
 			lib_bug = -16386,
 			unexpected_resp = -16387,
 			receive_timeout = -16388,
+			//Parserr errors
 			param_parser_buf_overflow = -16400,
 			param_parser_unexpected_char = -16401,
 			param_parser_unexpected_quote = -16402,
@@ -41,7 +42,23 @@ namespace gsm_modem {
 			param_parser_eol_excepted = -16411,
 			param_parser_range_error = -16412,
 			param_parser_container_overflow = -16413,
-			at_error_first = -16500,
+			//At command error codes
+			at_cme_first = -16500,
+			at_cme_phone_failure = -16500,
+			at_cme_no_connection_to_phone = -16501,
+			at_cme_phone_adapter_link_reserved = -16502,
+			at_cme_operation_not_allowed = -16503,
+			at_cme_operation_not_supported = -16504,
+			at_cme_ph_sim_pin_required = -16505,
+			at_cme_ph_fsim_pin_required = -16506,
+			at_cme_ph_puk_pin_required = -16507,
+			at_cme_sim_not_inserted = -16510,
+			at_cme_sim_pin_required = -16511,
+			at_cme_sim_puk_required = -16512,
+			at_cme_sim_failure = -16513,
+			at_cme_sim_busy = -16514,
+			at_cme_sim_wrong = -16515,
+			at_cme_incorrect_password = -16516,
 		};
 	};
 }

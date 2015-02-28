@@ -18,8 +18,7 @@
 
 #include <foundation/dbglog.h>
 #include <serialport_unix.hpp>
-#include <gsm/at_parser.hpp>
-#include <gsm/param_parser.hpp>
+#include <gsm/gsm_device.hpp>
 
 void print_flags( int fl ) 
 {
@@ -42,6 +41,7 @@ void print_flags( int fl )
 	printf("\n");
 }
 
+#if 0
 int libgsm_main( int /*argc*/, const char** /*  argv*/) {
 	dbprintf("libgsm test welcome");
 	fnd::serialport_unix m_ser( "/dev/ttyS0", 115200 );
@@ -74,5 +74,29 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/) {
 			dbprintf("entry->[%s]", v );
 		}
 	}
+	return 0;
+}
+#endif
+
+class devctl : public gsm_modem::hw_control  {
+
+	//! Enable or disable hardware modem device
+	virtual void power_control( bool enable ) {
+		dbprintf("Power control state change %i", enable );
+	}
+	//! Hardware reset device
+	virtual void reset() {
+		dbprintf("HW reset ");
+	}
+};
+
+
+int libgsm_main( int /*argc*/, const char** /*  argv*/)
+{
+	fnd::serialport_unix m_ser( "/dev/ttyS0", 115200 );
+	devctl m_ctl;
+	gsm_modem::device modem( m_ser, m_ctl );
+	modem.enable( true );
+	modem.register_to_network( "1234" );
 	return 0;
 }

@@ -117,7 +117,7 @@ void at_parser::report_error( char* inp )
 	if( !inp )
 		m_error = error::lib_bug;
 	else
-		m_error = error::at_error_first - std::atoi( inp );
+		m_error = error::at_cme_first - std::atoi( inp );
 }
 /* ------------------------------------------------------------------ */
 // Get line and handle events
