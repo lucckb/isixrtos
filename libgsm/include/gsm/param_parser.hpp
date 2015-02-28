@@ -46,6 +46,8 @@ namespace gsm_modem
 
   class param_parser
   {
+public:
+	using ret_str_t = const char*;
   private:
 	  char * const m_buf {};
 	  char *m_pos {};
@@ -89,7 +91,7 @@ namespace gsm_modem
 
     // parse a std::string (like "string")
     // throw an exception if not well-formed
-    char* do_parse_string(bool string_with_quotation_marks);
+    ret_str_t do_parse_string(bool string_with_quotation_marks);
 
     // parse a int (like 1234)
     // throw an exception if not well-formed
@@ -108,7 +110,7 @@ namespace gsm_modem
 
     // parse a list of the form "("ABC", DEF")"
     // the list can be empty (ie. == "" ) if allow_no_list == true
-    int parse_string_list( vector<char*>& result, bool allow_no_list = false);
+    int parse_string_list( vector<ret_str_t>& result, bool allow_no_list = false);
 
     // parse a list of the form "(12, 14)" or "(1-4, 10)"
     // the result is returned as a bit vector where for each integer
@@ -142,7 +144,7 @@ namespace gsm_modem
     // then it returns ""
     // if string_with_quotation_marks == true the std::string may contain """
     // the std::string is then parsed till the end of the line
-    char* parse_string(bool allow_no_string = false,
+    ret_str_t parse_string(bool allow_no_string = false,
                        bool string_with_quotation_marks = false);
 
     // parse a single ","
@@ -151,14 +153,14 @@ namespace gsm_modem
 	int parse_comma(bool allow_no_comma = false);
 
     // parse till end of line, return result without whitespace
-    char* parse_eol();
+    ret_str_t parse_eol();
 
     // check that end of line is reached
     int check_eol();
 
     // return std::string till end of line without whitespace
     // (does not change internal state)
-    char* get_eol();
+    ret_str_t get_eol();
 
 	//Get the constant pointer for error pos
 	std::size_t pos() const {

@@ -44,7 +44,7 @@ int param_parser::check_empty_parameter(bool allow_no_parameter)
 	return false;
 }
 
-char* param_parser::do_parse_string(bool string_with_quotation_marks)
+param_parser::ret_str_t param_parser::do_parse_string(bool string_with_quotation_marks)
 {
 
 	char* beg {};
@@ -95,7 +95,7 @@ char* param_parser::do_parse_string(bool string_with_quotation_marks)
 	return beg;
 }
 
-char* param_parser::parse_string(bool allow_no_string,
+param_parser::ret_str_t param_parser::parse_string(bool allow_no_string,
 		bool string_with_quotation_marks)
 
 {
@@ -127,7 +127,7 @@ int param_parser::do_parse_int( int &val )
 
 
 
-int param_parser::parse_string_list(vector<char*>& result, bool allow_no_list)
+int param_parser::parse_string_list(vector<param_parser::ret_str_t>& result, bool allow_no_list)
 
 {
 	// handle case of empty parameter
@@ -387,7 +387,7 @@ int param_parser::parse_comma(bool allow_no_comma)
 }
 
 //TODO: It is inplace operation so internal spaces are not removed
-char* param_parser::parse_eol() 
+param_parser::ret_str_t param_parser::parse_eol() 
 {
 	skip_all_spaces();
 	if(bad()) return nullptr;
@@ -409,7 +409,7 @@ int param_parser::check_eol()
 	return m_error;
 }
 
-char* param_parser::get_eol()
+param_parser::ret_str_t param_parser::get_eol()
 {
 	skip_all_spaces();
 	if( m_pos >= m_eob ) {
