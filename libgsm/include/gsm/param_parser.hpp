@@ -10,19 +10,19 @@ namespace gsm_modem
 	//Temporary
 	struct error {
 		enum error_ {
-			parser_buf_overflow = -1,
-			parser_unexpected_char = -2,
-			parser_unexpected_quote = -3,
-			parser_quote_not_found = -4,
-			parser_expected_comma = -5,
-			parser_expected_param = -6,
-			parser_expected_number = -7,
-			parser_unexpected_eof = -8,
-			parser_expected_min_and_coma = -9,
-			parser_range_abc_not_allowed = -10,
-			parser_range_a_not_allowed = -11,
-			parser_eol_excepted = -12,
-			parser_range_error = -14,
+			param_parser_buf_overflow = -1,
+			param_parser_unexpected_char = -2,
+			param_parser_unexpected_quote = -3,
+			param_parser_quote_not_found = -4,
+			param_parser_expected_comma = -5,
+			param_parser_expected_param = -6,
+			param_parser_expected_number = -7,
+			param_parser_unexpected_eof = -8,
+			param_parser_expected_min_and_coma = -9,
+			param_parser_range_abc_not_allowed = -10,
+			param_parser_range_a_not_allowed = -11,
+			param_parser_eol_excepted = -12,
+			param_parser_range_error = -14,
 		};
 	};
   template<typename T>
@@ -45,7 +45,7 @@ namespace gsm_modem
     int_range _range;
   };
 
-  class parser
+  class param_parser
   {
   private:
 	  char * const m_buf {};
@@ -61,7 +61,7 @@ namespace gsm_modem
 	}
 	bool bad() {
 		if( !good() ) {
-			m_error = error::parser_buf_overflow;
+			m_error = error::param_parser_buf_overflow;
 			return true;
 		}
 		return false;
@@ -102,13 +102,13 @@ namespace gsm_modem
 	}
 
 	//For test only
-	parser( const std::string& s ) 
-		: parser( new char[s.length()+1], s.length()+1 )
+	param_parser( const std::string& s ) 
+		: param_parser( new char[s.length()+1], s.length()+1 )
 	{
 		std::strcpy( m_buf, s.c_str() );
 	}
 
-	parser(char* s, size_t len )
+	param_parser(char* s, size_t len )
 	: m_buf(s), m_pos(s), m_eob( s+len )
 	{
 	}

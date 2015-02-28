@@ -4,7 +4,7 @@
 
 namespace gsm_modem {
 
-int parser::parse_char(char c, bool allow_no_char) 
+int param_parser::parse_char(char c, bool allow_no_char) 
 {
 	skip_space();
 	if( bad() ) return m_error;
@@ -17,14 +17,14 @@ int parser::parse_char(char c, bool allow_no_char)
 		}
 		else
 		{
-			m_error = error::parser_unexpected_char;
+			m_error = error::param_parser_unexpected_char;
 			return m_error;
 		}
 	}
 	return true;
 }
 
-int parser::check_empty_parameter(bool allow_no_parameter) 
+int param_parser::check_empty_parameter(bool allow_no_parameter) 
 {
 	skip_space();
 	if( bad() ) return m_error;
@@ -35,7 +35,7 @@ int parser::check_empty_parameter(bool allow_no_parameter)
 			return true;
 		}
 		else {
-			m_error = error::parser_expected_param;
+			m_error = error::param_parser_expected_param;
 			return m_error;
 		}
 
@@ -43,7 +43,7 @@ int parser::check_empty_parameter(bool allow_no_parameter)
 	return false;
 }
 
-char* parser::do_parse_string(bool string_with_quotation_marks)
+char* param_parser::do_parse_string(bool string_with_quotation_marks)
 {
 
 	char* beg {};
@@ -60,7 +60,7 @@ char* parser::do_parse_string(bool string_with_quotation_marks)
 			// check for """ at end of line
 			if ( beg==m_pos || *(m_pos-1)  != '"')
 			{
-				m_error = error::parser_unexpected_quote;
+				m_error = error::param_parser_unexpected_quote;
 				return nullptr;
 			}
 
@@ -75,7 +75,7 @@ char* parser::do_parse_string(bool string_with_quotation_marks)
 			for( ; good() && *m_pos && *m_pos!='"'; ++m_pos ) {}
 			if( bad() ) return nullptr;
 			if( *m_pos != '"') {
-				m_error = error::parser_quote_not_found;	
+				m_error = error::param_parser_quote_not_found;	
 				return nullptr;
 			} else {
 				*m_pos++ = '\0';
@@ -94,7 +94,7 @@ char* parser::do_parse_string(bool string_with_quotation_marks)
 	return beg;
 }
 
-char* parser::parse_string(bool allow_no_string,
+char* param_parser::parse_string(bool allow_no_string,
 		bool string_with_quotation_marks)
 
 {
@@ -106,14 +106,14 @@ char* parser::parse_string(bool allow_no_string,
 	return result;
 }
 
-int parser::do_parse_int( int &val )
+int param_parser::do_parse_int( int &val )
 {
 	skip_space();
 	if( bad() ) return m_error;
 	char *eptr;
 	val = std::strtol( m_pos, &eptr, 10 );
 	if( eptr == m_pos ) {
-		m_error = error::parser_expected_number;	
+		m_error = error::param_parser_expected_number;	
 		return m_error;
 	} else {
 		//! Temporary to last char
@@ -126,14 +126,14 @@ int parser::do_parse_int( int &val )
 
 
 
-int parser::parse_string_list(vector<char*>& result, bool allow_no_list)
+int param_parser::parse_string_list(vector<char*>& result, bool allow_no_list)
 
 {
 	// handle case of empty parameter
 	if (check_empty_parameter(allow_no_list)) return m_error;
 
 	if( parse_char('(') < 0 ) {
-		m_error = error::parser_unexpected_char;
+		m_error = error::param_parser_unexpected_char;
 		return m_error;
 	}
 	if(bad()) return m_error;
@@ -147,11 +147,11 @@ int parser::parse_string_list(vector<char*>& result, bool allow_no_list)
 			if (c == ')')
 				break;
 			if (c == 0) {
-				m_error = error::parser_unexpected_eof;
+				m_error = error::param_parser_unexpected_eof;
 				return m_error;
 			}
 			if (c != ',') {
-				m_error = error::parser_expected_comma;
+				m_error = error::param_parser_expected_comma;
 				return m_error;
 			}
 		}
@@ -160,7 +160,7 @@ int parser::parse_string_list(vector<char*>& result, bool allow_no_list)
 }
 
 //TODO error value
-int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
+int param_parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 
 {
 	// handle case of empty parameter
@@ -246,12 +246,12 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 					break;
 
 				if (c == 0) {
-					m_error = error::parser_unexpected_eof;
+					m_error = error::param_parser_unexpected_eof;
 					return m_error;
 				}
 
 				if (c != ',' && c != '-') {
-					m_error = error::parser_expected_min_and_coma;
+					m_error = error::param_parser_expected_min_and_coma;
 					return m_error;
 				}
 
@@ -259,7 +259,7 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 					isRange = false;
 				else                      // is '-'
 					if (isRange) {
-						m_error = error::parser_range_abc_not_allowed;
+						m_error = error::param_parser_range_abc_not_allowed;
 						return m_error;
 					}
 					else
@@ -268,13 +268,13 @@ int parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 		}
 	}
 	if (isRange) {
-		m_error = error::parser_range_a_not_allowed;
+		m_error = error::param_parser_range_a_not_allowed;
 		return m_error;
 	}
 	return bad()?m_error:0;
 }
 
-int parser::parse_parameter_range_list(vector<parameter_range>& result, bool allow_no_list)
+int param_parser::parse_parameter_range_list(vector<parameter_range>& result, bool allow_no_list)
 
 {
 	// handle case of empty parameter
@@ -296,7 +296,7 @@ int parser::parse_parameter_range_list(vector<parameter_range>& result, bool all
 	return m_error;
 }
 
-int parser::parse_parameter_range(parameter_range& result, bool allow_no_parameter_range)
+int param_parser::parse_parameter_range(parameter_range& result, bool allow_no_parameter_range)
 
 {
 	// handle case of empty parameter
@@ -318,7 +318,7 @@ int parser::parse_parameter_range(parameter_range& result, bool allow_no_paramet
 	return m_error;
 }
 
-int parser::parse_range(int_range& result, bool allow_no_range, bool allow_non_range)
+int param_parser::parse_range(int_range& result, bool allow_no_range, bool allow_non_range)
 
 {
 	// handle case of empty parameter
@@ -340,13 +340,13 @@ int parser::parse_range(int_range& result, bool allow_no_range, bool allow_non_r
 		}
 	}
 	if( parse_char(')') < 0 ) {
-		m_error = error::parser_range_error;
+		m_error = error::param_parser_range_error;
 		return m_error;
 	}
 	return m_error;
 }
 
-int parser::parse_int(int& result, bool allow_no_int) 
+int param_parser::parse_int(int& result, bool allow_no_int) 
 {
 	// handle case of empty parameter
 	result = NOT_SET;
@@ -356,7 +356,7 @@ int parser::parse_int(int& result, bool allow_no_int)
 }
 
 
-int parser::parse_comma(bool allow_no_comma) 
+int param_parser::parse_comma(bool allow_no_comma) 
 {
 	if( m_comma_pos ) {
 		m_comma_pos = nullptr;
@@ -378,7 +378,7 @@ int parser::parse_comma(bool allow_no_comma)
 		}
 		else 
 		{
-			m_error = error::parser_expected_comma;
+			m_error = error::param_parser_expected_comma;
 			return m_error;
 		}
 	}
@@ -386,7 +386,7 @@ int parser::parse_comma(bool allow_no_comma)
 }
 
 //TODO: It is inplace operation so internal spaces are not removed
-char* parser::parse_eol() 
+char* param_parser::parse_eol() 
 {
 	skip_all_spaces();
 	if(bad()) return nullptr;
@@ -397,22 +397,22 @@ char* parser::parse_eol()
 	return beg;
 }
 
-int parser::check_eol() 
+int param_parser::check_eol() 
 {
 	if( *m_pos == '\0' ) {
 		return 0;
 	} else {
-		m_error = error::parser_eol_excepted;
+		m_error = error::param_parser_eol_excepted;
 		return m_error;
 	}
 	return m_error;
 }
 
-char* parser::get_eol()
+char* param_parser::get_eol()
 {
 	skip_all_spaces();
 	if( m_pos >= m_eob ) {
-		m_error = error::parser_buf_overflow;
+		m_error = error::param_parser_buf_overflow;
 		return nullptr;
 	}
 	return m_pos;
