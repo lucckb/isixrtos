@@ -28,6 +28,7 @@ namespace gsm_modem {
 //! Put line to the serial interface
 int at_parser::put_line( const char* line1, const char* line2, bool carriage_return )
 {
+	dbprintf("tx>[%s%s]", line1, line2);
 	auto ret = m_port.puts( line1 );
 	if( ret < 0 ) { m_error = ret; return m_error; }
 	if( line2 ) {
@@ -123,14 +124,21 @@ void at_parser::report_error( char* inp )
 // Get line and handle events
 char* at_parser::getline( size_t pos_from )
 {
-	bool event_occured {};
 	const auto begin_ptr = m_cmd_buffer+pos_from;
+	int ret {};
 	do {
-		auto ret = m_port.gets( begin_ptr, sizeof(m_cmd_buffer)-pos_from, def_timeout );
-		if( ret <= 0 ) { m_error = !ret?error::receive_timeout:ret; return nullptr; }
-		if( !m_event ) {
-			dbprintf("getline [%s]", begin_ptr );
-			return begin_ptr;
+		ret = m_port.gets( begin_ptr, sizeof(m_cmd_buffer)-pos_from, def_timeout );
+		if( ret <= 0 ) 
+		{ 
+			m_error = !ret?error::receive_timeout:ret; 
+			return nullptr; 
+		}
+		//! Ignored events
+		if( std::strstr(begin_ptr,"^STN:") ||
+			std::strstr(begin_ptr,"+SIM READY") ) 
+		{
+			dbprintf(">>>>Ignored events");
+			continue;
 		}
 		auto s = normalize(begin_ptr);
 		if( match_response(s,"+CMT:") ||
@@ -141,12 +149,15 @@ char* at_parser::getline( size_t pos_from )
 			match_response(s,"+CDSI:") ||
 			match_response(s,"RING") ||
 			match_response(s,"NO CARRIER") ||
-			(match_response(s,"+CLIP:") && std::strlen(s)>10 )) {
+			(match_response(s,"+CLIP:") && std::strlen(s)>10 )) 
+		{
+			if( m_event )
 				m_event->dispatch( s, *this );		
-				event_occured = true;
-			}
-	} while(event_occured);
-	dbprintf("getline [%s]", begin_ptr );
+			continue;
+		}
+		break;
+	} while(true);
+	dbprintf("rx>[%s]->%i", begin_ptr, ret );
 	return begin_ptr;
 }
 /* ------------------------------------------------------------------ */ 
