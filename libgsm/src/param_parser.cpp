@@ -160,8 +160,7 @@ int param_parser::parse_string_list(vector<param_parser::ret_str_t>& result, boo
 	return bad()?m_error:0;
 }
 
-//TODO error value
-int param_parser::parse_int_list(vector<bool>& result, bool allow_no_list)
+int param_parser::parse_int_list(bit_range& result, bool allow_no_list)
 
 {
 	// handle case of empty parameter
@@ -182,7 +181,11 @@ int param_parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 		if( parse_int(num) ) {
 			return m_error;
 		}
-		result.resize(num + 1, false);
+		//result.resize(num + 1, false);
+		if( num > int(result.size()) ) {
+			m_error = error::param_parser_container_overflow;
+			return m_error;
+}
 		result[num] = true;
 		return 0;
 	}
@@ -195,7 +198,11 @@ int param_parser::parse_int_list(vector<bool>& result, bool allow_no_list)
 		if (pass == 1)
 		{
 			m_pos = saveI;
-			result.resize(resultCapacity + 1, false);
+			//result.resize(resultCapacity + 1, false);
+			if( resultCapacity > int(result.size()) ) {
+				m_error = error::param_parser_container_overflow;
+				return m_error;
+			}
 		}
 
 		if( parse_char('(') < 0 ) 
