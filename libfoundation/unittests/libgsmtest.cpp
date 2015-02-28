@@ -19,6 +19,7 @@
 #include <foundation/dbglog.h>
 #include <serialport_unix.hpp>
 #include <gsm/at_parser.hpp>
+#include <gsm/param_parser.hpp>
 
 void print_flags( int fl ) 
 {

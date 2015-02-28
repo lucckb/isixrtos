@@ -3,29 +3,11 @@
 #include <vector>
 #include <cstddef>
 #include <bitset>
+#include <gsm/errors.hpp>
 
 
 namespace gsm_modem
 {
-	//Temporary
-	struct error {
-		enum error_ {
-			param_parser_buf_overflow = -1,
-			param_parser_unexpected_char = -2,
-			param_parser_unexpected_quote = -3,
-			param_parser_quote_not_found = -4,
-			param_parser_expected_comma = -5,
-			param_parser_expected_param = -6,
-			param_parser_expected_number = -7,
-			param_parser_unexpected_eof = -8,
-			param_parser_expected_min_and_coma = -9,
-			param_parser_range_abc_not_allowed = -10,
-			param_parser_range_a_not_allowed = -11,
-			param_parser_eol_excepted = -12,
-			param_parser_range_error = -14,
-			param_parser_container_overflow = -15
-		};
-	};
 	template<typename T>
 		using vector = std::vector<T>;
 	
