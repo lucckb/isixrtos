@@ -21,43 +21,11 @@
 #include <gsm/gsm_event.hpp>
 #include <gsm/hw_control.hpp>
 #include <foundation/serial_port.hpp>
+#include <gsm/datadefs.hpp>
 
 namespace gsm_modem {
 	
 
-	// Sim requirement codes
-	struct sim_req { 
-	enum sim_req_ {
-		ready=1,	//Sim slot is ready
-		pin,		//Waiting for pin1
-		puk,		//Waiting for puk
-		pin2,		//Waiting for pin2
-		puk2		//Waiting for puk2
-	};
-	};
-
-	//! Operation mode status
-	enum class op_modes : short {
-		automatic = 0,
-		manual = 1,
-		deregister = 2,
-		manualauto = 4
-	};
-	//! Operation status
-	enum class op_status : short {
-		unknown = 0,
-		available = 1,
-		current = 2,
-		forbidden = 3
-	};
-	//! Current operator status
-	struct oper_info {
-		char desc_short[11] {};
-		char desc_long[17] {};
-		op_modes mode {};
-		op_status status {};
-		unsigned numeric_name{};	//Network numeric code
-	};
 
 	//! Class which representing the GSM device
 	class device {
@@ -90,6 +58,21 @@ namespace gsm_modem {
 		 * @return success or error code if failure
 		 */
 		int get_current_op_info( oper_info& info );
+
+		/** Print registration status
+		 * @return registration code or failed if fatal
+		 */
+		int get_registration_status();
+
+		/** Get signal strength information
+		 * @return signal stength or error code
+		 * 0 -113 dBm or less
+			1 -111 dBm
+			2...30 -109... -53 dBm
+			31 -51 dBm or greater
+			99 not known or not detectable
+		 */
+		int get_signal_strength();
 	private:
 		//Do single command
 		int send_command_noresp( const char *cmd, const char* arg );

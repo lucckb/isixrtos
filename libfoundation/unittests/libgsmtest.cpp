@@ -96,12 +96,18 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	fnd::serialport_unix m_ser( "/dev/ttyS0", 115200 );
 	devctl m_ctl;
 	gsm_modem::device modem( m_ser, m_ctl );
-	//modem.enable( true );
-	//modem.register_to_network( "1234" );
-	gsm_modem::oper_info oi;
-	modem.get_current_op_info(oi);
-	dbprintf("status %i mode %i short [%s] long [%s] nn %i", 
-			(int)oi.status, (int)oi.mode, oi.desc_short, oi.desc_long, oi.numeric_name );
-			
+	if(0) {
+		modem.enable( true );
+		modem.register_to_network( "1234" );
+	}
+	if(0) {
+		gsm_modem::oper_info oi;
+		modem.get_current_op_info(oi);
+		dbprintf("status %i mode %i short [%s] long [%s] nn %i", 
+				(int)oi.status, (int)oi.mode, oi.desc_short, oi.desc_long, oi.numeric_name );
+	}
+	//Get registration status
+	dbprintf( "reg status %i", modem.get_registration_status() ) ;
+	dbprintf( "signal strength %i", modem.get_signal_strength() );
 	return 0;
 }

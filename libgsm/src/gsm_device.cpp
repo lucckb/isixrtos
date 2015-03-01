@@ -162,8 +162,8 @@ int device::register_to_network( const char *pin )
 	} else {
 		if(ret>0) ret = error::unsupported_operation;
 	}
-	//! Enable notify messages to the device
-	auto resp = m_at.chat("+CREG=1");
+	//! Disable notify messages to the device
+	auto resp = m_at.chat("+CREG=0");
 	if( !resp ) {
 		dbprintf( "Unable to net notifier %i", m_at.error() );	
 		return m_at.error();
@@ -240,4 +240,51 @@ int device::get_current_op_info( oper_info& info )
 	return error::success;
 }
 /* ------------------------------------------------------------------ */ 
+/** Print registration status
+* @return registration code or failed if fatal
+*/
+int device::get_registration_status()
+{
+	auto resp = m_at.chat("+CREG?", "+CREG:");
+	if( !resp ) {
+		dbprintf( "Modem error response %i", m_at.error() );	
+		return m_at.error();
+	}
+	param_parser p( resp, m_at.bufsize() );
+	int val;
+	if( p.parse_int(val) < 0 ) {
+		dbprintf("Parse int1 failed %i", p.error() );
+		return p.error();
+	}
+	if( p.parse_comma() < 0 ) {
+		dbprintf("Parse comma failed %i", p.error() );
+		return p.error();
+	}
+	if( p.parse_int(val) < 0 ) {
+		dbprintf("Unable to get registration status err %i", p.error() );	
+		return p.error();
+	}
+	return val;
+}
+/* ------------------------------------------------------------------ */ 
+/** Get signal strength information
+* @return signal stength or error code
+*/
+int device::get_signal_strength()
+{
+	auto resp = m_at.chat("+CSQ?", "+CSQ:");
+	if( !resp ) {
+		dbprintf( "Modem error response %i", m_at.error() );	
+		return m_at.error();
+	}
+	param_parser p( resp, m_at.bufsize() );
+	int val;
+	if( p.parse_int(val) < 0 ) {
+		dbprintf("Parse int1 failed %i", p.error() );
+		return p.error();
+	}
+	return val;
+}
+/* ------------------------------------------------------------------ */
+
 }

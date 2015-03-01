@@ -148,7 +148,7 @@ char* at_parser::getline( size_t pos_from )
 			match_response(s,"+CMTI:") ||
 			match_response(s,"+CBMI:") ||
 			match_response(s,"+CDSI:") ||
-			match_response(s,"+CREG:") ||
+			//match_response(s,"+CREG:") ||
 			match_response(s,"RING") ||
 			match_response(s,"NO CARRIER") ||
 			(match_response(s,"+CLIP:") && std::strlen(s)>10 )) 
