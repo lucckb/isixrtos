@@ -22,7 +22,7 @@
 namespace fnd {
 /* ------------------------------------------------------------------ */ 
 class serial_port {
-protected:
+public:
 #ifndef COMPILED_UNDER_ISIX
 	static constexpr auto time_infinite=0;
 #else

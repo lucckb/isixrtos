@@ -37,6 +37,7 @@ class at_parser
 	static constexpr auto cmd_buffer_len = 512U;
 	static constexpr auto atcmd_maxlen = 64U;
 	static constexpr auto def_timeout = 5000;
+	static constexpr auto time_infinite = fnd::serial_port::time_infinite;
 public:
 	enum ecapab : unsigned {
 		cap_ommits_colon = 1
@@ -54,6 +55,8 @@ public:
 	int chatv( resp_vec& ans_vec, const char at_cmd[]=nullptr, 
 			const char response[]=nullptr, bool ignore_errors = false );
 
+	//! Discard bytes and don't wait for line response
+	int discard_data( int timeout = time_infinite );
 
 	//! Get parser error
 	int error() const {

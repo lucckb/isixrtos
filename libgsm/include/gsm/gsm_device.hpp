@@ -24,6 +24,41 @@
 
 namespace gsm_modem {
 	
+
+	// Sim requirement codes
+	struct sim_req { 
+	enum sim_req_ {
+		ready=1,	//Sim slot is ready
+		pin,		//Waiting for pin1
+		puk,		//Waiting for puk
+		pin2,		//Waiting for pin2
+		puk2		//Waiting for puk2
+	};
+	};
+
+	//! Operation mode status
+	enum class op_modes : short {
+		automatic = 0,
+		manual = 1,
+		deregister = 2,
+		manualauto = 4
+	};
+	//! Operation status
+	enum class op_status : short {
+		unknown = 0,
+		available = 1,
+		current = 2,
+		forbidden = 3
+	};
+	//! Current operator status
+	struct oper_info {
+		char desc_short[11] {};
+		char desc_long[17] {};
+		op_modes mode {};
+		op_status status {};
+		unsigned numeric_name{};	//Network numeric code
+	};
+
 	//! Class which representing the GSM device
 	class device {
 	public:
@@ -44,8 +79,17 @@ namespace gsm_modem {
 
 		//! Set pin
 		int set_pin( const char* pin );
-		//! Get pin
-		int get_pin_status( const char*& resp );
+
+		/** Get pin status
+		 * function return error code or sim req
+		 */
+		int get_pin_status();
+		
+		/** Get current operator information 
+		 * @param[out] Information structure
+		 * @return success or error code if failure
+		 */
+		int get_current_op_info( oper_info& info );
 	private:
 		//Do single command
 		int send_command_noresp( const char *cmd, const char* arg );

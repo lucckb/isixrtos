@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <algorithm>
 #include <cstdlib>
+#include <algorithm>
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */
@@ -137,7 +138,7 @@ char* at_parser::getline( size_t pos_from )
 		if( std::strstr(begin_ptr,"^STN:") ||
 			std::strstr(begin_ptr,"+SIM READY") ) 
 		{
-			dbprintf(">>>>Ignored events");
+			dbprintf("ign>[%s]", begin_ptr );
 			continue;
 		}
 		auto s = normalize(begin_ptr);
@@ -147,6 +148,7 @@ char* at_parser::getline( size_t pos_from )
 			match_response(s,"+CMTI:") ||
 			match_response(s,"+CBMI:") ||
 			match_response(s,"+CDSI:") ||
+			match_response(s,"+CREG:") ||
 			match_response(s,"RING") ||
 			match_response(s,"NO CARRIER") ||
 			(match_response(s,"+CLIP:") && std::strlen(s)>10 )) 
@@ -310,6 +312,25 @@ int at_parser::chatv( resp_vec& ans_vec, const char at_cmd[], const char respons
 	}
 	m_error = error::lib_bug;
 	return m_error;
+}
+/* ------------------------------------------------------------------ */
+//! Discard bytes and don't wait for line response
+int at_parser::discard_data( int timeout )
+{
+	int ret {};
+	if( timeout != time_infinite ) {
+		ret = m_port.get( m_cmd_buffer, std::min<size_t>(sizeof m_cmd_buffer,ret),1000 );
+		if( ret <=0 ) return ret;
+	}
+	while( true ) 
+	{
+		ret = m_port.rx_avail();
+		if( ret <= 0 ) break;
+		ret = m_port.get( m_cmd_buffer, std::min<size_t>(sizeof m_cmd_buffer,ret),1000 );
+		if( ret < 0 ) break;
+	}
+	m_cmd_buffer[0] = '\0';
+	return ret;
 }
 /* ------------------------------------------------------------------ */ 
 }

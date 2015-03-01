@@ -27,6 +27,7 @@ namespace gsm_modem {
 			lib_bug = -16386,
 			unexpected_resp = -16387,
 			receive_timeout = -16388,
+			unsupported_operation = -16389,
 			//Parserr errors
 			param_parser_buf_overflow = -16400,
 			param_parser_unexpected_char = -16401,
