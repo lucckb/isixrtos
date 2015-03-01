@@ -22,6 +22,8 @@
 #include <gsm/hw_control.hpp>
 #include <foundation/serial_port.hpp>
 #include <gsm/datadefs.hpp>
+#include <gsm/phonebook.hpp>
+#include <gsm/containers.hpp>
 
 namespace gsm_modem {
 	
@@ -73,6 +75,20 @@ namespace gsm_modem {
 			99 not known or not detectable
 		 */
 		int get_signal_strength();
+		
+		/** Get at parser 
+		 * @return at parser object for other device setups */
+		at_parser& get_at() {
+			return m_at;
+		}
+		
+		/** Get phonebook object
+		 * @return phonebook reference
+		 */
+		phonebook& get_phonebook() {
+			return m_phonebook;
+		}
+
 	private:
 		//Do single command
 		int send_command_noresp( const char *cmd, const char* arg );
@@ -88,5 +104,6 @@ namespace gsm_modem {
 		at_parser m_at;			    //AT parser class
 		hw_control& m_hwctl;		//Hardware ctl class
 		event m_event;				//Events class dispatcher
+		phonebook m_phonebook;		//Phonebook object
 	};
 }

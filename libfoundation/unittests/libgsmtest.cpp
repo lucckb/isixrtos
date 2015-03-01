@@ -106,8 +106,18 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		dbprintf("status %i mode %i short [%s] long [%s] nn %i", 
 				(int)oi.status, (int)oi.mode, oi.desc_short, oi.desc_long, oi.numeric_name );
 	}
+	if(0) {
 	//Get registration status
 	dbprintf( "reg status %i", modem.get_registration_status() ) ;
 	dbprintf( "signal strength %i", modem.get_signal_strength() );
+	}
+	gsm_modem::phbook_id ids;
+	modem.get_phonebook().get_phonebooks_identifiers( ids );
+		dbprintf( "phonebook ids %08x", ids.bits() );
+	ids.mask( gsm_modem::phbook_id::sim );
+	modem.get_phonebook().select_book( ids );
+	gsm_modem::phbook_entry entry;
+	dbprintf("readpbres=%i", modem.get_phonebook().read_entry( 92, entry ) );
+	dbprintf( "pb_name = [%s] pb_phone = [%s]", entry.name, entry.phone );
 	return 0;
 }

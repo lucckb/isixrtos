@@ -1,15 +1,12 @@
 #pragma once
 
-#include <vector>
 #include <cstddef>
 #include <bitset>
 #include <gsm/errors.hpp>
-
+#include <gsm/containers.hpp>
 
 namespace gsm_modem
 {
-	template<typename T>
-		using vector = std::vector<T>;
 	
 	using bit_range = std::bitset<256>;
 	

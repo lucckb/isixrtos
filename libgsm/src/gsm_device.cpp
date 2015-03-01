@@ -19,27 +19,16 @@
 #include <gsm/gsm_device.hpp>
 #include <foundation/dbglog.h>
 #include <gsm/param_parser.hpp>
+#include <gsm/utility.hpp>
 #include <cstring>
 #include <thread>
 #include <chrono>
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */
-namespace  {
-	//Strncat utility
-	inline void catcstr( char* str1, const char* str2, 
-			const char* str3, const char* str4, size_t blen ) 
-	{
-		std::strncpy( str1, str2 , blen );
-		std::strncat( str1, str3, blen-1 );
-		std::strncat( str1 ,str4, blen-1 ); 
-		str1[blen-1] = '\0';
-	}
-}
-/* ------------------------------------------------------------------ */
 //! GSM device constructor
 device::device( fnd::serial_port& comm,  hw_control& hwctl )
-	: m_at( comm ), m_hwctl( hwctl )
+	: m_at( comm ), m_hwctl( hwctl ), m_phonebook( *this )
 {
 
 }
@@ -95,7 +84,7 @@ int device::do_enable () {
 int device::send_command_noresp( const char *cmd, const char* arg )
 {
 	char buf[32];
-	catcstr( buf, cmd, arg, "\"" , sizeof buf );
+	detail::catcstr( buf, cmd, arg, "\"" , sizeof buf );
 	auto resp = m_at.chat(buf);
 	if( !resp ) {
 		dbprintf( "Modem error response %i", m_at.error() );	
