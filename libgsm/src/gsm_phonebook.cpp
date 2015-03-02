@@ -23,6 +23,9 @@
 #include <cstring>
 #include <gsm/utility.hpp>
 /* ------------------------------------------------------------------ */ 
+//TODO: Add other alphabet encoding
+// detect curent alphabet and convert it to phone alphabet
+/* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */
 //! Get AT parser helper function
@@ -102,18 +105,67 @@ int phonebook::read_entry( int index, phbook_entry& entry )
 int phonebook::parse_phonebook_entry( char* buf, phbook_entry& entry )
 {
 	param_parser p( buf, at().bufsize() );
-	int val;
-	if( p.parse_int( val ) < 0 ) return p.error();
+	int index, country;
+	if( p.parse_int( index ) < 0 ) return p.error();
 	if( p.parse_comma() < 0 ) return p.error();
 	const auto tel = p.parse_string();
 	if( !tel ) return p.error();
 	if( p.parse_comma() < 0 ) return p.error();
-	if( p.parse_int( val ) < 0 ) return p.error(); //Number format unused
+	if( p.parse_int( country ) < 0 ) return p.error(); //Number format unused
 	if( p.parse_comma() < 0 ) return p.error();
 	const auto text = p.parse_string();
 	if( !text ) return p.error();
 	std::strncpy( entry.phone, tel, sizeof entry.phone - 1 );
 	std::strncpy( entry.name, text, sizeof entry.name - 1 );
+	return index;
+}
+/* ------------------------------------------------------------------ */
+/** Find phonebook entry by name return number 
+	* @param[in,out] Entry for find
+	* @return index or error code
+	*/
+int phonebook::find_entry( phbook_entry& entry )
+{
+	char buf[64];
+	//! IF empty request return invalid argument
+	if( entry.name[0] == '\0' ) {
+		return error::invalid_argument;	
+	}
+	detail::catcstr( buf, "+CPBF=\"", entry.name, "\"", sizeof buf );
+	//! Accept empty response but not ignore errors
+	auto resp = at().chat(buf, "+CPBF:", false, true );
+	if( !resp ) {
+		dbprintf( "Modem error response %i", at().error() );	
+		return at().error();
+	}
+	if( resp[0] == '\0' ) {
+		entry.phone[0] = '\0';
+	}
+	else {
+		return parse_phonebook_entry( resp, entry );	
+	}
+	return error::lib_bug;
+}
+/* ------------------------------------------------------------------ */
+//! Internal version write or delete entry
+int phonebook::write_or_delete_entry( int index, const phbook_entry* phb )
+{
+	char buf[ sizeof(phbook_entry) + 24 ];
+	detail::catcstrint( buf, "+CPBW=", index, sizeof buf );
+	if( phb )	//!Also entry to write
+	{
+		int type { phbook_format::unknown };
+		if( std::strchr(phb->phone, '+') ) {
+			type = phbook_format::international;
+		}
+		if( detail::catparam( buf, phb->phone, type, phb->name, sizeof buf ) ) {
+			return error::query_format_error;
+		}
+	}
+	if( !at().chat(buf) ) {
+		dbprintf( "Modem error response %i", at().error() );	
+		return at().error();
+	}
 	return error::success;
 }
 /* ------------------------------------------------------------------ */ 

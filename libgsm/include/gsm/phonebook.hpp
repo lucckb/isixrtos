@@ -30,6 +30,13 @@ namespace gsm_modem {
 		char phone[15] {};	//! Phone number
 	};
 
+	struct phbook_format {
+		enum phbook_format_ {
+			unknown = 129,
+			international = 145
+		};
+	};
+
 	//! forward declaration
 	class device;
 	class at_parser;
@@ -66,7 +73,9 @@ namespace gsm_modem {
 		 * @param[in] entry Phonebook entry
 		 * @return Error code 
 		 */
-	    int write_entry( int index, const phbook_entry& entry );
+	    int write_entry( int index, const phbook_entry& entry ) {
+			return write_or_delete_entry( index, &entry );
+		}
 	
 		/** Find phonebook entry by name return number 
 		 * @param[in,out] Entry for find
@@ -78,11 +87,15 @@ namespace gsm_modem {
 		 * @param[in] Index to delete
 		 * @return error code of index 
 		 */
-		int delete_entry( int index );
-
+		int delete_entry( int index ) {
+			return write_or_delete_entry( index, nullptr );	
+		}
 	private:
 		//! Parse phonebook entry
 		int parse_phonebook_entry( char* buf, phbook_entry& entry );
+
+		//! Internal version write or delete entry
+		int write_or_delete_entry( int index, const phbook_entry* phb );
 
 		//! Get AT parser
 		at_parser& at();

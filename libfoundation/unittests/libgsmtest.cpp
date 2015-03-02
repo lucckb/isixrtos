@@ -19,6 +19,7 @@
 #include <foundation/dbglog.h>
 #include <serialport_unix.hpp>
 #include <gsm/gsm_device.hpp>
+#include <cstring>
 
 void print_flags( int fl ) 
 {
@@ -117,7 +118,18 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	ids.mask( gsm_modem::phbook_id::sim );
 	modem.get_phonebook().select_book( ids );
 	gsm_modem::phbook_entry entry;
-	dbprintf("readpbres=%i", modem.get_phonebook().read_entry( 92, entry ) );
-	dbprintf( "pb_name = [%s] pb_phone = [%s]", entry.name, entry.phone );
+	if(0) {
+		dbprintf("readpbres=%i", modem.get_phonebook().read_entry( 92, entry ) );
+		dbprintf( "pb_name = [%s] pb_phone = [%s]", entry.name, entry.phone );
+		entry.phone[0] = 0;
+		dbprintf("findres=%i", modem.get_phonebook().find_entry( entry ) );
+		dbprintf( "pb_name = [%s] pb_phone = [%s]", entry.name, entry.phone );
+	}
+	//Write entry test
+	std::strcpy( entry.name, "piedzioch" );
+	std::strcpy( entry.phone, "+486665554444" );
+	dbprintf("writeentry=%i", modem.get_phonebook().write_entry( 15, entry ) );
+	//Delete entry
+	dbprintf("deletentry=%i", modem.get_phonebook().delete_entry( 15 ) );
 	return 0;
 }

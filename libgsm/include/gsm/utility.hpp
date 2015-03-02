@@ -33,15 +33,30 @@ namespace detail {
 		str1[blen-1] = '\0';
 	}
 	//! Cat string and int
-	inline int catcstrint( char*str1, const char* str2, int val, size_t blen ) 
+	inline int catcstrint( char *str1, const char* str2, int val, size_t blen ) 
 	{
-		std::strncpy( str1, str2 , blen );
+		std::strncpy( str1, str2 , blen-1 );
+		str1[blen-1] = '\0';
 		const auto pi = std::strlen(str1);
-		if( blen - pi >= 14 ) {
+		if( blen - pi >= 12 ) {
 			fnd::fnd_itoa( str1+pi, val, 1, '0' );
 			return error::success;
 		} 
-		return error::invalid_argument;
+		return error::query_format_error;
+	}
+	inline int catparam( char* str1, const char* str2, int val, const char *str3,
+			size_t blen )
+	{
+		std::strncat( str1, ",\"", blen-1 );
+		std::strncat( str1, str2, blen-1 );
+		std::strncat( str1, "\",", blen-1 );
+		const auto pi = std::strlen(str1);
+		if( blen-pi<12 ) return error::query_format_error;
+		fnd::fnd_itoa( str1+pi, val, 1, '0' );
+		std::strncat( str1, ",\"", blen-1 );
+		std::strncat( str1, str3, blen-1 );
+		std::strncat( str1, "\"", blen-1 );
+		return error::success;
 	}
 }
 }
