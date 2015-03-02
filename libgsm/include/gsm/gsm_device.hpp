@@ -28,15 +28,31 @@
 namespace gsm_modem {
 	
 
-
 	//! Class which representing the GSM device
 	class device {
 	public:
+		//! Capability flags 
+		class cap {
+			unsigned bits;
+		public:
+			cap( unsigned bits_ )
+				: bits(bits_) {}
+			enum cap_ {
+				hw_flow,	//! Hardware flow control
+				sms_pdu,	//! SMS in pdu mode not suported yet
+			}; 
+			bool has_hw_flow() const {
+				return bits & hw_flow;
+			}
+			bool has_sms_pdu() const {
+				return bits & sms_pdu;
+			}
+		};
 		/** Constructor of the GSM device instance
 		 * @param comm Serial class for communication
 		 * @param hwctl Class for hardware control modem device
 		 */
-		device( fnd::serial_port& comm,  hw_control& hwctl );
+		device( fnd::serial_port& comm, hw_control& hwctl, unsigned cap = 0 );
 		/** Initialize and enable GSM device */
 		int enable( bool enable ) {
 			if(enable) return do_enable();
@@ -88,6 +104,7 @@ namespace gsm_modem {
 		phonebook& get_phonebook() {
 			return m_phonebook;
 		}
+		
 
 	private:
 		//Do single command
@@ -105,5 +122,6 @@ namespace gsm_modem {
 		hw_control& m_hwctl;		//Hardware ctl class
 		event m_event;				//Events class dispatcher
 		phonebook m_phonebook;		//Phonebook object
+		cap m_capabilities;	//Capability flags
 	};
 }

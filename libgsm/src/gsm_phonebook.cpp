@@ -25,6 +25,8 @@
 /* ------------------------------------------------------------------ */ 
 //TODO: Add other alphabet encoding
 // detect curent alphabet and convert it to phone alphabet
+// TODO: Long timeout for searching in address book (need at parser suport )
+
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */
@@ -53,6 +55,7 @@ int phonebook::select_book( const phbook_id& id )
 		dbprintf( "Modem error response %i", at().error() );	
 		return at().error();
 	}
+	m_curr_book =  id.bits();
 	return error::success;
 }
 /* ------------------------------------------------------------------ */ 
@@ -86,6 +89,9 @@ int phonebook::get_phonebooks_identifiers( phbook_id& ids )
 	* @return Error code */
 int phonebook::read_entry( int index, phbook_entry& entry )
 {
+	if( !m_curr_book ) {
+		return error::phonebook_not_selected;
+	}
 	char buf[32];
 	if( detail::catcstrint( buf, "+CPBR=", index, sizeof buf ) ) {
 		return error::invalid_argument;
@@ -126,6 +132,9 @@ int phonebook::parse_phonebook_entry( char* buf, phbook_entry& entry )
 	*/
 int phonebook::find_entry( phbook_entry& entry )
 {
+	if( !m_curr_book ) {
+		return error::phonebook_not_selected;
+	}
 	char buf[64];
 	//! IF empty request return invalid argument
 	if( entry.name[0] == '\0' ) {
@@ -150,6 +159,9 @@ int phonebook::find_entry( phbook_entry& entry )
 //! Internal version write or delete entry
 int phonebook::write_or_delete_entry( int index, const phbook_entry* phb )
 {
+	if( !m_curr_book ) {
+		return error::phonebook_not_selected;
+	}
 	char buf[ sizeof(phbook_entry) + 24 ];
 	detail::catcstrint( buf, "+CPBW=", index, sizeof buf );
 	if( phb )	//!Also entry to write

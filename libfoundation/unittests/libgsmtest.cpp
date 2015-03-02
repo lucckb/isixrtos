@@ -19,6 +19,7 @@
 #include <foundation/dbglog.h>
 #include <serialport_unix.hpp>
 #include <gsm/gsm_device.hpp>
+#include <gsm/sms_message.hpp>
 #include <cstring>
 
 void print_flags( int fl ) 
@@ -97,7 +98,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	fnd::serialport_unix m_ser( "/dev/ttyS0", 115200 );
 	devctl m_ctl;
 	gsm_modem::device modem( m_ser, m_ctl );
-	if(0) {
+	if(1) {
 		modem.enable( true );
 		modem.register_to_network( "1234" );
 	}

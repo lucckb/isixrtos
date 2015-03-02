@@ -24,11 +24,13 @@
 #include <thread>
 #include <chrono>
 /* ------------------------------------------------------------------ */ 
+//! TODO: PDU mode text messages
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */
 //! GSM device constructor
-device::device( fnd::serial_port& comm,  hw_control& hwctl )
-	: m_at( comm ), m_hwctl( hwctl ), m_phonebook( *this )
+device::device( fnd::serial_port& comm,  hw_control& hwctl, unsigned cap )
+	: m_at( comm ), m_hwctl( hwctl ), m_phonebook( *this ), 
+	 m_capabilities( cap )
 {
 
 }
@@ -59,7 +61,7 @@ int device::do_enable () {
 	}
 	//Select Non pdu mode
 	for( int retry=0; retry<10; ++retry ) {
-		resp = m_at.chat( "+CMGF=1" );
+		resp = m_at.chat( m_capabilities.has_sms_pdu()?"+CMGF=0":"+CMGF=1" );
 		if( !resp )
 		{
 			if( (m_at.error() == error::at_cme_sim_busy ||
@@ -74,7 +76,15 @@ int device::do_enable () {
 		}
 		else break;
 	}
-	//Here setup CMGF
+	if( !m_capabilities.has_sms_pdu() ) 
+	{
+		//! Set extended headers text format
+		resp = m_at.chat("+CSDH=1");
+		if( !resp ) {
+			dbprintf( "Modem error response %i", m_at.error() );	
+			return m_at.error();
+		}
+	}
 	//! Set event handler for the device
 	m_at.set_event_handler( &m_event );
 	return error::success;

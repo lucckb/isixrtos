@@ -31,6 +31,7 @@ namespace gsm_modem {
 			invalid_argument = -16390,
 			entry_not_found = -16391,
 			query_format_error = -16392,
+			phonebook_not_selected = -16393,
 			//Parserr errors
 			param_parser_buf_overflow = -16400,
 			param_parser_unexpected_char = -16401,
