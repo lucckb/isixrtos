@@ -22,6 +22,7 @@
 namespace gsm_modem {
 
 		//http://www.smssolutions.net/tutorials/gsm/sendsmsat/
+		class at_parser;
 
 		//! Base classes for all smses
 		class sms 
@@ -35,8 +36,8 @@ namespace gsm_modem {
 				t_command,		 //! Command type SMS
 			};
 			virtual int type() const = 0;
-			virtual int encode( char *buf , size_t len ) = 0;
-			virtual int decode( const char *buf, size_t len ) = 0;
+			virtual int encode( at_parser& p, bool pdu ) const = 0;
+			virtual int decode( at_parser& p, bool pdu ) = 0;
 			//Setter getters
 			data_coding_scheme get_dcs( ) const {
 				return m_dcs;
@@ -80,6 +81,7 @@ namespace gsm_modem {
 		class sms_submit : public sms 
 		{
 		private:
+			static constexpr auto c_sms_len = 160;
 			unsigned char m_validity_period { 167 };
 			bool m_status_report_request {};
 			bool m_flash_message {};
@@ -96,11 +98,23 @@ namespace gsm_modem {
 			void validity_period( unsigned char val ) {
 				m_validity_period = val;
 			}
+			int vailidity_period() const {
+				return m_validity_period;
+			}
 			void flash_message( bool flash ) {
 				m_flash_message = flash;
 			}
-			virtual int encode( char *buf , size_t len );
-			virtual int decode( const char *buf, size_t len );
+			bool flash_message() const {
+				return m_flash_message;
+			}
+			void report_request( bool report ) {
+				m_status_report_request = report;
+			}
+			bool report_request() const {
+				return m_status_report_request;
+			}
+			virtual int encode( at_parser& at, bool pdu ) const ;
+			virtual int decode( at_parser& at, bool pdu );
 		};
 
 		// SMS-STATUS-REPORT TPDU

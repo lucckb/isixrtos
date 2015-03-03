@@ -32,6 +32,8 @@ namespace gsm_modem {
 			entry_not_found = -16391,
 			query_format_error = -16392,
 			phonebook_not_selected = -16393,
+			message_to_long = -16394,
+			unexpected_pdu_handshake = -16395,
 			//Parserr errors
 			param_parser_buf_overflow = -16400,
 			param_parser_unexpected_char = -16401,

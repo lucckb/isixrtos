@@ -38,6 +38,8 @@ class at_parser
 	static constexpr auto atcmd_maxlen = 64U;
 	static constexpr auto def_timeout = 5000;
 	static constexpr auto time_infinite = fnd::serial_port::time_infinite;
+	static constexpr char CR = 13;             // ASCII carriage return
+	static constexpr char LF = 10;             // ASCII line feed
 public:
 	enum ecapab : unsigned {
 		cap_ommits_colon = 1
@@ -57,6 +59,12 @@ public:
 
 	//! Discard bytes and don't wait for line response
 	int discard_data( int timeout = time_infinite );
+
+	 // send pdu (wait for <CR><LF><greater_than><space> and send <CTRL-Z>
+    // at the end
+    // return text after response
+	char* send_pdu( const char at_cmd[], const char resp[],
+			const char pdu[], bool accept_empty_response=false );
 
 	//! Get parser error
 	int error() const {
@@ -81,6 +89,9 @@ private:
 	bool is_ommit_colon() const {
 		return m_capabilities & cap_ommits_colon;	
 	}
+	void putback_char( char ch ) {
+		m_put_back_ch = ch;
+	}
 	//Match the response string
 	bool match_response( const char* answer, const char* response_to_match );
 	// Report and decode error
@@ -89,12 +100,15 @@ private:
 	char* cut_response( char* answer, const char* response_to_match );
 	// Get line and handle events
 	char* getline( size_t pos_from = 0U);
+	//! Get one byte from port
+	int getchar();
 private:
 	fnd::serial_port& m_port;	//Serial port reference
 	int m_error {};				//Error code
 	char m_cmd_buffer[ cmd_buffer_len ] {};	//Command buffer
 	const unsigned m_capabilities {};	//Parser capabilities
 	event* m_event {};
+	short m_put_back_ch {-1};
 };
 /* ------------------------------------------------------------------ */
 }

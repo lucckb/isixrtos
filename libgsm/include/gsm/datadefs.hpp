@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <cstring>
 
 namespace gsm_modem {
 
@@ -70,5 +71,8 @@ namespace gsm_modem {
 		unsigned char validity_period;
 		unsigned char protocol_identifier;
 		unsigned char data_coding_scheme;
+		bool operator!=( const sms_text_params& that ) const {
+			return std::memcmp( this, &that, sizeof(sms_text_params) );
+		}
 	};
 }

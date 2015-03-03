@@ -326,21 +326,46 @@ int device::get_text_mode_param_config( sms_text_params& param )
 //! Set text mode parameters
 int device::set_text_mode_param_config( const sms_text_params& param )
 {
-
+	char buf[32]; buf[sizeof(buf)-1] = '\0';	
+	fnd::tiny_snprintf(buf, sizeof(buf)-1, "+CSMP=%i,%i,%i,%i", param.first_octet, 
+			param.validity_period, param.protocol_identifier, param.data_coding_scheme );
+	auto resp = m_at.chat( buf );
+	if( !resp ) {
+		return m_at.error();
+	}
+	return error::success;
 }
 /* ------------------------------------------------------------------ */
 /** Send sms message and return
 	* error code if it is required
 	*/
-int device::send_sms( const sms_submit& s )
+int device::send_sms( const sms_submit& sms )
 {
-	sms_text_params text_par;
+	sms_text_params old_txt_param;
 	int ret;
-	if( (ret=get_text_mode_param_config(text_par)) < 0 ) {
+	bool textmp_changed {};
+	if( !m_capabilities.has_sms_pdu() ) {
+		if( (ret=get_text_mode_param_config(old_txt_param)) < 0 ) {
+			return ret;
+		}
+		auto new_txt_param = old_txt_param;
+		new_txt_param.validity_period = sms.vailidity_period();
+		//TODO other param handling
+		if( new_txt_param != old_txt_param ) {
+			if( (ret=set_text_mode_param_config(old_txt_param)) < 0 ) {
+				return ret;
+			}
+			textmp_changed = true;
+		}
+	}
+	do {
+		if( (ret=sms.encode(m_at, m_capabilities.has_sms_pdu()))<0 )
+			break;
+	}  while(0);
+	if( textmp_changed )
+	if( (ret=set_text_mode_param_config(old_txt_param)) < 0 ) {
 		return ret;
 	}
-	dbprintf("fo %i vp %i pid %i dcs %i", text_par.first_octet, text_par.validity_period,
-			text_par.protocol_identifier, text_par.data_coding_scheme );
 	return error::success;
 }
 /* ------------------------------------------------------------------ */

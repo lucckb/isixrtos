@@ -126,7 +126,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		dbprintf("findres=%i", modem.get_phonebook().find_entry( entry ) );
 		dbprintf( "pb_name = [%s] pb_phone = [%s]", entry.name, entry.phone );
 	}
-	if(1) {
+	if(0) {
 		//Write entry test
 		std::strcpy( entry.name, "piedzioch" );
 		std::strcpy( entry.phone, "+486665554444" );
@@ -135,8 +135,8 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		dbprintf("deletentry=%i", modem.get_phonebook().delete_entry( 15 ) );
 	}
 	if(1) {
-		gsm_modem::sms_submit sms( "a", "b");
-		modem.send_sms( sms );
+		gsm_modem::sms_submit sms( "+48660428360", "Dupa dupa cycki");
+		dbprintf("SMSerr=%i", modem.send_sms( sms ) );
 	}
 	return 0;
 }
