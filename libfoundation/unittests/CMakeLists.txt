@@ -6,6 +6,7 @@ file( GLOB unittest_SRC "*.cpp" "*.c" )
 file( GLOB foundation_SRC "../../libfoundation/fs_env.cpp"
         "../../libfoundation/i2c_eeprom.cpp"
         "../../libfoundation/util*.c*"
+        "../../libfoundation/tiny_printf.c"
     )
 
 

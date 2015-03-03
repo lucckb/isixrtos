@@ -24,9 +24,9 @@
 #include <gsm/datadefs.hpp>
 #include <gsm/phonebook.hpp>
 #include <gsm/containers.hpp>
+#include <gsm/sms_message.hpp>
 
 namespace gsm_modem {
-	
 
 	//! Class which representing the GSM device
 	class device {
@@ -105,8 +105,20 @@ namespace gsm_modem {
 			return m_phonebook;
 		}
 		
+		/** Send sms message and return
+		 * error code if it is required
+		 */
+		int send_sms( const sms_submit& s );
 
 	private:
+		/** Private function for set and get text mode parameters
+		 *  used only for text mode smses
+		 *  @param[in] param Text mode input parameters
+		 *  @return Error code if failed
+		 */
+		int get_text_mode_param_config( sms_text_params& param );
+		int set_text_mode_param_config( const sms_text_params& param );
+
 		//Do single command
 		int send_command_noresp( const char *cmd, const char* arg );
 		//Enable or disable device

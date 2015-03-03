@@ -65,5 +65,10 @@ namespace gsm_modem {
 			registered_roaming = 4
 		};
 	};
-
+	struct sms_text_params {
+		unsigned char first_octet;
+		unsigned char validity_period;
+		unsigned char protocol_identifier;
+		unsigned char data_coding_scheme;
+	};
 }

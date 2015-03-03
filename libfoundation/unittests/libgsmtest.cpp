@@ -98,7 +98,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	fnd::serialport_unix m_ser( "/dev/ttyS0", 115200 );
 	devctl m_ctl;
 	gsm_modem::device modem( m_ser, m_ctl );
-	if(1) {
+	if(0) {
 		modem.enable( true );
 		modem.register_to_network( "1234" );
 	}
@@ -126,11 +126,17 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		dbprintf("findres=%i", modem.get_phonebook().find_entry( entry ) );
 		dbprintf( "pb_name = [%s] pb_phone = [%s]", entry.name, entry.phone );
 	}
-	//Write entry test
-	std::strcpy( entry.name, "piedzioch" );
-	std::strcpy( entry.phone, "+486665554444" );
-	dbprintf("writeentry=%i", modem.get_phonebook().write_entry( 15, entry ) );
-	//Delete entry
-	dbprintf("deletentry=%i", modem.get_phonebook().delete_entry( 15 ) );
+	if(1) {
+		//Write entry test
+		std::strcpy( entry.name, "piedzioch" );
+		std::strcpy( entry.phone, "+486665554444" );
+		dbprintf("writeentry=%i", modem.get_phonebook().write_entry( 15, entry ) );
+		//Delete entry
+		dbprintf("deletentry=%i", modem.get_phonebook().delete_entry( 15 ) );
+	}
+	if(1) {
+		gsm_modem::sms_submit sms( "a", "b");
+		modem.send_sms( sms );
+	}
 	return 0;
 }

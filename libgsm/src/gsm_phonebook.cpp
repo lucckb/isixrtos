@@ -20,8 +20,8 @@
 #include <gsm/at_parser.hpp>
 #include <gsm/param_parser.hpp>
 #include <foundation/dbglog.h>
+#include <foundation/tiny_printf.h>
 #include <cstring>
-#include <gsm/utility.hpp>
 /* ------------------------------------------------------------------ */ 
 //TODO: Add other alphabet encoding
 // detect curent alphabet and convert it to phone alphabet
@@ -48,8 +48,8 @@ int phonebook::select_book( const phbook_id& id )
 		return error::invalid_argument;
 	}
 	//Set phonebook
-	char buf[32];
-	detail::catcstr( buf, "+CPBS=\"", pbname, "\"" , sizeof buf );
+	char buf[32]; buf[sizeof(buf)-1] = '\0';
+	fnd::tiny_snprintf(buf, sizeof(buf)-1, "+CPBS=\"%s\"", pbname );
 	auto resp = at().chat( buf );
 	if( !resp ) {
 		dbprintf( "Modem error response %i", at().error() );	
@@ -92,10 +92,9 @@ int phonebook::read_entry( int index, phbook_entry& entry )
 	if( !m_curr_book ) {
 		return error::phonebook_not_selected;
 	}
-	char buf[32];
-	if( detail::catcstrint( buf, "+CPBR=", index, sizeof buf ) ) {
-		return error::invalid_argument;
-	}
+	char buf[32]; buf[sizeof(buf)-1] = '\0';
+	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CPBR=%i", index );
+
 	auto resp = at().chat(buf, "+CPBR:", false, true );
 	if( !resp ) {
 		dbprintf( "Modem error response %i", at().error() );	
@@ -135,12 +134,12 @@ int phonebook::find_entry( phbook_entry& entry )
 	if( !m_curr_book ) {
 		return error::phonebook_not_selected;
 	}
-	char buf[64];
+	char buf[64]; buf[sizeof(buf)-1] = '\0';
 	//! IF empty request return invalid argument
 	if( entry.name[0] == '\0' ) {
 		return error::invalid_argument;	
 	}
-	detail::catcstr( buf, "+CPBF=\"", entry.name, "\"", sizeof buf );
+	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CPBF=\"%s\"", entry.name );
 	//! Accept empty response but not ignore errors
 	auto resp = at().chat(buf, "+CPBF:", false, true );
 	if( !resp ) {
@@ -162,17 +161,16 @@ int phonebook::write_or_delete_entry( int index, const phbook_entry* phb )
 	if( !m_curr_book ) {
 		return error::phonebook_not_selected;
 	}
-	char buf[ sizeof(phbook_entry) + 24 ];
-	detail::catcstrint( buf, "+CPBW=", index, sizeof buf );
+	char buf[ sizeof(phbook_entry) + 24 ]; buf[sizeof(buf)-1] = '\0';
+	auto tlen = fnd::tiny_snprintf(buf, sizeof(buf)-1, "+CPBW=%i", index );
 	if( phb )	//!Also entry to write
 	{
 		int type { phbook_format::unknown };
 		if( std::strchr(phb->phone, '+') ) {
 			type = phbook_format::international;
 		}
-		if( detail::catparam( buf, phb->phone, type, phb->name, sizeof buf ) ) {
-			return error::query_format_error;
-		}
+		fnd::tiny_snprintf(buf+tlen, sizeof(buf)-tlen-1, ",\"%s\",%i,\"%s\"", 
+				phb->phone, type, phb->name );
 	}
 	if( !at().chat(buf) ) {
 		dbprintf( "Modem error response %i", at().error() );	

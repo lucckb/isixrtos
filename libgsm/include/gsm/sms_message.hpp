@@ -83,9 +83,13 @@ namespace gsm_modem {
 			unsigned char m_validity_period { 167 };
 			bool m_status_report_request {};
 			bool m_flash_message {};
-			char m_dest_address[14] {};
-			char m_message[162] {};
+			const char* m_dest_addr {};
+			const char *m_message;
 		public:
+			//Constructor type
+			sms_submit( const char* dest, const char* message )
+				: m_dest_addr(dest), m_message( message )
+			{}
 			virtual int type() const {
 				return sms::t_submit;
 			}
@@ -95,12 +99,8 @@ namespace gsm_modem {
 			void flash_message( bool flash ) {
 				m_flash_message = flash;
 			}
-			void dest_address( const char* address ) {
-				std::strncpy( m_dest_address, address, sizeof m_dest_address - 1 );
-			}
-			void message( const char* message ) {
-				std::strncpy( m_message, message, sizeof m_message - 1 );
-			}
+			virtual int encode( char *buf , size_t len );
+			virtual int decode( const char *buf, size_t len );
 		};
 
 		// SMS-STATUS-REPORT TPDU

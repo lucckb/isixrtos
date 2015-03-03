@@ -19,7 +19,7 @@
 #include <gsm/gsm_device.hpp>
 #include <foundation/dbglog.h>
 #include <gsm/param_parser.hpp>
-#include <gsm/utility.hpp>
+#include <foundation/tiny_printf.h>
 #include <cstring>
 #include <thread>
 #include <chrono>
@@ -93,8 +93,8 @@ int device::do_enable () {
 //Do single command
 int device::send_command_noresp( const char *cmd, const char* arg )
 {
-	char buf[32];
-	detail::catcstr( buf, cmd, arg, "\"" , sizeof buf );
+	char buf[32]; buf[sizeof(buf)-1] = '\0';
+	fnd::tiny_snprintf(buf, sizeof(buf)-1,"\"%s%s\"", cmd, arg );
 	auto resp = m_at.chat(buf);
 	if( !resp ) {
 		dbprintf( "Modem error response %i", m_at.error() );	
@@ -106,13 +106,13 @@ int device::send_command_noresp( const char *cmd, const char* arg )
 //! Set character set to the modem
 int device::set_charset( const char* charset ) 
 {
-	return send_command_noresp( "+CSCS=\"", charset );
+	return send_command_noresp( "+CSCS=", charset );
 }
 /* ------------------------------------------------------------------ */ 
 //! Set pin
 int device::set_pin( const char* pin )
 {
-	return send_command_noresp("+CPIN=\"", pin );
+	return send_command_noresp("+CPIN=", pin );
 }
 /* ------------------------------------------------------------------ */
 //! Get pin
@@ -285,5 +285,63 @@ int device::get_signal_strength()
 	return val;
 }
 /* ------------------------------------------------------------------ */
+//! Get text mode sms parameter
+int device::get_text_mode_param_config( sms_text_params& param )
+{
+	auto resp = m_at.chat("+CSMP?", "+CSMP:");
+	if( !resp ) {
+		dbprintf( "Modem error response %i", m_at.error() );	
+		return m_at.error();
+	}
+	param_parser p( resp, m_at.bufsize() );
+	int val;
+	if( p.parse_int(val) < 0 ) {
+		return p.error();
+	}
+	param.first_octet = val;
+	if( p.parse_comma() < 0 ) {
+		return p.error();
+	}
+	if( p.parse_int(val) < 0 ) {
+		return p.error();
+	}
+	param.validity_period = val;
+	if( p.parse_comma() < 0 ) {
+		return p.error();
+	}
+	if( p.parse_int(val) < 0 ) {
+		return p.error();
+	}
+	param.protocol_identifier = val;
+	if( p.parse_comma() < 0 ) {
+		return p.error();
+	}
+	if( p.parse_int(val) < 0 ) {
+		return p.error();
+	}
+	param.data_coding_scheme = val;
+	return error::success;
+}
+/* ------------------------------------------------------------------ */
+//! Set text mode parameters
+int device::set_text_mode_param_config( const sms_text_params& param )
+{
 
+}
+/* ------------------------------------------------------------------ */
+/** Send sms message and return
+	* error code if it is required
+	*/
+int device::send_sms( const sms_submit& s )
+{
+	sms_text_params text_par;
+	int ret;
+	if( (ret=get_text_mode_param_config(text_par)) < 0 ) {
+		return ret;
+	}
+	dbprintf("fo %i vp %i pid %i dcs %i", text_par.first_octet, text_par.validity_period,
+			text_par.protocol_identifier, text_par.data_coding_scheme );
+	return error::success;
+}
+/* ------------------------------------------------------------------ */
 }
