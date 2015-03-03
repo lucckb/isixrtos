@@ -146,8 +146,8 @@ static int printi(char **out, size_t len, int i, int b, int sg, int width, int p
 int tiny_vaprintf(char **out, size_t len, const char *format, va_list args )
 {
 	enum { m_hh, m_h, m_n, m_l };
-	register int width, pad;
-	register size_t pc = 0;
+	int width, pad;
+	size_t pc = 0;
 	char scr[2];
 	unsigned char modf = m_n;
 	for (; *format != 0; ++format)
@@ -190,7 +190,7 @@ int tiny_vaprintf(char **out, size_t len, const char *format, va_list args )
 			}
 			if( *format == 's' )
 			{
-				register char *s = (char *)va_arg( args, int );
+				const char *s = va_arg( args, const char* );
 				pc += prints (out,len, s?s:"(null)", width, pad);
 				continue;
 			}
