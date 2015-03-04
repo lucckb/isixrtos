@@ -135,7 +135,10 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		dbprintf("deletentry=%i", modem.get_phonebook().delete_entry( 15 ) );
 	}
 	if(1) {
-		gsm_modem::sms_submit sms( "+z8660428360", "Dupa dupa cycki");
+		char msg[161] {};
+		memset(msg, 'z', 160 );
+		gsm_modem::sms_submit sms( "+48660428360", "Proba SMSA");
+		sms.report_request( true );
 		dbprintf("SMSerr=%i", modem.send_sms( sms ) );
 	}
 	return 0;

@@ -350,23 +350,33 @@ int device::send_sms( const sms_submit& sms )
 		}
 		auto new_txt_param = old_txt_param;
 		new_txt_param.validity_period = sms.vailidity_period();
-		//TODO other param handling
+		if( sms.flash_message() ) {
+			dbprintf("Flash message param config");
+			unsigned char dcs = sms.get_dcs();
+			dcs |=  dcsc::FLASH_MESSAGE;
+			new_txt_param.data_coding_scheme = dcs;
+		}
+		if( sms.report_request() ) {
+			dbprintf("Report request");
+				new_txt_param.first_octet |= foctet::REPORT_REQUEST;
+		}
 		if( new_txt_param != old_txt_param ) {
-			if( (ret=set_text_mode_param_config(old_txt_param)) < 0 ) {
+			if( (ret=set_text_mode_param_config(new_txt_param)) < 0 ) {
 				return ret;
 			}
 			textmp_changed = true;
 		}
 	}
+	int mref;
 	do {
-		if( (ret=sms.encode(m_at, m_capabilities.has_sms_pdu()))<0 )
+		if( (mref=sms.encode(m_at, m_capabilities.has_sms_pdu()))<0 )
 			break;
 	}  while(0);
 	if( textmp_changed )
 	if( (ret=set_text_mode_param_config(old_txt_param)) < 0 ) {
 		return ret;
 	}
-	return ret;
+	return mref;
 }
 /* ------------------------------------------------------------------ */
 }

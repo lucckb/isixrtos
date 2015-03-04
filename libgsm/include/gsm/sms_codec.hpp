@@ -34,6 +34,9 @@ namespace gsm_modem {
 		constexpr  unsigned char OTHER_MESSAGE_WAITING = 3;
 		constexpr  unsigned char FLASH_MESSAGE = 0x10;
 	};
+	namespace foctet {
+		const unsigned char REPORT_REQUEST = 1<<5;
+	}
 
 	class data_coding_scheme
 	{
@@ -53,7 +56,6 @@ namespace gsm_modem {
 			{
 				return _dcs & (3 << 2);
 			}
-
 			// return true if message compressed
 			// (if messageWaitingIndication == false)
 			bool compressed() const
@@ -70,7 +72,6 @@ namespace gsm_modem {
 
 			// return type of waiting message (if messageWaitingIndication == true)
 			unsigned char getMessageWaitingType() const {return _dcs & 3;}
-
 
 			operator unsigned char() const {return _dcs;}
 	};

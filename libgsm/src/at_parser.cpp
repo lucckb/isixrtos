@@ -398,7 +398,7 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		inp[pos] = '\0';
 	}
 	if( !got_start && !errstr ) {
-		dbprintf("Unexcepted pdu hanshake");
+		dbprintf("Unexcepted pdu handshake");
 		m_error = error::unexpected_pdu_handshake;
 		return nullptr;
 	}
