@@ -39,6 +39,7 @@ int sms_submit::encode( at_parser& at, bool pdu ) const
 		dbprintf("Unable to send pdu %i", at.error() );
 		return at.error();
 	}
+	dbprintf("Internal result %s", result );
 	param_parser p( result, at.bufsize() );
 	int ret;
 	if( p.parse_int(ret) < 0 ) {

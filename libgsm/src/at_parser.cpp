@@ -122,6 +122,17 @@ void at_parser::report_error( char* inp )
 		m_error = error::at_cme_first - std::atoi( inp );
 }
 /* ------------------------------------------------------------------ */
+// Get some data and don't wait for cr/lf and not null terminate
+int at_parser::getsome( size_t from_pos )
+{
+	const auto begin_ptr = m_cmd_buffer+from_pos;
+	auto ret = m_port.get( begin_ptr, sizeof(m_cmd_buffer)-from_pos, def_timeout );
+	if( ret <= 0 ) { 
+		m_error = !ret?error::receive_timeout:ret; 
+	};
+	return ret;
+}
+/* ------------------------------------------------------------------ */
 // Get line and handle events
 char* at_parser::getline( size_t pos_from )
 {
@@ -161,26 +172,6 @@ char* at_parser::getline( size_t pos_from )
 	} while(true);
 	dbprintf("rx>[%s]->%i", begin_ptr, ret );
 	return begin_ptr;
-}
-/* ------------------------------------------------------------------ */ 
-//! Get one byte from port
-int at_parser::getchar()
-{
-	if( m_put_back_ch != -1 ) {
-		int result = m_put_back_ch;	
-		m_put_back_ch = -1;
-		dbprintf("rxc> %c %02x", result, result );
-		return result;
-	}
-	char ch;
-	auto ret = m_port.getchar( ch, def_timeout );
-	if( ret <= 0 ) 
-	{ 
-		m_error = !ret?error::receive_timeout:ret; 
-		return m_error; 
-	}
-	dbprintf("rxc> %c %02x", ch, ch );
-	return ch;
 }
 /* ------------------------------------------------------------------ */ 
 //! Chat with the modem
@@ -357,11 +348,8 @@ int at_parser::discard_data( int timeout )
 char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		const char pdu[], bool accept_empty_response )
 {
-	char* s;
-	bool error_cond {};
-	bool retry {};
-	int tries = 5;                // How many error conditions do we accept
 	char expect[ atcmd_maxlen ];
+	char * inp {};
 
 	if( std::strlen(pdu)>= sizeof(m_cmd_buffer) ) {
 		m_error = error::buffer_overflow;
@@ -371,100 +359,105 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		m_error = error::buffer_overflow;
 		return nullptr;
 	}
-	int c;
-	do
-	{
-		error_cond = false;
-		if( put_line("AT",  at_cmd ) < 0 ) return nullptr;
-		do
-		{
-			retry = false;
-			//try
-			{
-				do
-				{
-					// read first of two bytes "> "
-					c = getchar();
-					if( c < 0 ) break;
-				}
-				// there have been reports that some phones give spurious CRs
-				// LF separates CDSI messages if there are more than one
-				while (c == CR || c == LF);
-			}
-			if( c < 0 )
-			{
-				c = '-';
-				error_cond = true;  // TA does not expect PDU anymore, retry
-			}
-
-			if (c == '+' || c == 'E') // error or unsolicited result code
-			{
-				putback_char(c);
-				s = normalize(getline());
-				if( !s ) return nullptr;	
-				error_cond = (*s != '\0');
-				retry = ! error_cond;
-			}
-		}
-		while (retry);
+	//! Read and match line
+	char* errstr {};
+	bool got_start {};
+	if( put_line("AT",at_cmd,true) < 0 ) {
+		return nullptr;
 	}
-	while (error_cond && tries--);
-
-	if (!error_cond)
 	{
-		if (c != '>' || getchar() != ' ') {
-			m_error = error::unexpected_pdu_handshake;
+		size_t pos {};
+		inp = m_cmd_buffer;
+		int ret {};
+		do {
+			ret = getsome( pos );
+			if( ret > 0 ) {
+				pos += ret;
+				errstr = static_cast<char*>(::memmem(inp,pos,"+CME",4));
+				if( errstr ) break;
+				errstr = static_cast<char*>(::memmem(inp,pos,"+CMS",4));
+				if( errstr ) break;
+				errstr = static_cast<char*>(::memmem(inp,pos,"ERROR",5));
+				if( errstr ) break;
+				got_start = std::memchr(inp,'>',pos);
+				if( got_start ) break;
+				if( pos >= sizeof(m_cmd_buffer)) {
+					m_error = error::buffer_overflow;
+					return nullptr;
+				}
+			}
+		} while( ret>0 );
+		if( ret < 0 ) {
 			return nullptr;
 		}
-
-		if(put_line(pdu, "\032", false)<0) // write pdu followed by CTRL-Z
+		std::transform( inp, inp+pos, inp, [](char ch) { return ch?ch:' '; } );
+		inp[pos] = '\0';
+	}
+	dbprintf("input line %s", inp );
+	if( !got_start && !errstr ) {
+		dbprintf("Unexcepted pdu hanshake");
+		m_error = error::unexpected_pdu_handshake;
+		return nullptr;
+	}
+	if ( !errstr )
+	{
+		if( put_line(pdu, "\032", false)<0 ) // write pdu followed by CTRL-Z
 			return nullptr; 
-
 		// some phones (Ericcson T68, T39) send spurious zero characters after
 		// accepting the PDU
-		c = getchar();
-		if( c < 0 ) return nullptr;
-		if (c != 0)
-			putback_char(c);
 
 		// loop while empty lines (maybe with a zero, Ericsson T39m)
 		// or an echo of the pdu (with or without CTRL-Z)
 		// is read
 		do
 		{
-			s = normalize(getline());
-		}
-		while (s[0]=='\0' || std::strstr(s,pdu) ||
-				(std::strlen(s) == 1 && s[0] == 0));
-	}
-
+			size_t pos {};
+			inp = m_cmd_buffer;
+			int ret {};
+			do {
+				ret = getsome( pos );			
+				if( ret > 0 ) {
+					pos+= ret;	
+				}
+				if( pos >= sizeof(m_cmd_buffer)) {
+					m_error = error::buffer_overflow;
+					return nullptr;
+				}
+			} while( ret>0 && inp[pos-1]!='\n' && inp[pos-1]!='\r' );
+			if( ret < 0 ) return nullptr;
+			std::transform( inp, inp+pos, inp, [](char ch) { return ch?ch:' '; } );
+			inp[pos] = '\0';
+			inp = normalize( inp );
+		} while ( inp[0]=='\0' || std::strstr(inp,pdu) );
+	} 
+	if( errstr ) inp = errstr;
 	// handle errors
-	if (match_response(s, "+CME ERROR:") || match_response(s, "+CMS ERROR:")) {
-			report_error( s );
+	if (match_response(inp, "+CME ERROR:") || match_response(inp, "+CMS ERROR:")) {
+			report_error( inp );
 			return nullptr;
 	}
-
-	if( match_response( s, "ERROR" ) ) {
+	if( match_response( inp, "ERROR" ) ) {
 			m_error = error::aterr_unspecified;
 			return nullptr;
 	}
+	dbprintf("tick ###1 %s", inp );
 	// return if response is "OK" and caller says this is OK
-	if (accept_empty_response && !std::strcmp(s,"OK") ) {
+	if (accept_empty_response && !std::strcmp(inp,"OK") ) {
+		dbprintf("Something tick");
 		m_cmd_buffer[0] = '\0';
 		return m_cmd_buffer;	
 	}
-
-	if (match_response(s, resp))
+	if (match_response(inp, resp))
 	{
-		auto result = cut_response(s, resp);
+		auto result = cut_response(inp, resp);
 		// get the final "OK"
 		do
 		{
-			s = normalize(getline());
+			inp = normalize(getline());
+			if(!inp) return nullptr;
 		}
-		while (s[0] == '\0');
-
-		if (!std::strcmp(s,"OK")) return result;
+		while (inp[0] == '\0');
+		if (!std::strcmp(inp,"OK")) return result;
 		// else fall through to error
 	}
 	m_error = error::unexpected_resp;

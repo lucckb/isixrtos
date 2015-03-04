@@ -106,9 +106,10 @@ namespace gsm_modem {
 		}
 		
 		/** Send sms message and return
-		 * error code if it is required
+		 * @param[in] sms Input message for sumbit
+		 * @return Error code if negative or message ref if pos
 		 */
-		int send_sms( const sms_submit& s );
+		int send_sms( const sms_submit& sms );
 
 	private:
 		/** Private function for set and get text mode parameters

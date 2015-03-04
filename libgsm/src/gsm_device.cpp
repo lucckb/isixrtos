@@ -366,7 +366,7 @@ int device::send_sms( const sms_submit& sms )
 	if( (ret=set_text_mode_param_config(old_txt_param)) < 0 ) {
 		return ret;
 	}
-	return error::success;
+	return ret;
 }
 /* ------------------------------------------------------------------ */
 }

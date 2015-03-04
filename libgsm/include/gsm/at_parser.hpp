@@ -89,9 +89,6 @@ private:
 	bool is_ommit_colon() const {
 		return m_capabilities & cap_ommits_colon;	
 	}
-	void putback_char( char ch ) {
-		m_put_back_ch = ch;
-	}
 	//Match the response string
 	bool match_response( const char* answer, const char* response_to_match );
 	// Report and decode error
@@ -100,15 +97,14 @@ private:
 	char* cut_response( char* answer, const char* response_to_match );
 	// Get line and handle events
 	char* getline( size_t pos_from = 0U);
-	//! Get one byte from port
-	int getchar();
+	// Get some data and don't wait for cr/lf
+	int getsome( size_t from_pos );
 private:
 	fnd::serial_port& m_port;	//Serial port reference
 	int m_error {};				//Error code
 	char m_cmd_buffer[ cmd_buffer_len ] {};	//Command buffer
 	const unsigned m_capabilities {};	//Parser capabilities
 	event* m_event {};
-	short m_put_back_ch {-1};
 };
 /* ------------------------------------------------------------------ */
 }
