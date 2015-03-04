@@ -374,13 +374,17 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 			if( ret > 0 ) {
 				pos += ret;
 				errstr = static_cast<char*>(::memmem(inp,pos,"+CME",4));
-				if( errstr ) break;
-				errstr = static_cast<char*>(::memmem(inp,pos,"+CMS",4));
-				if( errstr ) break;
-				errstr = static_cast<char*>(::memmem(inp,pos,"ERROR",5));
-				if( errstr ) break;
-				got_start = std::memchr(inp,'>',pos);
-				if( got_start ) break;
+				if( !errstr )
+					errstr = static_cast<char*>(::memmem(inp,pos,"+CMS",4));
+				if( !errstr )
+					errstr = static_cast<char*>(::memmem(inp,pos,"ERROR",5));
+				if( errstr ) {	//! To end of line instead of match >
+					if( inp[pos-1]=='\r' || inp[pos-1]=='\n' )
+						break;
+				} else {
+					got_start = std::memchr(inp,'>',pos);
+					if( got_start ) break;
+				}
 				if( pos >= sizeof(m_cmd_buffer)) {
 					m_error = error::buffer_overflow;
 					return nullptr;
@@ -393,7 +397,6 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		std::transform( inp, inp+pos, inp, [](char ch) { return ch?ch:' '; } );
 		inp[pos] = '\0';
 	}
-	dbprintf("input line %s", inp );
 	if( !got_start && !errstr ) {
 		dbprintf("Unexcepted pdu hanshake");
 		m_error = error::unexpected_pdu_handshake;
@@ -440,10 +443,8 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 			m_error = error::aterr_unspecified;
 			return nullptr;
 	}
-	dbprintf("tick ###1 %s", inp );
 	// return if response is "OK" and caller says this is OK
 	if (accept_empty_response && !std::strcmp(inp,"OK") ) {
-		dbprintf("Something tick");
 		m_cmd_buffer[0] = '\0';
 		return m_cmd_buffer;	
 	}
