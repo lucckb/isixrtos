@@ -16,10 +16,14 @@
  * =====================================================================================
  */
 #pragma once
+#include <gsm/stringbit_id.hpp>
 
 namespace gsm_modem {
 	//!Phonebook text identifier
-	class phbook_id {
+	class phbook_id : public detail::stringbit_id {
+		static constexpr const char* const bookids[] = {
+			"SM", "FD", "ON", "EN", "LD", "MC", "ME", "MT", "RC", "SN", nullptr 
+		};
 	public:
 		enum phonebook_id_ {
 			sim = 		1<<0,	//! SM Sim phonebook
@@ -35,62 +39,51 @@ namespace gsm_modem {
 		};
 		static constexpr auto last_bit_no = 9L;
 		phbook_id( unsigned bb = 0 ) 
-			: m_book_bits( bb )
+			: stringbit_id( bb )
 		{};
-		void clear() {
-			m_book_bits = 0;
-		}
 		/** Get the name of the bit
 		 * only one bit must be set
 		 * in other case it return error*/
-		const char* get_name() const ;
+		const char* get_name() const {
+			return stringbit_id::get_name( bookids, last_bit_no );
+		}
 
 		/** Set bit related to phonebook name
 		 * @param[in] phonebook name
 		 */
-		void set_bit( const char* name );
-
-		/** Mask bit for request 
-		 *  one of the phonebook
-		 */
-		void mask( unsigned bits ) {
-			m_book_bits &= bits;
+		void set_bit( const char* name ) {
+			stringbit_id::set_bit( name, bookids );
 		}
 
 		bool has_sim() const {
-			return m_book_bits&sim;
+			return m_bits&sim;
 		}
 		bool has_fdn() const {
-			return m_book_bits&fdn;
+			return m_bits&fdn;
 		}
 		bool has_msisdn() const {
-			return m_book_bits&msisdn;
+			return m_bits&msisdn;
 		}
 		bool has_ecc() const {
-			return m_book_bits&ecc;
+			return m_bits&ecc;
 		}
 		bool has_lnd() const {
-			return m_book_bits&lnd;
+			return m_bits&lnd;
 		}
 		bool has_mc() const {
-			return m_book_bits&mc;
+			return m_bits&mc;
 		}
 		bool has_me() const {
-			return m_book_bits&me;
+			return m_bits&me;
 		}
 		bool has_mesim() const {
-			return m_book_bits&mesim;
+			return m_bits&mesim;
 		}
 		bool has_rc() const {
-			return m_book_bits&rc;
+			return m_bits&rc;
 		}
 		bool has_sn() const {
-			return m_book_bits&sn;
+			return m_bits&sn;
 		}
-		unsigned bits() const {
-			return m_book_bits;
-		}
-	private:
-		unsigned m_book_bits;
 	};
 }

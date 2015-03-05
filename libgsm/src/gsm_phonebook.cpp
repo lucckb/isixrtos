@@ -29,6 +29,9 @@
 
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
+/* ------------------------------------------------------------------ */ 
+// Constexr static def
+constexpr const char* const phbook_id::bookids[];
 /* ------------------------------------------------------------------ */
 //! Get AT parser helper function
 at_parser& phonebook::at() {

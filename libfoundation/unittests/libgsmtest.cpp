@@ -20,6 +20,7 @@
 #include <serialport_unix.hpp>
 #include <gsm/gsm_device.hpp>
 #include <gsm/sms_message.hpp>
+#include <gsm/sms_store.hpp>
 #include <cstring>
 
 void print_flags( int fl ) 
@@ -98,7 +99,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	fnd::serialport_unix m_ser( "/dev/ttyS0", 115200 );
 	devctl m_ctl;
 	gsm_modem::device modem( m_ser, m_ctl );
-	if(0) {
+	if(1) {
 		modem.enable( true );
 		modem.register_to_network( "1234" );
 	}
@@ -134,12 +135,21 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		//Delete entry
 		dbprintf("deletentry=%i", modem.get_phonebook().delete_entry( 15 ) );
 	}
-	if(1) {
+	if(0) {
 		char msg[161] {};
 		memset(msg, 'z', 160 );
 		gsm_modem::sms_submit sms( "+48660428360", "Proba SMSA");
 		sms.report_request( true );
 		dbprintf("SMSerr=%i", modem.send_sms( sms ) );
+	}
+	if(0) {
+		auto ssms = modem.get_sms_store();
+		gsm_modem::smsmem_id ids;
+		dbprintf( "store flags %i", ssms.get_store_identifiers(ids) );
+		dbprintf( "select store %i", ssms.select_store(ids) );
+	}
+	if(1) {
+		dbprintf("RouteToTA %i", modem.set_sms_routing_to_ta( true, false, true ) );
 	}
 	return 0;
 }

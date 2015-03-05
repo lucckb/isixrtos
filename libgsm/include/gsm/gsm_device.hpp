@@ -25,6 +25,8 @@
 #include <gsm/phonebook.hpp>
 #include <gsm/containers.hpp>
 #include <gsm/sms_message.hpp>
+#include <gsm/phonebook.hpp>
+#include <gsm/sms_store.hpp>
 
 namespace gsm_modem {
 
@@ -111,6 +113,22 @@ namespace gsm_modem {
 		 */
 		int send_sms( const sms_submit& sms );
 
+		/** Get sms store 
+		 * @return reference to sms store class */
+		sms_store& get_sms_store() {
+			return m_sms_store;
+		}
+		
+		/** Set sms routing to TA
+		 * sets routing of SMS to TA to true for all supported SMSMessageTypes
+		 if onlyReceptionIndication is set to true
+		 only GsmEvent::SMSReceptionIndication is called
+		 this has two reasons: GSM 07.05 section 3.4.1 does not recommend
+		 direct routing of new SMS to the TA
+		 CNMI=
+		 */
+		int set_sms_routing_to_ta( bool en_sms, bool en_cbs, bool en_stat_report, 
+				bool only_reception_indication=true );
 	private:
 		/** Private function for set and get text mode parameters
 		 *  used only for text mode smses
@@ -135,6 +153,7 @@ namespace gsm_modem {
 		hw_control& m_hwctl;		//Hardware ctl class
 		event m_event;				//Events class dispatcher
 		phonebook m_phonebook;		//Phonebook object
-		cap m_capabilities;	//Capability flags
+		sms_store m_sms_store;		//Current sms store
+		cap m_capabilities;			//Capability flags
 	};
 }

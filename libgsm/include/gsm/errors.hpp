@@ -34,6 +34,9 @@ namespace gsm_modem {
 			phonebook_not_selected = -16393,
 			message_to_long = -16394,
 			unexpected_pdu_handshake = -16395,
+			cant_route_sms_to_te = -16396,
+			cant_route_cb_to_te = -16397,
+			cant_route_sr_to_te = -16398,	
 			//Parserr errors
 			param_parser_buf_overflow = -16400,
 			param_parser_unexpected_char = -16401,

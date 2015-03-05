@@ -30,7 +30,7 @@ namespace gsm_modem {
 //! GSM device constructor
 device::device( fnd::serial_port& comm,  hw_control& hwctl, unsigned cap )
 	: m_at( comm ), m_hwctl( hwctl ), m_phonebook( *this ), 
-	 m_capabilities( cap )
+	  m_sms_store( *this ), m_capabilities( cap )
 {
 
 }
@@ -377,6 +377,159 @@ int device::send_sms( const sms_submit& sms )
 		return ret;
 	}
 	return mref;
+}
+
+/* ------------------------------------------------------------------ */
+//Set sms routing to TA
+int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs, 
+		bool en_stat_report, bool only_reception_indication )
+{
+	bool sms_mode_set {};
+	bool cbs_mode_set {};
+	bool stat_mode_set {};
+	bool buffered_mode_set {};
+	bit_range modes;
+	bit_range sms_modes;
+	bit_range cbs_modes;
+	bit_range stat_modes;
+	bit_range buffer_modes;
+	//Find out capabilities
+	auto resp = m_at.chat("+CNMI=?", "+CNMI:");
+	if( !resp ) {
+		dbprintf( "Modem error response %i", m_at.error() );	
+		return m_at.error();
+	}
+	param_parser p( resp, m_at.bufsize() );
+	
+	if( p.parse_int_list(modes)<0 ) return p.error();
+	if( p.parse_comma(true) ) {
+		if( p.parse_int_list(sms_modes)<0 ) return p.error();
+		sms_mode_set = true;
+		if( p.parse_comma(true) ) {
+			if( p.parse_int_list(cbs_modes)<0 ) return p.error();
+			cbs_mode_set = true;
+			if(p.parse_comma(true)) {
+				if( p.parse_int_list(stat_modes)<0 ) return p.error();
+				stat_mode_set = true;
+				if( p.parse_comma(true)) {
+					if( p.parse_int_list(buffer_modes)<0 ) return p.error();
+					buffered_mode_set = true;
+				}
+			}
+		}
+	}
+	if( !sms_mode_set ) sms_modes[0] = true;
+	if( !cbs_mode_set ) cbs_modes[0] = true;
+	if( !stat_mode_set ) stat_modes[0] = true;
+	if( !buffered_mode_set ) buffer_modes[0] = true;
+	char chat_string[48] { "+CNMI=" };
+	//Handle modes
+	if( modes[2] ) std::strncat(chat_string,"2",sizeof(chat_string)-1);
+	else if( modes[1] ) std::strncat(chat_string,"1",sizeof(chat_string)-1);
+	else if( modes[0] ) std::strncat(chat_string,"0",sizeof(chat_string)-1);
+	else if( modes[3] ) std::strncat(chat_string,"3",sizeof(chat_string)-1);
+	if( only_reception_indication ) 
+	{
+		if( en_sms ) 
+		{
+			if( sms_modes[1] ) {
+				std::strncat(chat_string,",1",sizeof(chat_string)-1);
+			} else {
+				dbprintf("Cant route SMS to TE");
+				return error::cant_route_sms_to_te;
+			}
+		} else {
+			std::strncat(chat_string,",0",sizeof(chat_string)-1);
+		}
+		if( en_cbs ) 
+		{
+			if( cbs_modes[1] ) {
+				std::strncat(chat_string,",1",sizeof(chat_string)-1);
+			} else if( cbs_modes[2] ) {
+				std::strncat(chat_string,",2",sizeof(chat_string)-1);
+			} else {
+				dbprintf("Cant route CBS to TE");
+				return error::cant_route_cb_to_te;
+			}
+		} else {
+			std::strncat(chat_string,",0",sizeof(chat_string)-1);
+		}
+		if( en_stat_report ) 
+		{
+			if( stat_modes[1] ) {
+				std::strncat(chat_string,",1",sizeof(chat_string)-1);
+			} else if( stat_modes[2] ) {
+				std::strncat(chat_string,",2",sizeof(chat_string)-1);
+			} else {
+				dbprintf("Cant route StatusReports to TE");	
+				return error::cant_route_sr_to_te;
+			}
+		} else {
+			std::strncat(chat_string,",0",sizeof(chat_string)-1);
+		}
+	}
+	else /* only_reception_indication */
+	{
+		if( en_sms )
+		{
+			if( sms_modes[2] ) {
+				std::strncat(chat_string,",2",sizeof(chat_string)-1);
+			}
+			else if( sms_modes[3] ) {
+				std::strncat(chat_string,",3",sizeof(chat_string)-1);
+			}
+			else {
+				dbprintf("Cannot route SMS to TE");
+				return error::cant_route_sms_to_te;
+			}
+		} 
+		else 
+		{
+			std::strncat(chat_string,",0",sizeof(chat_string)-1);
+		}
+		if( en_cbs ) 
+		{
+			if( cbs_modes[2] ) {
+				std::strncat(chat_string,",2",sizeof(chat_string)-1);
+			} else if( cbs_modes[3] ) {
+				std::strncat(chat_string,",3",sizeof(chat_string)-1);
+			} else {
+				dbprintf("Cannot route CB to TE");
+				return error::cant_route_cb_to_te;
+			}
+		} else {
+			std::strncat(chat_string,",0",sizeof(chat_string)-1);
+		}
+		if( en_stat_report ) 
+		{
+			if( stat_modes[1] ) {
+				std::strncat(chat_string,",1",sizeof(chat_string)-1);
+			}
+			else if( stat_modes[2] ) {
+				std::strncat(chat_string,",2",sizeof(chat_string)-1);
+			} else {
+				dbprintf("Cannot route StatusReports to TE");
+				return error::cant_route_sr_to_te;
+			}
+		} else {
+			std::strncat(chat_string,",0",sizeof(chat_string)-1);
+		}
+	}
+	if( buffered_mode_set ) 
+	{
+		if( buffer_modes[1] ) {
+			std::strncat(chat_string,",1",sizeof(chat_string)-1);
+		} else {
+			std::strncat(chat_string,",0",sizeof(chat_string)-1);
+		}
+	}
+	//Set capabilities accept empty response
+	resp = m_at.chat(chat_string, "+CNMI:", false, true );
+	if( !resp ) {
+		dbprintf( "Modem error response %i", m_at.error() );	
+		return m_at.error();
+	}
+	return error::success;
 }
 /* ------------------------------------------------------------------ */
 }
