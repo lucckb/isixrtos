@@ -148,8 +148,14 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		dbprintf( "store flags %i", ssms.get_store_identifiers(ids) );
 		dbprintf( "select store %i", ssms.select_store(ids) );
 	}
-	if(1) {
+	if(0) {
 		dbprintf("RouteToTA %i", modem.set_sms_routing_to_ta( true, false, true ) );
+	}
+	if(0) {
+		dbprintf( "Delete entry %i", modem.get_phonebook().find_empty_entry() );
+	}
+	if(1) {
+			modem.get_sms_store().read_entry(1);
 	}
 	return 0;
 }

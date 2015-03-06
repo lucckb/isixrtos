@@ -78,5 +78,20 @@ int sms_store::get_store_identifiers( smsmem_id& id )
 	return error::success;
 }
 /* ------------------------------------------------------------------ */
+/** Read message from phonebook */
+sms_store_result_t sms_store::read_entry( int index )
+{
+	char buf[32]; buf[sizeof(buf)-1] = '\0';
+	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CMGR=%i", index );
+	char* pdu {};
+	auto resp = at().chat( buf,"+CMGR:", false, true, &pdu );
+	if( !resp ) {
+		dbprintf("Unable to execute command %i", at().error() );
+		return sms_store_result_t( at().error(), nullptr );
+	}
+	dbprintf("Resp %s", resp );
+	dbprintf("PDU %s", pdu );
+}
+/* ------------------------------------------------------------------ */
 }
 

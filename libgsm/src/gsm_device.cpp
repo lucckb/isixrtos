@@ -94,7 +94,7 @@ int device::do_enable () {
 int device::send_command_noresp( const char *cmd, const char* arg )
 {
 	char buf[32]; buf[sizeof(buf)-1] = '\0';
-	fnd::tiny_snprintf(buf, sizeof(buf)-1,"\"%s%s\"", cmd, arg );
+	fnd::tiny_snprintf(buf, sizeof(buf)-1,"%s\"%s\"", cmd, arg );
 	auto resp = m_at.chat(buf);
 	if( !resp ) {
 		dbprintf( "Modem error response %i", m_at.error() );	

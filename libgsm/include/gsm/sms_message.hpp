@@ -18,6 +18,7 @@
 #pragma once
 #include <cstring>
 #include <gsm/sms_codec.hpp>
+#include <gsm/errors.hpp>
 
 namespace gsm_modem {
 
@@ -29,6 +30,8 @@ namespace gsm_modem {
 		{
 			data_coding_scheme m_dcs;
 		public:
+			virtual ~sms() {
+			}
 			enum type {
 				t_deliver,		//! Deliver message type
 				t_submit,		//! Submit message type
@@ -36,8 +39,12 @@ namespace gsm_modem {
 				t_command,		 //! Command type SMS
 			};
 			virtual int type() const = 0;
-			virtual int encode( at_parser& p, bool pdu ) const = 0;
-			virtual int decode( at_parser& p, bool pdu ) = 0;
+			virtual int encode( at_parser& /*p*/, bool /*pdu*/) { 
+				return error::invalid_argument;
+			};
+			virtual int decode( at_parser& /*p*/, bool /*pdu*/) {
+				return error::invalid_argument;
+			}
 			//Setter getters
 			data_coding_scheme get_dcs( ) const {
 				return m_dcs;
@@ -57,6 +64,8 @@ namespace gsm_modem {
 			unsigned char m_pid { 17 };			//!protocol identifier;
 			char m_message[162] {};		//! Sms message data
 		public:
+			virtual ~sms_deliver() {
+			}
 			virtual int type() const {
 				return sms::t_deliver;
 			}
@@ -92,6 +101,10 @@ namespace gsm_modem {
 			sms_submit( const char* dest, const char* message )
 				: m_dest_addr(dest), m_message( message )
 			{}
+			//Destructor
+			virtual ~sms_submit() {
+
+			}
 			virtual int type() const {
 				return sms::t_submit;
 			}
@@ -125,6 +138,8 @@ namespace gsm_modem {
 			char m_discharge_time[24] {};
 			unsigned char m_status {};
 		public:
+			virtual ~sms_status_report() {
+			}
 			virtual int type() const {
 				return sms::t_status_report;
 			}
@@ -140,9 +155,24 @@ namespace gsm_modem {
 		unsigned char m_dest_address[14] {}; //! Destination address
 		unsigned char m_command_data_len {};
 	public:
+		virtual ~sms_command() {
+
+		}
 		virtual int type() const {
 			return sms::t_status_report;
 		}
 	};
+	namespace detail {
+		constexpr size_t max( size_t a, size_t b ) {
+			return a < b ? b : a;
+		}
+	}
+	//! SMS message placement length 
+	//! NOTE: C++11 doesn't have std::max as constexpr
+	constexpr size_t sms_placement_size = 
+		 detail::max( sizeof(sms_command),
+			   detail::max( sizeof(sms_status_report),
+			   detail::max( sizeof(sms_submit),
+			   sizeof(sms_deliver) ) ) );
 }
 

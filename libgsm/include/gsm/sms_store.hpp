@@ -20,6 +20,7 @@
 #include <gsm/datadefs.hpp>
 #include <gsm/containers.hpp>
 #include <gsm/stringbit_id.hpp>
+#include <gsm/sms_message.hpp>
 #include <array>
 
 namespace gsm_modem {
@@ -27,7 +28,11 @@ namespace gsm_modem {
 	//! Forward declaration
 	class device;
 	class at_parser;
-	
+	//! NOTE: It can be easy replaced with shared ptr if non placement new impl
+	//! NOTE: non shared version is not thread safe!
+	using sms_store_ptr_t = sms*;
+	using sms_store_result_t = std::pair<int,sms_store_ptr_t>;
+
 	// sms store ids
 	class smsmem_id : public detail::stringbit_id {
 		static constexpr const char* const smsstorenames[] = {
@@ -74,9 +79,6 @@ namespace gsm_modem {
 		}
 	};
 
-	//! Sms mem array
-	using smsmem_array = std::array< smsmem_id,3>;
-
 	//! Class for representing SMS store
 	class sms_store {
 	public:
@@ -97,11 +99,26 @@ namespace gsm_modem {
 			@return error code for storage
 		*/
 		int get_store_identifiers( smsmem_id& id );
+
+		/** Read message from phonebook */
+		sms_store_result_t read_entry( int index );
+
 	private:
 		//Get at parser
 		at_parser& at();
+
 	private:
-		device& m_dev;	//! Device owner
-		unsigned m_store_flags {};//! Stored elem
+		device& m_dev;				//! Device owner
+		unsigned m_store_flags {};	//! Stored elem
+		//! Placement new message creating
+		char m_storage alignas(8) [sms_placement_size]; //! Used placement new don't use new/del
+		template<typename T> sms* create_message() {
+			if( m_message ) {
+				m_message->~sms();
+			}
+			m_message = new(m_storage)T;
+			return m_message;
+		}
+		sms *m_message {};		   //! SMS message definition
 	};
 }

@@ -37,6 +37,7 @@ namespace gsm_modem {
 			cant_route_sms_to_te = -16396,
 			cant_route_cb_to_te = -16397,
 			cant_route_sr_to_te = -16398,	
+			phonebook_full = -16399,
 			//Parserr errors
 			param_parser_buf_overflow = -16400,
 			param_parser_unexpected_char = -16401,
