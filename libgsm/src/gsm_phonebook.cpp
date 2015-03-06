@@ -181,6 +181,39 @@ int phonebook::write_or_delete_entry( int index, const phbook_entry* phb )
 	}
 	return error::success;
 }
+/* ------------------------------------------------------------------ */
+/** Find first phonebook empty entry 
+	@return error or index found
+*/
+int phonebook::find_empty_entry()
+{
+	auto resp = at().chat("+CPBS?", "+CPBS:" );
+	if( !resp ) {
+		dbprintf( "Modem error response %i", at().error() );	
+		return at().error();
+	}
+	int used_entries, total_entries;
+	param_parser p( resp, at().bufsize() );
+	if( !p.parse_string() ) return p.error();
+	if( p.parse_comma() < 0 ) return p.error();
+	if( p.parse_int( used_entries ) < 0 ) return p.error();
+	if( p.parse_comma() < 0 ) return p.error();
+	if( p.parse_int( total_entries ) < 0 ) return p.error();
+	if( used_entries == total_entries ) {
+		return error::phonebook_full;
+	}
+	//Try to find first empty entry
+	phbook_entry entry;
+	for( int idx=1; idx<=total_entries; ++idx ) {
+		auto ret = read_entry( idx, entry );
+		if( ret == error::entry_not_found ) {
+			return idx;
+		} else if( ret < 0 ) {
+			return ret;
+		}
+	}
+	return error::phonebook_full;
+}
 /* ------------------------------------------------------------------ */ 
 }
 /* ------------------------------------------------------------------ */ 

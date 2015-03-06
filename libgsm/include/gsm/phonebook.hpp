@@ -90,6 +90,11 @@ namespace gsm_modem {
 		int delete_entry( int index ) {
 			return write_or_delete_entry( index, nullptr );	
 		}
+		
+		/** Find first phonebook empty entry 
+			@return error or index found
+		*/
+		int find_empty_entry();
 	private:
 		//! Parse phonebook entry
 		int parse_phonebook_entry( char* buf, phbook_entry& entry );
