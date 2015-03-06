@@ -34,7 +34,7 @@ class at_parser
 	//! Make it noncopyable
 	at_parser& operator=( at_parser& ) = delete;
 	at_parser( at_parser& ) = delete;
-	static constexpr auto cmd_buffer_len = 512U;
+	static constexpr auto cmd_buffer_len = 1024U;
 	static constexpr auto atcmd_maxlen = 64U;
 	static constexpr auto def_timeout = 5000;
 	static constexpr auto time_infinite = fnd::serial_port::time_infinite;

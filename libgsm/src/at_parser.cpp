@@ -231,8 +231,9 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 	//Handle PDU if it is expected
 	if( pdu ) {
 		char* ps {};	
+		const auto getln_pos = std::strlen(inp)+(inp-m_cmd_buffer)+sizeof('\0');
 		do {
-			ps = normalize( getline() );
+			ps = normalize( getline(getln_pos) );
 			if(!ps) return nullptr;
 		} while( ps[0]=='\0' && !std::strcmp(ps,"OK") );
 		if( !std::strcmp(ps,"OK") ) {
@@ -258,7 +259,8 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 			return result;
 		} else {
 			//Calculate the position for extra response just outside the buffer
-			const auto result_pos = std::strlen(result)+(result-m_cmd_buffer)+sizeof('\0');
+			const auto eob = pdu?*pdu:result;
+			const auto result_pos = std::strlen(eob)+(eob-m_cmd_buffer)+sizeof('\0');
 			do {
 				inp = normalize( getline(result_pos) );
 				if(!inp) return nullptr;
