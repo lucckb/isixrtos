@@ -62,27 +62,42 @@ namespace gsm_modem {
 			char m_service_tstamp[24] {};		//! Service centre timestamp
 			char m_origin_address[14] {};		//! Origin address
 			unsigned char m_pid { 17 };			//!protocol identifier;
-			char m_message[162] {};		//! Sms message data
+			char m_message[162] {};				//! Sms message data
 		public:
 			virtual ~sms_deliver() {
 			}
 			virtual int type() const {
 				return sms::t_deliver;
 			}
+			int pid() const {
+				return m_pid;
+			}
+			void pid( unsigned char pid ) {
+				m_pid = pid;
+			}
 			const char* service_tstamp() const {
 				return m_service_tstamp;
 			}
-			bool get_report_indication() const {
+			void service_tstamp( const char* tstamp ) {
+				std::strncpy( m_service_tstamp, tstamp, sizeof(m_service_tstamp)-1);
+			}
+			bool report_indication() const {
 				return m_status_report_indication;
 			}
+			void report_indication( bool ri ) {
+				m_status_report_indication = ri;
+			}
 			const char* origin_address() const {
-				return m_service_tstamp;
+				return m_origin_address;
+			}
+			void origin_address( const char* addr ) {
+				std::strncpy( m_origin_address, addr, sizeof(m_origin_address)-1 );
 			}
 			const char* message() const {
 				return m_message;
 			}
-			int pid() const {
-				return m_pid;
+			void message( const char* msg ) {
+				std::strncpy( m_message, msg, sizeof(m_message)-1 );
 			}
 		};
 

@@ -22,6 +22,8 @@ namespace gsm_modem {
 	struct error {
 		enum error_ {
 			success = 0,
+			sms_length_mismatch = -16382,
+			sms_type_unsupported = -16383,
 			buffer_overflow = -16384, 
 			aterr_unspecified =-16385,
 			lib_bug = -16386,

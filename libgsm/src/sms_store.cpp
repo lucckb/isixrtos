@@ -19,6 +19,7 @@
 #include <gsm/at_parser.hpp>
 #include <gsm/param_parser.hpp>
 #include <gsm/gsm_device.hpp>
+#include <gsm/sms_codec.hpp>
 #include <foundation/tiny_printf.h>
 #include <foundation/dbglog.h>
 /* ------------------------------------------------------------------ */ 
@@ -89,8 +90,76 @@ sms_store_result_t sms_store::read_entry( int index )
 		dbprintf("Unable to execute command %i", at().error() );
 		return sms_store_result_t( at().error(), nullptr );
 	}
-	dbprintf("Resp %s", resp );
-	dbprintf("PDU %s", pdu );
+	param_parser p( resp, at().bufsize() );
+	auto str = p.parse_string();
+	if( !str ) return sms_store_result_t( at().error(), nullptr );
+	int msgtype; 
+	if( !std::strcmp(str,"REC READ") ) {
+		msgtype = smsstore_message_type::rec_read;
+	} else if( !std::strcmp(str,"REC UNREAD") ) {
+		msgtype = smsstore_message_type::rec_unread;
+	} else if( !std::strcmp(str,"STO SENT") ) {
+		msgtype = smsstore_message_type::sto_sent;	
+	} else if( !std::strcmp(str,"STO UNSENT") ) {
+		msgtype = smsstore_message_type::sto_unsent;	
+	} else {
+		return sms_store_result_t(error::sms_type_unsupported,nullptr);
+	}
+	//deliver, status_report, submit_report
+	if( msgtype==smsstore_message_type::rec_read||msgtype==smsstore_message_type::rec_unread ) 
+	{
+		int val;
+		auto msg = create_message<sms_deliver>();
+		//Origin address
+		if( p.parse_comma()<0 ) return sms_store_result_t(at().error(),nullptr);
+		str = p.parse_string();
+		if( !str ) return sms_store_result_t(at().error(),nullptr);
+		msg->origin_address( str );
+		//Alpha not used
+		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
+		if( !p.parse_string() ) return sms_store_result_t(p.error(),nullptr);
+		//Service centre timestamp
+		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
+		str = p.parse_string();
+		if( !str ) return sms_store_result_t(at().error(),nullptr);
+		msg->service_tstamp( str );
+		//! TooA Skip it
+		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
+		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
+		//! First octet skip it
+		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
+		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
+		msg->report_indication( val & foctet::REPORT_REQUEST );
+		//Parse PID
+		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
+		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
+		msg->pid( val );
+		//Parse DCS
+		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
+		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
+		msg->set_dcs( val );
+		//SCA service centre address dont used by us
+		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
+		if( !p.parse_string() ) return sms_store_result_t(p.error(),nullptr);
+		//Type of sca skip
+		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
+		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
+		//Length (for verify only)
+		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
+		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
+		if( val != int(std::strlen(pdu)) ) {	//Check the len
+			return sms_store_result_t(error::sms_length_mismatch,nullptr);
+		}
+		msg->message( pdu );
+		return sms_store_result_t(msgtype,msg);
+	} 
+	//SMS submit, deliver_report, command
+	else if( msgtype==smsstore_message_type::sto_sent||msgtype==smsstore_message_type::sto_unsent )
+	{
+		
+		dbprintf("hrlo");
+	}
+	dbprintf("PDU %i", msgtype );
 }
 /* ------------------------------------------------------------------ */
 }

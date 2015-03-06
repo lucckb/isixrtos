@@ -33,6 +33,14 @@ namespace gsm_modem {
 	using sms_store_ptr_t = sms*;
 	using sms_store_result_t = std::pair<int,sms_store_ptr_t>;
 
+	struct smsstore_message_type {
+	enum smsstore_message_type_ {
+		rec_read = 1,
+		rec_unread = 2,
+		sto_sent = 3,
+		sto_unsent = 4
+	}; };
+
 	// sms store ids
 	class smsmem_id : public detail::stringbit_id {
 		static constexpr const char* const smsstorenames[] = {
@@ -112,12 +120,14 @@ namespace gsm_modem {
 		unsigned m_store_flags {};	//! Stored elem
 		//! Placement new message creating
 		char m_storage alignas(8) [sms_placement_size]; //! Used placement new don't use new/del
-		template<typename T> sms* create_message() {
+		template<typename T, typename... A> T* create_message( A&&... args )
+		{
 			if( m_message ) {
 				m_message->~sms();
 			}
-			m_message = new(m_storage)T;
-			return m_message;
+			T* ptr = new(m_storage)T(args...);
+			m_message = ptr;
+			return ptr;
 		}
 		sms *m_message {};		   //! SMS message definition
 	};

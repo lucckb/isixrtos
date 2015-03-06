@@ -22,6 +22,7 @@
 #include <gsm/sms_message.hpp>
 #include <gsm/sms_store.hpp>
 #include <cstring>
+#include <tuple>
 
 void print_flags( int fl ) 
 {
@@ -155,7 +156,17 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		dbprintf( "Delete entry %i", modem.get_phonebook().find_empty_entry() );
 	}
 	if(1) {
-			modem.get_sms_store().read_entry(1);
+		int err;
+		gsm_modem::sms_store_ptr_t sms;
+		std::tie( err, sms ) = modem.get_sms_store().read_entry(1);
+		dbprintf( "Read entry stat %i %p", err, sms );
+		if( !err ) {
+			const auto it = dynamic_cast<gsm_modem::sms_deliver*>( sms );
+			dbprintf("TSTAMP %s ORIGIN_ADDR %s PID %i REPORT_INDIC %i",
+				it->service_tstamp(), it->origin_address(), it->pid(), it->report_indication() );
+			dbprintf("Content %s", it->message() );
+					
+		}
 	}
 	return 0;
 }
