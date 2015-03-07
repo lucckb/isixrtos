@@ -153,6 +153,10 @@ namespace gsm_modem
 			int error() const {
 				return m_error;
 			}
+			//! Set error status
+			void error( int err ) {
+				m_error = err;
+			}
 	};
 };
 

@@ -24,6 +24,7 @@ namespace gsm_modem {
 
 		//http://www.smssolutions.net/tutorials/gsm/sendsmsat/
 
+		class param_parser;
 		//! Base classes for all smses
 		class sms 
 		{
@@ -57,6 +58,13 @@ namespace gsm_modem {
 			unsigned char m_pid { 17 };			//!protocol identifier;
 			char m_message[162] {};				//! Sms message data
 		public:
+			/** Constructor for SMS submit message in txt
+			 * @param[in] buf Input buffer data or pdu data
+			 * @param[in] input buffer length
+			 * @param[in] msg Only in text mode message for PDU should be null
+			 */
+			sms_deliver( param_parser& p, const char* msg );
+
 			virtual ~sms_deliver() {
 			}
 			virtual int type() const {
@@ -112,8 +120,12 @@ namespace gsm_modem {
 				std::strncpy(m_dest_addr, dest, sizeof(m_dest_addr)-1);
 				std::strncpy(m_message, message, sizeof(m_message)-1);
 			}
-			sms_submit() 
-			{}
+			/** Constructor for SMS submit message in txt
+			 * @param[in] buf Input buffer data or pdu data
+			 * @param[in] input buffer length
+			 * @param[in] msg Only in text mode message for PDU should be null
+			 */
+			sms_submit( param_parser &p, const char* msg );
 			//Destructor
 			virtual ~sms_submit() {
 

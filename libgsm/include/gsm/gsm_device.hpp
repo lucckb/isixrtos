@@ -136,7 +136,7 @@ namespace gsm_modem {
 		}
 	private:
 		/** Private function for set and get text mode parameters
-		 *  used only for text mode smses
+		 *  used only for text mode sms
 		 *  @param[in] param Text mode input parameters
 		 *  @return Error code if failed
 		 */

@@ -136,7 +136,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		//Delete entry
 		dbprintf("deletentry=%i", modem.get_phonebook().delete_entry( 15 ) );
 	}
-	if(1) {
+	if(0) {
 		char msg[161] {};
 		memset(msg, 'z', 160 );
 		gsm_modem::sms_submit sms( "+48660428360", "Proba SMSA");
@@ -156,18 +156,18 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	if(0) {
 		dbprintf( "Delete entry %i", modem.get_phonebook().find_empty_entry() );
 	}
-	if(0) {
+	if(1) {
 		int err;
 		gsm_modem::sms_store_ptr_t sms;
-		std::tie( err, sms ) = modem.get_sms_store().read_entry(2);
+		std::tie( err, sms ) = modem.get_sms_store().read_entry(3);
 		dbprintf( "Read entry stat %i %p", err, sms );
-		if( err > 0 && sms->type() == gsm_modem::sms::t_deliver ) {
+		if( err >= 0 && sms->type() == gsm_modem::sms::t_deliver ) {
 			const auto it = dynamic_cast<gsm_modem::sms_deliver*>( sms );
 			dbprintf("TSTAMP %s ORIGIN_ADDR %s PID %i REPORT_INDIC %i",
 				it->service_tstamp(), it->origin_address(), it->pid(), it->report_indication() );
 			dbprintf("Content %s", it->message() );
 					
-		} else if( err > 0 && sms->type() == gsm_modem::sms::t_submit ) {
+		} else if( err >=0 && sms->type() == gsm_modem::sms::t_submit ) {
 			dbprintf("Submit message type");
 			const auto it = dynamic_cast<gsm_modem::sms_submit*>( sms );
 			dbprintf("VALIDITY %i REP_REQ %i FL_MSG %i DEST_ADDR %s, PID %i",

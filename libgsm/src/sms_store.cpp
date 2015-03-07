@@ -128,96 +128,22 @@ sms_store_result_t sms_store::read_entry( int index )
 	//deliver, status_report, submit_report
 	if( msgtype==smsstore_message_type::rec_read||msgtype==smsstore_message_type::rec_unread ) 
 	{
-		int val;
-		auto msg = create_message<sms_deliver>();
-		//Origin address
-		if( p.parse_comma()<0 ) return sms_store_result_t(at().error(),nullptr);
-		str = p.parse_string();
-		if( !str ) return sms_store_result_t(at().error(),nullptr);
-		msg->origin_address( str );
-		//Alpha not used
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( !p.parse_string() ) return sms_store_result_t(p.error(),nullptr);
-		//Service centre timestamp
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		str = p.parse_string();
-		if( !str ) return sms_store_result_t(at().error(),nullptr);
-		msg->service_tstamp( str );
-		//! TooA Skip it
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		//! First octet skip it
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		msg->report_indication( val & foctet::REPORT_REQUEST );
-		//Parse PID
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		msg->pid( val );
-		//Parse DCS
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		msg->set_dcs( val );
-		//SCA service centre address dont used by us
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( !p.parse_string() ) return sms_store_result_t(p.error(),nullptr);
-		//Type of sca skip
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		//Length (for verify only)
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		if( val < int(std::strlen(pdu)) ) {	//Check the len
-			return sms_store_result_t(error::sms_length_mismatch,nullptr);
+		auto msg = create_message<sms_deliver>( p, pdu );
+		if( p.error() ) {
+			return sms_store_result_t(p.error(), nullptr );
+		} else {
+			return sms_store_result_t( msgtype, msg );
 		}
-		msg->message( pdu );
-		return sms_store_result_t(msgtype,msg);
 	} 
 	//SMS submit, deliver_report, command
 	else if( msgtype==smsstore_message_type::sto_sent||msgtype==smsstore_message_type::sto_unsent )
 	{
-		int val;
-		auto msg = create_message<sms_submit>();
-		//Destinaton address
-		if( p.parse_comma()<0 ) return sms_store_result_t(at().error(),nullptr);
-		str = p.parse_string();
-		msg->dest_address( str );
-		//Alpha not used
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( !p.parse_string() ) return sms_store_result_t(p.error(),nullptr);
-		//Type of destination address
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		//! First octet skip it
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		msg->report_request( val & foctet::REPORT_REQUEST );
-		//Parse PID
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		msg->pid( val );
-		//Parse DCS
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		msg->set_dcs( val );
-		// Validity period
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		msg->validity_period(val);
-		//SCA service centre address dont used by us
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( !p.parse_string() ) return sms_store_result_t(p.error(),nullptr);
-		//Type of sca skip
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		//Length (for verify only)
-		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);
-		if( p.parse_int(val) ) return sms_store_result_t(p.error(),nullptr);
-		if( val < int(std::strlen(pdu)) ) {	//Check the len
-			return sms_store_result_t(error::sms_length_mismatch,nullptr);
+		auto msg = create_message<sms_submit>( p, pdu );
+		if( p.error() ) {
+			return sms_store_result_t(p.error(), nullptr );
+		} else {
+			return sms_store_result_t( msgtype, msg );
 		}
-		msg->message( pdu );
-		return sms_store_result_t(msgtype,msg);
 	}
 	return sms_store_result_t(error::sms_type_unsupported,nullptr);
 }
