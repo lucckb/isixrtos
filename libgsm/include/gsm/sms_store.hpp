@@ -90,12 +90,23 @@ namespace gsm_modem {
 	//! Class for representing SMS store
 	class sms_store {
 	public:
+		//! Copy constructor and assign to delete
+		sms_store& operator=(sms_store&)=delete;
+		sms_store( sms_store& ) = delete;
+
 		//! Sms store device class
 		explicit sms_store( device& owner ) 
-			: m_dev( owner ) {
-
-			}
-
+			: m_dev( owner ) 
+		{
+		}
+		//! Delete flags
+		enum class del {
+			index = 0,
+			read = 1,
+			read_sent = 2,
+			read_sent_unsent = 3,
+			all = 4
+		};
 		/** Set sms store phonebook name
 		 * @param[in] id SMS store name 
 		 * @return error code
@@ -108,8 +119,18 @@ namespace gsm_modem {
 		*/
 		int get_store_identifiers( smsmem_id& id );
 
-		/** Read message from phonebook */
+		/** Read message from phonebook 
+		 * @param[in] Input index of the message
+		 * @return Pointer to read SMS with error code
+		 */
 		sms_store_result_t read_entry( int index );
+		
+		/** Erase entry using selected index name
+		 * @param[in] index Index of message to delete
+		 * @param[in] flags Flags of deleted messages
+		 * @return error code of erase message
+		 * */
+		int erase_entry( int index, del flags = del::index );
 
 	private:
 		//Get at parser

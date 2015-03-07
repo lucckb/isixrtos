@@ -82,6 +82,9 @@ int sms_store::get_store_identifiers( smsmem_id& id )
 /** Read message from phonebook */
 sms_store_result_t sms_store::read_entry( int index )
 {
+	if( !m_store_flags ) {
+		return sms_store_result_t(error::sms_store_not_selected, nullptr );
+	}
 	char buf[32]; buf[sizeof(buf)-1] = '\0';
 	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CMGR=%i", index );
 	char* pdu {};
@@ -200,6 +203,22 @@ sms_store_result_t sms_store::read_entry( int index )
 		return sms_store_result_t(msgtype,msg);
 	}
 	return sms_store_result_t(error::sms_type_unsupported,nullptr);
+}
+/* ------------------------------------------------------------------ */ 
+//! Erase of the message from the store book return error code
+int sms_store::erase_entry( int index, del flags )
+{
+	if( !m_store_flags ) {
+		return error::sms_store_not_selected;
+	}
+	char buf[32]; buf[sizeof(buf)-1] = '\0';
+	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CMGD=%i,%i", index, int(flags) );
+	auto resp = at().chat( buf, "+CMGD:", false, true );
+	if( !resp ) {
+		dbprintf("Unable to execute command %i", at().error() );
+		return at().error();
+	}
+	return error::success;
 }
 /* ------------------------------------------------------------------ */
 }

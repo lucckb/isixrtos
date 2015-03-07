@@ -359,7 +359,7 @@ int device::send_sms( const sms_submit& sms )
 		if( sms.report_request() ) {
 			dbprintf("Report request");
 				new_txt_param.first_octet |= foctet::REPORT_REQUEST;
-		}
+ 		}
 		if( new_txt_param != old_txt_param ) {
 			if( (ret=set_text_mode_param_config(new_txt_param)) < 0 ) {
 				return ret;
