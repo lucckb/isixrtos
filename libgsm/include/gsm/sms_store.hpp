@@ -35,10 +35,11 @@ namespace gsm_modem {
 
 	struct smsstore_message_type {
 	enum smsstore_message_type_ {
+		rec_unread = 0,
 		rec_read = 1,
-		rec_unread = 2,
+		sto_unsent = 2,
 		sto_sent = 3,
-		sto_unsent = 4
+		all = 4
 	}; };
 
 	// sms store ids
@@ -132,6 +133,11 @@ namespace gsm_modem {
 		 * */
 		int erase_entry( int index, del flags = del::index );
 
+		/** Return number of entries in the store
+		 */
+		size_t size() const {
+			return m_total_entries;
+		}
 	private:
 		//Get at parser
 		at_parser& at();
@@ -139,6 +145,7 @@ namespace gsm_modem {
 	private:
 		device& m_dev;				//! Device owner
 		unsigned m_store_flags {};	//! Stored elem
+		short m_total_entries {};
 		//! Placement new message creating
 		char m_storage alignas(8) [sms_placement_size]; //! Used placement new don't use new/del
 		template<typename T, typename... A> T* create_message( A&&... args )

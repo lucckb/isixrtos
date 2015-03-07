@@ -148,6 +148,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		gsm_modem::smsmem_id ids;
 		dbprintf( "store flags %i", ssms.get_store_identifiers(ids) );
 		dbprintf( "select store %i", ssms.select_store(ids) );
+		dbprintf( "number of entries %lu", ssms.size() );
 	}
 	if(0) {
 		dbprintf("RouteToTA %i", modem.set_sms_routing_to_ta( true, false, true ) );

@@ -54,6 +54,22 @@ int sms_store::select_store( const smsmem_id& id )
 		return at().error();
 	}
 	m_store_flags = id.bits();
+	//! Parse of used entries in core memory
+	int value;
+	param_parser p( resp, at().bufsize() );
+	if( !p.parse_string() ) return p.error();
+	if(p.parse_comma() < 0 ) return p.error();
+	if( p.parse_int(value) < 0 ) return p.error();
+	if(p.parse_comma() < 0 ) return p.error();
+	if( p.parse_int(value) < 0 ) return p.error();
+	if(p.parse_comma() < 0 ) return p.error();
+	if( !p.parse_string() ) return p.error();
+	if(p.parse_comma() < 0 ) return p.error();
+	//Interesting entries from second memory type
+	if( p.parse_int(value) < 0 ) return p.error();
+	if(p.parse_comma() < 0 ) return p.error();
+	if( p.parse_int(value) < 0 ) return p.error();
+	m_total_entries = value;
 	return error::success;
 }
 /* ------------------------------------------------------------------ */ 
