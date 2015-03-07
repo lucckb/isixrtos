@@ -161,7 +161,6 @@ sms_store_result_t sms_store::read_entry( int index )
 		//Destinaton address
 		if( p.parse_comma()<0 ) return sms_store_result_t(at().error(),nullptr);
 		str = p.parse_string();
-		if( !str ) return sms_store_result_t(at().error(),nullptr);
 		msg->dest_address( str );
 		//Alpha not used
 		if( p.parse_comma()<0 ) return sms_store_result_t(p.error(),nullptr);

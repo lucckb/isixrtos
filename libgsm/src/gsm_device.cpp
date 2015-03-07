@@ -369,8 +369,21 @@ int device::send_sms( const sms_submit& sms )
 	}
 	int mref;
 	do {
-		if( (mref=sms.encode(m_at, m_capabilities.has_sms_pdu()))<0 )
+			
+		char buf[32]; buf[ sizeof(buf)-1 ] = '\0';
+		fnd::tiny_snprintf(buf, sizeof(buf)-1,"+CMGS=\"%s\"", sms.dest_address() );
+		//NOTE: Now it is not real pdu but text behaves like pdu
+		auto result = m_at.send_pdu(buf,"+CMGS:", sms.message() );
+		if( !result ) {
+			dbprintf("Unable to send pdu %i", m_at.error() );
+			mref = m_at.error();
 			break;
+		}
+		param_parser p( result, m_at.bufsize() );
+		if( p.parse_int(mref) < 0 ) {
+			mref = p.error();
+			break;
+		}
 	}  while(0);
 	if( textmp_changed )
 	if( (ret=set_text_mode_param_config(old_txt_param)) < 0 ) {

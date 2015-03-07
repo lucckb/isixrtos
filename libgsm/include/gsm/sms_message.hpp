@@ -23,7 +23,6 @@
 namespace gsm_modem {
 
 		//http://www.smssolutions.net/tutorials/gsm/sendsmsat/
-		class at_parser;
 
 		//! Base classes for all smses
 		class sms 
@@ -39,12 +38,6 @@ namespace gsm_modem {
 				t_command,		 //! Command type SMS
 			};
 			virtual int type() const = 0;
-			virtual int encode( at_parser& /*p*/, bool /*pdu*/) const {
-				return error::invalid_argument;
-			};
-			virtual int decode( at_parser& /*p*/, bool /*pdu*/) {
-				return error::invalid_argument;
-			}
 			//Setter getters
 			data_coding_scheme get_dcs( ) const {
 				return m_dcs;
@@ -164,8 +157,6 @@ namespace gsm_modem {
 			void message( const char* msg ) {
 				std::strncpy( m_message, msg, sizeof(m_message)-1 );
 			}
-			virtual int encode( at_parser& at, bool pdu ) const ;
-			virtual int decode( at_parser& at, bool pdu );
 		};
 
 		// SMS-STATUS-REPORT TPDU
