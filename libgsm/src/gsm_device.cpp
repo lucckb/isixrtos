@@ -349,7 +349,7 @@ int device::send_sms( const sms_submit& sms )
 			return ret;
 		}
 		auto new_txt_param = old_txt_param;
-		new_txt_param.validity_period = sms.vailidity_period();
+		new_txt_param.validity_period = sms.validity_period();
 		if( sms.flash_message() ) {
 			dbprintf("Flash message param config");
 			unsigned char dcs = sms.get_dcs();

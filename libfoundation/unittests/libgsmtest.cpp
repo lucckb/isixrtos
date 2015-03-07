@@ -158,14 +158,21 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	if(1) {
 		int err;
 		gsm_modem::sms_store_ptr_t sms;
-		std::tie( err, sms ) = modem.get_sms_store().read_entry(1);
+		std::tie( err, sms ) = modem.get_sms_store().read_entry(2);
 		dbprintf( "Read entry stat %i %p", err, sms );
-		if( !err ) {
+		if( err > 0 && sms->type() == gsm_modem::sms::t_deliver ) {
 			const auto it = dynamic_cast<gsm_modem::sms_deliver*>( sms );
 			dbprintf("TSTAMP %s ORIGIN_ADDR %s PID %i REPORT_INDIC %i",
 				it->service_tstamp(), it->origin_address(), it->pid(), it->report_indication() );
 			dbprintf("Content %s", it->message() );
 					
+		} else if( err > 0 && sms->type() == gsm_modem::sms::t_submit ) {
+			dbprintf("Submit message type");
+			const auto it = dynamic_cast<gsm_modem::sms_submit*>( sms );
+			dbprintf("VALIDITY %i REP_REQ %i FL_MSG %i DEST_ADDR %s, PID %i",
+				it->validity_period(), it->report_request(), it->flash_message(),
+				it->dest_address() , it->pid() );
+			dbprintf("Content %s", it->message() );
 		}
 	}
 	return 0;

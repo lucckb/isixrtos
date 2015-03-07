@@ -39,7 +39,7 @@ namespace gsm_modem {
 				t_command,		 //! Command type SMS
 			};
 			virtual int type() const = 0;
-			virtual int encode( at_parser& /*p*/, bool /*pdu*/) { 
+			virtual int encode( at_parser& /*p*/, bool /*pdu*/) const {
 				return error::invalid_argument;
 			};
 			virtual int decode( at_parser& /*p*/, bool /*pdu*/) {
@@ -109,16 +109,27 @@ namespace gsm_modem {
 			unsigned char m_validity_period { 167 };
 			bool m_status_report_request {};
 			bool m_flash_message {};
-			const char* m_dest_addr {};
-			const char *m_message;
+			char m_dest_addr[14] {};
+			char m_message[162] {};
+			unsigned char m_pid {};
 		public:
 			//Constructor type
 			sms_submit( const char* dest, const char* message )
-				: m_dest_addr(dest), m_message( message )
+			{
+				std::strncpy(m_dest_addr, dest, sizeof(m_dest_addr)-1);
+				std::strncpy(m_message, message, sizeof(m_message)-1);
+			}
+			sms_submit() 
 			{}
 			//Destructor
 			virtual ~sms_submit() {
 
+			}
+			const char* dest_address() const {
+				return m_dest_addr;
+			}
+			void dest_address( const char *addr ) {
+				std::strncpy( m_dest_addr, addr, sizeof(m_dest_addr)-1 );
 			}
 			virtual int type() const {
 				return sms::t_submit;
@@ -126,7 +137,7 @@ namespace gsm_modem {
 			void validity_period( unsigned char val ) {
 				m_validity_period = val;
 			}
-			int vailidity_period() const {
+			int validity_period() const {
 				return m_validity_period;
 			}
 			void flash_message( bool flash ) {
@@ -140,6 +151,18 @@ namespace gsm_modem {
 			}
 			bool report_request() const {
 				return m_status_report_request;
+			}
+			int pid() const {
+				return m_pid;
+			}
+			void pid( unsigned char pid ) {
+				m_pid = pid;
+			}
+			const char* message() const {
+				return m_message;
+			}
+			void message( const char* msg ) {
+				std::strncpy( m_message, msg, sizeof(m_message)-1 );
 			}
 			virtual int encode( at_parser& at, bool pdu ) const ;
 			virtual int decode( at_parser& at, bool pdu );
