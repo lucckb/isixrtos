@@ -129,6 +129,11 @@ namespace gsm_modem {
 		 */
 		int set_sms_routing_to_ta( bool en_sms, bool en_cbs, bool en_stat_report, 
 				bool only_reception_indication=true );
+
+		//Wait for event
+		int wait_event( int timeout ) {
+			return m_at.wait( timeout );
+		}
 	private:
 		/** Private function for set and get text mode parameters
 		 *  used only for text mode smses
@@ -140,8 +145,10 @@ namespace gsm_modem {
 
 		//Do single command
 		int send_command_noresp( const char *cmd, const char* arg );
+
 		//Enable or disable device
 		int do_enable();
+
 		//Disable the gsm module
 		int do_disable() 
 		{

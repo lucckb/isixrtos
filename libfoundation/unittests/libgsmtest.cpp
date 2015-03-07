@@ -136,7 +136,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		//Delete entry
 		dbprintf("deletentry=%i", modem.get_phonebook().delete_entry( 15 ) );
 	}
-	if(0) {
+	if(1) {
 		char msg[161] {};
 		memset(msg, 'z', 160 );
 		gsm_modem::sms_submit sms( "+48660428360", "Proba SMSA");
@@ -148,15 +148,15 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		gsm_modem::smsmem_id ids;
 		dbprintf( "store flags %i", ssms.get_store_identifiers(ids) );
 		dbprintf( "select store %i", ssms.select_store(ids) );
-		dbprintf( "number of entries %lu", ssms.size() );
+		dbprintf( "number of entries %lu", ssms.capacity() );
 	}
-	if(0) {
+	if(1) {
 		dbprintf("RouteToTA %i", modem.set_sms_routing_to_ta( true, false, true ) );
 	}
 	if(0) {
 		dbprintf( "Delete entry %i", modem.get_phonebook().find_empty_entry() );
 	}
-	if(1) {
+	if(0) {
 		int err;
 		gsm_modem::sms_store_ptr_t sms;
 		std::tie( err, sms ) = modem.get_sms_store().read_entry(2);
@@ -175,8 +175,13 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 				it->dest_address() , it->pid() );
 			dbprintf("Content %s", it->message() );
 		}
-		if( 1 ) {
-			dbprintf("Delete entry %i", modem.get_sms_store().erase_entry( 2 ) );
+	}
+	if( 0 ) {
+		dbprintf("Delete entry %i", modem.get_sms_store().erase_entry( 2 ) );
+	}
+	if( 1 ) {
+		for(;;) {
+			dbprintf("Wait=%i", modem.wait_event( 5000 ) );
 		}
 	}
 	return 0;

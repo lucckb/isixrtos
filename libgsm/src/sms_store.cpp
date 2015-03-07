@@ -29,7 +29,7 @@ namespace gsm_modem {
 constexpr const char* const smsmem_id::smsstorenames[];
 /* ------------------------------------------------------------------ */ 
 //Get at parser
-at_parser& sms_store::at()
+at_parser& sms_store::at() 
 {
 	return m_dev.get_at();
 }
@@ -66,11 +66,12 @@ int sms_store::select_store( const smsmem_id& id )
 	if( !p.parse_string() ) return p.error();
 	if(p.parse_comma() < 0 ) return p.error();
 	//Interesting entries from second memory type
-	if( p.parse_int(value) < 0 ) return p.error();
+	int n_entries;
+	if( p.parse_int(n_entries) < 0 ) return p.error();
 	if(p.parse_comma() < 0 ) return p.error();
 	if( p.parse_int(value) < 0 ) return p.error();
 	m_total_entries = value;
-	return error::success;
+	return n_entries;
 }
 /* ------------------------------------------------------------------ */ 
 /** Get sms store indentifiers 
@@ -96,7 +97,7 @@ int sms_store::get_store_identifiers( smsmem_id& id )
 }
 /* ------------------------------------------------------------------ */
 /** Read message from phonebook */
-sms_store_result_t sms_store::read_entry( int index )
+sms_store_result_t sms_store::read_entry( int index ) 
 {
 	if( !m_store_flags ) {
 		return sms_store_result_t(error::sms_store_not_selected, nullptr );

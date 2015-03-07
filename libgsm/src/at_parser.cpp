@@ -134,12 +134,12 @@ int at_parser::getsome( size_t from_pos )
 }
 /* ------------------------------------------------------------------ */
 // Get line and handle events
-char* at_parser::getline( size_t pos_from )
+char* at_parser::getline( size_t pos_from, int timeout )
 {
 	const auto begin_ptr = m_cmd_buffer+pos_from;
 	int ret {};
 	do {
-		ret = m_port.gets( begin_ptr, sizeof(m_cmd_buffer)-pos_from, def_timeout );
+		ret = m_port.gets( begin_ptr, sizeof(m_cmd_buffer)-pos_from, timeout );
 		if( ret <= 0 ) 
 		{ 
 			m_error = !ret?error::receive_timeout:ret; 

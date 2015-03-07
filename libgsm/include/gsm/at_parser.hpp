@@ -37,10 +37,10 @@ class at_parser
 	static constexpr auto cmd_buffer_len = 1024U;
 	static constexpr auto atcmd_maxlen = 64U;
 	static constexpr auto def_timeout = 5000;
-	static constexpr auto time_infinite = fnd::serial_port::time_infinite;
 	static constexpr char CR = 13;             // ASCII carriage return
 	static constexpr char LF = 10;             // ASCII line feed
 public:
+	static constexpr auto time_infinite = fnd::serial_port::time_infinite;
 	enum ecapab : unsigned {
 		cap_ommits_colon = 1
 	};
@@ -81,6 +81,10 @@ public:
 	void set_event_handler( event* ev ) {
 		m_event = ev;
 	}
+	//! Wait for an event
+	int wait( int timeout ) {
+		return getline(0, timeout )?error::success:error();
+	}
 private:
 	//! Remove whitespace at begginning and end of string
 	char* normalize( char* input );
@@ -96,7 +100,7 @@ private:
 	// Cut the response
 	char* cut_response( char* answer, const char* response_to_match );
 	// Get line and handle events
-	char* getline( size_t pos_from = 0U);
+	char* getline( size_t pos_from = 0U, int timeout = def_timeout );
 	// Get some data and don't wait for cr/lf
 	int getsome( size_t from_pos );
 private:

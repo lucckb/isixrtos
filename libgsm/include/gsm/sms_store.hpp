@@ -88,6 +88,8 @@ namespace gsm_modem {
 		}
 	};
 
+	
+
 	//! Class for representing SMS store
 	class sms_store {
 	public:
@@ -110,7 +112,7 @@ namespace gsm_modem {
 		};
 		/** Set sms store phonebook name
 		 * @param[in] id SMS store name 
-		 * @return error code
+		 * @return Number of entries in selected book
 		 */
 		int select_store( const smsmem_id& id );
 		
@@ -124,7 +126,7 @@ namespace gsm_modem {
 		 * @param[in] Input index of the message
 		 * @return Pointer to read SMS with error code
 		 */
-		sms_store_result_t read_entry( int index );
+		sms_store_result_t read_entry( int index ) ;
 		
 		/** Erase entry using selected index name
 		 * @param[in] index Index of message to delete
@@ -135,13 +137,13 @@ namespace gsm_modem {
 
 		/** Return number of entries in the store
 		 */
-		size_t size() const {
+		size_t capacity() const {
 			return m_total_entries;
 		}
+		// Interators
 	private:
 		//Get at parser
 		at_parser& at();
-
 	private:
 		device& m_dev;				//! Device owner
 		unsigned m_store_flags {};	//! Stored elem
