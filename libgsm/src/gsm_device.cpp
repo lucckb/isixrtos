@@ -561,4 +561,42 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 	return error::success;
 }
 /* ------------------------------------------------------------------ */
+/** Get phone IMEI
+	* @param[in] inp Input IMEI structure 
+	* @return Error code or 0 */
+int device::get_imei( imei_number& inp )
+{
+	auto resp = m_at.chat("+CGSN?", "+CGSN:");
+	if( !resp ) {
+		dbprintf( "Modem error response %i", m_at.error() );	
+		return m_at.error();
+	}
+	param_parser p( resp, m_at.bufsize() );
+	const auto imei = p.parse_string();
+	if( !imei ) {
+		return p.error();
+	}
+	std::strncpy( inp.value, imei, sizeof(inp)-1);
+	return error::success;
+}
+/* ------------------------------------------------------------------ */ 
+/** Get phone imsi 
+	* @param[in] inp Input structure with imsi
+	* @return Error code or success */
+int device::get_imsi( imsi_number& inp )
+{
+	auto resp = m_at.chat("+CIMI?", "+CIMI:");
+	if( !resp ) {
+		dbprintf( "Modem error response %i", m_at.error() );	
+		return m_at.error();
+	}
+	param_parser p( resp, m_at.bufsize() );
+	const auto imsi = p.parse_string(false,false);
+	if( !imsi ) {
+		return p.error();
+	}
+	std::strncpy( inp.value, imsi, sizeof(inp)-1 );
+	return error::success;
+}
+/* ------------------------------------------------------------------ */
 }

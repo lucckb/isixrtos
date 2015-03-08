@@ -62,6 +62,16 @@ namespace gsm_modem {
 		unsigned numeric_name{};	//Network numeric code
 	};
 
+	//! Get IMEI
+	struct imsi_number {
+		char value[16] {};
+	};
+
+	//! IMEI
+	struct imei_number {
+		char value[17] {};
+	};
+
 	//! Registration status code
 	struct reg_status {
 		enum reg_status_ {

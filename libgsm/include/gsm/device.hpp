@@ -93,6 +93,17 @@ namespace gsm_modem {
 		 */
 		int get_registration_status();
 
+
+		/** Get phone IMEI
+		 * @param[in] inp Input IMEI structure 
+		 * @return Error code or 0 */
+		int get_imei( imei_number& inp );
+
+		/** Get phone imsi 
+		 * @param[in] inp Input structure with imsi
+		 * @return Error code or success */
+		int get_imsi( imsi_number& inp );
+
 		/** Get signal strength information
 		 * @return signal stength or error code
 		 * 0 -113 dBm or less

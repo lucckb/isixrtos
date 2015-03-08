@@ -165,7 +165,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	if(0) {
 		dbprintf( "Delete entry %i", modem.get_phonebook().find_empty_entry() );
 	}
-	if(1) {
+	if(0) {
 		int err;
 		gsm_modem::sms_type_ptr_t sms;
 		std::tie( err, sms ) = modem.get_sms_store().read_entry(3);
@@ -188,6 +188,14 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	}
 	if( 0 ) {
 		dbprintf("Delete entry %i", modem.get_sms_store().erase_entry( 2 ) );
+	}
+	if( 1 ) {
+		gsm_modem::imei_number imei;
+		gsm_modem::imsi_number imsi;
+		TEST_ERROR( modem.get_imei( imei ) );
+		dbprintf("IMEI=%s", imei.value );
+		TEST_ERROR( modem.get_imsi( imsi ) );
+		dbprintf("IMSI=%s", imsi.value );
 	}
 	if( 1 ) {
 		for(;;) {
