@@ -197,7 +197,7 @@ int device::get_current_op_info( oper_info& info )
 			return p.error();	
 		}
 		info.mode = op_modes( val );
-		if( p.parse_comma(true) ) 
+		if( p.parse_comma(true)>0 ) 
 		{
 			if( p.parse_int(val) ) {
 				dbprintf("Parse int failed at #2 %i", p.error() );
@@ -207,7 +207,10 @@ int device::get_current_op_info( oper_info& info )
 				dbprintf("Unexpected response");
 				return error::unexpected_resp;
 			}
-			p.parse_comma();
+			if( p.parse_comma() < 0 ) {
+				dbprintf("Parse int failed at #3 %i", p.error() );
+				return p.error();	
+			}
 			if( fmt != 2 ) 
 			{
 				auto ps = p.parse_string();
@@ -415,16 +418,16 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 	param_parser p( resp, m_at.bufsize() );
 	
 	if( p.parse_int_list(modes)<0 ) return p.error();
-	if( p.parse_comma(true) ) {
+	if( p.parse_comma(true)>0 ) {
 		if( p.parse_int_list(sms_modes)<0 ) return p.error();
 		sms_mode_set = true;
-		if( p.parse_comma(true) ) {
+		if( p.parse_comma(true)>0 ) {
 			if( p.parse_int_list(cbs_modes)<0 ) return p.error();
 			cbs_mode_set = true;
-			if(p.parse_comma(true)) {
+			if(p.parse_comma(true)>0) {
 				if( p.parse_int_list(stat_modes)<0 ) return p.error();
 				stat_mode_set = true;
-				if( p.parse_comma(true)) {
+				if( p.parse_comma(true)>0) {
 					if( p.parse_int_list(buffer_modes)<0 ) return p.error();
 					buffered_mode_set = true;
 				}

@@ -310,7 +310,7 @@ int param_parser::parse_parameter_range_list(vector<parameter_range>& result, bo
 		return m_error;
 	}
 	result.push_back(item);
-	while (parse_comma(true))
+	while (parse_comma(true)>0)
 	{
 		if( parse_parameter_range(item) < 0 ) {
 			return m_error;
