@@ -100,8 +100,14 @@ param_parser::ret_str_t param_parser::parse_string(bool allow_no_string,
 
 {
 	// handle case of empty parameter
-	if (check_empty_parameter(allow_no_string)) return m_pos;
-
+	auto ret = check_empty_parameter(allow_no_string);
+	if (ret == true ) {
+		*m_pos = '\0';
+		m_comma_pos = m_pos;
+		return m_pos;
+	} else if( ret < 0 ) {
+		return nullptr;
+	}
 	auto result = do_parse_string(string_with_quotation_marks);
 
 	return result;
@@ -131,7 +137,11 @@ int param_parser::parse_string_list(vector<param_parser::ret_str_t>& result, boo
 
 {
 	// handle case of empty parameter
-	if (check_empty_parameter(allow_no_list)) return m_error;
+	{
+		auto ret = check_empty_parameter(allow_no_list);
+		if (ret==true) return error::success;
+		else if(ret<0) return m_error;
+	}
 
 	if( parse_char('(') < 0 ) {
 		m_error = error::param_parser_unexpected_char;
@@ -167,10 +177,14 @@ int param_parser::parse_int_list(bit_range& result, bool allow_no_list)
 	bool isRange = false;
 	int resultCapacity = 0;
 	const auto saveI = m_pos;
-
-	if(bad()) return m_error;
-	if (check_empty_parameter(allow_no_list)) return m_error;
-
+	if(bad()) { 
+		return m_error;
+	}
+	{
+		auto ret = check_empty_parameter(allow_no_list);
+		if (ret==true) return error::success;
+		else if(ret<0) return m_error;
+	}
 	// check for the case of a integer list consisting of only one parameter
 	// some TAs omit the parentheses in this case
 	skip_space();
@@ -286,8 +300,11 @@ int param_parser::parse_parameter_range_list(vector<parameter_range>& result, bo
 
 {
 	// handle case of empty parameter
-	if (check_empty_parameter(allow_no_list)) return m_error;
-	
+	{
+		auto ret = check_empty_parameter(allow_no_list);
+		if (ret==true) return error::success;
+		else if(ret<0) return m_error;
+    }	
 	parameter_range item;
 	if( parse_parameter_range(item) < 0 ) {
 		return m_error;
@@ -308,8 +325,11 @@ int param_parser::parse_parameter_range(parameter_range& result, bool allow_no_p
 
 {
 	// handle case of empty parameter
-	if (check_empty_parameter(allow_no_parameter_range)) return m_error;
-
+	{
+		auto ret = check_empty_parameter(allow_no_parameter_range);
+		if (ret==true) return error::success;
+		else if(ret<0) return m_error;
+	}
 	if( parse_char('(') < 0 ) {
 		return m_error;
 	}
@@ -330,8 +350,11 @@ int param_parser::parse_range(int_range& result, bool allow_no_range, bool allow
 
 {
 	// handle case of empty parameter
-	if (check_empty_parameter(allow_no_range)) return m_error;
-
+	{
+		auto ret = check_empty_parameter(allow_no_range);
+		if (ret==true) return error::success;
+		else if(ret<0) return m_error;
+	}
 	if( parse_char('(') < 0 ) {
 		return m_error;
 	}
@@ -358,8 +381,9 @@ int param_parser::parse_int(int& result, bool allow_no_int)
 {
 	// handle case of empty parameter
 	result = NOT_SET;
-	if (check_empty_parameter(allow_no_int)) return m_error;
-
+	auto ret = check_empty_parameter(allow_no_int);
+	if (ret==true) return error::success;
+	else if(ret<0) return m_error;
 	return do_parse_int(result);
 }
 
