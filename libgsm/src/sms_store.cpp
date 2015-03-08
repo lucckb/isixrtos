@@ -125,6 +125,7 @@ sms_store_result_t sms_store::read_entry( int index )
 	} else {
 		return sms_store_result_t(error::sms_type_unsupported,nullptr);
 	}
+	if( p.parse_comma()<0 ) return sms_store_result_t( p.error(), nullptr );
 	//deliver, status_report, submit_report
 	if( msgtype==smsstore_message_type::rec_read||msgtype==smsstore_message_type::rec_unread ) 
 	{

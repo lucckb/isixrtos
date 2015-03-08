@@ -173,6 +173,20 @@ char* at_parser::getline( size_t pos_from, int timeout )
 	dbprintf("rx>[%s]->%i", begin_ptr, ret );
 	return begin_ptr;
 }
+/* ------------------------------------------------------------------ */
+//! Get second line just after the response
+char* at_parser::get_second_line( const char* first_ln, int timeout ) 
+{
+	const auto pos_from = std::strlen(first_ln)+(first_ln-m_cmd_buffer)+sizeof('\0');
+	const auto begin_ptr = m_cmd_buffer+pos_from;
+	auto ret = m_port.gets( begin_ptr, sizeof(m_cmd_buffer)-pos_from, timeout );
+	if( ret <= 0 ) 
+	{ 
+		m_error = !ret?error::receive_timeout:ret; 
+		return nullptr; 
+	}
+	return begin_ptr;
+}
 /* ------------------------------------------------------------------ */ 
 //! Chat with the modem
 char* at_parser::chat( const char at_cmd[], const char resp[],

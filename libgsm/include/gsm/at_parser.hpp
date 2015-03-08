@@ -70,21 +70,27 @@ public:
 	int error() const {
 		return m_error;
 	}
+
 	//! Get buffer size 
 	size_t bufsize() const {
 		return cmd_buffer_len;
 	}
+
 	//! Put line to the serial interface
 	int put_line( const char* line1, const char* line2=nullptr,
 			bool carriage_return = true );
+
 	//! Set event handler for the parser
 	void set_event_handler( event* ev ) {
 		m_event = ev;
 	}
+
 	//! Wait for an event
 	int wait( int timeout ) {
 		return getline(0, timeout )?error::success:error();
 	}
+	//! Get second line just after the response
+	char* get_second_line( const char* first_ln, int timeout = def_timeout );
 private:
 	//! Remove whitespace at begginning and end of string
 	char* normalize( char* input );
@@ -99,10 +105,10 @@ private:
 	void report_error( char* inp );
 	// Cut the response
 	char* cut_response( char* answer, const char* response_to_match );
-	// Get line and handle events
-	char* getline( size_t pos_from = 0U, int timeout = def_timeout );
 	// Get some data and don't wait for cr/lf
 	int getsome( size_t from_pos );
+	// Get line and handle events
+	char* getline( size_t pos_from = 0U, int timeout = def_timeout );
 private:
 	fnd::serial_port& m_port;	//Serial port reference
 	int m_error {};				//Error code

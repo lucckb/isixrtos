@@ -31,7 +31,6 @@ event::event( sms_store& dev )
 //! TODO: Dispatch event add support for cell broadcast
 void event::dispatch( at_parser& at , char* str ) 
 {
-	dbprintf("TODO: impl. Dispatch event str %s", str );
 	sms::mtype msg_type;
 	bool indication {};
 	if( !std::strncmp(str,"+CMT:",5) ) {
@@ -44,16 +43,18 @@ void event::dispatch( at_parser& at , char* str )
 		indication = true;
 		msg_type = sms::t_submit;
 	} else if( !std::strncmp(str,"+CBMI:",6) ) {
-		//TODO Broadcast not supported yey
+		//TODO Broadcast not supported yet
 	}
 	else if( !std::strncmp(str,"+CDSI:",6) ) {
 		indication = true;
 		msg_type = sms::t_status_report;
 	} else if( !std::strncmp(str,"RING",4) ) {
 		ring_indication();
+		return;
 
 	} else if( !std::strncmp(str,"NO CARRIER",10) ) {
 		no_answer();
+		return;
 	} else if( !std::strncmp(str,"+CLIP:",6) ) {
 		param_parser p(str+6, at.bufsize()-6);
 		auto num = p.parse_string();
@@ -75,16 +76,13 @@ void event::dispatch( at_parser& at , char* str )
 		if(p.parse_comma(true)>0) 
 		{
 			if( !p.parse_string(true) ) {
-				dbprintf("Unable to get SA");
 				return;
 			}
 			if( p.parse_comma()<0 ) {
-				dbprintf("Pcoma1");
 				return;
 			}
 			int dummy;
 			if( (dummy=p.parse_int(dummy,true))<0 ) {
-				dbprintf("PINT2");
 				return;
 			}
 			if( p.parse_comma(true)>0 ) {
@@ -92,19 +90,90 @@ void event::dispatch( at_parser& at , char* str )
 			}
 		}
 		caller_line_id( num, alpha );
+		return;
+	}
+	if( indication )
+	{
+		param_parser p(str+6, at.bufsize()-6);
+		const auto store_name = p.parse_string();
+		if( !store_name ) {
+			return;
+		}
+		if( p.parse_comma()<0 ) {
+			return;
+		}
+		int index;
+		if( p.parse_int(index)<0 ) {
+			return;
+		}
+		smsmem_id mem;
+		mem.set_bit( store_name );
+		sms_reception_indication( mem, index );
+	} 
+	else 
+	{
+		sms_type_ptr_t msg {};
+		param_parser p(str+5, at.bufsize()-5);
+		//! Normal deliver SMS routed to TA
+		if( msg_type == sms::t_deliver ) 
+		{
+			dbprintf("Before PDU %s", str );
+			auto nmsg = m_store.create_message<sms_deliver>( p );
+			if( !p.error() ) {
+				const auto pdu = at.get_second_line(str);
+				if( pdu ) {
+					nmsg->message(pdu);
+					msg = nmsg;
+				} else {
+					dbprintf("Unable to get pdu %i", at.error() );
+				}
+			} else {
+				dbprintf("Unable to parse message %i", p.error() );
+			}
+		} 
+		//Normal status report
+		else if( msg_type == sms::t_status_report ) 
+		{
+			auto nmsg = m_store.create_message<sms_status_report>( p );
+			if( !p.error() ) {
+				msg = nmsg;
+
+			} else{
+				dbprintf( "Unable to handle message %i", p.error() );
+			}
+		}
+		//! Set acknowledgement
+		if( !at.chat("+CNMA") ) {
+			dbprintf("Unable to send ACK");
+		}
+		if( msg ) {
+			sms_reception( msg );
+		}
 	}
 }
 /* ------------------------------------------------------------------ */
 //Callback functions
-void event::sms_reception( const sms_type_ptr_t /*sms*/) 
+void event::sms_reception( const sms_type_ptr_t sms) 
 {
 	dbprintf("Unhandled sms_reception");
+	//FIXME: This a test code only for check indication
+	if( sms->type() == sms::t_status_report ) {
+		const auto msg = static_cast<const sms_status_report*>(sms);
+		dbprintf("RecAddr %s SCTS %s DiscTime %s status %i msgreg %i",
+				msg->receimpent_address(), msg->scs_timestamp(), msg->discharge_time(),
+				msg->status(),  msg->msg_ref() );
+	} else if( sms->type() == sms::t_deliver ) {
+			const auto it = dynamic_cast<gsm_modem::sms_deliver*>( sms );
+			dbprintf("TSTAMP %s ORIGIN_ADDR %s PID %i REPORT_INDIC %i",
+				it->service_tstamp(), it->origin_address(), it->pid(), it->report_indication() );
+			dbprintf("Content %s", it->message() );
+	}
 }
 /* ------------------------------------------------------------------ */ 
 //SMS reception indication
-void event::sms_reception_indication(const smsmem_id& /*storage */,int index)
+void event::sms_reception_indication(const smsmem_id& storage ,int index)
 {
-	dbprintf("Unhandled sms_reception_indication %i", index );
+	dbprintf("Unhandled sms_reception_indication store %08x index %i", storage.bits(), index );
 }
 /* ------------------------------------------------------------------ */ 
 // number, subaddr, alpha

@@ -94,19 +94,25 @@ class devctl : public gsm_modem::hw_control  {
 	}
 };
 
+#define TEST_ERROR( x ) do { \
+	if( x < 0 ) { \
+		printf("Execute failed at line %i %s", __LINE__, #x ); \
+		exit(-1); } \
+	} while(0)
 
 int libgsm_main( int /*argc*/, const char** /*  argv*/)
 {
+	int ret;
 	fnd::serialport_unix m_ser( "/dev/ttyS0", 115200 );
 	devctl m_ctl;
 	gsm_modem::device modem( m_ser, m_ctl );
 	if(1) {
-		modem.enable( true );
+		TEST_ERROR( modem.enable( true ) );
 		modem.register_to_network( "1234" );
 	}
 	if(0) {
 		gsm_modem::oper_info oi;
-		modem.get_current_op_info(oi);
+		TEST_ERROR( modem.get_current_op_info(oi) );
 		dbprintf("status %i mode %i short [%s] long [%s] nn %i", 
 				(int)oi.status, (int)oi.mode, oi.desc_short, oi.desc_long, oi.numeric_name );
 	}
@@ -136,6 +142,9 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		//Delete entry
 		dbprintf("deletentry=%i", modem.get_phonebook().delete_entry( 15 ) );
 	}
+	if(1) {
+		TEST_ERROR( modem.set_sms_routing_to_ta( true, false, true, false ) );
+	}
 	if(0) {
 		char msg[161] {};
 		memset(msg, 'z', 160 );
@@ -146,12 +155,11 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	if(1) {
 		auto& ssms = modem.get_sms_store();
 		gsm_modem::smsmem_id ids;
-		dbprintf( "store flags %i", ssms.get_store_identifiers(ids) );
-		dbprintf( "select store %i", ssms.select_store(ids) );
+		dbprintf( "store flags %i", (ret=ssms.get_store_identifiers(ids)) );
+		TEST_ERROR(ret);
+		dbprintf( "select store %i", (ret=ssms.select_store(ids)) );
+		TEST_ERROR(ret);
 		dbprintf( "number of entries %lu", ssms.capacity() );
-	}
-	if(1) {
-		dbprintf("RouteToTA %i", modem.set_sms_routing_to_ta( true, false, true ) );
 	}
 	if(0) {
 		dbprintf( "Delete entry %i", modem.get_phonebook().find_empty_entry() );
@@ -161,6 +169,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 		gsm_modem::sms_type_ptr_t sms;
 		std::tie( err, sms ) = modem.get_sms_store().read_entry(3);
 		dbprintf( "Read entry stat %i %p", err, sms );
+		TEST_ERROR( ret );
 		if( err >= 0 && sms->type() == gsm_modem::sms::t_deliver ) {
 			const auto it = dynamic_cast<gsm_modem::sms_deliver*>( sms );
 			dbprintf("TSTAMP %s ORIGIN_ADDR %s PID %i REPORT_INDIC %i",

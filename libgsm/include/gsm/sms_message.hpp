@@ -63,7 +63,7 @@ namespace gsm_modem {
 			 * @param[in] input buffer length
 			 * @param[in] msg Only in text mode message for PDU should be null
 			 */
-			sms_deliver( param_parser& p, const char* msg );
+			sms_deliver( param_parser& p, const char* msg = nullptr );
 
 			virtual ~sms_deliver() {
 			}
@@ -178,11 +178,37 @@ namespace gsm_modem {
 			char m_service_tstamp[24] {};
 			char m_discharge_time[24] {};
 			unsigned char m_status {};
+			unsigned char m_msg_ref {};	//Message reference
 		public:
+			/** Constructor for SMS status report message in txt
+			 * @param[in] buf Input buffer data or pdu data
+			 * @param[in] msg Only in text mode message for PDU should be null
+			 */
+			sms_status_report( param_parser &p );
+			
+			//! Destructor
 			virtual ~sms_status_report() {
 			}
+			//! Get sms message type
 			virtual int type() const {
 				return sms::t_status_report;
+			}
+			//! Get receimpent address
+			const char* receimpent_address() const {
+				return m_receipment_address;
+			}
+			//! SCS timestamp
+			const char* scs_timestamp() const {
+				return m_service_tstamp;
+			}
+			const char* discharge_time() const {
+				return m_discharge_time;
+			}
+			int status() const {
+				return m_status;
+			}
+			int msg_ref() const {
+				return m_msg_ref;
 			}
 		};
 
