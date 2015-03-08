@@ -37,11 +37,13 @@ namespace gsm_modem {
 		class cap {
 			unsigned bits;
 		public:
+			cap& operator=(cap&) = delete;
+			cap( cap& ) = delete;
 			cap( unsigned bits_ )
 				: bits(bits_) {}
 			enum cap_ {
-				hw_flow,	//! Hardware flow control
-				sms_pdu,	//! SMS in pdu mode not suported yet
+				hw_flow = 1<<0,	//! Hardware flow control
+				sms_pdu = 1<<1,	//! SMS in pdu mode not suported yet
 			}; 
 			bool has_hw_flow() const {
 				return bits & hw_flow;
@@ -50,18 +52,25 @@ namespace gsm_modem {
 				return bits & sms_pdu;
 			}
 		};
+		//Noncopyable
+		device& operator=(device&) = delete;
+		device( device& ) = delete;
+
 		/** Constructor of the GSM device instance
 		 * @param comm Serial class for communication
 		 * @param hwctl Class for hardware control modem device
 		 */
 		device( fnd::serial_port& comm, hw_control& hwctl, unsigned cap = 0 );
+
 		/** Initialize and enable GSM device */
 		int enable( bool enable ) {
 			if(enable) return do_enable();
 			else return do_disable();
 		}
+
 		//! Set character set to the modem
 		int set_charset( const char* charset );
+
 		//! Register to GSM network 
 		int register_to_network( const char *pin = nullptr );
 

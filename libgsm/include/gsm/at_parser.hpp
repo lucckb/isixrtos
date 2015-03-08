@@ -91,6 +91,11 @@ public:
 	}
 	//! Get second line just after the response
 	char* get_second_line( const char* first_ln, int timeout = def_timeout );
+
+	//Get serial port device
+	int flow_control( bool en ) {
+		return m_port.set_flow( en?fnd::serial_port::flow_rtscts:fnd::serial_port::flow_none );
+	}
 private:
 	//! Remove whitespace at begginning and end of string
 	char* normalize( char* input );

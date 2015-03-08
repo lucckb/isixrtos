@@ -105,7 +105,8 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	int ret;
 	fnd::serialport_unix m_ser( "/dev/ttyS0", 115200 );
 	devctl m_ctl;
-	gsm_modem::device modem( m_ser, m_ctl );
+	using cap = gsm_modem::device::cap;
+	gsm_modem::device modem( m_ser, m_ctl, cap::hw_flow );
 	if(1) {
 		TEST_ERROR( modem.enable( true ) );
 		modem.register_to_network( "1234" );
@@ -145,7 +146,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	if(1) {
 		TEST_ERROR( modem.set_sms_routing_to_ta( true, false, true, false ) );
 	}
-	if(1) {
+	if(0) {
 		char msg[161] {};
 		memset(msg, 'z', 160 );
 		gsm_modem::sms_submit sms( "+48660428360", "Proba SMSA");

@@ -36,7 +36,11 @@ public:
 	 * @param[in] flow Hardware flow control settings
 	 * @param[in] tio_report input line for state change monitoring
 	 */
-	virtual int set_control( flow_control flow, unsigned tio_report = 0 );
+	virtual int set_flow( flow_control flow );
+	 /*	Set io report
+	  * @param[in] tio_report input line for state change monitoring
+	  */
+	virtual int set_ioreport( unsigned tio_report );
 	//!Putchar
 	virtual int putchar( value_type c, int timeout = time_infinite );
 	//!Get char

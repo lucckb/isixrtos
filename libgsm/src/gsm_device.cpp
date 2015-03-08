@@ -52,7 +52,20 @@ int device::do_enable () {
 		return m_at.error();
 	}
 	//!TODO: Enable GPRS modem RS232 hardware pins control
-
+	if( m_capabilities.has_hw_flow() ) 
+	{
+		dbprintf("Trying to set hardware flow control");
+		int ret;
+		do {
+			resp = m_at.chat("+IFC=2,2");
+			if(!resp) { ret = m_at.error(); break; }
+			if( (ret=m_at.flow_control(true)<0) ) break;
+		} while(0);
+		if( ret ) {
+			dbprintf("Unable to setup hardware flow %i", ret );
+			return ret;
+		}
+	}
 	//Set CFUN command
 	resp = m_at.chat("+CFUN=1");
 	if( !resp ) {

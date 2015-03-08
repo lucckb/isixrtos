@@ -212,7 +212,7 @@ void serialport_unix::set_parity( parity cparity )
 	* @param[in] flow Hardware flow control settings
 	* @param[in] tio_report input line for state change monitoring
 	*/
-int serialport_unix::set_control( flow_control flow, unsigned tio_report )
+int serialport_unix::set_flow( flow_control flow )
 {
 	
 	termios tios;
@@ -227,6 +227,14 @@ int serialport_unix::set_control( flow_control flow, unsigned tio_report )
 	if( tcsetattr( m_fd, TCSANOW, &tios ) ) {
 		throw std::system_error( errno, std::system_category() );
 	}
+	return 0;
+}
+/* ------------------------------------------------------------------ */ 
+/*	Set io report
+* @param[in] tio_report input line for state change monitoring
+*/
+int serialport_unix::set_ioreport( unsigned tio_report )
+{
 	if( tio_report && !m_thr_watch ) {
 		m_req_flags = tio_report;
 		m_thr_watch.reset( 
