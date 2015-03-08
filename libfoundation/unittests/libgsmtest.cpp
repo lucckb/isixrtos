@@ -145,7 +145,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	if(1) {
 		TEST_ERROR( modem.set_sms_routing_to_ta( true, false, true, false ) );
 	}
-	if(0) {
+	if(1) {
 		char msg[161] {};
 		memset(msg, 'z', 160 );
 		gsm_modem::sms_submit sms( "+48660428360", "Proba SMSA");

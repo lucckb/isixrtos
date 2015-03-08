@@ -35,7 +35,7 @@ namespace gsm_modem {
 		void dispatch( at_parser& , char* str );
 protected:
 		//Callback functions
-		virtual void sms_reception( const sms_type_ptr_t /*sms*/);
+		virtual void sms_reception( const sms&/*sms*/);
 		//SMS reception indication
 		virtual void sms_reception_indication(const smsmem_id& /*storage */,int /*index*/);
 		// number, subaddr, alpha

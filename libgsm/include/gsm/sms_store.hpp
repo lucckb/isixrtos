@@ -90,9 +90,6 @@ namespace gsm_modem {
 
 	//! Class for representing SMS store
 	class sms_store {
-		//! Event class is friend for prepare message
-		//  inplace
-		friend class event;
 	public:
 		//! Copy constructor and assign to delete
 		sms_store& operator=(sms_store&)=delete;

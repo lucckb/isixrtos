@@ -112,18 +112,17 @@ void event::dispatch( at_parser& at , char* str )
 	} 
 	else 
 	{
-		sms_type_ptr_t msg {};
 		param_parser p(str+5, at.bufsize()-5);
 		//! Normal deliver SMS routed to TA
 		if( msg_type == sms::t_deliver ) 
 		{
 			dbprintf("Before PDU %s", str );
-			auto nmsg = m_store.create_message<sms_deliver>( p );
+			sms_deliver dmsg(p);
 			if( !p.error() ) {
 				const auto pdu = at.get_second_line(str);
 				if( pdu ) {
-					nmsg->message(pdu);
-					msg = nmsg;
+					dmsg.message(pdu);
+					sms_reception( dmsg );
 				} else {
 					dbprintf("Unable to get pdu %i", at.error() );
 				}
@@ -134,10 +133,9 @@ void event::dispatch( at_parser& at , char* str )
 		//Normal status report
 		else if( msg_type == sms::t_status_report ) 
 		{
-			auto nmsg = m_store.create_message<sms_status_report>( p );
+			sms_status_report rmsg(p);
 			if( !p.error() ) {
-				msg = nmsg;
-
+				sms_reception( rmsg );
 			} else{
 				dbprintf( "Unable to handle message %i", p.error() );
 			}
@@ -146,27 +144,24 @@ void event::dispatch( at_parser& at , char* str )
 		if( !at.chat("+CNMA") ) {
 			dbprintf("Unable to send ACK");
 		}
-		if( msg ) {
-			sms_reception( msg );
-		}
 	}
 }
 /* ------------------------------------------------------------------ */
 //Callback functions
-void event::sms_reception( const sms_type_ptr_t sms) 
+void event::sms_reception( const sms& sms ) 
 {
 	dbprintf("Unhandled sms_reception");
 	//FIXME: This a test code only for check indication
-	if( sms->type() == sms::t_status_report ) {
-		const auto msg = static_cast<const sms_status_report*>(sms);
+	if( sms.type() == sms::t_status_report ) {
+		const auto msg = dynamic_cast<const sms_status_report&>(sms);
 		dbprintf("RecAddr %s SCTS %s DiscTime %s status %i msgreg %i",
-				msg->receimpent_address(), msg->scs_timestamp(), msg->discharge_time(),
-				msg->status(),  msg->msg_ref() );
-	} else if( sms->type() == sms::t_deliver ) {
-			const auto it = dynamic_cast<gsm_modem::sms_deliver*>( sms );
+				msg.receimpent_address(), msg.scs_timestamp(), msg.discharge_time(),
+				msg.status(),  msg.msg_ref() );
+	} else if( sms.type() == sms::t_deliver ) {
+			const auto it = dynamic_cast<const gsm_modem::sms_deliver&>( sms );
 			dbprintf("TSTAMP %s ORIGIN_ADDR %s PID %i REPORT_INDIC %i",
-				it->service_tstamp(), it->origin_address(), it->pid(), it->report_indication() );
-			dbprintf("Content %s", it->message() );
+				it.service_tstamp(), it.origin_address(), it.pid(), it.report_indication() );
+			dbprintf("Content %s", it.message() );
 	}
 }
 /* ------------------------------------------------------------------ */ 
