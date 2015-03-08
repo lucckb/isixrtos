@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 #include <gsm/phonebook.hpp>
-#include <gsm/gsm_device.hpp>
+#include <gsm/device.hpp>
 #include <gsm/at_parser.hpp>
 #include <gsm/param_parser.hpp>
 #include <foundation/dbglog.h>
@@ -168,9 +168,9 @@ int phonebook::write_or_delete_entry( int index, const phbook_entry* phb )
 	auto tlen = fnd::tiny_snprintf(buf, sizeof(buf)-1, "+CPBW=%i", index );
 	if( phb )	//!Also entry to write
 	{
-		int type { phbook_format::unknown };
+		int type { number_format::unknown };
 		if( std::strchr(phb->phone, '+') ) {
-			type = phbook_format::international;
+			type = number_format::international;
 		}
 		fnd::tiny_snprintf(buf+tlen, sizeof(buf)-tlen-1, ",\"%s\",%i,\"%s\"", 
 				phb->phone, type, phb->name );

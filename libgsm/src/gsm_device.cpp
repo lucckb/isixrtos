@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include <gsm/gsm_device.hpp>
+#include <gsm/device.hpp>
 #include <foundation/dbglog.h>
 #include <gsm/param_parser.hpp>
 #include <foundation/tiny_printf.h>
@@ -30,7 +30,7 @@ namespace gsm_modem {
 //! GSM device constructor
 device::device( fnd::serial_port& comm,  hw_control& hwctl, unsigned cap )
 	: m_at( comm ), m_hwctl( hwctl ), m_phonebook( *this ), 
-	  m_sms_store( *this ), m_capabilities( cap )
+	  m_sms_store( *this ), m_capabilities( cap ), m_event(m_sms_store)
 {
 
 }

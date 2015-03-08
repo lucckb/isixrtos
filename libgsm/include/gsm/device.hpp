@@ -18,7 +18,7 @@
 #pragma once
 
 #include <gsm/at_parser.hpp>
-#include <gsm/gsm_event.hpp>
+#include <gsm/event.hpp>
 #include <gsm/hw_control.hpp>
 #include <foundation/serial_port.hpp>
 #include <gsm/datadefs.hpp>
@@ -158,9 +158,9 @@ namespace gsm_modem {
 	private:
 		at_parser m_at;			    //AT parser class
 		hw_control& m_hwctl;		//Hardware ctl class
-		event m_event;				//Events class dispatcher
 		phonebook m_phonebook;		//Phonebook object
 		sms_store m_sms_store;		//Current sms store
 		cap m_capabilities;			//Capability flags
+		event m_event;				//Events class dispatcher
 	};
 }

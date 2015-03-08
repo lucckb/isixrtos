@@ -18,7 +18,7 @@
 #include <gsm/sms_store.hpp>
 #include <gsm/at_parser.hpp>
 #include <gsm/param_parser.hpp>
-#include <gsm/gsm_device.hpp>
+#include <gsm/device.hpp>
 #include <gsm/sms_codec.hpp>
 #include <foundation/tiny_printf.h>
 #include <foundation/dbglog.h>

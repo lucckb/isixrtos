@@ -30,12 +30,6 @@ namespace gsm_modem {
 		char phone[15] {};	//! Phone number
 	};
 
-	struct phbook_format {
-		enum phbook_format_ {
-			unknown = 129,
-			international = 145
-		};
-	};
 
 	//! forward declaration
 	class device;

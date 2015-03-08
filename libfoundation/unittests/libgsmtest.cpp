@@ -18,7 +18,7 @@
 
 #include <foundation/dbglog.h>
 #include <serialport_unix.hpp>
-#include <gsm/gsm_device.hpp>
+#include <gsm/device.hpp>
 #include <gsm/sms_message.hpp>
 #include <gsm/sms_store.hpp>
 #include <cstring>
@@ -158,7 +158,7 @@ int libgsm_main( int /*argc*/, const char** /*  argv*/)
 	}
 	if(1) {
 		int err;
-		gsm_modem::sms_store_ptr_t sms;
+		gsm_modem::sms_type_ptr_t sms;
 		std::tie( err, sms ) = modem.get_sms_store().read_entry(3);
 		dbprintf( "Read entry stat %i %p", err, sms );
 		if( err >= 0 && sms->type() == gsm_modem::sms::t_deliver ) {

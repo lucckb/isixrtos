@@ -17,7 +17,7 @@
  */
 #include <foundation/dbglog.h>
 #include <gsm/at_parser.hpp>
-#include <gsm/gsm_event.hpp>
+#include <gsm/event.hpp>
 #include <cstring>
 #include <cstddef>
 #include <algorithm>
@@ -165,7 +165,7 @@ char* at_parser::getline( size_t pos_from, int timeout )
 			(match_response(s,"+CLIP:") && std::strlen(s)>10 )) 
 		{
 			if( m_event )
-				m_event->dispatch( s, *this );		
+				m_event->dispatch( *this, s );		
 			continue;
 		}
 		break;

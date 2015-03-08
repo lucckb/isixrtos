@@ -21,6 +21,12 @@
 
 namespace gsm_modem {
 
+	struct number_format {
+		enum number_format_ {
+			unknown = 129,
+			international = 145
+		};
+	};
 
 	// Sim requirement codes
 	struct sim_req { 
@@ -75,4 +81,8 @@ namespace gsm_modem {
 			return std::memcmp( this, &that, sizeof(sms_text_params) );
 		}
 	};
+
+	//! NOTE: non shared version is not thread safe!
+	class sms;
+	using sms_type_ptr_t = sms*;
 }

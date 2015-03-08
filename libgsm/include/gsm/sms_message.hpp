@@ -32,7 +32,7 @@ namespace gsm_modem {
 		public:
 			virtual ~sms() {
 			}
-			enum type {
+			enum mtype {
 				t_deliver,		//! Deliver message type
 				t_submit,		//! Submit message type
 				t_status_report, //! Status report message type

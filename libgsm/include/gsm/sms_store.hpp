@@ -29,9 +29,7 @@ namespace gsm_modem {
 	class device;
 	class at_parser;
 	//! NOTE: It can be easy replaced with shared ptr if non placement new impl
-	//! NOTE: non shared version is not thread safe!
-	using sms_store_ptr_t = sms*;
-	using sms_store_result_t = std::pair<int,sms_store_ptr_t>;
+	using sms_store_result_t = std::pair<int,sms_type_ptr_t>;
 
 	struct smsstore_message_type {
 	enum smsstore_message_type_ {
@@ -92,6 +90,9 @@ namespace gsm_modem {
 
 	//! Class for representing SMS store
 	class sms_store {
+		//! Event class is friend for prepare message
+		//  inplace
+		friend class event;
 	public:
 		//! Copy constructor and assign to delete
 		sms_store& operator=(sms_store&)=delete;
