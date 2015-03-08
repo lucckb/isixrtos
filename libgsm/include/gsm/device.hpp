@@ -152,7 +152,8 @@ namespace gsm_modem {
 
 		//Wait for event
 		int wait_event( int timeout ) {
-			return m_at.wait( timeout );
+			auto ret = m_at.wait( timeout );
+			return ret==error::receive_timeout?error::success:ret;
 		}
 	private:
 		/** Private function for set and get text mode parameters
