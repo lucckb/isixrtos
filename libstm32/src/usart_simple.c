@@ -14,6 +14,8 @@
 
 #define USART1_TX_BIT 9
 #define USART1_RX_BIT 10
+#define USART1_ALT_TX_BIT 6
+#define USART1_ALT_RX_BIT 7
 #define USART2_TX_BIT 2
 #define USART2_ALT_TX_BIT 5
 #define USART2_ALT_RX_BIT 6
@@ -45,9 +47,9 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 {
 	if(usart_==USART1)
 	{
+		RCC->APB2ENR |= RCC_APB2Periph_USART1;
 		if(!alternate)
 		{
-			RCC->APB2ENR |= RCC_APB2Periph_USART1;
 			gpio_clock_enable( GPIOA, true );
 			//Configure GPIO port TxD and RxD
 			gpio_abstract_config(GPIOA,USART1_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
@@ -59,7 +61,16 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 		}
 		else
 		{
-			return USARTSIMPLE_INIT_FAIL;
+			gpio_clock_enable( GPIOB, true );
+			//Configure GPIO port TxD and RxD
+			gpio_abstract_config(GPIOB,USART1_ALT_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+			gpio_abstract_config(GPIOB,USART1_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
+#if defined(STM32MCU_MAJOR_TYPE_F2) || 	defined(STM32MCU_MAJOR_TYPE_F4)
+			gpio_pin_AF_config(GPIOB, USART1_ALT_TX_BIT , GPIO_AF_USART1 );
+			gpio_pin_AF_config(GPIOB, USART1_ALT_RX_BIT , GPIO_AF_USART1 );
+#else
+			return USARTSIMPLE_NOT_INIT;
+#endif
 		}
 	}
 	else if(usart_==USART2)
