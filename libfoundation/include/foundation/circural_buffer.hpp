@@ -127,6 +127,7 @@ public:
    , m_tail( other.m_tail )
    , m_contents_size(other.m_contents_size )
    {
+#ifdef __EXCEPTIONS
       try
       {
          assign_into( other.begin(), other.end() );
@@ -137,6 +138,9 @@ public:
          m_allocator.deallocate( m_array, m_capacity );
          throw;
       }
+#else
+         assign_into( other.begin(), other.end() );
+#endif
    }
  
    template < typename II >
