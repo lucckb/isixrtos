@@ -71,15 +71,30 @@ namespace algo {
 			}
 			return total / (T) size; // Cast to T for floating point arithmetic
 		}
-
-		void resize( size_t new_size ) {
-			delete [] window; 
-			window = new T[new_size];
+		
+		//! Clear
+		void clear() {
 			head = nullptr;
 			tail = nullptr;
 			total  = T();
 		}
-	
+
+		//! Resize the SMA 
+		void resize( size_t new_size ) {
+			delete [] window; 
+			window = new T[new_size];
+			period = new_size;
+			head = nullptr;
+			tail = nullptr;
+			total  = T();
+		}
+
+
+
+		//! Get if period is full
+		bool full_period() const {
+			return size()==ptrdiff_t(period);
+		}
 	private:
 		size_t period;
 		T * window; // Holds the values to calculate the average of.
