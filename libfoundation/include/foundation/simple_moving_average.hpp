@@ -16,8 +16,10 @@
  * =====================================================================================
  */
 #pragma once
-#include <memory>
 
+#include <memory>
+#include <cstddef>
+	
 namespace fnd {
 namespace algo {
 
@@ -25,13 +27,15 @@ namespace algo {
 	class sma {
 	public:
 		sma(size_t period) :
-			period(period), window(new T[period]), head(nullptr), tail(nullptr),
-					total(T()) {
+			period(period), window(new T[period]), 
+			head(nullptr), tail(nullptr), total(0) {
 		}
 		~sma() {
 			delete[] window;
 		}
-	
+		//! Make it noncopyable
+		sma& operator=(sma&) = delete;
+		sma( sma& ) = delete;
 		// Adds a value to the average, pushing one out if nescessary
 		bool operator()(T val) {
 			bool cycle {};
@@ -69,14 +73,14 @@ namespace algo {
 			if (size == 0) {
 				return 0; // No entries => 0 average
 			}
-			return total / (T) size; // Cast to T for floating point arithmetic
+			return total / T(size); // Cast to T for floating point arithmetic
 		}
 		
 		//! Clear
 		void clear() {
 			head = nullptr;
 			tail = nullptr;
-			total  = T();
+			total  = 0;
 		}
 
 		//! Resize the SMA 
@@ -86,15 +90,14 @@ namespace algo {
 			period = new_size;
 			head = nullptr;
 			tail = nullptr;
-			total  = T();
+			total  = 0;
 		}
-
-
 
 		//! Get if period is full
 		bool full_period() const {
 			return size()==ptrdiff_t(period);
 		}
+
 	private:
 		size_t period;
 		T * window; // Holds the values to calculate the average of.
