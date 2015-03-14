@@ -81,9 +81,7 @@ public:
 
 	virtual int putchar(value_type c, int timeout=tinf);
 
-	virtual int getchar(value_type &c, int timeout=tinf) {
-		return rx_queue.pop( c, timeout );
-	}
+	int getchar(value_type &c, int timeout=tinf);
 
 	template <typename T> 
 	int getchar(T &c, int timeout=tinf) {

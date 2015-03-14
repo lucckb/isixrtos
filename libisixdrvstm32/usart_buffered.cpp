@@ -100,7 +100,7 @@ namespace
 }
 
 /*----------------------------------------------------------*/
-void usart_buffered::flow_gpio_config( const USART_TypeDef* usart, altgpio_mode mode )
+void usart_buffered::flow_gpio_config( const USART_TypeDef* usart, altgpio_mode )
 {
 	if( usart == USART1 ) 
 	{
@@ -311,7 +311,12 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 	usart->CR2 = USART_StopBits_1;
 
 	//Enable receiver and transmitter and anable related interrupts
-	usart->CR1 |=  USART_Mode_Rx |USART_RXNEIE | USART_Mode_Tx ;
+	usart->CR1 |=  USART_Mode_Rx | USART_Mode_Tx ;
+	//Flush bufer
+	while( usart->SR & USART_RXNE ) {
+		static_cast<volatile void>(usart->DR);
+	}
+	usart->CR1 |= USART_RXNEIE;
 	IRQn irq_num = WWDG_IRQn;
 	if( _usart == USART1 )
 	{
@@ -331,12 +336,12 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 	}
 #endif
 #if	defined(STM32F10X_HD) || defined(STM32F10X_CL)  || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
-	else if(  _usart == UART4 )
+	else if( _usart == UART4 )
 	{
 		usart4_obj = this;
 		irq_num = UART4_IRQn;
 	}
-	else if(  _usart == UART5 )
+	else if( _usart == UART5 )
 	{
 		usart5_obj = this;
 		irq_num = UART5_IRQn;
@@ -345,6 +350,7 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 	if(irq_num != WWDG_IRQn)
 	{
 		nvic_set_priority( irq_num, _irq_prio, _irq_sub );
+		nvic_irq_pend_clear( irq_num );
 		nvic_irq_enable( irq_num, true );
 	}
 }
@@ -410,7 +416,7 @@ void usart_buffered::start_tx()
 void usart_buffered::isr()
 {
 	uint16_t usart_sr = usart->SR;
-	if( usart_sr & USART_RXNE  )
+	if( usart_sr & USART_RXNE )
 	{
 		//Received data interrupt
 		value_type ch = usart->DR;
@@ -437,36 +443,42 @@ void usart_buffered::isr()
 		after_tx();
 	}
 }
-
-
+/*----------------------------------------------------------*/
+int usart_buffered::getchar(value_type &c, int timeout) 
+{
+	auto ret = rx_queue.pop( c, timeout );
+	return ret==isix::ISIX_EOK?(1):(ret);
+}
 /*----------------------------------------------------------*/
 //Put string
 int usart_buffered::puts(const value_type *str)
 {
 	int r = isix::ISIX_EOK;
-	while(*str)
-		if( (r=putchar(*str)) == isix::ISIX_EOK ) str++;
+	auto ptr = str;
+	while(*ptr)
+		if( (r=putchar(*ptr))>0 ) ptr++;
 		else return r;
-	return r;
+	return ptr-str;
 }
 /* ---------------------------------------------------------*/
 int usart_buffered::putchar(value_type c, int timeout)
 {
 	int result = tx_queue.push( c, timeout );
 	start_tx();
-	return result;
+	return result==isix::ISIX_EOK?(1):(result);
 }
 /*----------------------------------------------------------*/
 int usart_buffered::put(const void *buf, std::size_t buf_len)
 {
 	int r = isix::ISIX_EOK;
 	const char *bb = static_cast<const char*>(buf);
-	for(std::size_t s=0; s<buf_len; s++)
+	size_t s;
+	for(s=0; s<buf_len; s++)
 	{
 		r = putchar(bb[s]);
 		if( r != isix::ISIX_EOK ) return r;
 	}
-	return r;
+	return s;
 }
 
 /*----------------------------------------------------------*/
@@ -478,7 +490,7 @@ int usart_buffered::gets(value_type *str, std::size_t max_len, int timeout)
 	for(l=0; l<max_len; l++)
 	{
 		res = getchar( str[l], timeout );
-		if(res==isix::ISIX_EOK )
+		if(res>0)
 		{
 			if(str[l] == '\r') str[l] = '\0';
 			else if(str[l] == '\n') { str[l] = '\0'; break; }
@@ -518,6 +530,8 @@ int usart_buffered::get(void *buf, std::size_t max_len,
 //! Set flow control
 int usart_buffered::set_flow( flow_control flow )
 {
+	//TODO: Sem wait not busy waiting
+	while(!(usart->SR & USART_TC)) isix::isix_wait(10);
 	if( usart==USART1 || usart==USART2 || usart==USART3 )
 	{
 		if( flow == flow_control::flow_rtscts ) {
