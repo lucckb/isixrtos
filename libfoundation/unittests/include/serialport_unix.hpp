@@ -60,6 +60,8 @@ public:
 	virtual int tiocm_flags( unsigned flags ) ;
 	//Set status line
 	virtual int tiocm_set( unsigned tiosigs );
+	//Sleep support
+	virtual void sleep( unsigned ms );
 private:
 	void io_watcher_thread();
 	int read_timeout( void* buf, size_t len, int timeout, size_t min_len=0 );

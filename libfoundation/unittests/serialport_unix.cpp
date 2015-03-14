@@ -411,6 +411,11 @@ int serialport_unix::write_all( const void* buf, size_t len )
 	return len;
 
 }
+/* ------------------------------------------------------------------ */
+void serialport_unix::sleep( unsigned ms ) 
+{
+	usleep(1000*ms);
+}
 /* ------------------------------------------------------------------ */ 
 }
 
