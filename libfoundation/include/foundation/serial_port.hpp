@@ -58,7 +58,7 @@ public:
 	//!Set baudrate
 	virtual int set_baudrate(unsigned new_baudrate) = 0;
 	//!Set parity
-	virtual void set_parity(parity new_parity) = 0;
+	virtual int set_parity(parity new_parity) = 0;
 	/** Set special control 
 	 * @param[in] flow Hardware flow control settings
 	 */
@@ -79,11 +79,11 @@ public:
 	virtual int get(void *buf, std::size_t max_len, 
 			int timeout=time_infinite, std::size_t min_len = 0 ) = 0;
 	//! Get avail bytes
-	virtual int rx_avail() = 0;
+	virtual int rx_avail() const = 0;
 	//Get status lines
-	virtual int tiocm_get() = 0;
+	virtual int tiocm_get() const = 0;
 	//Get tiocm event
-	virtual int tiocm_flags( unsigned flags ) = 0;
+	virtual int tiocm_flags( unsigned flags ) const = 0;
 	//Set status line
 	virtual int tiocm_set( unsigned tiosigs ) = 0;
 	//Sleep for amount of time

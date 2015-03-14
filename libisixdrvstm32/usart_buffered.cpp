@@ -22,7 +22,8 @@ namespace	//Object pointers for interrupt
 #if defined(STM32F10X_LD)
 #elif defined(STM32F10X_MD)
 	usart_buffered *usart3_obj;
-#elif defined(STM32F10X_HD) || defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#elif defined(STM32F10X_HD) || defined(STM32F10X_CL) || \
+	defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 	usart_buffered *usart3_obj;
 	usart_buffered *usart4_obj;
 	usart_buffered *usart5_obj;
@@ -37,6 +38,8 @@ namespace
 	//USART1 port
 	const unsigned USART1_TX_BIT = 9;
 	const unsigned USART1_RX_BIT = 10;
+	const unsigned USART1_CTS_BIT = 11;
+	const unsigned USART1_RTS_BIT = 12;
 	GPIO_TypeDef * const USART1_PORT = GPIOA;
 	//Alternate usart1
 	const unsigned USART1_ALT_TX_BIT = 6;
@@ -45,6 +48,8 @@ namespace
 	//USART2 port
 	const unsigned USART2_TX_BIT = 2;
 	const unsigned USART2_RX_BIT = 3;
+	const unsigned USART2_CTS_BIT = 0;
+	const unsigned USART2_RTS_BIT = 1;
 	GPIO_TypeDef * const USART2_PORT = GPIOA;
 	//Alternate usart2
 	const unsigned USART2_ALT_TX_BIT = 5;
@@ -53,6 +58,8 @@ namespace
 	//USART3 port
 	const unsigned USART3_TX_BIT = 10;
 	const unsigned USART3_RX_BIT = 11;
+	const unsigned USART3_CTS_BIT = 13;
+	const unsigned USART3_RTS_BIT = 14;
 	GPIO_TypeDef * const USART3_PORT = GPIOB;
 	const unsigned USART3_ALT1_TX_BIT = 10;
 	const unsigned USART3_ALT1_RX_BIT = 11;
@@ -86,8 +93,52 @@ namespace
 	const unsigned USART_TC = (1<<6);
 	const unsigned USART_FE = (1<<1);
 	const unsigned USART_PE = (1<<0);
+	
+	//CR3 RTSE and CTSE
+	const unsigned CR2_CTSE = 1<<9;
+	const unsigned CR2_RTSE = 1<<8;
 }
 
+/*----------------------------------------------------------*/
+void usart_buffered::flow_gpio_config( const USART_TypeDef* usart, altgpio_mode mode )
+{
+	if( usart == USART1 ) 
+	{
+#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+		gpio_config(USART1_PORT, USART1_RTS_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+		gpio_config(USART1_PORT, USART1_CTS_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+		gpio_pin_AF_config( USART1_PORT, USART1_RTS_BIT, GPIO_AF_USART1 );
+		gpio_pin_AF_config( USART1_PORT, USART1_CTS_BIT, GPIO_AF_USART1 );
+#else
+		gpio_abstract_config(USART1_PORT,USART1_RTS_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+		gpio_abstract_config(USART1_PORT,USART1_CTS_BIT, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
+#endif
+	}
+	else if( usart == USART2 ) 
+	{
+#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+		gpio_config(USART2_PORT, USART2_RTS_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+		gpio_config(USART2_PORT, USART2_CTS_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+		gpio_pin_AF_config( USART2_PORT, USART2_RTS_BIT, GPIO_AF_USART2 );
+		gpio_pin_AF_config( USART2_PORT, USART2_CTS_BIT, GPIO_AF_USART2 );
+#else
+		gpio_abstract_config(USART2_PORT,USART2_RTS_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+		gpio_abstract_config(USART2_PORT,USART2_CTS_BIT, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
+#endif
+	}
+	else if( usart == USART3 ) 
+#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+		gpio_config(USART3_PORT, USART3_RTS_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+		gpio_config(USART3_PORT, USART3_CTS_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+		gpio_pin_AF_config( USART3_PORT, USART3_RTS_BIT, GPIO_AF_USART3 );
+		gpio_pin_AF_config( USART3_PORT, USART3_CTS_BIT, GPIO_AF_USART3 );
+#else
+		gpio_abstract_config(USART3_PORT,USART3_RTS_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+		gpio_abstract_config(USART3_PORT,USART3_CTS_BIT, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
+#endif
+	{
+	}
+}
 /*----------------------------------------------------------*/
 void usart_buffered::periphcfg_usart1(altgpio_mode mode)
 {
@@ -97,8 +148,17 @@ void usart_buffered::periphcfg_usart1(altgpio_mode mode)
 		RCC->APB2ENR |= RCC_APB2Periph_USART1;
 		//Configure GPIO port TxD and RxD
 		gpio_clock_enable( USART1_PORT, true );
+
+#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+		gpio_config(USART1_PORT, USART1_TX_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+		gpio_config(USART1_PORT, USART1_RX_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
+
+		gpio_pin_AF_config( USART1_PORT, USART1_TX_BIT, GPIO_AF_USART1 );
+		gpio_pin_AF_config( USART1_PORT, USART1_RX_BIT, GPIO_AF_USART1 );
+#else
 		gpio_abstract_config(USART1_PORT,USART1_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
 		gpio_abstract_config(USART1_PORT,USART1_RX_BIT, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
+#endif
 	}
 	else
 	{
@@ -155,7 +215,9 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 #endif
 	}
 }
-#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || \
+	defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4) || \
+	defined(STM32MCU_MAJOR_TYPE_F2)
 	void usart_buffered::periphcfg_usart3(altgpio_mode mode)
 	{
 		if( mode == altgpio_mode_0 )
@@ -288,7 +350,7 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 }
 
 /*----------------------------------------------------------*/
-void usart_buffered::set_baudrate(unsigned new_baudrate)
+int usart_buffered::set_baudrate(unsigned new_baudrate)
 {
 	unsigned hz = usart==USART1?pclk2_hz:pclk1_hz;
 	//TODO: Sem wait not busy waiting
@@ -299,10 +361,11 @@ void usart_buffered::set_baudrate(unsigned new_baudrate)
 	uint32_t fract_part = int_part - (0x64 * (tmp >> 0x04));
 	tmp |= ((((fract_part * 0x10) + 0x32) / 0x64)) & ((u8)0x0F);
 	usart->BRR = tmp;
+	return 0;
 }
 
 /*----------------------------------------------------------*/
-void usart_buffered::set_parity(parity new_parity)
+int usart_buffered::set_parity(parity new_parity)
 {
 	//TODO: Sem wait not busy waiting
 	while(!(usart->SR & USART_TC)) isix::isix_wait(10);
@@ -325,6 +388,7 @@ void usart_buffered::set_parity(parity new_parity)
 	{
 		usart->CR1 &= ~USART_PS_BIT;
 	}
+	return 0;
 }
 
 /*----------------------------------------------------------*/
@@ -385,7 +449,13 @@ int usart_buffered::puts(const value_type *str)
 		else return r;
 	return r;
 }
-
+/* ---------------------------------------------------------*/
+int usart_buffered::putchar(value_type c, int timeout)
+{
+	int result = tx_queue.push( c, timeout );
+	start_tx();
+	return result;
+}
 /*----------------------------------------------------------*/
 int usart_buffered::put(const void *buf, std::size_t buf_len)
 {
@@ -400,7 +470,7 @@ int usart_buffered::put(const void *buf, std::size_t buf_len)
 }
 
 /*----------------------------------------------------------*/
-int usart_buffered::gets(value_type *str, std::size_t max_len, isix::tick_t timeout)
+int usart_buffered::gets(value_type *str, std::size_t max_len, int timeout)
 {
 	int res = isix::ISIX_EOK;
 	std::size_t l;
@@ -423,7 +493,8 @@ int usart_buffered::gets(value_type *str, std::size_t max_len, isix::tick_t time
 	return l;
 }
 /*----------------------------------------------------------*/
-int usart_buffered::get(void *buf, std::size_t max_len, isix::tick_t timeout)
+int usart_buffered::get(void *buf, std::size_t max_len, 
+		int timeout, std::size_t min_len )
 {
 	int res =0;
 	char *fbuf = static_cast<char*>(buf);
@@ -431,13 +502,53 @@ int usart_buffered::get(void *buf, std::size_t max_len, isix::tick_t timeout)
 	for(l=0; l<max_len; l++)
 	{
 		res= getchar ((unsigned char &) fbuf[l],timeout );
-		if( res == isix::ISIX_ETIMEOUT )
-			return l;
-		else if(res<0) {
+		if( res == isix::ISIX_ETIMEOUT ) {
+			if( l >= min_len ) {
+				return l;
+			} else {
+				continue;
+			}
+		} else if(res<0) {
 			return res;
 		}
 	}
 	return l;
+}
+/*----------------------------------------------------------*/
+//! Set flow control
+int usart_buffered::set_flow( flow_control flow )
+{
+	if( usart==USART1 || usart==USART2 || usart==USART3 )
+	{
+		if( flow == flow_control::flow_rtscts ) {
+			flow_gpio_config( usart, altgpio_mode_0 );
+		}
+		usart->CR3 |= USART_CR3_RTSE | USART_CR3_CTSE;
+		return 0;
+	}
+	return isix::ISIX_EINVARG;
+}
+/*----------------------------------------------------------*/
+int usart_buffered::set_ioreport( unsigned tio_report )
+{
+	(void)tio_report;
+	return isix::ISIX_EINVARG;
+}
+/*----------------------------------------------------------*/
+int usart_buffered::tiocm_get() const
+{
+	return isix::ISIX_ENOTSUP;
+}
+/*----------------------------------------------------------*/
+int usart_buffered::tiocm_flags( unsigned /*flags*/ ) const
+{
+	return isix::ISIX_ENOTSUP;
+}
+
+/*----------------------------------------------------------*/
+int usart_buffered::tiocm_set( unsigned /* tiosigs */ )
+{
+	return isix::ISIX_ENOTSUP;
 }
 /*----------------------------------------------------------*/
 //Serial interrupts handlers

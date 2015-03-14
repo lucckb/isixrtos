@@ -1,6 +1,5 @@
 #include <gsm/param_parser.hpp>
 #include <cctype>
-#include <cassert>
 #include <cstdlib>
 
 namespace gsm_modem {
@@ -236,7 +235,6 @@ int param_parser::parse_int_list(bit_range& result, bool allow_no_list)
 				}
 				if (isRange)
 				{
-					assert(lastInt != -1);
 					if (lastInt <= thisInt)
 						for (int i = lastInt; i < thisInt; ++i)
 						{

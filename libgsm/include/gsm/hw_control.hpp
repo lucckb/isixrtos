@@ -23,6 +23,10 @@ namespace gsm_modem {
 	//! Hardware control modem base class like device reset power on and so on
 	class hw_control {
 	public:
+		hw_control( hw_control& ) = delete;
+		hw_control& operator=( hw_control& ) = delete;
+		hw_control() {
+		}
 		//! Virtual destructor
 		virtual ~hw_control() {
 		}
