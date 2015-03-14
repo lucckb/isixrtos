@@ -23,10 +23,10 @@
 namespace fnd {
 namespace algo {
 
-	template <typename T>
+	template <typename T, typename A=T>
 	class sma {
 	public:
-		sma(size_t period) :
+		explicit sma( size_t period ) :
 			period(period), window(new T[period]), 
 			head(nullptr), tail(nullptr), total(0) {
 		}
