@@ -31,7 +31,7 @@ event::event( sms_store& dev )
 //! TODO: Dispatch event add support for cell broadcast
 void event::dispatch( at_parser& at , char* str ) 
 {
-	sms::mtype msg_type;
+	sms::mtype msg_type {};
 	bool indication {};
 	if( !std::strncmp(str,"+CMT:",5) ) {
 		msg_type = sms::t_deliver;
@@ -153,12 +153,12 @@ void event::sms_reception( const sms& sms )
 	dbprintf("Unhandled sms_reception");
 	//FIXME: This a test code only for check indication
 	if( sms.type() == sms::t_status_report ) {
-		const auto msg = dynamic_cast<const sms_status_report&>(sms);
+		const auto msg = static_cast<const sms_status_report&>(sms);
 		dbprintf("RecAddr %s SCTS %s DiscTime %s status %i msgreg %i",
 				msg.receimpent_address(), msg.scs_timestamp(), msg.discharge_time(),
 				msg.status(),  msg.msg_ref() );
 	} else if( sms.type() == sms::t_deliver ) {
-			const auto it = dynamic_cast<const gsm_modem::sms_deliver&>( sms );
+			const auto it = static_cast<const gsm_modem::sms_deliver&>( sms );
 			dbprintf("TSTAMP %s ORIGIN_ADDR %s PID %i REPORT_INDIC %i",
 				it.service_tstamp(), it.origin_address(), it.pid(), it.report_indication() );
 			dbprintf("Content %s", it.message() );

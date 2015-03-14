@@ -1,0 +1,17 @@
+#GSM modem src libraries
+ISIX_LIBGSM_CPPSRC += $(wildcard $(LIBGSM_DIR)/src/*.cpp)
+ISIX_LIBGSM_INC += -I$(LIBGSM_DIR)/include
+
+
+
+ISIX_LIBGSM_LIB = $(LIBGSM_DIR)/libgsm.a
+ISIX_LIBGSM_OBJS += $(ISIX_LIBGSM_CPPSRC:%.cpp=%.o)
+DEPFILES += $(ISIX_LIBGSM_CPPSRC:%.cpp=%.dep)
+
+.ONESHELL:
+$(ISIX_LIBGSM_LIB): $(ISIX_LIBGSM_OBJS)
+	    $(AR) $(ARFLAGS) $@ $^
+
+LIBS += $(ISIX_LIBGSM_LIB)
+LIBS_OBJS += $(ISIX_LIBGSM_OBJS)
+COMMON_FLAGS += $(ISIX_LIBGSM_INC) 

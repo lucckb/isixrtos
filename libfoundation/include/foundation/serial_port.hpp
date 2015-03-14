@@ -18,6 +18,9 @@
 #pragma once
 /* ------------------------------------------------------------------ */
 #include <cstddef>
+#ifdef COMPILED_UNDER_ISIX
+#include <isix.h>
+#endif
 /* ------------------------------------------------------------------ */
 namespace fnd {
 /* ------------------------------------------------------------------ */ 
@@ -83,6 +86,8 @@ public:
 	virtual int tiocm_flags( unsigned flags ) = 0;
 	//Set status line
 	virtual int tiocm_set( unsigned tiosigs ) = 0;
+	//Sleep for amount of time
+	virtual void sleep( unsigned ms ) = 0;
 };
 /* ------------------------------------------------------------------ */
 }

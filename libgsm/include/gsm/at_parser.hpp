@@ -96,6 +96,10 @@ public:
 	int flow_control( bool en ) {
 		return m_port.set_flow( en?fnd::serial_port::flow_rtscts:fnd::serial_port::flow_none );
 	}
+	//Sleep for amount of time
+	void sleep( unsigned msec ) {
+		m_port.sleep( msec );
+	}
 private:
 	//! Remove whitespace at begginning and end of string
 	char* normalize( char* input );

@@ -21,8 +21,8 @@
 #include <gsm/param_parser.hpp>
 #include <foundation/tiny_printf.h>
 #include <cstring>
-#include <thread>
-#include <chrono>
+#include <string.h>
+#include <cstdlib>
 /* ------------------------------------------------------------------ */ 
 //! TODO: PDU mode text messages
 namespace gsm_modem {
@@ -81,7 +81,7 @@ int device::do_enable () {
 				m_at.error() == error::at_cme_sim_not_inserted))
 			{
 				dbprintf("Parser code %i", m_at.error() );
-				std::this_thread::sleep_for( std::chrono::seconds(2) );
+				m_at.sleep( 2000 );
 				continue;
 			}
 			dbprintf( "Modem error response %i", m_at.error() );	
@@ -160,7 +160,7 @@ int device::register_to_network( const char *pin )
 	//Set Cops to automatic registration
 	auto ret = get_pin_status( );
 	if( ret < 0 ) {
-		dbprintf( "Modem error response %i", errno );	
+		dbprintf( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	if( ret == sim_req::pin  ) {
