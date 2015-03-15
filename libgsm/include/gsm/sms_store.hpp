@@ -47,7 +47,7 @@ namespace gsm_modem {
 		};
 	public:
 		//! SMS store identifiers
-		enum sms_store_id_ {
+		enum sms_store_id {
 			sim = 1 << 0,	//! Simcard
 			me =  1 << 1, 	//! Me phonebook
 			sr =  1 << 2, 	//! Status report message storage
