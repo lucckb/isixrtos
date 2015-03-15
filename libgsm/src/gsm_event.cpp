@@ -22,12 +22,6 @@
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */ 
-//Default constructor
-event::event( sms_store& dev )
-	: m_store( dev )
-{
-}
-/* ------------------------------------------------------------------ */ 
 //! TODO: Dispatch event add support for cell broadcast
 void event::dispatch( at_parser& at , char* str ) 
 {
@@ -112,43 +106,54 @@ void event::dispatch( at_parser& at , char* str )
 	} 
 	else 
 	{
+		alignas(8) char msgbuf[ sizeof(sms_submit)>sizeof(sms_status_report)?
+							 sizeof(sms_submit):sizeof(sms_status_report) ];
 		param_parser p(str+5, at.bufsize()-5);
+		sms * msg {};
+		int err {};
 		//! Normal deliver SMS routed to TA
 		if( msg_type == sms::t_deliver ) 
 		{
 			dbprintf("Before PDU %s", str );
-			sms_deliver dmsg(p);
+			auto dmsg = new(msgbuf) sms_deliver(p);
+			msg = dmsg;
 			if( !p.error() ) {
 				const auto pdu = at.get_second_line(str);
 				if( pdu ) {
-					dmsg.message(pdu);
-					sms_reception( dmsg );
+					dmsg->message(pdu);
 				} else {
 					dbprintf("Unable to get pdu %i", at.error() );
+					err = at.error();
 				}
 			} else {
 				dbprintf("Unable to parse message %i", p.error() );
+				err = p.error();
 			}
 		} 
 		//Normal status report
 		else if( msg_type == sms::t_status_report ) 
 		{
-			sms_status_report rmsg(p);
-			if( !p.error() ) {
-				sms_reception( rmsg );
-			} else{
-				dbprintf( "Unable to handle message %i", p.error() );
+			msg = new(msgbuf) sms_status_report(p);
+			err = p.error();
+			if( err ) {
+				dbprintf("Unable to parse status report msg %i", err );
 			}
 		}
 		//! Set acknowledgement
 		if( !at.chat("+CNMA") ) {
 			dbprintf("Unable to send ACK");
 		}
+		//Process the message
+		if( msg ) 
+		{
+			if(!err) sms_reception( *msg );
+			msg->~sms();
+		}
 	}
 }
 /* ------------------------------------------------------------------ */
 //Callback functions
-void event::sms_reception( const sms& sms ) 
+void event::sms_reception( sms& sms ) 
 {
 	dbprintf("Unhandled sms_reception");
 	//FIXME: This a test code only for check indication
