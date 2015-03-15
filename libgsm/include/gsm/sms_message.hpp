@@ -100,6 +100,12 @@ namespace gsm_modem {
 			void message( const char* msg ) {
 				std::strncpy( m_message, msg, sizeof(m_message)-1 );
 			}
+			char* get_data() {
+				return m_message;
+			}
+			size_t data_size() const {
+				return sizeof(m_message);
+			}
 		};
 
 		// SMS-SUBMIT TPDU
@@ -115,10 +121,14 @@ namespace gsm_modem {
 			unsigned char m_pid {};
 		public:
 			//Constructor type
-			sms_submit( const char* dest, const char* message )
+			sms_submit( const char* dest=nullptr, const char* message=nullptr)
 			{
-				std::strncpy(m_dest_addr, dest, sizeof(m_dest_addr)-1);
-				std::strncpy(m_message, message, sizeof(m_message)-1);
+				if(dest) {
+					std::strncpy(m_dest_addr, dest, sizeof(m_dest_addr)-1);
+				}
+				if(message) {
+					std::strncpy(m_message, message, sizeof(m_message)-1);
+				}
 			}
 			/** Constructor for SMS submit message in txt
 			 * @param[in] buf Input buffer data or pdu data
@@ -168,6 +178,12 @@ namespace gsm_modem {
 			}
 			void message( const char* msg ) {
 				std::strncpy( m_message, msg, sizeof(m_message)-1 );
+			}
+			char* get_data() {
+				return m_message;
+			}
+			size_t data_size() const {
+				return sizeof(m_message);
 			}
 		};
 
