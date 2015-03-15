@@ -6,8 +6,7 @@
  *      Author: lucck
  */
 /* ------------------------------------------------------------------ */
-#ifndef DBGLOG_H_
-#define DBGLOG_H_
+#pragma once
 /* ------------------------------------------------------------------ */
 #ifdef PDEBUG /* Debug enabled */
 #include <foundation/tiny_printf.h>
@@ -46,7 +45,4 @@
 #define dblog_init_putc_locked(function,arg,lock,unlock) do {} while(0)
 #endif /* PDEBUG */
 
-
-/* ------------------------------------------------------------------ */
-#endif /* DBGLOG_H_ */
 /* ------------------------------------------------------------------ */
