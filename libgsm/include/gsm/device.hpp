@@ -68,6 +68,11 @@ namespace gsm_modem {
 			else return do_disable();
 		}
 
+		/** Reset the modem  */
+		void reset() {
+			m_hwctl.reset();
+		}
+
 		//! Set character set to the modem
 		int set_charset( const char* charset );
 
@@ -155,6 +160,12 @@ namespace gsm_modem {
 			auto ret = m_at.wait( timeout );
 			return ret==error::receive_timeout?error::success:ret;
 		}
+
+		//! Set event handler
+		void set_event_handler( event* ev ) {
+			m_at.set_event_handler( ev );
+		}
+
 	private:
 		/** Private function for set and get text mode parameters
 		 *  used only for text mode sms
@@ -171,8 +182,7 @@ namespace gsm_modem {
 		int do_enable();
 
 		//Disable the gsm module
-		int do_disable() 
-		{
+		int do_disable() {
 			m_hwctl.power_control( false );
 			return 0;
 		}
@@ -182,6 +192,5 @@ namespace gsm_modem {
 		phonebook m_phonebook;		//Phonebook object
 		sms_store m_sms_store;		//Current sms store
 		cap m_capabilities;			//Capability flags
-		event m_event;				//Events class dispatcher
 	};
 }

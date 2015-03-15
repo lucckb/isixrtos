@@ -30,7 +30,7 @@ namespace gsm_modem {
 //! GSM device constructor
 device::device( fnd::serial_port& comm,  hw_control& hwctl, unsigned cap )
 	: m_at( comm ), m_hwctl( hwctl ), m_phonebook( *this ), 
-	  m_sms_store( *this ), m_capabilities( cap ), m_event(m_sms_store)
+	  m_sms_store( *this ), m_capabilities( cap )
 {
 
 }
@@ -98,8 +98,6 @@ int device::do_enable () {
 			return m_at.error();
 		}
 	}
-	//! Set event handler for the device
-	m_at.set_event_handler( &m_event );
 	return error::success;
 }
 /* ------------------------------------------------------------------ */ 
