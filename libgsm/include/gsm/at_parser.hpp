@@ -36,7 +36,7 @@ class at_parser
 	at_parser( at_parser& ) = delete;
 	static constexpr auto cmd_buffer_len = 1024U;
 	static constexpr auto atcmd_maxlen = 64U;
-	static constexpr auto def_timeout = 5000;
+	static constexpr auto def_timeout = 10000;
 	static constexpr char CR = 13;             // ASCII carriage return
 	static constexpr char LF = 10;             // ASCII line feed
 public:
