@@ -386,39 +386,45 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 			if( ret > 0 ) 
 			{
 				pos += ret;
-				errstr = inp[0]=='+'||inp[0]=='E'||inp[0]=='^'?inp:nullptr;
-				if( errstr ) 
-				{	//! To end of line instead of match >
-					if( inp[pos-1]=='\n' )
+				if( inp[pos-1]=='\n' ) 
+				{
+					inp[pos] = '\0';
+					pos = 0;
+					dbprintf("Got new line [%s]", inp );
+					inp = normalize( inp );
+					errstr = inp[0]=='+'||inp[0]=='E'?inp:nullptr;
+					if( inp[0]=='+' || inp[0]=='^' )
+					if( handle_unsolicited(inp) ) 
 					{
-						inp[pos] = '\0';
-						if( handle_unsolicited(inp) ) 
-						{
-							//Start again after unsolicited proc
-							pos = 0;
-							continue;
-						}
-						break;
+						inp = m_cmd_buffer;
+						pos = 0;
+						continue;
 					}
-				} 
-				else 
+				}
+				if(!errstr)
 				{
 					got_start = std::memchr(inp,'>',pos);
 					if( got_start ) break;
 				}
-				if( pos >= sizeof(m_cmd_buffer)) {
+				else
+				{
+					break;
+				}
+				if( pos >= sizeof(m_cmd_buffer)) 
+				{
 					m_error = error::buffer_overflow;
 					return nullptr;
 				}
 			}
-		} while( ret>0 );
-		if( ret < 0 ) {
+		} while( ret > 0 );
+		if( ret < 0 ) 
+		{
+			m_error = ret;
 			return nullptr;
 		}
-		std::transform( inp, inp+pos, inp, [](char ch) { return ch?ch:' '; } );
-		inp[pos] = '\0';
 	}
-	if( !got_start && !errstr ) {
+	if( !got_start && !errstr ) 
+	{
 		m_error = error::unexpected_pdu_handshake;
 		return nullptr;
 	}
