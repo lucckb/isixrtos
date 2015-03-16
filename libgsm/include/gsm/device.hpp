@@ -157,8 +157,7 @@ namespace gsm_modem {
 
 		//Wait for event
 		int wait_event( int timeout ) {
-			auto ret = m_at.wait( timeout );
-			return ret==error::receive_timeout?error::success:ret;
+			return m_at.wait( timeout );
 		}
 
 		//! Set event handler

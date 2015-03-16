@@ -387,6 +387,7 @@ int device::send_sms( const sms_submit& sms )
 		char buf[32]; buf[ sizeof(buf)-1 ] = '\0';
 		fnd::tiny_snprintf(buf, sizeof(buf)-1,"+CMGS=\"%s\"", sms.dest_address() );
 		//NOTE: Now it is not real pdu but text behaves like pdu
+		
 		auto result = m_at.send_pdu(buf,"+CMGS:", sms.message() );
 		if( !result ) {
 			dbprintf("Unable to send pdu %i", m_at.error() );

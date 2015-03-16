@@ -8,7 +8,7 @@
 /*----------------------------------------------------------*/
 #include "usart_buffered.hpp"
 #include <stm32system.h>
-
+//!TODO: Usart status codes
 /*----------------------------------------------------------*/
 namespace stm32
 {

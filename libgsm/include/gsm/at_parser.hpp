@@ -114,10 +114,10 @@ private:
 	void report_error( char* inp );
 	// Cut the response
 	char* cut_response( char* answer, const char* response_to_match );
-	// Get some data and don't wait for cr/lf
-	int getsome( size_t from_pos );
 	// Get line and handle events
 	char* getline( size_t pos_from = 0U, int timeout = def_timeout );
+	// Handle unsolicited
+	bool handle_unsolicited( char* begin_ptr );
 private:
 	fnd::serial_port& m_port;	//Serial port reference
 	int m_error {};				//Error code

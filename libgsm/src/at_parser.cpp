@@ -122,15 +122,32 @@ void at_parser::report_error( char* inp )
 		m_error = error::at_cme_first - std::atoi( inp );
 }
 /* ------------------------------------------------------------------ */
-// Get some data and don't wait for cr/lf and not null terminate
-int at_parser::getsome( size_t from_pos )
+bool at_parser::handle_unsolicited( char* begin_ptr )
 {
-	const auto begin_ptr = m_cmd_buffer+from_pos;
-	auto ret = m_port.get( begin_ptr, sizeof(m_cmd_buffer)-from_pos, def_timeout );
-	if( ret <= 0 ) { 
-		m_error = !ret?error::receive_timeout:ret; 
-	};
-	return ret;
+	//! Ignored events
+	if( std::strstr(begin_ptr,"^STN:") ||
+		std::strstr(begin_ptr,"+SIM READY") ) 
+	{
+		dbprintf("ign>[%s]", begin_ptr );
+		return true;
+	}
+	auto s = normalize(begin_ptr);
+	if( match_response(s,"+CMT:") ||
+		match_response(s,"+CBM:") ||
+		match_response(s,"+CDS:") ||
+		match_response(s,"+CMTI:") ||
+		match_response(s,"+CBMI:") ||
+		match_response(s,"+CDSI:") ||
+		//match_response(s,"+CREG:") ||
+		match_response(s,"RING") ||
+		match_response(s,"NO CARRIER") ||
+		(match_response(s,"+CLIP:") && std::strlen(s)>10 )) 
+	{
+		if( m_event )
+			m_event->dispatch( *this, s );		
+		return true;
+	}
+	return false;
 }
 /* ------------------------------------------------------------------ */
 // Get line and handle events
@@ -145,29 +162,7 @@ char* at_parser::getline( size_t pos_from, int timeout )
 			m_error = !ret?error::receive_timeout:ret; 
 			return nullptr; 
 		}
-		//! Ignored events
-		if( std::strstr(begin_ptr,"^STN:") ||
-			std::strstr(begin_ptr,"+SIM READY") ) 
-		{
-			dbprintf("ign>[%s]", begin_ptr );
-			continue;
-		}
-		auto s = normalize(begin_ptr);
-		if( match_response(s,"+CMT:") ||
-			match_response(s,"+CBM:") ||
-			match_response(s,"+CDS:") ||
-			match_response(s,"+CMTI:") ||
-			match_response(s,"+CBMI:") ||
-			match_response(s,"+CDSI:") ||
-			//match_response(s,"+CREG:") ||
-			match_response(s,"RING") ||
-			match_response(s,"NO CARRIER") ||
-			(match_response(s,"+CLIP:") && std::strlen(s)>10 )) 
-		{
-			if( m_event )
-				m_event->dispatch( *this, s );		
-			continue;
-		}
+		if( handle_unsolicited(begin_ptr) ) continue;
 		break;
 	} while(true);
 	dbprintf("rx>[%s]->%i", begin_ptr, ret );
@@ -387,18 +382,27 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		inp = m_cmd_buffer;
 		int ret {};
 		do {
-			ret = getsome( pos );
-			if( ret > 0 ) {
+			ret = m_port.getchar( inp[pos], def_timeout );
+			if( ret > 0 ) 
+			{
 				pos += ret;
-				errstr = static_cast<char*>(::memmem(inp,pos,"+CME",4));
-				if( !errstr )
-					errstr = static_cast<char*>(::memmem(inp,pos,"+CMS",4));
-				if( !errstr )
-					errstr = static_cast<char*>(::memmem(inp,pos,"ERROR",5));
-				if( errstr ) {	//! To end of line instead of match >
-					if( inp[pos-1]=='\r' || inp[pos-1]=='\n' )
+				errstr = inp[0]=='+'||inp[0]=='E'||inp[0]=='^'?inp:nullptr;
+				if( errstr ) 
+				{	//! To end of line instead of match >
+					if( inp[pos-1]=='\n' )
+					{
+						inp[pos] = '\0';
+						if( handle_unsolicited(inp) ) 
+						{
+							//Start again after unsolicited proc
+							pos = 0;
+							continue;
+						}
 						break;
-				} else {
+					}
+				} 
+				else 
+				{
 					got_start = std::memchr(inp,'>',pos);
 					if( got_start ) break;
 				}
@@ -415,7 +419,6 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		inp[pos] = '\0';
 	}
 	if( !got_start && !errstr ) {
-		dbprintf("Unexcepted pdu handshake");
 		m_error = error::unexpected_pdu_handshake;
 		return nullptr;
 	}
@@ -434,34 +437,54 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 			size_t pos {};
 			inp = m_cmd_buffer;
 			int ret {};
-			do {
-				ret = getsome( pos );			
-				if( ret > 0 ) {
+			do 
+			{
+				ret = m_port.getchar( inp[pos], def_timeout );
+				if( ret > 0 )
+				{
 					pos+= ret;	
 				}
-				if( pos >= sizeof(m_cmd_buffer)) {
+				if( pos >= sizeof(m_cmd_buffer)) 
+				{
 					m_error = error::buffer_overflow;
 					return nullptr;
 				}
-			} while( ret>0 && inp[pos-1]!='\n' && inp[pos-1]!='\r' );
+			} 
+			while( ret>0 && inp[pos-1]!='\n' );
 			if( ret < 0 ) return nullptr;
 			std::transform( inp, inp+pos, inp, [](char ch) { return ch?ch:' '; } );
 			inp[pos] = '\0';
 			inp = normalize( inp );
-		} while ( inp[0]=='\0' || std::strstr(inp,pdu) );
+			if( handle_unsolicited(inp) ) 
+			{
+				pos = 0;
+				continue;
+			}
+		} while ( !std::strstr(inp,pdu) || inp[0]=='\0' );
+		//Get messages status
+		do
+		{
+			inp = normalize(getline());
+			if(!inp) return nullptr;
+		}
+		while (inp[0] == '\0');
 	} 
+	
 	if( errstr ) inp = errstr;
 	// handle errors
-	if (match_response(inp, "+CME ERROR:") || match_response(inp, "+CMS ERROR:")) {
+	if (match_response(inp, "+CME ERROR:") || match_response(inp, "+CMS ERROR:")) 
+	{
 			report_error( inp );
 			return nullptr;
 	}
-	if( match_response( inp, "ERROR" ) ) {
-			m_error = error::aterr_unspecified;
-			return nullptr;
+	if( match_response( inp, "ERROR" ) ) 
+	{
+		m_error = error::aterr_unspecified;
+		return nullptr;
 	}
 	// return if response is "OK" and caller says this is OK
-	if (accept_empty_response && !std::strcmp(inp,"OK") ) {
+	if (accept_empty_response && !std::strcmp(inp,"OK") ) 
+	{
 		m_cmd_buffer[0] = '\0';
 		return m_cmd_buffer;	
 	}
@@ -475,7 +498,9 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 			if(!inp) return nullptr;
 		}
 		while (inp[0] == '\0');
-		if (!std::strcmp(inp,"OK")) return result;
+		if (!std::strcmp(inp,"OK")) {
+			return result;
+		}
 		// else fall through to error
 	}
 	m_error = error::unexpected_resp;

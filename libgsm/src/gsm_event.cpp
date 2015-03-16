@@ -106,48 +106,37 @@ void event::dispatch( at_parser& at , char* str )
 	} 
 	else 
 	{
-		alignas(8) char msgbuf[ sizeof(sms_submit)>sizeof(sms_status_report)?
-							 sizeof(sms_submit):sizeof(sms_status_report) ];
 		param_parser p(str+5, at.bufsize()-5);
-		sms * msg {};
-		int err {};
 		//! Normal deliver SMS routed to TA
 		if( msg_type == sms::t_deliver ) 
 		{
 			dbprintf("Before PDU %s", str );
-			auto dmsg = new(msgbuf) sms_deliver(p);
-			msg = dmsg;
+			sms_deliver dmsg(p);
 			if( !p.error() ) {
 				const auto pdu = at.get_second_line(str);
 				if( pdu ) {
-					dmsg->message(pdu);
+					dmsg.message(pdu);
+					sms_reception( dmsg );
 				} else {
 					dbprintf("Unable to get pdu %i", at.error() );
-					err = at.error();
 				}
 			} else {
 				dbprintf("Unable to parse message %i", p.error() );
-				err = p.error();
 			}
 		} 
 		//Normal status report
 		else if( msg_type == sms::t_status_report ) 
 		{
-			msg = new(msgbuf) sms_status_report(p);
-			err = p.error();
-			if( err ) {
-				dbprintf("Unable to parse status report msg %i", err );
+			sms_status_report rmsg(p);
+			if( !p.error() ) {
+				sms_reception( rmsg );
+			} else{
+				dbprintf( "Unable to handle message %i", p.error() );
 			}
 		}
 		//! Set acknowledgement
 		if( !at.chat("+CNMA") ) {
 			dbprintf("Unable to send ACK");
-		}
-		//Process the message
-		if( msg ) 
-		{
-			if(!err) sms_reception( *msg );
-			msg->~sms();
 		}
 	}
 }
