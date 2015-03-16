@@ -150,6 +150,17 @@ bool at_parser::handle_unsolicited( char* begin_ptr )
 	return false;
 }
 /* ------------------------------------------------------------------ */
+//! Get one character from serial port
+int at_parser::getchar( char& ch, int timeout )
+{
+	auto ret = m_port.getchar( ch, timeout );
+	if( ret <= 0 )
+		m_error = !ret?error::receive_timeout:ret; 
+	else
+		m_error = ret;
+	return m_error;
+}
+/* ------------------------------------------------------------------ */
 // Get line and handle events
 char* at_parser::getline( size_t pos_from, int timeout )
 {
@@ -382,7 +393,7 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		inp = m_cmd_buffer;
 		int ret {};
 		do {
-			ret = m_port.getchar( inp[pos], def_timeout );
+			ret = getchar( inp[pos] );
 			if( ret > 0 ) 
 			{
 				pos += ret;
@@ -419,7 +430,6 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		} while( ret > 0 );
 		if( ret < 0 ) 
 		{
-			m_error = ret;
 			return nullptr;
 		}
 	}
@@ -445,7 +455,7 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 			int ret {};
 			do 
 			{
-				ret = m_port.getchar( inp[pos], def_timeout );
+				ret = getchar( inp[pos] );
 				if( ret > 0 )
 				{
 					pos+= ret;	

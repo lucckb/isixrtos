@@ -447,7 +447,7 @@ void usart_buffered::isr()
 int usart_buffered::getchar(value_type &c, int timeout) 
 {
 	auto ret = rx_queue.pop( c, timeout );
-	return ret==isix::ISIX_EOK?(1):(ret);
+	return ret==isix::ISIX_EOK?(1):(ret==isix::ISIX_ETIMEOUT?0:ret);
 }
 /*----------------------------------------------------------*/
 //Put string
@@ -470,13 +470,13 @@ int usart_buffered::putchar(value_type c, int timeout)
 /*----------------------------------------------------------*/
 int usart_buffered::put(const void *buf, std::size_t buf_len)
 {
-	int r = isix::ISIX_EOK;
+	int r;
 	const char *bb = static_cast<const char*>(buf);
 	size_t s;
 	for(s=0; s<buf_len; s++)
 	{
 		r = putchar(bb[s]);
-		if( r != isix::ISIX_EOK ) return r;
+		if( r < 1 ) return r;
 	}
 	return s;
 }
@@ -498,7 +498,7 @@ int usart_buffered::gets(value_type *str, std::size_t max_len, int timeout)
 		else
 		{
 		    str[l] = '\0';
-		    return res==isix::ISIX_ETIMEOUT?l:res;
+		    return res==0?l:res;
 		}
 	}
 	if(l>=max_len) str[l] = '\0';
@@ -513,14 +513,17 @@ int usart_buffered::get(void *buf, std::size_t max_len,
     std::size_t l;
 	for(l=0; l<max_len; l++)
 	{
-		res= getchar ((unsigned char &) fbuf[l],timeout );
-		if( res == isix::ISIX_ETIMEOUT ) {
-			if( l >= min_len ) {
+		res = getchar ((unsigned char &) fbuf[l],timeout );
+		if( res == 0 ) 
+		{
+			if( l >= min_len )
 				return l;
-			} else {
+			else 
 				continue;
-			}
-		} else if(res<0) {
+			
+		} 
+		else if( res < 0) 
+		{
 			return res;
 		}
 	}

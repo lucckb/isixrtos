@@ -116,6 +116,8 @@ private:
 	char* cut_response( char* answer, const char* response_to_match );
 	// Get line and handle events
 	char* getline( size_t pos_from = 0U, int timeout = def_timeout );
+	// Get single character
+	int getchar( char& ch, int timeout = def_timeout );
 	// Handle unsolicited
 	bool handle_unsolicited( char* begin_ptr );
 private:
