@@ -41,8 +41,15 @@ int device::do_enable () {
 	//Switch power on the device
  	m_hwctl.power_control( true );
 	m_at.discard_data( 500 );
+	//Try to at if it is enabled reset it
+	auto resp = m_at.chat();
+	if( resp ) 
+	{
+		dbprintf("Modem is online reset it");
+		m_hwctl.reset();
+	}
 	//Switch extended error codes
-	auto resp = m_at.chat("+CMEE=1", nullptr, true, true );
+	resp = m_at.chat("+CMEE=1", nullptr, true, true );
 	if( !resp ) {
 		dbprintf( "Modem error response %i", m_at.error() );	
 		return m_at.error();
