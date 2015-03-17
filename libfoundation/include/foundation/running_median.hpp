@@ -66,7 +66,10 @@ namespace algo {
 				return T();
 			}
 		}
-
+		//! Get size
+		size_t size() const {
+			return m_size;
+		}
 	private:
 		T* m_arun;
 		T* m_asort;
