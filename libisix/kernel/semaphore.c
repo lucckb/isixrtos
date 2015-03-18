@@ -51,13 +51,14 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     //If nothing to to - exit
     if(sem==NULL && timeout==0) return ISIX_EINVARG;
     isix_printk("Operate on task %08x state %02x",_isix_current_task,_isix_current_task->state);
+    //Lock scheduler
+    _isixp_enter_critical();
     if( sem && port_atomic_sem_dec( &sem->value ) > 0 )
     {
         isix_printk("Decrement value %d",sem->value->value);
+		_isixp_exit_critical();
         return ISIX_EOK;
     }
-    //Lock scheduler
-    _isixp_enter_critical();
     //If any task remove task from ready list
     if(timeout || sem)
     {
@@ -109,20 +110,20 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
         isix_printk("No sem");
         return ISIX_EINVARG;
     }
-	//If one need increment
-	//TODO: Fix this
+	_isixp_enter_critical();
 	if( port_atomic_sem_inc( &sem->value ) > 1 )
     {
         isix_printk("Waiting list is empty incval to %d",sem->value);
+		_isixp_exit_critical();
         return ISIX_EOK;
     }
 	else 
 	{
 		if( port_atomic_read( &sem->sem_task_count ) <=0 )
 		{
+			_isixp_exit_critical();
 			return ISIX_EOK;
 		}
-		_isixp_enter_critical();
         if( list_isempty(&sem->sem_task) )
 		{
 			isix_bug("List is empty. Atomic wait count mismatch");
