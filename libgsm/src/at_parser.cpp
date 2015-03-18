@@ -191,7 +191,7 @@ char* at_parser::get_second_line( const char* first_ln, int timeout )
 		m_error = !ret?error::receive_timeout:ret; 
 		return nullptr; 
 	}
-	return begin_ptr;
+	return normalize(begin_ptr);
 }
 /* ------------------------------------------------------------------ */ 
 //! Chat with the modem
