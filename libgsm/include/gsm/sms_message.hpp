@@ -40,11 +40,19 @@ namespace gsm_modem {
 			};
 			virtual int type() const = 0;
 			//Setter getters
-			data_coding_scheme get_dcs( ) const {
+			data_coding_scheme get_dcs( ) const 
+			{
 				return m_dcs;
 			}
-			void set_dcs( data_coding_scheme dcs ) {
+			void set_dcs( data_coding_scheme dcs ) 
+			{
 				m_dcs = dcs;
+			}
+		protected:
+			bool addr_valid(const char* addr) const 
+			{
+				return std::strlen(addr)==12 &&
+					addr[0]=='+';
 			}
 		};
 
@@ -139,6 +147,9 @@ namespace gsm_modem {
 			//Destructor
 			virtual ~sms_submit() {
 
+			}
+			bool valid() const {
+				return addr_valid(m_dest_addr);
 			}
 			const char* dest_address() const {
 				return m_dest_addr;
