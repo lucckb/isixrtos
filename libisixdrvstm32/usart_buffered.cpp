@@ -8,6 +8,7 @@
 /*----------------------------------------------------------*/
 #include "usart_buffered.hpp"
 #include <stm32system.h>
+#include <foundation/dbglog.h>
 //!TODO: Usart status codes
 /*----------------------------------------------------------*/
 namespace stm32
@@ -289,7 +290,7 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 		altgpio_mode alternate_gpio_mode
 ) : usart(_usart), pclk1_hz(_pclk1_hz), pclk2_hz(_pclk2_hz),
 	tx_queue(queue_size), rx_queue(queue_size),
-	irq_prio(_irq_prio), irq_sub(_irq_sub) ,tx_en( false )
+	irq_prio(_irq_prio), irq_sub(_irq_sub) 
 {
 	using namespace stm32;
 	if(_usart == USART1) periphcfg_usart1(alternate_gpio_mode);
@@ -350,7 +351,6 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 	if(irq_num != WWDG_IRQn)
 	{
 		nvic_set_priority( irq_num, _irq_prio, _irq_sub );
-		nvic_irq_pend_clear( irq_num );
 		nvic_irq_enable( irq_num, true );
 	}
 }
@@ -401,29 +401,23 @@ int usart_buffered::set_parity(parity new_parity)
 //! Usart start transmision called by usb endpoint
 void usart_buffered::start_tx()
 {
-	irq_mask();
-	before_tx();
-	if(!tx_en)
-	{
-    	tx_en = true;
+	if(tx_restart.exchange(false) ) {
 		usart->CR1 |= USART_TXEIE;
 	}
-	irq_umask();
 }
-
 /*----------------------------------------------------------*/
+
 //! Usart interrupt handler
 void usart_buffered::isr()
 {
-	uint16_t usart_sr = usart->SR;
-	if( usart_sr & USART_RXNE )
+	if( usart->SR & USART_RXNE )
 	{
 		//Received data interrupt
 		value_type ch = usart->DR;
 		//fifo_put(&hwnd->rx_fifo,ch);
 		rx_queue.push_isr(ch);
 	}
-	if(tx_en && (usart_sr&USART_TXE) )
+	if((usart->SR&USART_TXE) )
 	{
 		value_type ch;
 		if( tx_queue.pop_isr(ch) == isix::ISIX_EOK )
@@ -433,14 +427,8 @@ void usart_buffered::isr()
 		else
 		{
 			usart->CR1 &= ~USART_TXEIE;
-			usart->CR1 |= USART_TCIE;
-			tx_en = false;
+			tx_restart = true;
 		}
-	}
-	if( (usart_sr & USART_TC) && !tx_en )
-	{
-		usart->CR1 &= ~USART_TCIE;
-		after_tx();
 	}
 }
 /*----------------------------------------------------------*/
@@ -453,18 +441,20 @@ int usart_buffered::getchar(value_type &c, int timeout)
 //Put string
 int usart_buffered::puts(const value_type *str)
 {
-	int r = isix::ISIX_EOK;
+	int r;
 	auto ptr = str;
 	while(*ptr)
-		if( (r=putchar(*ptr))>0 ) ptr++;
-		else return r;
+	{
+		r = putchar(*ptr++, isix::ISIX_TIME_INFINITE );
+		if( r < 1 ) return r;
+	}
 	return ptr-str;
 }
 /* ---------------------------------------------------------*/
 int usart_buffered::putchar(value_type c, int timeout)
 {
-	int result = tx_queue.push( c, timeout );
 	start_tx();
+	int result = tx_queue.push( c, timeout );
 	return result==isix::ISIX_EOK?(1):(result);
 }
 /*----------------------------------------------------------*/
@@ -484,24 +474,23 @@ int usart_buffered::put(const void *buf, std::size_t buf_len)
 /*----------------------------------------------------------*/
 int usart_buffered::gets(value_type *str, std::size_t max_len, int timeout)
 {
-	int res = isix::ISIX_EOK;
+	int res;
 	std::size_t l;
 	
-	for(l=0; l<max_len; l++)
+	for(l=0; l<max_len-1; l++)
 	{
 		res = getchar( str[l], timeout );
 		if(res>0)
 		{
-			if(str[l] == '\r') str[l] = '\0';
-			else if(str[l] == '\n') { str[l] = '\0'; break; }
+			if(str[l] == '\n') break;
 		}
 		else
 		{
-		    str[l] = '\0';
+			str[l] = '\0';
 		    return res==0?l:res;
 		}
 	}
-	if(l>=max_len) str[l] = '\0';
+	str[l] = '\0';
 	return l;
 }
 /*----------------------------------------------------------*/

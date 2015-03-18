@@ -12,6 +12,7 @@
 #include <isix.h>
 #include <stm32system.h>
 #include <foundation/serial_port.hpp>
+#include <atomic>
 /*----------------------------------------------------------*/
 namespace stm32 {
 namespace dev {
@@ -120,10 +121,6 @@ public:
 		return rx_queue; 
 	} 
 
-protected:
-	virtual void before_tx() {}
-	virtual void after_tx() {}
-
 private:
 	void start_tx();
 	void isr();
@@ -150,7 +147,7 @@ private:
 	container_type rx_queue;
 	const unsigned char irq_prio;
 	const unsigned char irq_sub;
-	volatile bool tx_en;
+	std::atomic<bool> tx_restart {true};
 private: 	//Noncopyable
 	usart_buffered(usart_buffered &);
 	usart_buffered& operator=(const usart_buffered&);
