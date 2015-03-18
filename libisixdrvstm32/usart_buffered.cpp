@@ -8,7 +8,6 @@
 /*----------------------------------------------------------*/
 #include "usart_buffered.hpp"
 #include <stm32system.h>
-#include <foundation/dbglog.h>
 //!TODO: Usart status codes
 /*----------------------------------------------------------*/
 namespace stm32
