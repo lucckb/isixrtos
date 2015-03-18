@@ -29,7 +29,7 @@ namespace gsm_modem {
 //! Put line to the serial interface
 int at_parser::put_line( const char* line1, const char* line2, bool carriage_return )
 {
-	dbprintf("tx>[%s%s]", line1, line2);
+	//dbprintf("tx>[%s%s]", line1, line2);
 	auto ret = m_port.puts( line1 );
 	if( ret < 0 ) { m_error = ret; return m_error; }
 	if( line2 ) {
@@ -176,7 +176,7 @@ char* at_parser::getline( size_t pos_from, int timeout )
 		if( handle_unsolicited(begin_ptr) ) continue;
 		break;
 	} while(true);
-	dbprintf("rx>[%s]->%i", begin_ptr, ret );
+	//dbprintf("rx>[%s]->%i", begin_ptr, ret );
 	return begin_ptr;
 }
 /* ------------------------------------------------------------------ */
@@ -401,7 +401,6 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 				{
 					inp[pos] = '\0';
 					pos = 0;
-					dbprintf("Got new line [%s]", inp );
 					inp = normalize( inp );
 					errstr = inp[0]=='+'||inp[0]=='E'?inp:nullptr;
 					if( inp[0]=='+' || inp[0]=='^' )
