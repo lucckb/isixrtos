@@ -134,10 +134,8 @@ void event::dispatch( at_parser& at , char* str )
 				dbprintf( "Unable to handle message %i", p.error() );
 			}
 		}
-		//! Set acknowledgement
-		if( !at.chat("+CNMA") ) {
-			dbprintf("Unable to send ACK");
-		}
+		//Notify excepted ACKnowledgement
+		at.ack_excepted();
 	}
 }
 /* ------------------------------------------------------------------ */

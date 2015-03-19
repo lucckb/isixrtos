@@ -76,19 +76,12 @@ public:
 		return cmd_buffer_len;
 	}
 
-	//! Put line to the serial interface
-	int put_line( const char* line1, const char* line2=nullptr,
-			bool carriage_return = true );
-
 	//! Set event handler for the parser
 	void set_event_handler( event* ev ) {
 		m_event = ev;
 	}
-
 	//! Wait for an event
-	int wait( int timeout ) {
-		return getline(0, timeout )?error::success:error();
-	}
+	int wait( int timeout );
 	//! Get second line just after the response
 	char* get_second_line( const char* first_ln, int timeout = def_timeout );
 
@@ -100,7 +93,13 @@ public:
 	void sleep( unsigned msec ) {
 		m_port.sleep( msec );
 	}
+	void ack_excepted() {
+		++m_ack_excepted_count;
+	}
 private:
+	//! Put line to the serial interface
+	int put_line( const char* line1, const char* line2=nullptr,
+			bool carriage_return = true );
 	//! Remove whitespace at begginning and end of string
 	char* normalize( char* input );
 
@@ -124,6 +123,7 @@ private:
 	fnd::serial_port& m_port;	//Serial port reference
 	int m_error {};				//Error code
 	char m_cmd_buffer[ cmd_buffer_len ] {};	//Command buffer
+	short m_ack_excepted_count {};
 	const unsigned m_capabilities {};	//Parser capabilities
 	event* m_event {};
 };

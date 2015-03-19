@@ -523,5 +523,24 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 	return nullptr;
 }
 /* ------------------------------------------------------------------ */ 
+//! Wait for an event
+int at_parser::wait( int timeout ) 
+{
+	for( ; m_ack_excepted_count>0; --m_ack_excepted_count )
+	{
+		//! Set acknowledgement
+		if( !chat("+CNMA") ) dbprintf("Unable to send ACK");
+		else dbprintf("ACK was sent");
+	}
+	auto ret = (getline(0,timeout))?(error::success):(error());
+	for( ; m_ack_excepted_count>0; --m_ack_excepted_count )
+	{
+		//! Set acknowledgement
+		if( !chat("+CNMA") ) dbprintf("Unable to send ACK");
+		else dbprintf("ACK was sent");
+	}
+	return ret;
+}
+/* ------------------------------------------------------------------ */ 
 }
 
