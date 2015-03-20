@@ -127,6 +127,7 @@ void usart_buffered::flow_gpio_config( const USART_TypeDef* usart, altgpio_mode 
 #endif
 	}
 	else if( usart == USART3 ) 
+	{
 #if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 		gpio_config(USART3_PORT, USART3_RTS_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
 		gpio_config(USART3_PORT, USART3_CTS_BIT, GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, AGPIO_SPEED_FULL, 0);
@@ -136,7 +137,6 @@ void usart_buffered::flow_gpio_config( const USART_TypeDef* usart, altgpio_mode 
 		gpio_abstract_config(USART3_PORT,USART3_RTS_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
 		gpio_abstract_config(USART3_PORT,USART3_CTS_BIT, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
 #endif
-	{
 	}
 }
 /*----------------------------------------------------------*/
