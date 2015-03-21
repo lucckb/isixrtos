@@ -15,6 +15,7 @@
  *
  * =====================================================================================
  */
+#include <cstdlib>
 #include <gsm/event.hpp>
 #include <gsm/device.hpp>
 #include <gsm/param_parser.hpp>
@@ -38,6 +39,38 @@ void event::dispatch( at_parser& at , char* str )
 		msg_type = sms::t_submit;
 	} else if( !std::strncmp(str,"+CBMI:",6) ) {
 		//TODO Broadcast not supported yet
+	} else if( !std::strncmp(str,"+CREG:",6) ) {
+		param_parser p(str+6, at.bufsize()-6);
+		int regs, lac {}, ci {};
+		if( p.parse_int(regs) < 0 ) {
+			dbprintf("Unable to parse reg status");
+			return;
+		}
+		if( regs > int(reg_status::registered_roaming) ) {
+			dbprintf("Value too big");
+			return;
+		}
+		//Optional LAC and CI parsing
+		if( p.parse_comma() > 0 ) {
+			const auto slac = p.parse_string();
+			if( !slac ) {
+				dbprintf("Unable to parse lac");
+				return;
+			}
+			lac = std::strtol( slac, nullptr, 16 );
+			if( p.parse_comma() < 0 ) {
+				dbprintf("No comma after lac");
+				return;
+			}
+			const auto sci = p.parse_string();
+			if( !sci ) {
+				dbprintf("Unable to parse CI");
+				return;
+			}
+			ci = std::strtol( sci, nullptr, 16 );
+		}
+		net_registration( reg_status(regs), lac, ci );
+		return;
 	}
 	else if( !std::strncmp(str,"+CDSI:",6) ) {
 		indication = true;
@@ -142,6 +175,7 @@ void event::dispatch( at_parser& at , char* str )
 //Callback functions
 void event::sms_reception( sms& sms ) 
 {
+#ifdef PDEBUG
 	dbprintf("Unhandled sms_reception");
 	//FIXME: This a test code only for check indication
 	if( sms.type() == sms::t_status_report ) {
@@ -155,6 +189,7 @@ void event::sms_reception( sms& sms )
 				it.service_tstamp(), it.origin_address(), it.pid(), it.report_indication() );
 			dbprintf("Content %s", it.message() );
 	}
+#endif
 }
 /* ------------------------------------------------------------------ */ 
 //SMS reception indication

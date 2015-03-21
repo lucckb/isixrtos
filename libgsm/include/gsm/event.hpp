@@ -23,7 +23,8 @@
 namespace gsm_modem {
 	class smsmem_id;
 	class at_parser;
-	class event {
+	class event 
+	{
 	public:
 		//Noncopyable
 		event& operator=(event&) = delete;
@@ -33,8 +34,8 @@ namespace gsm_modem {
 		virtual ~event() {
 		}
 		//Callback dispatcher called from AT parser
-		void dispatch( at_parser& , char* str );
-protected:
+		void dispatch( at_parser& at, char* str );
+	protected:
 		//Callback functions
 		virtual void sms_reception( sms&/*sms*/);
 		//SMS reception indication
@@ -46,6 +47,14 @@ protected:
 		}
 		//No answer
 		virtual void no_answer() {
+		}
+		/** Get registration status
+		 * param[in] registration status
+		 * param[in] LAC
+		 * param[in] CI
+		 */
+		virtual void net_registration( reg_status, int, int ) {
+
 		}
 	};
 }

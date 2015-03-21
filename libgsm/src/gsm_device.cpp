@@ -160,7 +160,7 @@ int device::get_pin_status()
 }
 /* ------------------------------------------------------------------ */ 
 //! Register to GSM network 
-int device::register_to_network( const char *pin )
+int device::register_to_network( const char *pin, reg_notify notify )
 {
 	//Set Cops to automatic registration
 	auto ret = get_pin_status( );
@@ -180,11 +180,15 @@ int device::register_to_network( const char *pin )
 		if(ret>0) ret = error::unsupported_operation;
 	}
 	//! Disable notify messages to the device
-	auto resp = m_at.chat("+CREG=0");
+	char buf[16] {};
+	fnd::tiny_snprintf( buf,sizeof(buf)-1,"+CREG=%i", int(notify) );
+	auto resp = m_at.chat(buf);
 	if( !resp ) {
 		dbprintf( "Unable to net notifier %i", m_at.error() );	
 		return m_at.error();
 	}
+	//Enable CREG handling
+	m_at.unsolicited_creg( notify!=reg_notify::disabled );
 	return ret;
 }
 /* ------------------------------------------------------------------ */ 
@@ -265,6 +269,10 @@ int device::get_current_op_info( oper_info& info )
 */
 int device::get_registration_status()
 {
+	if( m_at.unsolicited_creg() ) {
+		dbprintf("Unsolicited creg already enabled");
+		return error::check_unsolicited_notifications;
+	}
 	auto resp = m_at.chat("+CREG?", "+CREG:");
 	if( !resp ) {
 		dbprintf( "Modem error response %i", m_at.error() );	

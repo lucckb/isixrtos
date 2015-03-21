@@ -73,11 +73,18 @@ namespace gsm_modem {
 			m_hwctl.reset();
 		}
 
-		//! Set character set to the modem
+		/**  Set character set to the modem
+		 * @param[in] charset Charset notification number
+		 * @return Error code
+		 */
 		int set_charset( const char* charset );
 
-		//! Register to GSM network 
-		int register_to_network( const char *pin = nullptr );
+		/** Register to GSM network
+		 * @param[in] pin Optional input pin
+		 * @param[in] notify registration notify type
+		 * @return Error code
+		 */
+		int register_to_network( const char *pin = nullptr, reg_notify notify=reg_notify::disabled );
 
 		//! Set pin
 		int set_pin( const char* pin );

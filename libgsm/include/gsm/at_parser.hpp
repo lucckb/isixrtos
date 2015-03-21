@@ -82,6 +82,7 @@ public:
 	}
 	//! Wait for an event
 	int wait( int timeout );
+
 	//! Get second line just after the response
 	char* get_second_line( const char* first_ln, int timeout = def_timeout );
 
@@ -89,13 +90,27 @@ public:
 	int flow_control( bool en ) {
 		return m_port.set_flow( en?fnd::serial_port::flow_rtscts:fnd::serial_port::flow_none );
 	}
+
 	//Sleep for amount of time
 	void sleep( unsigned msec ) {
 		m_port.sleep( msec );
 	}
+	
+	//! If acknowledge is excepted
 	void ack_excepted() {
 		++m_ack_excepted_count;
 	}
+
+	//! Enable or disable unsolicited creg
+	void unsolicited_creg( bool en ) {
+		m_unsolicited_creg = en;
+	}
+
+	//! Get unsolicited creg status
+	bool unsolicited_creg() const {
+		return m_unsolicited_creg;
+	}
+
 private:
 	//! Put line to the serial interface
 	int put_line( const char* line1, const char* line2=nullptr,
@@ -123,8 +138,9 @@ private:
 	fnd::serial_port& m_port;	//Serial port reference
 	int m_error {};				//Error code
 	char m_cmd_buffer[ cmd_buffer_len ] {};	//Command buffer
-	short m_ack_excepted_count {};
-	const unsigned m_capabilities {};	//Parser capabilities
+	short m_ack_excepted_count {};			//ACK excepted count
+	bool m_unsolicited_creg {};				//Enable creg parsing
+	const unsigned m_capabilities {};	    //Parser capabilities
 	event* m_event {};
 };
 /* ------------------------------------------------------------------ */

@@ -53,6 +53,14 @@ namespace gsm_modem {
 		current = 2,
 		forbidden = 3
 	};
+
+	//! Set registration notification
+	enum class reg_notify : short {
+		disabled = 0,
+		registration = 1,
+		location = 2
+	};
+
 	//! Current operator status
 	struct oper_info {
 		char desc_short[11] {};
@@ -73,14 +81,12 @@ namespace gsm_modem {
 	};
 
 	//! Registration status code
-	struct reg_status {
-		enum reg_status_ {
-			not_registered_not_active = 0,
-			registered_home = 1,
-			not_registered_searching = 2,
-			unknown = 3,
-			registered_roaming = 4
-		};
+	 enum class reg_status {
+		not_registered_not_active = 0,
+		registered_home = 1,
+		not_registered_searching = 2,
+		unknown = 3,
+		registered_roaming = 4
 	};
 	struct sms_text_params {
 		unsigned char first_octet;

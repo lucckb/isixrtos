@@ -138,7 +138,7 @@ bool at_parser::handle_unsolicited( char* begin_ptr )
 		match_response(s,"+CMTI:") ||
 		match_response(s,"+CBMI:") ||
 		match_response(s,"+CDSI:") ||
-		//match_response(s,"+CREG:") ||
+		(m_unsolicited_creg&&match_response(s,"+CREG:")) ||
 		match_response(s,"RING") ||
 		match_response(s,"NO CARRIER") ||
 		(match_response(s,"+CLIP:") && std::strlen(s)>10 )) 
