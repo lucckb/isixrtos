@@ -301,7 +301,7 @@ void MD5::update(const char input[], size_type length)
 // the message digest and zeroizing the context.
 MD5& MD5::finalize()
 {
-  static unsigned char padding[64] = {
+  static constexpr unsigned char padding[64] = {
     0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
