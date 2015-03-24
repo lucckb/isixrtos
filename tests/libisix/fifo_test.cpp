@@ -91,7 +91,7 @@ namespace {
 		//Main function from another task
 		virtual void main() 
 		{
-			for( int i=0; i < fifo_test::IRQ_QTEST_SIZE; ++i ) {
+			for( auto i=0U; i < fifo_test::IRQ_QTEST_SIZE; ++i ) {
 				m_error = m_fifo.push(i+1);
 				if( m_error != isix::ISIX_EOK ) {
 					break;
@@ -142,7 +142,7 @@ void fifo_test::base_tests()
 	char ch;
 	for( tbcnt=0; (err=fifo_tst.pop( ch, 1000 ))==isix::ISIX_EOK; tbuf[tbcnt++]=ch );
 	QUNIT_IS_EQUAL( err, isix::ISIX_ETIMEOUT );
-	QUNIT_IS_EQUAL( tbcnt, task_test::N_ITEMS * 4 );
+	QUNIT_IS_EQUAL( tbcnt, task_test::N_ITEMS * 4U );
 	QUNIT_IS_FALSE( std::strcmp(tbuf, "DDDDCCCCBBBBAAAA") );
 	QUNIT_IS_EQUAL( isix::isix_task_change_prio(nullptr,TASKDEF_PRIORITY ), test_prio );
 }
@@ -208,7 +208,7 @@ void fifo_test::pop_isr_test( uint16_t timer_val )
 	);
 	static constexpr int test_val = 1280;
 	int error;
-	for(int p = 0; p < IRQ_QTEST_SIZE; ++p ) {
+	for(auto p = 0U; p < IRQ_QTEST_SIZE; ++p ) {
 		error = m_irqf->push( p + test_val );	
 		if( error ) break;
 	}

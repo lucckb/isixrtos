@@ -35,7 +35,7 @@ class fifo_test {
 	static constexpr auto NOT_FROM_IRQ=0;
 public:
 	//Default qtest size
-	static constexpr auto IRQ_QTEST_SIZE = 64;
+	static constexpr auto IRQ_QTEST_SIZE = 64U;
 	//Constructor
 	fifo_test( QUnit::UnitTest& unit_test )
 	: qunit( unit_test )

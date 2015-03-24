@@ -115,10 +115,10 @@ void sched_suspend::task_lock()
 		task *t2 = new task( 'B' );
 		task *t3 = new task( 'C' );
 		task *t4 = new task( 'D' );
-		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t1) % 4, 0 );
-		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t2) % 4, 0 );
-		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t3) % 4, 0 );
-		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t4) % 4, 0 );
+		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t1) % 4, 0U );
+		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t2) % 4, 0U );
+		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t3) % 4, 0U );
+		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t4) % 4, 0U );
 		isix::_isixp_lock_scheduler();
 		t1->start();
 		t2->start();

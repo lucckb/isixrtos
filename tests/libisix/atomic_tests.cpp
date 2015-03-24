@@ -107,8 +107,8 @@ void atomic_tests::atomic_access_32()
 	QUNIT_IS_EQUAL( sys_atomic_read_uint32_t(&u), uint32_t(0xEEEE1000) );
 	QUNIT_IS_EQUAL( sys_atomic_write_uint32_t(&u, 0xABCDABCD ) , uint32_t(0xEEEE1000) );
 	QUNIT_IS_EQUAL( sys_atomic_read_uint32_t(&u), uint32_t(0xABCDABCD) );
-	QUNIT_IS_EQUAL( sys_atomic_try_write_uint32_t(&u, 0x19790822), 0 );
-	QUNIT_IS_EQUAL( sys_atomic_read_uint32_t(&u), 0x19790822);
+	QUNIT_IS_EQUAL( sys_atomic_try_write_uint32_t(&u, 0x19790822U), 0 );
+	QUNIT_IS_EQUAL( sys_atomic_read_uint32_t(&u), 0x19790822U);
 }
 
 } // Namespace tests end
