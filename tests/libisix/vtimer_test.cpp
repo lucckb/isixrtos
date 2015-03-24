@@ -30,13 +30,13 @@ void vtimer::basic()
 	m_t1.stop();
 	m_t2.stop();
 	m_t3.stop();
-	QUNIT_IS_EQUAL(m_t1.counter(), 100/10 );
-	QUNIT_IS_EQUAL(m_t2.counter(), 100/1 );
-	QUNIT_IS_EQUAL(m_t3.counter(), 100/5 );
+	QUNIT_IS_EQUAL(m_t1.counter(), 100U/10U );
+	QUNIT_IS_EQUAL(m_t2.counter(), 100U/1U );
+	QUNIT_IS_EQUAL(m_t3.counter(), 100U/5U );
 	isix::isix_wait_ms(100);
-	QUNIT_IS_EQUAL(m_t1.counter(), 100/10 );
-	QUNIT_IS_EQUAL(m_t2.counter(), 100/1 );
-	QUNIT_IS_EQUAL(m_t3.counter(), 100/5 );
+	QUNIT_IS_EQUAL(m_t1.counter(), 100U/10U );
+	QUNIT_IS_EQUAL(m_t2.counter(), 100U );
+	QUNIT_IS_EQUAL(m_t3.counter(), 100U/5U );
 }
 
 namespace {
@@ -72,7 +72,7 @@ void vtimer::one_shoot()
 			isix::ISIX_EBUSY );
 	isix::isix_wait_ms( 200 );
 	QUNIT_IS_EQUAL( ci.count, 1 );
-	QUNIT_IS_EQUAL( ci.last_call - ci.start_call, 100 );
+	QUNIT_IS_EQUAL( ci.last_call - ci.start_call, 100U );
 	QUNIT_IS_EQUAL( isix::isix_vtimer_destroy( timerh ), isix::ISIX_EOK );
 }
 

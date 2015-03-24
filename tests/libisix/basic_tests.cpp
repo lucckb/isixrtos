@@ -64,7 +64,7 @@ class unit_tests : public isix::task_base
 int main()
 {
 #ifdef PDEBUG
-    stm32::usartsimple_init( USART2,115200,true, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
+    stm32::usartsimple_init( USART1,3000000,false, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
 #endif	
 	dblog_init_putc( stm32::usartsimple_putc, NULL );
 	dbprintf("-------- BEGIN_TESTS ---------");
