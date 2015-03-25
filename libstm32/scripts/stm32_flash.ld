@@ -160,9 +160,9 @@ SECTIONS
     */
     ._heap :
     {
-        . = ALIGN(4);
+        . = ALIGN(8);
         _heap_start = .;
-        . = . + 4;
+        . = . + 8;
     } > RAM
     
     PROVIDE( __heap_start = _heap_start );
