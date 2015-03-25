@@ -37,12 +37,15 @@ public:
 	void run() {
 		basic_lock();
 		task_lock();
+		non_block_wait();
 	}
 private:
 	//Basic lock test
 	void basic_lock();
 	//Advanced lock tests
 	void task_lock();
+	//Wait for ujiffis
+	void non_block_wait();
 private:
 	QUnit::UnitTest &qunit;
 };

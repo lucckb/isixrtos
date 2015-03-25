@@ -14,7 +14,7 @@
 #include "sched_suspend.hpp"
 #include "mempool_test.hpp"
 #include "vtimer_test.hpp"
-
+#include "errno_test.hpp"
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
@@ -28,6 +28,7 @@ class unit_tests : public isix::task_base
 	tests::sched_suspend sched_test { qunit };
 	tests::mempool mempool_test { qunit };
 	tests::vtimer timer_test { qunit };
+	tests::errno_threadsafe errno_test { qunit };
 	//Test heap
 	void heap_test() {
 		QUNIT_IS_EQUAL( reinterpret_cast<long>(this)%4, 0 );
@@ -55,6 +56,7 @@ class unit_tests : public isix::task_base
 		fifo_test.run();
 		mempool_test.run();
 		timer_test.run();
+		errno_test.run();
 		isix::isix_wait_ms(100);
 		isix::isix_shutdown_scheduler();
 	}

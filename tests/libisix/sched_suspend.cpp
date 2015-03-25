@@ -137,5 +137,21 @@ void sched_suspend::task_lock()
 	}
 }
 
+/** Wait for ujiffies testing PI */
+void sched_suspend::non_block_wait()
+{
+	//Test 1
+	auto t1 = isix::isix_get_jiffies();
+	isix::isix_wait_us( 5000 ); 
+	auto t2 = isix::isix_get_jiffies();
+	QUNIT_IS_TRUE( t2-t1==5 || t2-t1==6 );
+	//Test2 long
+	t1 = isix::isix_get_jiffies();
+	isix::isix_wait_us( 500000 ); 
+	t2 = isix::isix_get_jiffies();
+	QUNIT_IS_TRUE( t2-t1 >=499 && t2-t1<=501 );
+}
+
+
 } // Namespace test end 
 
