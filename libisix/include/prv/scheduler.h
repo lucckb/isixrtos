@@ -1,6 +1,7 @@
 #ifndef _ISIX_PRV_SCHEDULER_H
 #define _ISIX_PRV_SCHEDULER_H
 
+#include <sys/reent.h>
 #include <prv/list.h>
 #include <isix/config.h>
 #include <isix/semaphore.h>
@@ -37,6 +38,7 @@ struct task_struct
     list_t inode_sem;           	//Inode of semaphore
     sem_t   *sem;               	//Pointer to waiting sem
     void    *prv;					//Private data pointer for extra data
+	struct _reent *impure_data;		//Newlib per thread private data
     list_t inode;               	//List of tasks
 };
 /*-----------------------------------------------------------------------*/

@@ -17,14 +17,21 @@ namespace isix {
 	void FUNC(void *ARG)
 
 #endif
+/* ----------------------------------------------------------------------*/
+//! Special flags for task create
+enum isix_task_flags {
+	isix_task_flag_newlib = 1U	//! Uses per thread new lib data for ex errno
+};
 /*-----------------------------------------------------------------------*/
 /** Create the task function (System thread)
  * @param[in] task_func Pointer to the thread function
  * @param[in] func_param Function parameter
  * @param[in] stack_depth Thread/Task stack depth
  * @param[in] priority The task priority
+ * @param[in] flags extra flags for control task parameters
  * @return Task control object, or NULL when task can't be created */
-task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned long stack_depth, prio_t priority);
+task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, 
+		unsigned long stack_depth, prio_t priority, unsigned long flags );
 
 /*-----------------------------------------------------------------------*/
 //! Private version of change prio function
@@ -47,7 +54,7 @@ static inline int isix_task_change_prio( task_t* task, prio_t new_prio )
  *	@param[in] task Task control object
  *	@return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_task_delete(task_t *task);
+int isix_task_delete( task_t *task );
 
 /*-----------------------------------------------------------------------*/
 
@@ -144,9 +151,9 @@ public:
 			task_id = isix_task_create( start_task, this, stack_depth, priority );
 	}
 #else
-	void start_thread(std::size_t stack_depth, prio_t priority)
+	void start_thread(std::size_t stack_depth, prio_t priority, unsigned flags=0)
 	{
-		task_id = isix_task_create( start_task, this, stack_depth, priority );
+		task_id = isix_task_create( start_task, this, stack_depth, priority, flags );
 	}
 	virtual ~task_base()
 	{

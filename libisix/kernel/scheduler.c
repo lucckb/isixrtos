@@ -149,6 +149,16 @@ void _isixp_schedule(void)
     isix_printk("Scheduler: prev task %08x",_isix_current_task);
     _isix_current_task = list_get_first(&current_prio->task_list,inode,task_t);
     _isix_current_task->state |= TASK_RUNNING;
+	//Handle local thread errno
+	if(_isix_current_task->impure_data ) 
+	{
+		_REENT = _isix_current_task->impure_data;
+	}
+	else
+	{
+		if( _REENT != _GLOBAL_REENT )
+			_REENT = _GLOBAL_REENT;
+	}
     if(_isix_current_task->prio != current_prio->prio)
     {
     	isix_bug("Task priority doesn't match to element priority");
@@ -373,10 +383,12 @@ static inline void cleanup_tasks(void)
         {
         	task_t *task_del = list_get_first(&dead_task,inode,task_t);
         	list_delete(&task_del->inode);
-        	isix_printk("Task to delete: %08x(SP %08x) PRIO: %d",task_del,task_del->init_stack,task_del->prio);
+        	isix_printk( "Task to delete: %08x(SP %08x) PRIO: %d",
+						task_del,task_del->init_stack,task_del->prio );
         	port_cleanup_task(task_del->top_stack);
         	isix_free(task_del->init_stack);
         	isix_free(task_del);
+			if( task_del->impure_data ) isix_free( task_del->impure_data );
         	number_of_task_deleted--;
         }
         _isixp_exit_critical();
@@ -433,7 +445,7 @@ void isix_init(prio_t num_priorities)
     	list_insert_end(&free_prio_elem,&prio[i].inode);
     }
     //Lower priority is the idle task
-    isix_task_create(idle_task,NULL,ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities);
+    isix_task_create(idle_task,NULL,ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities,0);
     //Initialize virtual timers infrastructure
     _isixp_vtimer_init();
 }

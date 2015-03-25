@@ -27,7 +27,8 @@
 #define MAGIC_FILL_VALUE 0x55
 /*-----------------------------------------------------------------------*/
 /* Create task function */
-task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned long  stack_depth, prio_t priority)
+task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, 
+		unsigned long  stack_depth, prio_t priority, unsigned long flags )
 {
 	isix_printk("TaskCreate: Create task with prio %d",priority);
     if(isix_get_min_priority()< priority )
@@ -57,6 +58,19 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, unsigned l
         isix_free(task);
         return NULL;
     }
+	//! Try to allocate impure data if needed
+	if( flags & isix_task_flag_newlib )
+	{
+		task->impure_data =  isix_alloc( sizeof(struct _reent) );
+		if( !task->impure_data )
+		{
+			isix_free(task->init_stack);
+			isix_free( task );
+			return NULL;
+		}
+		memset( task->impure_data, 0, sizeof(struct _reent) );
+		task->impure_data->_current_locale = "C";
+	}
 #ifdef ISIX_CONFIG_STACK_GROWTH
      task->top_stack = (unsigned long*)(((char*)task->init_stack) + stack_depth - sizeof(long));
 #else
