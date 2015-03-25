@@ -935,7 +935,7 @@ static int low_level_init(struct netif *netif)
   {
 	  return ERR_MEM;
   }
-  netif_task_id = isix_task_create( netif_task, netif, C_netif_task_stack_size, ETH_DRV_ISIX_THREAD_PRIORITY );
+  netif_task_id = isix_task_create( netif_task, netif, C_netif_task_stack_size, ETH_DRV_ISIX_THREAD_PRIORITY , 0 );
   if(!netif_task_id)
   {
 	  isix_sem_destroy(netif_sem);
@@ -969,6 +969,7 @@ static bool is_pbuf_dma_safe( const struct pbuf *p )
 //Convert puf to req desc
 static inline size_t pbuf_chains_to_dma_descs_num(int pbuf_chains)
 {
+
 	return pbuf_chains / 2 + pbuf_chains % 2;
 }
 /* ------------------------------------------------------------------ */

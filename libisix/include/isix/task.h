@@ -104,7 +104,8 @@ size_t isix_free_stack_space(const task_t *task);
 #ifdef WITH_ISIX_TCPIP_LIB
 task_t* sys_thread_new(const char *name, task_func_ptr_t thread,  void *arg, int stacksize, int prio);
 /* Isix task create TCPIP version for usage with the TCPIP stack */
-static inline task_t* isix_task_create_tcpip(task_func_ptr_t task_func, void *func_param, unsigned long stack_depth, prio_t priority)
+static inline task_t* isix_task_create_tcpip(task_func_ptr_t task_func, 
+		void *func_param, unsigned long stack_depth, prio_t priority )
 {
 	return sys_thread_new( NULL, task_func, func_param, stack_depth, priority );
 }
@@ -114,7 +115,7 @@ static inline int isix_task_delete_tcpip(task_t *task)
 {
 	void *prv = isix_get_task_private_data( task );
 	int ret = isix_task_delete( task );
-	isix_free( prv );
+	if( prv ) isix_free( prv );
 	return ret;
 }
 #endif
@@ -143,12 +144,19 @@ public:
 	 * @param[in] priority Thread/task priority
 	 */
 #ifdef WITH_ISIX_TCPIP_LIB
-	void start_thread(std::size_t stack_depth, prio_t priority, bool tcpip=false)
+	void start_thread( std::size_t stack_depth, prio_t priority, unsigned flags )
 	{
-		if(tcpip)
-			task_id = isix_task_create_tcpip( start_task, this, stack_depth, priority );
-		else
-			task_id = isix_task_create( start_task, this, stack_depth, priority );
+		task_id = isix_task_create( start_task, this, stack_depth, priority, flags );
+	}
+	void start_tcpip_thread( std::size_t stack_depth, prio_t priority )
+	{
+		task_id = isix_task_create_tcpip( start_task, this, stack_depth, priority );
+	}
+	virtual ~task_base()
+	{
+		if( task_id ) {
+			isix_task_delete_tcpip(task_id);
+		}
 	}
 #else
 	void start_thread(std::size_t stack_depth, prio_t priority, unsigned flags=0)

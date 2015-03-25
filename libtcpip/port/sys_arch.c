@@ -45,7 +45,7 @@ static task_t* introduce_thread(task_t *task)
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize, int prio)
 {
     (void)name;
-    task_t* task = isix_task_create( thread, arg, stacksize, prio);
+    task_t* task = isix_task_create( thread, arg, stacksize, prio, isix_task_flag_newlib );
     if(task != NULL )
     {
         task = introduce_thread(task);
