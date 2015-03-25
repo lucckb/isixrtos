@@ -205,7 +205,7 @@ int usbh_controller_init( int controller_id , int os_priority )
 			ctx.err = USBHLIB_ERROR_OS;
 			break;
 		}
-		ctx.host_task = isix_task_create( usbhost_os_task, NULL, OS_STACK_SIZE, os_priority );
+		ctx.host_task = isix_task_create( usbhost_os_task, NULL, OS_STACK_SIZE, os_priority,0);
 		if( !ctx.host_task ) {
 			ctx.err = USBHLIB_ERROR_OS;
 			break;
