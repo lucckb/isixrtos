@@ -494,7 +494,7 @@ void isix_shutdown_scheduler(void)
 /** Function called at end of isix execution only
  * when shutdown API is enabled
  */
-void __isixp_finalize() {
+void _isixp_finalize() {
 	cleanup_tasks();
 }
 /*-----------------------------------------------------------------------*/
