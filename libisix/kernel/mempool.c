@@ -11,13 +11,8 @@
 #include <prv/list.h>
 #include <isix/mempool.h>
 #include <prv/mempool.h>
+#include <prv/common.h>
 #include <isix/memory.h>
-/*-----------------------------------------------------------------------*/
-/* Private function for return len alignment */
-static inline size_t isix_align_mem_len( size_t len )
-{
-    return (len/ISIX_CONFIG_BYTE_ALIGNMENT_SIZE+!!(len%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE))*ISIX_CONFIG_BYTE_ALIGNMENT_SIZE;
-}
 
 /*-----------------------------------------------------------------------*/
 //! Internal inode representation
@@ -29,7 +24,7 @@ struct mempool_node
 /* Create the mempool */
 isix_mempool_t isix_mempool_create( size_t elems, size_t elem_size )
 {
-    elem_size = isix_align_mem_len( elem_size );
+    elem_size = _isixp_align_size( elem_size );
     if( elem_size < sizeof(struct mempool_node))
     {
     	return NULL;

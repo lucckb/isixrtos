@@ -7,18 +7,6 @@
 #include <isix/error.h>
 
 /*-----------------------------------------------------*/
-//! Null defs
-#ifndef NULL
-#if !defined(__cplusplus)
-#define NULL ((void*)0)
-#elif (__cplusplus > 199711L )
-#define NULL nullptr
-#else
-#define NULL 0
-#endif /* __cplusplus */
-#endif /* NULL */
-
-/*-----------------------------------------------------*/
 #ifdef __cplusplus
 namespace isix
 {
