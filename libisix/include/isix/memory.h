@@ -1,5 +1,4 @@
-#ifndef _ISIX_MEMORY_H
-#define _ISIX_MEMORY_H
+#pragma once
 /*------------------------------------------------------*/
 #include <isix/types.h>
 /*------------------------------------------------------*/
@@ -40,4 +39,3 @@ size_t isix_heap_free(int *fragments);
 #endif /* __cplusplus */
 
 /*------------------------------------------------------*/
-#endif

@@ -6,6 +6,7 @@
 #include <isix/config.h>
 #include <isix/semaphore.h>
 #include <isix/scheduler.h>
+#include <isix/port_atomic.h>
 
 //*-----------------------------------------------------------------------*/
 //Definition of task ready list
@@ -35,7 +36,7 @@ struct task_struct
     unsigned long *top_stack;		//Task stack ptr
     unsigned long *init_stack;      //Initial value of stack for isix_free
     prio_t prio;			    	//Priority of task
-    uint8_t state;        			//stan watku
+    uint8_t state;        			//Thread state
     tick_t jiffies;            		//Ticks when task wake up
     task_ready_t *prio_elem;    	//Pointer to own prio list
     list_t inode_sem;           	//Inode of semaphore
@@ -45,7 +46,23 @@ struct task_struct
     list_t inode;               	//List of tasks
 };
 /*-----------------------------------------------------------------------*/
-
+//!Structure related to isix system
+struct isix_system 
+{
+	_port_atomic_int_t critical_count; 	//! Sched lock counter
+	_port_atomic_t sem_schedule_lock;	//! Schedule lock 
+	list_entry_t ready_task; 			//! Binary tree of task ready to execute
+	list_entry_t wait_tasks[2]; 		//!Task waiting for event
+	list_entry_t* p_waiting_task;		//! Normal waiting task
+	list_entry_t* pov_waiting_task;		//! Overflow waiting tasks
+	list_entry_t dead_task; 			//Task waiting for event
+	list_entry_t free_prio_elem;        //Free priority innodes
+	volatile tick_t jiffies; 	//Global jiffies var
+	_port_atomic_int_t jiffies_skipped; //Skiped jiffies when scheduler is locked
+	volatile unsigned number_of_task_deleted;  //Number of deleted task
+	volatile prio_t number_of_priorities; //Number of priorities
+};
+/*-----------------------------------------------------------------------*/
 //Current executed task
 extern struct task_struct *volatile _isix_current_task;
 

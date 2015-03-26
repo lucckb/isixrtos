@@ -1,6 +1,4 @@
-#ifndef _ISIX_ISIX_H
-#define _ISIX_ISIX_H
-
+#pragma once
 /*--------------------------------------------------*/
 #include <isix/config.h>
 #include <isix/types.h>
@@ -15,5 +13,4 @@
 #include <isix/scoped_lock.h>
 /*--------------------------------------------------*/
 
-#endif
 

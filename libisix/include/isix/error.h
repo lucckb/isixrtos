@@ -1,5 +1,4 @@
-#ifndef ISIX_ERROR_H_
-#define ISIX_ERROR_H_
+#pragma once
 
 /*--------------------------------------------------*/
 #ifdef __cplusplus
@@ -25,8 +24,5 @@ enum isix_error
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-/*--------------------------------------------------*/
-#endif /* _ISIX_ERROR_H__ */
 
 /*--------------------------------------------------*/

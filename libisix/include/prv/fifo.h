@@ -6,8 +6,7 @@
  */
 
 /*-------------------------------------------------------*/
-#ifndef ISIX_PRV_FIFO_H_
-#define ISIX_PRV_FIFO_H_
+#pragma once
 /*-------------------------------------------------------*/
 
 /* Queue structure */
@@ -23,6 +22,4 @@ struct fifo_struct
 	unsigned flags;	//Extra flags
 };
 
-
 /*-------------------------------------------------------*/
-#endif /* FIFO_H_ */

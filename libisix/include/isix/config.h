@@ -1,10 +1,7 @@
 /* 
     Isix configuration file (C) 2007 L. Bryndza
 */
-
-#ifndef _ISIX_CONFIG
-#define _ISIX_CONFIG
-
+#pragma once
 #define ISIX_DBG_ON 1
 #define ISIX_DBG_OFF 0
 
@@ -18,4 +15,3 @@
 #error ISIX_CONFIG_USE_MULTIOBJECTS multiobjects not implemented yet
 #endif
 
-#endif

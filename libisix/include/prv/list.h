@@ -1,9 +1,9 @@
-#ifndef _ISIX_LIST_H
-#define _ISIX_LIST_H
+#pragma once
 
 /* L. Bryndza list version 1.0  */
 
 #include <stddef.h>
+#include <stdbool.h>
 
 //List linkage structure
 typedef struct list
@@ -115,4 +115,3 @@ static inline bool list_is_elem_assigned( list_t *elem )
 	return elem->next!=NULL && elem->prev!=NULL;
 }
 
-#endif

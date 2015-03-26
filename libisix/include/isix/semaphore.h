@@ -1,5 +1,4 @@
-#ifndef _ISIX_SEMAPHORE_H
-#define _ISIX_SEMAPHORE_H
+#pragma once
 
 #include <isix/config.h>
 #include <isix/types.h>
@@ -234,4 +233,3 @@ private:
 #endif /* __cplusplus */
 
 /*-----------------------------------------------------------*/
-#endif /* __ISIX_SEMAPHORE_H */

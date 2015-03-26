@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 /*-----------------------------------------------------------------------*/
-#ifndef ISIX_PRV_MEMPOOL_H_
-#define ISIX_PRV_MEMPOOL_H_
+#pragma once
+#include <prv/list.h>
 /*-----------------------------------------------------------------------*/
 /** Private mempool isix structure */
 struct isix_mempool
@@ -16,4 +16,3 @@ struct isix_mempool
 };
 
 /*-----------------------------------------------------------------------*/
-#endif /* MEMPOOL_H_ */

@@ -1,6 +1,4 @@
-#ifndef PRV_ISIX_SEMAPHORE_H_
-#define PRV_ISIX_SEMAPHORE_H_
-
+#pragma once
 
 #include <prv/list.h>
 #include <isix/port_atomic.h>
@@ -23,11 +21,10 @@ struct sem_struct
 /*--------------------------------------------------------------*/
 
 //Semaphore can by destroyed
-static inline bool _isixp_sem_can_destroy(sem_t *sem)
+static inline bool _isixp_sem_can_destroy(struct sem_struct *sem)
 {
    return list_isempty(&sem->sem_task);
 }
 
 /*--------------------------------------------------------------*/
 
-#endif

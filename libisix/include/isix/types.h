@@ -1,5 +1,4 @@
-#ifndef _ISIX_TYPES_H
-#define _ISIX_TYPES_H
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -23,9 +22,4 @@ typedef unsigned long utick_t;
 }
 #endif
 /*-----------------------------------------------------*/
-//! Bit shift
-#define _BV(x) (1<<x)
 
-/*-----------------------------------------------------*/
-
-#endif /* __ISIX_TYPES_H */
