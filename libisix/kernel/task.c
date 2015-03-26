@@ -1,10 +1,10 @@
 #include <isix/config.h>
 #include <isix/types.h>
-#include <prv/scheduler.h>
+#include <isix/prv/scheduler.h>
 #include <isix/task.h>
 #include <isix/memory.h>
-#include <prv/semaphore.h>
-#include <prv/common.h>
+#include <isix/prv/semaphore.h>
+#include <isix/prv/common.h>
 #include <string.h>
 
 #ifndef ISIX_DEBUG_TASK

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <prv/list.h>
+#include <isix/prv/list.h>
 #include <isix/port_atomic.h>
 
 /*--------------------------------------------------------------*/

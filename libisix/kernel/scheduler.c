@@ -1,12 +1,12 @@
 #include <isix/config.h>
-#include <prv/scheduler.h>
+#include <isix/prv/scheduler.h>
 #include <isix/printk.h>
 #include <isix/types.h>
 #include <isix/task.h>
 #include <isix/memory.h>
-#include <prv/list.h>
-#include <prv/semaphore.h>
-#include <prv/irqtimers.h>
+#include <isix/prv/list.h>
+#include <isix/prv/semaphore.h>
+#include <isix/prv/irqtimers.h>
 
 #ifndef ISIX_DEBUG_SCHEDULER
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF

@@ -7,11 +7,11 @@
  */
 /*-----------------------------------------------------------------------*/
 #include <stdbool.h>
-#include <prv/scheduler.h>
-#include <prv/list.h>
+#include <isix/prv/scheduler.h>
+#include <isix/prv/list.h>
 #include <isix/mempool.h>
-#include <prv/mempool.h>
-#include <prv/common.h>
+#include <isix/prv/mempool.h>
+#include <isix/prv/common.h>
 #include <isix/memory.h>
 
 /*-----------------------------------------------------------------------*/

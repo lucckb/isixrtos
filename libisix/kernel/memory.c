@@ -9,8 +9,8 @@
 #include <isix/memory.h>
 #include <isix/types.h>
 #include <isix/semaphore.h>
-#include <prv/semaphore.h>
-#include <prv/scheduler.h>
+#include <isix/prv/semaphore.h>
+#include <isix/prv/scheduler.h>
 #include <isix/config.h>
 
 #ifndef ISIX_DEBUG_MEMORY

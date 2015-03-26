@@ -3,10 +3,10 @@
 #include <isix/memory.h>
 #include <isix/semaphore.h>
 #include <isix/fifo.h>
-#include <prv/semaphore.h>
-#include <prv/scheduler.h>
+#include <isix/prv/semaphore.h>
+#include <isix/prv/scheduler.h>
 #include <string.h>
-#include <prv/fifo.h>
+#include <isix/prv/fifo.h>
 
 #ifndef ISIX_DEBUG_FIFO
 #define ISIX_DEBUG_FIFO ISIX_DBG_OFF

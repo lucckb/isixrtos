@@ -1,7 +1,7 @@
 #include <isix/config.h>
 #include <isix/printk.h>
 #include <isix/types.h>
-#include <prv/scheduler.h>
+#include <isix/prv/scheduler.h>
 #include <isix/task.h>
 
 /*-----------------------------------------------------------------------*/

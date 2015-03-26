@@ -5,11 +5,11 @@
  *      Author: lucck
  */
 /*-----------------------------------------------------------------------*/
-#include <prv/irqtimers.h>
+#include <isix/prv/irqtimers.h>
 #include <isix/irqtimers.h>
 #include <isix/memory.h>
-#include <prv/list.h>
-#include <prv/scheduler.h>
+#include <isix/prv/list.h>
+#include <isix/prv/scheduler.h>
 #include <string.h>
 
 /*-----------------------------------------------------------------------*/

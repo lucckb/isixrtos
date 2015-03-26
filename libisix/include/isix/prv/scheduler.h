@@ -1,8 +1,7 @@
-#ifndef _ISIX_PRV_SCHEDULER_H
-#define _ISIX_PRV_SCHEDULER_H
+#pragma once
 
 #include <sys/reent.h>
-#include <prv/list.h>
+#include <isix/prv/list.h>
 #include <isix/config.h>
 #include <isix/semaphore.h>
 #include <isix/scheduler.h>
@@ -118,5 +117,4 @@ void _isixp_lock_scheduler();
 //Unlock the scheduler
 void _isixp_unlock_scheduler();
 /*-----------------------------------------------------------------------*/
-#endif
 

@@ -1,9 +1,9 @@
 #include <isix/types.h>
 #include <isix/config.h>
 #include <isix/memory.h>
-#include <prv/scheduler.h>
+#include <isix/prv/scheduler.h>
 #include <isix/semaphore.h>
-#include <prv/semaphore.h>
+#include <isix/prv/semaphore.h>
 #include <string.h>
 #include <isix/port_atomic.h>
 
