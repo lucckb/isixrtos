@@ -17,13 +17,16 @@ typedef struct task_ready_struct
 } task_ready_t;
 
 /*-----------------------------------------------------------------------*/
+enum task_state 
+{
+	TASK_READY = 	1<<0,       //Task is ready
+	TASK_SLEEPING = 1<<1,       //Task is sleeping
+	TASK_WAITING  = 1<<2,       //Task is waiting
+	TASK_RUNNING = 	1<<3,       //Task is running
+	TASK_DEAD =		1<<4,       //Task is dead
+	TASK_SEM_WKUP = 1<<5       //After sem wakeup
+};
 //Task state
-#define TASK_READY (1<<0)          //Task is ready
-#define TASK_SLEEPING (1<<1)       //Task is sleeping
-#define TASK_WAITING (1<<2)        //Task is waiting
-#define TASK_RUNNING (1<<3)        //Task is running
-#define TASK_DEAD    (1<<4)        //Task is dead
-#define TASK_SEM_WKUP (1<<5)       //After sem wakeup
 /*-----------------------------------------------------------------------*/
 
 //Definition of task operations
