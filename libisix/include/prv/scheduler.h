@@ -46,10 +46,6 @@ struct task_struct
 };
 /*-----------------------------------------------------------------------*/
 
-#include <isix/types.h>
-#include <isix/scheduler.h>
-
-/*-----------------------------------------------------------------------*/
 //Current executed task
 extern struct task_struct *volatile _isix_current_task;
 
