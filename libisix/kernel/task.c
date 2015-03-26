@@ -4,6 +4,7 @@
 #include <isix/task.h>
 #include <isix/memory.h>
 #include <prv/semaphore.h>
+#include <prv/common.h>
 #include <string.h>
 
 #ifndef ISIX_DEBUG_TASK
@@ -19,10 +20,6 @@
 #endif
 
 /*-----------------------------------------------------------------------*/
-//Align Mask
-#define ALIGN_MASK 0x03
-//Align Bytes
-#define ALIGN_BYTES 4
 //Magic value for stack checking
 #define MAGIC_FILL_VALUE 0x55
 /*-----------------------------------------------------------------------*/
@@ -38,10 +35,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
 	//If stack length is small error
     if(stack_depth<ISIX_PORT_SCHED_MIN_STACK_DEPTH) return NULL;
     //Alignement
-    if(stack_depth & ALIGN_MASK)
-    {
-        stack_depth += ALIGN_BYTES - (stack_depth & ALIGN_MASK);
-    }
+	stack_depth = _isixp_align_size( stack_depth );
     //Allocate task_t structure
     task_t *task = (task_t*)isix_alloc(sizeof(task_t));
     isix_printk("Alloc task struct %08x",task);
