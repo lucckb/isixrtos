@@ -21,7 +21,6 @@
 
 /*-----------------------------------------------------------------------*/
 // Task reschedule lock for spinlock
-//static _port_atomic_t sem_schedule_lock = { 0, 1 };
 static struct isix_system csys;
 /*-----------------------------------------------------------------------*/
 //Current task pointer
@@ -386,6 +385,8 @@ tick_t isix_get_jiffies(void)
 /* Number of priorites assigned when OS start */
 void isix_init(prio_t num_priorities)
 {
+	//Schedule lock count
+	port_atomic_sem_init( &csys.sem_schedule_lock, 0, 1 );
 	//Copy priority
 	csys.number_of_priorities = num_priorities;
 	//Init heap
