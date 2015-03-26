@@ -19,7 +19,7 @@
 #include <usb/host/controller.h>
 #include <usb/host/internal.h>
 #include <isix.h>
-#include <prv/list.h>
+#include <isix/prv/list.h>
 #include <foundation/dbglog.h>
 #include <stdlib.h>
 #include <usb/host/usb_device_struct.h>
