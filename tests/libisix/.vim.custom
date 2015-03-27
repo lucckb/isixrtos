@@ -1,1 +1,2 @@
 set path=.,/usr/lib/arm-none-eabi/arm-none-eabi/include/,./include/,../isixrtos/libisix/include/,../isixrtos/libisix/include/prv/,../isixrtos/libstm32/inc/,../isixrtos/libfoundation/include/,../isixrtos/libstm32/inc/arm-v6/,../isixrtos/libisix/arch/arm-cm4f/include
+let lb_grep_path='..'
