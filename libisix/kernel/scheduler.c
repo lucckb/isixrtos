@@ -30,7 +30,8 @@ volatile bool _isix_scheduler_running;
 task_t * volatile _isix_current_task = NULL;
 /*-----------------------------------------------------------------------*/
 //! Kernel panic callback function definition
-void __attribute__((weak)) isix_kernel_panic_callback( const char* file, int line, const char *msg )
+void __attribute__((weak)) 
+isix_kernel_panic_callback( const char* file, int line, const char *msg )
 {
 	(void)file; (void)line; (void)msg;
 }
