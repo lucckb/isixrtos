@@ -92,19 +92,8 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
 	    _isixp_exit_critical();
 	    return NULL;
     }
-    if(_isix_scheduler_running==false)
-    {
-        //Scheduler not running assign task
-        if(_isix_current_task==NULL) _isix_current_task = task;
-        else if(_isix_current_task->prio>task->prio) _isix_current_task = task;
-    }
+	_isixp_do_reschedule();
     _isixp_exit_critical();
-    if(_isix_current_task->prio>task->prio && _isix_scheduler_running==true)
-    {
-        //New task have higer priority then current task
-	    isix_printk("Call scheduler new prio %d > old prio %d",task->prio,_isix_current_task->prio);
-        isix_yield();
-    }
     return task;
 }
 

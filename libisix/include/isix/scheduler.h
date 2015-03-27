@@ -19,9 +19,6 @@ typedef void (*task_func_ptr_t)(void*);
 typedef void (*isix_panic_func_callback_t)(const char*, int, const char*);
 
 /*-----------------------------------------------------------------------*/
-//! Priority type
-typedef uint8_t prio_t;
-/*-----------------------------------------------------------------------*/
 
 //! Yield the current process
 static inline void isix_yield()

@@ -40,6 +40,8 @@ enum thr_state
 	THR_STATE_WTEXIT,			//! Wait for exit state
 	THR_STATE_ZOMBIE			//! In zombie state just before exit
 };
+
+typedef uint8_t thr_state_t;
 /*-----------------------------------------------------------------------*/
 //Definition of task operations
 struct task_struct
@@ -47,7 +49,7 @@ struct task_struct
     unsigned long *top_stack;		//Task stack ptr
     unsigned long *init_stack;      //Initial value of stack for isix_free
     prio_t prio;			    	//Priority of task
-    uint8_t state;        			//Thread state
+    thr_state_t state;        		//Thread state
     tick_t jiffies;            		//Ticks when task wake up
     task_ready_t *prio_elem;    	//Pointer to own prio list
 	union 
@@ -124,7 +126,6 @@ void _isixp_exit_critical(void);
 /*-----------------------------------------------------------------------*/
 //Process base stack initialization
 unsigned long* _isixp_task_init_stack(unsigned long *sp,task_func_ptr_t pfun,void *param);
-
 /*-----------------------------------------------------------------------*/
 //Lock the scheduler
 void _isixp_lock_scheduler();
@@ -136,6 +137,15 @@ void _isixp_unlock_scheduler();
 int _isixp_wakeup_task( task_t* task, msg_t msg );
 /*-----------------------------------------------------------------------*/
 //! Go to Sleep state
+int _isixp_goto_sleep_timeout( thr_state_t newstate, tick_t timeout );
+//! Go to thread sleep
+void _isixp_goto_sleep( thr_state_t newstate );
+/*-----------------------------------------------------------------------*/
+//! Add to the prio list from head
+void _isixp_add_to_list_with_prio( list_entry_t* objlist, struct task_struct* task );
+/*-----------------------------------------------------------------------*/
+//! Reschedule tasks 
+void _isixp_do_reschedule();
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }}

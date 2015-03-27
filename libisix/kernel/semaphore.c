@@ -48,6 +48,7 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
 //TODO: priority inheritance
 int isix_sem_wait(sem_t *sem, tick_t timeout)
 {
+#if 0
     //If nothing to to - exit
     if(sem==NULL && timeout==0) return ISIX_EINVARG;
     isix_printk("Operate on task %08x state %02x",_isix_current_task,_isix_current_task->state);
@@ -99,11 +100,13 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
     isix_printk("task %08x after wakeup reason %d", _isix_current_task,
     	(_isix_current_task->state&TASK_SEM_WKUP)?ISIX_EOK:ISIX_ETIMEOUT);
     return (_isix_current_task->state&TASK_SEM_WKUP)?ISIX_EOK:ISIX_ETIMEOUT;
+#endif
 }
 /*--------------------------------------------------------------*/
 //Sem signal V()
 int _isixp_sem_signal( sem_t *sem, bool isr )
 {
+#if 0
     //If not sem not release it
     if(!sem)
     {
@@ -172,6 +175,7 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
 			return ISIX_EOK;
 		}
 	}
+#endif
 }
 
 /*--------------------------------------------------------------*/

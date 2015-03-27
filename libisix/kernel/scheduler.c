@@ -45,7 +45,6 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
 	isix_printk("OOPS-PANIC: Please reset board %s:%i [%s]", file, line, msg );
     task_ready_t *i;
     task_t *j;
-    //TODO: Add interrupt blocking
     isix_printk("Ready tasks");
     list_for_each_entry(&ready_task,i,inode)
     {
@@ -154,6 +153,7 @@ static void internal_schedule_time(void)
       )
     {
     	isix_printk("SchedulerTime: sched_time %d task_time %d",jiffies,task_c->jiffies);
+/*  
         task_c->state &= ~TASK_SLEEPING;
         task_c->state |= TASK_READY;
         list_delete(&task_c->inode_time);
@@ -174,6 +174,10 @@ static void internal_schedule_time(void)
         {
             isix_bug("Add task to ready list fail");
         }
+	*/
+		//TODO: Add task to semaphore list
+        list_delete(&task_c->inode_time);
+	 	task_c->obj.dmsg = ISIX_ETIMEOUT;
     }
 	//Handle timvtimers
     _isixp_vtimer_handle_time( csys.jiffies );
@@ -232,6 +236,10 @@ int _isixp_wakeup_task( task_t* task, msg_t msg )
 {
     if(task->prio > csys.number_of_priorities)
     	return ISIX_ENOPRIO;
+	if( task->state == THR_STATE_READY || task->state == THR_STATE_ZOMBIE )
+	{
+		isix_bug( "Invalid task state %i", task->state );
+	}
     //Find task equal entry
     task_ready_t *prio_i;
     list_for_each_entry(&csys.ready_list,prio_i,inode)
@@ -244,7 +252,7 @@ int _isixp_wakeup_task( task_t* task, msg_t msg )
             task->prio_elem = prio_i;
             //Add task at end of ready list
             list_insert_end(&prio_i->task_list,&task->inode);
-            return 0;
+            return ISIX_EOK;
         }
         else if(task->prio < prio_i->prio)
         {
@@ -260,6 +268,8 @@ int _isixp_wakeup_task( task_t* task, msg_t msg )
     prio_n->prio = task->prio;
     //Set pointer to priority struct
     task->prio_elem = prio_n;
+	//Set task to ready state
+	task->state = THR_STATE_READY;
     //Initialize and add at end of list
     list_init(&prio_n->task_list);
     list_insert_end(&prio_n->task_list,&task->inode);
@@ -270,23 +280,26 @@ int _isixp_wakeup_task( task_t* task, msg_t msg )
 
 /*-----------------------------------------------------------------------*/
 //Delete task from ready list
-void _isixp_delete_task_from_ready_list(task_t *task)
+void _isixp_goto_sleep( thr_state_t newstate )
 {
-    //Scheduler lock
-   list_delete(&task->inode);
-   //Check for task on priority structure
-   if(list_isempty(&task->prio_elem->task_list))
-   {
-        //Task list is empty remove element
-        isix_printk("DeleteTskFromRdyLst: Remove prio list elem");
-        list_delete(&task->prio_elem->inode);
-        free_task_ready_t(task->prio_elem);
-   }
+	task_t* curr = _isixp_current_task;
+	//Scheduler lock
+	list_delete(&curr->inode);
+	//Check for task on priority structure
+	if(list_isempty(&curr->prio_elem->task_list))
+	{
+		//Task list is empty remove element
+		isix_printk("DeleteTskFromRdyLst: Remove prio list elem");
+		list_delete(&curr->prio_elem->inode);
+		free_task_ready_t(curr->prio_elem);
+	}
+	curr->state = newstate;
 }
 /*-----------------------------------------------------------------------*/
 //Move selected task to waiting list
 void _isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
 {
+	
     //Scheduler lock
     task->jiffies = csys.jiffies + timeout;
     if(task->jiffies < csys.jiffies)
@@ -479,5 +492,22 @@ void _isixp_unlock_scheduler()
 		}
 		_isixp_exit_critical();
 	}
+}
+/*-----------------------------------------------------------------------*/
+//! Reschedule tasks 
+void _isixp_do_reschedule()
+{
+    if(_isix_scheduler_running==false)
+    {
+        //Scheduler not running assign task
+        if(_isix_current_task==NULL) _isix_current_task = task;
+        else if(_isix_current_task->prio>task->prio) _isix_current_task = task;
+    }
+    if(_isix_current_task->prio>task->prio && _isix_scheduler_running==true)
+    {
+        //New task have higer priority then current task
+	    isix_printk("Call scheduler new prio %d > old prio %d",task->prio,_isix_current_task->prio);
+        isix_yield();
+    }
 }
 /*-----------------------------------------------------------------------*/
