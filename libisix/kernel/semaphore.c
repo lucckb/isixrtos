@@ -131,12 +131,12 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
 		//Decrement again
 		port_atomic_sem_dec( &sem->value ); 
 		//List is not empty wakeup high priority task
-		task_t *task_wake = list_get_first(&sem->sem_task,inode_sem,task_t);
+		task_t *task_wake = list_get_first(&sem->sem_task,inode,task_t);
 		isix_printk("Task to wakeup %08x",task_wake);
 		//Remove from time list
 		if(task_wake->state & TASK_SLEEPING)
 		{
-			list_delete(&task_wake->inode);
+			list_delete(&task_wake->inode_time);
 			task_wake->state &= ~TASK_SLEEPING;
 		}
 		//Task in waiting list is always in waking state
@@ -152,7 +152,7 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
 		task_wake->state &= ~TASK_WAITING;
 		task_wake->state |= TASK_READY | TASK_SEM_WKUP;
 		task_wake->sem = NULL;
-		list_delete(&task_wake->inode_sem);
+		list_delete( &task_wake->inode );
 		port_atomic_dec( &sem->sem_task_count );
 		if(_isixp_add_task_to_ready_list(task_wake)<0)
 		{

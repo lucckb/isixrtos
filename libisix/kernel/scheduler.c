@@ -55,8 +55,8 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
               isix_printk("\t\t-> task %08x prio %d state %d",j,j->prio,j->state);
          }
     }
-    isix_printk("Sleeping tasks");
-    list_for_each_entry(p_waiting_task,j,inode)
+    isix_printk("Waiting tasks");
+    list_for_each_entry(p_waiting_task,j,inode_time)
     {
         isix_printk("\t->Task: %08x prio: %d state %d jiffies %d",j,j->prio,j->state,j->jiffies);
     }
@@ -150,13 +150,13 @@ static void internal_schedule_time(void)
     task_t *task_c;
 
     while( !list_isempty(csys.p_wait_list) &&
-    		csys.jiffies>=(task_c = list_get_first(csys.p_wait_list,inode,task_t))->jiffies
+    		csys.jiffies>=(task_c = list_get_first(csys.p_wait_list,inode_time,task_t))->jiffies
       )
     {
     	isix_printk("SchedulerTime: sched_time %d task_time %d",jiffies,task_c->jiffies);
         task_c->state &= ~TASK_SLEEPING;
         task_c->state |= TASK_READY;
-        list_delete(&task_c->inode);
+        list_delete(&task_c->inode_time);
         if(task_c->state & TASK_WAITING)
         {
             if(!task_c->sem)
@@ -167,7 +167,7 @@ static void internal_schedule_time(void)
 			port_atomic_dec( &task_c->sem->sem_task_count );
             task_c->sem = NULL;
             task_c->state &= ~TASK_WAITING;
-            list_delete(&task_c->inode_sem);
+            list_delete(&task_c->inode);
             isix_printk("SchedulerTime: Timeout delete from sem list");
         }
         if(_isixp_add_task_to_ready_list(task_c)<0)
@@ -294,23 +294,23 @@ void _isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     {
     	//Insert on overflow waiting list in time order
     	task_t *waitl;
-    	list_for_each_entry(csys.pov_wait_list,waitl,inode)
+    	list_for_each_entry(csys.pov_wait_list,waitl,inode_time)
     	{
     	   if(task->jiffies<waitl->jiffies) break;
     	}
     	isix_printk("MoveTaskToWaiting: OVERFLOW insert in time list at %08x",&waitl->inode);
-    	list_insert_before(&waitl->inode,&task->inode);
+    	list_insert_before(&waitl->inode_time,&task->inode_time);
     }
     else
     {
     	//Insert on waiting list in time order no overflow
     	task_t *waitl;
-    	list_for_each_entry(csys.p_wait_list,waitl,inode)
+    	list_for_each_entry(csys.p_wait_list,waitl,inode_time)
     	{
     	    if(task->jiffies<waitl->jiffies) break;
     	}
     	isix_printk("MoveTaskToWaiting: NO overflow insert in time list at %08x",&waitl->inode);
-    	list_insert_before(&waitl->inode,&task->inode);
+    	list_insert_before(&waitl->inode_time,&task->inode_time);
     }
 }
 
@@ -320,12 +320,12 @@ void _isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 {
     //Insert on waiting list in time order
     task_t *taskl;
-    list_for_each_entry(sem_list,taskl,inode_sem)
+    list_for_each_entry(sem_list,taskl,inode)
     {
     	if(task->prio<taskl->prio) break;
     }
     isix_printk("MoveTaskToSem: insert in time list at %08x",taskl);
-    list_insert_before(&taskl->inode_sem,&task->inode_sem);
+    list_insert_before(&taskl->inode,&task->inode);
 }
 /*-----------------------------------------------------------------------*/
 //Add task list to delete

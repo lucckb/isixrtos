@@ -145,7 +145,7 @@ int _isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     else if(taskc->state & TASK_WAITING)
     {
         isix_printk("Change prio of task waiting on sem");
-        list_delete(&taskc->inode_sem);
+        list_delete( &taskc->inode );
         //Assign new prio
         taskc->prio = new_prio;
         _isixp_add_task_to_sem_list(&taskc->sem->sem_task,taskc);
@@ -205,13 +205,13 @@ int isix_task_delete(task_t *task)
     else if(taskd->state & TASK_SLEEPING)
     {
         //Task sleeping remove from sleeping
-        list_delete(&taskd->inode);
+        list_delete(&taskd->inode_time);
         isix_printk("Remove from sleeping list");
     }
     //Task waiting for sem remove from waiting list
     if(taskd->state & TASK_WAITING)
     {
-       list_delete(&taskd->inode_sem);
+       list_delete(&taskd->inode );
        taskd->sem = NULL;
        isix_printk("Remove from sem list");
     }

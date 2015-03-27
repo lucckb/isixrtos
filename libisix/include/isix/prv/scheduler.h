@@ -42,11 +42,12 @@ struct task_struct
     uint8_t state;        			//Thread state
     tick_t jiffies;            		//Ticks when task wake up
     task_ready_t *prio_elem;    	//Pointer to own prio list
-    list_t inode_sem;           	//Inode of semaphore
+    //list_t inode_sem;           	//Inode of semaphore
     sem_t   *sem;               	//Pointer to waiting sem
     void    *prv;					//Private data pointer for extra data
 	struct _reent *impure_data;		//Newlib per thread private data
-    list_t inode;               	//List of tasks
+    list_t inode;               	//Inode task for operation
+	list_t inode_time;				//Waiting inode
 };
 /*-----------------------------------------------------------------------*/
 //!Structure related to isix system
