@@ -126,7 +126,7 @@ void mempool::task_racecond() {
 	t4.start();
 	t5.start();
 	t6.start();
-	isix::isix_wait_ms(500);
+	isix_wait_ms(500);
 	QUNIT_IS_TRUE( t1.get() != nullptr);
 	QUNIT_IS_TRUE( t2.get() != nullptr);
 	QUNIT_IS_TRUE( t3.get() != nullptr);

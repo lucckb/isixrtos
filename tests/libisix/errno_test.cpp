@@ -35,7 +35,7 @@ namespace tests
 			{
 				errno = err;
 			}
-			isix::isix_wait_ms(1);
+			isix_wait_ms(1);
 			err = errno;
 		}
 	}
@@ -48,11 +48,11 @@ namespace tests
 		errno = 50;
 		for( int i=0; i<4; ++i ) 
 		{
-			auto thr = isix::isix_task_create( errno_thread, &err[i], 
-					stack_size, task_prio, isix::isix_task_flag_newlib );
+			auto thr = isix_task_create( errno_thread, &err[i],
+					stack_size, task_prio, isix_task_flag_newlib );
 			QUNIT_IS_NOT_EQUAL( thr, nullptr );
 		}
-		isix::isix_wait_ms(10);
+		isix_wait_ms(10);
 		for( int i=0; i<4; ++i ) {
 			QUNIT_IS_EQUAL( err[i], except[i] );
 		}

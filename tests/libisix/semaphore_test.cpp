@@ -43,13 +43,13 @@ namespace {
 		//Main funcs
 		virtual void main() 
 		{
-            m_error = m_sem.wait( isix::ISIX_TIME_INFINITE );
+            m_error = m_sem.wait( ISIX_TIME_INFINITE );
             m_items.push_back( m_id );  
 			m_join_sem.signal();
 			//for(;;) isix::isix_wait_ms(1000);
 		}
 	public:
-		semaphore_task_test( char ch_id, isix::prio_t prio, isix::semaphore &sem, std::string &items ) 
+		semaphore_task_test( char ch_id, prio_t prio, isix::semaphore &sem, std::string &items )
             : m_sem( sem ), m_id( ch_id ), m_items( items ), m_prio( prio )
 		{
 		}
@@ -61,14 +61,14 @@ namespace {
 			return m_error;
         }
 		void join() {
-			m_join_sem.wait( isix::ISIX_TIME_INFINITE );
+			m_join_sem.wait( ISIX_TIME_INFINITE );
 		}
     private:
         isix::semaphore& m_sem;
         const char  m_id;
         std::string& m_items;
         int m_error { -32768 };
-		isix::prio_t m_prio;
+		prio_t m_prio;
 		isix::semaphore m_join_sem { 0, 1 };
 	};
 
@@ -94,7 +94,7 @@ namespace {
 			start_thread(STACK_SIZE, TASK_PRIO);
 		}
         int error() const {
-            m_notify_sem.wait( isix::ISIX_TIME_INFINITE );
+            m_notify_sem.wait( ISIX_TIME_INFINITE );
 			return m_error;
         }
 	private:
@@ -111,7 +111,7 @@ void semaphores::isr_test_handler()
 	if( test_count++ < N_TEST_POSTS ) {
 		m_sem_irq.signal_isr();
 	} else {
-		while( m_sem_irq_get.get_isr() == isix::ISIX_EOK ) {
+		while( m_sem_irq_get.get_isr() == ISIX_EOK ) {
 			++irq_get_isr_nposts;
 		}
 		detail::periodic_timer_stop();
@@ -125,9 +125,9 @@ void semaphores::semaphore_time_test()
 		isix::semaphore sigs(0);
 		semaphore_time_task t1( sigs ); t1.start();
 		QUNIT_IS_TRUE( t1.is_valid() );
-		QUNIT_IS_EQUAL( t1.error() , isix::ISIX_ETIMEOUT );
+		QUNIT_IS_EQUAL( t1.error() , ISIX_ETIMEOUT );
 		sigs.signal();
-		QUNIT_IS_EQUAL( t1.error() , isix::ISIX_EOK );
+		QUNIT_IS_EQUAL( t1.error() , ISIX_EOK );
 }
 
 /* ------------------------------------------------------------------ */
@@ -137,7 +137,7 @@ void semaphores::semaphore_prio_tests()
 	//TODO: Must be fixed the task creation like tomek said 
 	//ThreadRunner<MyThreadClass>
 	static constexpr auto test_prio = 3;
-	QUNIT_IS_EQUAL( isix::isix_task_change_prio( nullptr, test_prio ), TASKDEF_PRIORITY );	        
+	QUNIT_IS_EQUAL( isix_task_change_prio( nullptr, test_prio ), TASKDEF_PRIORITY );
 	std::string tstr;		
 	isix::semaphore sigs(0);
 	QUNIT_IS_TRUE( sigs.is_valid() );  
@@ -150,18 +150,18 @@ void semaphores::semaphore_prio_tests()
 	QUNIT_IS_TRUE( t2.is_valid() );
 	QUNIT_IS_TRUE( t3.is_valid() );
 	QUNIT_IS_TRUE( t4.is_valid() );
-	QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
-	QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
-	QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
-	QUNIT_IS_EQUAL( sigs.signal(), isix::ISIX_EOK );
+	QUNIT_IS_EQUAL( sigs.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( sigs.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( sigs.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( sigs.signal(),ISIX_EOK );
 	t1.join(); t2.join(); t3.join(); t4.join();
 	QUNIT_IS_EQUAL( tstr, "DCBA" );
 	//Check semaphore status
-	QUNIT_IS_EQUAL( t1.error(), isix::ISIX_EOK );
-	QUNIT_IS_EQUAL( t2.error(), isix::ISIX_EOK );
-	QUNIT_IS_EQUAL( t3.error(), isix::ISIX_EOK );
-	QUNIT_IS_EQUAL( t4.error(), isix::ISIX_EOK );
-	QUNIT_IS_EQUAL( isix::isix_task_change_prio(nullptr,TASKDEF_PRIORITY ), test_prio );	        
+	QUNIT_IS_EQUAL( t1.error(), ISIX_EOK );
+	QUNIT_IS_EQUAL( t2.error(), ISIX_EOK );
+	QUNIT_IS_EQUAL( t3.error(), ISIX_EOK );
+	QUNIT_IS_EQUAL( t4.error(), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_task_change_prio(nullptr,TASKDEF_PRIORITY ), test_prio );
 }
 
 /* ------------------------------------------------------------------ */
@@ -177,9 +177,9 @@ void semaphores::from_interrupt() {
 	int ret;
 	//Do loop waits for irq
 	int n_signals;
-	for(n_signals=0; (ret=m_sem_irq.wait(1000)) == isix::ISIX_EOK; ++n_signals );
+	for(n_signals=0; (ret=m_sem_irq.wait(1000)) == ISIX_EOK; ++n_signals );
 	//Check the result
-	QUNIT_IS_EQUAL( ret, isix::ISIX_ETIMEOUT );
+	QUNIT_IS_EQUAL( ret, ISIX_ETIMEOUT );
 	QUNIT_IS_EQUAL( n_signals, N_TEST_POSTS );
 	//Check get isr result
 	QUNIT_IS_EQUAL( irq_get_isr_nposts, N_TEST_POSTS );

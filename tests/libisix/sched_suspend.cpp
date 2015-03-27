@@ -24,13 +24,13 @@
 #include <string>
 
 //Internal temporary definition
-namespace isix {
+
 extern "C" {
 	
 	void _isixp_lock_scheduler();
 	void _isixp_unlock_scheduler();
 }
-}
+
 
 
 namespace {
@@ -75,17 +75,17 @@ namespace tests {
 //Scheduler API test
 void sched_suspend::basic_lock()
 {
-	isix::_isixp_lock_scheduler();
+	_isixp_lock_scheduler();
 	for(int i=0;i<100;++i) {
-		isix::isix_yield();
+		isix_yield();
 	}
-	isix::_isixp_unlock_scheduler();
-	isix::_isixp_lock_scheduler();
+	_isixp_unlock_scheduler();
+	_isixp_lock_scheduler();
 	for(int i=0;i<10000000;++i )
 		stm32::nop();
-	isix::_isixp_unlock_scheduler();
+	_isixp_unlock_scheduler();
 	for( int i=0; i<100; ++i ) {
-		isix::isix_yield();
+		isix_yield();
 	}
 }
 /*
@@ -103,7 +103,7 @@ void sched_suspend::task_lock()
 		t2.start();
 		t3.start();
 		t4.start();
-		isix::isix_wait_ms( 500 );
+		isix_wait_ms( 500 );
 		QUNIT_IS_EQUAL( t1.get_id(), 'A' );
 		QUNIT_IS_EQUAL( t2.get_id(), 'B' );
 		QUNIT_IS_EQUAL( t3.get_id(), 'C' );
@@ -119,7 +119,7 @@ void sched_suspend::task_lock()
 		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t2) % 4, 0U );
 		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t3) % 4, 0U );
 		QUNIT_IS_EQUAL( reinterpret_cast<unsigned>(t4) % 4, 0U );
-		isix::_isixp_lock_scheduler();
+		_isixp_lock_scheduler();
 		t1->start();
 		t2->start();
 		t3->start();
@@ -129,7 +129,7 @@ void sched_suspend::task_lock()
 		QUNIT_IS_EQUAL( t2->get_id(), ' ' );
 		QUNIT_IS_EQUAL( t3->get_id(), ' ' );
 		QUNIT_IS_EQUAL( t4->get_id(), ' ' );
-		isix::_isixp_unlock_scheduler();
+		_isixp_unlock_scheduler();
 		delete t1;
 		delete t2;
 		delete t3;
@@ -141,14 +141,14 @@ void sched_suspend::task_lock()
 void sched_suspend::non_block_wait()
 {
 	//Test 1
-	auto t1 = isix::isix_get_jiffies();
-	isix::isix_wait_us( 5000 ); 
-	auto t2 = isix::isix_get_jiffies();
+	auto t1 = isix_get_jiffies();
+	isix_wait_us( 5000 );
+	auto t2 = isix_get_jiffies();
 	QUNIT_IS_TRUE( t2-t1==5 || t2-t1==6 );
 	//Test2 long
-	t1 = isix::isix_get_jiffies();
-	isix::isix_wait_us( 500000 ); 
-	t2 = isix::isix_get_jiffies();
+	t1 = isix_get_jiffies();
+	isix_wait_us( 500000 );
+	t2 = isix_get_jiffies();
 	QUNIT_IS_TRUE( t2-t1 >=499 && t2-t1<=501 );
 }
 

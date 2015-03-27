@@ -32,16 +32,16 @@ class unit_tests : public isix::task_base
 	//Test heap
 	void heap_test() {
 		QUNIT_IS_EQUAL( reinterpret_cast<long>(this)%4, 0 );
-		auto ptr1 = isix::isix_alloc( 1 );
-		auto ptr2 = isix::isix_alloc( 1 );
+		auto ptr1 = isix_alloc( 1 );
+		auto ptr2 = isix_alloc( 1 );
 		QUNIT_IS_NOT_EQUAL( ptr1, nullptr );
 		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr1)%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE , 0 );
 		QUNIT_IS_NOT_EQUAL( ptr2, nullptr );
 		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr2)%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE , 0 );
-		isix::isix_free( ptr1 );
-		isix::isix_free( ptr2 );
+		isix_free( ptr1 );
+		isix_free( ptr2 );
 		int fragments {};
-		const int freem =  isix::isix_heap_free( &fragments );
+		const int freem =  isix_heap_free( &fragments );
 		dbprintf("Free %i frags %i", freem, fragments );
 		QUNIT_IS_TRUE( freem > 0 );
 	}
@@ -57,8 +57,8 @@ class unit_tests : public isix::task_base
 		mempool_test.run();
 		timer_test.run();
 		errno_test.run();
-		isix::isix_wait_ms(100);
-		isix::isix_shutdown_scheduler();
+		isix_wait_ms(100);
+		isix_shutdown_scheduler();
 	}
 };
 
@@ -72,7 +72,7 @@ int main()
 	dbprintf("-------- BEGIN_TESTS ---------");
 	static unit_tests test;
 	test.start_thread(4096, 0);
-	isix::isix_start_scheduler();
+	isix_start_scheduler();
 	return 0;
 }
 
