@@ -217,7 +217,6 @@ static task_ready_t *alloc_task_ready_t(void)
    }
    return prio;
 }
-
 /*-----------------------------------------------------------------------*/
 //Try get task ready from free list if is not exist allocate memory
 static inline void free_task_ready_t(task_ready_t *prio)
@@ -225,10 +224,11 @@ static inline void free_task_ready_t(task_ready_t *prio)
     list_insert_end(&csys.free_prio_elem,&prio->inode);
     isix_printk("free_task_ready_t move 0x%08x to unused list",prio);
 }
-
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list
-int _isixp_add_task_to_ready_list(task_t *task)
+//int _isixp_add_task_to_ready_list(task_t *task)
+//! Wakeup task with selected message
+int _isixp_wakeup_task( task_t* task, msg_t msg )
 {
     if(task->prio > csys.number_of_priorities)
     	return ISIX_ENOPRIO;
@@ -283,7 +283,6 @@ void _isixp_delete_task_from_ready_list(task_t *task)
         free_task_ready_t(task->prio_elem);
    }
 }
-
 /*-----------------------------------------------------------------------*/
 //Move selected task to waiting list
 void _isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
@@ -313,7 +312,6 @@ void _isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     	list_insert_before(&waitl->inode_time,&task->inode_time);
     }
 }
-
 /*--------------------------------------------------------------*/
 //Add task to semaphore list
 void _isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
@@ -334,7 +332,6 @@ void _isixp_add_task_to_delete_list(task_t *task)
     list_insert_end(&csys.zombie_list,&task->inode);
     csys.number_of_task_deleted++;
 }
-
 /*-----------------------------------------------------------------------*/
 //Dead task are clean by this procedure called from idle task
 //One idle call clean one dead tasks

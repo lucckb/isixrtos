@@ -15,6 +15,8 @@ namespace isix
 typedef unsigned int tick_t;
 //! Define a micro tick
 typedef unsigned long utick_t;
+//! Message type
+typedef int msg_t;
 /*-----------------------------------------------------*/
 #ifdef __cplusplus
 }

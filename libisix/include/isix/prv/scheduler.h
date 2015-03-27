@@ -23,7 +23,6 @@ typedef struct task_ready_struct
 /*-----------------------------------------------------------------------*/
 enum task_state 
 {
-
 	TASK_READY = 	1<<0,       //Task is ready
 	TASK_SLEEPING = 1<<1,       //Task is sleeping
 	TASK_WAITING  = 1<<2,       //Task is waiting
@@ -31,9 +30,17 @@ enum task_state
 	TASK_DEAD =		1<<4,       //Task is dead
 	TASK_SEM_WKUP = 1<<5       //After sem wakeup
 };
-//Task state
+//! Current thread state
+enum thr_state 
+{
+	THR_STATE_READY,			//! Thread is on ready state
+	THR_STATE_RUNNING,			//! Thread is in running state
+	THR_STATE_SLEEPING,			//! Thread on sleeping state
+	THR_STATE_WTSEM,			//! Wait for semaphore state
+	THR_STATE_WTEXIT,			//! Wait for exit state
+	THR_STATE_ZOMBIE			//! In zombie state just before exit
+};
 /*-----------------------------------------------------------------------*/
-
 //Definition of task operations
 struct task_struct
 {
@@ -43,7 +50,11 @@ struct task_struct
     uint8_t state;        			//Thread state
     tick_t jiffies;            		//Ticks when task wake up
     task_ready_t *prio_elem;    	//Pointer to own prio list
-    sem_t   *sem;               	//Pointer to waiting sem
+	union 
+	{
+		sem_t   *sem;               	// !Pointer to waiting sem
+		msg_t	dmsg;					//! Returning message
+	} obj;
     void    *prv;					//Private data pointer for extra data
 	struct _reent *impure_data;		//Newlib per thread private data
     list_t inode;               	//Inode task for operation
@@ -68,7 +79,7 @@ struct isix_system
 };
 /*-----------------------------------------------------------------------*/
 //Current executed task
-extern struct task_struct *volatile _isix_current_task;
+//extern struct task_struct *volatile _isix_current_task;
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
@@ -92,23 +103,23 @@ void _isixp_exit_critical(void);
 
 /*-----------------------------------------------------------------------*/
 //Add selected task to waiting list
-void _isixp_add_task_to_waiting_list(struct task_struct *task, tick_t timeout);
+//void _isixp_add_task_to_waiting_list(struct task_struct *task, tick_t timeout);
 
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list
-int _isixp_add_task_to_ready_list(struct task_struct *task);
+//int _isixp_add_task_to_ready_list(struct task_struct *task);
 
 /*--------------------------------------------------------------*/
 //Private add task to semaphore list
-void _isixp_add_task_to_sem_list(list_entry_t *sem_list,struct task_struct *task);
+//void _isixp_add_task_to_sem_list(list_entry_t *sem_list,struct task_struct *task);
 
 /*-----------------------------------------------------------------------*/
 //Delete task from ready list
-void _isixp_delete_task_from_ready_list(struct task_struct *task);
+//void _isixp_delete_task_from_ready_list(struct task_struct *task);
 
 /*-----------------------------------------------------------------------*/
 //Add task list to delete
-void _isixp_add_task_to_delete_list(struct task_struct *task);
+//void _isixp_add_task_to_delete_list(struct task_struct *task);
 
 /*-----------------------------------------------------------------------*/
 //Process base stack initialization
@@ -121,7 +132,11 @@ void _isixp_lock_scheduler();
 //Unlock the scheduler
 void _isixp_unlock_scheduler();
 /*-----------------------------------------------------------------------*/
-
+//! Wakeup task with selected message
+int _isixp_wakeup_task( task_t* task, msg_t msg );
+/*-----------------------------------------------------------------------*/
+//! Go to Sleep state
+/*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }}
 #endif
