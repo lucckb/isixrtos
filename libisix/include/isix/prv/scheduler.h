@@ -23,6 +23,7 @@ typedef struct task_ready_struct
 /*-----------------------------------------------------------------------*/
 enum task_state 
 {
+
 	TASK_READY = 	1<<0,       //Task is ready
 	TASK_SLEEPING = 1<<1,       //Task is sleeping
 	TASK_WAITING  = 1<<2,       //Task is waiting

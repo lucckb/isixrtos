@@ -463,7 +463,6 @@ void isix_shutdown_scheduler(void)
 void _isixp_finalize() {
 	cleanup_tasks();
 }
-/*-----------------------------------------------------------------------*/
 #endif /* ISIX_CONFIG_SHUTDOWN_API  */
 /*-----------------------------------------------------------------------*/
 /** Temporary lock task reschedule */
