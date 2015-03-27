@@ -17,8 +17,7 @@
  */
 
 
-#ifndef  _ISIX_PORT_ATOMIC_H
-#define  _ISIX_PORT_ATOMIC_H
+#pragma once
 
 /*--------------------------------------------------------------*/
 #include <asm/atomic_sem.h>
@@ -165,4 +164,4 @@ static inline void port_atomic_wait_for_interrupt()
 	sys_atomic_wait_for_interrupt();
 }
 /*--------------------------------------------------------------*/
-#endif   /* ----- #ifndef port_atomic_INC  ----- */
+

@@ -25,15 +25,6 @@ namespace
 	//C block size
 	const size_t C_block_len = 512;
 
-	//Check for timer elapsed
-	inline bool timer_elapsed(isix::tick_t t1, isix::tick_t timeout)
-	{
-	    isix::tick_t t2 = isix::isix_get_jiffies();
-	    if( t2 >= t1) 	//Not overflow
-		    return t2 - t1 > timeout;
-	    else   	       //Overflow
-		    return t1 - t2 > timeout;
-	}
 }
 
 /*----------------------------------------------------------*/
@@ -112,17 +103,17 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 	//Extra busy flag
 	if ( req.get_flags()&mmc_command::resp_spi_busy )
 	{
-		isix::tick_t t_start = isix::isix_get_jiffies();
-		timeout = isix::isix_ms2tick( timeout );
+		tick_t t_start = isix_get_jiffies();
+		timeout = isix_ms2tick( timeout );
 		//Downgrade priority during pool
-		const int prio = isix::isix_task_change_prio( NULL, isix::isix_get_min_priority() );
+		const int prio = isix_task_change_prio( NULL, isix_get_min_priority() );
 		do
 		{
 			r1 = m_spi.transfer(0xff);
 		}
-		while( r1==0x00 && timer_elapsed(t_start, timeout) );
+		while( r1==0x00 && isix_timer_elapsed(t_start, timeout) );
 		if( prio >= 0 )
-			isix::isix_task_change_prio( NULL, prio );
+			isix_task_change_prio( NULL, prio );
 		if( r1==0x00 )
 			ret = MMC_CMD_RSP_TIMEOUT;
 	}
@@ -146,8 +137,8 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 //Execute MMC data transfer
 int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 {
-	const isix::tick_t t_start = isix::isix_get_jiffies();
-	timeout = isix::isix_ms2tick( timeout * (len/C_block_len+1));
+	const tick_t t_start = isix_get_jiffies();
+	timeout = isix_ms2tick( timeout * (len/C_block_len+1));
 	const char* bbuf = static_cast<const char*>(buf);
 	for(size_t packet=0; packet<len; packet+=C_block_len)
 	{
@@ -170,14 +161,14 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		//TODO: TImeout Czekaj az karta bedzie wolna
 		while( (r1=m_spi.transfer(0xff))==0 )
 		{
-			if( timer_elapsed(t_start, timeout) )
+			if( isix_timer_elapsed(t_start, timeout) )
 			{
 				CS(1);
 				return MMC_DATA_TIMEOUT;
 			}
 		}
 	}
-	const int prio = isix::isix_task_change_prio( NULL, isix::isix_get_min_priority() );
+	const int prio = isix_task_change_prio( NULL, isix_get_min_priority() );
 	if( m_proc_cmd == mmc_command::OP_WRITE_MULT_BLOCK )
 	{
 		m_spi.transfer( MMC_STOPTRAN_WRITE );
@@ -185,11 +176,11 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		uint8_t r1;
 		while( (r1=m_spi.transfer(0xff))==0 )
 		{
-			if( timer_elapsed(t_start, timeout) )
+			if( isix_timer_elapsed(t_start, timeout) )
 			{
 				CS(1);
 				if( prio >= 0 )
-					isix::isix_task_change_prio( NULL, prio );
+					isix_task_change_prio( NULL, prio );
 				return MMC_DATA_TIMEOUT;
 			}
 		}
@@ -197,18 +188,18 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 	//Wait for free
 	while( m_spi.transfer(0xff)==0 )
 	{
-		if( timer_elapsed(t_start, timeout) )
+		if( isix_timer_elapsed(t_start, timeout) )
 		{
 			CS(1);
 			if( prio >= 0 )
-				isix::isix_task_change_prio( NULL, prio );
+				isix_task_change_prio( NULL, prio );
 			return MMC_DATA_TIMEOUT;
 		}
 	}
 	// Zwolnij CS
 	CS(1);
 	if( prio >= 0 )
-		isix::isix_task_change_prio( NULL, prio );
+		isix_task_change_prio( NULL, prio );
 	// Zwroc OK
 	return MMC_OK;
 }
@@ -216,11 +207,11 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 	//Execute MMC data transfer
 int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 {
-	const isix::tick_t t_start = isix::isix_get_jiffies();
-	timeout = isix::isix_ms2tick( timeout * (len/C_block_len+1));
+	const tick_t t_start = isix_get_jiffies();
+	timeout = isix_ms2tick( timeout * (len/C_block_len+1));
 	char* bbuf = static_cast<char*>(buf);
 	//Downgrade priority during pool
-	const int prio = isix::isix_task_change_prio( NULL, isix::isix_get_min_priority() );
+	const int prio = isix_task_change_prio( NULL, isix_get_min_priority() );
 	for(;;)
 	{
 		uint8_t r1 = m_spi.transfer(0xFF);
@@ -229,19 +220,19 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 		{
 			CS(1);
 			if( prio >= 0 )
-				isix::isix_task_change_prio( NULL, prio );
+				isix_task_change_prio( NULL, prio );
 			return MMC_DATA_ERROR;
 		}
-		if( timer_elapsed(t_start, timeout) )
+		if( isix_timer_elapsed(t_start, timeout) )
 		{
 			CS(1);
 			if( prio >= 0 )
-				isix::isix_task_change_prio( NULL, prio );
+				isix_task_change_prio( NULL, prio );
 			return MMC_DATA_TIMEOUT;
 		}
 	}
 	if( prio >= 0 )
-		isix::isix_task_change_prio( NULL, prio );
+		isix_task_change_prio( NULL, prio );
 	for(size_t packet=0; packet<len; packet+=C_block_len)
 	{
 		m_spi.read( bbuf+packet, len>C_block_len?C_block_len:len );
@@ -269,7 +260,7 @@ int mmc_host_spi::set_ios( ios_cmd cmd, int param )
 		break;
 	//PWR ON
 	case mmc_host::ios_pwr_on:
-		isix::isix_wait_ms( 5 );
+		isix_wait_ms( 5 );
 		ret = m_spi.set_mode( C_spi_mode, C_low_clk_khz_host );
 		CS(1);
 		m_spi.flush( 10 );

@@ -8,7 +8,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-namespace isix {
 #endif /*__cplusplus*/
 
 /*-----------------------------------------------------------------------*/
@@ -133,7 +132,6 @@ static inline bool isix_timer_elapsed( tick_t t1, tick_t timeout )
 }
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
-}	//end namespace
 }	//end extern-C
 #endif /* __cplusplus */
 /*-----------------------------------------------------------------------*/

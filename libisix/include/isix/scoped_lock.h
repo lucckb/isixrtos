@@ -17,8 +17,7 @@
  */
 
 
-#ifndef _ISIX_SCOPED_LOCK_H 
-#define _ISIX_SCOPED_LOCK_H 
+#pragma once
 
 #ifdef __cplusplus
 
@@ -40,5 +39,3 @@ namespace isix {
 }
 
 #endif
-
-#endif   /* ----- #ifndef scoped_lock_INC  ----- */

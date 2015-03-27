@@ -4,9 +4,7 @@
 /*--------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {
-namespace isix {
-#endif /*__cplusplus*/
-
+#endif
 /*--------------------------------------------------------------*/
 struct fifo_struct;
 typedef struct fifo_struct fifo_t;
@@ -75,7 +73,6 @@ int isix_fifo_read_isr(fifo_t *queue, void *item);
 
 /*--------------------------------------------------------------*/
 #ifdef __cplusplus
-}	//end namespace
 }	//end extern-C
 #endif /* __cplusplus */
 /*--------------------------------------------------------------*/

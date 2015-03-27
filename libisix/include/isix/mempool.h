@@ -13,7 +13,6 @@
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {
-namespace isix {
 #endif /*__cplusplus*/
 
 /*-----------------------------------------------------------------------*/
@@ -51,7 +50,6 @@ void* isix_mempool_alloc( isix_mempool_t mp );
 void isix_mempool_free( isix_mempool_t mp, void *p );
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
-}	//end namespace
 }	//end extern-C
 #endif /* __cplusplus */
 /*-----------------------------------------------------------------------*/

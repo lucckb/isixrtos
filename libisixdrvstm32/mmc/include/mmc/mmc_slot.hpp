@@ -37,7 +37,7 @@ public:
 	//Get card status
 	int get_card( mmc_card* &card );
 	//Wait for change status
-	int check( int timeout = isix::ISIX_TIME_INFINITE );
+	int check( int timeout = ISIX_TIME_INFINITE );
 	//Register notification callback
 	void connect( callback_t cb ) {
 		m_callback = cb;
@@ -54,7 +54,7 @@ private:
 	immc_det_pin&				 	m_det_pin;
 	mmc_host&						m_host;
 	mmc_card*						m_card;
-	isix::vtimer_struct* 			m_det_timer;
+	vtimer_struct* 					m_det_timer;
 	volatile uint8_t 				m_event;
 	volatile bool 					m_p_card_inserted;
 	volatile bool 					m_init_req;

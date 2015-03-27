@@ -124,14 +124,14 @@ adc_converter::adc_converter(ADC_TypeDef * const _m_ADC, unsigned _ch_mask,
     for(int i=0;i<100;i++)
     {
         if((m_ADC->CR2 & CR2_RSTCAL_Set) == 0) break;
-        isix::isix_wait_ms(10);
+        isix_wait_ms(10);
     }
     m_ADC->CR2 |= CR2_CAL_Set;
     //Calibrate
     for(int i=0;i<100;i++)
     {
         if((m_ADC->CR2 & CR2_CAL_Set) == 0) break;
-        isix::isix_wait_ms(10);
+        isix_wait_ms(10);
     }
     if( m_ADC==ADC1 ) adc1_object = this;
     //Enable adc interrupt in nvic
@@ -183,7 +183,7 @@ void adc_converter::start_conv()
 //ADC get values
 int adc_converter::get_adc_values(volatile unsigned short *regs)
 {
-	int res = lock_sem.wait ( isix::ISIX_TIME_INFINITE );
+	int res = lock_sem.wait ( ISIX_TIME_INFINITE );
     if(res < 0) return res;
 #if defined(STM32MCU_MAJOR_TYPE_F1)
     stm32::dma_channel_config(DMA1_Channel1,
