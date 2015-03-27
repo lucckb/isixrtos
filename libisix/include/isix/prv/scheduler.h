@@ -1,22 +1,19 @@
 #pragma once
 
 #include <sys/reent.h>
+#include <isix/types.h>
 #include <isix/prv/list.h>
 #include <isix/config.h>
 #include <isix/semaphore.h>
 #include <isix/scheduler.h>
 #include <isix/port_atomic.h>
 
-#ifdef __cplusplus 
-namespace isix {
-extern "C" {
-#endif
 //*-----------------------------------------------------------------------*/
 //Definition of task ready list
 typedef struct task_ready_struct
 {
     prio_t prio;               //Tasks group priority
-    list_entry_t task_list;    //List of task with some priority
+	list_entry_t task_list;    //List of task with some priority
     list_t inode;              //List inode
 } task_ready_t;
 
@@ -122,6 +119,3 @@ void _isixp_lock_scheduler();
 void _isixp_unlock_scheduler();
 /*-----------------------------------------------------------------------*/
 
-#ifdef __cplusplus
-}}
-#endif

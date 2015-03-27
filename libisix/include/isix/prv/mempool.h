@@ -8,9 +8,6 @@
 #pragma once
 #include <isix/prv/list.h>
 
-#ifdef __cplusplus 
-namespace isix {
-#endif
 /*-----------------------------------------------------------------------*/
 /** Private mempool isix structure */
 struct isix_mempool
@@ -20,6 +17,3 @@ struct isix_mempool
 };
 
 /*-----------------------------------------------------------------------*/
-#ifdef __cplusplus
-}
-#endif
