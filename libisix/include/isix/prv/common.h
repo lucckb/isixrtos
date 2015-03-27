@@ -21,6 +21,10 @@
 #include "isix_config.h"
 #include <stddef.h>
 
+#ifdef __cplusplus 
+namespace isix {
+#endif
+
 static inline __attribute__((always_inline)) 
 size_t _isixp_align_size( size_t len )
 {
@@ -29,4 +33,8 @@ size_t _isixp_align_size( size_t len )
 	else
 		return len;
 }
+
+#ifdef __cplusplus
+}
+#endif
 

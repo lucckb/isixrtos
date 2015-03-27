@@ -5,12 +5,15 @@
  *      Author: lucck
  */
 
-#ifndef ISIX_PRV_IRQTIMERS_H_
-#define ISIX_PRV_IRQTIMERS_H_
+#pragma once
 /*-----------------------------------------------------------------------*/
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/prv/list.h>
+/*-----------------------------------------------------------------------*/
+#ifdef __cplusplus 
+namespace isix {
+#endif
 /*-----------------------------------------------------------------------*/
 #ifdef ISIX_CONFIG_USE_TIMERS
 /*-----------------------------------------------------------------------*/
@@ -35,4 +38,6 @@ static inline void _isixp_vtimer_init(void) {}
 static inline void _isixp_vtimer_handle_time(tick_t jiffies) { (void)jiffies; }
 #endif
 /*-----------------------------------------------------------------------*/
-#endif /* IRQTIMERS_H_ */
+#ifdef __cplusplus
+}
+#endif

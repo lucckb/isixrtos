@@ -93,7 +93,7 @@ void _isixp_exit_critical(void)
  */
 void _isixp_schedule(void)
 {
-	if( port_atomic_sem_read_val( &csys.sem_schedule_lock ) )
+	if( port_atomic_sem_read_val( &csys.sched_lock ) )
 	{
 		return;
 	}
@@ -106,7 +106,7 @@ void _isixp_schedule(void)
     }
     task_ready_t * current_prio;
     //Get first ready prio
-    current_prio = list_get_first(&csys.ready_task,inode,task_ready_t);
+    current_prio = list_get_first(&csys.ready_list,inode,task_ready_t);
     isix_printk("Scheduler: actual prio %d prio list %08x",current_prio->prio,current_prio);
     //Get first ready task
     isix_printk("Scheduler: prev task %08x",_isix_current_task);
@@ -141,15 +141,15 @@ static void internal_schedule_time(void)
 	}
 	if(csys.jiffies == 0)
 	{
-	   list_entry_t *tmp = csys.p_waiting_task;
-	   csys.p_waiting_task = csys.pov_waiting_task;
-	   csys.pov_waiting_task = tmp;
+	   list_entry_t *tmp = csys.p_wait_list;
+	   csys.p_wait_list = csys.pov_wait_list;
+	   csys.pov_wait_list = tmp;
 	}
 
     task_t *task_c;
 
-    while( !list_isempty(csys.p_waiting_task) &&
-    		csys.jiffies>=(task_c = list_get_first(csys.p_waiting_task,inode,task_t))->jiffies
+    while( !list_isempty(csys.p_wait_list) &&
+    		csys.jiffies>=(task_c = list_get_first(csys.p_wait_list,inode,task_t))->jiffies
       )
     {
     	isix_printk("SchedulerTime: sched_time %d task_time %d",jiffies,task_c->jiffies);
@@ -186,7 +186,7 @@ void _isixp_schedule_time()
 {
 	//Call isix system time handler if used
     isix_systime_handler();
-    if( port_atomic_sem_read_val( &csys.sem_schedule_lock ) ) {
+    if( port_atomic_sem_read_val( &csys.sched_lock ) ) {
 		port_atomic_inc( &csys.jiffies_skipped );
 	} else {
 		//Increment system ticks
@@ -233,7 +233,7 @@ int _isixp_add_task_to_ready_list(task_t *task)
     	return ISIX_ENOPRIO;
     //Find task equal entry
     task_ready_t *prio_i;
-    list_for_each_entry(&csys.ready_task,prio_i,inode)
+    list_for_each_entry(&csys.ready_list,prio_i,inode)
     {
         //If task equal entry is found add this task to end list
         if(prio_i->prio==task->prio)
@@ -293,7 +293,7 @@ void _isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     {
     	//Insert on overflow waiting list in time order
     	task_t *waitl;
-    	list_for_each_entry(csys.pov_waiting_task,waitl,inode)
+    	list_for_each_entry(csys.pov_wait_list,waitl,inode)
     	{
     	   if(task->jiffies<waitl->jiffies) break;
     	}
@@ -304,7 +304,7 @@ void _isixp_add_task_to_waiting_list(task_t *task, tick_t timeout)
     {
     	//Insert on waiting list in time order no overflow
     	task_t *waitl;
-    	list_for_each_entry(csys.p_waiting_task,waitl,inode)
+    	list_for_each_entry(csys.p_wait_list,waitl,inode)
     	{
     	    if(task->jiffies<waitl->jiffies) break;
     	}
@@ -330,7 +330,7 @@ void _isixp_add_task_to_sem_list(list_entry_t *sem_list,task_t *task)
 //Add task list to delete
 void _isixp_add_task_to_delete_list(task_t *task)
 {
-    list_insert_end(&csys.dead_task,&task->inode);
+    list_insert_end(&csys.zombie_list,&task->inode);
     csys.number_of_task_deleted++;
 }
 
@@ -342,9 +342,9 @@ static inline void cleanup_tasks(void)
     if( csys.number_of_task_deleted > 0 )
     {
         _isixp_enter_critical();
-        if(!list_isempty(&csys.dead_task))
+        if(!list_isempty(&csys.zombie_list))
         {
-        	task_t *task_del = list_get_first(&csys.dead_task,inode,task_t);
+        	task_t *task_del = list_get_first(&csys.zombie_list,inode,task_t);
         	list_delete(&task_del->inode);
         	isix_printk( "Task to delete: %08x(SP %08x) PRIO: %d",
 						task_del,task_del->init_stack,task_del->prio );
@@ -386,21 +386,21 @@ tick_t isix_get_jiffies(void)
 void isix_init(prio_t num_priorities)
 {
 	//Schedule lock count
-	port_atomic_sem_init( &csys.sem_schedule_lock, 0, 1 );
+	port_atomic_sem_init( &csys.sched_lock, 0, 1 );
 	//Copy priority
 	csys.number_of_priorities = num_priorities;
 	//Init heap
 	isix_alloc_init();
 	//Initialize ready task list
-    list_init(&csys.ready_task);
+    list_init(&csys.ready_list);
     //Initialize waiting list
-    list_init(&csys.wait_tasks[0]);
-    list_init(&csys.wait_tasks[1]);
+    list_init(&csys.wait_lists[0]);
+    list_init(&csys.wait_lists[1]);
     //Initialize overflow waiting list
-    csys.p_waiting_task = &csys.wait_tasks[0];
-    csys.pov_waiting_task = &csys.wait_tasks[1];
+    csys.p_wait_list = &csys.wait_lists[0];
+    csys.pov_wait_list = &csys.wait_lists[1];
     //Initialize dead task
-    list_init(&csys.dead_task);
+    list_init(&csys.zombie_list);
     //Initialize free prio elem list
     list_init(&csys.free_prio_elem);
     //This memory never will be freed
@@ -468,13 +468,13 @@ void _isixp_finalize() {
 /** Temporary lock task reschedule */
 void _isixp_lock_scheduler() 
 {
-	port_atomic_sem_inc( &csys.sem_schedule_lock );
+	port_atomic_sem_inc( &csys.sched_lock );
 }
 /*-----------------------------------------------------------------------*/
 /** Temporary unlock task reschedule */
 void _isixp_unlock_scheduler() 
 {
-	if( port_atomic_sem_dec( &csys.sem_schedule_lock ) == 1 ) {
+	if( port_atomic_sem_dec( &csys.sched_lock ) == 1 ) {
 		_isixp_enter_critical();
 		while( csys.jiffies_skipped.counter > 0 ) {
 			internal_schedule_time();

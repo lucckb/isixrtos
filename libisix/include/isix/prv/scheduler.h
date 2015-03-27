@@ -7,6 +7,10 @@
 #include <isix/scheduler.h>
 #include <isix/port_atomic.h>
 
+#ifdef __cplusplus 
+namespace isix {
+extern "C" {
+#endif
 //*-----------------------------------------------------------------------*/
 //Definition of task ready list
 typedef struct task_ready_struct
@@ -48,13 +52,13 @@ struct task_struct
 //!Structure related to isix system
 struct isix_system 
 {
-	_port_atomic_t sem_schedule_lock;	//! Schedule lock 
+	_port_atomic_t sched_lock;	//! Schedule lock 
 	_port_atomic_int_t critical_count; 	//! Sched lock counter
-	list_entry_t ready_task; 			//! Binary tree of task ready to execute
-	list_entry_t wait_tasks[2]; 		//!Task waiting for event
-	list_entry_t* p_waiting_task;		//! Normal waiting task
-	list_entry_t* pov_waiting_task;		//! Overflow waiting tasks
-	list_entry_t dead_task; 			//Task waiting for event
+	list_entry_t ready_list; 			//! Binary tree of task ready to execute
+	list_entry_t wait_lists[2]; 		//!Task waiting for event
+	list_entry_t* p_wait_list;			//! Normal waiting task
+	list_entry_t* pov_wait_list;		//! Overflow waiting tasks
+	list_entry_t zombie_list; 			//Task waiting for event
 	list_entry_t free_prio_elem;        //Free priority innodes
 	volatile tick_t jiffies; 	//Global jiffies var
 	_port_atomic_int_t jiffies_skipped; //Skiped jiffies when scheduler is locked
@@ -68,7 +72,6 @@ extern struct task_struct *volatile _isix_current_task;
 /*-----------------------------------------------------------------------*/
 //Current task pointer
 extern volatile bool _isix_scheduler_running;
-
 
 /*-----------------------------------------------------------------------*/
 //Scheduler function called on context switch in IRQ and Yield
@@ -118,3 +121,6 @@ void _isixp_lock_scheduler();
 void _isixp_unlock_scheduler();
 /*-----------------------------------------------------------------------*/
 
+#ifdef __cplusplus
+}}
+#endif

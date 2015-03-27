@@ -5,9 +5,13 @@
  *      Author: lucck
  */
 
-/*-------------------------------------------------------*/
 #pragma once
-/*-------------------------------------------------------*/
+
+#include "semaphore.h"
+
+#ifdef __cplusplus 
+namespace isix {
+#endif
 
 /* Queue structure */
 struct fifo_struct
@@ -17,9 +21,11 @@ struct fifo_struct
     char *mem_p;    //Pointer to allocated memory
     int size;       //Total fifo size
     int elem_size; //Element count
-    sem_t rx_sem;  //Semaphore rx
-    sem_t tx_sem;  //Semaphore for tx
+    struct sem_struct rx_sem;  //Semaphore rx
+    struct sem_struct tx_sem;  //Semaphore for tx
 	unsigned flags;	//Extra flags
 };
 
-/*-------------------------------------------------------*/
+#ifdef __cplusplus
+}
+#endif
