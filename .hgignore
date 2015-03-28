@@ -19,3 +19,4 @@ libfoundation/unittests/cmake_install.cmake
 libfoundation/unittests/Makefile
 libfoundation/unittests/.session.vim
 libfoundation/unittests/CMakeCache.txt
+tags
