@@ -4,7 +4,6 @@
 /*------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {
-namespace isix {
 #endif /*__cplusplus*/
 
 /*------------------------------------------------------*/
@@ -34,7 +33,6 @@ size_t isix_heap_free(int *fragments);
 
 /*------------------------------------------------------*/
 #ifdef __cplusplus
-}	//end namespace
 }	//end extern-C
 #endif /* __cplusplus */
 

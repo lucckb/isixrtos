@@ -6,7 +6,6 @@
 /*--------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {
-namespace isix {
 #endif /*__cplusplus*/
 /*--------------------------------------------------------------*/
 
@@ -133,7 +132,6 @@ static inline int isix_wait_ms(unsigned long ms)
 /*-----------------------------------------------------------*/
 
 #ifdef __cplusplus
-}	//end namespace
 }	//end extern-C
 #endif /* __cplusplus */
 

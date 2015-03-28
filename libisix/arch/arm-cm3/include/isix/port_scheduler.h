@@ -1,9 +1,8 @@
-#ifndef _ISIX_PORT_SCHEDULER_H
-#define _ISIX_PORT_SCHEDULER_H
+#pragma once
+
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {
-namespace isix {
 #endif /*__cplusplus*/
 
 /*-----------------------------------------------------------------------*/
@@ -73,10 +72,9 @@ static inline __attribute__((always_inline))
 #undef SYST_RVR
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
-}	//end namespace
 }	//end extern-C
 #endif /* __cplusplus */
 
 /*-----------------------------------------------------------------------*/
-#endif
+
 

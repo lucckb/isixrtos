@@ -2,7 +2,6 @@
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {
-namespace isix {
 #endif /*__cplusplus*/
 
 /*-----------------------------------------------------------------------*/
@@ -120,7 +119,6 @@ static inline int isix_task_delete_tcpip(task_t *task)
 #endif
 
 #ifdef __cplusplus
-}	//end namespace
 }	//end extern-C
 #endif /* __cplusplus */
 

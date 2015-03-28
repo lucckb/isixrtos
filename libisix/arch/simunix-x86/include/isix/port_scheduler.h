@@ -1,10 +1,8 @@
-#ifndef __PORT_SCHEDULER_H
-#define __PORT_SCHEDULER_H
+#pragma once
 #include <unistd.h>
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 extern "C" {
-namespace isix {
 #endif /*__cplusplus*/
 
 /*-----------------------------------------------------------------------*/
@@ -39,10 +37,9 @@ static inline void port_idle_cpu( void )
 
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
-}	//end namespace
 }	//end extern-C
 #endif /* __cplusplus */
 
 /*-----------------------------------------------------------------------*/
-#endif
+
 

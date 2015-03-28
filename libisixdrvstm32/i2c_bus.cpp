@@ -387,7 +387,7 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 		return err_invaddr;
 	}
 	int ret;
-	if( (ret=m_lock.wait(isix::ISIX_TIME_INFINITE))<0 ) {
+	if( (ret=m_lock.wait(ISIX_TIME_INFINITE))<0 ) {
 		return ret;
 	}
 	//Disable I2C irq
@@ -411,7 +411,7 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	i2c_acknowledge_config( dcast(m_i2c), true );
 	i2c_generate_start(dcast(m_i2c), true );
 	ret = m_notify.wait( TRANSACTION_TIMEOUT );
-	if( ret != isix::ISIX_EOK ) {
+	if( ret != ISIX_EOK ) {
 		i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 		i2c_generate_stop(dcast(m_i2c), true );
 		nop(); nop(); nop(); nop();
@@ -563,7 +563,7 @@ void i2c_bus::ev_dma_tc()
 /* ------------------------------------------------------------------ */
 void i2c_bus::mdelay( unsigned timeout ) 
 {
-	isix::isix_wait_ms( timeout );
+	isix_wait_ms( timeout );
 }
 /* ------------------------------------------------------------------ */ 
 extern "C" {

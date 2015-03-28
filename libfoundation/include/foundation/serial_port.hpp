@@ -29,7 +29,7 @@ public:
 #ifndef COMPILED_UNDER_ISIX
 	static constexpr auto time_infinite=0;
 #else
-	static constexpr auto time_infinite=isix::ISIX_TIME_INFINITE;
+	static constexpr auto time_infinite=ISIX_TIME_INFINITE;
 #endif
 public:
 	using value_type =  char;

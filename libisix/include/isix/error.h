@@ -1,10 +1,5 @@
 #pragma once
 
-/*--------------------------------------------------*/
-#ifdef __cplusplus
-namespace isix
-{
-#endif
 
 /*--------------------------------------------------*/
 /** Returned error codes definitions */
@@ -19,10 +14,4 @@ enum isix_error
 	ISIX_ENOPRIO = -7,   	/** Priority is invalid */
 	ISIX_ENOTSUP = -8		/** Operation not supported */
 };
-
-/*--------------------------------------------------*/
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
 /*--------------------------------------------------*/

@@ -359,7 +359,7 @@ int usart_buffered::set_baudrate(unsigned new_baudrate)
 {
 	unsigned hz = usart==USART1?pclk2_hz:pclk1_hz;
 	//TODO: Sem wait not busy waiting
-	while(!(usart->SR & USART_TC)) isix::isix_wait(10);
+	while(!(usart->SR & USART_TC)) isix_wait(10);
 	//Calculate baud rate
 	uint32_t int_part = ((0x19 * hz) / (0x04 * new_baudrate));
 	uint32_t tmp = (int_part / 0x64) << 0x04;
@@ -373,7 +373,7 @@ int usart_buffered::set_baudrate(unsigned new_baudrate)
 int usart_buffered::set_parity(parity new_parity)
 {
 	//TODO: Sem wait not busy waiting
-	while(!(usart->SR & USART_TC)) isix::isix_wait(10);
+	while(!(usart->SR & USART_TC)) isix_wait(10);
 
 	//if usart parity has bit check
 	if(new_parity == parity_none)
@@ -419,7 +419,7 @@ void usart_buffered::isr()
 	if((usart->SR&USART_TXE) )
 	{
 		value_type ch;
-		if( tx_queue.pop_isr(ch) == isix::ISIX_EOK )
+		if( tx_queue.pop_isr(ch) == ISIX_EOK )
 		{
 			usart->DR = ch;
 		}
@@ -434,7 +434,7 @@ void usart_buffered::isr()
 int usart_buffered::getchar(value_type &c, int timeout) 
 {
 	auto ret = rx_queue.pop( c, timeout );
-	return ret==isix::ISIX_EOK?(1):(ret==isix::ISIX_ETIMEOUT?0:ret);
+	return ret==ISIX_EOK?(1):(ret==ISIX_ETIMEOUT?0:ret);
 }
 /*----------------------------------------------------------*/
 //Put string
@@ -444,7 +444,7 @@ int usart_buffered::puts(const value_type *str)
 	auto ptr = str;
 	while(*ptr)
 	{
-		r = putchar(*ptr++, isix::ISIX_TIME_INFINITE );
+		r = putchar(*ptr++, ISIX_TIME_INFINITE );
 		if( r < 1 ) return r;
 	}
 	return ptr-str;
@@ -454,7 +454,7 @@ int usart_buffered::putchar(value_type c, int timeout)
 {
 	start_tx();
 	int result = tx_queue.push( c, timeout );
-	return result==isix::ISIX_EOK?(1):(result);
+	return result==ISIX_EOK?(1):(result);
 }
 /*----------------------------------------------------------*/
 int usart_buffered::put(const void *buf, std::size_t buf_len)
@@ -522,7 +522,7 @@ int usart_buffered::get(void *buf, std::size_t max_len,
 int usart_buffered::set_flow( flow_control flow )
 {
 	//TODO: Sem wait not busy waiting
-	while(!(usart->SR & USART_TC)) isix::isix_wait(10);
+	while(!(usart->SR & USART_TC)) isix_wait(10);
 	if( usart==USART1 || usart==USART2 || usart==USART3 )
 	{
 		if( flow == flow_control::flow_rtscts ) {
@@ -531,29 +531,29 @@ int usart_buffered::set_flow( flow_control flow )
 		usart->CR3 |= USART_CR3_RTSE | USART_CR3_CTSE;
 		return 0;
 	}
-	return isix::ISIX_EINVARG;
+	return ISIX_EINVARG;
 }
 /*----------------------------------------------------------*/
 int usart_buffered::set_ioreport( unsigned tio_report )
 {
 	(void)tio_report;
-	return isix::ISIX_EINVARG;
+	return ISIX_EINVARG;
 }
 /*----------------------------------------------------------*/
 int usart_buffered::tiocm_get() const
 {
-	return isix::ISIX_ENOTSUP;
+	return ISIX_ENOTSUP;
 }
 /*----------------------------------------------------------*/
 int usart_buffered::tiocm_flags( unsigned /*flags*/ ) const
 {
-	return isix::ISIX_ENOTSUP;
+	return ISIX_ENOTSUP;
 }
 
 /*----------------------------------------------------------*/
 int usart_buffered::tiocm_set( unsigned /* tiosigs */ )
 {
-	return isix::ISIX_ENOTSUP;
+	return ISIX_ENOTSUP;
 }
 /*----------------------------------------------------------*/
 //Serial interrupts handlers

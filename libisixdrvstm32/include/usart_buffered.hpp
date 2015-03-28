@@ -52,7 +52,7 @@ public:
 	using value_type =  fnd::serial_port::value_type;
 private:
 	using container_type = isix::fifo<value_type>;
-	static constexpr auto tinf = isix::ISIX_TIME_INFINITE;
+	static constexpr auto tinf = ISIX_TIME_INFINITE;
 public:
 	using parity = fnd::serial_port::parity;
 	enum altgpio_mode
@@ -110,14 +110,14 @@ public:
 	virtual int tiocm_set( unsigned tiosigs );
 
 	virtual void sleep( unsigned ms ) {
-		isix::isix_wait_ms( ms );
+		isix_wait_ms( ms );
 	}
 
 	virtual int rx_avail() const { 
 		return rx_queue.size(); 
 	}
 
-	const isix::fifo_base& get_rxfifo() const { 
+	const isix::fifo_base& get_rxfifo() const {
 		return rx_queue; 
 	} 
 

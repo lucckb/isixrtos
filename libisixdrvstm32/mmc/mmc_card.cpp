@@ -164,7 +164,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 			if( (res=cmd.get_err()) || (res=cmd.validate_r3()) ) return res;
 		}
 		//Downgrade the task priority (card pooling)
-		int pprio = isix::isix_task_change_prio(NULL, isix::isix_get_min_priority());
+		int pprio = isix_task_change_prio(NULL, isix_get_min_priority());
 		if( !pprio ) return pprio;
 		//Wait for card will be ready and initialized
 		static const int Cond_retries = 100;
@@ -176,10 +176,10 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 				mmc_command::ARG_OPCOND_HCS|(host.is_spi()?0:mmc_command::ARG_OPCOND_VOLT_ALL) );
 			if( (res=host.execute_command_resp_check(cmd,C_card_timeout)) ) break;
 			if( cmd.get_card_state()!=mmc_command::card_state_IDLE ) break;
-			isix::isix_wait_ms(10);
+			isix_wait_ms(10);
 		}
 		//Restore isix prio
-		if( (pprio = isix::isix_task_change_prio(NULL, pprio))<0 ) return pprio;
+		if( (pprio = isix_task_change_prio(NULL, pprio))<0 ) return pprio;
 		if( cmd.get_err() ) return cmd.get_err();
 		if(cmd.get_card_state()==mmc_command::card_state_IDLE) return MMC_CMD_RSP_TIMEOUT;
 		dbprintf("OP_COND code %i", cmd.get_err());
@@ -204,7 +204,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 		  (!host.is_spi() && cmd.get_err()==MMC_ILLEGAL_CMD))  )	//SD card
 		{
 			//Downgrade the task priority (card pooling)
-			int pprio = isix::isix_task_change_prio(NULL, isix::isix_get_min_priority());
+			int pprio = isix_task_change_prio(NULL, isix_get_min_priority());
 			if( !pprio ) return pprio;
 		    //WAIT for SDV1 initialization
 			static const int Cond_retries = 100;
@@ -213,12 +213,12 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 				cmd( mmc_command::OP_SD_APP_OP_COND, host.is_spi()?0:mmc_command::ARG_OPCOND_VOLT_ALL );
 				if( (res=host.execute_command_resp_check(cmd,C_card_timeout)) ) break;
 				if( cmd.get_card_state()!=mmc_command::card_state_IDLE ) break;
-				isix::isix_wait_ms(10);
+				isix_wait_ms(10);
 				cmd( mmc_command::OP_APP_CMD, 0 );
 				if( (res=host.execute_command_resp_check(cmd, C_card_timeout))) break;
 			}
 			//Restore isix prio
-			if( (pprio = isix::isix_task_change_prio(NULL, pprio))<0 ) return pprio;
+			if( (pprio = isix_task_change_prio(NULL, pprio))<0 ) return pprio;
 			if( cmd.get_err() ) return cmd.get_err();
 			if( cmd.get_card_state()==mmc_command::card_state_IDLE ) return MMC_CMD_RSP_TIMEOUT;
 			dbprintf("OP_COND code %i", cmd.get_err());
@@ -227,7 +227,7 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 		else	//MMC card
 		{
 			//Downgrade the task priority (card pooling)
-			int pprio = isix::isix_task_change_prio(NULL, isix::isix_get_min_priority());
+			int pprio = isix_task_change_prio(NULL, isix_get_min_priority());
 			if( !pprio ) return pprio;
 			//WAIT for MMC initialization
 			static const int Cond_retries = 100;
@@ -236,10 +236,10 @@ int mmc_card::probe( mmc_host &host, mmc_card::card_type &type )
 			{
 				if( (res=host.execute_command_resp_check(cmd,C_card_timeout)) ) break;
 				if( cmd.get_card_state()!=mmc_command::card_state_IDLE ) break;
-				isix::isix_wait_ms(10);
+				isix_wait_ms(10);
 			}
 			//Restore isix prio
-			if( (pprio = isix::isix_task_change_prio(NULL, pprio))<0 )
+			if( (pprio = isix_task_change_prio(NULL, pprio))<0 )
 				return pprio;
 			if( cmd.get_err() ) return cmd.get_err();
 			if( cmd.get_card_state()==mmc_command::card_state_IDLE ) return MMC_CMD_RSP_TIMEOUT;

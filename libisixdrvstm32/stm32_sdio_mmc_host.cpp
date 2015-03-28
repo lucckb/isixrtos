@@ -37,9 +37,9 @@ namespace
 		return div;
 	}
 	//Check for timer elapsed
-	inline bool timer_elapsed(isix::tick_t t1, isix::tick_t timeout)
+	inline bool timer_elapsed(tick_t t1, tick_t timeout)
 	{
-		isix::tick_t t2 = isix::isix_get_jiffies();
+		tick_t t2 = isix_get_jiffies();
 		if( t2 >= t1) 	//Not overflow
 			return t2 - t1 > timeout;
 		 else   	       //Overflow
@@ -159,8 +159,8 @@ namespace
 		bool ret = false;
 		static const uint32_t wait_flags = SDIO_FLAG_DCRCFAIL|SDIO_FLAG_DTIMEOUT|SDIO_FLAG_DATAEND|
 				SDIO_FLAG_RXOVERR|SDIO_FLAG_STBITERR;
-		isix::tick_t t_start = isix::isix_get_jiffies();
-		timeout = isix::isix_ms2tick( timeout );
+		tick_t t_start = isix_get_jiffies();
+		timeout = isix_ms2tick( timeout );
 		do
 		{
 			sreg = SDIO->STA;
@@ -354,8 +354,8 @@ int mmc_host_sdio::execute_command( ::drv::mmc::mmc_command &req, unsigned timeo
 		stat = SDIO_FLAG_CMDREND | SDIO_FLAG_CTIMEOUT|SDIO_FLAG_CCRCFAIL;
 	else
 		stat = SDIO_FLAG_CMDSENT;
-	isix::tick_t t_start = isix::isix_get_jiffies();
-	timeout = isix::isix_ms2tick( timeout );
+	tick_t t_start = isix_get_jiffies();
+	timeout = isix_ms2tick( timeout );
 	uint32_t sreg;
 	int ret = MMC_OK;
 	do
@@ -549,7 +549,7 @@ int mmc_host_sdio::set_ios( mmc_host::ios_cmd cmd, int param )
 	//PWR ON
 	case mmc_host::ios_pwr_on:
 	{
-		isix::isix_wait_ms( 5 );
+		isix_wait_ms( 5 );
 		 //Initialize the SDIO ifc
 		sdio_init( SDIO_ClockEdge_Rising, SDIO_ClockBypass_Disable, SDIO_ClockPowerSave_Disable,
 			SDIO_BusWide_1b, SDIO_HardwareFlowControl_Disable, khz_to_sdio_div( C_low_clk_khz_host, m_pclk2)
@@ -605,8 +605,8 @@ int mmc_host_sdio::wait_data_ready( unsigned timeout )
 	}
 	return ret;
 #else
-	isix::tick_t t_start = isix::isix_get_jiffies();
-	timeout = isix::isix_ms2tick( timeout );
+	tick_t t_start = isix_get_jiffies();
+	timeout = isix_ms2tick( timeout );
 	while( !gpio_get(DATA0_PORT,DATA0_PIN) )
 	{
 		if( timer_elapsed(t_start,timeout) )

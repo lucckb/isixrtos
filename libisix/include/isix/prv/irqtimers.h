@@ -11,10 +11,6 @@
 #include <isix/types.h>
 #include <isix/prv/list.h>
 /*-----------------------------------------------------------------------*/
-#ifdef __cplusplus 
-namespace isix {
-#endif
-/*-----------------------------------------------------------------------*/
 #ifdef ISIX_CONFIG_USE_TIMERS
 /*-----------------------------------------------------------------------*/
 //Initialize vtimers infrastructure
@@ -38,6 +34,3 @@ static inline void _isixp_vtimer_init(void) {}
 static inline void _isixp_vtimer_handle_time(tick_t jiffies) { (void)jiffies; }
 #endif
 /*-----------------------------------------------------------------------*/
-#ifdef __cplusplus
-}
-#endif

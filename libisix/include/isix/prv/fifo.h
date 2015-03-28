@@ -9,9 +9,6 @@
 
 #include "semaphore.h"
 
-#ifdef __cplusplus 
-namespace isix {
-#endif
 
 /* Queue structure */
 struct fifo_struct
@@ -26,6 +23,3 @@ struct fifo_struct
 	unsigned flags;	//Extra flags
 };
 
-#ifdef __cplusplus
-}
-#endif

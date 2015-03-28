@@ -3,11 +3,7 @@
 #include <isix/prv/list.h>
 #include <isix/port_atomic.h>
 
-#ifdef __cplusplus 
-namespace isix {
-#endif
 /*--------------------------------------------------------------*/
-
 //Structure of semaphore
 struct sem_struct
 {
@@ -31,6 +27,3 @@ static inline bool _isixp_sem_can_destroy(struct sem_struct *sem)
 
 /*--------------------------------------------------------------*/
 
-#ifdef __cplusplus
-}
-#endif

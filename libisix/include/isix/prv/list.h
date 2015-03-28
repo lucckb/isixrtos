@@ -6,12 +6,6 @@
 #include <stdbool.h>
 
 
-#ifdef __cplusplus 
-namespace isix {
-extern "C" {
-#endif
-
-
 //List linkage structure
 typedef struct list
 {
@@ -122,7 +116,4 @@ static inline bool list_is_elem_assigned( list_t *elem )
 	return elem->next!=NULL && elem->prev!=NULL;
 }
 
-#ifdef __cplusplus
-}}
-#endif
 

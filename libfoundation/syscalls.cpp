@@ -34,9 +34,9 @@
 
 #else /*COMPILED_UNDER_ISIX*/
 
-#define foundation_alloc isix::isix_alloc
-#define foundation_free isix::isix_free
-#define terminate_process() isix::isix_bug(__PRETTY_FUNCTION__)
+#define foundation_alloc isix_alloc
+#define foundation_free isix_free
+#define terminate_process() isix_bug(__PRETTY_FUNCTION__)
 #endif /*COMPILED_UNDER_ISIX*/
 
 /* -------------------------------------------------------------- */
@@ -89,7 +89,7 @@ extern "C"
 }
 /* -------------------------------------------------------------- */
 #ifdef COMPILED_UNDER_ISIX
-static isix::sem_t *ctors_sem;
+static sem_t *ctors_sem;
 #endif
 /* -------------------------------------------------------------- */
 #ifdef CPP_STARTUP_CODE
@@ -100,16 +100,16 @@ int __cxa_guard_acquire(void)
 #ifdef COMPILED_UNDER_ISIX
   if(ctors_sem==NULL)
   {
-	  ctors_sem = isix::isix_sem_create(NULL,1);
+	  ctors_sem = isix_sem_create(NULL,1);
 	  if(ctors_sem==NULL)
 	  {
 		  //Remove task if can;t create semaphore
 		  terminate_process();
 	  }
   }
-  if(ctors_sem && isix::isix_is_scheduler_active())
+  if(ctors_sem && isix_is_scheduler_active())
   {
-	  isix::isix_sem_wait(ctors_sem,isix::ISIX_TIME_INFINITE);
+	  isix_sem_wait( ctors_sem, ISIX_TIME_INFINITE);
   }
   return 1;
 #else
@@ -120,9 +120,9 @@ int __cxa_guard_acquire(void)
 void __cxa_guard_release(void)
 {
 #ifdef COMPILED_UNDER_ISIX
-	if(ctors_sem && isix::isix_is_scheduler_active())
+	if(ctors_sem && isix_is_scheduler_active())
 	{
-		isix::isix_sem_signal(ctors_sem);
+		isix_sem_signal(ctors_sem);
 	}
 #endif
 }
