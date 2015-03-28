@@ -56,10 +56,11 @@ CPPSRC += $(wildcard *.cpp)
 #Source ASM files
 ASRC += $(wildcard *.S)
 
-ISIX_DIR=../isixrtos/libisix
-ISIXDRV_DIR=../isixrtos/libisixdrvstm32
-LIBFOUNDATION_DIR=../isixrtos/libfoundation
-LIBSTM32_DIR=../isixrtos/libstm32
+ISIX_BASE=../../
+ISIX_DIR=$(ISIX_BASE)/libisix
+ISIXDRV_DIR=$(ISIX_BASE)/libisixdrvstm32
+LIBFOUNDATION_DIR=$(ISIX_BASE)/libfoundation
+LIBSTM32_DIR=$(ISIX_BASE)/libstm32
 include $(ISIX_DIR)/isix.mk
 include $(ISIXDRV_DIR)/isixdrv.mk
 include $(LIBFOUNDATION_DIR)/libfoundation.mk
