@@ -21,12 +21,15 @@
 
 /*-----------------------------------------------------------------------*/
 //Magic value for stack checking
-#define MAGIC_FILL_VALUE 0x55
+enum { MAGIC_FILL_VALUE = 0x55 };
 /*-----------------------------------------------------------------------*/
 /* Create task function */
 task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, 
 		unsigned long  stack_depth, prio_t priority, unsigned long flags )
 {
+	(void)task_func; (void)task_func; (void)func_param;
+	(void)stack_depth; (void)priority; (void)flags;
+#if 0
 	isix_printk("TaskCreate: Create task with prio %d",priority);
     if(isix_get_min_priority()< priority )
     {
@@ -77,7 +80,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
     //Assign task priority
     task->prio = priority;
     //Task is ready
-    task->state = TASK_READY;
+    task->state = THR_STATE_READY;
     //Create initial task stack context
     task->top_stack = _isixp_task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler
@@ -95,6 +98,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
 	_isixp_do_reschedule();
     _isixp_exit_critical();
     return task;
+#endif
 }
 
 /*-----------------------------------------------------------------------*/
@@ -103,6 +107,9 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
  * new_prio - new priority                                  */
 int _isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
 {
+	(void)task; (void)new_prio; (void)yield; 
+	return -1;
+#if 0
 	if(isix_get_min_priority()< new_prio )
 	{
 	   return ISIX_ENOPRIO;
@@ -148,6 +155,7 @@ int _isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
     }
     isix_printk("New prio %d\n",new_prio);
     return prio;
+#endif
 }
 /*-----------------------------------------------------------------------*/
 /* Get isix structure private data */
@@ -182,6 +190,9 @@ int isix_set_task_private_data( task_t *task, void *data )
 //Delete task pointed by struct task
 int isix_task_delete(task_t *task)
  {
+	 (void)task;
+	 return 0;
+#if 0
     _isixp_enter_critical();
     task_t *taskd = task?task:_isix_current_task;
     isix_printk("Task: %08x(SP %08x) to delete",task,taskd->init_stack);
@@ -219,6 +230,7 @@ int isix_task_delete(task_t *task)
         _isixp_exit_critical();
         return ISIX_EOK;
     }
+#endif
 }
 
 /*-----------------------------------------------------------------------*/

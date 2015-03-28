@@ -18,15 +18,6 @@ typedef struct task_ready_struct
 } task_ready_t;
 
 /*-----------------------------------------------------------------------*/
-enum task_state 
-{
-	TASK_READY = 	1<<0,       //Task is ready
-	TASK_SLEEPING = 1<<1,       //Task is sleeping
-	TASK_WAITING  = 1<<2,       //Task is waiting
-	TASK_RUNNING = 	1<<3,       //Task is running
-	TASK_DEAD =		1<<4,       //Task is dead
-	TASK_SEM_WKUP = 1<<5       //After sem wakeup
-};
 //! Current thread state
 enum thr_state 
 {
@@ -78,7 +69,7 @@ struct isix_system
 };
 /*-----------------------------------------------------------------------*/
 //Current executed task
-//extern struct task_struct *volatile _isix_current_task;
+extern struct task_struct *volatile _isix_current_task;
 
 /*-----------------------------------------------------------------------*/
 //Current task pointer
@@ -106,8 +97,7 @@ void _isixp_exit_critical(void);
 
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list
-//int _isixp_add_task_to_ready_list(struct task_struct *task);
-
+void _isixp_add_ready_list( task_t* task );
 /*--------------------------------------------------------------*/
 //Private add task to semaphore list
 //void _isixp_add_task_to_sem_list(list_entry_t *sem_list,struct task_struct *task);
@@ -131,10 +121,10 @@ void _isixp_lock_scheduler();
 void _isixp_unlock_scheduler();
 /*-----------------------------------------------------------------------*/
 //! Wakeup task with selected message
-int _isixp_wakeup_task( task_t* task, msg_t msg );
+void _isixp_wakeup_task( task_t* task, msg_t msg );
 /*-----------------------------------------------------------------------*/
 //! Go to Sleep state
-int _isixp_goto_sleep_timeout( thr_state_t newstate, tick_t timeout );
+void _isixp_goto_sleep_timeout( thr_state_t newstate, tick_t timeout );
 //! Go to thread sleep
 void _isixp_goto_sleep( thr_state_t newstate );
 /*-----------------------------------------------------------------------*/

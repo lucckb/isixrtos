@@ -18,7 +18,9 @@
 #undef isix_printk
 #define isix_printk(...) do {} while(0)
 #endif
-
+//Current task simple def
+#define currp _isix_current_task
+#define schrun _isix_scheduler_running
 /*-----------------------------------------------------------------------*/
 // Task reschedule lock for spinlock
 static struct isix_system csys;
@@ -98,35 +100,37 @@ void _isixp_schedule(void)
 		return;
 	}
     //Remove executed task and add at end
-    if(_isix_current_task->state & TASK_READY)
-    {
-        _isix_current_task->state &= ~TASK_RUNNING;
-        list_delete(&_isix_current_task->inode);
-        list_insert_end(&_isix_current_task->prio_elem->task_list,&_isix_current_task->inode);
-    }
-    task_ready_t * current_prio;
+	list_delete(&currp->inode);
+	list_insert_end( &currp->prio_elem->task_list, &currp->inode );
+	if( currp->state != THR_STATE_RUNNING ) {
+		isix_bug( "Not in RUNNING state. Mem corrupted?" );
+	}
+	currp->state = THR_STATE_READY;
     //Get first ready prio
-    current_prio = list_get_first(&csys.ready_list,inode,task_ready_t);
-    isix_printk("Scheduler: actual prio %d prio list %08x",current_prio->prio,current_prio);
-    //Get first ready task
-    isix_printk("Scheduler: prev task %08x",_isix_current_task);
-    _isix_current_task = list_get_first(&current_prio->task_list,inode,task_t);
-    _isix_current_task->state |= TASK_RUNNING;
+    task_ready_t * curr_prio
+		= list_get_first( &csys.ready_list, inode, task_ready_t );
+    isix_printk( "tsk prio %d priolist %08x", curr_prio->prio, current_prio );
+    isix_printk( "Scheduler: prev task %08x",currp );
+    currp = list_get_first(&curr_prio->task_list,inode,task_t);
+	if( currp->state != THR_STATE_READY ) {
+		isix_bug( "Not in READY state. Mem corrupted?" );
+	}
+	currp->state = THR_STATE_RUNNING;
 	//Handle local thread errno
-	if(_isix_current_task->impure_data ) 
+	if(currp->impure_data ) 
 	{
-		_REENT = _isix_current_task->impure_data;
+		_REENT = currp->impure_data;
 	}
 	else
 	{
 		if( _REENT != _GLOBAL_REENT )
 			_REENT = _GLOBAL_REENT;
 	}
-    if(_isix_current_task->prio != current_prio->prio)
+    if(currp->prio != curr_prio->prio)
     {
     	isix_bug("Task priority doesn't match to element priority");
     }
-    isix_printk("Scheduler: new task %08x",_isix_current_task);
+    isix_printk( "Scheduler: new task %08x", currp );
 }
 
 /*-----------------------------------------------------------------------*/
@@ -230,15 +234,15 @@ static inline void free_task_ready_t(task_ready_t *prio)
 }
 /*-----------------------------------------------------------------------*/
 //Add assigned task to ready list
-//int _isixp_add_task_to_ready_list(task_t *task)
-//! Wakeup task with selected message
-int _isixp_wakeup_task( task_t* task, msg_t msg )
+void _isixp_add_ready_list( task_t* task )
 {
-    if(task->prio > csys.number_of_priorities)
-    	return ISIX_ENOPRIO;
-	if( task->state == THR_STATE_READY || task->state == THR_STATE_ZOMBIE )
+    if(task->prio > csys.number_of_priorities) {
+		isix_bug("Invalid task priority");	
+	}
+	if( task->state == THR_STATE_READY || 
+		task->state == THR_STATE_ZOMBIE )
 	{
-		isix_bug( "Invalid task state %i", task->state );
+		isix_bug( "Not in READY or ZOMBIE state" );
 	}
     //Find task equal entry
     task_ready_t *prio_i;
@@ -247,23 +251,21 @@ int _isixp_wakeup_task( task_t* task, msg_t msg )
         //If task equal entry is found add this task to end list
         if(prio_i->prio==task->prio)
         {
-            isix_printk("AddTaskToReadyList: found prio %d equal node %08x",prio_i->prio,prio_i);
+            isix_printk("ardy:  prio %d equal node %08x",prio_i->prio,prio_i);
             //Set pointer to priority struct
             task->prio_elem = prio_i;
             //Add task at end of ready list
             list_insert_end(&prio_i->task_list,&task->inode);
-            return ISIX_EOK;
+            return ;
         }
         else if(task->prio < prio_i->prio)
         {
-           isix_printk("AddTaskToReadyList: Insert %d node %08x",prio_i->prio,prio_i);
+           isix_printk("wkup: Insert %d node %08x",prio_i->prio,prio_i);
            break;
         }
     }
     //Priority not found allocate priority node
     task_ready_t *prio_n = alloc_task_ready_t();
-    //If malloc return NULL then failed
-    if(prio_n==NULL) return ISIX_ENOMEM;
     //Assign priority
     prio_n->prio = task->prio;
     //Set pointer to priority struct
@@ -274,26 +276,24 @@ int _isixp_wakeup_task( task_t* task, msg_t msg )
     list_init(&prio_n->task_list);
     list_insert_end(&prio_n->task_list,&task->inode);
     list_insert_before(&prio_i->inode,&prio_n->inode);
-    isix_printk("AddTaskToReadyList: Add new node %08x with prio %d",prio_n,prio_n->prio);
-    return ISIX_EOK;
+    isix_printk("ardy: Add new node %08x with prio %d",prio_n,prio_n->prio);
 }
 
 /*-----------------------------------------------------------------------*/
 //Delete task from ready list
 void _isixp_goto_sleep( thr_state_t newstate )
 {
-	task_t* curr = _isixp_current_task;
 	//Scheduler lock
-	list_delete(&curr->inode);
+	list_delete(&currp->inode);
 	//Check for task on priority structure
-	if(list_isempty(&curr->prio_elem->task_list))
+	if(list_isempty(&currp->prio_elem->task_list))
 	{
 		//Task list is empty remove element
 		isix_printk("DeleteTskFromRdyLst: Remove prio list elem");
-		list_delete(&curr->prio_elem->inode);
-		free_task_ready_t(curr->prio_elem);
+		list_delete(&currp->prio_elem->inode);
+		free_task_ready_t(currp->prio_elem);
 	}
-	curr->state = newstate;
+	currp->state = newstate;
 }
 /*-----------------------------------------------------------------------*/
 //Move selected task to waiting list
@@ -494,20 +494,27 @@ void _isixp_unlock_scheduler()
 	}
 }
 /*-----------------------------------------------------------------------*/
-//! Reschedule tasks 
-void _isixp_do_reschedule()
+//! Reschedule tasks if it can be rescheduled
+void _isixp_do_reschedule( task_t* task )
 {
-    if(_isix_scheduler_running==false)
-    {
+    if( !schrun ) {
         //Scheduler not running assign task
-        if(_isix_current_task==NULL) _isix_current_task = task;
-        else if(_isix_current_task->prio>task->prio) _isix_current_task = task;
-    }
-    if(_isix_current_task->prio>task->prio && _isix_scheduler_running==true)
-    {
+        if( !currp ) currp = task;
+        else if(currp->prio>task->prio) currp = task;
+    } 
+	if( currp->prio>task->prio && schrun ) {
         //New task have higer priority then current task
-	    isix_printk("Call scheduler new prio %d > old prio %d",task->prio,_isix_current_task->prio);
+	    isix_printk("resched: prio %i>old prio %i",task->prio,currp->prio);
         isix_yield();
     }
+}
+/*-----------------------------------------------------------------------*/
+//! Wakeup task with selected message
+void _isixp_wakeup_task( task_t* task, msg_t msg )
+{
+	// Store the message retrived by remote
+	task->obj.dmsg = msg;
+	_isixp_add_ready_list( task );
+	_isixp_do_reschedule( task );
 }
 /*-----------------------------------------------------------------------*/
