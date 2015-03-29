@@ -66,10 +66,14 @@ class unit_tests : public isix::task_base
 int main()
 {
 #ifdef PDEBUG
-    stm32::usartsimple_init( USART1,3000000,false, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
+	static constexpr auto baud = 3000000;
+    stm32::usartsimple_init( USART1, baud ,false, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
+	stm32::usartsimple_putc( 'x' , nullptr );
+	return 0;
 #endif	
-	dblog_init_putc( stm32::usartsimple_putc, NULL );
+	dblog_init_putc( stm32::usartsimple_putc, nullptr );
 	dbprintf("-------- BEGIN_TESTS ---------");
+	return 0;
 	static unit_tests test;
 	test.start_thread(4096, 0);
 	isix_start_scheduler();

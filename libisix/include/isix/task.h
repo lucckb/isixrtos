@@ -32,19 +32,12 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
 		unsigned long stack_depth, prio_t priority, unsigned long flags );
 
 /*-----------------------------------------------------------------------*/
-//! Private version of change prio function
-int _isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield);
-
-/*-----------------------------------------------------------------------*/
 /** Change the task/thread priority
  * @param[in] task Task pointer structure if NULL change the current prio
  * @param[in] new_prio New task priority
  * @return old priority if the operation is completed successfully otherwise return an error code
  */
-static inline int isix_task_change_prio( task_t* task, prio_t new_prio )
-{
-	return _isixp_task_change_prio(task,new_prio,true);
-}
+int isix_task_change_prio( task_t* task, prio_t new_prio );
 
 /*-----------------------------------------------------------------------*/
 

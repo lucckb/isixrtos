@@ -27,9 +27,6 @@ enum { MAGIC_FILL_VALUE = 0x55 };
 task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, 
 		unsigned long  stack_depth, prio_t priority, unsigned long flags )
 {
-	(void)task_func; (void)task_func; (void)func_param;
-	(void)stack_depth; (void)priority; (void)flags;
-#if 0
 	isix_printk("TaskCreate: Create task with prio %d",priority);
     if(isix_get_min_priority()< priority )
     {
@@ -85,6 +82,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
     task->top_stack = _isixp_task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler
     _isixp_enter_critical();
+#if 0
     //Add task to ready list
     if(_isixp_add_task_to_ready_list(task)<0)
     {
@@ -96,21 +94,19 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
 	    return NULL;
     }
 	_isixp_do_reschedule();
+#endif
+	_isixp_wakeup_task( task, ISIX_EOK );
     _isixp_exit_critical();
     return task;
-#endif
 }
 
 /*-----------------------------------------------------------------------*/
 /*Change task priority function
  * task - task pointer structure if NULL current prio change
- * new_prio - new priority                                  */
-int _isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
+ */
+int isix_task_change_prio(task_t *task,prio_t new_prio )
 {
-	(void)task; (void)new_prio; (void)yield; 
-	return -1;
-#if 0
-	if(isix_get_min_priority()< new_prio )
+	if(isix_get_min_priority()<new_prio )
 	{
 	   return ISIX_ENOPRIO;
 	}
@@ -123,39 +119,8 @@ int _isixp_task_change_prio(task_t *task,prio_t new_prio,bool yield)
         _isixp_exit_critical();
         return ISIX_EOK;
     }
-    bool yield_req = false;
-    if(taskc->state & TASK_READY)
-    {
-        isix_printk("Change prio of ready task");
-        _isixp_delete_task_from_ready_list(taskc);
-        //Assign new prio
-        taskc->prio = new_prio;
-        //Add task to ready list
-        if(_isixp_add_task_to_ready_list(taskc)<0)
-        {
-            _isixp_exit_critical();
-            return ISIX_ENOMEM;
-        }
-        if(new_prio<prio && !(_isix_current_task->state&TASK_RUNNING) ) yield_req = true;
-    }
-    else if(taskc->state & TASK_WAITING)
-    {
-        isix_printk("Change prio of task waiting on sem");
-        list_delete( &taskc->inode );
-        //Assign new prio
-        taskc->prio = new_prio;
-        _isixp_add_task_to_sem_list(&taskc->sem->sem_task,taskc);
-    }
-    _isixp_exit_critical();
-    //Yield processor
-    if(yield_req && yield)
-    {
-        isix_printk("CPUYield request");
-        isix_yield();
-    }
-    isix_printk("New prio %d\n",new_prio);
+	_isixp_do_reschedule();
     return prio;
-#endif
 }
 /*-----------------------------------------------------------------------*/
 /* Get isix structure private data */
