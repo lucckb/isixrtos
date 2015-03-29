@@ -23,6 +23,7 @@ enum thr_state
 {
 	THR_STATE_READY,			//! Thread is on ready state
 	THR_STATE_RUNNING,			//! Thread is in running state
+	THR_STATE_CREATED,			//! Task already created but 
 	THR_STATE_SLEEPING,			//! Thread on sleeping state
 	THR_STATE_WTSEM,			//! Wait for semaphore state
 	THR_STATE_WTEXIT,			//! Wait for exit state
@@ -54,7 +55,7 @@ struct task_struct
 //!Structure related to isix system
 struct isix_system 
 {
-	_port_atomic_t sched_lock;	//! Schedule lock 
+	_port_atomic_t sched_lock;			//! Schedule lock 
 	_port_atomic_int_t critical_count; 	//! Sched lock counter
 	list_entry_t ready_list; 			//! Binary tree of task ready to execute
 	list_entry_t wait_lists[2]; 		//!Task waiting for event
@@ -62,10 +63,10 @@ struct isix_system
 	list_entry_t* pov_wait_list;		//! Overflow waiting tasks
 	list_entry_t zombie_list; 			//Task waiting for event
 	list_entry_t free_prio_elem;        //Free priority innodes
-	tick_t jiffies; 	//Global jiffies var
+	tick_t jiffies; 					//Global jiffies var
 	_port_atomic_int_t jiffies_skipped; //Skiped jiffies when scheduler is locked
-	unsigned number_of_task_deleted;  //Number of deleted task
-	prio_t number_of_priorities; //Number of priorities
+	unsigned number_of_task_deleted;  	//Number of deleted task
+	prio_t number_of_priorities; 		//Number of priorities
 };
 /*--------------------------------------------------------------------*/
 //Current executed task
@@ -78,35 +79,15 @@ extern volatile bool _isix_scheduler_running;
 /*--------------------------------------------------------------------*/
 //Scheduler function called on context switch in IRQ and Yield
 void _isixp_schedule(void);
-
 /*--------------------------------------------------------------------*/
 //Sched timer cyclic call
 void _isixp_schedule_time(void);
-
 /*--------------------------------------------------------------------*/
 //Lock scheduler and disable selected interrupt
 void _isixp_enter_critical(void);
-
 /*--------------------------------------------------------------------*/
 //Lock scheduler and reenable selected interrupt;
 void _isixp_exit_critical(void);
-
-/*--------------------------------------------------------------------*/
-//Add selected task to waiting list
-//void _isixp_add_task_to_waiting_list(struct task_struct *task, tick_t timeout);
-
-/*--------------------------------------------------------------------*/
-//Add assigned task to ready list
-//void _isixp_add_ready_list( task_t* task );
-
-/* ------------------------------------------------------------------ */ 
-//Delete task from ready list
-//void _isixp_delete_task_from_ready_list(struct task_struct *task);
-
-/*--------------------------------------------------------------------*/
-//Add task list to delete
-//void _isixp_add_task_to_delete_list(struct task_struct *task);
-
 /*--------------------------------------------------------------------*/
 //Process base stack initialization
 unsigned long* _isixp_task_init_stack(unsigned long *sp,task_func_ptr_t pfun,void *param);
@@ -125,7 +106,7 @@ void _isixp_wakeup_task_i( task_t* task, msg_t msg );
 msg_t _isixp_goto_sleep_timeout( thr_state_t newstate, tick_t timeout );
 /* ------------------------------------------------------------------ */ 
 //! Go to thread sleep
-void _isixp_goto_sleep( thr_state_t newstate );
+void _isixp_set_sleep( thr_state_t newstate );
 /*-----------------------------------------------------------------------*/
 //! Add to the prio list from head
 void _isixp_add_to_prio_queue( list_entry_t* objlist, struct task_struct* task );

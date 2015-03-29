@@ -64,7 +64,6 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
 	currp->obj.sem = sem;
 	_isixp_add_to_prio_queue( &sem->sem_task, currp );
 	int err = _isixp_goto_sleep_timeout( THR_STATE_WTSEM, timeout ); 
-	_isixp_exit_critical();
 	return err;
 }
 /*--------------------------------------------------------------*/
@@ -76,7 +75,7 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
         return ISIX_EINVARG;
     }
 	_isixp_enter_critical();
-	if( port_atomic_sem_inc( &sem->value ) > 1 )
+	if( port_atomic_sem_inc( &sem->value ) > 0 )
     {
         isix_printk("Waiting list is empty incval to %d",sem->value);
 		_isixp_exit_critical();
@@ -92,7 +91,7 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
 	task_t* task = _isixp_remove_from_prio_queue( &sem->sem_task );
 	port_atomic_sem_dec( &sem->value );
 	if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
-	else _isixp_wakeup_task( task, ISIX_EOK );
+	else _isixp_wakeup_task_i( task, ISIX_EOK );
 	return ISIX_EOK;
 }
 /*--------------------------------------------------------------*/
@@ -158,7 +157,6 @@ tick_t isix_ms2tick(unsigned long ms)
 	if(ticks==0) ticks++;
 	return ticks;
 }
-
 /*--------------------------------------------------------------*/
 //! Isix wait selected amount of time
 int isix_wait(tick_t timeout)
@@ -166,7 +164,8 @@ int isix_wait(tick_t timeout)
 	if(_isix_scheduler_running)
 	{
 		//If scheduler is running delay on semaphore
-		return isix_sem_wait(NULL,timeout);
+		_isixp_enter_critical();
+		return _isixp_goto_sleep_timeout( THR_STATE_SLEEPING, timeout );
 	}
 	else
 	{

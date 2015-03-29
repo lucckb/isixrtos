@@ -27,7 +27,7 @@ enum { MAGIC_FILL_VALUE = 0x55 };
 task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, 
 		unsigned long  stack_depth, prio_t priority, unsigned long flags )
 {
-	isix_printk("TaskCreate: Create task with prio %d",priority);
+	isix_printk("tskcreate: Create task with prio %i",priority);
     if(isix_get_min_priority()< priority )
     {
     	return NULL;
@@ -38,14 +38,14 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
 	stack_depth = _isixp_align_size( stack_depth );
     //Allocate task_t structure
     task_t *task = (task_t*)isix_alloc(sizeof(task_t));
-    isix_printk("Alloc task struct %08x",task);
+    isix_printk("Alloc task struct %p",task);
     //No free memory
     if(task==NULL) return NULL;
     //Zero task structure
     memset(task,0,sizeof(task_t));
     //Try Allocate stack for task
     task->init_stack = isix_alloc(stack_depth);
-    isix_printk("Alloc stack mem %08x",task->init_stack);
+    isix_printk("Alloc stack mem %p",task->init_stack);
     if(task->init_stack==NULL)
     {
         //Free allocated stack memory
@@ -73,15 +73,14 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
     memset(task->init_stack,MAGIC_FILL_VALUE,stack_depth);
 #endif
-    isix_printk("Top stack SP=%08x",task->top_stack);
+    isix_printk("Top stack SP=%p",task->top_stack);
     //Assign task priority
     task->prio = priority;
     //Task is ready
-    task->state = THR_STATE_READY;
+    task->state = THR_STATE_CREATED;
     //Create initial task stack context
     task->top_stack = _isixp_task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler
-    _isixp_enter_critical();
 #if 0
     //Add task to ready list
     if(_isixp_add_task_to_ready_list(task)<0)
@@ -95,8 +94,9 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
     }
 	_isixp_do_reschedule();
 #endif
+    _isixp_enter_critical();
 	_isixp_wakeup_task( task, ISIX_EOK );
-    _isixp_exit_critical();
+	//_isixp_exit_critical();
     return task;
 }
 
@@ -156,11 +156,11 @@ int isix_set_task_private_data( task_t *task, void *data )
 int isix_task_delete(task_t *task)
  {
 	 (void)task;
-	 return 0;
+	 return -1;
 #if 0
     _isixp_enter_critical();
     task_t *taskd = task?task:_isix_current_task;
-    isix_printk("Task: %08x(SP %08x) to delete",task,taskd->init_stack);
+    isix_printk("Task: %p(SP %p) to delete",task,taskd->init_stack);
     if(taskd->state & TASK_READY)
     {
        //Task is ready remove from read
