@@ -559,4 +559,27 @@ msg_t _isixp_goto_sleep_timeout( thr_state_t newstate, tick_t timeout )
 	_isixp_exit_critical();
 	return msg;
 }
+/* ------------------------------------------------------------------ */
+void _isixp_reallocate( task_t* task, int newprio  )
+{
+	if( task->state == THR_STATE_READY ||
+		task->state == THR_STATE_RUNNING ) {
+		isix_printk("Realloc prio changing");
+		//Scheduler lock
+		//TODO: Fix it
+		list_delete(&task->inode);
+		list_delete(&task->prio_elem->inode);
+		task->prio = newprio;
+		//Check for task on priority structure
+		if( list_isempty(&task->prio_elem->task_list) )
+		{
+			//Task list is empty remove element
+			isix_printk("gslp: Remove prio list elem");
+			free_task_ready_t(task->prio_elem);
+		}
+		add_ready_list( task ); 
+	} else {
+		isix_printk("Realloc NOT changing because state is %i", task->state );
+	}
+}
 /* ------------------------------------------------------------------ */ 

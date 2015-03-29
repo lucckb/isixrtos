@@ -104,7 +104,7 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
 /*Change task priority function
  * task - task pointer structure if NULL current prio change
  */
-int isix_task_change_prio(task_t *task,prio_t new_prio )
+int isix_task_change_prio( task_t *task, prio_t new_prio )
 {
 	if(isix_get_min_priority()<new_prio )
 	{
@@ -112,6 +112,7 @@ int isix_task_change_prio(task_t *task,prio_t new_prio )
 	}
 	_isixp_enter_critical();
     task_t *taskc = task?task:_isix_current_task;
+	isix_printk("Change prio curr task ptr %p %i", taskc, taskc->state );
     //Save task prio
     const prio_t prio = taskc->prio;
     if(prio==new_prio)
@@ -119,6 +120,7 @@ int isix_task_change_prio(task_t *task,prio_t new_prio )
         _isixp_exit_critical();
         return ISIX_EOK;
     }
+	_isixp_reallocate( taskc, new_prio );
 	_isixp_do_reschedule();
     return prio;
 }
