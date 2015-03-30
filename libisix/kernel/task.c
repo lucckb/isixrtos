@@ -19,6 +19,8 @@
 #define isix_printk(...) do {} while(0)
 #endif
 
+#define currp _isix_current_task
+#define schrun _isix_scheduler_running
 /*-----------------------------------------------------------------------*/
 //Magic value for stack checking
 enum { MAGIC_FILL_VALUE = 0x55 };
@@ -120,7 +122,7 @@ int isix_task_change_prio( task_t *task, prio_t new_prio )
         _isixp_exit_critical();
         return ISIX_EOK;
     }
-	_isixp_reallocate( taskc, new_prio );
+	_isixp_reallocate_priority( taskc, new_prio );
 	_isixp_do_reschedule();
     return prio;
 }
@@ -128,8 +130,9 @@ int isix_task_change_prio( task_t *task, prio_t new_prio )
 /* Get isix structure private data */
 void* isix_get_task_private_data( task_t *task )
 {
-	if( !task )
+	if( !task ) {
 		return NULL;
+	}
 	_isixp_enter_critical();
 	void* d = task->prv;
 	_isixp_exit_critical();
@@ -139,8 +142,7 @@ void* isix_get_task_private_data( task_t *task )
 /* Isix set private data task */
 int isix_set_task_private_data( task_t *task, void *data )
 {
-	if( !task )
-	{
+	if( !task ) {
 		return ISIX_EINVARG;
 	}
 	_isixp_enter_critical();
@@ -155,59 +157,25 @@ int isix_set_task_private_data( task_t *task, void *data )
 }
 /*-----------------------------------------------------------------------*/
 //Delete task pointed by struct task
-int isix_task_delete(task_t *task)
- {
-	 (void)task;
-	 return -1;
-#if 0
-    _isixp_enter_critical();
-    task_t *taskd = task?task:_isix_current_task;
-    isix_printk("Task: %p(SP %p) to delete",task,taskd->init_stack);
-    if(taskd->state & TASK_READY)
-    {
-       //Task is ready remove from read
-        _isixp_delete_task_from_ready_list(taskd);
-        isix_printk("Remove from ready list\n");
-    }
-    else if(taskd->state & TASK_SLEEPING)
-    {
-        //Task sleeping remove from sleeping
-        list_delete(&taskd->inode_time);
-        isix_printk("Remove from sleeping list");
-    }
-    //Task waiting for sem remove from waiting list
-    if(taskd->state & TASK_WAITING)
-    {
-       list_delete(&taskd->inode );
-       taskd->sem = NULL;
-       isix_printk("Remove from sem list");
-    }
-    //Add task to delete list
-    taskd->state = TASK_DEAD;
-    _isixp_add_task_to_delete_list(taskd);
-    if(task==NULL || task==_isix_current_task)
-    {
-        _isixp_exit_critical();
-        isix_printk("Current task yield req");
-        isix_yield();
-        return ISIX_EOK;
-    }
-    else
-    {
-        _isixp_exit_critical();
-        return ISIX_EOK;
-    }
-#endif
+void isix_task_kill(task_t *task)
+{
+	_isixp_enter_critical();
+    task_t *taskd = task?task:currp;
+	_isixp_add_to_kill_list( taskd );
+	if( task == currp ) {
+		_isixp_exit_critical();
+		isix_yield();
+	} 
+	else {
+		_isixp_exit_critical();
+	}
 }
-
 /*-----------------------------------------------------------------------*/
 //Get current thread handler
 task_t * isix_task_self(void)
- {
-    task_t *t = _isix_current_task;
-    return t;
+{
+    return currp;
 }
-
 /*-----------------------------------------------------------------------*/
 //Stack check for fill value
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK

@@ -21,13 +21,13 @@ typedef struct task_ready_struct
 //! Current thread state
 enum thr_state 
 {
-	THR_STATE_READY,			//! Thread is on ready state
-	THR_STATE_RUNNING,			//! Thread is in running state
-	THR_STATE_CREATED,			//! Task already created but 
-	THR_STATE_SLEEPING,			//! Thread on sleeping state
-	THR_STATE_WTSEM,			//! Wait for semaphore state
-	THR_STATE_WTEXIT,			//! Wait for exit state
-	THR_STATE_ZOMBIE			//! In zombie state just before exit
+	THR_STATE_READY		= 0,			//! Thread is on ready state
+	THR_STATE_RUNNING	= 1,			//! Thread is in running state
+	THR_STATE_CREATED	= 2,			//! Task already created but 
+	THR_STATE_SLEEPING	= 3,			//! Thread on sleeping state
+	THR_STATE_WTSEM		= 4,			//! Wait for semaphore state
+	THR_STATE_WTEXIT	= 5,			//! Wait for exit state
+	THR_STATE_ZOMBIE	= 6,			//! In zombie state just before exit
 };
 
 typedef uint8_t thr_state_t;
@@ -101,19 +101,25 @@ void _isixp_unlock_scheduler();
 //! Wakeup task with selected message
 void _isixp_wakeup_task( task_t* task, msg_t msg );
 void _isixp_wakeup_task_i( task_t* task, msg_t msg );
+/* ------------------------------------------------------------------ */ 
+//Add task list to delete
+void _isixp_add_to_kill_list(task_t *task);
 /*--------------------------------------------------------------------*/
-//! Go to Sleep state
-msg_t _isixp_goto_sleep_timeout( thr_state_t newstate, tick_t timeout );
+//! Set sleep state but not reschedule
+void _isixp_set_sleep_timeout( thr_state_t newstate, tick_t timeout );
 /* ------------------------------------------------------------------ */ 
 //! Go to thread sleep
 void _isixp_set_sleep( thr_state_t newstate );
-/*-----------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 //! Add to the prio list from head
 void _isixp_add_to_prio_queue( list_entry_t* objlist, struct task_struct* task );
 /* ------------------------------------------------------------------ */ 
 //! Remove task from prio queue
 task_t* _isixp_remove_from_prio_queue( list_entry_t* list );
-/*-----------------------------------------------------------------------*/
+/* ------------------------------------------------------------------ */ 
+//! Reallocate according to priority change
+void _isixp_reallocate_priority( task_t* task, int newprio );
+/*--------------------------------------------------------------------*/
 //! Reschedule tasks 
 void _isixp_do_reschedule();
-/*-----------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/

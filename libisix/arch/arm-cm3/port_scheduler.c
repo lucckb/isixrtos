@@ -98,7 +98,7 @@ void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
 //! Terminate the process when task exits
 static void __attribute__((noreturn)) _isixp_process_terminator(void)
 {
-	isix_task_delete(NULL);
+	isix_task_kill(NULL);
 	for(;;);
 }
 /*-----------------------------------------------------------------------*/

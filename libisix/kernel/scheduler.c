@@ -194,31 +194,7 @@ static void internal_schedule_time(void)
       )
     {
     	isix_printk("schedtime: task %p jiffies %i task_time %i", task_c,csys.jiffies,task_c->jiffies);
-/*  
-        task_c->state &= ~TASK_SLEEPING;
-        task_c->state |= TASK_READY;
         list_delete(&task_c->inode_time);
-        if(task_c->state & TASK_WAITING)
-        {
-            if(!task_c->sem)
-            {
-            	isix_bug( "TASK waiting on empty sem");
-            }
-        	task_c->state &= ~TASK_SEM_WKUP;
-			port_atomic_dec( &task_c->sem->sem_task_count );
-            task_c->sem = NULL;
-            task_c->state &= ~TASK_WAITING;
-            list_delete(&task_c->inode);
-            isix_printk("SchedulerTime: Timeout delete from sem list");
-        }
-        if(_isixp_add_task_to_ready_list(task_c)<0)
-        {
-            isix_bug("Add task to ready list fail");
-        }
-	*/
-		//TODO: Add task to semaphore list
-        list_delete(&task_c->inode_time);
-	 	task_c->obj.dmsg = ISIX_ETIMEOUT;
 		add_ready_list( task_c );
     }
 	//Handle timvtimers
@@ -249,17 +225,17 @@ void _isixp_schedule_time()
 static task_ready_t *alloc_task_ready_t(void)
 {
    task_ready_t *prio = NULL;
-   if(list_isempty(&csys.free_prio_elem))
+   if( list_isempty(&csys.free_prio_elem) )
    {
        isix_bug("Priority list not available");
    }
    else
    {
         //Get element from list
-        prio = list_get_first(&csys.free_prio_elem,inode,task_ready_t);
-        list_delete(&prio->inode);
+        prio = list_get_first( &csys.free_prio_elem,inode, task_ready_t );
+        list_delete( &prio->inode );
         prio->prio = 0;
-        isix_printk("alloc_task_ready_t: get from list node %p",prio);
+        //isix_printk("alloc_task_ready_t: get from list node %p",prio);
    }
    return prio;
 }
@@ -268,7 +244,7 @@ static task_ready_t *alloc_task_ready_t(void)
 static inline void free_task_ready_t(task_ready_t *prio)
 {
     list_insert_end(&csys.free_prio_elem,&prio->inode);
-    isix_printk("free_task_ready_t move %p to unused list",prio);
+    //isix_printk("free_task_ready_t move %p to unused list",prio);
 }
 
 /*-----------------------------------------------------------------------*/
@@ -278,6 +254,7 @@ static void add_ready_list( task_t* task )
     if(task->prio > csys.number_of_priorities) {
 		isix_bug("Invalid task priority");	
 	}
+	isix_printk("add: trying to add %p prio %i", task, task->prio );
 	if( task->state == THR_STATE_READY || 
 		task->state == THR_STATE_ZOMBIE )
 	{
@@ -314,6 +291,20 @@ static void add_ready_list( task_t* task )
     list_insert_before( &prio_i->inode, &prio_n->inode );
 	isix_printk("ardy: task state %i", task->state );
     isix_printk("ardy: Add new node %p with prio %i",prio_n,prio_n->prio);
+}
+/*-----------------------------------------------------------------------*/
+//! Delete task from ready list
+static void delete_from_ready_list( task_t* task )
+{
+	//Scheduler lock
+	list_delete(&task->inode);
+	//Check for task on priority structure
+	if( list_isempty(&task->prio_elem->task_list) )
+	{
+		//Task list is empty remove element
+		list_delete( &task->prio_elem->inode );
+		free_task_ready_t( task->prio_elem );
+	}
 }
 /*-----------------------------------------------------------------------*/
 //Move selected task to waiting list
@@ -362,23 +353,16 @@ void _isixp_add_to_prio_queue( list_entry_t *sem_list, task_t *task )
 //! Remove task from prio queue
 task_t* _isixp_remove_from_prio_queue( list_entry_t* list )
 {
+	if( list_isempty( list ) ) {
+		return NULL;
+	}
 	task_t *task = list_get_first( list, inode, task_t );
 	list_delete( &task->inode );
 	return task;
 }
 /*-----------------------------------------------------------------------*/
-#if 0
-//Add task list to delete
-void _isixp_add_task_to_delete_list(task_t *task)
-{
-    list_insert_end(&csys.zombie_list,&task->inode);
-    csys.number_of_task_deleted++;
-}
-#endif
-/*-----------------------------------------------------------------------*/
 //Dead task are clean by this procedure called from idle task
 //One idle call clean one dead tasks
-#if 0
 static inline void cleanup_tasks(void)
 {
     if( csys.number_of_task_deleted > 0 )
@@ -399,7 +383,6 @@ static inline void cleanup_tasks(void)
         _isixp_exit_critical();
     }
 }
-#endif
 /*-----------------------------------------------------------------------*/
 //Idle task function do nothing and lower priority
 ISIX_TASK_FUNC(idle_task,p)
@@ -408,7 +391,7 @@ ISIX_TASK_FUNC(idle_task,p)
 	while(1)
     {
         //Cleanup free tasks
-        //cleanup_tasks();
+        cleanup_tasks();
         //Call port specific idle
         port_idle_cpu();
 #ifndef  ISIX_CONFIG_USE_PREEMPTION
@@ -513,7 +496,11 @@ void _isixp_wakeup_task( task_t* task, msg_t msg )
 {
 	// Store the message retrived by remote
 	task->obj.dmsg = msg;
-	add_ready_list( task );
+	//If is still on time list
+	if( list_is_elem_assigned( &currp->inode_time ) ) {
+		list_delete(&currp->inode_time);
+	}
+	add_ready_list( task );	
 	_isixp_do_reschedule( task );
 }
 /*-----------------------------------------------------------------------*/
@@ -528,58 +515,55 @@ void _isixp_wakeup_task_i( task_t* task, msg_t msg )
 void _isixp_set_sleep( thr_state_t newstate )
 {
 	isix_printk("gts: task %p new_state %i", currp, newstate );
-	//Scheduler lock
-	list_delete(&currp->inode);
-	list_delete(&currp->prio_elem->inode);
-	//Check for task on priority structure
-	if( list_isempty(&currp->prio_elem->task_list) )
-	{
-		//Task list is empty remove element
-		isix_printk("gslp: Remove prio list elem");
-		free_task_ready_t(currp->prio_elem);
-	}
+	delete_from_ready_list( currp );
 	currp->state = newstate;
-	_isixp_exit_critical();
-	isix_yield();
 }
 /* ------------------------------------------------------------------ */
-msg_t _isixp_goto_sleep_timeout( thr_state_t newstate, tick_t timeout )
+void _isixp_set_sleep_timeout( thr_state_t newstate, tick_t timeout )
 {
 	isix_printk("gtsto: task %p new_state %i tout %i", currp ,newstate, timeout );
 	if( timeout != ISIX_TIME_INFINITE ) {
 		add_task_to_waiting_list( currp, timeout );
 	}
 	_isixp_set_sleep( newstate );
-	_isixp_enter_critical();
-	//If is still on time list
-	if( list_is_elem_assigned( &currp->inode_time ) ) {
-		list_delete(&currp->inode_time);
-	}
-	int msg = currp->obj.dmsg;
-	_isixp_exit_critical();
-	return msg;
 }
 /* ------------------------------------------------------------------ */
-void _isixp_reallocate( task_t* task, int newprio  )
+//! Reallocate according to priority change
+void _isixp_reallocate_priority( task_t* task, int newprio )
 {
 	if( task->state == THR_STATE_READY ||
-		task->state == THR_STATE_RUNNING ) {
-		isix_printk("Realloc prio changing");
-		//Scheduler lock
-		//TODO: Fix it
-		list_delete(&task->inode);
-		list_delete(&task->prio_elem->inode);
+		task->state == THR_STATE_RUNNING )
+	{
+		delete_from_ready_list( task );
 		task->prio = newprio;
-		//Check for task on priority structure
-		if( list_isempty(&task->prio_elem->task_list) )
-		{
-			//Task list is empty remove element
-			isix_printk("gslp: Remove prio list elem");
-			free_task_ready_t(task->prio_elem);
-		}
 		add_ready_list( task ); 
 	} else {
 		isix_printk("Realloc NOT changing because state is %i", task->state );
+		task->prio = newprio;
 	}
+}
+/*-----------------------------------------------------------------------*/
+//Add task list to delete
+void _isixp_add_to_kill_list( task_t *task )
+{
+	// Remove task from timing list
+	if( list_is_elem_assigned( &task->inode_time ) ) 
+	{
+		list_delete(&task->inode_time);
+	}
+	if( task->state==THR_STATE_READY || 
+		task->state==THR_STATE_RUNNING )
+	{
+		delete_from_ready_list( task );
+	} 
+	// If if task wait for sem 
+	if( task->state == THR_STATE_WTSEM ) 
+	{     
+		list_delete( &task->inode );
+	}
+	task->state = THR_STATE_ZOMBIE;
+	//Prepare to kill remove from time list
+    list_insert_end( &csys.zombie_list,&task->inode );
+    csys.number_of_task_deleted++;
 }
 /* ------------------------------------------------------------------ */ 

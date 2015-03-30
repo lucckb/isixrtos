@@ -39,7 +39,7 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
     sem->static_mem = static_mem;
 	port_atomic_sem_init(&sem->value, val, limit_val );
     list_init(&sem->sem_task);
-    isix_printk("Create sem %08x val %d",sem,sem->value);
+    isix_printk("Create sem %p val %i",sem,(int)sem->value.value);
     return sem;
 }
 
@@ -48,6 +48,7 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
 //TODO: priority inheritance
 int isix_sem_wait(sem_t *sem, tick_t timeout)
 {
+	isix_printk("sem: Wait on %p tout %i", sem, timeout );
 	//TODO: Wait in separate function
     if( !sem ) {
 		isix_printk("No sem");
@@ -57,19 +58,22 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
 	//Consistency check
 	if( port_atomic_sem_dec(&sem->value) > 0 )
     {
-        isix_printk("Decrement value %d",sem->value->value);
+        isix_printk("Decrement value %i",(int)sem->value.value);
 		_isixp_exit_critical();
         return ISIX_EOK;
     }
 	currp->obj.sem = sem;
+	 _isixp_set_sleep_timeout( THR_STATE_WTSEM, timeout ); 
 	_isixp_add_to_prio_queue( &sem->sem_task, currp );
-	int err = _isixp_goto_sleep_timeout( THR_STATE_WTSEM, timeout ); 
-	return err;
+	_isixp_exit_critical();
+	isix_yield();
+	return currp->obj.dmsg;
 }
 /*--------------------------------------------------------------*/
 //Sem signal V()
 int _isixp_sem_signal( sem_t *sem, bool isr )
 { 
+	isix_printk("sem: Signal on %p isr %i", sem, isr );
 	if(!sem) {
         isix_printk("No sem");
         return ISIX_EINVARG;
@@ -77,21 +81,21 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
 	_isixp_enter_critical();
 	if( port_atomic_sem_inc( &sem->value ) > 0 )
     {
-        isix_printk("Waiting list is empty incval to %d",sem->value);
+        isix_printk("Waiting list is empty incval to %i",(int)sem->value.value );
 		_isixp_exit_critical();
         return ISIX_EOK;
     }
-	if( list_isempty(&sem->sem_task) )
-	{
-		isix_bug("List is empty. Atomic wait count mismatch");
-	}
 	//Decrement again
 	port_atomic_sem_dec( &sem->value );
-	isix_printk("Task to wakeup %08x",task_wake);
 	task_t* task = _isixp_remove_from_prio_queue( &sem->sem_task );
 	port_atomic_sem_dec( &sem->value );
-	if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
-	else _isixp_wakeup_task_i( task, ISIX_EOK );
+	isix_printk("Task to wakeup %p", task );
+	if( task ) {	//Task can be deleted for EX
+		if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
+		else _isixp_wakeup_task_i( task, ISIX_EOK );
+	} else {
+		_isixp_exit_critical();
+	}
 	return ISIX_EOK;
 }
 /*--------------------------------------------------------------*/
@@ -165,7 +169,10 @@ int isix_wait(tick_t timeout)
 	{
 		//If scheduler is running delay on semaphore
 		_isixp_enter_critical();
-		return _isixp_goto_sleep_timeout( THR_STATE_SLEEPING, timeout );
+		_isixp_set_sleep_timeout( THR_STATE_SLEEPING, timeout );
+		_isixp_exit_critical();
+		isix_yield();
+		return ISIX_EOK;
 	}
 	else
 	{

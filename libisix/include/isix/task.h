@@ -43,9 +43,8 @@ int isix_task_change_prio( task_t* task, prio_t new_prio );
 
 /** Delete the task pointed by the task control object
  *	@param[in] task Task control object
- *	@return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_task_delete( task_t *task );
+void isix_task_kill( task_t *task );
 
 /*-----------------------------------------------------------------------*/
 
@@ -156,7 +155,8 @@ public:
 	virtual ~task_base()
 	{
 		if( task_id ) {
-			isix_task_delete(task_id);
+			isix_task_kill(task_id);
+			task_id = nullptr;
 		}
 	}
 #endif
