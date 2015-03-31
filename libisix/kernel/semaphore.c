@@ -58,22 +58,13 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
 	//Consistency check
 	if( port_atomic_sem_dec(&sem->value) > 0 )
     {
-        isix_printk("-----  dec value %i",(int)sem->value.value);
+        //isix_printk("-----  dec value %i",(int)sem->value.value);
 		_isixp_exit_critical();
         return ISIX_EOK;
     }
-	isix_printk("---- Add to list %p----- ", currp );
-	_isixp_add_to_prio_queue( &sem->sem_task, currp );
+	//isix_printk("---- Add to list %p----- ", currp );
 	_isixp_set_sleep_timeout( THR_STATE_WTSEM, timeout ); 
-	if(0)
-	{
-		task_t *item;
-		isix_printk("---------- Task #------#");
-		list_for_each_entry( &sem->sem_task, item, inode )
-		{
-			isix_printk("# list %p", item );
-		}
-	}
+	_isixp_add_to_prio_queue( &sem->sem_task, currp );
 	currp->obj.sem = sem;
 	_isixp_exit_critical();
 	isix_yield();
@@ -91,26 +82,21 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
 	_isixp_enter_critical();
 	if( port_atomic_sem_inc( &sem->value ) > 1 )
     {
-        isix_printk("Waiting list is empty incval to %i",(int)sem->value.value );
+        //isix_printk("Waiting list is empty incval to %i",(int)sem->value.value );
 		_isixp_exit_critical();
         return ISIX_EOK;
     }	
-	//Decrement again
-	port_atomic_sem_dec( &sem->value );
-	if(0)
-	{
-		task_t *item;
-		isix_printk("---------------- Task #------#");
-		list_for_each_entry( &sem->sem_task, item, inode )
-		{
-			isix_printk("# list %p", item );
-		}
-	}
 	task_t* task = _isixp_remove_from_prio_queue( &sem->sem_task );
-	isix_printk("Task to wakeup %p", task );
+	//isix_printk("Task to wakeup %p", task );
 	if( task ) {	//Task can be deleted for EX
-		if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
-		else _isixp_wakeup_task_i( task, ISIX_EOK );
+		//Decrement again because are thrd on list
+		port_atomic_sem_dec( &sem->value );
+		if( task->state == THR_STATE_WTSEM ) {
+			if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
+			else _isixp_wakeup_task_i( task, ISIX_EOK );
+		} else {
+			_isixp_exit_critical();
+		}
 	} else {
 		_isixp_exit_critical();
 	}
