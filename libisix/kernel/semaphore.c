@@ -35,10 +35,10 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
         sem = (sem_t*)isix_alloc(sizeof(sem_t));
         if(sem==NULL) return NULL;
     }
-    memset(sem,0,sizeof(sem_t));
+    memset( sem, 0, sizeof(sem_t) );
     sem->static_mem = static_mem;
-	port_atomic_sem_init(&sem->value, val, limit_val );
-    list_init(&sem->sem_task);
+	port_atomic_sem_init( &sem->value, val, limit_val );
+    list_init( &sem->sem_task );
     isix_printk("Create sem %p val %i",sem,(int)sem->value.value);
     return sem;
 }
@@ -48,7 +48,7 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
 //TODO: priority inheritance
 int isix_sem_wait(sem_t *sem, tick_t timeout)
 {
-	isix_printk("sem: Wait on %p tout %i", sem, timeout );
+	isix_printk("sem: Wait task %p on %p tout %i", currp, sem, timeout );
 	//TODO: Wait in separate function
     if( !sem ) {
 		isix_printk("No sem");
@@ -58,13 +58,23 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
 	//Consistency check
 	if( port_atomic_sem_dec(&sem->value) > 0 )
     {
-        isix_printk("Decrement value %i",(int)sem->value.value);
+        isix_printk("-----  dec value %i",(int)sem->value.value);
 		_isixp_exit_critical();
         return ISIX_EOK;
     }
-	currp->obj.sem = sem;
-	 _isixp_set_sleep_timeout( THR_STATE_WTSEM, timeout ); 
+	isix_printk("---- Add to list %p----- ", currp );
 	_isixp_add_to_prio_queue( &sem->sem_task, currp );
+	_isixp_set_sleep_timeout( THR_STATE_WTSEM, timeout ); 
+	if(0)
+	{
+		task_t *item;
+		isix_printk("---------- Task #------#");
+		list_for_each_entry( &sem->sem_task, item, inode )
+		{
+			isix_printk("# list %p", item );
+		}
+	}
+	currp->obj.sem = sem;
 	_isixp_exit_critical();
 	isix_yield();
 	return currp->obj.dmsg;
@@ -79,16 +89,24 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
         return ISIX_EINVARG;
     }
 	_isixp_enter_critical();
-	if( port_atomic_sem_inc( &sem->value ) > 0 )
+	if( port_atomic_sem_inc( &sem->value ) > 1 )
     {
         isix_printk("Waiting list is empty incval to %i",(int)sem->value.value );
 		_isixp_exit_critical();
         return ISIX_EOK;
-    }
+    }	
 	//Decrement again
 	port_atomic_sem_dec( &sem->value );
+	if(0)
+	{
+		task_t *item;
+		isix_printk("---------------- Task #------#");
+		list_for_each_entry( &sem->sem_task, item, inode )
+		{
+			isix_printk("# list %p", item );
+		}
+	}
 	task_t* task = _isixp_remove_from_prio_queue( &sem->sem_task );
-	port_atomic_sem_dec( &sem->value );
 	isix_printk("Task to wakeup %p", task );
 	if( task ) {	//Task can be deleted for EX
 		if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );

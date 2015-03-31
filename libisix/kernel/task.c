@@ -83,19 +83,6 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
     //Create initial task stack context
     task->top_stack = _isixp_task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler
-#if 0
-    //Add task to ready list
-    if(_isixp_add_task_to_ready_list(task)<0)
-    {
-        //Free allocated innode
-        isix_printk("Add task to ready list failed.");
-        isix_free(task->top_stack);
-        isix_free(task);
-	    _isixp_exit_critical();
-	    return NULL;
-    }
-	_isixp_do_reschedule();
-#endif
     _isixp_enter_critical();
 	_isixp_wakeup_task( task, ISIX_EOK );
 	//_isixp_exit_critical();

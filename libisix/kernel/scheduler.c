@@ -165,6 +165,7 @@ void _isixp_schedule(void)
 	}
     if(currp->prio != curr_prio->prio)
     {
+		tiny_printf("tsk: %p %i != %i ", currp, currp->prio , curr_prio->prio );
     	isix_bug("Task priority doesn't match to element priority");
     }
     //isix_printk( "Scheduler: new task %p", currp );
@@ -341,13 +342,13 @@ static void add_task_to_waiting_list(task_t *task, tick_t timeout)
 void _isixp_add_to_prio_queue( list_entry_t *sem_list, task_t *task )
 {
     //Insert on waiting list in time order
-    task_t *taskl;
-    list_for_each_entry(sem_list,taskl,inode)
+    task_t *item;
+    list_for_each_entry( sem_list , item, inode )
     {
-    	if(task->prio<taskl->prio) break;
+    	if(task->prio<item->prio) break;
     }
-    isix_printk("prioqueue: insert in time list at %p",taskl);
-    list_insert_before(&taskl->inode,&task->inode);
+    isix_printk("prioqueue: insert in time list at %p", task );
+    list_insert_before( &item->inode, &task->inode );
 }
 /*-----------------------------------------------------------------------*/
 //! Remove task from prio queue
@@ -522,10 +523,10 @@ void _isixp_set_sleep( thr_state_t newstate )
 void _isixp_set_sleep_timeout( thr_state_t newstate, tick_t timeout )
 {
 	isix_printk("gtsto: task %p new_state %i tout %i", currp ,newstate, timeout );
+	_isixp_set_sleep( newstate );
 	if( timeout != ISIX_TIME_INFINITE ) {
 		add_task_to_waiting_list( currp, timeout );
 	}
-	_isixp_set_sleep( newstate );
 }
 /* ------------------------------------------------------------------ */
 //! Reallocate according to priority change
@@ -537,9 +538,10 @@ void _isixp_reallocate_priority( task_t* task, int newprio )
 		delete_from_ready_list( task );
 		task->prio = newprio;
 		add_ready_list( task ); 
-	} else {
-		isix_printk("Realloc NOT changing because state is %i", task->state );
+	} else if( task->state == THR_STATE_WTSEM ) {
+		_isixp_remove_from_prio_queue( &task->obj.sem->sem_task );
 		task->prio = newprio;
+		_isixp_add_to_prio_queue( &task->obj.sem->sem_task, task );
 	}
 }
 /*-----------------------------------------------------------------------*/
