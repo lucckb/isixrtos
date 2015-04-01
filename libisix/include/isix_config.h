@@ -6,8 +6,7 @@
 
 /** Ticks per seconds */
 #ifndef ISIX_CONFIG_HZ
-//FIXME: 100Hz temporary debug
-#define ISIX_CONFIG_HZ 100
+#define ISIX_CONFIG_HZ 1000
 #endif
 
 /* Maximum interrupt priority used with the ISIX context */

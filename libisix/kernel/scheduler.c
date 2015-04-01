@@ -105,15 +105,15 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
 
 void print_os_list()
 {
-    task_t *j;
-    task_ready_t *i;
+	_isixp_enter_critical();
+    task_t *j; task_ready_t *i;
     tiny_printf("Ready tasks\n");
     list_for_each_entry(&csys.ready_list,i,inode)
     {
          tiny_printf("\t* List inode %p prio %i\n",i, i->prio );
          list_for_each_entry(&i->task_list,j,inode)
          {
-              isix_printk("\t\t-> task %p prio %i state %i\n",j,j->prio,j->state);
+              tiny_printf("\t\t-> task %p prio %i state %i\n",j,j->prio,j->state);
          }
     }
     tiny_printf("Waiting tasks\n");
@@ -122,6 +122,21 @@ void print_os_list()
         tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\n",
 				j, j->prio, j->state, j->jiffies );
     }
+	_isixp_exit_critical();
+}
+
+void print_task_list( list_entry_t* list )
+{
+
+	_isixp_enter_critical();
+    task_t *item;
+	tiny_printf("Listing items\n");
+    list_for_each_entry( list , item, inode )
+    {
+        tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\n",
+				item, item->prio, item->state, item->jiffies );
+    }
+	_isixp_exit_critical();
 }
 /*--------------------------------------------------------------------*/
 //Lock scheduler
@@ -219,6 +234,9 @@ static void internal_schedule_time(void)
     	isix_printk("schedtime: task %p jiffies %i task_time %i", task_c,csys.jiffies,task_c->jiffies);
         list_delete(&task_c->inode_time);
 		if( task_c->state == THR_STATE_WTSEM ) {
+			if( _isixp_remove_from_prio_queue(&task_c->obj.sem->sem_task)!=task_c ) {
+				isix_bug("Mismatch semaphore task");
+			}
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
 		}
 		add_ready_list( task_c );
