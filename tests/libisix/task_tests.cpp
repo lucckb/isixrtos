@@ -98,7 +98,7 @@ void task_tests::basic_funcs()
 	QUNIT_IS_EQUAL( isix_task_change_prio(t4->get_taskid(),0), base_task_tests::TASK_PRIO );
 
 	//Active wait tasks shouldnt run
-	for(auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+5000; ) {
+	for( auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+5000; ) {
 			asm volatile("nop\n");
 		}
 	//TASK should run now
