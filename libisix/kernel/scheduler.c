@@ -65,7 +65,6 @@ void isix_init(prio_t num_priorities)
     //Initialize virtual timers infrastructure
     _isixp_vtimer_init();
 }
-
 /*--------------------------------------------------------------------*/
 //! Kernel panic callback function definition
 void __attribute__((weak)) 
@@ -102,42 +101,6 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
     isix_kernel_panic_callback( file, line, msg );
     while(1);
 }
-
-void print_os_list()
-{
-	_isixp_enter_critical();
-    task_t *j; task_ready_t *i;
-    tiny_printf("Ready tasks\n");
-    list_for_each_entry(&csys.ready_list,i,inode)
-    {
-         tiny_printf("\t* List inode %p prio %i\n",i, i->prio );
-         list_for_each_entry(&i->task_list,j,inode)
-         {
-              tiny_printf("\t\t-> task %p prio %i state %i\n",j,j->prio,j->state);
-         }
-    }
-    tiny_printf("Waiting tasks\n");
-    list_for_each_entry(csys.p_wait_list,j,inode_time)
-    {
-        tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\n",
-				j, j->prio, j->state, j->jiffies );
-    }
-	_isixp_exit_critical();
-}
-
-void print_task_list( list_entry_t* list )
-{
-
-	_isixp_enter_critical();
-    task_t *item;
-	tiny_printf("Listing items\n");
-    list_for_each_entry( list , item, inode )
-    {
-        tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\n",
-				item, item->prio, item->state, item->jiffies );
-    }
-	_isixp_exit_critical();
-}
 /*--------------------------------------------------------------------*/
 //Lock scheduler
 void _isixp_enter_critical(void)
@@ -147,7 +110,6 @@ void _isixp_enter_critical(void)
 		port_set_interrupt_mask();
 	}
 }
-
 /*-----------------------------------------------------------------------*/
 //Unlock scheduler
 void _isixp_exit_critical(void)
@@ -161,7 +123,6 @@ void _isixp_exit_critical(void)
     }
 	port_flush_memory();
 }
-
 /*-----------------------------------------------------------------------*/
 //Scheduler is called in switch context
 /**
@@ -186,7 +147,7 @@ void _isixp_schedule(void)
     //isix_printk( "Scheduler: prev task %p",currp );
     currp = list_get_first( &curr_prio->task_list, inode,task_t );
 	if( currp->state != THR_STATE_READY ) {
-		tiny_printf("Currp %p state %i\n", currp, currp->state );
+		isix_printk("Currp %p state %i", currp, currp->state );
 		isix_bug( "Not in READY state. Mem corrupted?" );
 	}
 	currp->state = THR_STATE_RUNNING;
@@ -202,12 +163,11 @@ void _isixp_schedule(void)
 	}
     if(currp->prio != curr_prio->prio)
     {
-		tiny_printf("tsk: %p %i != %i ", currp, currp->prio , curr_prio->prio );
+		isix_printk("tsk: %p %i != %i ", currp, currp->prio , curr_prio->prio );
     	isix_bug("Task priority doesn't match to element priority");
     }
     //isix_printk( "Scheduler: new task %p", currp );
 }
-
 /*-----------------------------------------------------------------------*/
 //Time call from isr
 static void internal_schedule_time(void)
@@ -302,7 +262,7 @@ static void add_ready_list( task_t* task )
 	if( task->state == THR_STATE_READY || 
 		task->state == THR_STATE_ZOMBIE )
 	{
-		tiny_printf(" task_id %p state %i\n", task, task->state );
+		isix_printk(" task_id %p state %i", task, task->state );
 		isix_bug( "add: in READY or ZOMBIE state" );
 	}
 	task->state = THR_STATE_READY; 		//Set task to ready state
