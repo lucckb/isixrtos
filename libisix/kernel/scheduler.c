@@ -584,6 +584,7 @@ void _isixp_reallocate_priority( task_t* task, int newprio )
 	{
 		delete_from_ready_list( task );
 		task->prio = newprio;
+		task->state = THR_STATE_SCHEDULE;
 		add_ready_list( task ); 
 	} else if( task->state == THR_STATE_WTSEM ) {
 		_isixp_remove_from_prio_queue( &task->obj.sem->sem_task );

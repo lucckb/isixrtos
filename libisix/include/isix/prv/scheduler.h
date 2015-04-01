@@ -28,6 +28,7 @@ enum thr_state
 	THR_STATE_WTSEM		= 4,			//! Wait for semaphore state
 	THR_STATE_WTEXIT	= 5,			//! Wait for exit state
 	THR_STATE_ZOMBIE	= 6,			//! In zombie state just before exit
+	THR_STATE_SCHEDULE  = 7,			//! Schedule only do nothing special
 };
 
 typedef uint8_t thr_state_t;
