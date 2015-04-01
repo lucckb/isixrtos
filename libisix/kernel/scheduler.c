@@ -540,8 +540,8 @@ static void wakeup_task( task_t* task, msg_t msg )
 	// Store the message retrived by remote
 	task->obj.dmsg = msg;
 	//If is still on time list
-	if( list_is_elem_assigned( &currp->inode_time ) ) {
-		list_delete(&currp->inode_time);
+	if( list_is_elem_assigned( &task->inode_time ) ) {
+		list_delete(&task->inode_time);
 	}
 	add_ready_list( task );
 }
