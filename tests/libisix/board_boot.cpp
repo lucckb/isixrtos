@@ -43,7 +43,7 @@ extern "C" {
 		stm32::nvic_set_priority(SysTick_IRQn,1,0x7);
 		//Initialize isix
 		isix_init(ISIX_NUM_PRIORITIES);
-		stm32::systick_config( ISIX_HZ * (CONFIG_HCLK_HZ/(8000000U)) );
+		stm32::systick_config( ((CONFIG_HCLK_HZ/(8U))/ISIX_HZ)-1 );
 	}
 }
 /* ------------------------------------------------------------------ */

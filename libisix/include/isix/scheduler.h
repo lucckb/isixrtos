@@ -29,7 +29,7 @@ static inline void isix_yield()
 
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
-static const unsigned ISIX_HZ = ISIX_CONFIG_HZ;
+static constexpr unsigned ISIX_HZ = ISIX_CONFIG_HZ;
 #else
 //! HZ value used as system ticks
 #define ISIX_HZ ISIX_CONFIG_HZ
