@@ -4,10 +4,10 @@
 #include <isix/semaphore.h>
 #include <isix/fifo.h>
 #include <isix/prv/semaphore.h>
-#include <isix/prv/scheduler.h>
 #include <string.h>
 #include <isix/prv/fifo.h>
-
+#define _ISIX_KERNEL_CORE_
+#include <isix/prv/scheduler.h>
 #ifndef ISIX_DEBUG_FIFO
 #define ISIX_DEBUG_FIFO ISIX_DBG_OFF
 #endif

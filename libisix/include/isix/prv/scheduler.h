@@ -7,8 +7,11 @@
 #include <isix/semaphore.h>
 #include <isix/scheduler.h>
 #include <isix/port_atomic.h>
-
-//*--------------------------------------------------------------------*/
+/* ------------------------------------------------------------------ */
+#ifndef _ISIX_KERNEL_CORE_
+#	error This is private header isix kernel headers cannot be used by app
+#endif
+/*--------------------------------------------------------------------*/
 //Definition of task ready list
 typedef struct task_ready_struct
 {
@@ -72,55 +75,40 @@ struct isix_system
 /*--------------------------------------------------------------------*/
 //Current executed task
 extern struct task_struct *volatile _isix_current_task;
-
-/*--------------------------------------------------------------------*/
 //Current task pointer
 extern volatile bool _isix_scheduler_running;
-
+#define currp _isix_current_task
+#define schrun _isix_scheduler_running
 /*--------------------------------------------------------------------*/
 //Scheduler function called on context switch in IRQ and Yield
 void _isixp_schedule(void);
-/*--------------------------------------------------------------------*/
 //Sched timer cyclic call
 void _isixp_schedule_time(void);
-/*--------------------------------------------------------------------*/
 //Lock scheduler and disable selected interrupt
 void _isixp_enter_critical(void);
-/*--------------------------------------------------------------------*/
 //Lock scheduler and reenable selected interrupt;
 void _isixp_exit_critical(void);
-/*--------------------------------------------------------------------*/
 //Process base stack initialization
 unsigned long* _isixp_task_init_stack(unsigned long *sp,task_func_ptr_t pfun,void *param);
-/*--------------------------------------------------------------------*/
 //Lock the scheduler
 void _isixp_lock_scheduler();
-/*--------------------------------------------------------------------*/
 //Unlock the scheduler
 void _isixp_unlock_scheduler();
-/*--------------------------------------------------------------------*/
 //! Wakeup task with selected message
 void _isixp_wakeup_task( task_t* task, msg_t msg );
 void _isixp_wakeup_task_i( task_t* task, msg_t msg );
-/* ------------------------------------------------------------------ */ 
 //Add task list to delete
 void _isixp_add_to_kill_list(task_t *task);
-/*--------------------------------------------------------------------*/
 //! Set sleep state but not reschedule
 void _isixp_set_sleep_timeout( thr_state_t newstate, tick_t timeout );
-/* ------------------------------------------------------------------ */ 
 //! Go to thread sleep
 void _isixp_set_sleep( thr_state_t newstate );
-/*--------------------------------------------------------------------*/
 //! Add to the prio list from head
 void _isixp_add_to_prio_queue( list_entry_t* objlist, struct task_struct* task );
-/* ------------------------------------------------------------------ */ 
 //! Remove task from prio queue
 task_t* _isixp_remove_from_prio_queue( list_entry_t* list );
-/* ------------------------------------------------------------------ */ 
 //! Reallocate according to priority change
 void _isixp_reallocate_priority( task_t* task, int newprio );
-/*--------------------------------------------------------------------*/
 //! Reschedule tasks 
 void _isixp_do_reschedule();
 /*--------------------------------------------------------------------*/

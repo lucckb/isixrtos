@@ -1,12 +1,12 @@
 #include <isix/types.h>
 #include <isix/config.h>
 #include <isix/memory.h>
-#include <isix/prv/scheduler.h>
 #include <isix/semaphore.h>
 #include <isix/prv/semaphore.h>
 #include <string.h>
 #include <isix/port_atomic.h>
-
+#define _ISIX_KERNEL_CORE_
+#include <isix/prv/scheduler.h>
 #ifndef ISIX_DEBUG_SEMAPHORE
 #define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
 #endif

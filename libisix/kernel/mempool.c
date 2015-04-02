@@ -7,13 +7,13 @@
  */
 /*-----------------------------------------------------------------------*/
 #include <stdbool.h>
-#include <isix/prv/scheduler.h>
 #include <isix/prv/list.h>
 #include <isix/mempool.h>
 #include <isix/prv/mempool.h>
 #include <isix/prv/common.h>
 #include <isix/memory.h>
-
+#define _ISIX_KERNEL_CORE_
+#include <isix/prv/scheduler.h>
 /*-----------------------------------------------------------------------*/
 //! Internal inode representation
 struct mempool_node

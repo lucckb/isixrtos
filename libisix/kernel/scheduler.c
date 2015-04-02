@@ -1,5 +1,4 @@
 #include <isix/config.h>
-#include <isix/prv/scheduler.h>
 #include <isix/printk.h>
 #include <isix/types.h>
 #include <isix/task.h>
@@ -7,7 +6,9 @@
 #include <isix/prv/list.h>
 #include <isix/prv/semaphore.h>
 #include <isix/prv/irqtimers.h>
+#define _ISIX_KERNEL_CORE_
 
+#include <isix/prv/scheduler.h>
 #ifndef ISIX_DEBUG_SCHEDULER
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
 #endif
@@ -18,15 +19,13 @@
 #undef isix_printk
 #define isix_printk(...) do {} while(0)
 #endif
+
 //Current task simple def
-#define currp _isix_current_task
-#define schrun _isix_scheduler_running
-ISIX_TASK_FUNC(idle_task,p);
+static ISIX_TASK_FUNC(idle_task,p);
 static void add_ready_list( task_t* task );
 /*--------------------------------------------------------------------*/
 // Task reschedule lock for spinlock
 static struct isix_system csys;
-/*--------------------------------------------------------------------*/
 //Current task pointer
 volatile bool _isix_scheduler_running;
 //Current task pointer

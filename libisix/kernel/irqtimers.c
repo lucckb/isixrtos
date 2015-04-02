@@ -9,9 +9,9 @@
 #include <isix/irqtimers.h>
 #include <isix/memory.h>
 #include <isix/prv/list.h>
-#include <isix/prv/scheduler.h>
 #include <string.h>
-
+#define _ISIX_KERNEL_CORE_
+#include <isix/prv/scheduler.h>
 /*-----------------------------------------------------------------------*/
 #ifdef ISIX_CONFIG_USE_TIMERS 
 /*-----------------------------------------------------------------------*/

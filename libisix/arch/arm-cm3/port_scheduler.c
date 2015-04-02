@@ -1,9 +1,9 @@
 #include <isix/config.h>
 #include <isix/printk.h>
 #include <isix/types.h>
-#include <isix/prv/scheduler.h>
 #include <isix/task.h>
-
+#define _ISIX_KERNEL_CORE_
+#include <isix/prv/scheduler.h>
 /*-----------------------------------------------------------------------*/
 //Save context
 #define cpu_save_context()										\
