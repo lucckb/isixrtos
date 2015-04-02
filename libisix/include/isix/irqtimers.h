@@ -105,50 +105,6 @@ static inline int isix_vtimer_one_shoot_ms( vtimer_t* timer, void (*func)(void*)
 #endif /* __cplusplus */
 
 
-/* ------------------------C++API-----------------------------------------*/
-#ifdef __cplusplus
-#include <cstddef>
-
-namespace isix {
-/*-----------------------------------------------------------------------*/
-//! C++ wrapper for the vtime
-class virtual_timer {
-public:
-	//! Create virtual timer object
-	virtual_timer() {
-		timer = isix_vtimer_create( vtimer_func, this );
-	}
-	//! Destroy the virtual timer object
-	~virtual_timer() {
-		isix_vtimer_destroy( timer );
-	}
-	//! Check that object is valid
-	bool is_valid() { return timer!=0; }
-	//! Start the timer on selected period
-	int start(tick_t timeout) { return isix_vtimer_start( timer, timeout ); }
-	//! Start the timer on selected period
-	int start_ms(tick_t timeout) { return isix_vtimer_start( timer, timeout ); }
-	//! Stop the timer
-	int stop() { return isix_vtimer_stop( timer ); }
-protected:
-	//! Virtual function called on time
-	virtual void handle_timer() = 0;
-private:
-	static void vtimer_func(void *ptr) {
-		static_cast<virtual_timer*>(ptr)->handle_timer();
-	}
-private:
-	//Noncopyable
-	virtual_timer(const virtual_timer&);
-	virtual_timer& operator=(const virtual_timer&);
-private:
-	vtimer_t *timer;
-};
-/*-----------------------------------------------------------------------*/
-}
-/*-----------------------------------------------------------------------*/
-#endif /*  __cplusplus */
-/*-----------------------------------------------------------------------*/
 
 #endif /*ISIX_CONFIG_USE_TIMERS */
 /*-----------------------------------------------------------------------*/
