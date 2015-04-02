@@ -67,7 +67,7 @@
 void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 {
 #ifdef ISIX_CONFIG_SHUTDOWN_API
-	if( _isix_scheduler_running ) {
+	if( schrun ) {
 		  cpu_save_context();
 		  _isixp_schedule();
 		  cpu_restore_context();
@@ -147,7 +147,7 @@ void __attribute__((__interrupt__)) systick_isr_vector(void)
 
 #ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
-    if(_isix_scheduler_running) {
+    if(schrun) {
 		*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
 	}
 #endif

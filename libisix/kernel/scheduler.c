@@ -173,7 +173,7 @@ static void internal_schedule_time(void)
 {
 	//Increment sys tick
 	csys.jiffies++;
-	if(!_isix_scheduler_running)
+	if(!schrun)
 	{
 		return;
 	}
@@ -416,7 +416,7 @@ void isix_start_scheduler(void) __attribute__((noreturn));
 void isix_start_scheduler(void)
 {
    csys.jiffies = 0;		//Zero jiffies if it was previously run
-   _isix_scheduler_running = true;
+   schrun = true;
 	port_atomic_init( &csys.critical_count, 0 );
    //Restore context and run OS
    port_start_first_task();
@@ -434,7 +434,7 @@ prio_t isix_get_min_priority(void)
 //Return scheduler active
 bool isix_is_scheduler_active(void)
 {
-    return _isix_scheduler_running;
+    return schrun;
 }
 /*---------------------------------------------------------------------*/
 #ifdef ISIX_CONFIG_SHUTDOWN_API
@@ -445,7 +445,7 @@ bool isix_is_scheduler_active(void)
  */
 void isix_shutdown_scheduler(void)
 {
-	_isix_scheduler_running = false;
+	schrun = false;
 	port_yield();
 }
 /*--------------------------------------------------------------------*/

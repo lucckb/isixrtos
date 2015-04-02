@@ -19,8 +19,6 @@
 #define isix_printk(...) do {} while(0)
 #endif
 
-//Current task simple def
-#define currp _isix_current_task
 /*--------------------------------------------------------------*/
 //Create semaphore
 sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
@@ -169,7 +167,7 @@ tick_t isix_ms2tick(unsigned long ms)
 //! Isix wait selected amount of time
 int isix_wait(tick_t timeout)
 {
-	if(_isix_scheduler_running)
+	if(schrun)
 	{
 		//If scheduler is running delay on semaphore
 		_isixp_enter_critical();

@@ -1,7 +1,6 @@
 #include <isix/config.h>
 #include <isix/printk.h>
 #include <isix/types.h>
-#include <prv/scheduler.h>
 /* Unix utilities */
 #include <ucontext.h>
 #include <sys/types.h>
@@ -10,7 +9,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#define _ISIX_KERNEL_CORE_
+#include <isix/prv/scheduler.h>
 /*-----------------------------------------------------------------------*/
 //On the pc stack size is alwas assumed as 256k
 #define STACK_SIZE (256*1024)
@@ -92,7 +92,7 @@ void port_clear_interrupt_mask(void)
 void port_yield( void )
 {
     _isixp_schedule();
-    setcontext( (ucontext_t*)_isix_current_task->top_stack );
+    setcontext( (ucontext_t*)currp->top_stack );
 }
 
 /*-----------------------------------------------------------------------*/
@@ -116,10 +116,10 @@ static void timer_interrupt(int j, siginfo_t *si, void *old_context)
 
 #ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
-     if(_isix_scheduler_running)
+     if(schrun)
      {
         /* save running thread, jump to scheduler */
-        swapcontext((ucontext_t*)_isix_current_task->top_stack ,&signal_context);
+        swapcontext((ucontext_t*)currp->top_stack ,&signal_context);
      }
 #endif
 }
@@ -164,8 +164,8 @@ void port_start_first_task( void )
         perror("itimer");
     }
     _isixp_schedule();
-    printf("first task uccontext %p\n",_isix_current_task->top_stack);
-    setcontext( (ucontext_t*)_isix_current_task->top_stack  );
+    printf("first task uccontext %p\n",currp->top_stack);
+    setcontext( (ucontext_t*)currp->top_stack  );
 }
 
 /*-----------------------------------------------------------------------*/

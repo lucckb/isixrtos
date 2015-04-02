@@ -99,7 +99,7 @@ int isix_task_change_prio( task_t *task, prio_t new_prio )
 	   return ISIX_ENOPRIO;
 	}
 	_isixp_enter_critical();
-    task_t *taskc = task?task:_isix_current_task;
+    task_t *taskc = task?task:currp;
 	isix_printk("Change prio curr task ptr %p %i", taskc, taskc->state );
     //Save task prio
     const prio_t prio = taskc->prio;
@@ -173,7 +173,7 @@ task_t * isix_task_self(void)
 size_t isix_free_stack_space(const task_t *task)
 {
 	size_t usage=0;
-	const task_t *taskd = task?task:_isix_current_task;
+	const task_t *taskd = task?task:currp;
 	unsigned char *b_stack = (unsigned char*)taskd->init_stack;
 	while(*b_stack==MAGIC_FILL_VALUE)
 	{
@@ -191,7 +191,7 @@ size_t isix_free_stack_space(const task_t *task)
 /*-----------------------------------------------------------------------*/
 prio_t isix_get_task_priority( const task_t* task )
 {
-	const task_t *taskd = task?task:_isix_current_task;
+	const task_t *taskd = task?task:currp;
 	return taskd->prio;
 }
 /*-----------------------------------------------------------------------*/
