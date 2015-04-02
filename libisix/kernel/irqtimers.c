@@ -33,7 +33,7 @@ void _isixp_vtimer_init(void)
 
 /*-----------------------------------------------------------------------*/
 //Move selected task to waiting list
-static void add_vtimer_to_list(vtimer_t *timer)
+static void add_vtimer_to_list(osvtimer_t timer)
 {
     //Scheduler lock
     _isixp_enter_critical();
@@ -41,7 +41,7 @@ static void add_vtimer_to_list(vtimer_t *timer)
     if(timer->jiffies < isix_get_jiffies())
     {
     	//Insert on overflow waiting list in time order
-    	vtimer_t *waitl;
+    	osvtimer_t waitl;
     	list_for_each_entry(pov_vtimer_list,waitl,inode)
     	{
     	   if(timer->jiffies<waitl->jiffies) break;
@@ -51,7 +51,7 @@ static void add_vtimer_to_list(vtimer_t *timer)
     else
     {
     	//Insert on waiting list in time order no overflow
-    	vtimer_t *waitl;
+    	osvtimer_t waitl;
     	list_for_each_entry(p_vtimer_list,waitl,inode)
     	{
     	    if(timer->jiffies<waitl->jiffies) break;
@@ -72,10 +72,10 @@ void _isixp_vtimer_handle_time(tick_t jiffies)
 	   p_vtimer_list = pov_vtimer_list;
 	   pov_vtimer_list = tmp;
 	}
-	vtimer_t *vtimer;
+	osvtimer_t vtimer;
 	while( !list_isempty(p_vtimer_list) &&
-	    		jiffies>=(vtimer = list_get_first(p_vtimer_list,inode,vtimer_t))->jiffies
-	      )
+		jiffies>=(vtimer = list_get_first(p_vtimer_list,inode,struct isix_vtimer))->jiffies
+	)
 	{
 		list_delete(&vtimer->inode);
 		if( vtimer->timer_handler ) 
@@ -89,9 +89,9 @@ void _isixp_vtimer_handle_time(tick_t jiffies)
 
 /*-----------------------------------------------------------------------*/
 //Create the virtual timer
-vtimer_t* _isix_vtimer_create_internal_(void (*func)(void*),void *arg, bool one_shoot )
+osvtimer_t _isix_vtimer_create_internal_(osvtimer_callback func,void *arg, bool one_shoot )
 {
-	vtimer_t * const timer = (vtimer_t*)isix_alloc(sizeof(vtimer_t));
+	osvtimer_t timer = (osvtimer_t)isix_alloc(sizeof(struct isix_vtimer));
 	if( timer == NULL ) {
 		return NULL;
 	}
@@ -115,7 +115,7 @@ vtimer_t* _isix_vtimer_create_internal_(void (*func)(void*),void *arg, bool one_
 
 /*-----------------------------------------------------------------------*/
 //Start the virtual timer
-int isix_vtimer_start(vtimer_t* timer, tick_t timeout)
+int isix_vtimer_start(osvtimer_t timer, tick_t timeout)
 {
 	if( timer == NULL ) return ISIX_EINVARG;
 	if( timer->one_shoot && timeout > 0 ) return ISIX_EINVARG;
@@ -136,7 +136,7 @@ int isix_vtimer_start(vtimer_t* timer, tick_t timeout)
 }
 /*-----------------------------------------------------------------------*/
 //! Start one shoot timer
-int isix_vtimer_one_shoot( vtimer_t* timer, void (*func)(void*), void *arg, tick_t timeout )
+int isix_vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, void *arg, tick_t timeout )
 {
 	if( timer == NULL ) return ISIX_EINVARG;
 	if( !timer->one_shoot ) return ISIX_EINVARG;
@@ -158,7 +158,7 @@ int isix_vtimer_one_shoot( vtimer_t* timer, void (*func)(void*), void *arg, tick
 }
 /*-----------------------------------------------------------------------*/
 //Destroy the virtual timer
-int isix_vtimer_destroy(vtimer_t* timer)
+int isix_vtimer_destroy(osvtimer_t timer)
 {
 	if( timer == NULL ) return ISIX_EINVARG;
 	_isixp_enter_critical();

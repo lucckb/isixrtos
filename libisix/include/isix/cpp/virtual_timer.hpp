@@ -56,7 +56,7 @@ namespace isix {
             virtual_timer(const virtual_timer&);
             virtual_timer& operator=(const virtual_timer&);
     private:
-            vtimer_t *timer;
+            osvtimer_t timer;
     };
 
 }

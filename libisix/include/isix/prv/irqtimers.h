@@ -19,7 +19,7 @@ void _isixp_vtimer_init(void);
 //Call timer funcs in the interrupt context
 void _isixp_vtimer_handle_time(tick_t jiffies);
 /*-----------------------------------------------------------------------*/
-struct vtimer_struct
+struct isix_vtimer
 {
 	tick_t jiffies;	      		  /* Next timeout handle */
 	tick_t timeout;			 	  /* Timeout timer value */

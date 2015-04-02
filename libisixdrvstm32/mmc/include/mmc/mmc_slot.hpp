@@ -54,7 +54,7 @@ private:
 	immc_det_pin&				 	m_det_pin;
 	mmc_host&						m_host;
 	mmc_card*						m_card;
-	vtimer_struct* 					m_det_timer;
+	isix_vtimer* 					m_det_timer;
 	volatile uint8_t 				m_event;
 	volatile bool 					m_p_card_inserted;
 	volatile bool 					m_init_req;

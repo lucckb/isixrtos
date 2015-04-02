@@ -21,11 +21,12 @@ extern "C" {
 
 /*-----------------------------------------------------------------------*/
 /* Structure definition for hidding the type */
-struct vtimer_struct;
-typedef struct vtimer_struct vtimer_t;
+struct isix_vtimer;
+typedef struct isix_vtimer* osvtimer_t;
+typedef void (*osvtimer_callback)(void*);
 /*-----------------------------------------------------------------------*/
 //Private function for handling internal timer
-vtimer_t* _isix_vtimer_create_internal_(void (*func)(void*),void *arg, bool one_shoot );
+osvtimer_t _isix_vtimer_create_internal_(osvtimer_callback func,void *arg, bool one_shoot );
 /*-----------------------------------------------------------------------*/
 /** Create virtual timer called from interrupt context for light events
  * consume much power cyclic tasks
@@ -33,7 +34,7 @@ vtimer_t* _isix_vtimer_create_internal_(void (*func)(void*),void *arg, bool one_
  * @param[in] arg Argument passed to the function
  * @return NULL if timer create was unsucess, else return vtimer pointer
  */
-static inline vtimer_t* isix_vtimer_create(void (*func)(void*),void *arg ) {
+static inline osvtimer_t isix_vtimer_create(osvtimer_callback func,void *arg ) {
 	return _isix_vtimer_create_internal_( func, arg, false );
 }
 /*-----------------------------------------------------------------------*/
@@ -41,8 +42,8 @@ static inline vtimer_t* isix_vtimer_create(void (*func)(void*),void *arg ) {
  * Create virtual timer from interrupt context without init fn
  * @return
  */
-static inline vtimer_t* isix_vtimer_create_oneshoot( void ) {
-	return _isix_vtimer_create_internal_( NULL,NULL,true );
+static inline osvtimer_t isix_vtimer_create_oneshoot( void ) {
+	return _isix_vtimer_create_internal_( NULL, NULL,true );
 }
 /*-----------------------------------------------------------------------*/
 /**
@@ -53,20 +54,20 @@ static inline vtimer_t* isix_vtimer_create_oneshoot( void ) {
  * @param timeout Timeout
  * @return success if ISIX_EOK else isix error
  */
-int isix_vtimer_one_shoot( vtimer_t* timer, void (*func)(void*), void *arg, tick_t timeout );
+int isix_vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, void *arg, tick_t timeout );
 /*-----------------------------------------------------------------------*/
 /** Start the vtimer on the selected period
  * @param[in] timer Pointer to the timer structure
  * @param[in] timeout Timeout for the next start
  * @return success if ISIX_EOK , otherwise error
  */
-int isix_vtimer_start(vtimer_t* timer, tick_t timeout);
+int isix_vtimer_start(osvtimer_t timer, tick_t timeout);
 /*-----------------------------------------------------------------------*/
 /** Stop the vtimer on the selected period
  * @param[in] timer Pointer to the timer structure
  * @return success if ISIX_EOK , otherwise error
  */
-static inline int isix_vtimer_stop(vtimer_t* timer)
+static inline int isix_vtimer_stop(osvtimer_t timer)
 {
 	return isix_vtimer_start( timer, 0 );
 }
@@ -75,14 +76,14 @@ static inline int isix_vtimer_stop(vtimer_t* timer)
  * @param[in] timer Pointer to the timer structure
  * @return success if ISIX_EOK , otherwise error
  */
-int isix_vtimer_destroy(vtimer_t* timer);
+int isix_vtimer_destroy(osvtimer_t timer);
 /*-----------------------------------------------------------------------*/
 /** Start the timer on the selected period
  * @param[in] timer Pointer to the timer structure
  * @param[in] timeout in milisec Timeout for the next start
  * @return success if ISIX_EOK , otherwise error
  */
-static inline int isix_vtimer_start_ms(vtimer_t* timer, tick_t timeout)
+static inline int isix_vtimer_start_ms(osvtimer_t timer, tick_t timeout)
 {
 	return isix_vtimer_start( timer, timeout>0?isix_ms2tick(timeout):0 );
 }
@@ -95,7 +96,7 @@ static inline int isix_vtimer_start_ms(vtimer_t* timer, tick_t timeout)
  * @param timeout Timeout
  * @return success if ISIX_EOK else isix error
  */
-static inline int isix_vtimer_one_shoot_ms( vtimer_t* timer, void (*func)(void*), void *arg, tick_t timeout ) 
+static inline int isix_vtimer_one_shoot_ms( osvtimer_t timer, osvtimer_callback func, void *arg, tick_t timeout ) 
 {
 	return isix_vtimer_one_shoot( timer, func, arg, timeout>0?isix_ms2tick(timeout):0 );
 }
