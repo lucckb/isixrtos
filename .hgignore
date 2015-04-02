@@ -20,3 +20,4 @@ libfoundation/unittests/Makefile
 libfoundation/unittests/.session.vim
 libfoundation/unittests/CMakeCache.txt
 tags
+.session.vim
