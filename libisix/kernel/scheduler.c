@@ -453,8 +453,7 @@ void isix_shutdown_scheduler(void)
  * when shutdown API is enabled
  */
 void _isixp_finalize() {
-	//FIXME: Cleanup deleted tasks
-	//cleanup_tasks();
+	cleanup_tasks();
 }
 #endif /* ISIX_CONFIG_SHUTDOWN_API  */
 /*--------------------------------------------------------------------*/

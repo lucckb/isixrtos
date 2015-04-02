@@ -20,8 +20,6 @@
 #define isix_printk(...) do {} while(0)
 #endif
 
-#define currp _isix_current_task
-#define schrun _isix_scheduler_running
 /*-----------------------------------------------------------------------*/
 //Magic value for stack checking
 enum { MAGIC_FILL_VALUE = 0x55 };
