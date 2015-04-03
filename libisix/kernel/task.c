@@ -16,8 +16,8 @@
 #if ISIX_DEBUG_TASK == ISIX_DBG_ON
 #include <isix/printk.h>
 #else
-#undef isix_printk
-#define isix_printk(...) do {} while(0)
+#undef printk
+#define printk(...) do {} while(0)
 #endif
 
 /*-----------------------------------------------------------------------*/
@@ -26,9 +26,9 @@ enum { MAGIC_FILL_VALUE = 0x55 };
 /*-----------------------------------------------------------------------*/
 /* Create task function */
 ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
-		unsigned long  stack_depth, prio_t priority, unsigned long flags )
+		unsigned long  stack_depth, osprio_t priority, unsigned long flags )
 {
-	isix_printk("tskcreate: Create task with prio %i",priority);
+	printk("tskcreate: Create task with prio %i",priority);
     if(isix_get_min_priority()< priority )
     {
     	return NULL;
@@ -39,14 +39,14 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 	stack_depth = _isixp_align_size( stack_depth );
     //Allocate task_t structure
     ostask_t task = (ostask_t)isix_alloc(sizeof(struct isix_task));
-    isix_printk("Alloc task struct %p",task);
+    printk("Alloc task struct %p",task);
     //No free memory
     if(task==NULL) return NULL;
     //Zero task structure
     memset( task, 0, sizeof(*task) );
     //Try Allocate stack for task
     task->init_stack = isix_alloc(stack_depth);
-    isix_printk("Alloc stack mem %p",task->init_stack);
+    printk("Alloc stack mem %p",task->init_stack);
     if(task->init_stack==NULL)
     {
         //Free allocated stack memory
@@ -74,7 +74,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
     memset(task->init_stack,MAGIC_FILL_VALUE,stack_depth);
 #endif
-    isix_printk("Top stack SP=%p",task->top_stack);
+    printk("Top stack SP=%p",task->top_stack);
     //Assign task priority
     task->prio = priority;
     //Task is ready
@@ -92,7 +92,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 /*Change task priority function
  * task - task pointer structure if NULL current prio change
  */
-int isix_task_change_prio( ostask_t task, prio_t new_prio )
+int isix_task_change_prio( ostask_t task, osprio_t new_prio )
 {
 	if(isix_get_min_priority()<new_prio )
 	{
@@ -100,9 +100,9 @@ int isix_task_change_prio( ostask_t task, prio_t new_prio )
 	}
 	_isixp_enter_critical();
     ostask_t taskc = task?task:currp;
-	isix_printk("Change prio curr task ptr %p %i", taskc, taskc->state );
+	printk("Change prio curr task ptr %p %i", taskc, taskc->state );
     //Save task prio
-    const prio_t prio = taskc->prio;
+    const osprio_t prio = taskc->prio;
     if(prio==new_prio)
     {
         _isixp_exit_critical();
@@ -189,7 +189,7 @@ size_t isix_free_stack_space(const ostask_t task)
  *	@return none 
  */
 /*-----------------------------------------------------------------------*/
-prio_t isix_get_task_priority( const ostask_t task )
+osprio_t isix_get_task_priority( const ostask_t task )
 {
 	const ostask_t taskd = task?task:currp;
 	return taskd->prio;

@@ -15,8 +15,8 @@
 #if ISIX_DEBUG_SEMAPHORE == ISIX_DBG_ON
 #include <isix/printk.h>
 #else
-#undef isix_printk
-#define isix_printk(...) do {} while(0)
+#undef printk
+#define printk(...) do {} while(0)
 #endif
 
 /*--------------------------------------------------------------*/
@@ -37,30 +37,30 @@ ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
     sem->static_mem = static_mem;
 	port_atomic_sem_init( &sem->value, val, limit_val );
     list_init( &sem->sem_task );
-    isix_printk("Create sem %p val %i",sem,(int)sem->value.value);
+    printk("Create sem %p val %i",sem,(int)sem->value.value);
     return sem;
 }
 
 /*--------------------------------------------------------------*/
 //Wait for semaphore P()
 //TODO: priority inheritance
-int isix_sem_wait(ossem_t sem, tick_t timeout)
+int isix_sem_wait(ossem_t sem, ostick_t timeout)
 {
-	isix_printk("sem: Wait task %p on %p tout %i", currp, sem, timeout );
+	printk("sem: Wait task %p on %p tout %i", currp, sem, timeout );
 	//TODO: Wait in separate function
     if( !sem ) {
-		isix_printk("No sem");
+		printk("No sem");
 		return ISIX_EINVARG;
 	}
 	_isixp_enter_critical();
 	//Consistency check
 	if( port_atomic_sem_dec(&sem->value) > 0 )
     {
-        //isix_printk("-----  dec value %i",(int)sem->value.value);
+        //printk("-----  dec value %i",(int)sem->value.value);
 		_isixp_exit_critical();
         return ISIX_EOK;
     }
-	//isix_printk("---- Add to list %p----- ", currp );
+	//printk("---- Add to list %p----- ", currp );
 	_isixp_set_sleep_timeout( THR_STATE_WTSEM, timeout ); 
 	_isixp_add_to_prio_queue( &sem->sem_task, currp );
 	currp->obj.sem = sem;
@@ -72,20 +72,20 @@ int isix_sem_wait(ossem_t sem, tick_t timeout)
 //Sem signal V()
 int _isixp_sem_signal( ossem_t sem, bool isr )
 { 
-	isix_printk("sem: Signal on %p isr %i", sem, isr );
+	printk("sem: Signal on %p isr %i", sem, isr );
 	if(!sem) {
-        isix_printk("No sem");
+        printk("No sem");
         return ISIX_EINVARG;
     }
 	_isixp_enter_critical();
 	if( port_atomic_sem_inc( &sem->value ) > 1 )
     {
-        //isix_printk("Waiting list is empty incval to %i",(int)sem->value.value );
+        //printk("Waiting list is empty incval to %i",(int)sem->value.value );
 		_isixp_exit_critical();
         return ISIX_EOK;
     }	
 	ostask_t task = _isixp_remove_from_prio_queue( &sem->sem_task );
-	//isix_printk("Task to wakeup %p", task );
+	//printk("Task to wakeup %p", task );
 	if( task ) {	//Task can be deleted for EX
 		//Decrement again because are thrd on list
 		port_atomic_sem_dec( &sem->value );
@@ -157,15 +157,15 @@ int isix_sem_destroy(ossem_t sem)
 
 /*--------------------------------------------------------------*/
 //! Convert ms to ticks
-tick_t isix_ms2tick(unsigned long ms)
+ostick_t isix_ms2tick(unsigned long ms)
 {
-	tick_t ticks = (ISIX_CONFIG_HZ * ms)/1000UL;
+	ostick_t ticks = (ISIX_CONFIG_HZ * ms)/1000UL;
 	if(ticks==0) ticks++;
 	return ticks;
 }
 /*--------------------------------------------------------------*/
 //! Isix wait selected amount of time
-int isix_wait(tick_t timeout)
+int isix_wait(ostick_t timeout)
 {
 	if(schrun)
 	{
@@ -179,7 +179,7 @@ int isix_wait(tick_t timeout)
 	else
 	{
 		//If scheduler is not running delay on busy wait
-		tick_t t1 = isix_get_jiffies();
+		ostick_t t1 = isix_get_jiffies();
 		if(t1+timeout>t1)
 		{
 			t1+= timeout;

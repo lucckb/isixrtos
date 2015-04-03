@@ -21,8 +21,8 @@
 #if ISIX_DEBUG_MEMORY == ISIX_DBG_ON
 #include <isix/printk.h>
 #else
-#undef isix_printk
-#define isix_printk(...) do {} while(0)
+#undef printk
+#define printk(...) do {} while(0)
 #endif
 
 /*------------------------------------------------------*/
