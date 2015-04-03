@@ -46,7 +46,7 @@ namespace isix
 		/** Wait for the semaphore for selected time
 		* @param[in] timeout Max waiting time
 		*/
-		int wait(tick_t timeout)
+		int wait(ostick_t timeout)
 		{
 			return isix_sem_wait( sem, timeout );
 		}

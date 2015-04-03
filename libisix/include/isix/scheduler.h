@@ -53,7 +53,7 @@ void isix_kernel_panic( const char *file, int line, const char *msg );
 /** Get current sytem ticks
  * @return Number of system tick from system startup
  */
-tick_t isix_get_jiffies(void);
+ostick_t isix_get_jiffies(void);
 
 /*-----------------------------------------------------------------------*/
 //!Start the scheduler
@@ -75,13 +75,13 @@ void isix_shutdown_scheduler(void);
 /** Initialize base OS structure before call main
  * @param[in] num_priorities Number of available tasks priorities
  */
-void isix_init( prio_t num_priorities );
+void isix_init( osprio_t num_priorities );
 
 /*-----------------------------------------------------------------------*/
 /** Function return the minimal available priority
  * @return Number of minimal available priority
  */
-prio_t isix_get_min_priority(void);
+osprio_t isix_get_min_priority(void);
 /*-----------------------------------------------------------------------*/
 /** Functtion return scheduling state 
  @return True if scheduler is running
@@ -91,11 +91,11 @@ bool isix_is_scheduler_active(void);
 /** Get current sytem ticks
  * @return Number of system tick from system startup in usec resolution
  */
-static inline utick_t isix_get_ujiffies(void)
+static inline osutick_t isix_get_ujiffies(void)
 {
-	utick_t t = (utick_t)isix_get_jiffies() * ((utick_t)1000000/((utick_t)ISIX_HZ));
-    t += (((utick_t)port_get_hres_jiffies_timer_value()) * ((utick_t)1000000/((utick_t)ISIX_HZ)))
-    	/  (utick_t)port_get_hres_jiffies_timer_max_value();
+	osutick_t t = (osutick_t)isix_get_jiffies() * ((osutick_t)1000000/((osutick_t)ISIX_HZ));
+    t += (((osutick_t)port_get_hres_jiffies_timer_value()) * ((osutick_t)1000000/((osutick_t)ISIX_HZ)))
+    	/  (osutick_t)port_get_hres_jiffies_timer_max_value();
     return t;
 }
 /* ----------------------------------------------------------------------*/
@@ -105,10 +105,10 @@ static inline utick_t isix_get_ujiffies(void)
  */
 static inline void isix_wait_us( unsigned timeout )
 {
-	utick_t t1 = isix_get_ujiffies();
+	osutick_t t1 = isix_get_ujiffies();
 	for(;;) 
 	{
-		utick_t t2 =  isix_get_ujiffies();
+		osutick_t t2 =  isix_get_ujiffies();
 		if( t2>=t1 ) { if( t2-t1>timeout ) break; }
 		else { if( t1-t2>timeout) break; }
 	}
@@ -119,9 +119,9 @@ static inline void isix_wait_us( unsigned timeout )
      @param[in] timeout Excepted timeout 
 	 @return true if timer elapsed otherwise false
 */
-static inline bool isix_timer_elapsed( tick_t t1, tick_t timeout )
+static inline bool isix_timer_elapsed( ostick_t t1, ostick_t timeout )
 {
-	tick_t t2 = isix_get_jiffies();
+	ostick_t t2 = isix_get_jiffies();
 	if( t2 >= t1 ) 	//Not overflow
 		return t2 - t1 > timeout;
 	else   	       //Overflow

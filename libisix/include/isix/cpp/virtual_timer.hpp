@@ -39,9 +39,9 @@ namespace isix {
             //! Check that object is valid
             bool is_valid() { return timer!=0; }
             //! Start the timer on selected period
-            int start(tick_t timeout) { return isix_vtimer_start( timer, timeout ); }
+            int start(ostick_t timeout) { return isix_vtimer_start( timer, timeout ); }
             //! Start the timer on selected period
-            int start_ms(tick_t timeout) { return isix_vtimer_start( timer, timeout ); }
+            int start_ms(ostick_t timeout) { return isix_vtimer_start( timer, timeout ); }
             //! Stop the timer
             int stop() { return isix_vtimer_stop( timer ); }
     protected:

@@ -35,11 +35,11 @@ namespace isix {
 		* @param[in] priority Thread/task priority
 		*/
 #ifdef WITH_ISIX_TCPIP_LIB
-		void start_thread( std::size_t stack_depth, prio_t priority, unsigned flags )
+		void start_thread( std::size_t stack_depth, osprio_t priority, unsigned flags )
 		{
 			task_id = isix_task_create( start_task, this, stack_depth, priority, flags );
 		}
-		void start_tcpip_thread( std::size_t stack_depth, prio_t priority )
+		void start_tcpip_thread( std::size_t stack_depth, osprio_t priority )
 		{
 			task_id = isix_task_create_tcpip( start_task, this, stack_depth, priority );
 		}
@@ -50,7 +50,7 @@ namespace isix {
 			}
 		}
 #else
-		void start_thread(std::size_t stack_depth, prio_t priority, unsigned flags=0)
+		void start_thread(std::size_t stack_depth, osprio_t priority, unsigned flags=0)
 		{
 			task_id = isix_task_create( start_task, this, stack_depth, priority, flags );
 		}

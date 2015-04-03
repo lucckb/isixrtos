@@ -6,11 +6,11 @@
 #include <isix/error.h>
 
 //! Define tick type
-typedef unsigned int tick_t;
+typedef unsigned int ostick_t;
 //! Define a micro tick
-typedef unsigned long utick_t;
+typedef unsigned long osutick_t;
 //! Message type
-typedef int msg_t;
+typedef int osmsg_t;
 //! Priority type
-typedef uint8_t prio_t;
+typedef uint8_t osprio_t;
 

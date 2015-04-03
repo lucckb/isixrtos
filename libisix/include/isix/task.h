@@ -29,7 +29,7 @@ enum isix_task_flags {
  * @param[in] flags extra flags for control task parameters
  * @return Task control object, or NULL when task can't be created */
 ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
-		unsigned long stack_depth, prio_t priority, unsigned long flags );
+		unsigned long stack_depth, osprio_t priority, unsigned long flags );
 
 /*-----------------------------------------------------------------------*/
 /** Change the task/thread priority
@@ -37,7 +37,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
  * @param[in] new_prio New task priority
  * @return old priority if the operation is completed successfully otherwise return an error code
  */
-int isix_task_change_prio( ostask_t task, prio_t new_prio );
+int isix_task_change_prio( ostask_t task, osprio_t new_prio );
 
 /*-----------------------------------------------------------------------*/
 
@@ -78,7 +78,7 @@ void* isix_get_task_private_data( ostask_t task );
  *	@param[in] task Task control object
  *	@return current task priority
  */
- prio_t isix_get_task_priority( const ostask_t task );
+ osprio_t isix_get_task_priority( const ostask_t task );
 
 /*-----------------------------------------------------------------------*/
 /** Check of the available stack space
@@ -95,7 +95,7 @@ size_t isix_free_stack_space(const ostask_t task);
 task_t* sys_thread_new(const char *name, task_func_ptr_t thread,  void *arg, int stacksize, int prio);
 /* Isix task create TCPIP version for usage with the TCPIP stack */
 static inline ostask_t isix_task_create_tcpip(task_func_ptr_t task_func, 
-		void *func_param, unsigned long stack_depth, prio_t priority )
+		void *func_param, unsigned long stack_depth, osprio_t priority )
 {
 	return sys_thread_new( NULL, task_func, func_param, stack_depth, priority );
 }

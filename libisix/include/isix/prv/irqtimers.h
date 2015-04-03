@@ -17,12 +17,12 @@
 void _isixp_vtimer_init(void);
 /*-----------------------------------------------------------------------*/
 //Call timer funcs in the interrupt context
-void _isixp_vtimer_handle_time(tick_t jiffies);
+void _isixp_vtimer_handle_time(ostick_t jiffies);
 /*-----------------------------------------------------------------------*/
 struct isix_vtimer
 {
-	tick_t jiffies;	      		  /* Next timeout handle */
-	tick_t timeout;			 	  /* Timeout timer value */
+	ostick_t jiffies;	      		  /* Next timeout handle */
+	ostick_t timeout;			 	  /* Timeout timer value */
 	void (*timer_handler)(void*); /* Next timer call */
 	void *arg;					  /* Function pointer */
 	bool one_shoot;				  /* Is a one shoot timer */
@@ -31,6 +31,6 @@ struct isix_vtimer
 /*-----------------------------------------------------------------------*/
 #else
 static inline void _isixp_vtimer_init(void) {}
-static inline void _isixp_vtimer_handle_time(tick_t jiffies) { (void)jiffies; }
+static inline void _isixp_vtimer_handle_time(ostick_t jiffies) { (void)jiffies; }
 #endif
 /*-----------------------------------------------------------------------*/

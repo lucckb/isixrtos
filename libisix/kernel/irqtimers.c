@@ -64,7 +64,7 @@ static void add_vtimer_to_list(osvtimer_t timer)
 
 /*-----------------------------------------------------------------------*/
 //Call timer funcs in the interrupt context
-void _isixp_vtimer_handle_time(tick_t jiffies)
+void _isixp_vtimer_handle_time(ostick_t jiffies)
 {
 	if(jiffies == 0)
 	{
@@ -115,7 +115,7 @@ osvtimer_t _isix_vtimer_create_internal_(osvtimer_callback func,void *arg, bool 
 
 /*-----------------------------------------------------------------------*/
 //Start the virtual timer
-int isix_vtimer_start(osvtimer_t timer, tick_t timeout)
+int isix_vtimer_start(osvtimer_t timer, ostick_t timeout)
 {
 	if( timer == NULL ) return ISIX_EINVARG;
 	if( timer->one_shoot && timeout > 0 ) return ISIX_EINVARG;
@@ -136,7 +136,7 @@ int isix_vtimer_start(osvtimer_t timer, tick_t timeout)
 }
 /*-----------------------------------------------------------------------*/
 //! Start one shoot timer
-int isix_vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, void *arg, tick_t timeout )
+int isix_vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, void *arg, ostick_t timeout )
 {
 	if( timer == NULL ) return ISIX_EINVARG;
 	if( !timer->one_shoot ) return ISIX_EINVARG;

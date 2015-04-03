@@ -34,7 +34,7 @@ namespace {
 		//Number of items per task
 		static constexpr auto N_ITEMS = 4;
 		//Constructor
-		task_test( char ch_id, prio_t prio, isix::fifo<char> &fifo )
+		task_test( char ch_id, osprio_t prio, isix::fifo<char> &fifo )
 			: m_fifo( fifo ), m_id( ch_id ), m_prio( prio )
 		{
 		}
@@ -56,7 +56,7 @@ namespace {
 		isix::fifo<char>& m_fifo; 
 		const char m_id;
 		int m_error { -32768 };
-		prio_t m_prio;
+		osprio_t m_prio;
 	};
 
 }	//Unnamed namespace end
@@ -73,7 +73,7 @@ namespace {
 		//Number of items per task
 		static constexpr auto N_ITEMS = 4;
 		//Constructor
-		overflow_task( prio_t prio, isix::fifo<int> &fifo )
+		overflow_task( osprio_t prio, isix::fifo<int> &fifo )
 			:  m_fifo( fifo ), m_prio( prio )
 		{
 		}
@@ -101,7 +101,7 @@ namespace {
 	private:
 		isix::fifo<int> &m_fifo;
 		int m_error { -32768 };
-		prio_t m_prio;
+		osprio_t m_prio;
 	};
 }
 

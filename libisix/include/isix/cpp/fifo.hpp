@@ -61,7 +61,7 @@ namespace isix {
             * @param[in] timeout Wait time when queue is not empty
             * @return ISIX_EOK if success else return an error
             */
-            int push(const T &c,tick_t timeout=0)
+            int push(const T &c,ostick_t timeout=0)
             {
                     return isix_fifo_write( hwnd, &c, timeout );
             }
@@ -86,7 +86,7 @@ namespace isix {
             * @param[in] timeout Max waiting time
             * @return ISIX_EOK if success else return an error
             */
-            int pop(T &c, tick_t timeout=0)
+            int pop(T &c, ostick_t timeout=0)
             {
                     return isix_fifo_read( hwnd, &c, timeout );
             }

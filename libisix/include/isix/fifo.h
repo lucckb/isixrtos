@@ -37,7 +37,7 @@ static inline osfifo_t isix_fifo_create( int n_elem, int elem_size )
  * @param[in] item item The element push in the queue
  * @param[in] timeout Timeout for selected queue
  * @return 0 if success else return error     */
-int isix_fifo_write(osfifo_t fifo, const void *item, tick_t timeout);
+int isix_fifo_write(osfifo_t fifo, const void *item, ostick_t timeout);
 
 /*--------------------------------------------------------------*/
 /** Push element in the queue from a ISR
@@ -63,7 +63,7 @@ int isix_fifo_count(osfifo_t fifo);
  * @param[out] item Pointer to the bufer
  * @param[in] timeout Max waiting timeout
  * @return ISIX_EOK if success else return an error */
-int isix_fifo_read(osfifo_t fifo,void *item, tick_t timeout);
+int isix_fifo_read(osfifo_t fifo,void *item, ostick_t timeout);
 
 /*--------------------------------------------------------------*/
 /** Read element from the queue if available. ISR version

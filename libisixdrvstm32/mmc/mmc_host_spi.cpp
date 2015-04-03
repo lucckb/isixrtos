@@ -103,7 +103,7 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 	//Extra busy flag
 	if ( req.get_flags()&mmc_command::resp_spi_busy )
 	{
-		tick_t t_start = isix_get_jiffies();
+		ostick_t t_start = isix_get_jiffies();
 		timeout = isix_ms2tick( timeout );
 		//Downgrade priority during pool
 		const int prio = isix_task_change_prio( NULL, isix_get_min_priority() );
@@ -137,7 +137,7 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 //Execute MMC data transfer
 int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 {
-	const tick_t t_start = isix_get_jiffies();
+	const ostick_t t_start = isix_get_jiffies();
 	timeout = isix_ms2tick( timeout * (len/C_block_len+1));
 	const char* bbuf = static_cast<const char*>(buf);
 	for(size_t packet=0; packet<len; packet+=C_block_len)
@@ -207,7 +207,7 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 	//Execute MMC data transfer
 int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 {
-	const tick_t t_start = isix_get_jiffies();
+	const ostick_t t_start = isix_get_jiffies();
 	timeout = isix_ms2tick( timeout * (len/C_block_len+1));
 	char* bbuf = static_cast<char*>(buf);
 	//Downgrade priority during pool

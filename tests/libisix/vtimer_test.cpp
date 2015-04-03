@@ -42,8 +42,8 @@ void vtimer::basic()
 namespace {
 	//! Internal structure call info for trace call
 	struct call_info {
-		tick_t last_call {};
-		tick_t start_call { isix_get_jiffies() };
+		ostick_t last_call {};
+		ostick_t start_call { isix_get_jiffies() };
 		int count {};
 	};
 	//One shoot timer function

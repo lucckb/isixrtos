@@ -15,7 +15,7 @@
 //Definition of task ready list
 typedef struct task_ready_struct
 {
-    prio_t prio;               //Tasks group priority
+    osprio_t prio;               //Tasks group priority
 	list_entry_t task_list;    //List of task with equals priorities
     list_t inode;              //List inode
 } task_ready_t;
@@ -41,14 +41,14 @@ struct isix_task
 {
     unsigned long *top_stack;		//Task stack ptr
     unsigned long *init_stack;      //Initial value of stack for isix_free
-    prio_t prio;			    	//Priority of task
+    osprio_t prio;			    	//Priority of task
     thr_state_t state;        		//Thread state
-    tick_t jiffies;            		//Ticks when task wake up
+    ostick_t jiffies;            		//Ticks when task wake up
     task_ready_t *prio_elem;    	//Pointer to own prio list
 	union 
 	{
 		ossem_t sem;               		// !Pointer to waiting sem
-		msg_t	dmsg;					//! Returning message
+		osmsg_t	dmsg;					//! Returning message
 	} obj;
     void    *prv;					//Private data pointer for extra data
 	struct _reent *impure_data;		//Newlib per thread private data
@@ -67,10 +67,10 @@ struct isix_system
 	list_entry_t* pov_wait_list;		//! Overflow waiting tasks
 	list_entry_t zombie_list; 			//Task waiting for event
 	list_entry_t free_prio_elem;        //Free priority innodes
-	tick_t jiffies; 					//Global jiffies var
+	ostick_t jiffies; 					//Global jiffies var
 	_port_atomic_int_t jiffies_skipped; //Skiped jiffies when scheduler is locked
 	unsigned number_of_task_deleted;  	//Number of deleted task
-	prio_t number_of_priorities; 		//Number of priorities
+	osprio_t number_of_priorities; 		//Number of priorities
 };
 /*--------------------------------------------------------------------*/
 //Current executed task
@@ -95,12 +95,12 @@ void _isixp_lock_scheduler();
 //Unlock the scheduler
 void _isixp_unlock_scheduler();
 //! Wakeup task with selected message
-void _isixp_wakeup_task( ostask_t task, msg_t msg );
-void _isixp_wakeup_task_i( ostask_t task, msg_t msg );
+void _isixp_wakeup_task( ostask_t task, osmsg_t msg );
+void _isixp_wakeup_task_i( ostask_t task, osmsg_t msg );
 //Add task list to delete
 void _isixp_add_to_kill_list( ostask_t task );
 //! Set sleep state but not reschedule
-void _isixp_set_sleep_timeout( thr_state_t newstate, tick_t timeout );
+void _isixp_set_sleep_timeout( thr_state_t newstate, ostick_t timeout );
 //! Go to thread sleep
 void _isixp_set_sleep( thr_state_t newstate );
 //! Add to the prio list from head

@@ -45,7 +45,7 @@ static inline ossem_t isix_sem_create( ossem_t sem,int val)
  * @param[in] timeout Max wait time
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_sem_wait( ossem_t sem, tick_t timeout );
+int isix_sem_wait( ossem_t sem, ostick_t timeout );
 
 /*--------------------------------------------------------------*/
 /** Get semaphore from the ISR context
@@ -109,7 +109,7 @@ int isix_sem_destroy( ossem_t sem );
  * @param[in] ms Time value in the millisecond
  * @return Sys tick time value
  */
-tick_t isix_ms2tick( unsigned long ms );
+ostick_t isix_ms2tick( unsigned long ms );
 
 /*--------------------------------------------------------------*/
 
@@ -117,7 +117,7 @@ tick_t isix_ms2tick( unsigned long ms );
  * @param[in] timeout Wait time
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_wait( tick_t timeout );
+int isix_wait( ostick_t timeout );
 
 /*-----------------------------------------------------------*/
 /** Wait thread for selected number of milliseconds

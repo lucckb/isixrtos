@@ -37,9 +37,9 @@ namespace
 		return div;
 	}
 	//Check for timer elapsed
-	inline bool timer_elapsed(tick_t t1, tick_t timeout)
+	inline bool timer_elapsed(ostick_t t1, ostick_t timeout)
 	{
-		tick_t t2 = isix_get_jiffies();
+		ostick_t t2 = isix_get_jiffies();
 		if( t2 >= t1) 	//Not overflow
 			return t2 - t1 > timeout;
 		 else   	       //Overflow
@@ -354,7 +354,7 @@ int mmc_host_sdio::execute_command( ::drv::mmc::mmc_command &req, unsigned timeo
 		stat = SDIO_FLAG_CMDREND | SDIO_FLAG_CTIMEOUT|SDIO_FLAG_CCRCFAIL;
 	else
 		stat = SDIO_FLAG_CMDSENT;
-	tick_t t_start = isix_get_jiffies();
+	ostick_t t_start = isix_get_jiffies();
 	timeout = isix_ms2tick( timeout );
 	uint32_t sreg;
 	int ret = MMC_OK;

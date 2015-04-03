@@ -49,7 +49,7 @@ namespace {
 			//for(;;) isix::isix_wait_ms(1000);
 		}
 	public:
-		semaphore_task_test( char ch_id, prio_t prio, isix::semaphore &sem, std::string &items )
+		semaphore_task_test( char ch_id, osprio_t prio, isix::semaphore &sem, std::string &items )
             : m_sem( sem ), m_id( ch_id ), m_items( items ), m_prio( prio )
 		{
 		}
@@ -68,7 +68,7 @@ namespace {
         const char  m_id;
         std::string& m_items;
         int m_error { -32768 };
-		prio_t m_prio;
+		osprio_t m_prio;
 		isix::semaphore m_join_sem { 0, 1 };
 	};
 
