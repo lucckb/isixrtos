@@ -89,7 +89,7 @@ extern "C"
 }
 /* -------------------------------------------------------------- */
 #ifdef COMPILED_UNDER_ISIX
-static sem_t *ctors_sem;
+static ossem_t ctors_sem;
 #endif
 /* -------------------------------------------------------------- */
 #ifdef CPP_STARTUP_CODE

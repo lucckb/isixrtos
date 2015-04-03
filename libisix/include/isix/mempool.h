@@ -18,7 +18,7 @@ extern "C" {
 /*-----------------------------------------------------------------------*/
 //ISIX mempool handle def
 struct isix_mempool;
-typedef struct isix_mempool* isix_mempool_t;
+typedef struct isix_mempool* osmempool_t;
 
 /*-----------------------------------------------------------------------*/
 /** Create the mempool
@@ -26,28 +26,28 @@ typedef struct isix_mempool* isix_mempool_t;
  *  @param[in] elem_size Element size
  *  @return New mempool handle
  */
-isix_mempool_t isix_mempool_create( size_t elems, size_t elem_size );
+osmempool_t isix_mempool_create( size_t elems, size_t elem_size );
 
 /*-----------------------------------------------------------------------*/
 /** Destroy the mempool
  * @param[in] mp Mempool handler
  * @return None
  */
-void isix_mempool_destroy( isix_mempool_t mp );
+void isix_mempool_destroy( osmempool_t mp );
 
 /*-----------------------------------------------------------------------*/
 /** Allocate mempool object
  * @param[in] mp Mempool handler to alocate from
  * @return Pointer to allocated memory
  */
-void* isix_mempool_alloc( isix_mempool_t mp );
+void* isix_mempool_alloc( osmempool_t mp );
 
 /*-----------------------------------------------------------------------*/
 /** Free pool pointer in mempool
  * @param[in] mp Mempool handler
  * @param[in] p memory from mempool
  */
-void isix_mempool_free( isix_mempool_t mp, void *p );
+void isix_mempool_free( osmempool_t mp, void *p );
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }	//end extern-C

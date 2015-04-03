@@ -47,7 +47,7 @@ struct task_struct
     task_ready_t *prio_elem;    	//Pointer to own prio list
 	union 
 	{
-		sem_t   *sem;               	// !Pointer to waiting sem
+		ossem_t sem;               		// !Pointer to waiting sem
 		msg_t	dmsg;					//! Returning message
 	} obj;
     void    *prv;					//Private data pointer for extra data

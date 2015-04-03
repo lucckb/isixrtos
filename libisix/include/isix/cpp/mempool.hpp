@@ -71,7 +71,7 @@ public:
 	 */
 	bool is_valid() { return m_mp!=0; }
 private:
-	isix_mempool_t m_mp;
+	osmempool_t m_mp;
 private:	//Noncopyable
 	mempool(const mempool&);
 	mempool& operator=(const mempool&);

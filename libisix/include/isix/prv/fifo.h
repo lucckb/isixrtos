@@ -18,8 +18,8 @@ struct isix_fifo
     char *mem_p;    //Pointer to allocated memory
     int size;       //Total fifo size
     int elem_size; //Element count
-    struct sem_struct rx_sem;  //Semaphore rx
-    struct sem_struct tx_sem;  //Semaphore for tx
+    struct isix_semaphore rx_sem;  //Semaphore rx
+    struct isix_semaphore tx_sem;  //Semaphore for tx
 	unsigned flags;	//Extra flags
 };
 

@@ -9,8 +9,9 @@ extern "C" {
 #endif /*__cplusplus*/
 /*--------------------------------------------------------------*/
 
-struct sem_struct;
-typedef struct sem_struct sem_t;
+struct isix_semaphore;
+typedef struct isix_semaphore* ossem_t;
+
 /*--------------------------------------------------------------*/
 #ifdef __cplusplus
 static const unsigned ISIX_TIME_INFINITE = 0;
@@ -26,7 +27,7 @@ static const unsigned ISIX_SEM_ULIMITED = 0;
  * @param[in] limit_val Maximum value allowed in the sem
  * @return Semaphore object or NULL when semaphore can't be created
  */
-sem_t* isix_sem_create_limited(sem_t *sem,int val, int limit_val);
+ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val);
 
 /*--------------------------------------------------------------*/
 /** Function create the semaphore
@@ -34,25 +35,24 @@ sem_t* isix_sem_create_limited(sem_t *sem,int val, int limit_val);
  * @param[in] val Initial value of the semaphore
  * @return Semaphore object or NULL when semaphore can't be created
  */
-static inline sem_t* isix_sem_create(sem_t *sem,int val)
+static inline ossem_t isix_sem_create( ossem_t sem,int val)
 {
 	return isix_sem_create_limited( sem, val, ISIX_SEM_ULIMITED );
 }
-
 /*--------------------------------------------------------------*/
 /** Wait on the semaphore P()
  * @param[in] sem Semaphore object
  * @param[in] timeout Max wait time
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_sem_wait(sem_t *sem, tick_t timeout);
+int isix_sem_wait( ossem_t sem, tick_t timeout );
 
 /*--------------------------------------------------------------*/
 /** Get semaphore from the ISR context
  * @param[in] sem Semaphore object
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_sem_get_isr(sem_t *sem);
+int isix_sem_get_isr( ossem_t sem );
 
 /*--------------------------------------------------------------*/
 /** Semaphore  signal V() private
@@ -60,14 +60,14 @@ int isix_sem_get_isr(sem_t *sem);
  * @param[in] isr True when it is called from the ISR context
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int _isixp_sem_signal(sem_t *sem, bool isr);
+int _isixp_sem_signal( ossem_t sem, bool isr );
 
 /*--------------------------------------------------------------*/
 /** Semaphore  signal V()
  * @param[in] sem Semaphore object
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-static inline int isix_sem_signal(sem_t *sem)
+static inline int isix_sem_signal( ossem_t sem )
 {
 	return _isixp_sem_signal( sem, false );
 }
@@ -77,7 +77,7 @@ static inline int isix_sem_signal(sem_t *sem)
  * @param[in] sem Semaphore object
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-static inline int isix_sem_signal_isr(sem_t *sem)
+static inline int isix_sem_signal_isr( ossem_t sem )
 {
 	return _isixp_sem_signal(sem,true);
 }
@@ -88,28 +88,28 @@ static inline int isix_sem_signal_isr(sem_t *sem)
  * @param[in] val New semaphore value
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_sem_setval(sem_t *sem,int val);
+int isix_sem_setval( ossem_t sem,int val );
 
 /*--------------------------------------------------------------*/
 /** Get value of the semaphore
  * @param[in] sem Semaphore object
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_sem_getval(sem_t *sem);
+int isix_sem_getval( ossem_t sem );
 
 /*--------------------------------------------------------------*/
 /** Destroy the semaphore
  * @param[in] sem Semaphore object
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_sem_destroy(sem_t *sem);
+int isix_sem_destroy( ossem_t sem );
 
 /*--------------------------------------------------------------*/
 /** Convert ms value to the system tick value
  * @param[in] ms Time value in the millisecond
  * @return Sys tick time value
  */
-tick_t isix_ms2tick(unsigned long ms);
+tick_t isix_ms2tick( unsigned long ms );
 
 /*--------------------------------------------------------------*/
 
@@ -117,14 +117,14 @@ tick_t isix_ms2tick(unsigned long ms);
  * @param[in] timeout Wait time
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_wait(tick_t timeout);
+int isix_wait( tick_t timeout );
 
 /*-----------------------------------------------------------*/
 /** Wait thread for selected number of milliseconds
  * @param[in] timeout Wait time
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-static inline int isix_wait_ms(unsigned long ms)
+static inline int isix_wait_ms( unsigned long ms )
 {
 	return isix_wait(isix_ms2tick(ms));
 }

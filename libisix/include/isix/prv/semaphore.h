@@ -5,7 +5,7 @@
 
 /*--------------------------------------------------------------*/
 //Structure of semaphore
-struct sem_struct
+struct isix_semaphore
 {
 	//Semaphore val
   	_port_atomic_t value; 
@@ -18,7 +18,7 @@ struct sem_struct
 /*--------------------------------------------------------------*/
 
 //Semaphore can by destroyed
-static inline bool _isixp_sem_can_destroy(struct sem_struct *sem)
+static inline bool _isixp_sem_can_destroy(struct isix_semaphore *sem)
 {
    return list_isempty(&sem->sem_task);
 }

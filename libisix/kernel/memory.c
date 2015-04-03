@@ -49,8 +49,7 @@ static struct
 
 /*------------------------------------------------------*/
 //! Semaphore for locking the memory allocator
-static sem_t mem_sem;
-
+static struct isix_semaphore mem_sem;
 
 /*------------------------------------------------------*/
 //!Lock the memory

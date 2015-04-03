@@ -90,7 +90,7 @@ namespace isix
 		semaphore(const semaphore&);
 		semaphore& operator=(const semaphore&);
 	private:
-		sem_t *sem;
+		ossem_t sem;
 	};
 	
 	//! Semaphore locker class

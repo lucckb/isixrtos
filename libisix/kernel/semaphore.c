@@ -21,7 +21,7 @@
 
 /*--------------------------------------------------------------*/
 //Create semaphore
-sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
+ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
 {
 	const bool static_mem = (sem!=NULL);
 	if(limit_val<0)
@@ -30,10 +30,10 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
 	}
 	if(sem==NULL)
     {
-        sem = (sem_t*)isix_alloc(sizeof(sem_t));
+        sem = (ossem_t)isix_alloc(sizeof(struct isix_semaphore));
         if(sem==NULL) return NULL;
     }
-    memset( sem, 0, sizeof(sem_t) );
+    memset( sem, 0, sizeof(*sem) );
     sem->static_mem = static_mem;
 	port_atomic_sem_init( &sem->value, val, limit_val );
     list_init( &sem->sem_task );
@@ -44,7 +44,7 @@ sem_t* isix_sem_create_limited(sem_t *sem, int val, int limit_val)
 /*--------------------------------------------------------------*/
 //Wait for semaphore P()
 //TODO: priority inheritance
-int isix_sem_wait(sem_t *sem, tick_t timeout)
+int isix_sem_wait(ossem_t sem, tick_t timeout)
 {
 	isix_printk("sem: Wait task %p on %p tout %i", currp, sem, timeout );
 	//TODO: Wait in separate function
@@ -70,7 +70,7 @@ int isix_sem_wait(sem_t *sem, tick_t timeout)
 }
 /*--------------------------------------------------------------*/
 //Sem signal V()
-int _isixp_sem_signal( sem_t *sem, bool isr )
+int _isixp_sem_signal( ossem_t sem, bool isr )
 { 
 	isix_printk("sem: Signal on %p isr %i", sem, isr );
 	if(!sem) {
@@ -102,7 +102,7 @@ int _isixp_sem_signal( sem_t *sem, bool isr )
 }
 /*--------------------------------------------------------------*/
 //Get semaphore from isr
-int isix_sem_get_isr(sem_t *sem)
+int isix_sem_get_isr(ossem_t sem)
 {
     if(!sem) return ISIX_EINVARG;
     int res = ISIX_EBUSY;
@@ -115,7 +115,7 @@ int isix_sem_get_isr(sem_t *sem)
 
 /*--------------------------------------------------------------*/
 //Sem value of semaphore
-int isix_sem_setval(sem_t *sem, int val)
+int isix_sem_setval(ossem_t sem, int val)
 {
     if(!sem) return ISIX_EINVARG;
     //Semaphore is used
@@ -132,7 +132,7 @@ int isix_sem_setval(sem_t *sem, int val)
 
 /*--------------------------------------------------------------*/
 //Get value of semaphore
-int isix_sem_getval(sem_t *sem)
+int isix_sem_getval(ossem_t sem)
 {
     if(!sem) return ISIX_EINVARG;
     return port_atomic_sem_read_val( &sem->value );
@@ -140,7 +140,7 @@ int isix_sem_getval(sem_t *sem)
 
 /*--------------------------------------------------------------*/
 //Sem destroy
-int isix_sem_destroy(sem_t *sem)
+int isix_sem_destroy(ossem_t sem)
 {
    if(!sem) return ISIX_EINVARG;
     //Semaphore is used
