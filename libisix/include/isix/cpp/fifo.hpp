@@ -27,9 +27,9 @@ namespace isix {
     class fifo_base
     {
     public:
-            explicit fifo_base(fifo_t *hwnd_) : hwnd(hwnd_) {}
+            explicit fifo_base(osfifo_t hwnd_) : hwnd(hwnd_) {}
     protected:
-            fifo_t *hwnd;
+            osfifo_t hwnd;
     private:
             fifo_base(const fifo_base&);
             fifo_base& operator=(const fifo_base&);

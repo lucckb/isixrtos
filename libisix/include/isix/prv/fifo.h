@@ -11,7 +11,7 @@
 
 
 /* Queue structure */
-struct fifo_struct
+struct isix_fifo
 {
 	char *rx_p;     //Pointer to rx
     char *tx_p;     //Pointer to tx

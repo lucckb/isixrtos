@@ -22,7 +22,7 @@
 
 /*-------------------------------------------------------*/
 //! Private function for lock
-static inline __attribute__((always_inline)) void _lock( const fifo_t* fifo )
+static inline __attribute__((always_inline)) void _lock( const osfifo_t fifo )
 {
 	if( fifo->flags & isix_fifo_f_noirq ) {
 		_isixp_lock_scheduler();
@@ -32,7 +32,7 @@ static inline __attribute__((always_inline)) void _lock( const fifo_t* fifo )
 }
 /*-------------------------------------------------------*/
 //! Private function for unlock
-static inline __attribute__((always_inline)) void _unlock( const fifo_t* fifo )
+static inline __attribute__((always_inline)) void _unlock( const osfifo_t fifo )
 {
 	if( fifo->flags & isix_fifo_f_noirq ) {
 		_isixp_unlock_scheduler();
@@ -45,10 +45,10 @@ static inline __attribute__((always_inline)) void _unlock( const fifo_t* fifo )
  * if succes return queue pointer else return null
  */
 
-fifo_t* isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
+osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
 {
    //Create fifo struct
-   fifo_t *fifo = (fifo_t*)isix_alloc(sizeof(fifo_t));
+   osfifo_t fifo = (osfifo_t)isix_alloc(sizeof(struct isix_fifo));
    if(!fifo)
    {
        isix_printk("FifoCreate: Error alloc fifo struct");
@@ -79,7 +79,7 @@ fifo_t* isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
 
 /*----------------------------------------------------------------*/
 //Fifo send to other task
-int isix_fifo_write(fifo_t *fifo,const void *item, tick_t timeout)
+int isix_fifo_write(osfifo_t fifo,const void *item, tick_t timeout)
 {
     if(!fifo) return ISIX_EINVARG;
     if(isix_sem_wait(&fifo->tx_sem,timeout)<0)
@@ -99,7 +99,7 @@ int isix_fifo_write(fifo_t *fifo,const void *item, tick_t timeout)
 }
 /*----------------------------------------------------------------*/
 //Fifo send to other task
-int isix_fifo_write_isr(fifo_t *fifo,const void *item)
+int isix_fifo_write_isr(osfifo_t fifo,const void *item)
 {
     if(!fifo) return ISIX_EINVARG;
 	if(fifo->flags & isix_fifo_f_noirq) return ISIX_EINVARG;
@@ -120,7 +120,7 @@ int isix_fifo_write_isr(fifo_t *fifo,const void *item)
 }
 /*----------------------------------------------------------------*/
 //Fifo receive from other task
-int isix_fifo_read(fifo_t *fifo,void *item, tick_t timeout)
+int isix_fifo_read(osfifo_t fifo,void *item, tick_t timeout)
 {
     if(!fifo) return ISIX_EINVARG;
     if(isix_sem_wait(&fifo->rx_sem,timeout)<0)
@@ -141,7 +141,7 @@ int isix_fifo_read(fifo_t *fifo,void *item, tick_t timeout)
 
 /*----------------------------------------------------------------*/
 //Fifo receive from other task
-int isix_fifo_read_isr(fifo_t *fifo,void *item)
+int isix_fifo_read_isr(osfifo_t fifo,void *item)
 {
     if(!fifo) return ISIX_EINVARG;
 	if(fifo->flags & isix_fifo_f_noirq) return ISIX_EINVARG;
@@ -163,7 +163,7 @@ int isix_fifo_read_isr(fifo_t *fifo,void *item)
 
 /*----------------------------------------------------------------*/
 /* Delete created queue */
-int isix_fifo_destroy(fifo_t *fifo)
+int isix_fifo_destroy(osfifo_t fifo)
 {
     _lock(fifo);
     //Check for TXSEM ban be destroyed
@@ -192,7 +192,7 @@ int isix_fifo_destroy(fifo_t *fifo)
 
 /*----------------------------------------------------------------*/
 //How many element is in fifo
-int isix_fifo_count(fifo_t *fifo)
+int isix_fifo_count(osfifo_t fifo)
 {
     if(!fifo) return ISIX_EINVARG;
     return isix_sem_getval(&fifo->rx_sem);
