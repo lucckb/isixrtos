@@ -37,7 +37,7 @@ enum thr_state
 typedef uint8_t thr_state_t;
 /*--------------------------------------------------------------------*/
 //Definition of task operations
-struct task_struct
+struct isix_task
 {
     unsigned long *top_stack;		//Task stack ptr
     unsigned long *init_stack;      //Initial value of stack for isix_free
@@ -74,7 +74,7 @@ struct isix_system
 };
 /*--------------------------------------------------------------------*/
 //Current executed task
-extern struct task_struct *volatile _isix_current_task;
+extern struct isix_task *volatile _isix_current_task;
 //Current task pointer
 extern volatile bool _isix_scheduler_running;
 #define currp _isix_current_task
@@ -89,26 +89,26 @@ void _isixp_enter_critical(void);
 //Lock scheduler and reenable selected interrupt;
 void _isixp_exit_critical(void);
 //Process base stack initialization
-unsigned long* _isixp_task_init_stack(unsigned long *sp,task_func_ptr_t pfun,void *param);
+unsigned long* _isixp_task_init_stack( unsigned long *sp, task_func_ptr_t pfun, void *param );
 //Lock the scheduler
 void _isixp_lock_scheduler();
 //Unlock the scheduler
 void _isixp_unlock_scheduler();
 //! Wakeup task with selected message
-void _isixp_wakeup_task( task_t* task, msg_t msg );
-void _isixp_wakeup_task_i( task_t* task, msg_t msg );
+void _isixp_wakeup_task( ostask_t task, msg_t msg );
+void _isixp_wakeup_task_i( ostask_t task, msg_t msg );
 //Add task list to delete
-void _isixp_add_to_kill_list(task_t *task);
+void _isixp_add_to_kill_list( ostask_t task );
 //! Set sleep state but not reschedule
 void _isixp_set_sleep_timeout( thr_state_t newstate, tick_t timeout );
 //! Go to thread sleep
 void _isixp_set_sleep( thr_state_t newstate );
 //! Add to the prio list from head
-void _isixp_add_to_prio_queue( list_entry_t* objlist, struct task_struct* task );
+void _isixp_add_to_prio_queue( list_entry_t* objlist, struct isix_task* task );
 //! Remove task from prio queue
-task_t* _isixp_remove_from_prio_queue( list_entry_t* list );
+ostask_t _isixp_remove_from_prio_queue( list_entry_t* list );
 //! Reallocate according to priority change
-void _isixp_reallocate_priority( task_t* task, int newprio );
+void _isixp_reallocate_priority( ostask_t task, int newprio );
 //! Reschedule tasks 
 void _isixp_do_reschedule();
 /*--------------------------------------------------------------------*/

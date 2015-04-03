@@ -25,7 +25,7 @@
 enum { MAGIC_FILL_VALUE = 0x55 };
 /*-----------------------------------------------------------------------*/
 /* Create task function */
-task_t* isix_task_create(task_func_ptr_t task_func, void *func_param, 
+ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
 		unsigned long  stack_depth, prio_t priority, unsigned long flags )
 {
 	isix_printk("tskcreate: Create task with prio %i",priority);
@@ -38,12 +38,12 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
     //Alignement
 	stack_depth = _isixp_align_size( stack_depth );
     //Allocate task_t structure
-    task_t *task = (task_t*)isix_alloc(sizeof(task_t));
+    ostask_t task = (ostask_t)isix_alloc(sizeof(struct isix_task));
     isix_printk("Alloc task struct %p",task);
     //No free memory
     if(task==NULL) return NULL;
     //Zero task structure
-    memset(task,0,sizeof(task_t));
+    memset( task, 0, sizeof(*task) );
     //Try Allocate stack for task
     task->init_stack = isix_alloc(stack_depth);
     isix_printk("Alloc stack mem %p",task->init_stack);
@@ -92,14 +92,14 @@ task_t* isix_task_create(task_func_ptr_t task_func, void *func_param,
 /*Change task priority function
  * task - task pointer structure if NULL current prio change
  */
-int isix_task_change_prio( task_t *task, prio_t new_prio )
+int isix_task_change_prio( ostask_t task, prio_t new_prio )
 {
 	if(isix_get_min_priority()<new_prio )
 	{
 	   return ISIX_ENOPRIO;
 	}
 	_isixp_enter_critical();
-    task_t *taskc = task?task:currp;
+    ostask_t taskc = task?task:currp;
 	isix_printk("Change prio curr task ptr %p %i", taskc, taskc->state );
     //Save task prio
     const prio_t prio = taskc->prio;
@@ -114,7 +114,7 @@ int isix_task_change_prio( task_t *task, prio_t new_prio )
 }
 /*-----------------------------------------------------------------------*/
 /* Get isix structure private data */
-void* isix_get_task_private_data( task_t *task )
+void* isix_get_task_private_data( ostask_t task )
 {
 	if( !task ) {
 		return NULL;
@@ -126,7 +126,7 @@ void* isix_get_task_private_data( task_t *task )
 }
 /*-----------------------------------------------------------------------*/
 /* Isix set private data task */
-int isix_set_task_private_data( task_t *task, void *data )
+int isix_set_task_private_data( ostask_t task, void *data )
 {
 	if( !task ) {
 		return ISIX_EINVARG;
@@ -143,10 +143,10 @@ int isix_set_task_private_data( task_t *task, void *data )
 }
 /*-----------------------------------------------------------------------*/
 //Delete task pointed by struct task
-void isix_task_kill(task_t *task)
+void isix_task_kill(ostask_t task)
 {
 	_isixp_enter_critical();
-    task_t *taskd = task?task:currp;
+    ostask_t taskd = task?task:currp;
 	_isixp_add_to_kill_list( taskd );
 	if( task == currp ) {
 		_isixp_exit_critical();
@@ -158,7 +158,7 @@ void isix_task_kill(task_t *task)
 }
 /*-----------------------------------------------------------------------*/
 //Get current thread handler
-task_t * isix_task_self(void)
+ostask_t isix_task_self(void)
 {
     return currp;
 }
@@ -170,10 +170,10 @@ task_t * isix_task_self(void)
 #error isix_free_stack_space() for grown stack not implemented yet
 #endif
 
-size_t isix_free_stack_space(const task_t *task)
+size_t isix_free_stack_space(const ostask_t task)
 {
 	size_t usage=0;
-	const task_t *taskd = task?task:currp;
+	const ostask_t taskd = task?task:currp;
 	unsigned char *b_stack = (unsigned char*)taskd->init_stack;
 	while(*b_stack==MAGIC_FILL_VALUE)
 	{
@@ -189,9 +189,9 @@ size_t isix_free_stack_space(const task_t *task)
  *	@return none 
  */
 /*-----------------------------------------------------------------------*/
-prio_t isix_get_task_priority( const task_t* task )
+prio_t isix_get_task_priority( const ostask_t task )
 {
-	const task_t *taskd = task?task:currp;
+	const ostask_t taskd = task?task:currp;
 	return taskd->prio;
 }
 /*-----------------------------------------------------------------------*/

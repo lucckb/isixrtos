@@ -38,8 +38,8 @@ static constexpr unsigned ISIX_HZ = ISIX_CONFIG_HZ;
 /*-----------------------------------------------------------------------*/
 
 //! Definition of task operations
-struct task_struct;
-typedef struct task_struct task_t;
+struct isix_task;
+typedef struct isix_task* ostask_t;
 
 /*-----------------------------------------------------------------------*/
 //! Halt system when critical error is found

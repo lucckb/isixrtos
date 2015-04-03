@@ -65,7 +65,7 @@ namespace isix {
 		/** Get thread task id
 		* @return Task control object
 		*/
-		task_t* get_taskid() { return task_id; }
+		ostask_t get_taskid() { return task_id; }
 		/** Check the fifo object is in valid state
 		* @return True when the object is in valid state
 		*/
@@ -83,7 +83,7 @@ namespace isix {
 		task_base(const task_base&);
 		task_base& operator=(const task_base&);
 	private:
-		task_t* task_id;
+		ostask_t task_id;
 	}; 
 
 }

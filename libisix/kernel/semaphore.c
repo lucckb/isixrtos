@@ -84,7 +84,7 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 		_isixp_exit_critical();
         return ISIX_EOK;
     }	
-	task_t* task = _isixp_remove_from_prio_queue( &sem->sem_task );
+	ostask_t task = _isixp_remove_from_prio_queue( &sem->sem_task );
 	//isix_printk("Task to wakeup %p", task );
 	if( task ) {	//Task can be deleted for EX
 		//Decrement again because are thrd on list
