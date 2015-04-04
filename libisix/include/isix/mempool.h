@@ -39,6 +39,29 @@ void* isix_mempool_alloc( osmempool_t mp );
  * @param[in] p memory from mempool
  */
 void isix_mempool_free( osmempool_t mp, void *p );
+
+
 #ifdef __cplusplus
 }	//end extern-C
 #endif /* __cplusplus */
+
+
+#ifdef __cplusplus
+namespace isix {
+namespace {
+		
+	using mempool_t = osmempool_t;
+	inline osmempool_t mempool_create( size_t elems, size_t elem_size ) {
+		return ::isix_mempool_create( elems, elem_size );
+	}
+	inline void mempool_destroy( osmempool_t mp ) {
+		return ::isix_mempool_destroy( mp );
+	}
+	inline void* mempool_alloc( osmempool_t mp ) {
+		return ::isix_mempool_alloc( mp );
+	}
+	inline void mempool_free( osmempool_t mp, void *p ) {
+		return ::isix_mempool_free( mp, p );
+	}
+}}
+#endif /*__cplusplus*/

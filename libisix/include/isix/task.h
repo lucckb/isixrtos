@@ -101,3 +101,37 @@ static inline int isix_task_delete_tcpip(ostask_t task)
 }	//end extern-C
 #endif /* __cplusplus */
 
+
+#ifdef __cplusplus
+namespace isix {
+namespace {
+	using task_t = ostask_t;
+	inline ostask_t task_create(task_func_ptr_t task_func, void *func_param, 
+			unsigned long stack_depth, osprio_t priority, unsigned long flags ) {
+		return ::isix_task_create( task_func, func_param, stack_depth,
+				priority, flags );
+	}
+	inline int task_change_prio( ostask_t task, osprio_t new_prio ) {
+		return ::isix_task_change_prio( task, new_prio );
+	}
+	inline void task_kill( ostask_t task ) {
+		::isix_task_kill( task );
+	}
+	inline ostask_t task_self() {
+		return ::isix_task_self();
+	}
+	inline int set_task_private_data( ostask_t task, void *data ) {
+		return ::isix_set_task_private_data( task, data );
+	}
+	inline void* get_task_private_data( ostask_t task ) {
+		return ::isix_get_task_private_data( task );
+	}
+	inline osprio_t get_task_priority( const ostask_t task ) {
+		return ::isix_get_task_priority( task );
+	}
+	inline size_t free_stack_space( const ostask_t task ) {
+		return ::isix_free_stack_space( task );
+	}
+
+}}
+#endif /* __cplusplus */

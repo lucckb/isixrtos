@@ -77,3 +77,34 @@ int isix_fifo_read_isr(osfifo_t queue, void *item);
 }	//end extern-C
 #endif /* __cplusplus */
 
+
+#ifdef __cplusplus
+namespace isix {
+namespace {
+	using fifo_t = osfifo_t;
+	inline osfifo_t fifo_create_ex( int n_elem, int elem_size, unsigned flags ) {
+		return ::isix_fifo_create_ex( n_elem, elem_size, flags );
+	}
+	inline osfifo_t fifo_create( int n_elem, int elem_size ) {
+		return ::isix_fifo_create( n_elem, elem_size );
+	}
+	inline int fifo_write( osfifo_t fifo, const void *item, ostick_t timeout=ISIX_TIME_INFINITE) {
+		return ::isix_fifo_write( fifo, item, timeout );
+	}
+	inline int fifo_write_isr( osfifo_t queue, const void *item ) {
+		return ::isix_fifo_write_isr( queue, item );
+	}
+	inline int fifo_destroy( osfifo_t fifo ) {
+		return ::isix_fifo_destroy( fifo );
+	}
+	inline int fifo_count( osfifo_t fifo ) {
+		return ::isix_fifo_count( fifo );
+	}
+	inline int fifo_read( osfifo_t fifo,void *item, ostick_t timeout=ISIX_TIME_INFINITE) {
+		return ::isix_fifo_read( fifo, item, timeout );
+	}
+	inline int fifo_read_isr( osfifo_t queue, void *item ) {
+		return ::isix_fifo_read_isr( queue, item );
+	}
+}}
+#endif /* __cplusplus */

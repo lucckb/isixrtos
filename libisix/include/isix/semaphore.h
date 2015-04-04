@@ -10,13 +10,7 @@ extern "C" {
 struct isix_semaphore;
 typedef struct isix_semaphore* ossem_t;
 
-#ifdef __cplusplus
-static const unsigned ISIX_TIME_INFINITE = 0;
-static const unsigned ISIX_SEM_ULIMITED = 0;
-#else
-#define ISIX_TIME_INFINITE (0)
-#define ISIX_SEM_ULIMITED (0)
-#endif /*__cplusplus*/
+
 /** Function create the semaphore
  * @param[in] sem Semaphore object. When it is null semaphore is created on the stack
  * @param[in] val Initial value of the semaphore
@@ -91,30 +85,39 @@ int isix_sem_getval( ossem_t sem );
  */
 int isix_sem_destroy( ossem_t sem );
 
-/** Convert ms value to the system tick value
- * @param[in] ms Time value in the millisecond
- * @return Sys tick time value
- */
-ostick_t isix_ms2tick( unsigned long ms );
-
-
-/** Wait thread for selected number of ticks
- * @param[in] timeout Wait time
- * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
- */
-int isix_wait( ostick_t timeout );
-
-/** Wait thread for selected number of milliseconds
- * @param[in] timeout Wait time
- * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
- */
-static inline int isix_wait_ms( unsigned long ms )
-{
-	return isix_wait(isix_ms2tick(ms));
-}
-
 
 #ifdef __cplusplus
 }	//end extern-C
 #endif /* __cplusplus */
 
+
+#ifdef __cplusplus
+namespace isix {
+namespace {
+	using sem_t = ossem_t;
+	inline ossem_t sem_create_limited( ossem_t sem, int val, int limit_val ) {
+		return ::isix_sem_create_limited( sem, val, limit_val );
+	}
+	inline ossem_t sem_create( ossem_t sem, int val ) {
+		return ::isix_sem_create( sem, val );
+	}
+	inline int sem_wait( ossem_t sem, ostick_t timeout=ISIX_TIME_INFINITE ) {
+		return ::isix_sem_wait( sem, timeout );
+	}
+	inline int sem_get_isr( ossem_t sem ) {
+		return ::isix_sem_get_isr( sem );
+	}
+	inline int sem_signal( ossem_t sem ) {
+		return ::isix_sem_signal( sem );
+	}
+	inline int sem_signal_isr( ossem_t sem ) {
+		return ::isix_sem_signal_isr( sem );
+	}
+	inline int sem_getval( ossem_t sem ) {
+		return ::isix_sem_getval( sem );
+	}
+	inline int sem_destroy( ossem_t sem ) {
+		return ::isix_sem_destroy( sem );
+	}
+}}
+#endif /* __cplusplus */

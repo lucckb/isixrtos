@@ -7,8 +7,8 @@
 #include <isix/prv/semaphore.h>
 #include <isix/prv/irqtimers.h>
 #define _ISIX_KERNEL_CORE_
-
 #include <isix/prv/scheduler.h>
+
 #ifndef ISIX_DEBUG_SCHEDULER
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
 #endif

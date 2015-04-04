@@ -35,10 +35,10 @@ size_t isix_heap_free(int *fragments);
 namespace isix {
 namespace {
 	inline void* alloc( size_t size ) {
-		return isix_alloc( size );
+		return ::isix_alloc( size );
 	}
 	inline void free(void *mem) {
-		isix_free( mem );	
+		::isix_free( mem );	
 	}
 }}
 #endif /*__cplusplus*/

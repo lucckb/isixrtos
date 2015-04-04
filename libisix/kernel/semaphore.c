@@ -155,44 +155,4 @@ int isix_sem_destroy(ossem_t sem)
    return ISIX_EOK;
 }
 
-/*--------------------------------------------------------------*/
-//! Convert ms to ticks
-ostick_t isix_ms2tick(unsigned long ms)
-{
-	ostick_t ticks = (ISIX_CONFIG_HZ * ms)/1000UL;
-	if(ticks==0) ticks++;
-	return ticks;
-}
-/*--------------------------------------------------------------*/
-//! Isix wait selected amount of time
-int isix_wait(ostick_t timeout)
-{
-	if(schrun)
-	{
-		//If scheduler is running delay on semaphore
-		_isixp_enter_critical();
-		_isixp_set_sleep_timeout( THR_STATE_SLEEPING, timeout );
-		_isixp_exit_critical();
-		isix_yield();
-		return ISIX_EOK;
-	}
-	else
-	{
-		//If scheduler is not running delay on busy wait
-		ostick_t t1 = isix_get_jiffies();
-		if(t1+timeout>t1)
-		{
-			t1+= timeout;
-			while(t1>isix_get_jiffies()) port_idle_cpu();
-		}
-		else
-		{
-			t1+= timeout;
-			while(t1<isix_get_jiffies()) port_idle_cpu();
-		}
-		return ISIX_EOK;
-	}
-}
-
-/*--------------------------------------------------------------*/
 
