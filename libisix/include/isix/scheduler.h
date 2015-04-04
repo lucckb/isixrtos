@@ -1,23 +1,18 @@
 #ifndef _ISIX_SCHEDULER_H
 #define _ISIX_SCHEDULER_H
-/*-----------------------------------------------------------------------*/
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/port_scheduler.h>
-/*-----------------------------------------------------------------------*/
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-/*-----------------------------------------------------------------------*/
 //! Pointer to task function
 typedef void (*task_func_ptr_t)(void*);
-/*-----------------------------------------------------------------------*/
 //! Fatal panic function callback
 typedef void (*isix_panic_func_callback_t)(const char*, int, const char*);
 
-/*-----------------------------------------------------------------------*/
 
 //! Yield the current process
 static inline void isix_yield()
@@ -27,7 +22,6 @@ static inline void isix_yield()
 		port_yield();
 }
 
-/*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 static constexpr unsigned ISIX_HZ = ISIX_CONFIG_HZ;
 #else
@@ -35,34 +29,28 @@ static constexpr unsigned ISIX_HZ = ISIX_CONFIG_HZ;
 #define ISIX_HZ ISIX_CONFIG_HZ
 #endif
 
-/*-----------------------------------------------------------------------*/
 
 //! Definition of task operations
 struct isix_task;
 typedef struct isix_task* ostask_t;
 
-/*-----------------------------------------------------------------------*/
 //! Halt system when critical error is found
 void isix_kernel_panic( const char *file, int line, const char *msg );
 
-/*-----------------------------------------------------------*/
 //ISIX BUG macro
 #define isix_bug( msg ) isix_kernel_panic(__FILE__,__LINE__, (msg) )
 
-/*-----------------------------------------------------------*/
 /** Get current sytem ticks
  * @return Number of system tick from system startup
  */
 ostick_t isix_get_jiffies(void);
 
-/*-----------------------------------------------------------------------*/
 //!Start the scheduler
 #ifdef ISIX_CONFIG_SHUTDOWN_API
 void isix_start_scheduler(void);
 #else
 void isix_start_scheduler(void) __attribute__((noreturn));
 #endif
-/*-----------------------------------------------------------------------*/
 #ifdef ISIX_CONFIG_SHUTDOWN_API
 /**
  * Shutdown scheduler and return to main
@@ -71,23 +59,19 @@ void isix_start_scheduler(void) __attribute__((noreturn));
  */
 void isix_shutdown_scheduler(void);
 #endif
-/*-----------------------------------------------------------------------*/
 /** Initialize base OS structure before call main
  * @param[in] num_priorities Number of available tasks priorities
  */
 void isix_init( osprio_t num_priorities );
 
-/*-----------------------------------------------------------------------*/
 /** Function return the minimal available priority
  * @return Number of minimal available priority
  */
 osprio_t isix_get_min_priority(void);
-/*-----------------------------------------------------------------------*/
 /** Functtion return scheduling state 
  @return True if scheduler is running
  */
 bool isix_is_scheduler_active(void);
-/*-----------------------------------------------------------------------*/
 /** Get current sytem ticks
  * @return Number of system tick from system startup in usec resolution
  */
@@ -98,7 +82,6 @@ static inline osutick_t isix_get_ujiffies(void)
     	/  (osutick_t)port_get_hres_jiffies_timer_max_value();
     return t;
 }
-/* ----------------------------------------------------------------------*/
 /** Busy waiting for selecred amount of time
  * @param[in] timeout Number of microseconds for busy wait
  * @return None
@@ -113,7 +96,6 @@ static inline void isix_wait_us( unsigned timeout )
 		else { if( t1-t2>timeout) break; }
 	}
 }
-/* ----------------------------------------------------------------------*/
 /** Check if isix timer elapsed or not
  *   @param[in] t1 Variable with the initial timer value
      @param[in] timeout Excepted timeout 
@@ -127,9 +109,7 @@ static inline bool isix_timer_elapsed( ostick_t t1, ostick_t timeout )
 	else   	       //Overflow
 		return t1 - t2 > timeout;
 }
-/*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
 }	//end extern-C
 #endif /* __cplusplus */
-/*-----------------------------------------------------------------------*/
 #endif

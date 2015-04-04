@@ -3,7 +3,7 @@
 #include <isix/prv/list.h>
 #include <isix/port_atomic.h>
 
-/*--------------------------------------------------------------*/
+
 //Structure of semaphore
 struct isix_semaphore
 {
@@ -15,13 +15,10 @@ struct isix_semaphore
     bool static_mem;
 };
 
-/*--------------------------------------------------------------*/
 
 //Semaphore can by destroyed
 static inline bool _isixp_sem_can_destroy(struct isix_semaphore *sem)
 {
    return list_isempty(&sem->sem_task);
 }
-
-/*--------------------------------------------------------------*/
 

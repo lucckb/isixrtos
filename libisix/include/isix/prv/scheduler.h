@@ -7,11 +7,11 @@
 #include <isix/semaphore.h>
 #include <isix/scheduler.h>
 #include <isix/port_atomic.h>
-/* ------------------------------------------------------------------ */
+
 #ifndef _ISIX_KERNEL_CORE_
 #	error This is private header isix kernel headers cannot be used by app
 #endif
-/*--------------------------------------------------------------------*/
+
 //Definition of task ready list
 typedef struct task_ready_struct
 {
@@ -20,7 +20,7 @@ typedef struct task_ready_struct
     list_t inode;              //List inode
 } task_ready_t;
 
-/*--------------------------------------------------------------------*/
+
 //! Current thread state
 enum thr_state 
 {
@@ -35,7 +35,7 @@ enum thr_state
 };
 
 typedef uint8_t thr_state_t;
-/*--------------------------------------------------------------------*/
+
 //Definition of task operations
 struct isix_task
 {
@@ -55,7 +55,7 @@ struct isix_task
     list_t inode;               	//Inode task for operation
 	list_t inode_time;				//Waiting inode
 };
-/*--------------------------------------------------------------------*/
+
 //!Structure related to isix system
 struct isix_system 
 {
@@ -72,14 +72,14 @@ struct isix_system
 	unsigned number_of_task_deleted;  	//Number of deleted task
 	osprio_t number_of_priorities; 		//Number of priorities
 };
-/*--------------------------------------------------------------------*/
+
 //Current executed task
 extern struct isix_task *volatile _isix_current_task;
 //Current task pointer
 extern volatile bool _isix_scheduler_running;
 #define currp _isix_current_task
 #define schrun _isix_scheduler_running
-/*--------------------------------------------------------------------*/
+
 //Scheduler function called on context switch in IRQ and Yield
 void _isixp_schedule(void);
 //Sched timer cyclic call
@@ -111,4 +111,4 @@ ostask_t _isixp_remove_from_prio_queue( list_entry_t* list );
 void _isixp_reallocate_priority( ostask_t task, int newprio );
 //! Reschedule tasks 
 void _isixp_do_reschedule();
-/*--------------------------------------------------------------------*/
+
