@@ -76,7 +76,7 @@ static void mem_unlock(void)
 
 /*------------------------------------------------------*/
 //! Initialize global heap
-void isix_alloc_init(void)
+void _isixp_alloc_init(void)
 {
   struct header *hp;
 

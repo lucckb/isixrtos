@@ -40,7 +40,7 @@ void isix_init(osprio_t num_priorities)
 	//Copy priority
 	csys.number_of_priorities = num_priorities;
 	//Init heap
-	isix_alloc_init();
+	_isixp_alloc_init();
 	//Initialize ready task list
     list_init(&csys.ready_list);
     //Initialize waiting list
