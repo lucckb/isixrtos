@@ -10,7 +10,7 @@ struct isix_semaphore
 	//Semaphore val
   	_port_atomic_t value; 
     //Task val waiting for semaphore
-    list_entry_t sem_task;
+    list_entry_t wait_list;
     //Resource type
     bool static_mem;
 };
@@ -19,6 +19,6 @@ struct isix_semaphore
 //Semaphore can by destroyed
 static inline bool _isixp_sem_can_destroy(struct isix_semaphore *sem)
 {
-   return list_isempty(&sem->sem_task);
+   return list_isempty(&sem->wait_list);
 }
 

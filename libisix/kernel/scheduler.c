@@ -193,7 +193,7 @@ static void internal_schedule_time(void)
     	printk("schedtime: task %p jiffies %i task_time %i", task_c,csys.jiffies,task_c->jiffies);
         list_delete(&task_c->inode_time);
 		if( task_c->state == THR_STATE_WTSEM ) {
-			if( _isixp_remove_from_prio_queue(&task_c->obj.sem->sem_task)!=task_c ) {
+			if( _isixp_remove_from_prio_queue(&task_c->obj.sem->wait_list)!=task_c ) {
 				isix_bug("Mismatch semaphore task");
 			}
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
@@ -545,9 +545,9 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 		task->state = THR_STATE_SCHEDULE;
 		add_ready_list( task ); 
 	} else if( task->state == THR_STATE_WTSEM ) {
-		_isixp_remove_from_prio_queue( &task->obj.sem->sem_task );
+		_isixp_remove_from_prio_queue( &task->obj.sem->wait_list );
 		task->prio = newprio;
-		_isixp_add_to_prio_queue( &task->obj.sem->sem_task, task );
+		_isixp_add_to_prio_queue( &task->obj.sem->wait_list, task );
 	}
 }
 /*-----------------------------------------------------------------------*/

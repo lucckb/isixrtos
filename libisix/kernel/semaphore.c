@@ -36,7 +36,7 @@ ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
     memset( sem, 0, sizeof(*sem) );
     sem->static_mem = static_mem;
 	port_atomic_sem_init( &sem->value, val, limit_val );
-    list_init( &sem->sem_task );
+    list_init( &sem->wait_list );
     printk("Create sem %p val %i",sem,(int)sem->value.value);
     return sem;
 }
@@ -62,7 +62,7 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
     }
 	//printk("---- Add to list %p----- ", currp );
 	_isixp_set_sleep_timeout( THR_STATE_WTSEM, timeout ); 
-	_isixp_add_to_prio_queue( &sem->sem_task, currp );
+	_isixp_add_to_prio_queue( &sem->wait_list, currp );
 	currp->obj.sem = sem;
 	_isixp_exit_critical();
 	isix_yield();
@@ -84,7 +84,7 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 		_isixp_exit_critical();
         return ISIX_EOK;
     }	
-	ostask_t task = _isixp_remove_from_prio_queue( &sem->sem_task );
+	ostask_t task = _isixp_remove_from_prio_queue( &sem->wait_list );
 	//printk("Task to wakeup %p", task );
 	if( task ) {	//Task can be deleted for EX
 		//Decrement again because are thrd on list
@@ -120,7 +120,7 @@ int isix_sem_setval(ossem_t sem, int val)
     if(!sem) return ISIX_EINVARG;
     //Semaphore is used
     _isixp_enter_critical();
-    if(list_isempty(&sem->sem_task)==false)
+    if(list_isempty(&sem->wait_list)==false)
     {
         _isixp_exit_critical();
         return ISIX_EBUSY;
@@ -145,7 +145,7 @@ int isix_sem_destroy(ossem_t sem)
    if(!sem) return ISIX_EINVARG;
     //Semaphore is used
    _isixp_enter_critical();
-   if( !list_isempty(&sem->sem_task) )
+   if( !list_isempty(&sem->wait_list) )
    {
        _isixp_exit_critical();
        return ISIX_EBUSY;
