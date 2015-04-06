@@ -54,6 +54,8 @@ osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
        printk("FifoCreate: Error alloc fifo struct");
        return NULL;
    }
+   //Set type
+   fifo->type = osobject_type_fifo;
    //Set flags
    fifo->flags = flags;
    //Calculate size

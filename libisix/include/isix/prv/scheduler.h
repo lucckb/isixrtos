@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sys/reent.h>
-#include <isix/types.h>
+#include <isix/prv/types.h>
 #include <isix/prv/list.h>
 #include <isix/config.h>
 #include <isix/semaphore.h>

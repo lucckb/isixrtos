@@ -27,9 +27,6 @@ static constexpr unsigned ISIX_HZ = ISIX_CONFIG_HZ;
 typedef unsigned int ostick_t;
 //! Define a micro tick
 typedef unsigned long osutick_t;
-//! Message type
-typedef int osmsg_t;
 //! Priority type
 typedef uint8_t osprio_t;
-
 

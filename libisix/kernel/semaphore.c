@@ -7,6 +7,7 @@
 #include <isix/port_atomic.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
+
 #ifndef ISIX_DEBUG_SEMAPHORE
 #define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
 #endif
@@ -34,6 +35,7 @@ ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
         if(sem==NULL) return NULL;
     }
     memset( sem, 0, sizeof(*sem) );
+	sem->type = osobject_type_semaphore;
     sem->static_mem = static_mem;
 	port_atomic_sem_init( &sem->value, val, limit_val );
     list_init( &sem->wait_list );

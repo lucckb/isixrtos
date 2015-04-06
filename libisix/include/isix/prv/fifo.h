@@ -13,6 +13,7 @@
 /* Queue structure */
 struct isix_fifo
 {
+	osobject_type_t type;	//Type of object
 	char *rx_p;     //Pointer to rx
     char *tx_p;     //Pointer to tx
     char *mem_p;    //Pointer to allocated memory
