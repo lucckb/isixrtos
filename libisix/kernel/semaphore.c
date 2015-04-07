@@ -114,7 +114,6 @@ int isix_sem_get_isr(ossem_t sem)
     }
     return res;
 }
-
 /*--------------------------------------------------------------*/
 //Sem value of semaphore
 int isix_sem_setval(ossem_t sem, int val)
@@ -141,6 +140,7 @@ int isix_sem_getval(ossem_t sem)
 }
 
 /*--------------------------------------------------------------*/
+//TODO: Wakeup all waiting tasks and next delete the samaphore
 //Sem destroy
 int isix_sem_destroy(ossem_t sem)
 {

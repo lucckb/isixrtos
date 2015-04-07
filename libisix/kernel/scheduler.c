@@ -80,7 +80,7 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
 #if ISIX_DEBUG_SCHEDULER
 	printk("OOPS-PANIC: Please reset board %s:%i [%s]", file, line, msg );
     task_ready_t *i;
-    task_t *j;
+    ostask_t j;
     printk("Ready tasks");
     list_for_each_entry(&csys.ready_list,i,inode)
     {
@@ -341,11 +341,11 @@ static void add_task_to_waiting_list(ostask_t task, ostick_t timeout)
 }
 /*--------------------------------------------------------------*/
 //Add task to the list according to current priority calculation
-void _isixp_add_to_prio_queue( list_entry_t *sem_list, ostask_t task )
+void _isixp_add_to_prio_queue( list_entry_t *list, ostask_t task )
 {
     //Insert on waiting list in time order
     ostask_t item;
-    list_for_each_entry( sem_list , item, inode )
+    list_for_each_entry( list, item, inode )
     {
     	if(task->prio<item->prio) break;
     }
@@ -511,10 +511,17 @@ void _isixp_wakeup_task( ostask_t task, osmsg_t msg )
 	_isixp_do_reschedule( task );
 }
 /*-----------------------------------------------------------------------*/
+//Wakeup but don't reschedule but exit critical
 void _isixp_wakeup_task_i( ostask_t task, osmsg_t msg )
 {
 	wakeup_task( task, msg );
 	_isixp_exit_critical();
+}
+/*-----------------------------------------------------------------------*/
+//Wakeup but don't reschedule but not unlock
+void _isixp_wakeup_task_l( ostask_t task, osmsg_t msg )
+{
+	wakeup_task( task, msg );
 }
 /*-----------------------------------------------------------------------*/
 //Delete task from ready list

@@ -66,12 +66,12 @@ static inline int isix_sem_signal_isr( ossem_t sem )
 	return _isixp_sem_signal(sem,true);
 }
 
-/** Set value of the semaphore
+/** Reset semaphore to the selected value
  * @param[in] sem Semaphore object
  * @param[in] val New semaphore value
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_sem_setval( ossem_t sem,int val );
+int isix_sem_reset( ossem_t sem,int val );
 
 /** Get value of the semaphore
  * @param[in] sem Semaphore object

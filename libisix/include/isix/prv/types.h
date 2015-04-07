@@ -22,8 +22,6 @@
 //! Message type
 typedef int osmsg_t;
 
-// Natural bitset type
-typedef uint32_t osbitset_t;
 
 enum osobject_type_e {
 	osobject_type_semaphore = 1,

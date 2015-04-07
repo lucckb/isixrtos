@@ -1,0 +1,84 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename:  events.h
+ *
+ *    Description:  Event object wait
+ *
+ *        Version:  1.0
+ *        Created:  07.04.2015 11:42:58
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  Lucjan Bryndza (LB), lucck
+ *   Organization:  
+ *
+ * =====================================================================================
+ */
+#pragma once
+
+#include <isix/config.h>
+#include <isix/types.h>
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif /*__cplusplus*/
+struct isix_event;
+typedef struct isix_event* osevent_t;
+
+/** Create event group 
+ * @return event group handle or null
+ */
+osevent_t isix_event_create( void );
+
+/** Delete the event group 
+ *  @param[in] Osevent input group
+ * */
+int isix_event_delete( osevent_t event );
+
+/** Bit for event synchronization 
+ * @param[in] 	evth Event handle
+ * @param[in] 	bits_to_set Bits to set
+ * @param[in]	bits_to_wait Bits to wait for
+ * @param[in] 	timeout Timeout to wait for sync
+ * @return Changed bits
+ */
+osbitset_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set, 
+		osbitset_t bits_to_wait, ostick_t timeout );
+
+/** Wait for event bit set
+ * @param[in]	evth Event handle
+ * @param[in] 	bits_to_wait Bits to wait for
+ * @param[in] 	clear_on_exit Clear bits on exit
+ * @param[in]	wait_for_all  Wait for all bits
+ * @param[in]   timeout		 Timeout to wait for sync
+ * @return Bits which are set
+ */
+osbitset_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait, 
+		bool clear_on_exit, bool wait_for_all, ostick_t timeout );
+
+/** Clear the selected bits from the event 
+ * @parma[in] 	evth Event handle
+ * @param[in] 	bits_to_clear 
+ * @return Changed bits 
+ */
+osbitset_t isix_clear_bits( osevent_t evth, osbitset_t bits_to_clear );
+
+static inline osbitset_t isix_clear_bits_isr( osevent_t evth, osbitset_t bits_to_clear ) 
+{
+	return isix_clear_bits( evth, bits_to_clear );
+}
+
+/** Isix set bits
+ * @parma[in] 	evth Event handle
+ * @param[in] 	bits_to_clear 
+ * @return Changed bits 
+ */
+osbitset_t isix_set_bits( osevent_t evth, osbitset_t bits_to_set );
+osbitset_t isix_set_bits_isr( osevent_t evth, osbitset_t bits_to_set );
+osbitset_t _isixp_set_bits( osevent_t evth, osbitset_t bits_to_set, bool isr );
+
+#ifdef __cplusplus
+}	//end extern-C
+#endif /* __cplusplus */

@@ -11,5 +11,6 @@ enum isix_error
 	ISIX_EFIFOFULL = -5, 	/** Fifo queue is full */
 	ISIX_EBUSY = -6,     	/** Resource already used  */
 	ISIX_ENOPRIO = -7,   	/** Priority is invalid */
-	ISIX_ENOTSUP = -8		/** Operation not supported */
+	ISIX_ENOTSUP = -8,		/** Operation not supported */
+	ISIX_ERESET  = -9,		/** Current object is in reset state */
 };

@@ -79,7 +79,12 @@ extern struct isix_task *volatile _isix_current_task;
 extern volatile bool _isix_scheduler_running;
 #define currp _isix_current_task
 #define schrun _isix_scheduler_running
-
+//Return scheduler highest prio
+static inline __attribute__((always_inline)) 
+	ostask_t isixp_max_prio( ostask_t t1, ostask_t t2 ) 
+{
+	return (t1->prio>t2->prio)?(t2):(t1);
+}
 //Scheduler function called on context switch in IRQ and Yield
 void _isixp_schedule(void);
 //Sched timer cyclic call
@@ -97,6 +102,7 @@ void _isixp_unlock_scheduler();
 //! Wakeup task with selected message
 void _isixp_wakeup_task( ostask_t task, osmsg_t msg );
 void _isixp_wakeup_task_i( ostask_t task, osmsg_t msg );
+void _isixp_wakeup_task_l( ostask_t task, osmsg_t msg );
 //Add task list to delete
 void _isixp_add_to_kill_list( ostask_t task );
 //! Set sleep state but not reschedule

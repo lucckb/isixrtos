@@ -79,7 +79,7 @@ size_t isix_free_stack_space(const ostask_t task);
 
 
 #ifdef WITH_ISIX_TCPIP_LIB
-task_t* sys_thread_new(const char *name, task_func_ptr_t thread,  void *arg, int stacksize, int prio);
+ostask_t sys_thread_new(const char *name, task_func_ptr_t thread,  void *arg, int stacksize, int prio);
 /* Isix task create TCPIP version for usage with the TCPIP stack */
 static inline ostask_t isix_task_create_tcpip(task_func_ptr_t task_func, 
 		void *func_param, unsigned long stack_depth, osprio_t priority )

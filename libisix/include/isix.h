@@ -10,6 +10,7 @@
 #include <isix/irqtimers.h>
 #include <isix/mempool.h>
 #include <isix/ostime.h>
+#include <isix/events.h>
 #include <isix/cpp/fifo.hpp>
 #include <isix/cpp/virtual_timer.hpp>
 #include <isix/cpp/mempool.hpp>

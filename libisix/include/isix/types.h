@@ -29,4 +29,5 @@ typedef unsigned int ostick_t;
 typedef unsigned long osutick_t;
 //! Priority type
 typedef uint8_t osprio_t;
-
+// Natural bitset type
+typedef uint32_t osbitset_t;
