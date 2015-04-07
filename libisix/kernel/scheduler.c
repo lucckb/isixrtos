@@ -23,14 +23,106 @@
 //Current task simple def
 static ISIX_TASK_FUNC(idle_task,p);
 static void add_ready_list( ostask_t task );
-/*--------------------------------------------------------------------*/
+static void cleanup_tasks(void);
+static void internal_schedule_time(void);
+
 // Task reschedule lock for spinlock
 static struct isix_system csys;
 //Current task pointer
 volatile bool _isix_scheduler_running;
 //Current task pointer
 ostask_t volatile _isix_current_task;
-/*-----------------------------------------------------------------------*/
+
+//! Ununsed systick handler
+static void unused_func(void ) {}
+void isix_systime_handler(void) __attribute__ ((weak, alias("unused_func")));
+
+//! Kernel panic callback function definition
+void __attribute__((weak)) 
+isix_kernel_panic_callback( const char* file, int line, const char *msg )
+{
+	(void)file; (void)line; (void)msg;
+}
+
+//Get currrent jiffies
+ostick_t isix_get_jiffies(void)
+{
+    return csys.jiffies;
+}
+
+//Get maxium available priority
+osprio_t isix_get_min_priority(void)
+{
+	return csys.number_of_priorities;
+}
+
+//Return scheduler active
+bool isix_is_scheduler_active(void)
+{
+    return schrun;
+}
+
+/** Temporary lock task reschedule */
+void _isixp_lock_scheduler() 
+{
+	port_atomic_sem_inc( &csys.sched_lock );
+}
+
+/** Temporary unlock task reschedule */
+void _isixp_unlock_scheduler() 
+{
+	if( port_atomic_sem_dec( &csys.sched_lock ) == 1 ) {
+		_isixp_enter_critical();
+		while( csys.jiffies_skipped.counter > 0 ) {
+			internal_schedule_time();
+			--csys.jiffies_skipped.counter;
+		}
+		_isixp_exit_critical();
+	}
+}
+
+#ifdef ISIX_CONFIG_SHUTDOWN_API
+/**
+ * Shutdown scheduler and return to main
+ * @note It can be called only  a once just before
+ * the system shutdown for battery power save
+ */
+void isix_shutdown_scheduler(void)
+{
+	schrun = false;
+	port_yield();
+}
+
+/** Function called at end of isix execution only
+ * when shutdown API is enabled
+ */
+void _isixp_finalize() {
+	cleanup_tasks();
+}
+#endif /* ISIX_CONFIG_SHUTDOWN_API  */
+
+//Lock scheduler
+void _isixp_enter_critical(void)
+{
+	if( port_atomic_inc( &csys.critical_count ) == 1 ) 
+	{
+		port_set_interrupt_mask();
+	}
+}
+
+//Unlock scheduler
+void _isixp_exit_critical(void)
+{
+	if( port_atomic_dec( &csys.critical_count ) <= 0 )
+    {
+		port_clear_interrupt_mask();
+		if( port_atomic_read( &csys.critical_count ) < 0 ) {
+			isix_bug("Invalid lock count");
+		}
+    }
+	port_flush_memory();
+}
+
 /* Number of priorites assigned when OS start */
 void isix_init(osprio_t num_priorities)
 {
@@ -64,14 +156,7 @@ void isix_init(osprio_t num_priorities)
     //Initialize virtual timers infrastructure
     _isixp_vtimer_init();
 }
-/*--------------------------------------------------------------------*/
-//! Kernel panic callback function definition
-void __attribute__((weak)) 
-isix_kernel_panic_callback( const char* file, int line, const char *msg )
-{
-	(void)file; (void)line; (void)msg;
-}
-/*--------------------------------------------------------------------*/
+
 //Isix bug report when printk is defined
 void isix_kernel_panic( const char *file, int line, const char *msg )
 {
@@ -100,29 +185,8 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
     isix_kernel_panic_callback( file, line, msg );
     while(1);
 }
-/*--------------------------------------------------------------------*/
-//Lock scheduler
-void _isixp_enter_critical(void)
-{
-	if( port_atomic_inc( &csys.critical_count ) == 1 ) 
-	{
-		port_set_interrupt_mask();
-	}
-}
-/*-----------------------------------------------------------------------*/
-//Unlock scheduler
-void _isixp_exit_critical(void)
-{
-	if( port_atomic_dec( &csys.critical_count ) <= 0 )
-    {
-		port_clear_interrupt_mask();
-		if( port_atomic_read( &csys.critical_count ) < 0 ) {
-			isix_bug("Invalid lock count");
-		}
-    }
-	port_flush_memory();
-}
-/*-----------------------------------------------------------------------*/
+
+
 //Scheduler is called in switch context
 /**
  * NOTE: The process not require _isixp_enter_critical because
@@ -167,7 +231,7 @@ void _isixp_schedule(void)
     }
     //printk( "Scheduler: new task %p", currp );
 }
-/*-----------------------------------------------------------------------*/
+
 //Time call from isr
 static void internal_schedule_time(void)
 {
@@ -203,10 +267,8 @@ static void internal_schedule_time(void)
 	//Handle timvtimers
     _isixp_vtimer_handle_time( csys.jiffies );
 }
-/*-----------------------------------------------------------------------*/
-static void unused_func(void ) {}
-void isix_systime_handler(void) __attribute__ ((weak, alias("unused_func")));
-/*-----------------------------------------------------------------------*/
+
+
 //Schedule time handled from timer context
 void _isixp_schedule_time() 
 {
@@ -223,7 +285,7 @@ void _isixp_schedule_time()
 		_isixp_exit_critical();
 	}
 }
-/*-----------------------------------------------------------------------*/
+
 //Try get task ready from free list if is not exist allocate memory
 static task_ready_t *alloc_task_ready_t(void)
 {
@@ -242,7 +304,7 @@ static task_ready_t *alloc_task_ready_t(void)
    }
    return prio;
 }
-/*-----------------------------------------------------------------------*/
+
 //Try get task ready from free list if is not exist allocate memory
 static inline void free_task_ready_t(task_ready_t *prio)
 {
@@ -250,7 +312,7 @@ static inline void free_task_ready_t(task_ready_t *prio)
     //printk("free_task_ready_t move %p to unused list",prio);
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Add assigned task to ready list
 static void add_ready_list( ostask_t task )
 {
@@ -295,7 +357,7 @@ static void add_ready_list( ostask_t task )
 	printk("ardy: task state %i", task->state );
     printk("ardy: Add new node %p with prio %i",prio_n,prio_n->prio);
 }
-/*-----------------------------------------------------------------------*/
+
 //! Delete task from ready list
 static void delete_from_ready_list( ostask_t task )
 {
@@ -309,7 +371,7 @@ static void delete_from_ready_list( ostask_t task )
 		free_task_ready_t( task->prio_elem );
 	}
 }
-/*-----------------------------------------------------------------------*/
+
 //Move selected task to waiting list
 static void add_task_to_waiting_list(ostask_t task, ostick_t timeout)
 {
@@ -339,7 +401,7 @@ static void add_task_to_waiting_list(ostask_t task, ostick_t timeout)
     	list_insert_before(&waitl->inode_time,&task->inode_time);
     }
 }
-/*--------------------------------------------------------------*/
+
 //Add task to the list according to current priority calculation
 void _isixp_add_to_prio_queue( list_entry_t *list, ostask_t task )
 {
@@ -352,7 +414,7 @@ void _isixp_add_to_prio_queue( list_entry_t *list, ostask_t task )
     printk("prioqueue: insert in time list at %p", task );
     list_insert_before( &item->inode, &task->inode );
 }
-/*-----------------------------------------------------------------------*/
+
 //! Remove task from prio queue
 ostask_t _isixp_remove_from_prio_queue( list_entry_t* list )
 {
@@ -363,10 +425,10 @@ ostask_t _isixp_remove_from_prio_queue( list_entry_t* list )
 	list_delete( &task->inode );
 	return task;
 }
-/*-----------------------------------------------------------------------*/
+
 //Dead task are clean by this procedure called from idle task
 //One idle call clean one dead tasks
-static inline void cleanup_tasks(void)
+static void cleanup_tasks(void)
 {
     if( csys.number_of_task_deleted > 0 )
     {
@@ -386,7 +448,7 @@ static inline void cleanup_tasks(void)
         _isixp_exit_critical();
     }
 }
-/*-----------------------------------------------------------------------*/
+
 //Idle task function do nothing and lower priority
 ISIX_TASK_FUNC(idle_task,p)
 {
@@ -402,13 +464,7 @@ ISIX_TASK_FUNC(idle_task,p)
 #endif
     }
 }
-/*-----------------------------------------------------------------------*/
-//Get currrent jiffies
-ostick_t isix_get_jiffies(void)
-{
-    return csys.jiffies;
-}
-/*-------------------------------------------------------------------*/
+
 /* This function start scheduler after main function */
 #ifndef ISIX_CONFIG_SHUTDOWN_API
 void isix_start_scheduler(void) __attribute__((noreturn));
@@ -424,58 +480,8 @@ void isix_start_scheduler(void)
    while(1);    //Prevent compiler warning
 #endif
 }
-/*---------------------------------------------------------------------*/
-//Get maxium available priority
-osprio_t isix_get_min_priority(void)
-{
-	return csys.number_of_priorities;
-}
-/*---------------------------------------------------------------------*/
-//Return scheduler active
-bool isix_is_scheduler_active(void)
-{
-    return schrun;
-}
-/*---------------------------------------------------------------------*/
-#ifdef ISIX_CONFIG_SHUTDOWN_API
-/**
- * Shutdown scheduler and return to main
- * @note It can be called only  a once just before
- * the system shutdown for battery power save
- */
-void isix_shutdown_scheduler(void)
-{
-	schrun = false;
-	port_yield();
-}
-/*--------------------------------------------------------------------*/
-/** Function called at end of isix execution only
- * when shutdown API is enabled
- */
-void _isixp_finalize() {
-	cleanup_tasks();
-}
-#endif /* ISIX_CONFIG_SHUTDOWN_API  */
-/*--------------------------------------------------------------------*/
-/** Temporary lock task reschedule */
-void _isixp_lock_scheduler() 
-{
-	port_atomic_sem_inc( &csys.sched_lock );
-}
-/*--------------------------------------------------------------------*/
-/** Temporary unlock task reschedule */
-void _isixp_unlock_scheduler() 
-{
-	if( port_atomic_sem_dec( &csys.sched_lock ) == 1 ) {
-		_isixp_enter_critical();
-		while( csys.jiffies_skipped.counter > 0 ) {
-			internal_schedule_time();
-			--csys.jiffies_skipped.counter;
-		}
-		_isixp_exit_critical();
-	}
-}
-/*--------------------------------------------------------------------*/
+
+
 //! Reschedule tasks if it can be rescheduled
 void _isixp_do_reschedule( ostask_t task )
 {
@@ -492,7 +498,7 @@ void _isixp_do_reschedule( ostask_t task )
 	}
 	_isixp_exit_critical();
 }
-/*--------------------------------------------------------------------*/
+
 static void wakeup_task( ostask_t task, osmsg_t msg )
 {
 	// Store the message retrived by remote
@@ -503,27 +509,27 @@ static void wakeup_task( ostask_t task, osmsg_t msg )
 	}
 	add_ready_list( task );
 }
-/*--------------------------------------------------------------------*/
+
 //! Wakeup task with selected message
 void _isixp_wakeup_task( ostask_t task, osmsg_t msg )
 {
 	wakeup_task( task, msg );
 	_isixp_do_reschedule( task );
 }
-/*-----------------------------------------------------------------------*/
+
 //Wakeup but don't reschedule but exit critical
 void _isixp_wakeup_task_i( ostask_t task, osmsg_t msg )
 {
 	wakeup_task( task, msg );
 	_isixp_exit_critical();
 }
-/*-----------------------------------------------------------------------*/
+
 //Wakeup but don't reschedule but not unlock
 void _isixp_wakeup_task_l( ostask_t task, osmsg_t msg )
 {
 	wakeup_task( task, msg );
 }
-/*-----------------------------------------------------------------------*/
+
 //Delete task from ready list
 void _isixp_set_sleep( thr_state_t newstate )
 {
@@ -531,7 +537,7 @@ void _isixp_set_sleep( thr_state_t newstate )
 	delete_from_ready_list( currp );
 	currp->state = newstate;
 }
-/* ------------------------------------------------------------------ */
+
 void _isixp_set_sleep_timeout( thr_state_t newstate, ostick_t timeout )
 {
 	printk("gtsto: task %p new_state %i tout %i", currp ,newstate, timeout );
@@ -540,7 +546,7 @@ void _isixp_set_sleep_timeout( thr_state_t newstate, ostick_t timeout )
 		add_task_to_waiting_list( currp, timeout );
 	}
 }
-/* ------------------------------------------------------------------ */
+
 //! Reallocate according to priority change
 void _isixp_reallocate_priority( ostask_t task, int newprio )
 {
@@ -557,7 +563,7 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 		_isixp_add_to_prio_queue( &task->obj.sem->wait_list, task );
 	}
 }
-/*-----------------------------------------------------------------------*/
+
 //Add task list to delete
 void _isixp_add_to_kill_list( ostask_t task )
 {
