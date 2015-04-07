@@ -44,7 +44,7 @@ static void add_vtimer_to_list(osvtimer_t timer)
     	osvtimer_t waitl;
     	list_for_each_entry(pov_vtimer_list,waitl,inode)
     	{
-    	   if(timer->jiffies<waitl->jiffies) break;
+    	   if( timer->jiffies < waitl->jiffies ) break;
     	}
     	list_insert_before(&waitl->inode,&timer->inode);
     }
@@ -52,11 +52,11 @@ static void add_vtimer_to_list(osvtimer_t timer)
     {
     	//Insert on waiting list in time order no overflow
     	osvtimer_t waitl;
-    	list_for_each_entry(p_vtimer_list,waitl,inode)
+    	list_for_each_entry( p_vtimer_list, waitl, inode )
     	{
-    	    if(timer->jiffies<waitl->jiffies) break;
+    	    if( timer->jiffies < waitl->jiffies ) break;
     	}
-    	list_insert_before(&waitl->inode,&timer->inode);
+    	list_insert_before( &waitl->inode, &timer->inode );
     }
     //Scheduler unlock
     _isixp_exit_critical();
