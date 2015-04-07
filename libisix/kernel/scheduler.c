@@ -56,12 +56,6 @@ osprio_t isix_get_min_priority(void)
 	return csys.number_of_priorities;
 }
 
-//Return scheduler active
-bool isix_is_scheduler_active(void)
-{
-    return schrun;
-}
-
 /** Temporary lock task reschedule */
 void _isixp_lock_scheduler() 
 {

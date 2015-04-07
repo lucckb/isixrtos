@@ -64,8 +64,11 @@ osprio_t isix_get_min_priority(void);
 /** Functtion return scheduling state 
  @return True if scheduler is running
  */
-bool isix_is_scheduler_active(void);
-
+static inline bool isix_is_scheduler_active(void) 
+{
+	extern volatile bool _isix_scheduler_running;
+	return _isix_scheduler_running;
+}
 
 #ifdef __cplusplus
 }	//end extern-C
