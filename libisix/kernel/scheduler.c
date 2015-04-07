@@ -492,7 +492,7 @@ void _isixp_do_reschedule( ostask_t task )
 		if( currp->prio>task->prio ) {
 			//New task have higer priority then current task
 			printk("resched: prio %i>old prio %i",task->prio,currp->prio);
-			isix_yield();
+			port_yield();
 		}
 	}
 	_isixp_exit_critical();
