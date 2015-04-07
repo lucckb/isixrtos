@@ -147,12 +147,17 @@ void isix_init(osprio_t num_priorities)
     list_init(&csys.free_prio_elem);
     //This memory never will be freed
     task_ready_t *prio = isix_alloc(sizeof(task_ready_t)*(num_priorities+1));
-    for(int i=0; i<num_priorities+1; i++)
-    {
+	if( !prio ) {
+		isix_bug("Insufficient memory alloc priority list");
+	}
+    for(int i=0; i<num_priorities+1; ++i) {
     	list_insert_end(&csys.free_prio_elem,&prio[i].inode);
     }
     //Lower priority is the idle task
-    isix_task_create(idle_task,NULL,ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities,0);
+	if( !isix_task_create( idle_task,NULL,
+			ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities,0 ) ) {
+		isix_bug("Insufficient memory idle task");	
+	}
     //Initialize virtual timers infrastructure
     _isixp_vtimer_init();
 }
