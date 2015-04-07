@@ -71,13 +71,21 @@ namespace isix
 		{
 			return isix_sem_signal_isr(sem);
 		}
-		/** Set value of the semaphore
+		/** Reset value of the semaphore (All task will be wake )
 		* @param[in] val Value of the semaphore
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
 		*/
 		int reset( int val )
 		{
 			return isix_sem_reset( sem, val );
+		}
+		/** Reset value of the semaphore (From interrupt context)
+		* @param[in] val Value of the semaphore
+		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+		*/
+		int reset_isr( int val ) 
+		{
+			return isix_sem_reset_isr( sem, val );
 		}
 		/** Get the semaphore value
 		* @return the semaphore value otherwise an error

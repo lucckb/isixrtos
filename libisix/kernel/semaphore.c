@@ -114,7 +114,7 @@ int isix_sem_get_isr(ossem_t sem)
 }
 
 //! Wakeup semaphore tasks with selected messages
-static void sem_wakeup_all( ossem_t sem, osmsg_t msg )
+static void sem_wakeup_all( ossem_t sem, osmsg_t msg, bool isr )
 {
 	ostask_t wkup_task = NULL;
 	ostask_t t;
@@ -124,11 +124,15 @@ static void sem_wakeup_all( ossem_t sem, osmsg_t msg )
 		if( !wkup_task ) wkup_task = t;
 		_isixp_wakeup_task_l( t, msg );
 	}
-	_isixp_do_reschedule( wkup_task );
+	if( !isr ) {
+		_isixp_do_reschedule( wkup_task );
+	} else {
+		_isixp_exit_critical();
+	}
 }
 
 //Sem value of semaphore
-int isix_sem_reset( ossem_t sem, int val )
+int _isixp_sem_reset( ossem_t sem, int val, bool isr )
 {
     if( !sem ) return ISIX_EINVARG;
 	if( port_atomic_sem_read_val(&sem->value) < 0 )  {
@@ -137,7 +141,7 @@ int isix_sem_reset( ossem_t sem, int val )
     //Semaphore is used
     _isixp_enter_critical();
     port_atomic_sem_write_val( &sem->value, val );
-	sem_wakeup_all( sem, ISIX_ERESET );
+	sem_wakeup_all( sem, ISIX_ERESET, isr );
     return ISIX_EOK;
 }
 
@@ -154,7 +158,7 @@ int isix_sem_destroy(ossem_t sem)
    if(!sem) return ISIX_EINVARG;
     //! Semaphore is used
    _isixp_enter_critical();
-	sem_wakeup_all( sem, ISIX_EDESTROY );
+	sem_wakeup_all( sem, ISIX_EDESTROY, false );
    if(!sem->static_mem) isix_free(sem);
    return ISIX_EOK;
 }

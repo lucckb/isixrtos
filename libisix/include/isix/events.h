@@ -35,7 +35,7 @@ osevent_t isix_event_create( void );
 /** Delete the event group 
  *  @param[in] Osevent input group
  * */
-int isix_event_delete( osevent_t event );
+int isix_event_destroy( osevent_t event );
 
 /** Bit for event synchronization 
  * @param[in] 	evth Event handle

@@ -40,16 +40,17 @@ osevent_t isix_event_create( void )
 /* ------------------------------------------------------------------ */ 
 //! Delete an event
 //! Wakekup all and next delete it
-int isix_event_delete( osevent_t evh )
+int isix_event_destroy( osevent_t evh )
 {
 	if( !evh ) {
 		return ISIX_EINVARG;
 	}
 	_isixp_enter_critical();
 	ostask_t wkup_task = currp;
-	for( ostask_t t=_isixp_remove_from_prio_queue(&evh->wait_list); t ;)
+	ostask_t t;
+	while( (t=_isixp_remove_from_prio_queue(&evh->wait_list) ) )
 	{	
-		_isixp_wakeup_task_l( t, ISIX_ERESET );
+		_isixp_wakeup_task_l( t, ISIX_EDESTROY );
 		 wkup_task = isixp_max_prio( wkup_task, t );
 	}
 	_isixp_do_reschedule( wkup_task );
