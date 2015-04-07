@@ -22,7 +22,7 @@
 
 //! Isix event
 struct isix_event {
-	list_entry_t waiting_list;
+	list_entry_t wait_list;
 	osbitset_t bitset;		 //! Bit events
 	bool clear_evt_on_exit;  //! Clear evt on exit
 	bool wait_for_all;   	//! Wait for all bits

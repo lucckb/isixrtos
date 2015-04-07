@@ -20,7 +20,6 @@
 #define printk(...) do {} while(0)
 #endif
 
-/*--------------------------------------------------------------*/
 //Create semaphore
 ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
 {
@@ -43,7 +42,6 @@ ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
     return sem;
 }
 
-/*--------------------------------------------------------------*/
 //Wait for semaphore P()
 //TODO: priority inheritance
 int isix_sem_wait(ossem_t sem, ostick_t timeout)
@@ -70,7 +68,7 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 	isix_yield();
 	return currp->obj.dmsg;
 }
-/*--------------------------------------------------------------*/
+
 //Sem signal V()
 int _isixp_sem_signal( ossem_t sem, bool isr )
 { 
@@ -102,7 +100,7 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 	}
 	return ISIX_EOK;
 }
-/*--------------------------------------------------------------*/
+
 //Get semaphore from isr
 int isix_sem_get_isr(ossem_t sem)
 {
@@ -114,24 +112,35 @@ int isix_sem_get_isr(ossem_t sem)
     }
     return res;
 }
-/*--------------------------------------------------------------*/
-//Sem value of semaphore
-int isix_sem_setval(ossem_t sem, int val)
+
+//! Wakeup semaphore tasks with selected messages
+static void sem_wakeup_all( ossem_t sem, osmsg_t msg )
 {
-    if(!sem) return ISIX_EINVARG;
+	ostask_t wkup_task = NULL;
+	ostask_t t;
+	while( (t=_isixp_remove_from_prio_queue(&sem->wait_list) ) )
+	{
+		//!Assign first task it is a prioritized list highest first
+		if( !wkup_task ) wkup_task = t;
+		_isixp_wakeup_task_l( t, msg );
+	}
+	_isixp_do_reschedule( wkup_task );
+}
+
+//Sem value of semaphore
+int isix_sem_reset( ossem_t sem, int val )
+{
+    if( !sem ) return ISIX_EINVARG;
+	if( port_atomic_sem_read_val(&sem->value) < 0 )  {
+		return ISIX_EINVARG;
+	}
     //Semaphore is used
     _isixp_enter_critical();
-    if(list_isempty(&sem->wait_list)==false)
-    {
-        _isixp_exit_critical();
-        return ISIX_EBUSY;
-    }
     port_atomic_sem_write_val( &sem->value, val );
-    _isixp_exit_critical();
+	sem_wakeup_all( sem, ISIX_ERESET );
     return ISIX_EOK;
 }
 
-/*--------------------------------------------------------------*/
 //Get value of semaphore
 int isix_sem_getval(ossem_t sem)
 {
@@ -139,22 +148,14 @@ int isix_sem_getval(ossem_t sem)
     return port_atomic_sem_read_val( &sem->value );
 }
 
-/*--------------------------------------------------------------*/
-//TODO: Wakeup all waiting tasks and next delete the samaphore
 //Sem destroy
 int isix_sem_destroy(ossem_t sem)
 {
    if(!sem) return ISIX_EINVARG;
-    //Semaphore is used
+    //! Semaphore is used
    _isixp_enter_critical();
-   if( !list_isempty(&sem->wait_list) )
-   {
-       _isixp_exit_critical();
-       return ISIX_EBUSY;
-   }
+	sem_wakeup_all( sem, ISIX_EDESTROY );
    if(!sem->static_mem) isix_free(sem);
-   _isixp_exit_critical();
    return ISIX_EOK;
 }
-
 

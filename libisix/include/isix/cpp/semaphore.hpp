@@ -53,7 +53,7 @@ namespace isix
 		/** Get the semaphore from the ISR context
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
 		*/
-		int get_isr()
+		int get_isr() const
 		{
 			return isix_sem_get_isr(sem);
 		}
@@ -75,14 +75,14 @@ namespace isix
 		* @param[in] val Value of the semaphore
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
 		*/
-		int setval(int val)
+		int reset( int val )
 		{
-			return isix_sem_setval( sem, val );
+			return isix_sem_reset( sem, val );
 		}
 		/** Get the semaphore value
 		* @return the semaphore value otherwise an error
 		*/
-		int getval()
+		int getval() const
 		{
 			return isix_sem_getval( sem );
 		}

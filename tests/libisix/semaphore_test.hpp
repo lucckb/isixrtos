@@ -41,13 +41,14 @@ public:
 		semaphore_prio_tests();
 		semaphore_time_test();
 		from_interrupt();
+		reset_test();
 	}
 private:
 	void semaphore_prio_tests();
 	void semaphore_time_test();
 	void isr_test_handler();
-	//Semaphore from interrupts
 	void from_interrupt();
+	void reset_test();
 private:
 	//Isix interrupt semaphore
 	isix::semaphore m_sem_irq { 0, 0 };

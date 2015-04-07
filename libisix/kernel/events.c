@@ -34,7 +34,7 @@ osevent_t isix_event_create( void )
 		return ev;
 	}
 	memset( ev, 0, sizeof(*ev) );
-	list_init( &ev->waiting_list );
+	list_init( &ev->wait_list );
 	return ev;
 }
 /* ------------------------------------------------------------------ */ 
@@ -47,7 +47,7 @@ int isix_event_delete( osevent_t evh )
 	}
 	_isixp_enter_critical();
 	ostask_t wkup_task = currp;
-	for( ostask_t t = _isixp_remove_from_prio_queue(&evh->waiting_list);t;)
+	for( ostask_t t=_isixp_remove_from_prio_queue(&evh->wait_list); t ;)
 	{	
 		_isixp_wakeup_task_l( t, ISIX_ERESET );
 		 wkup_task = isixp_max_prio( wkup_task, t );

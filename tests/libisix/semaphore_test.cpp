@@ -63,6 +63,9 @@ namespace {
 		void join() {
 			m_join_sem.wait( ISIX_TIME_INFINITE );
 		}
+		int val() const {
+			return m_sem.getval();
+		}
     private:
         isix::semaphore& m_sem;
         const char  m_id;
@@ -97,6 +100,9 @@ namespace {
             m_notify_sem.wait( ISIX_TIME_INFINITE );
 			return m_error;
         }
+		int val() const {
+			return m_sem.getval();
+		}
 	private:
 		isix::semaphore &m_sem;
         int m_error { -32768 };
@@ -163,7 +169,47 @@ void semaphores::semaphore_prio_tests()
 	QUNIT_IS_EQUAL( t4.error(), ISIX_EOK );
 	QUNIT_IS_EQUAL( isix_task_change_prio(nullptr,TASKDEF_PRIORITY ), test_prio );
 }
-
+/* ------------------------------------------------------------------ */
+//! Semaphore reset test
+void semaphores::reset_test()
+{
+	auto sigs = new isix::semaphore(0);
+	std::string tstr;		
+	QUNIT_IS_TRUE( sigs->is_valid() );  
+	semaphore_task_test t1('A', 3, *sigs, tstr );
+	semaphore_task_test t2('B', 2, *sigs, tstr );
+	semaphore_task_test t3('C', 1, *sigs, tstr ); 
+	semaphore_task_test t4('D', 0, *sigs, tstr ); 
+	t1.start(); t2.start(); t3.start(); t4.start();
+	QUNIT_IS_TRUE( t1.is_valid() );
+	QUNIT_IS_TRUE( t2.is_valid() );
+	QUNIT_IS_TRUE( t3.is_valid() );
+	QUNIT_IS_TRUE( t4.is_valid() );
+	//! Give some time for add to sem
+	isix::wait_ms(25);
+	QUNIT_IS_EQUAL( sigs->reset(5), ISIX_EOK );	
+	t1.join(); t2.join(); t3.join(); t4.join();
+	QUNIT_IS_EQUAL( tstr, "DCBA" );
+	//Check semaphore status
+	QUNIT_IS_EQUAL( t1.error(), ISIX_ERESET );
+	QUNIT_IS_EQUAL( t2.error(), ISIX_ERESET );
+	QUNIT_IS_EQUAL( t3.error(), ISIX_ERESET );
+	QUNIT_IS_EQUAL( t4.error(), ISIX_ERESET );
+	QUNIT_IS_EQUAL( t1.val(), 5 );
+	QUNIT_IS_EQUAL( t2.val(), 5 );
+	QUNIT_IS_EQUAL( t3.val(), 5 );
+	QUNIT_IS_EQUAL( t4.val(), 5 );
+	// Try to wait and next delete
+	delete sigs;
+	sigs = new isix::semaphore(0);
+	semaphore_task_test t5('Z', 2, *sigs, tstr ); t5.start();
+	semaphore_task_test t6('Y', 2, *sigs, tstr ); t6.start();
+	isix::wait_ms(25);
+	delete sigs;
+	t5.join(); t6.join();
+	QUNIT_IS_EQUAL( t5.error(), ISIX_EDESTROY );
+	QUNIT_IS_EQUAL( t6.error(), ISIX_EDESTROY );
+}
 /* ------------------------------------------------------------------ */
 //Semaphore from interrupts
 void semaphores::from_interrupt() {

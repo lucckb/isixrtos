@@ -71,7 +71,7 @@ static inline int isix_sem_signal_isr( ossem_t sem )
  * @param[in] val New semaphore value
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_sem_reset( ossem_t sem,int val );
+int isix_sem_reset( ossem_t sem, int val );
 
 /** Get value of the semaphore
  * @param[in] sem Semaphore object
@@ -115,6 +115,9 @@ namespace {
 	}
 	inline int sem_getval( ossem_t sem ) {
 		return ::isix_sem_getval( sem );
+	}
+	inline int sem_reset( ossem_t sem, int val ) {
+		return ::isix_sem_reset( sem, val );
 	}
 	inline int sem_destroy( ossem_t sem ) {
 		return ::isix_sem_destroy( sem );
