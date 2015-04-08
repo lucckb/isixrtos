@@ -20,7 +20,6 @@
 #include <isix/config.h>
 #include <isix/types.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
@@ -44,9 +43,9 @@ int isix_event_destroy( osevent_t event );
  * @param[in] 	bits_to_set Bits to set
  * @param[in]	bits_to_wait Bits to wait for
  * @param[in] 	timeout Timeout to wait for sync
- * @return Changed bits
+ * @return Changed bits or error if negative
  */
-osbitset_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set, 
+osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set, 
 		osbitset_t bits_to_wait, ostick_t timeout );
 
 /** Wait for event bit set
@@ -57,7 +56,7 @@ osbitset_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
  * @param[in]   timeout		 Timeout to wait for sync
  * @return Bits which are set
  */
-osbitset_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait, 
+osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait, 
 		bool clear_on_exit, bool wait_for_all, ostick_t timeout );
 
 /** Clear the selected bits from the event 
@@ -65,7 +64,7 @@ osbitset_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
  * @param[in] 	bits_to_clear 
  * @return Changed bits 
  */
-osbitset_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear );
+osbitset_ret_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear );
 
 static inline osbitset_t isix_event_clear_isr( osevent_t evth, osbitset_t bits_to_clear ) 
 {
@@ -77,7 +76,7 @@ static inline osbitset_t isix_event_clear_isr( osevent_t evth, osbitset_t bits_t
  * @param[in] 	bits_to_clear 
  * @return Changed bits 
  */
-osbitset_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool isr );
+osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool isr );
 static inline osbitset_t isix_event_set( osevent_t evth, osbitset_t bits_to_set ) {
 	return _isixp_event_set( evth, bits_to_set, false );
 }
@@ -89,7 +88,7 @@ static inline osbitset_t isix_event_set_isr( osevent_t evth, osbitset_t bits_to_
  * @param[in] evth Event handle
  * @return Bit state 
  */
-osbitset_t isix_event_get_isr( osevent_t evth );
+osbitset_ret_t isix_event_get_isr( osevent_t evth );
 
 
 #ifdef __cplusplus

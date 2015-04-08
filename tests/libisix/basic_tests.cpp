@@ -15,6 +15,7 @@
 #include "mempool_test.hpp"
 #include "vtimer_test.hpp"
 #include "errno_test.hpp"
+#include "event_tests.hpp"
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
@@ -29,6 +30,7 @@ class unit_tests : public isix::task_base
 	tests::mempool mempool_test { qunit };
 	tests::vtimer timer_test { qunit };
 	tests::errno_threadsafe errno_test { qunit };
+	tests::event_test event_test { qunit };
 	//Test heap
 	void heap_test() {
 		QUNIT_IS_EQUAL( reinterpret_cast<long>(this)%4, 0 );
@@ -48,6 +50,7 @@ class unit_tests : public isix::task_base
 	//Test basic tasks
     virtual void main() 
 	{
+#if 0
 		heap_test();
 		atomic_test.run();
 		sched_test.run();
@@ -57,6 +60,8 @@ class unit_tests : public isix::task_base
 		mempool_test.run();
 		timer_test.run();
 		errno_test.run();
+#endif
+		event_test.run();
 		isix_wait_ms(100);
 		isix_shutdown_scheduler();
 	}

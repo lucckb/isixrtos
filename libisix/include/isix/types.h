@@ -33,3 +33,4 @@ typedef unsigned long osutick_t;
 typedef uint8_t osprio_t;
 // Natural bitset type
 typedef uint32_t osbitset_t;
+typedef int32_t osbitset_ret_t;
