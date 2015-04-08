@@ -33,10 +33,12 @@ namespace tests {
 		{}
 		//! Run the tests
 		void run() {
-			base_test();
+			//base_test();
+			sync_test();
 		}
 	private:
 		void base_test();
+		void sync_test();
 		QUnit::UnitTest &qunit;
 	};
 

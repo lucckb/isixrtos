@@ -163,7 +163,7 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	osbitset_t clr_bits = 0U;
 	while( (t=_isixp_remove_from_prio_queue(&evth->wait_list)) )
 	{	
-		//printk("Try to wake %p evbits %08x", t, t->obj.evbits );
+		printk("Try to wake %p evbits %08x bitset %08x", t, t->obj.evbits, evth->bitset );
 		if( check_cond2(evth->bitset,t->obj.evbits) )
 		{
 			if( t->obj.evbits & ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG ) {
@@ -224,7 +224,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 			{
 				_isixp_set_sleep_timeout( THR_STATE_WTEVT, timeout );	//Goto sleep
 				list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
-				currp->obj.evbits = evth->bitset | ISIX_EVENT_CTRL_ALL_MATCH_FLAG 
+				currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG 
 									| ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG;
 				_isixp_exit_critical();
 				isix_yield();
@@ -244,5 +244,6 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 			}
 		}
 	}
+	_isixp_exit_critical();
 	return retval;
 }

@@ -117,6 +117,7 @@ void _isixp_exit_critical(void)
 	port_flush_memory();
 }
 
+
 /* Number of priorites assigned when OS start */
 void isix_init(osprio_t num_priorities)
 {

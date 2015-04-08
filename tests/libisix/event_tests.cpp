@@ -101,7 +101,62 @@ void event_test::base_test()
 	if(1) {
 		isix_wait_ms(5000);
 	}
+	isix_event_destroy(ev);
 }
 
+namespace {
+namespace sync {
+
+	static constexpr auto TASK_0_BIT  = ( 1U << 0 );
+	static constexpr auto TASK_1_BIT  = ( 1U << 1 );
+	static constexpr auto TASK_2_BIT  = ( 1U << 2 );
+	static constexpr auto ALL_SYNC_BITS  = TASK_0_BIT|TASK_1_BIT|TASK_2_BIT;
+
+	void task0( void* param )
+	{
+		auto ev = static_cast<osevent_t>(param);
+		for(;;) {
+			auto ret = isix_event_sync( ev, TASK_0_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
+			if( (ret&ALL_SYNC_BITS)==ALL_SYNC_BITS ) {
+				dbprintf("Sync from t0 reached %04x", ret );
+			} else {
+				dbprintf(" Ret_t0 %08x val %08x", ret, isix_event_get_isr(ev));
+			}
+		}
+	}
+
+	void task1( void *param )
+	{
+		auto ev = static_cast<osevent_t>(param);
+		for(;;) {
+			auto ret = isix_event_sync( ev, TASK_1_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
+			//dbprintf(" Ret_t1 %08x", ret );
+			(void)ret;
+		}
+	}
+	void task2( void *param )
+	{
+		auto ev = static_cast<osevent_t>(param);
+		for(;;) {
+			auto ret = isix_event_sync( ev, TASK_2_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
+			//dbprintf(" Ret_t2 %08x", ret );
+			//(void)ret;
+		}
+	}
+}}
+
+
+//Sync API test
+void event_test::sync_test()
+{
+	osevent_t ev = isix_event_create();
+	QUNIT_IS_NOT_EQUAL( ev, nullptr );
+	isix_task_create( sync::task0, ev, 1024, 3, 0 );
+	isix_task_create( sync::task1, ev, 1024, 3, 0 );
+	isix_task_create( sync::task2, ev, 1024, 3, 0 );
+	isix_wait_ms(5000);
+	dbprintf("FInal val %08x", isix_event_get_isr(ev) );
+	isix_event_destroy( ev );
 }
 
+} //ns tests
