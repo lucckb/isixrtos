@@ -263,6 +263,9 @@ static void internal_schedule_time(void)
 			//Much faster but less safe
 			list_delete( &task_c->inode );
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
+		} else if( task_c->state == THR_STATE_WTEVT ) {
+			list_delete( &task_c->inode );
+			task_c->obj.dmsg = ISIX_ETIMEOUT;
 		}
 		add_ready_list( task_c );
     }
@@ -580,7 +583,8 @@ void _isixp_add_to_kill_list( ostask_t task )
 		delete_from_ready_list( task );
 	} 
 	// If if task wait for sem 
-	if( task->state == THR_STATE_WTSEM ) 
+	if( task->state == THR_STATE_WTSEM ||
+		task->state == THR_STATE_WTEVT )
 	{     
 		list_delete( &task->inode );
 	}

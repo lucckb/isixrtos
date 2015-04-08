@@ -72,8 +72,8 @@ namespace {
 			isix_wait_ms(20);
 			dbprintf("Hello listen ");
 			while(1) {
-				auto ret = isix_event_wait( ev, id, true, false, ISIX_TIME_INFINITE );
-				dbprintf("Signaled %08x", ret );
+				auto ret = isix_event_wait( ev, id, true, true, ISIX_TIME_INFINITE );
+				dbprintf("Signaled %08x TID %08x", ret, id );
 			}
 		}
 	private:
@@ -89,7 +89,7 @@ void event_test::base_test()
 	osevent_t ev = isix_event_create();
 	QUNIT_IS_NOT_EQUAL( ev, nullptr );
 	task_listen t1( ev, EV0 );
-	task_listen t2( ev, EV1 );
+	task_listen t2( ev, EV1|EV3 );
 	task_listen t3( ev, EV2 );
 	task_listen t4( ev, EV3 );
 	task_post tp( ev );
