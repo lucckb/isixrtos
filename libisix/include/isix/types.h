@@ -9,9 +9,11 @@
 #ifndef __cplusplus
 #define ISIX_TIME_INFINITE 0
 #define ISIX_SEM_ULIMITED 0
+#define ISIX_TIME_DONTWAIT 0xFFFFFFFFU
 #else
 namespace {
 	constexpr unsigned ISIX_TIME_INFINITE = 0U;
+	constexpr unsigned ISIX_TIME_DONTWAIT = 0xFFFFFFFFU;
 	constexpr unsigned ISIX_SEM_ULIMITED = 0U;
 }
 #endif

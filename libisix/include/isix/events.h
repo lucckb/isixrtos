@@ -37,7 +37,9 @@ osevent_t isix_event_create( void );
  * */
 int isix_event_destroy( osevent_t event );
 
-/** Bit for event synchronization 
+/** Atomically set bits (flags) * within an event group, 
+ *  then wait for a combination of bits to be set within 
+ *  the same event group
  * @param[in] 	evth Event handle
  * @param[in] 	bits_to_set Bits to set
  * @param[in]	bits_to_wait Bits to wait for
@@ -63,11 +65,11 @@ osbitset_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
  * @param[in] 	bits_to_clear 
  * @return Changed bits 
  */
-osbitset_t isix_clear_bits( osevent_t evth, osbitset_t bits_to_clear );
+osbitset_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear );
 
-static inline osbitset_t isix_clear_bits_isr( osevent_t evth, osbitset_t bits_to_clear ) 
+static inline osbitset_t isix_event_clear_isr( osevent_t evth, osbitset_t bits_to_clear ) 
 {
-	return isix_clear_bits( evth, bits_to_clear );
+	return isix_event_clear( evth, bits_to_clear );
 }
 
 /** Isix set bits
@@ -75,9 +77,20 @@ static inline osbitset_t isix_clear_bits_isr( osevent_t evth, osbitset_t bits_to
  * @param[in] 	bits_to_clear 
  * @return Changed bits 
  */
-osbitset_t isix_set_bits( osevent_t evth, osbitset_t bits_to_set );
-osbitset_t isix_set_bits_isr( osevent_t evth, osbitset_t bits_to_set );
-osbitset_t _isixp_set_bits( osevent_t evth, osbitset_t bits_to_set, bool isr );
+osbitset_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool isr );
+static inline osbitset_t isix_event_set( osevent_t evth, osbitset_t bits_to_set ) {
+	return _isixp_event_set( evth, bits_to_set, false );
+}
+static inline osbitset_t isix_event_set_isr( osevent_t evth, osbitset_t bits_to_set ) {
+	return _isixp_event_set( evth, bits_to_set, true );
+}
+
+/** Get the events from the interrupt context
+ * @param[in] evth Event handle
+ * @return Bit state 
+ */
+osbitset_t isix_event_get_isr( osevent_t evth );
+
 
 #ifdef __cplusplus
 }	//end extern-C

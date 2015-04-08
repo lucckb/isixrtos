@@ -256,9 +256,12 @@ static void internal_schedule_time(void)
     	printk("schedtime: task %p jiffies %i task_time %i", task_c,csys.jiffies,task_c->jiffies);
         list_delete(&task_c->inode_time);
 		if( task_c->state == THR_STATE_WTSEM ) {
+			/*
 			if( _isixp_remove_from_prio_queue(&task_c->obj.sem->wait_list)!=task_c ) {
 				isix_bug("Mismatch semaphore task");
-			}
+			}*/
+			//Much faster but less safe
+			list_delete( &task_c->inode );
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
 		}
 		add_ready_list( task_c );
@@ -586,4 +589,3 @@ void _isixp_add_to_kill_list( ostask_t task )
     list_insert_end( &csys.zombie_list,&task->inode );
     csys.number_of_task_deleted++;
 }
-/* ------------------------------------------------------------------ */ 

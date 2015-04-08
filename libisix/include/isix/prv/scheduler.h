@@ -5,6 +5,7 @@
 #include <isix/prv/list.h>
 #include <isix/config.h>
 #include <isix/semaphore.h>
+#include <isix/events.h>
 #include <isix/scheduler.h>
 #include <isix/port_atomic.h>
 
@@ -32,6 +33,7 @@ enum thr_state
 	THR_STATE_WTEXIT	= 5,			//! Wait for exit state
 	THR_STATE_ZOMBIE	= 6,			//! In zombie state just before exit
 	THR_STATE_SCHEDULE  = 7,			//! Schedule only do nothing special
+	THR_STATE_WTEVT	    = 8, 			//! Scheduler on wait event state
 };
 
 typedef uint8_t thr_state_t;
@@ -39,21 +41,22 @@ typedef uint8_t thr_state_t;
 //Definition of task operations
 struct isix_task
 {
-    unsigned long *top_stack;		//Task stack ptr
-    unsigned long *init_stack;      //Initial value of stack for isix_free
-    osprio_t prio;			    	//Priority of task
-    thr_state_t state;        		//Thread state
-    ostick_t jiffies;            		//Ticks when task wake up
-    task_ready_t *prio_elem;    	//Pointer to own prio list
+    unsigned long *top_stack;		//!Task stack ptr
+    unsigned long *init_stack;      //!Initial value of stack for isix_free
+    osprio_t prio;			    	//!Priority of task
+    thr_state_t state;        		//!Thread state
+    ostick_t jiffies;            	//!Ticks when task wake up
+    task_ready_t *prio_elem;    	//!Pointer to own prio list
 	union 
 	{
-		ossem_t sem;               		// !Pointer to waiting sem
-		osmsg_t	dmsg;					//! Returning message
+		ossem_t sem;               	//! Pointer to waiting sem
+		osbitset_t evbits;			//! Current event bit for waiting
+		osmsg_t	dmsg;				//! Returning message
 	} obj;
-    void    *prv;					//Private data pointer for extra data
-	struct _reent *impure_data;		//Newlib per thread private data
-    list_t inode;               	//Inode task for operation
-	list_t inode_time;				//Waiting inode
+    void    *prv;					//!Private data pointer for extra data
+	struct _reent *impure_data;		//!Newlib per thread private data
+    list_t inode;               	//!Inode task for operation
+	list_t inode_time;				//!Waiting inode
 };
 
 //!Structure related to isix system

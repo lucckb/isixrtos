@@ -20,12 +20,19 @@
 #include <isix/prv/types.h>
 #include <isix/prv/list.h>
 
+//NOTE: Maximum number of bytes depends on the osbiset value
 //! Isix event
 struct isix_event {
 	list_entry_t wait_list;
 	osbitset_t bitset;		 //! Bit events
-	bool clear_evt_on_exit;  //! Clear evt on exit
-	bool wait_for_all;   	//! Wait for all bits
 };
 
+//! Special bits
+#define ISIX_EVENT_CTRL_ALL_MATCH_FLAG 0x80000000U
+#define ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG 0x40000000U
+//! Control bits
+#define ISIX_EVENT_CTRL_BITS ( ISIX_EVENT_CTRL_ALL_MATCH_FLAG | \
+	ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG )
+//! User bits
+#define ISIX_EVENT_EVBITS (~ISIX_EVENT_CTRL_BITS)
 
