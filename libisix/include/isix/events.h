@@ -90,6 +90,9 @@ static inline osbitset_t isix_event_set_isr( osevent_t evth, osbitset_t bits_to_
  */
 osbitset_ret_t isix_event_get_isr( osevent_t evth );
 
+static inline osbitset_ret_t isix_event_get( osevent_t evth ) {
+	return isix_event_clear( evth, 0 );
+}
 
 #ifdef __cplusplus
 }	//end extern-C
@@ -137,6 +140,9 @@ namespace {
 
 	inline osbitset_ret_t event_get_isr( osevent_t evth ) {
 		return ::isix_event_get_isr( evth );
+	}
+	inline osbitset_ret_t event_get( osevent_t evth ) {
+		return ::isix_event_get( evth );
 	}
 
 }}

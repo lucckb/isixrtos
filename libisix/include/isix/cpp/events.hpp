@@ -103,6 +103,10 @@ namespace isix {
 		{
 			return ::isix_event_get_isr( ev );
 		}
+		osbitset_ret_t get( ) 
+		{
+			return ::isix_event_get( ev );
+		}
 
 	private:
 		osevent_t ev;
