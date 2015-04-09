@@ -34,7 +34,7 @@ namespace tests {
 		//! Run the tests
 		void run() {
 			//base_test();
-			sync_test();
+			//sync_test();
 		}
 	private:
 		void base_test();

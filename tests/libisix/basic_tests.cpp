@@ -50,7 +50,7 @@ class unit_tests : public isix::task_base
 	//Test basic tasks
     virtual void main() 
 	{
-#if 0
+#if 1
 		heap_test();
 		atomic_test.run();
 		sched_test.run();
