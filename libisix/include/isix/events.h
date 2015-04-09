@@ -94,3 +94,50 @@ osbitset_ret_t isix_event_get_isr( osevent_t evth );
 #ifdef __cplusplus
 }	//end extern-C
 #endif /* __cplusplus */
+
+
+#ifdef __cplusplus
+namespace isix {
+namespace {
+	using event_t = osevent_t;
+	using bitset_ret_t = osbitset_ret_t;
+
+	inline osevent_t event_create( ) {
+		return ::isix_event_create();
+	}
+	inline int event_destroy( osevent_t event ) {
+		return ::isix_event_destroy( event );
+	}
+
+	inline osbitset_ret_t event_sync( osevent_t evth, osbitset_t bits_to_set, 
+			osbitset_t bits_to_wait, ostick_t timeout=ISIX_TIME_INFINITE ) {
+		return ::isix_event_sync( evth, bits_to_set, bits_to_wait, timeout );
+	}
+
+	inline osbitset_ret_t event_wait( osevent_t evth, osbitset_t bits_to_wait, 
+			bool clear_on_exit, bool wait_for_all, ostick_t timeout=ISIX_TIME_INFINITE ) {
+		return ::isix_event_wait( evth, bits_to_wait, clear_on_exit, wait_for_all, timeout );
+	}
+
+	inline osbitset_ret_t event_clear( osevent_t evth, osbitset_t bits_to_clear ) {
+		return ::isix_event_clear( evth, bits_to_clear );
+	}
+
+	inline osbitset_t event_clear_isr( osevent_t evth, osbitset_t bits_to_clear ) {
+		return ::isix_event_clear_isr( evth, bits_to_clear );
+	}
+
+	inline osbitset_t event_set( osevent_t evth, osbitset_t bits_to_set ) {
+		return ::isix_event_set( evth, bits_to_set );
+	}
+
+	inline osbitset_t event_set_isr( osevent_t evth, osbitset_t bits_to_set ) {
+		return ::isix_event_set_isr( evth, bits_to_set );
+	}
+
+	inline osbitset_ret_t event_get_isr( osevent_t evth ) {
+		return ::isix_event_get_isr( evth );
+	}
+
+}}
+#endif

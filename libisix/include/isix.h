@@ -16,3 +16,4 @@
 #include <isix/cpp/mempool.hpp>
 #include <isix/cpp/semaphore.hpp>
 #include <isix/cpp/task_base.hpp>
+#include <isix/cpp/events.hpp>
