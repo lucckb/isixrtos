@@ -114,12 +114,12 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 		if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS)==0 ) 
 		{	//! Wakeup all bits should be set
 			retval = currp->obj.evbits;
+		} else {
 			if( clear_on_exit ) {
-				if( check_cond(retval, bits_to_wait, wait_for_all) ) {
+				if( check_cond(evth->bitset, bits_to_wait, wait_for_all) ) {
 					evth->bitset &= ~bits_to_wait;
 				}
 			}
-		} else {
 			//!31th bit set it is timeout
 			retval = currp->obj.dmsg;
 		}
@@ -163,7 +163,7 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	osbitset_t clr_bits = 0U;
 	while( (t=_isixp_remove_from_prio_queue(&evth->wait_list)) )
 	{	
-		printk("Try to wake %p evbits %08x bitset %08x", t, t->obj.evbits, evth->bitset );
+		//printk("Try to wake %p evbits %08x bitset %08x", t, t->obj.evbits, evth->bitset );
 		if( check_cond2(evth->bitset,t->obj.evbits) )
 		{
 			if( t->obj.evbits & ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG ) {
@@ -210,6 +210,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 	{	
 		osbitset_t orgbits = evth->bitset;
 		_isixp_event_set( evth, bits_to_set, true );	//FIXME: Replace true
+		printk("Task %p Afterset %08x", currp, evth->bitset);
 		if( ((orgbits|bits_to_set) & bits_to_wait ) == bits_to_wait )
 		{
 			//! All bits set condition was meet
@@ -231,10 +232,11 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 				_isixp_enter_critical();
 				if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS) == 0 ) {
 					retval = currp->obj.evbits;
-					if( (retval&bits_to_wait) == bits_to_wait ) {
+				} else {
+					if( (evth->bitset&bits_to_wait) == bits_to_wait ) {
 						evth->bitset &= ~bits_to_wait;
 					}
-				} else {
+					//!31th bit set it is timeout
 					retval = currp->obj.dmsg;
 				}
 			}

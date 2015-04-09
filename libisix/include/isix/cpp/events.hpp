@@ -101,7 +101,7 @@ namespace isix {
 		*/
 		osbitset_ret_t get_isr( ) 
 		{
-			return ::isix_get_isr( ev );
+			return ::isix_event_get_isr( ev );
 		}
 
 	private:

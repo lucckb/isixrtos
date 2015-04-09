@@ -131,6 +131,7 @@ namespace sync {
 		for(;;) {
 			auto ret = isix_event_sync( ev, TASK_1_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
 			//dbprintf(" Ret_t1 %08x", ret );
+			fnd::tiny_printf("*");
 			(void)ret;
 		}
 	}
@@ -140,7 +141,8 @@ namespace sync {
 		for(;;) {
 			auto ret = isix_event_sync( ev, TASK_2_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
 			//dbprintf(" Ret_t2 %08x", ret );
-			//(void)ret;
+			fnd::tiny_printf("^");
+			(void)ret;
 		}
 	}
 }}
