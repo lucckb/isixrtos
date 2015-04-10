@@ -75,16 +75,16 @@ static inline void list_insert_end(list_entry_t *list,list_t *elem)
 
 //list for each with given type
 #define list_for_each_entry(list_entryp,iterator,field) \
-  for( list_t *__ilist__=(list_entryp)->head.next; \
-       (iterator) = list_getitem(__ilist__,typeof(*(iterator)),field),__ilist__!=&(list_entryp)->head;   \
-           __ilist__ = __ilist__->next \
+  for( list_t *_ilist_=(list_entryp)->head.next; \
+       (iterator) = list_getitem(_ilist_,typeof(*(iterator)),field),_ilist_!=&(list_entryp)->head;   \
+           _ilist_ = _ilist_->next \
          )
 
 //list for each reverse order
 #define list_for_each_entry_reverse(list_entryp,iterator,field) \
-  for( list_t *__ilist__=(list_entryp)->head.prev; \
-       (iterator) = list_getitem(__ilist__,typeof(*(iterator)),field),__ilist__!=&(list_entryp)->head;   \
-           __ilist__ = __ilist__->prev \
+  for( list_t *_ilist_=(list_entryp)->head.prev; \
+       (iterator) = list_getitem(_ilist_,typeof(*(iterator)),field),_ilist_!=&(list_entryp)->head;   \
+           _ilist_ = _ilist_->prev \
          )
 
 
