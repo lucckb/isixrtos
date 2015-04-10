@@ -576,7 +576,7 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 	// Remove task from timing list
 	if( list_is_elem_assigned( &task->inode_time ) ) 
 	{
-		list_delete(&task->inode_time);
+		list_delete( &task->inode_time );
 	}
 	if( task->state==OSTHR_STATE_READY || 
 		task->state==OSTHR_STATE_RUNNING )

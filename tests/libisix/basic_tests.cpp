@@ -16,6 +16,7 @@
 #include "vtimer_test.hpp"
 #include "errno_test.hpp"
 #include "event_tests.hpp"
+#include "event_groups_demo.h"
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
@@ -77,7 +78,8 @@ int main()
 	dblog_init_putc( stm32::usartsimple_putc, nullptr );
 	dbprintf("-------- BEGIN_TESTS ---------");
 	static unit_tests test;
-	test.start_thread(4096, 0);
+	//test.start_thread(4096, 0);
+	vStartEventGroupTasks();
 	isix_start_scheduler();
 	return 0;
 }
