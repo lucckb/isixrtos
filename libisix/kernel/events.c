@@ -78,6 +78,10 @@ int isix_event_destroy( osevent_t evh )
 osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait, 
 		bool clear_on_exit, bool wait_for_all, ostick_t timeout )
 {
+	/*
+	printk("event_wait( evth=%p bitstowait=%08x clear=%i, wait_all=%i to=%u",
+			evth, bits_to_wait, clear_on_exit, wait_for_all, timeout );
+	*/
 	osbitset_t retval;
 	//! Check input parameters
 	if( !evth ) {
@@ -161,6 +165,7 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	ostask_t wkup_task = currp;
 	ostask_t t;
 	osbitset_t clr_bits = 0U;
+	printk("ev_set( bts=%08x)", bits_to_set );
 	while( (t=_isixp_remove_from_prio_queue(&evth->wait_list)) )
 	{	
 		if( check_cond2(evth->bitset,t->obj.evbits) )
@@ -169,9 +174,13 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 			if( t->obj.evbits & ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG ) {
 				clr_bits |= t->obj.evbits & ISIX_EVENT_EVBITS;
 			}
+			printk("Match %p %08x %08x", t , evth->bitset, t->obj.evbits );
 			//! Post only normal bits negative value means error
 			_isixp_wakeup_task_l( t, t->obj.evbits&ISIX_EVENT_EVBITS );
 			wkup_task = isixp_max_prio( wkup_task, t );
+		} else 
+		{
+			printk("NOTMATCH %p %08x %08x", t , evth->bitset, t->obj.evbits );
 		}
 	}
 	evth->bitset &= ~clr_bits;

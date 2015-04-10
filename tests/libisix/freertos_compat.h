@@ -37,7 +37,8 @@ static inline void xTaskCreate( void (*fun)(void*), const char* name,
 #define configMINIMAL_STACK_SIZE 512
 #define tskIDLE_PRIORITY 3
 
-#define configASSERT(x) if(!(x)) dbprintf("Assertion failed %s in %s:%i", #x, __FILE__, __LINE__ )
+#define configASSERT(x) do { if(!(x)) { dbprintf("Assertion failed %s in %s:%i", #x, __FILE__, __LINE__ ); isix_bug("assert");  }} while(0)
+
 
 
 #define pdTRUE true
@@ -62,15 +63,14 @@ static inline EventBits_t xEventGroupSync( EventGroupHandle_t xEventGroup,
 {
 	osbitset_ret_t r = isix_event_sync( xEventGroup, uxBitsToSet, uxBitsToWaitFor, xTicksToWait );
 	if( r < 0 ) {
-		dbprintf("Adjto0 %i", (int)r );
 		r = 0;
 	}
 	return r;
 }
 
 static inline EventBits_t xEventGroupWaitBits( EventGroupHandle_t xEventGroup, 
-		const bool uxBitsToWaitFor, const bool xClearOnExit, 
-		const BaseType_t xWaitForAllBits, TickType_t xTicksToWait )
+		const EventBits_t uxBitsToWaitFor, const bool xClearOnExit, 
+		const bool xWaitForAllBits, TickType_t xTicksToWait )
 {
 	osbitset_ret_t r = isix_event_wait( xEventGroup, uxBitsToWaitFor, 
 				   xClearOnExit, xWaitForAllBits, xTicksToWait );

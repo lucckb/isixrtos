@@ -238,7 +238,6 @@ TaskHandle_t xTestSlaveTaskHandle = ( TaskHandle_t ) pvParameters;
 
 	/* Avoid compiler warnings. */
 	( void ) pvParameters;
-
 	/* Create the event group used by the tasks ready for the initial tests. */
 	xEventGroup = xEventGroupCreate();
 	configASSERT( xEventGroup );
@@ -246,9 +245,11 @@ TaskHandle_t xTestSlaveTaskHandle = ( TaskHandle_t ) pvParameters;
 	/* Perform the tests that block two tasks on different combinations of bits,
 	then set each bit in turn and check the correct tasks unblock at the correct
 	times. */
+	
 	xError = prvSelectiveBitsTestMasterFunction();
 
 	dbprintf("prvSelectiveBitsTestSlaveFunction %i",xError );
+	configASSERT( xError == false );
 	for( ;; )
 	{
 		/* Recreate the event group ready for the next cycle. */
@@ -305,7 +306,6 @@ EventBits_t uxSynchronisationBit, uxReturned;
 	/* The bit to use to indicate this task is at the synchronisation point is
 	passed in as the task parameter. */
 	uxSynchronisationBit = ( EventBits_t ) pvParameters;
-
 	for( ;; )
 	{
 		/* Now this task takes part in a task synchronisation - sometimes known
@@ -373,9 +373,8 @@ BaseType_t xError = pdFALSE;
 		This task is controller by the 'test master' task (which is
 		implemented by prvTestMasterTask()).  Suspend until resumed by the
 		'test master' task. */
-		dbprintf("Befor susp %i", isix_get_jiffies() );
+
 		vTaskSuspend( NULL );
-		dbprintf("After  susp %i", isix_get_jiffies() );
 
 		/* Wait indefinitely for one of the bits in ebCOMBINED_BITS to get
 		set.  Clear the bit on exit. */
@@ -858,10 +857,12 @@ EventBits_t uxPendBits, uxReturned;
 	if( xTaskGetCurrentTaskHandle() == xSyncTask1 )
 	{
 		uxPendBits = ebSELECTIVE_BITS_1;
+		dbprintf("Selective bits #b1");
 	}
 	else
 	{
 		uxPendBits = ebSELECTIVE_BITS_2;
+		dbprintf("Selective bits #b2");
 	}
 
 	for( ;; )
@@ -870,10 +871,13 @@ EventBits_t uxPendBits, uxReturned;
 		task is unsuspended by the tests implemented in the
 		prvSelectiveBitsTestMasterFunction() function. */
 		vTaskSuspend( NULL );
+		//dbprintf("start wait %02x", uxPendBits );
 		uxReturned = xEventGroupWaitBits( xEventGroup, uxPendBits, pdTRUE, pdFALSE, portMAX_DELAY );
+		//dbprintf("fin wait %02x", uxReturned);
 
 		if( uxReturned == ( EventBits_t ) 0 )
 		{
+			dbprintf("Exited");
 			break;
 		}
 	}
@@ -921,7 +925,6 @@ EventBits_t uxBit;
 			xError = pdTRUE;
 			dbprintf("Error");
 		}
-
 		/* Set one bit. */
 		xEventGroupSetBits( xEventGroup, uxBit );
 
@@ -962,7 +965,7 @@ EventBits_t uxBit;
 			if( eTaskGetState( xSyncTask2 ) != eSuspended )
 			{
 				xError = pdTRUE;
-				dbprintf("Error %i", eTaskGetState(xSyncTask2) );
+				dbprintf("Error %i bit %02x", eTaskGetState(xSyncTask2), uxBit);
 			}
 		}
 	}

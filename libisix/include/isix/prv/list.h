@@ -98,7 +98,7 @@ static inline void list_insert_end(list_entry_t *list,list_t *elem)
     (type*)((char*)(list_entryp)->head.prev - offsetof(type,field))
 
 //Delete from list
-static inline void list_delete(list_t *elem)
+static inline void list_delete( list_t *elem )
 {
     elem->prev->next = elem->next;
     elem->next->prev = elem->prev;

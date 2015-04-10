@@ -29,10 +29,15 @@ namespace {
 	class base_task_tests : public isix::task_base {
 		static constexpr auto STACK_SIZE = 1024;
 		volatile unsigned m_exec_count {};
+		volatile bool m_req_selfsusp {};
 		//Main function
 		virtual void main() {
 			for(;;) {
 				++m_exec_count;
+				if( m_req_selfsusp ) {
+					m_req_selfsusp = false;
+					isix::task_suspend(nullptr);
+				}
 			}
 		}
 	public:
@@ -40,6 +45,9 @@ namespace {
 		static constexpr auto TASK_PRIO = 1;
 		void start() {
 			start_thread(STACK_SIZE, TASK_PRIO);
+		}
+		void selfsuspend() {
+			m_req_selfsusp = true;
 		}
 		virtual ~base_task_tests() {}
 		unsigned exec_count() const {
@@ -142,6 +150,18 @@ void task_tests::basic_funcs()
 	QUNIT_IS_TRUE( t4->exec_count() > old_count + 10 );
 	state = isix::get_task_state( t1->get_taskid() );
 	QUNIT_IS_EQUAL( state, OSTHR_STATE_SUSPEND );
+	// Check T3 for self suspend
+	t3->selfsuspend();
+	isix::wait_ms(1);
+	old_count = t3->exec_count();
+	isix::wait_ms(2);
+	QUNIT_IS_EQUAL( old_count, t3->exec_count() );
+	QUNIT_IS_EQUAL( state, OSTHR_STATE_SUSPEND );
+
+	QUNIT_IS_EQUAL( isix::task_resume( t3->get_taskid() ), ISIX_EOK );
+	state = isix::get_task_state( t3->get_taskid() );
+	QUNIT_IS_TRUE( state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING );
+
 	//Now delete tasks
 	delete t1;
 	delete t2;
