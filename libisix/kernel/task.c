@@ -142,12 +142,12 @@ int isix_set_task_private_data( ostask_t task, void *data )
 }
 
 //Delete task pointed by struct task
-void isix_task_kill(ostask_t task)
+void isix_task_kill( ostask_t task )
 {
 	_isixp_enter_critical();
     ostask_t taskd = task?task:currp;
 	_isixp_add_kill_or_set_suspend( taskd, false );
-	if( task == currp ) {
+	if( !task ) {
 		_isixp_exit_critical();
 		isix_yield();
 	} 
@@ -209,7 +209,7 @@ void isix_task_suspend( ostask_t task )
 	_isixp_enter_critical();
     ostask_t taskd = task?task:currp;
 	_isixp_add_kill_or_set_suspend( taskd, true );
-	if( task == currp ) {
+	if( !task ) {
 		_isixp_exit_critical();
 		isix_yield();
 	} 

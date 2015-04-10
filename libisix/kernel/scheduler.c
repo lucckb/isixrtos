@@ -185,7 +185,32 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
     isix_kernel_panic_callback( file, line, msg );
     while(1);
 }
+#if 0
 
+/** Temporary debug */
+void print_task_list()
+{
+	_isixp_enter_critical();
+    task_ready_t *i;
+    ostask_t j;
+	tiny_printf("Ready tasks\n");
+    list_for_each_entry(&csys.ready_list,i,inode)
+    {
+         tiny_printf("\t* List inode %p prio %i\n",i, i->prio );
+         list_for_each_entry(&i->task_list,j,inode)
+         {
+              tiny_printf("\t\t-> task %p prio %i state %i\n",j,j->prio,j->state);
+         }
+    }
+    tiny_printf("Waiting tasks\n");
+    list_for_each_entry(csys.p_wait_list,j,inode_time)
+    {
+        tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\n",
+				j, j->prio, j->state, j->jiffies );
+    }
+	_isixp_exit_critical();
+}
+#endif
 
 //Scheduler is called in switch context
 /**
@@ -381,7 +406,6 @@ static void delete_from_ready_list( ostask_t task )
 //Move selected task to waiting list
 static void add_task_to_waiting_list(ostask_t task, ostick_t timeout)
 {
-	
     //Scheduler lock
     task->jiffies = csys.jiffies + timeout;
     if(task->jiffies < csys.jiffies)
@@ -481,6 +505,7 @@ void isix_start_scheduler(void)
    schrun = true;
 	port_atomic_init( &csys.critical_count, 0 );
    //Restore context and run OS
+   currp->state = OSTHR_STATE_RUNNING;
    port_start_first_task();
 #ifndef ISIX_CONFIG_SHUTDOWN_API
    while(1);    //Prevent compiler warning
@@ -581,7 +606,10 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 	if( task->state==OSTHR_STATE_READY || 
 		task->state==OSTHR_STATE_RUNNING )
 	{
+		//print_task_list();
 		delete_from_ready_list( task );
+		//tiny_printf("Delete from rdy %p\n", task );
+		//print_task_list();
 	} 
 	// If if task wait for sem 
 	if( task->state == OSTHR_STATE_WTSEM ||
