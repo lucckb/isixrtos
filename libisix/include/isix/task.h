@@ -6,6 +6,8 @@ extern "C" {
 #include <isix/types.h>
 #include <isix/scheduler.h>
 #include <isix/memory.h>
+#include <isix/osthr_state.h>
+
 #ifndef __cplusplus
 //!Definition of task function in C mode
 #define ISIX_TASK_FUNC(FUNC, ARG)							\
@@ -74,8 +76,26 @@ void* isix_get_task_private_data( ostask_t task );
  * @return Size of the number of bytes used by the task/thread
  */
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
-size_t isix_free_stack_space(const ostask_t task);
+size_t isix_free_stack_space( const ostask_t task );
 #endif
+
+/** Suspend the current task
+ * @param[in] Task identifier 
+ * @return Error code
+ */
+void isix_task_suspend( ostask_t task );
+
+/** Resume the current task
+ * @param[in] Task identifier 
+ * @return Error code
+ */
+int isix_task_resume( ostask_t task );
+
+/** Get current task state 
+ * @param[in] Task identifier
+ * @return Task state
+ */
+enum osthr_state isix_get_task_state( const ostask_t task );
 
 
 #ifdef WITH_ISIX_TCPIP_LIB
@@ -104,8 +124,9 @@ static inline int isix_task_delete_tcpip(ostask_t task)
 
 #ifdef __cplusplus
 namespace isix {
-namespace {
 	using task_t = ostask_t;
+	using thr_state = osthr_state;
+namespace {
 	inline ostask_t task_create(task_func_ptr_t task_func, void *func_param, 
 			unsigned long stack_depth, osprio_t priority, unsigned long flags ) {
 		return ::isix_task_create( task_func, func_param, stack_depth,
@@ -126,12 +147,20 @@ namespace {
 	inline void* get_task_private_data( ostask_t task ) {
 		return ::isix_get_task_private_data( task );
 	}
-	inline osprio_t get_task_priority( const ostask_t task ) {
+	inline osprio_t get_task_priority( const ostask_t task=nullptr ) {
 		return ::isix_get_task_priority( task );
 	}
-	inline size_t free_stack_space( const ostask_t task ) {
+	inline size_t free_stack_space( const ostask_t task=nullptr ) {
 		return ::isix_free_stack_space( task );
 	}
-
+	inline void task_suspend( ostask_t task ) {
+		::isix_task_suspend( task );
+	}
+	inline int task_resume( ostask_t task ) {
+		return ::isix_task_resume( task );
+	}
+	inline thr_state get_task_state( const ostask_t task=nullptr ) {
+		return ::isix_get_task_state( task );
+	}
 }}
 #endif /* __cplusplus */

@@ -20,10 +20,9 @@
 #define printk(...) do {} while(0)
 #endif
 
-/*-----------------------------------------------------------------------*/
 //Magic value for stack checking
 enum { MAGIC_FILL_VALUE = 0x55 };
-/*-----------------------------------------------------------------------*/
+
 /* Create task function */
 ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
 		unsigned long  stack_depth, osprio_t priority, unsigned long flags )
@@ -78,7 +77,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
     //Assign task priority
     task->prio = priority;
     //Task is ready
-    task->state = THR_STATE_CREATED;
+    task->state = OSTHR_STATE_CREATED;
     //Create initial task stack context
     task->top_stack = _isixp_task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler
@@ -88,7 +87,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
     return task;
 }
 
-/*-----------------------------------------------------------------------*/
+
 /*Change task priority function
  * task - task pointer structure if NULL current prio change
  */
@@ -112,7 +111,7 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
 	_isixp_do_reschedule();
     return prio;
 }
-/*-----------------------------------------------------------------------*/
+
 /* Get isix structure private data */
 void* isix_get_task_private_data( ostask_t task )
 {
@@ -124,7 +123,7 @@ void* isix_get_task_private_data( ostask_t task )
 	_isixp_exit_critical();
 	return d;
 }
-/*-----------------------------------------------------------------------*/
+
 /* Isix set private data task */
 int isix_set_task_private_data( ostask_t task, void *data )
 {
@@ -141,13 +140,13 @@ int isix_set_task_private_data( ostask_t task, void *data )
 	_isixp_exit_critical();
 	return ISIX_EOK;
 }
-/*-----------------------------------------------------------------------*/
+
 //Delete task pointed by struct task
 void isix_task_kill(ostask_t task)
 {
 	_isixp_enter_critical();
     ostask_t taskd = task?task:currp;
-	_isixp_add_to_kill_list( taskd );
+	_isixp_add_kill_or_set_suspend( taskd, false );
 	if( task == currp ) {
 		_isixp_exit_critical();
 		isix_yield();
@@ -156,18 +155,18 @@ void isix_task_kill(ostask_t task)
 		_isixp_exit_critical();
 	}
 }
-/*-----------------------------------------------------------------------*/
+
 //Get current thread handler
 ostask_t isix_task_self(void)
 {
     return currp;
 }
-/*-----------------------------------------------------------------------*/
+
 //Stack check for fill value
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
 
 #ifndef ISIX_CONFIG_STACK_GROWTH
-#error isix_free_stack_space() for grown stack not implemented yet
+#error isix_free_stack_space() for growth stack not implemented yet
 #endif
 
 size_t isix_free_stack_space(const ostask_t task)
@@ -183,15 +182,58 @@ size_t isix_free_stack_space(const ostask_t task)
 	return usage;
 }
 #endif
-/*-----------------------------------------------------------------------*/
+
 /**
  *	Isix get task priority utility function
  *	@return none 
  */
-/*-----------------------------------------------------------------------*/
 osprio_t isix_get_task_priority( const ostask_t task )
 {
 	const ostask_t taskd = task?task:currp;
 	return taskd->prio;
 }
-/*-----------------------------------------------------------------------*/
+
+/** Get current task state 
+ * @param[in] Task identifier
+ * @return Task state
+ */
+enum osthr_state isix_get_task_state( const ostask_t task )
+{
+	const ostask_t taskd = task?task:currp;
+	return taskd->state;
+}
+
+//! Set task to suspend state
+void isix_task_suspend( ostask_t task )
+{
+	_isixp_enter_critical();
+    ostask_t taskd = task?task:currp;
+	_isixp_add_kill_or_set_suspend( taskd, true );
+	if( task == currp ) {
+		_isixp_exit_critical();
+		isix_yield();
+	} 
+	else {
+		_isixp_exit_critical();
+	}
+}
+
+/** Resume the current task
+ * @param[in] Task identifier 
+ * @return Error code
+ */
+int isix_task_resume( ostask_t task )
+{
+	if( task == currp || !task ) {
+		return ISIX_EINVARG;
+	}
+	_isixp_enter_critical();
+	if( task->state == OSTHR_STATE_SUSPEND ) {
+		//Wakeup suspended task
+		_isixp_wakeup_task( task, ISIX_EOK );
+	} else {
+		_isixp_exit_critical();
+		return ISIX_ESTATE;
+	}
+	return ISIX_EOK;
+}

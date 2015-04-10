@@ -118,6 +118,30 @@ void task_tests::basic_funcs()
 	QUNIT_IS_TRUE( isix_free_stack_space(t4->get_taskid()) > MIN_STACK_FREE  );
 	QUNIT_IS_TRUE( isix_free_stack_space(nullptr) > MIN_STACK_FREE  );
 
+	//! Get task state should be ready or running
+	auto state = isix::get_task_state( t1->get_taskid() );
+	QUNIT_IS_TRUE( state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING );
+	state = isix::get_task_state( t2->get_taskid() );
+	QUNIT_IS_TRUE( state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING );
+	state = isix::get_task_state( t3->get_taskid() );
+	QUNIT_IS_TRUE( state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING );
+	state = isix::get_task_state( t4->get_taskid() );
+	QUNIT_IS_TRUE( state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING );
+
+	//! Sleep the task and check it state
+	isix::task_suspend( t4->get_taskid() );
+	//! Suspend special for delete
+	isix::task_suspend( t1->get_taskid() );
+	auto old_count = t4->exec_count();
+	state = isix::get_task_state( t4->get_taskid() );
+	QUNIT_IS_EQUAL( state, OSTHR_STATE_SUSPEND );
+	isix::wait_ms( 50 );
+	//! Resume the task now
+	QUNIT_IS_EQUAL( isix::task_resume(t4->get_taskid()), ISIX_EOK );
+	isix::wait_ms( 50 );
+	QUNIT_IS_TRUE( t4->exec_count() > old_count + 10 );
+	state = isix::get_task_state( t1->get_taskid() );
+	QUNIT_IS_EQUAL( state, OSTHR_STATE_SUSPEND );
 	//Now delete tasks
 	delete t1;
 	delete t2;

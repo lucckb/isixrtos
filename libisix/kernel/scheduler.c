@@ -198,10 +198,10 @@ void _isixp_schedule(void)
 		return;
 	}
     //Remove executed task and add at end
-	if( currp->state == THR_STATE_RUNNING ) {
+	if( currp->state == OSTHR_STATE_RUNNING ) {
 		list_delete(&currp->inode);
 		list_insert_end( &currp->prio_elem->task_list, &currp->inode );
-		currp->state = THR_STATE_READY;
+		currp->state = OSTHR_STATE_READY;
 	}
     //Get first ready prio
     task_ready_t * curr_prio
@@ -209,11 +209,11 @@ void _isixp_schedule(void)
     //printk( "tsk prio %i priolist %p", curr_prio->prio, curr_prio );
     //printk( "Scheduler: prev task %p",currp );
     currp = list_get_first( &curr_prio->task_list, inode,struct isix_task );
-	if( currp->state != THR_STATE_READY ) {
+	if( currp->state != OSTHR_STATE_READY ) {
 		printk("Currp %p state %i", currp, currp->state );
 		isix_bug( "Not in READY state. Mem corrupted?" );
 	}
-	currp->state = THR_STATE_RUNNING;
+	currp->state = OSTHR_STATE_RUNNING;
 	//Handle local thread errno
 	if(currp->impure_data ) 
 	{
@@ -256,7 +256,7 @@ static void internal_schedule_time(void)
     {
     	printk("schedtime: task %p jiffies %i task_time %i", task_c,csys.jiffies,task_c->jiffies);
         list_delete(&task_c->inode_time);
-		if( task_c->state == THR_STATE_WTSEM ) {
+		if( task_c->state == OSTHR_STATE_WTSEM ) {
 			/*
 			if( _isixp_remove_from_prio_queue(&task_c->obj.sem->wait_list)!=task_c ) {
 				isix_bug("Mismatch semaphore task");
@@ -264,7 +264,7 @@ static void internal_schedule_time(void)
 			//Much faster but less safe
 			list_delete( &task_c->inode );
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
-		} else if( task_c->state == THR_STATE_WTEVT ) {
+		} else if( task_c->state == OSTHR_STATE_WTEVT ) {
 			list_delete( &task_c->inode );
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
 		}
@@ -326,13 +326,13 @@ static void add_ready_list( ostask_t task )
 		isix_bug("Invalid task priority");	
 	}
 	printk("add: trying to add %p prio %i", task, task->prio );
-	if( task->state == THR_STATE_READY || 
-		task->state == THR_STATE_ZOMBIE )
+	if( task->state == OSTHR_STATE_READY || 
+		task->state == OSTHR_STATE_ZOMBIE )
 	{
 		printk(" task_id %p state %i", task, task->state );
 		isix_bug( "add: in READY or ZOMBIE state" );
 	}
-	task->state = THR_STATE_READY; 		//Set task to ready state
+	task->state = OSTHR_STATE_READY; 		//Set task to ready state
     //Find task equal entry
     task_ready_t *prio_i;
     list_for_each_entry(&csys.ready_list,prio_i,inode)
@@ -556,14 +556,14 @@ void _isixp_set_sleep_timeout( thr_state_t newstate, ostick_t timeout )
 //! Reallocate according to priority change
 void _isixp_reallocate_priority( ostask_t task, int newprio )
 {
-	if( task->state == THR_STATE_READY ||
-		task->state == THR_STATE_RUNNING )
+	if( task->state == OSTHR_STATE_READY ||
+		task->state == OSTHR_STATE_RUNNING )
 	{
 		delete_from_ready_list( task );
 		task->prio = newprio;
-		task->state = THR_STATE_SCHEDULE;
+		task->state = OSTHR_STATE_SCHEDULE;
 		add_ready_list( task ); 
-	} else if( task->state == THR_STATE_WTSEM ) {
+	} else if( task->state == OSTHR_STATE_WTSEM ) {
 		_isixp_remove_from_prio_queue( &task->obj.sem->wait_list );
 		task->prio = newprio;
 		_isixp_add_to_prio_queue( &task->obj.sem->wait_list, task );
@@ -571,26 +571,33 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 }
 
 //Add task list to delete
-void _isixp_add_to_kill_list( ostask_t task )
+void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 {
 	// Remove task from timing list
 	if( list_is_elem_assigned( &task->inode_time ) ) 
 	{
 		list_delete(&task->inode_time);
 	}
-	if( task->state==THR_STATE_READY || 
-		task->state==THR_STATE_RUNNING )
+	if( task->state==OSTHR_STATE_READY || 
+		task->state==OSTHR_STATE_RUNNING )
 	{
 		delete_from_ready_list( task );
 	} 
 	// If if task wait for sem 
-	if( task->state == THR_STATE_WTSEM ||
-		task->state == THR_STATE_WTEVT )
+	if( task->state == OSTHR_STATE_WTSEM ||
+		task->state == OSTHR_STATE_WTEVT )
 	{     
 		list_delete( &task->inode );
 	}
-	task->state = THR_STATE_ZOMBIE;
-	//Prepare to kill remove from time list
-    list_insert_end( &csys.zombie_list,&task->inode );
-    csys.number_of_task_deleted++;
+	if( suspend ) 
+	{
+		task->state = OSTHR_STATE_SUSPEND;
+	}
+	else
+	{
+		task->state = OSTHR_STATE_ZOMBIE;
+		//Prepare to kill remove from time list
+		list_insert_end( &csys.zombie_list,&task->inode );
+		csys.number_of_task_deleted++;
+	}
 }

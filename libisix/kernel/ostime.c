@@ -49,7 +49,7 @@ int isix_wait(ostick_t timeout)
 	{
 		//If scheduler is running delay on semaphore
 		_isixp_enter_critical();
-		_isixp_set_sleep_timeout( THR_STATE_SLEEPING, timeout );
+		_isixp_set_sleep_timeout( OSTHR_STATE_SLEEPING, timeout );
 		_isixp_exit_critical();
 		port_yield();
 		return ISIX_EOK;

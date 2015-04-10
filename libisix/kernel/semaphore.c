@@ -61,7 +61,7 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
         return ISIX_EOK;
     }
 	//printk("---- Add to list %p----- ", currp );
-	_isixp_set_sleep_timeout( THR_STATE_WTSEM, timeout ); 
+	_isixp_set_sleep_timeout( OSTHR_STATE_WTSEM, timeout ); 
 	_isixp_add_to_prio_queue( &sem->wait_list, currp );
 	currp->obj.sem = sem;
 	_isixp_exit_critical();
@@ -89,7 +89,7 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 	if( task ) {	//Task can be deleted for EX
 		//Decrement again because are thrd on list
 		port_atomic_sem_dec( &sem->value );
-		if( task->state == THR_STATE_WTSEM ) {
+		if( task->state == OSTHR_STATE_WTSEM ) {
 			if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
 			else _isixp_wakeup_task_i( task, ISIX_EOK );
 		} else {

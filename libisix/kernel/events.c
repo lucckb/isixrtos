@@ -103,7 +103,7 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 	else
 	{
 		//! Condition as not meet so need to wait for data
-		_isixp_set_sleep_timeout( THR_STATE_WTEVT, timeout );	//Goto sleep
+		_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
 		list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
 		currp->obj.evbits = bits_to_wait |
 			( wait_for_all?ISIX_EVENT_CTRL_ALL_MATCH_FLAG:0U ) |
@@ -225,7 +225,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 			if( timeout != ISIX_TIME_DONTWAIT ) 
 			{
 				//printk("Meet2 %p", currp);
-				_isixp_set_sleep_timeout( THR_STATE_WTEVT, timeout );	//Goto sleep
+				_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
 				list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
 				currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG 
 									| ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG;
