@@ -23,14 +23,14 @@ typedef struct list_entry
 
 
 //Initialize list
-static inline void list_init(list_entry_t *list)
+static inline void list_init( list_entry_t *list )
 {
    list->head.next = &list->head;
    list->head.prev = &list->head;
 }
 
 //Insert beetween
-static inline void list_insert_between(list_t *a,list_t *b,list_t *elem)
+static inline void list_insert_between( list_t *a,list_t *b, list_t *elem )
 {
    b->prev = elem;
    a->next = elem;
@@ -39,20 +39,20 @@ static inline void list_insert_between(list_t *a,list_t *b,list_t *elem)
 }
 
 //Insert element before
-static inline void list_insert_before(list_t *before,list_t *elem)
+static inline void list_insert_before( list_t *before, list_t *elem )
 {
     list_insert_between(before->prev,before,elem);
 }
 
 
 //Insert element after
-static inline void list_insert_after(list_t *after,list_t *elem)
+static inline void list_insert_after( list_t *after,list_t *elem )
 {
     list_insert_between(after,after->next,elem);
 }
 
 // Add element at end of list
-static inline void list_insert_end(list_entry_t *list,list_t *elem)
+static inline void list_insert_end( list_entry_t *list,list_t *elem )
 {
     list_insert_after(list->head.prev,elem);
 }
