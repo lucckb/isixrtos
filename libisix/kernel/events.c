@@ -163,10 +163,10 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	_isixp_enter_critical();
 	evth->bitset |= bits_to_set;
 	ostask_t wkup_task = currp;
-	ostask_t t;
 	osbitset_t clr_bits = 0U;
 	printk("ev_set( bts=%08x)", bits_to_set );
-	while( (t=_isixp_remove_from_prio_queue(&evth->wait_list)) )
+	ostask_t t, tmp;
+	list_for_each_entry_safe( &evth->wait_list, t, tmp, inode )
 	{	
 		if( check_cond2(evth->bitset,t->obj.evbits) )
 		{
@@ -176,6 +176,7 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 			}
 			printk("Match %p %08x %08x", t , evth->bitset, t->obj.evbits );
 			//! Post only normal bits negative value means error
+			list_delete( &t->inode );
 			_isixp_wakeup_task_l( t, t->obj.evbits&ISIX_EVENT_EVBITS );
 			wkup_task = isixp_max_prio( wkup_task, t );
 		} else 

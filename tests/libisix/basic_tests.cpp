@@ -78,8 +78,8 @@ int main()
 	dblog_init_putc( stm32::usartsimple_putc, nullptr );
 	dbprintf("-------- BEGIN_TESTS ---------");
 	static unit_tests test;
-	test.start_thread(4096, 0);
-	//vStartEventGroupTasks();
+	//test.start_thread(4096, 0);
+	vStartEventGroupTasks();
 	isix_start_scheduler();
 	return 0;
 }
