@@ -271,22 +271,28 @@ TaskHandle_t xTestSlaveTaskHandle = ( TaskHandle_t ) pvParameters;
 		if( eTaskGetState( xTestSlaveTaskHandle ) != eSuspended )
 		{
 			xError = pdTRUE;
+			dbprintf("xError=%i", xError );
 		}
 
 		if( eTaskGetState( xSyncTask1 ) != eSuspended )
 		{
 			xError = pdTRUE;
+			dbprintf("xError=%i", xError );
 		}
 
 		if( eTaskGetState( xSyncTask2 ) != eSuspended )
 		{
 			xError = pdTRUE;
+			dbprintf("xError=%i", xError );
 		}
 
 		/* Only increment the cycle variable if no errors have been detected. */
 		if( xError == pdFALSE )
 		{
 			ulTestMasterCycles++;
+			if( ulTestSlaveCycles % 1000 == 0 ) {
+				dbprintf("Cycle OK %i",ulTestSlaveCycles);
+			}
 		}
 
 		configASSERT( xError == pdFALSE );
@@ -392,8 +398,10 @@ BaseType_t xError = pdFALSE;
 		if( uxReturned != ebCOMBINED_BITS )
 		{
 			xError = pdTRUE;
+			dbprintf("xError=%i %08x", xError, uxReturned );
 		}
 
+		configASSERT( xError == false );
 		/* Now call xEventGroupWaitBits() again, this time waiting for all the
 		bits in ebCOMBINED_BITS to be set.  This call should block until the
 		'test master' task sets ebBIT_1 - which was the bit cleared in the call
@@ -408,8 +416,10 @@ BaseType_t xError = pdFALSE;
 		if( ( uxReturned & ebCOMBINED_BITS ) != ebCOMBINED_BITS )
 		{
 			xError = pdTRUE;
+			dbprintf("xError=%i", xError );
 		}
 
+		configASSERT( xError == false );
 		/* Suspend again to wait for the 'test master' task. */
 		vTaskSuspend( NULL );
 
@@ -429,8 +439,9 @@ BaseType_t xError = pdFALSE;
 		if( uxReturned != ebALL_BITS )
 		{
 			xError = pdTRUE;
+			dbprintf("xError=%i uxReturned=%08x!=%08x", xError, uxReturned, ebALL_BITS );
 		}
-
+		configASSERT( xError == false );
 
 
 
@@ -459,7 +470,10 @@ BaseType_t xError = pdFALSE;
 		if( ( uxReturned & ebALL_SYNC_BITS ) != ebALL_SYNC_BITS )
 		{
 			xError = pdTRUE;
+			dbprintf("xError=%i", xError );
 		}
+		configASSERT( xError == false );
+
 
 		/* ...but now the synchronisation bits should be clear again.  Read back
 		the current value of the bits within the event group to check that is
@@ -468,12 +482,17 @@ BaseType_t xError = pdFALSE;
 		if( xEventGroupSetBits( xEventGroup, 0x00 ) != 0 )
 		{
 			xError = pdTRUE;
+			dbprintf("xError=%i", xError );
 		}
+
+		configASSERT( xError == false );
+
 
 		/* Check the bits are indeed 0 now by simply reading then. */
 		if( xEventGroupGetBits( xEventGroup ) != 0 )
 		{
 			xError = pdTRUE;
+			dbprintf("xError=%i", xError );
 		}
 
 		if( xError == pdFALSE )
@@ -482,6 +501,7 @@ BaseType_t xError = pdFALSE;
 			ulTestSlaveCycles++;
 		}
 
+		configASSERT( xError == false );
 		vTaskSuspend( NULL );
 
 		/* This time sync when the 'test master' task has the highest priority
@@ -497,6 +517,7 @@ BaseType_t xError = pdFALSE;
 			xError = pdTRUE;
 		}
 
+		configASSERT( xError == false );
 		/* ...but now the sync bits should be clear again. */
 		if( xEventGroupSetBits( xEventGroup, 0x00 ) != 0 )
 		{
@@ -504,6 +525,7 @@ BaseType_t xError = pdFALSE;
 			xError = pdTRUE;
 		}
 
+		configASSERT( xError == false );
 		/* Block on the event group again.  This time the event group is going
 		to be deleted while this task is blocked on it, so it is expected that 0
 		will be returned. */
@@ -515,6 +537,7 @@ BaseType_t xError = pdFALSE;
 			xError = pdTRUE;
 		}
 
+		configASSERT( xError == false );
 		if( xError == pdFALSE )
 		{
 			/* This task is still cycling without finding an error. */
@@ -537,16 +560,19 @@ EventBits_t uxBits;
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask1 ) != eSuspended )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask2 ) != eSuspended )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	/* Try a synch with no other tasks involved.  First set all the bits other
 	than this task's bit. */
 	xEventGroupSetBits( xEventGroup, ( ebALL_SYNC_BITS & ~ebSET_BIT_TASK_SYNC_BIT ) );
@@ -565,6 +591,7 @@ EventBits_t uxBits;
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	/* ...but now the sync bits should be clear again, leaving all the other
 	bits set (as only one bit was being waited for). */
 	if( xEventGroupGetBits( xEventGroup ) != ( ebALL_SYNC_BITS & ~ebSET_BIT_TASK_SYNC_BIT ) )
@@ -572,6 +599,7 @@ EventBits_t uxBits;
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	/* Clear all the bits to zero again. */
 	xEventGroupClearBits( xEventGroup, ( ebALL_SYNC_BITS & ~ebSET_BIT_TASK_SYNC_BIT ) );
 	if( xEventGroupGetBits( xEventGroup ) != 0 )
@@ -579,6 +607,7 @@ EventBits_t uxBits;
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	/* Unsuspend the other tasks then check they have executed up to the
 	synchronisation point. */
 	vTaskResume( xTestSlaveTaskHandle );
@@ -590,16 +619,19 @@ EventBits_t uxBits;
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask1 ) != eBlocked )
 	{
 		xError = pdTRUE;
 	}
+	configASSERT( xError == false );
 
 	if( eTaskGetState( xSyncTask2 ) != eBlocked )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	/* Set this task's sync bit. */
 	uxBits = xEventGroupSync( xEventGroup,			/* The event group used for the synchronisation. */
 							ebSET_BIT_TASK_SYNC_BIT,/* The bit set by this task when it reaches the sync point. */
@@ -613,30 +645,37 @@ EventBits_t uxBits;
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	/* ...but now the sync bits should be clear again. */
 	if( xEventGroupGetBits( xEventGroup ) != 0 )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 
 	/* The other tasks should now all be suspended again, ready for the next
 	synchronisation. */
+	isix_wait_ms(1);	//FIXME fixme timings
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eSuspended )
 	{
 		xError = pdTRUE;
+		dbprintf("SlaveTaskState %i", eTaskGetState(xTestSlaveTaskHandle) );
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask1 ) != eSuspended )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask2 ) != eSuspended )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 
 	/* Sync again - but this time set the last necessary bit as the
 	highest priority task, rather than the lowest priority task.  Unsuspend
@@ -651,22 +690,24 @@ EventBits_t uxBits;
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask1 ) != eBlocked )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask2 ) != eBlocked )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	/* Raise the priority of this task above that of the other tasks. */
-	vTaskPrioritySet( NULL, ebWAIT_BIT_TASK_PRIORITY + 1 );
+	configASSERT( vTaskPrioritySet( NULL, ebWAIT_BIT_TASK_PRIORITY - 1 ) >= 0 );
 
 	/* Set this task's sync bit. */
 	uxBits = xEventGroupSync( xEventGroup, ebSET_BIT_TASK_SYNC_BIT, ebALL_SYNC_BITS, portMAX_DELAY );
-
 	/* A sync with a max delay should only exit when all the synchronisation
 	bits are set... */
 	if( ( uxBits & ebALL_SYNC_BITS ) != ebALL_SYNC_BITS )
@@ -674,12 +715,14 @@ EventBits_t uxBits;
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	/* ...but now the sync bits should be clear again. */
 	if( xEventGroupGetBits( xEventGroup ) != 0 )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 
 	/* The other tasks should now all be in the ready state again, but not
 	executed yet as this task still has a higher relative priority. */
@@ -688,37 +731,45 @@ EventBits_t uxBits;
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask1 ) != eReady )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask2 ) != eReady )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 
 	/* Reset the priority of this task back to its original value. */
-	vTaskPrioritySet( NULL, ebSET_BIT_TASK_PRIORITY );
+	configASSERT( vTaskPrioritySet( NULL, ebSET_BIT_TASK_PRIORITY ) >= 0 );
 
+	isix_wait_ms(1);	//FIXME:  Reschedule needed
 	/* Now all the other tasks should have reblocked on the event bits
 	to test the behaviour when the event bits are deleted. */
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eBlocked )
 	{
 		xError = pdTRUE;
+		dbprintf("Task state is %i", eTaskGetState(xTestSlaveTaskHandle) );
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask1 ) != eBlocked )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	if( eTaskGetState( xSyncTask2 ) != eBlocked )
 	{
 		xError = pdTRUE;
 	}
 
+	configASSERT( xError == false );
 	return xError;
 }
 /*-----------------------------------------------------------*/
@@ -735,11 +786,13 @@ EventBits_t uxBits;
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eBlocked )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+	configASSERT( xError == false );
 	/* Set all the bits in ebCOMBINED_BITS - the 'test slave' task is only
 	blocked waiting for one of them. */
-	xEventGroupSetBits( xEventGroup, ebCOMBINED_BITS );
+    xEventGroupSetBits( xEventGroup, ebCOMBINED_BITS );
 
 	/* The 'test slave' task should now have executed, clearing ebBIT_1 (the
 	bit it was blocked on), then re-entered the Blocked state to wait for
@@ -750,14 +803,18 @@ EventBits_t uxBits;
 	if( uxBits != ( ebCOMBINED_BITS & ~ebBIT_1 ) )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+	configASSERT( xError == false );
 	/* Ensure the other task is still in the blocked state. */
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eBlocked )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+	configASSERT( xError == false );
 	/* Set all the bits other than ebBIT_1 - which is the bit that must be
 	set before the other task unblocks. */
 	xEventGroupSetBits( xEventGroup, ebALL_BITS & ~ebBIT_1 );
@@ -768,14 +825,18 @@ EventBits_t uxBits;
 	if( uxBits != ( ebALL_BITS & ~ebBIT_1 ) )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+	configASSERT( xError == false );
 	/* Ensure the other task is still in the blocked state. */
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eBlocked )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+	configASSERT( xError == false );
 	/* Now also set ebBIT_1, which should unblock the other task, which will
 	then suspend itself. */
 	xEventGroupSetBits( xEventGroup, ebBIT_1 );
@@ -784,21 +845,28 @@ EventBits_t uxBits;
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eSuspended )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+	configASSERT( xError == false );
 	/* The other task should not have cleared the bits - so all the bits
 	should still be set. */
-	if( xEventGroupSetBits( xEventGroup, 0x00 ) != ebALL_BITS )
+	unsigned tmptest;
+	if( (tmptest=xEventGroupSetBits( xEventGroup, 0x00 )) != ebALL_BITS )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i %08x", xError, tmptest );
 	}
+	configASSERT( xError == false );
 
 	/* Clear ebBIT_1 again. */
 	if( xEventGroupClearBits( xEventGroup, ebBIT_1 ) != ebALL_BITS )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+	configASSERT( xError == false );
 	/* Resume the other task - which will wait on all the ebCOMBINED_BITS
 	again - this time clearing the bits when it is unblocked. */
 	vTaskResume( xTestSlaveTaskHandle );
@@ -807,8 +875,10 @@ EventBits_t uxBits;
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eBlocked )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+		configASSERT( xError == false );
 	/* Set the bit the other task is waiting for. */
 	xEventGroupSetBits( xEventGroup, ebBIT_1 );
 
@@ -816,8 +886,10 @@ EventBits_t uxBits;
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eSuspended )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+		configASSERT( xError == false );
 	/* The other task should have cleared the bits in ebCOMBINED_BITS.
 	Clear the remaining bits. */
 	uxBits = xEventGroupWaitBits( xEventGroup, ebALL_BITS, pdFALSE, pdFALSE, ebDONT_BLOCK );
@@ -825,21 +897,27 @@ EventBits_t uxBits;
 	if( uxBits != ( ebALL_BITS & ~ebCOMBINED_BITS ) )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+		configASSERT( xError == false );
 	/* Clear all bits ready for the sync with the other three tasks.  The
 	value returned is the value prior to the bits being cleared. */
 	if( xEventGroupClearBits( xEventGroup, ebALL_BITS ) != ( ebALL_BITS & ~ebCOMBINED_BITS ) )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+		configASSERT( xError == false );
 	/* The bits should be clear now. */
 	if( xEventGroupGetBits( xEventGroup ) != 0x00 )
 	{
 		xError = pdTRUE;
+		dbprintf("xError=%i", xError );
 	}
 
+		configASSERT( xError == false );
 	return xError;
 }
 /*-----------------------------------------------------------*/
@@ -857,12 +935,10 @@ EventBits_t uxPendBits, uxReturned;
 	if( xTaskGetCurrentTaskHandle() == xSyncTask1 )
 	{
 		uxPendBits = ebSELECTIVE_BITS_1;
-		dbprintf("Selective bits #b1");
 	}
 	else
 	{
 		uxPendBits = ebSELECTIVE_BITS_2;
-		dbprintf("Selective bits #b2");
 	}
 
 	for( ;; )
@@ -877,7 +953,7 @@ EventBits_t uxPendBits, uxReturned;
 
 		if( uxReturned == ( EventBits_t ) 0 )
 		{
-			dbprintf("Exited");
+			dbprintf("prvSelectiveBitsTestSlaveExited");
 			break;
 		}
 	}

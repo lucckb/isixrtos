@@ -71,6 +71,7 @@ int isix_event_destroy( osevent_t evh )
 		 wkup_task = isixp_max_prio( wkup_task, t );
 	}
 	_isixp_do_reschedule( wkup_task );
+	isix_free( evh );
 	return ISIX_EOK;
 }
 
@@ -114,7 +115,7 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 			( wait_for_all?ISIX_EVENT_CTRL_ALL_MATCH_FLAG:0U ) |
 			( clear_on_exit?ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG:0U ) ;
 		_isixp_exit_critical();
-		isix_yield();
+		port_yield();
 		_isixp_enter_critical();
 		if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS)==0 ) 
 		{	//! Wakeup all bits should be set
@@ -131,6 +132,7 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 	}
 	//printk("waitr=%08x", retval);
 	_isixp_exit_critical();
+	port_yield();	//FIXME: Fixme that only when it is really needed
 	return retval;
 }
 
