@@ -74,7 +74,7 @@ void _isixp_vtimer_handle_time(ostick_t jiffies)
 	}
 	osvtimer_t vtimer;
 	while( !list_isempty(p_vtimer_list) &&
-		jiffies>=(vtimer = list_get_first(p_vtimer_list,inode,struct isix_vtimer))->jiffies
+		jiffies>=(vtimer = list_first_entry(p_vtimer_list,inode,struct isix_vtimer))->jiffies
 	)
 	{
 		list_delete(&vtimer->inode);

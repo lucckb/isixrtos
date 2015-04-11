@@ -230,10 +230,10 @@ void _isixp_schedule(void)
 	}
     //Get first ready prio
     task_ready_t * curr_prio
-		= list_get_first( &csys.ready_list, inode, task_ready_t );
+		= list_first_entry( &csys.ready_list, inode, task_ready_t );
     //printk( "tsk prio %i priolist %p", curr_prio->prio, curr_prio );
     //printk( "Scheduler: prev task %p",currp );
-    currp = list_get_first( &curr_prio->task_list, inode,struct isix_task );
+    currp = list_first_entry( &curr_prio->task_list, inode,struct isix_task );
 	if( currp->state != OSTHR_STATE_READY ) {
 		printk("Currp %p state %i", currp, currp->state );
 		isix_bug( "Not in READY state. Mem corrupted?" );
@@ -276,7 +276,8 @@ static void internal_schedule_time(void)
     ostask_t task_c;
 
     while( !list_isempty(csys.p_wait_list) &&
-		csys.jiffies>=(task_c = list_get_first(csys.p_wait_list,inode_time,struct isix_task))->jiffies
+		csys.jiffies >=
+		(task_c=list_first_entry(csys.p_wait_list,inode_time,struct isix_task))->jiffies
 	)
     {
     	printk("schedtime: task %p jiffies %i task_time %i", task_c,csys.jiffies,task_c->jiffies);
@@ -328,7 +329,7 @@ static task_ready_t *alloc_task_ready_t(void)
    else
    {
         //Get element from list
-        prio = list_get_first( &csys.free_prio_elem,inode, task_ready_t );
+        prio = list_first_entry( &csys.free_prio_elem,inode, task_ready_t );
         list_delete( &prio->inode );
         prio->prio = 0;
         //printk("alloc_task_ready_t: get from list node %p",prio);
@@ -451,7 +452,7 @@ ostask_t _isixp_remove_from_prio_queue( list_entry_t* list )
 	if( list_isempty( list ) ) {
 		return NULL;
 	}
-	ostask_t task = list_get_first( list, inode, struct isix_task );
+	ostask_t task = list_first_entry( list, inode, struct isix_task );
 	list_delete( &task->inode );
 	return task;
 }
@@ -465,7 +466,7 @@ static void cleanup_tasks(void)
         _isixp_enter_critical();
         if(!list_isempty(&csys.zombie_list))
         {
-        	ostask_t task_del = list_get_first(&csys.zombie_list,inode,struct isix_task);
+        	ostask_t task_del = list_first_entry(&csys.zombie_list,inode,struct isix_task);
         	list_delete(&task_del->inode);
         	printk( "Task to delete: %p(SP %p) PRIO: %i",
 						task_del,task_del->init_stack,task_del->prio );
