@@ -71,6 +71,10 @@ void _isixp_unlock_scheduler()
 			internal_schedule_time();
 			--csys.jiffies_skipped.counter;
 		}
+		if( csys.yield_pending ) {
+			port_yield();
+			csys.yield_pending = false;
+		}
 		_isixp_exit_critical();
 	}
 }
@@ -220,6 +224,7 @@ void print_task_list()
 void _isixp_schedule(void)
 {
 	if( port_atomic_sem_read_val(&csys.sched_lock) ) {
+		csys.yield_pending = true;
 		return;
 	}
     //Remove executed task and add at end

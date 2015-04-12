@@ -61,6 +61,7 @@ struct isix_system
 	_port_atomic_int_t jiffies_skipped; //Skiped jiffies when scheduler is locked
 	unsigned number_of_task_deleted;  	//Number of deleted task
 	osprio_t number_of_priorities; 		//Number of priorities
+	volatile bool yield_pending; 		//!Yield during lock
 };
 
 //Current executed task
