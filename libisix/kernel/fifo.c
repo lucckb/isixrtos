@@ -20,7 +20,7 @@
 #define printk(...) do {} while(0)
 #endif
 
-/*-------------------------------------------------------*/
+
 //! Private function for lock
 static inline __attribute__((always_inline)) void _lock( const osfifo_t fifo )
 {
@@ -30,7 +30,7 @@ static inline __attribute__((always_inline)) void _lock( const osfifo_t fifo )
 		_isixp_enter_critical();
 	}
 }
-/*-------------------------------------------------------*/
+
 //! Private function for unlock
 static inline __attribute__((always_inline)) void _unlock( const osfifo_t fifo )
 {
@@ -40,11 +40,10 @@ static inline __attribute__((always_inline)) void _unlock( const osfifo_t fifo )
 		_isixp_exit_critical();
 	}
 }
-/*-------------------------------------------------------*/
+
 /* Create queue for n elements
  * if succes return queue pointer else return null
  */
-
 osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
 {
    //Create fifo struct
@@ -79,7 +78,7 @@ osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
    return fifo;
 }
 
-/*----------------------------------------------------------------*/
+
 //Fifo send to other task
 int isix_fifo_write(osfifo_t fifo,const void *item, ostick_t timeout)
 {
@@ -99,7 +98,7 @@ int isix_fifo_write(osfifo_t fifo,const void *item, ostick_t timeout)
     //Signaling RX thread with new data
     return isix_sem_signal(&fifo->rx_sem);
 }
-/*----------------------------------------------------------------*/
+
 //Fifo send to other task
 int isix_fifo_write_isr(osfifo_t fifo,const void *item)
 {
@@ -120,7 +119,7 @@ int isix_fifo_write_isr(osfifo_t fifo,const void *item)
     //Signaling RX thread with new data
     return isix_sem_signal_isr(&fifo->rx_sem);
 }
-/*----------------------------------------------------------------*/
+
 //Fifo receive from other task
 int isix_fifo_read(osfifo_t fifo,void *item, ostick_t timeout)
 {
@@ -141,7 +140,7 @@ int isix_fifo_read(osfifo_t fifo,void *item, ostick_t timeout)
     return isix_sem_signal(&fifo->tx_sem);
 }
 
-/*----------------------------------------------------------------*/
+
 //Fifo receive from other task
 int isix_fifo_read_isr(osfifo_t fifo,void *item)
 {
@@ -163,7 +162,7 @@ int isix_fifo_read_isr(osfifo_t fifo,void *item)
     return isix_sem_signal_isr(&fifo->tx_sem);
 }
 
-/*----------------------------------------------------------------*/
+
 /* Delete created queue */
 int isix_fifo_destroy(osfifo_t fifo)
 {
@@ -192,13 +191,11 @@ int isix_fifo_destroy(osfifo_t fifo)
     return ISIX_EOK;
 }
 
-/*----------------------------------------------------------------*/
+
 //How many element is in fifo
 int isix_fifo_count(osfifo_t fifo)
 {
     if(!fifo) return ISIX_EINVARG;
     return isix_sem_getval(&fifo->rx_sem);
 }
-
-/*----------------------------------------------------------------*/
 
