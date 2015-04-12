@@ -17,10 +17,3 @@ struct isix_semaphore
     list_entry_t wait_list;
 };
 
-
-//Semaphore can by destroyed
-static inline bool _isixp_sem_can_destroy(struct isix_semaphore *sem)
-{
-   return list_isempty(&sem->wait_list);
-}
-

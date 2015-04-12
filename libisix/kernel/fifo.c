@@ -167,20 +167,6 @@ int isix_fifo_read_isr(osfifo_t fifo,void *item)
 int isix_fifo_destroy(osfifo_t fifo)
 {
     _lock(fifo);
-    //Check for TXSEM ban be destroyed
-    if(_isixp_sem_can_destroy(&fifo->tx_sem)==false)
-    {
-        printk("FifoDestroy: Error TXSem busy");
-        _unlock(fifo);
-        return ISIX_EBUSY;
-    }
-    //Check for RXSEM can be destroyed
-    if(_isixp_sem_can_destroy(&fifo->rx_sem)==false)
-    {
-        printk("FifoDestroy: Error RXSem busy");
-        _unlock(fifo);
-        return ISIX_EBUSY;
-    }
     //Destroy RXSEM and TXSEM
     isix_sem_destroy(&fifo->rx_sem);
     isix_sem_destroy(&fifo->tx_sem);
