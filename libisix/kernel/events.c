@@ -161,7 +161,6 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	evth->bitset |= bits_to_set;
 	ostask_t wkup_task = currp;
 	osbitset_t clr_bits = 0U;
-	//printk("ev_set( bts=%08x)", bits_to_set );
 	ostask_t t, tmp;
 	list_for_each_entry_safe( &evth->wait_list, t, tmp, inode )
 	{	
