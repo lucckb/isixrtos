@@ -93,23 +93,26 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
  */
 int isix_task_change_prio( ostask_t task, osprio_t new_prio )
 {
-	if(isix_get_min_priority()<new_prio )
-	{
+	if( !schrun ) {
+		return ISIX_ESTATE;
+	}
+	if(isix_get_min_priority()<new_prio ) {
 	   return ISIX_ENOPRIO;
 	}
 	_isixp_enter_critical();
     ostask_t taskc = task?task:currp;
 	printk("Change prio curr task ptr %p %i", taskc, taskc->state );
     //Save task prio
-    const osprio_t prio = taskc->prio;
-    if(prio==new_prio)
+    const osprio_t old_prio = taskc->prio;
+    if(old_prio==new_prio)
     {
         _isixp_exit_critical();
         return ISIX_EOK;
     }
 	_isixp_reallocate_priority( taskc, new_prio );
-	_isixp_do_reschedule();
-    return prio;
+	port_yield();
+	_isixp_exit_critical();
+    return old_prio;
 }
 
 /* Get isix structure private data */

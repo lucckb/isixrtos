@@ -743,12 +743,9 @@ EventBits_t uxBits;
 	}
 
 	configASSERT( xError == false );
-
 	/* Reset the priority of this task back to its original value. */
 	configASSERT( vTaskPrioritySet( NULL, ebSET_BIT_TASK_PRIORITY ) >= 0 );
-
 	//isix_wait_ms(1);	//FIXME:  Reschedule needed
-	isix_yield();
 	/* Now all the other tasks should have reblocked on the event bits
 	to test the behaviour when the event bits are deleted. */
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eBlocked )

@@ -75,6 +75,12 @@ static inline __attribute__((always_inline))
 {
 	return (t1->prio>t2->prio)?(t2):(t1);
 }
+//! Return true if fist prio is greater than second
+static inline __attribute__((always_inline)) 
+	bool isixp_prio_gt( osprio_t p1, osprio_t p2 ) 
+{
+	return p1 < p2;
+}
 //Scheduler function called on context switch in IRQ and Yield
 void _isixp_schedule(void);
 //Sched timer cyclic call
@@ -106,5 +112,5 @@ ostask_t _isixp_remove_from_prio_queue( list_entry_t* list );
 //! Reallocate according to priority change
 void _isixp_reallocate_priority( ostask_t task, int newprio );
 //! Reschedule tasks 
-void _isixp_do_reschedule();
+void _isixp_do_reschedule( ostask_t task );
 

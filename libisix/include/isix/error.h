@@ -13,6 +13,6 @@ enum isix_error
 	ISIX_ENOPRIO = -7,   	/** Priority is invalid */
 	ISIX_ENOTSUP = -8,		/** Operation not supported */
 	ISIX_ERESET  = -9,		/** Current object is in reset state */
-	ISIX_EDESTROY = -10,		/** Object has been destroyed */
+	ISIX_EDESTROY = -10,	/** Object has been destroyed */
 	ISIX_ESTATE	  = -11		/** Invalid state  */
 };

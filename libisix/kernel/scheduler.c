@@ -185,15 +185,15 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
     isix_kernel_panic_callback( file, line, msg );
     while(1);
 }
-#if 0
 
+#if 0
 /** Temporary debug */
 void print_task_list()
 {
 	_isixp_enter_critical();
     task_ready_t *i;
     ostask_t j;
-	tiny_printf("Ready tasks\n");
+	tiny_printf("curr %p:%i jiff %u Ready tasks\n", currp, currp->prio, csys.jiffies );
     list_for_each_entry(&csys.ready_list,i,inode)
     {
          tiny_printf("\t* List inode %p prio %i\n",i, i->prio );
@@ -517,12 +517,19 @@ void isix_start_scheduler(void)
 //! Reschedule tasks if it can be rescheduled
 void _isixp_do_reschedule( ostask_t task )
 {
-    if( !schrun ) {
+    if( !schrun ) 
+	{
         //Scheduler not running assign task
-        if( !currp ) currp = task;
-        else if(currp->prio>task->prio) currp = task;
-    } else {
-		if( currp->prio>task->prio ) {
+        if( !currp ) { 
+			currp = task;
+		}
+        else if(isixp_prio_gt(task->prio,currp->prio)) {
+			currp = task;
+		}
+    } 
+	else 
+	{
+		if( isixp_prio_gt(task->prio,currp->prio) ) {
 			//New task have higer priority then current task
 			printk("resched: prio %i>old prio %i",task->prio,currp->prio);
 			port_yield();
