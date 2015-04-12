@@ -71,6 +71,7 @@ int isix_event_destroy( osevent_t evh )
 		 wkup_task = isixp_max_prio( wkup_task, t );
 	}
 	_isixp_do_reschedule( wkup_task );
+	isix_free( evh );
 	return ISIX_EOK;
 }
 
@@ -103,13 +104,13 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 	else
 	{
 		//! Condition as not meet so need to wait for data
-		_isixp_set_sleep_timeout( THR_STATE_WTEVT, timeout );	//Goto sleep
+		_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
 		list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
 		currp->obj.evbits = bits_to_wait |
 			( wait_for_all?ISIX_EVENT_CTRL_ALL_MATCH_FLAG:0U ) |
 			( clear_on_exit?ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG:0U ) ;
 		_isixp_exit_critical();
-		isix_yield();
+		port_yield();
 		_isixp_enter_critical();
 		if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS)==0 ) 
 		{	//! Wakeup all bits should be set
@@ -136,7 +137,7 @@ osbitset_ret_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear )
 	if( !evth ) {
 		return ISIX_EINVARG;
 	}
-	if( !bits_to_clear||(bits_to_clear&ISIX_EVENT_CTRL_BITS) ) {
+	if( bits_to_clear&ISIX_EVENT_CTRL_BITS ) {
 		return ISIX_EINVARG;
 	}
 	_isixp_enter_critical();
@@ -153,24 +154,24 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	if( !evth ) {
 		return ISIX_EINVARG;
 	}
-	if( !bits_to_set||(bits_to_set&ISIX_EVENT_CTRL_BITS) ) {
+	if( bits_to_set&ISIX_EVENT_CTRL_BITS ) {
 		return ISIX_EINVARG;
 	}
 	_isixp_enter_critical();
 	evth->bitset |= bits_to_set;
 	ostask_t wkup_task = currp;
-	ostask_t t;
 	osbitset_t clr_bits = 0U;
-	while( (t=_isixp_remove_from_prio_queue(&evth->wait_list)) )
+	ostask_t t, tmp;
+	list_for_each_entry_safe( &evth->wait_list, t, tmp, inode )
 	{	
 		if( check_cond2(evth->bitset,t->obj.evbits) )
 		{
-			//printk("Try to wake %p evbits %08x bitset %08x", t, t->obj.evbits, evth->bitset );
 			if( t->obj.evbits & ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG ) {
 				clr_bits |= t->obj.evbits & ISIX_EVENT_EVBITS;
 			}
 			//! Post only normal bits negative value means error
-			_isixp_wakeup_task_l( t, t->obj.evbits&ISIX_EVENT_EVBITS );
+			list_delete( &t->inode );
+			_isixp_wakeup_task_l( t, evth->bitset );
 			wkup_task = isixp_max_prio( wkup_task, t );
 		}
 	}
@@ -200,7 +201,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 	if( !evth ) {
 		return ISIX_EINVARG;
 	}
-	if( !bits_to_set||(bits_to_set&ISIX_EVENT_CTRL_BITS) ) {
+	if( bits_to_set&ISIX_EVENT_CTRL_BITS ) {
 		return ISIX_EINVARG;
 	}
 	if( !bits_to_wait||(bits_to_wait&ISIX_EVENT_CTRL_BITS) ) {
@@ -209,11 +210,9 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 	_isixp_enter_critical();
 	{	
 		osbitset_t orgbits = evth->bitset;
-		_isixp_event_set( evth, bits_to_set, true );	//FIXME: Replace true
-		//printk("Task %p Afterset %08x", currp, evth->bitset);
+		_isixp_event_set( evth, bits_to_set, false );
 		if( ((orgbits|bits_to_set) & bits_to_wait ) == bits_to_wait )
 		{
-			//printk("Meet1 %p", currp);
 			//! All bits set condition was meet
 			retval = orgbits|bits_to_set;
 			evth->bitset &= ~ bits_to_wait;
@@ -224,8 +223,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 			//Bit condition not meet
 			if( timeout != ISIX_TIME_DONTWAIT ) 
 			{
-				//printk("Meet2 %p", currp);
-				_isixp_set_sleep_timeout( THR_STATE_WTEVT, timeout );	//Goto sleep
+				_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
 				list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
 				currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG 
 									| ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG;
@@ -249,6 +247,5 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 		}
 	}
 	_isixp_exit_critical();
-	//printk("exitx %p=%08x(%i)", currp, retval, retval );
 	return retval;
 }

@@ -16,6 +16,7 @@
 #include "vtimer_test.hpp"
 #include "errno_test.hpp"
 #include "event_tests.hpp"
+#include "event_groups_demo.h"
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
@@ -50,6 +51,7 @@ class unit_tests : public isix::task_base
 	//Test basic tasks
     virtual void main() 
 	{
+		vStartEventGroupTasks();
 #if 1
 		heap_test();
 		atomic_test.run();
@@ -60,10 +62,10 @@ class unit_tests : public isix::task_base
 		mempool_test.run();
 		timer_test.run();
 		errno_test.run();
-#endif
 		event_test.run();
 		isix_wait_ms(100);
 		isix_shutdown_scheduler();
+#endif
 	}
 };
 

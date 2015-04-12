@@ -8,6 +8,7 @@
 #include <isix/events.h>
 #include <isix/scheduler.h>
 #include <isix/port_atomic.h>
+#include <isix/osthr_state.h>
 
 #ifndef _ISIX_KERNEL_CORE_
 #	error This is private header isix kernel headers cannot be used by app
@@ -21,20 +22,6 @@ typedef struct task_ready_struct
     list_t inode;              //List inode
 } task_ready_t;
 
-
-//! Current thread state
-enum thr_state 
-{
-	THR_STATE_READY		= 0,			//! Thread is on ready state
-	THR_STATE_RUNNING	= 1,			//! Thread is in running state
-	THR_STATE_CREATED	= 2,			//! Task already created but 
-	THR_STATE_SLEEPING	= 3,			//! Thread on sleeping state
-	THR_STATE_WTSEM		= 4,			//! Wait for semaphore state
-	THR_STATE_WTEXIT	= 5,			//! Wait for exit state
-	THR_STATE_ZOMBIE	= 6,			//! In zombie state just before exit
-	THR_STATE_SCHEDULE  = 7,			//! Schedule only do nothing special
-	THR_STATE_WTEVT	    = 8, 			//! Scheduler on wait event state
-};
 
 typedef uint8_t thr_state_t;
 
@@ -88,6 +75,12 @@ static inline __attribute__((always_inline))
 {
 	return (t1->prio>t2->prio)?(t2):(t1);
 }
+//! Return true if fist prio is greater than second
+static inline __attribute__((always_inline)) 
+	bool isixp_prio_gt( osprio_t p1, osprio_t p2 ) 
+{
+	return p1 < p2;
+}
 //Scheduler function called on context switch in IRQ and Yield
 void _isixp_schedule(void);
 //Sched timer cyclic call
@@ -107,7 +100,7 @@ void _isixp_wakeup_task( ostask_t task, osmsg_t msg );
 void _isixp_wakeup_task_i( ostask_t task, osmsg_t msg );
 void _isixp_wakeup_task_l( ostask_t task, osmsg_t msg );
 //Add task list to delete
-void _isixp_add_to_kill_list( ostask_t task );
+void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend );
 //! Set sleep state but not reschedule
 void _isixp_set_sleep_timeout( thr_state_t newstate, ostick_t timeout );
 //! Go to thread sleep
@@ -119,5 +112,5 @@ ostask_t _isixp_remove_from_prio_queue( list_entry_t* list );
 //! Reallocate according to priority change
 void _isixp_reallocate_priority( ostask_t task, int newprio );
 //! Reschedule tasks 
-void _isixp_do_reschedule();
+void _isixp_do_reschedule( ostask_t task );
 
