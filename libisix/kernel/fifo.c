@@ -170,10 +170,10 @@ int isix_fifo_destroy(osfifo_t fifo)
     //Destroy RXSEM and TXSEM
     isix_sem_destroy(&fifo->rx_sem);
     isix_sem_destroy(&fifo->tx_sem);
+    _unlock(fifo);
     //Free queue used memory
     isix_free(fifo->mem_p);
     isix_free(fifo);
-    _unlock(fifo);
     return ISIX_EOK;
 }
 
