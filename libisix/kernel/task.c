@@ -110,7 +110,7 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
         return ISIX_EOK;
     }
 	_isixp_reallocate_priority( taskc, new_prio );
-	port_yield();
+	port_yield();	//Unconditional port yield due to force reschedule all tasks
 	_isixp_exit_critical();
     return old_prio;
 }
