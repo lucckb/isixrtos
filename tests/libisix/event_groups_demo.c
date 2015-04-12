@@ -291,7 +291,7 @@ TaskHandle_t xTestSlaveTaskHandle = ( TaskHandle_t ) pvParameters;
 		{
 			ulTestMasterCycles++;
 			if( ulTestSlaveCycles % 10000 == 0 ) {
-				dbprintf("Cycle OK %i",ulTestSlaveCycles);
+				dbprintf("Cycle OK %u",(unsigned)ulTestSlaveCycles);
 			}
 		}
 
@@ -439,7 +439,8 @@ BaseType_t xError = pdFALSE;
 		if( uxReturned != ebALL_BITS )
 		{
 			xError = pdTRUE;
-			dbprintf("xError=%i uxReturned=%08x!=%08x", xError, uxReturned, ebALL_BITS );
+			dbprintf("xError=%i uxReturned=%08x!=%08x", (int)xError, 
+					(int)uxReturned, (int)ebALL_BITS );
 		}
 		configASSERT( xError == false );
 
