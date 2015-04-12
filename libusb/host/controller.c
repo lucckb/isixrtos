@@ -31,12 +31,12 @@ enum { DEFAULT_CONFIGURATION = 1 };
 
 //! USB controller context
 struct usbhost_controller_context {
-	task_t* host_task;					//ISIX host base task
+	ostask_t host_task;					//ISIX host base task
 	list_entry_t usb_drivers;			//USB drivers list
 	int err;							//Library error
 	usbhost_device_t dev;				//Attached device
 	const usbh_driver_t* drv;			//Current attached driver
-	sem_t* lock;						//Driver lock semaphore
+	ossem_t lock;						//Driver lock semaphore
 };
 
 //! Driver item
@@ -217,7 +217,7 @@ int usbh_controller_init( int controller_id , int os_priority )
 			isix_sem_destroy( ctx.lock );
 		}
 		if( ctx.host_task ) {
-			isix_task_delete( ctx.host_task );
+			isix_task_kill( ctx.host_task );
 		}
 	}
 	dbprintf( "Controller init with code: %i", ctx.err );

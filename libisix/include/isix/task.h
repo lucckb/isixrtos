@@ -91,7 +91,7 @@ static inline ostask_t isix_task_create_tcpip(task_func_ptr_t task_func,
 static inline int isix_task_delete_tcpip(ostask_t task)
 {
 	void *prv = isix_get_task_private_data( task );
-	int ret = isix_task_delete( task );
+	int ret = isix_task_kill( task );
 	if( prv ) isix_free( prv );
 	return ret;
 }

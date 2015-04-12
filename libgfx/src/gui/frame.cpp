@@ -26,7 +26,7 @@ void frame::execute()
 
 	for( evinfo ev;; ) {
 		window* rpt_wnd = nullptr;
-		if( m_events_queue.pop( ev ) == isix::ISIX_EOK )
+		if( m_events_queue.pop( ev ) == ISIX_EOK )
 		{
 			if( ev.type == evinfo::EV_PAINT ) {
 				// EV_PAINT argument is not dispatched to the component like other events
@@ -91,7 +91,7 @@ void frame::delete_window( window* window )
 int frame::queue_repaint( bool force, window* wnd, bool force_clr )
 {
 	gfx::input::event_info ei  {
-		isix::isix_get_jiffies(),
+		isix_get_jiffies(),
 		gfx::input::event_info::evtype::EV_PAINT,
 		wnd,
 		{}

@@ -18,6 +18,7 @@
 #pragma once
 /* ------------------------------------------------------------------ */
 #include <foundation/noncopyable.hpp>
+#include <isix.h>
 /* ------------------------------------------------------------------ */
 namespace isix {
 	struct vtimer_struct;
@@ -58,7 +59,7 @@ private:
 	//! Raw timer callback
 	static void raw_timer_callback( void* data );
 private:
-	isix::vtimer_struct* m_sys_timer; 	 //! Isix systimer ID
+	osvtimer_t m_sys_timer; 	 //! Isix systimer ID
 	gfx::gui::frame& m_frm;			//! Frame owner
 	window* const m_win;			//! Target window
 	const int m_id;						//! Identifier

@@ -11,7 +11,7 @@
 #include <usb/drivers/controllers/stm32/usb_config.h>
 
 // Isix milisec timer
-static vtimer_t* isix_ms_timers[2];
+static osvtimer_t isix_ms_timers[2];
 
 
 /* Configure millisecond timer.

@@ -19,7 +19,7 @@ int input_class::input_report_key(  detail::keyboard_tag::status status ,
 	//TODO: FIXME Pointer to sender
 	const event_info ev
 	{
-		isix::isix_get_jiffies(),
+		isix_get_jiffies(),
 		event_info::evtype::EV_KEY,
 		nullptr,
 		{

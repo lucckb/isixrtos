@@ -159,7 +159,7 @@ namespace
 		bool ret = false;
 		static const uint32_t wait_flags = SDIO_FLAG_DCRCFAIL|SDIO_FLAG_DTIMEOUT|SDIO_FLAG_DATAEND|
 				SDIO_FLAG_RXOVERR|SDIO_FLAG_STBITERR;
-		tick_t t_start = isix_get_jiffies();
+		ostick_t t_start = isix_get_jiffies();
 		timeout = isix_ms2tick( timeout );
 		do
 		{
@@ -605,7 +605,7 @@ int mmc_host_sdio::wait_data_ready( unsigned timeout )
 	}
 	return ret;
 #else
-	tick_t t_start = isix_get_jiffies();
+	ostick_t t_start = isix_get_jiffies();
 	timeout = isix_ms2tick( timeout );
 	while( !gpio_get(DATA0_PORT,DATA0_PIN) )
 	{

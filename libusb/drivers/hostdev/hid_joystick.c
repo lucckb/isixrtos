@@ -62,7 +62,7 @@ static const usbh_hid_joystick_ops_t* g_joy_ops;
 //! Joystick context
 typedef struct usbh_hid_joy_context {
 	HID_ReportInfo_t hid_info;	//! HID report info
-	sem_t* report_sem;			//! Report semaphore notifier
+	ossem_t report_sem;			//! Report semaphore notifier
 	usbh_hid_context_t* hidm;	//! HID machine context state
 	bool disconnect;			//! It is disconnection event
 	usbh_joy_hid_event_t evt;	//! Event data processed

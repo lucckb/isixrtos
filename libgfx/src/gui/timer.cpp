@@ -31,14 +31,14 @@ timer::timer( gfx::gui::frame& frm, unsigned elapse, window* win,
 	: m_frm( frm ), m_win( win ), m_id( id ), 
 	  m_cyclic( cyclic ), m_elapse( elapse )
 {
-	m_sys_timer = isix::_isix_vtimer_create_internal_( 
+	m_sys_timer = _isix_vtimer_create_internal_( 
 		cyclic?raw_timer_callback:nullptr, cyclic?this:nullptr, !cyclic );
 }
 /* ------------------------------------------------------------------ */
 //! Destructor
 timer::~timer() {
 	if( m_sys_timer ) {
-		isix::isix_vtimer_destroy( m_sys_timer );
+		isix_vtimer_destroy( m_sys_timer );
 	}
 }
 /* ------------------------------------------------------------------ */
@@ -51,7 +51,7 @@ void timer::raw_timer_callback( void* data ) {
 	auto& tp = *static_cast<timer*>( data );
 	//! Prepare post FFT ready event
 	evinfo ev {
-		isix::isix_get_jiffies(),	//! Current jiffies
+		isix_get_jiffies(),	//! Current jiffies
 		evinfo::EV_TIMER,			//! Sent event user
 		tp.m_win,					//! Target is my window
 		{}
@@ -66,11 +66,11 @@ int timer::start()
 	int ret { einval };
 	if( m_cyclic ) {
 		if( !m_started ) {
-			ret =  isix::isix_vtimer_start_ms( m_sys_timer, m_elapse );
+			ret =  isix_vtimer_start_ms( m_sys_timer, m_elapse );
 			m_started = !ret;
 		} 
 	} else {
-		ret = isix::isix_vtimer_one_shoot_ms( m_sys_timer, 
+		ret = isix_vtimer_one_shoot_ms( m_sys_timer, 
 			raw_timer_callback, this, m_elapse );
 	}
 	return ret;
@@ -81,7 +81,7 @@ int timer::stop()
 {
 	int ret { einval };
 	if( m_started || !m_cyclic ) {
-		ret =  isix::isix_vtimer_stop( m_sys_timer );
+		ret =  isix_vtimer_stop( m_sys_timer );
 		m_started = false;
 	}
 	return ret;

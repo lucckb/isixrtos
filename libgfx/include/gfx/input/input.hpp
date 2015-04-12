@@ -79,7 +79,7 @@ public:
     */
 	virtual int get_repeat_settings( int& /*delay */, int& /*period*/ ) const
 	{
-		return isix::ISIX_ENOTSUP;
+		return ISIX_ENOTSUP;
 	}
 	/** get repeat code 
         @param[in] delay Delay value
@@ -87,7 +87,7 @@ public:
     */
 	virtual int set_repeat_settings( int /*delay */, int /*period*/ )
 	{
-		return isix::ISIX_ENOTSUP;
+		return ISIX_ENOTSUP;
 	}
 	/** Get device name 
         @return Return device descriptor
@@ -101,17 +101,17 @@ public:
         @return Error code */
 	virtual int hardware_led_enable(bool /*yes*/)
 	{
-		return isix::ISIX_ENOTSUP;
+		return ISIX_ENOTSUP;
 	}
 	/* Get led status */
 	virtual int get_led( led_ctl /*led_id */, bool& /*value*/ ) const
 	{
-		return isix::ISIX_ENOTSUP;
+		return ISIX_ENOTSUP;
 	}
 	/* set led status */
 	virtual int set_led( led_ctl /*led_id */, bool /*value*/ )
 	{
-		return isix::ISIX_ENOTSUP;
+		return ISIX_ENOTSUP;
 	}
 	/* Set input queue */
 	void connect( input_evt_t evt )

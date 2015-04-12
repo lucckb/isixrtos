@@ -92,8 +92,8 @@ typedef struct {
 
 static usbh_machine_t Machine;
 static usbh_device_t  Device;
-static sem_t*		  notify_sem;
-static sem_t*		  devrdy_sem;
+static ossem_t		  notify_sem;
+static ossem_t		  devrdy_sem;
 
 /** USB host core initialization **/
 

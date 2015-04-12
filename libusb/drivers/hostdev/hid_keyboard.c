@@ -99,7 +99,7 @@ static  const  uint8_t  hid_keybrd_shiftkey[] = {
 //Keyboard context
 typedef struct usbh_keyb_hid_context {
 	usbh_hid_context_t* hid;		//Hid machine state context
-	sem_t* report_sem;				//Notify semaphore
+	ossem_t report_sem;				//Notify semaphore
 	usbh_keyb_hid_event_t evt;		//Keyboard event data
 	bool disconnect;				//Disconnection event
 	bool num_lock;					//Num lock
