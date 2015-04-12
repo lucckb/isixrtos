@@ -52,7 +52,7 @@ class unit_tests : public isix::task_base
     virtual void main() 
 	{
 		vStartEventGroupTasks();
-#if 0
+#if 1
 		heap_test();
 		atomic_test.run();
 		sched_test.run();

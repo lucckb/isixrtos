@@ -373,7 +373,7 @@ static void add_ready_list( ostask_t task )
             list_insert_end(&prio_i->task_list,&task->inode);
             return ;
         }
-        else if(task->prio < prio_i->prio)
+        else if( isixp_prio_gt(task->prio,prio_i->prio) )
         {
            printk("wkup: Insert prio %i node %p",prio_i->prio,prio_i);
            break;
@@ -440,7 +440,7 @@ void _isixp_add_to_prio_queue( list_entry_t *list, ostask_t task )
     ostask_t item;
     list_for_each_entry( list, item, inode )
     {
-    	if(task->prio<item->prio) break;
+    	if ( isixp_prio_gt(task->prio,item->prio) ) break;
     }
     printk("prioqueue: insert in time list at %p", task );
     list_insert_before( &item->inode, &task->inode );
