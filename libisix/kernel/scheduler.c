@@ -619,10 +619,8 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 	if( task->state==OSTHR_STATE_READY || 
 		task->state==OSTHR_STATE_RUNNING )
 	{
-		//print_task_list();
 		delete_from_ready_list( task );
 		//tiny_printf("Delete from rdy %p\n", task );
-		//print_task_list();
 	} 
 	// If if task wait for sem 
 	if( task->state == OSTHR_STATE_WTSEM ||
