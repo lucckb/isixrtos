@@ -224,7 +224,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 	_isixp_enter_critical();
 	{	
 		osbitset_t orgbits = evth->bitset;
-		_isixp_event_set( evth, bits_to_set, false );	//FIXME: Replace true
+		_isixp_event_set( evth, bits_to_set, false );
 		//printk("Task %p Afterset %08x", currp, evth->bitset);
 		if( ((orgbits|bits_to_set) & bits_to_wait ) == bits_to_wait )
 		{

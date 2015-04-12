@@ -290,7 +290,7 @@ TaskHandle_t xTestSlaveTaskHandle = ( TaskHandle_t ) pvParameters;
 		if( xError == pdFALSE )
 		{
 			ulTestMasterCycles++;
-			if( ulTestSlaveCycles % 1000 == 0 ) {
+			if( ulTestSlaveCycles % 10000 == 0 ) {
 				dbprintf("Cycle OK %i",ulTestSlaveCycles);
 			}
 		}
@@ -656,7 +656,6 @@ EventBits_t uxBits;
 
 	/* The other tasks should now all be suspended again, ready for the next
 	synchronisation. */
-	isix_wait_ms(1);	//FIXME fixme timings
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eSuspended )
 	{
 		xError = pdTRUE;
@@ -748,7 +747,8 @@ EventBits_t uxBits;
 	/* Reset the priority of this task back to its original value. */
 	configASSERT( vTaskPrioritySet( NULL, ebSET_BIT_TASK_PRIORITY ) >= 0 );
 
-	isix_wait_ms(1);	//FIXME:  Reschedule needed
+	//isix_wait_ms(1);	//FIXME:  Reschedule needed
+	isix_yield();
 	/* Now all the other tasks should have reblocked on the event bits
 	to test the behaviour when the event bits are deleted. */
 	if( eTaskGetState( xTestSlaveTaskHandle ) != eBlocked )
