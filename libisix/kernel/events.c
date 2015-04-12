@@ -79,11 +79,6 @@ int isix_event_destroy( osevent_t evh )
 osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait, 
 		bool clear_on_exit, bool wait_for_all, ostick_t timeout )
 {
-	//printk("Wait()");
-	/*
-	printk("event_wait( evth=%p bitstowait=%08x clear=%i, wait_all=%i to=%u",
-			evth, bits_to_wait, clear_on_exit, wait_for_all, timeout );
-	*/
 	osbitset_t retval;
 	//! Check input parameters
 	if( !evth ) {
@@ -130,7 +125,6 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 			retval = currp->obj.dmsg;
 		}
 	}
-	//printk("waitr=%08x", retval);
 	_isixp_exit_critical();
 	return retval;
 }
@@ -156,7 +150,6 @@ osbitset_ret_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear )
 //! Events to set bits
 osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool isr )
 {
-	//printk("Set(%08x)", bits_to_set);
 	//! Check input parameters
 	if( !evth ) {
 		return ISIX_EINVARG;
@@ -174,22 +167,16 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	{	
 		if( check_cond2(evth->bitset,t->obj.evbits) )
 		{
-			//printk("Try to wake %p evbits %08x bitset %08x", t, t->obj.evbits, evth->bitset );
 			if( t->obj.evbits & ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG ) {
 				clr_bits |= t->obj.evbits & ISIX_EVENT_EVBITS;
 			}
-			//printk("Match %p %08x %08x", t , evth->bitset, t->obj.evbits );
 			//! Post only normal bits negative value means error
 			list_delete( &t->inode );
 			_isixp_wakeup_task_l( t, evth->bitset );
 			wkup_task = isixp_max_prio( wkup_task, t );
-		} else 
-		{
-			//printk("NOTMATCH %p %08x %08x", t , evth->bitset, t->obj.evbits );
 		}
 	}
 	evth->bitset &= ~clr_bits;
-	//printk("Ret=%08x", evth->bitset );
 	if( !isr ) _isixp_do_reschedule( wkup_task );
 	else  	   _isixp_exit_critical(); 
 	return evth->bitset;
@@ -225,10 +212,8 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 	{	
 		osbitset_t orgbits = evth->bitset;
 		_isixp_event_set( evth, bits_to_set, false );
-		//printk("Task %p Afterset %08x", currp, evth->bitset);
 		if( ((orgbits|bits_to_set) & bits_to_wait ) == bits_to_wait )
 		{
-			//printk("Meet1 %p", currp);
 			//! All bits set condition was meet
 			retval = orgbits|bits_to_set;
 			evth->bitset &= ~ bits_to_wait;
@@ -239,7 +224,6 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 			//Bit condition not meet
 			if( timeout != ISIX_TIME_DONTWAIT ) 
 			{
-				//printk("Meet2 %p", currp);
 				_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
 				list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
 				currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG 
@@ -264,6 +248,5 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 		}
 	}
 	_isixp_exit_critical();
-	//printk("exitx %p=%08x(%i)", currp, retval, retval );
 	return retval;
 }

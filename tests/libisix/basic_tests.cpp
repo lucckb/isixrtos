@@ -51,7 +51,8 @@ class unit_tests : public isix::task_base
 	//Test basic tasks
     virtual void main() 
 	{
-#if 1
+		vStartEventGroupTasks();
+#if 0
 		heap_test();
 		atomic_test.run();
 		sched_test.run();
@@ -61,10 +62,10 @@ class unit_tests : public isix::task_base
 		mempool_test.run();
 		timer_test.run();
 		errno_test.run();
-#endif
 		event_test.run();
 		isix_wait_ms(100);
 		isix_shutdown_scheduler();
+#endif
 	}
 };
 
@@ -79,7 +80,6 @@ int main()
 	dbprintf("-------- BEGIN_TESTS ---------");
 	static unit_tests test;
 	test.start_thread(4096, 0);
-	//vStartEventGroupTasks();
 	isix_start_scheduler();
 	return 0;
 }
