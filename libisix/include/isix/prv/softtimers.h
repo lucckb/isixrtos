@@ -28,6 +28,14 @@ struct isix_vtimer
 	list_t inode;				  /* Inode list */
 };
 
+struct vtimer_context {
+	//List entry for the virtual timers
+	list_entry_t vtimer_list[2];
+	//Overflowed and not overflowed list
+	list_entry_t *p_vtimer_list;
+	list_entry_t *pov_vtimer_list;
+} ;
+
 #else
 
 static inline void _isixp_vtimer_init(void) {}

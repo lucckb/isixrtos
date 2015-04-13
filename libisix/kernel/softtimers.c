@@ -4,34 +4,30 @@
  *  Created on: 05-03-2011
  *      Author: lucck
  */
-/*-----------------------------------------------------------------------*/
-#include <isix/prv/irqtimers.h>
-#include <isix/irqtimers.h>
+
+#include <isix/prv/softtimers.h>
+#include <isix/softtimers.h>
 #include <isix/memory.h>
 #include <isix/prv/list.h>
 #include <string.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
-/*-----------------------------------------------------------------------*/
+
 #ifdef ISIX_CONFIG_USE_TIMERS 
-/*-----------------------------------------------------------------------*/
-//List entry for the virtual timers
-static list_entry_t vtimer_list[2];
-//Overflowed and not overflowed list
-static list_entry_t *p_vtimer_list;
-static list_entry_t *pov_vtimer_list;
-/*-----------------------------------------------------------------------*/
+
+static struct vtimer_context tctx;
+
 //Initialize vtimers infrastructure
 void _isixp_vtimer_init(void)
 {
-	list_init( &vtimer_list[0] );
-	list_init( &vtimer_list[1] );
+	list_init( &tctx.vtimer_list[0] );
+	list_init( &tctx.vtimer_list[1] );
 	//Initialize overflow waiting list
-	p_vtimer_list = &vtimer_list[0];
-	pov_vtimer_list = &vtimer_list[1];
+	tctx.p_vtimer_list = &tctx.vtimer_list[0];
+	tctx.pov_vtimer_list = &tctx.vtimer_list[1];
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Move selected task to waiting list
 static void add_vtimer_to_list(osvtimer_t timer)
 {
@@ -42,7 +38,7 @@ static void add_vtimer_to_list(osvtimer_t timer)
     {
     	//Insert on overflow waiting list in time order
     	osvtimer_t waitl;
-    	list_for_each_entry(pov_vtimer_list,waitl,inode)
+    	list_for_each_entry(tctx.pov_vtimer_list,waitl,inode)
     	{
     	   if( timer->jiffies < waitl->jiffies ) break;
     	}
@@ -52,7 +48,7 @@ static void add_vtimer_to_list(osvtimer_t timer)
     {
     	//Insert on waiting list in time order no overflow
     	osvtimer_t waitl;
-    	list_for_each_entry( p_vtimer_list, waitl, inode )
+    	list_for_each_entry( tctx.p_vtimer_list, waitl, inode )
     	{
     	    if( timer->jiffies < waitl->jiffies ) break;
     	}
@@ -62,19 +58,19 @@ static void add_vtimer_to_list(osvtimer_t timer)
     _isixp_exit_critical();
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Call timer funcs in the interrupt context
 void _isixp_vtimer_handle_time(ostick_t jiffies)
 {
 	if(jiffies == 0)
 	{
-	   list_entry_t *tmp = p_vtimer_list;
-	   p_vtimer_list = pov_vtimer_list;
-	   pov_vtimer_list = tmp;
+	   list_entry_t *tmp = tctx.p_vtimer_list;
+	   tctx.p_vtimer_list = tctx.pov_vtimer_list;
+	   tctx.pov_vtimer_list = tmp;
 	}
 	osvtimer_t vtimer;
-	while( !list_isempty(p_vtimer_list) &&
-		jiffies>=(vtimer = list_first_entry(p_vtimer_list,inode,struct isix_vtimer))->jiffies
+	while( !list_isempty(tctx.p_vtimer_list) &&
+		jiffies>=(vtimer = list_first_entry(tctx.p_vtimer_list,inode,struct isix_vtimer))->jiffies
 	)
 	{
 		list_delete(&vtimer->inode);
@@ -87,7 +83,7 @@ void _isixp_vtimer_handle_time(ostick_t jiffies)
 	}
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Create the virtual timer
 osvtimer_t _isix_vtimer_create_internal_(osvtimer_callback func,void *arg, bool one_shoot )
 {
@@ -113,7 +109,7 @@ osvtimer_t _isix_vtimer_create_internal_(osvtimer_callback func,void *arg, bool 
     return timer;
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Start the virtual timer
 int isix_vtimer_start(osvtimer_t timer, ostick_t timeout)
 {
@@ -134,7 +130,7 @@ int isix_vtimer_start(osvtimer_t timer, ostick_t timeout)
 	_isixp_exit_critical();
 	return ISIX_EOK;
 }
-/*-----------------------------------------------------------------------*/
+
 //! Start one shoot timer
 int isix_vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, void *arg, ostick_t timeout )
 {
@@ -156,7 +152,7 @@ int isix_vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, void *arg, 
 	_isixp_exit_critical();
 	return ISIX_EOK;
 }
-/*-----------------------------------------------------------------------*/
+
 //Destroy the virtual timer
 int isix_vtimer_destroy(osvtimer_t timer)
 {
@@ -171,7 +167,6 @@ int isix_vtimer_destroy(osvtimer_t timer)
 	_isixp_exit_critical();
 	return ISIX_EOK;
 }
-/*-----------------------------------------------------------------------*/
 
 
 #endif /* ISIX_CONFIG_USE_TIMERS */

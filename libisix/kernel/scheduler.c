@@ -5,7 +5,7 @@
 #include <isix/memory.h>
 #include <isix/prv/list.h>
 #include <isix/prv/semaphore.h>
-#include <isix/prv/irqtimers.h>
+#include <isix/prv/softtimers.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
@@ -70,6 +70,10 @@ void _isixp_unlock_scheduler()
 		while( csys.jiffies_skipped.counter > 0 ) {
 			internal_schedule_time();
 			--csys.jiffies_skipped.counter;
+		}
+		if( csys.yield_pending ) {
+			port_yield();
+			csys.yield_pending = false;
 		}
 		_isixp_exit_critical();
 	}
@@ -220,6 +224,7 @@ void print_task_list()
 void _isixp_schedule(void)
 {
 	if( port_atomic_sem_read_val(&csys.sched_lock) ) {
+		csys.yield_pending = true;
 		return;
 	}
     //Remove executed task and add at end
@@ -614,10 +619,7 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 	if( task->state==OSTHR_STATE_READY || 
 		task->state==OSTHR_STATE_RUNNING )
 	{
-		//print_task_list();
 		delete_from_ready_list( task );
-		//tiny_printf("Delete from rdy %p\n", task );
-		//print_task_list();
 	} 
 	// If if task wait for sem 
 	if( task->state == OSTHR_STATE_WTSEM ||
