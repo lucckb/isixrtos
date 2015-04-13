@@ -18,12 +18,41 @@
 //! Global timer CTX structure
 static struct vtimer_context tctx;
 
+//! Worker thread used for 
+static void worker_thread( void* param ) 
+{
+	(void)param;
+}
+
+//! Lazy initializatize worker thread only if feature is used
+static bool lazy_initalize()
+{
+	if( !tctx.worker_thread_id ) 
+	{
+		list_init( &tctx.vtimer_list[0] );
+		list_init( &tctx.vtimer_list[1] );
+		//Initialize overflow waiting list
+		tctx.p_vtimer_list =   &tctx.vtimer_list[0];
+		tctx.pov_vtimer_list = &tctx.vtimer_list[1];
+		tctx.worker_thread_id = isix_task_create( worker_thread, NULL, 
+			ISIX_PORT_SCHED_MIN_STACK_DEPTH*2, isix_get_min_priority()/2, 0 );
+	}
+	return !tctx.worker_thread_id;
+}
+
 /** Create virtual timer  object
  * @return Virtual timer or null ptr if cannot be created
  */
 osvtimer_t isix_vtimer_create( void ) 
 {
-	return NULL;
+	//Lazy initialize worker thread (if it was not created)
+	if( lazy_initalize() ) {
+		return NULL;
+	}
+	osvtimer_t timer = (osvtimer_t)isix_alloc(sizeof(struct isix_vtimer));
+	memset( timer, 0, sizeof(*timer) );
+	if( !timer ) return timer;
+	return timer;
 }
 
 /**

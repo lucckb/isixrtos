@@ -9,6 +9,8 @@
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/prv/list.h>
+#include <isix/task.h>
+#include <isix/fifo.h>
 
 #ifdef ISIX_CONFIG_USE_TIMERS
 
@@ -28,6 +30,8 @@ struct vtimer_context {
 	//Overflowed and not overflowed list
 	list_entry_t *p_vtimer_list;
 	list_entry_t *pov_vtimer_list;
+	ostask_t worker_thread_id;
+	osfifo_t worker_queue;
 } ;
 
 #endif
