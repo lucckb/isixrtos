@@ -21,7 +21,8 @@ typedef struct isix_vtimer* osvtimer_t;
 typedef void (*osvtimer_callback)(void*);
 
 //Private function for handling internal timer
-osvtimer_t _isix_vtimer_create_internal_( osvtimer_callback func,void *arg, bool one_shoot );
+osvtimer_t _isix_vtimer_create_internal_( osvtimer_callback func,
+		void *arg, bool one_shoot );
 
 
 /** Create virtual timer called from interrupt context for light events
@@ -93,7 +94,8 @@ static inline int isix_vtimer_start_ms(osvtimer_t timer, ostick_t timeout)
  * @param timeout Timeout
  * @return success if ISIX_EOK else isix error
  */
-static inline int isix_vtimer_one_shoot_ms( osvtimer_t timer, osvtimer_callback func, void *arg, ostick_t timeout ) 
+static inline int isix_vtimer_one_shoot_ms( osvtimer_t timer, 
+		osvtimer_callback func, void *arg, ostick_t timeout ) 
 {
 	return isix_vtimer_one_shoot( timer, func, arg, timeout>0?isix_ms2tick(timeout):0 );
 }

@@ -15,6 +15,7 @@
 
 #ifdef ISIX_CONFIG_USE_TIMERS 
 
+//! Global timer CTX structure
 static struct vtimer_context tctx;
 
 //Initialize vtimers infrastructure
@@ -82,7 +83,6 @@ void _isixp_vtimer_handle_time(ostick_t jiffies)
 		}
 	}
 }
-
 
 //Create the virtual timer
 osvtimer_t _isix_vtimer_create_internal_(osvtimer_callback func,void *arg, bool one_shoot )
