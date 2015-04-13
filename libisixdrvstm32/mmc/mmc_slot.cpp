@@ -21,12 +21,13 @@ namespace
 //Constructor
 mmc_slot::mmc_slot( mmc_host &host, immc_det_pin &det_pin  )
 	: m_det_pin(det_pin), m_host( host ), m_card(NULL),
-	  m_det_timer(isix_vtimer_create(det_card_insertion_raw_callback, this)),
+	  m_det_timer(isix_vtimer_create()),
 	  m_event(0), m_p_card_inserted(0), m_init_req(true), m_card_sem(0, 1)
 {
 	if( m_det_timer )
-	{
-		isix_vtimer_start_ms( m_det_timer, C_detect_interval );
+	{ 
+		isix_vtimer_start( m_det_timer, det_card_insertion_raw_callback, 
+				this, isix::ms2tick(C_detect_interval), false );
 	}
 }
 /*--------------------------------------------------------------*/
@@ -56,7 +57,7 @@ void mmc_slot::det_card_insertion_callback()
 mmc_slot::~mmc_slot()
 {
 	if( m_det_timer ) {
-		isix_vtimer_stop( m_det_timer );
+		isix_vtimer_cancel( m_det_timer );
 		isix_vtimer_destroy( m_det_timer );
 		m_det_timer = NULL;
 	}

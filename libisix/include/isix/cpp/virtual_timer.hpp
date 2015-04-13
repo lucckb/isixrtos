@@ -30,26 +30,34 @@ namespace isix {
     public:
             //! Create virtual timer object
             virtual_timer() {
-                    timer = isix_vtimer_create( vtimer_func, this );
+				timer = vtimer_create( );
             }
             //! Destroy the virtual timer object
             ~virtual_timer() {
-                    isix_vtimer_destroy( timer );
+				vtimer_destroy( timer );
             }
             //! Check that object is valid
-            bool is_valid() { return timer!=0; }
+            bool is_valid() { 
+				return timer!=0; 
+			}
             //! Start the timer on selected period
-            int start(ostick_t timeout) { return isix_vtimer_start( timer, timeout ); }
+            int start( ostick_t timeout, bool cyclic=true ) { 
+				return vtimer_start( timer, callback, this, timeout, cyclic ); 
+			}
             //! Start the timer on selected period
-            int start_ms(ostick_t timeout) { return isix_vtimer_start( timer, timeout ); }
+            int start_ms( ostick_t timeout, bool cyclic=true ) { 
+				return vtimer_start( timer, callback, this, ms2tick(timeout), cyclic ); 
+			}
             //! Stop the timer
-            int stop() { return isix_vtimer_stop( timer ); }
+            int stop() { 
+				return isix_vtimer_cancel( timer ); 
+			}
     protected:
             //! Virtual function called on time
             virtual void handle_timer() = 0;
     private:
-            static void vtimer_func(void *ptr) {
-                    static_cast<virtual_timer*>(ptr)->handle_timer();
+            static void callback(void *ptr) {
+				static_cast<virtual_timer*>(ptr)->handle_timer();
             }
     private:
             //Noncopyable

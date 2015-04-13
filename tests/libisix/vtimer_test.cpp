@@ -57,18 +57,16 @@ namespace {
 // VTIMER one shoot test
 void vtimer::one_shoot() 
 {
-	auto* timerh = isix_vtimer_create_oneshoot();
+	auto* timerh = isix_vtimer_create();
 	QUNIT_IS_TRUE( timerh != nullptr );
-	//Check negative to use normal timer here
-	QUNIT_IS_EQUAL( isix_vtimer_start(timerh, 100 ), ISIX_EINVARG );
 	//Run one shoot timer
 	call_info ci;
 	QUNIT_IS_EQUAL( 
-			isix_vtimer_one_shoot( timerh, one_call_timer_fun, &ci, 100 ),
+			isix::vtimer_start( timerh, one_call_timer_fun, &ci, 100, false ),
 			ISIX_EOK );
 	isix_wait_ms( 5 );
 	QUNIT_IS_EQUAL( 
-			isix_vtimer_one_shoot( timerh, one_call_timer_fun, &ci, 100 ),
+			isix_vtimer_start( timerh, one_call_timer_fun, &ci, 100, false ),
 			ISIX_EBUSY );
 	isix_wait_ms( 200 );
 	QUNIT_IS_EQUAL( ci.count, 1 );

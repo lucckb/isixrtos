@@ -5,7 +5,6 @@
 #include <isix/memory.h>
 #include <isix/prv/list.h>
 #include <isix/prv/semaphore.h>
-#include <isix/prv/softtimers.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
@@ -157,8 +156,6 @@ void isix_init(osprio_t num_priorities)
 			ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities,0 ) ) {
 		isix_bug("Insufficient memory idle task");	
 	}
-    //Initialize virtual timers infrastructure
-    _isixp_vtimer_init();
 }
 
 //Isix bug report when printk is defined
@@ -301,8 +298,6 @@ static void internal_schedule_time(void)
 		}
 		add_ready_list( task_c );
     }
-	//Handle timvtimers
-    _isixp_vtimer_handle_time( csys.jiffies );
 }
 
 

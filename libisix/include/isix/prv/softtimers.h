@@ -12,12 +12,6 @@
 
 #ifdef ISIX_CONFIG_USE_TIMERS
 
-//Initialize vtimers infrastructure
-void _isixp_vtimer_init(void);
-
-//Call timer funcs in the interrupt context
-void _isixp_vtimer_handle_time(ostick_t jiffies);
-
 struct isix_vtimer
 {
 	ostick_t jiffies;	      		  /* Next timeout handle */
@@ -35,11 +29,6 @@ struct vtimer_context {
 	list_entry_t *p_vtimer_list;
 	list_entry_t *pov_vtimer_list;
 } ;
-
-#else
-
-static inline void _isixp_vtimer_init(void) {}
-static inline void _isixp_vtimer_handle_time(ostick_t jiffies) { (void)jiffies; }
 
 #endif
 /*-----------------------------------------------------------------------*/

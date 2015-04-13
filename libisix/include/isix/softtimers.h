@@ -4,10 +4,9 @@
  *  Created on: 05-03-2011
  *      Author: lucck
  */
+
 #pragma once
-
 #include <isix/config.h>
-
 #ifdef ISIX_CONFIG_USE_TIMERS
 #include <isix/types.h>
 #include <isix/ostime.h>
@@ -18,87 +17,69 @@ extern "C" {
 /* Structure definition for hidding the type */
 struct isix_vtimer;
 typedef struct isix_vtimer* osvtimer_t;
+
+/** Callback functions  */
 typedef void (*osvtimer_callback)(void*);
-
-//Private function for handling internal timer
-osvtimer_t _isix_vtimer_create_internal_( osvtimer_callback func,
-		void *arg, bool one_shoot );
+typedef osvtimer_callback osworkfunc_t;
 
 
-/** Create virtual timer called from interrupt context for light events
- * consume much power cyclic tasks
- * @param[in] func Function to be called in context - cyclic timeout
- * @param[in] arg Argument passed to the function
- * @return NULL if timer create was unsucess, else return vtimer pointer
+/** Create virtual timer  object
+ * @return Virtual timer or null ptr if cannot be created
  */
-static inline osvtimer_t isix_vtimer_create(osvtimer_callback func,void *arg ) {
-	return _isix_vtimer_create_internal_( func, arg, false );
-}
-
-/**
- * Create virtual timer from interrupt context without init fn
- * @return
- */
-static inline osvtimer_t isix_vtimer_create_oneshoot( void ) {
-	return _isix_vtimer_create_internal_( NULL, NULL,true );
-}
+osvtimer_t isix_vtimer_create( void );
 
 /**
  * Start one shoot timer execution
  * @param timer	Pointer to the timer structure
- * @param fun Function to be called in interrupt context
+ * @param fun Function to be called 
  * @param arg Argument passed to the function
  * @param timeout Timeout
+ * @param[in] Cyclic is cyclic timer
  * @return success if ISIX_EOK else isix error
  */
-int isix_vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, void *arg, ostick_t timeout );
-
-/** Start the vtimer on the selected period
- * @param[in] timer Pointer to the timer structure
- * @param[in] timeout Timeout for the next start
- * @return success if ISIX_EOK , otherwise error
- */
-int isix_vtimer_start(osvtimer_t timer, ostick_t timeout);
+int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
+		void* arg, ostick_t timeout, bool cyclic );
 
 /** Stop the vtimer on the selected period
  * @param[in] timer Pointer to the timer structure
  * @return success if ISIX_EOK , otherwise error
  */
-static inline int isix_vtimer_stop(osvtimer_t timer)
-{
-	return isix_vtimer_start( timer, 0 );
-}
+int isix_vtimer_cancel( osvtimer_t timer );
+
+
+/** Check if timer is still active and it waits for an event
+ * @param[in] timer TImer handler
+ * @return Timer state true if active false if not or error
+ * code if returned value is negative */
+int isix_vtimer_is_active( osvtimer_t timer );
+
+
 
 /** Destroy the vtimer on the selected period
  * @param[in] timer Pointer to the timer structure
  * @return success if ISIX_EOK , otherwise error
  */
+int isix_vtimer_destroy( osvtimer_t timer );
 
-int isix_vtimer_destroy(osvtimer_t timer);
-/** Start the timer on the selected period
- * @param[in] timer Pointer to the timer structure
- * @param[in] timeout in milisec Timeout for the next start
- * @return success if ISIX_EOK , otherwise error
+
+/** Only one function schedule task from an interrupt or 
+ * other task context for delayed execution 
+ * @param[in] func Function to call
+ * @param[in[ arg Functon argument
  */
+int isix_schedule_work_isr( osworkfunc_t func, void* arg );
 
-static inline int isix_vtimer_start_ms(osvtimer_t timer, ostick_t timeout)
-{
-	return isix_vtimer_start( timer, timeout>0?isix_ms2tick(timeout):0 );
-}
 
-/**
- * Start one shoot timer execution ms period
- * @param timer	Pointer to the timer structure
- * @param fun Function to be called in interrupt context
- * @param arg Argument passed to the function
- * @param timeout Timeout
- * @return success if ISIX_EOK else isix error
+/** Schedule task at selected time
+ * @param[in] timer Timer handle 
+ * @param[in] func  Function to execute
+ * @param[in] arg   Function argument 
+ * @param[in] time  Schedule wait time
  */
-static inline int isix_vtimer_one_shoot_ms( osvtimer_t timer, 
-		osvtimer_callback func, void *arg, ostick_t timeout ) 
-{
-	return isix_vtimer_one_shoot( timer, func, arg, timeout>0?isix_ms2tick(timeout):0 );
-}
+int isix_schedule_delayed_work_isr( osvtimer_t timer, 
+		osworkfunc_t func, void* arg, ostick_t wtime );
+
+
 #ifdef __cplusplus
 }	//end extern-C
 #endif /* __cplusplus */
@@ -107,31 +88,28 @@ static inline int isix_vtimer_one_shoot_ms( osvtimer_t timer,
 namespace isix {
 namespace {
 	using vtimer_t = osvtimer_t;
-	inline osvtimer_t vtimer_create( osvtimer_callback func,void *arg ) {
-		return ::isix_vtimer_create( func, arg );
+	inline osvtimer_t vtimer_create() {
+		return ::isix_vtimer_create();
 	}
-	inline osvtimer_t vtimer_create_oneshoot( ) {
-		return ::isix_vtimer_create_oneshoot();
+	inline int vtimer_start( osvtimer_t timer, osvtimer_callback func, 
+			void* arg, ostick_t timeout, bool cyclic ) {
+		return ::isix_vtimer_start( timer, func, arg, timeout, cyclic );
 	}
-	inline int vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, 
-			void *arg, ostick_t timeout ) {
-		return ::isix_vtimer_one_shoot( timer, func, arg, timeout );
+	inline int vtimer_cancel( osvtimer_t timer ) {
+		return ::isix_vtimer_cancel( timer );
 	}
-	inline int vtimer_start( osvtimer_t timer, ostick_t timeout ) {
-		return ::isix_vtimer_start( timer, timeout );
-	}
-	inline int vtimer_stop( osvtimer_t timer ) {
-		return ::isix_vtimer_stop( timer );
+	inline int vtimer_is_active( osvtimer_t timer ) {
+		return ::isix_vtimer_is_active( timer );
 	}
 	inline int vtimer_destroy( osvtimer_t timer ) {
 		return ::isix_vtimer_destroy( timer );
 	}
-	inline int vtimer_start_ms( osvtimer_t timer, ostick_t timeout ) {
-		return ::isix_vtimer_start_ms( timer, timeout );
+	inline int schedule_work_isr( osworkfunc_t func, void* arg ) {
+		return ::isix_schedule_work_isr( func, arg );
 	}
-	inline int vtimer_one_shoot_ms( osvtimer_t timer, osvtimer_callback func, 
-			void *arg, ostick_t timeout ) {
-		return ::isix_vtimer_one_shoot_ms( timer, func, arg, timeout );
+	inline int schedule_delayed_work_isr( osvtimer_t timer, 
+			osworkfunc_t func, void* arg, ostick_t wtime ) {
+		return ::isix_schedule_delayed_work_isr( timer, func, arg, wtime );
 	}
 }}
 #endif /* __cplusplus */
