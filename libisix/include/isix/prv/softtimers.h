@@ -9,30 +9,47 @@
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/prv/list.h>
+#include <isix/prv/semaphore.h>
 #include <isix/task.h>
 #include <isix/fifo.h>
 
 #ifdef ISIX_CONFIG_USE_TIMERS
 
-struct isix_vtimer
-{
-	ostick_t jiffies;	      		  /* Next timeout handle */
-	ostick_t timeout;			 	  /* Timeout timer value */
-	void (*timer_handler)(void*); /* Next timer call */
-	void *arg;					  /* Function pointer */
-	bool one_shoot;				  /* Is a one shoot timer */
-	list_t inode;				  /* Inode list */
+//! Default queue size
+#ifndef ISIX_CONFIG_TIMERS_CMD_QUEUE_SIZE 
+#define ISIX_CONFIG_TIMERS_CMD_QUEUE_SIZE 8
+#endif
+
+struct isix_vtimer {
+	ostick_t jiffies;	      	  		/* Next timeout handle */
+	ostick_t timeout;			  		/* Timeout timer value */
+	void (*timer_handler)(void*); 		/* Next timer call */
+	void *arg;					  		/* Function pointer */
+	list_t inode;				  		/* Inode list */
+	struct isix_semaphore exit;	  		/* Exit sem */
+	bool sa_exec;						/* Single execution */
 };
 
 struct vtimer_context {
 	//List entry for the virtual timers
 	list_entry_t vtimer_list[2];
 	//Overflowed and not overflowed list
-	list_entry_t *p_vtimer_list;
-	list_entry_t *pov_vtimer_list;
+	list_entry_t *p_vtimer_list;	//Normal list 
+	list_entry_t *pov_vtimer_list;	//Overflow list
 	ostask_t worker_thread_id;
 	osfifo_t worker_queue;
 } ;
 
-#endif
+//Finalize function
+void _isixp_vtimers_finalize();
+
+#else /*  ISIX_CONFIG_USE_TIMERS */
+
+static inline void __attribute__((always_inline))
+	_isixp_vtimers_finalize()
+{
+
+}
+
+#endif /* ISIX_CONFIG_USE_TIMERS */
 /*-----------------------------------------------------------------------*/

@@ -4,6 +4,7 @@
 #include <isix/task.h>
 #include <isix/memory.h>
 #include <isix/prv/list.h>
+#include <isix/prv/softtimers.h>
 #include <isix/prv/semaphore.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
@@ -93,7 +94,9 @@ void isix_shutdown_scheduler(void)
 /** Function called at end of isix execution only
  * when shutdown API is enabled
  */
-void _isixp_finalize() {
+void _isixp_finalize() 
+{
+	_isixp_vtimers_finalize();
 	cleanup_tasks();
 }
 #endif /* ISIX_CONFIG_SHUTDOWN_API  */

@@ -17,14 +17,14 @@ typedef struct isix_semaphore* ossem_t;
  * @param[in] limit_val Maximum value allowed in the sem
  * @return Semaphore object or NULL when semaphore can't be created
  */
-ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val);
+ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val );
 
 /** Function create the semaphore
  * @param[in] sem Semaphore object. When it is null semaphore is created on the stack
  * @param[in] val Initial value of the semaphore
  * @return Semaphore object or NULL when semaphore can't be created
  */
-static inline ossem_t isix_sem_create( ossem_t sem,int val)
+static inline ossem_t isix_sem_create( ossem_t sem, int val )
 {
 	return isix_sem_create_limited( sem, val, ISIX_SEM_ULIMITED );
 }

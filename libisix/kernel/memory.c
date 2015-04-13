@@ -152,9 +152,6 @@ void isix_free(void *p)
 
   while (1) {
 
-/*    chDbgAssert((hp < qp) || (hp >= LIMIT(qp)),
-                "chHeapFree(), #2",
-                "within free block"); */
 
     if (((qp == &heap.free) || (hp > qp)) &&
         ((qp->h.h_next == NULL) || (hp < qp->h.h_next))) {

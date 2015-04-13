@@ -22,6 +22,7 @@
 
 /** Enable disable global debug */
 #define ISIX_DEBUG_ENABLE ISIX_DBG_ON
+
 /** Enable debugging options */
 #define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
 #define ISIX_DEBUG_FIFO ISIX_DBG_OFF
