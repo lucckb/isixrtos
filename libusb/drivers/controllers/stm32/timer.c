@@ -143,12 +143,12 @@ void usblibp_fine_timer_stop(int timer) {
     case 3:
       US_TIM->DIER &= ~TIM_IT_CC3;
       US_TIM->SR = ~TIM_IT_CC3;
-      us_callback1 = NULL;
+      us_callback3 = NULL;
       break;
     case 4:
       US_TIM->DIER &= ~TIM_IT_CC4;
       US_TIM->SR = ~TIM_IT_CC4;
-      us_callback1 = NULL;
+      us_callback4 = NULL;
       break;
   }
 }
