@@ -5,8 +5,8 @@
  *      Author: lucck
  */
 
-#include <isix/prv/irqtimers.h>
-#include <isix/irqtimers.h>
+#include <isix/prv/softtimers.h>
+#include <isix/softtimers.h>
 #include <isix/memory.h>
 #include <isix/prv/list.h>
 #include <string.h>
@@ -15,20 +15,16 @@
 
 #ifdef ISIX_CONFIG_USE_TIMERS 
 
-//List entry for the virtual timers
-static list_entry_t vtimer_list[2];
-//Overflowed and not overflowed list
-static list_entry_t *p_vtimer_list;
-static list_entry_t *pov_vtimer_list;
+static struct vtimer_context tctx;
 
 //Initialize vtimers infrastructure
 void _isixp_vtimer_init(void)
 {
-	list_init( &vtimer_list[0] );
-	list_init( &vtimer_list[1] );
+	list_init( &tctx.vtimer_list[0] );
+	list_init( &tctx.vtimer_list[1] );
 	//Initialize overflow waiting list
-	p_vtimer_list = &vtimer_list[0];
-	pov_vtimer_list = &vtimer_list[1];
+	tctx.p_vtimer_list = &tctx.vtimer_list[0];
+	tctx.pov_vtimer_list = &tctx.vtimer_list[1];
 }
 
 
@@ -42,7 +38,7 @@ static void add_vtimer_to_list(osvtimer_t timer)
     {
     	//Insert on overflow waiting list in time order
     	osvtimer_t waitl;
-    	list_for_each_entry(pov_vtimer_list,waitl,inode)
+    	list_for_each_entry(tctx.pov_vtimer_list,waitl,inode)
     	{
     	   if( timer->jiffies < waitl->jiffies ) break;
     	}
@@ -52,7 +48,7 @@ static void add_vtimer_to_list(osvtimer_t timer)
     {
     	//Insert on waiting list in time order no overflow
     	osvtimer_t waitl;
-    	list_for_each_entry( p_vtimer_list, waitl, inode )
+    	list_for_each_entry( tctx.p_vtimer_list, waitl, inode )
     	{
     	    if( timer->jiffies < waitl->jiffies ) break;
     	}
@@ -68,13 +64,13 @@ void _isixp_vtimer_handle_time(ostick_t jiffies)
 {
 	if(jiffies == 0)
 	{
-	   list_entry_t *tmp = p_vtimer_list;
-	   p_vtimer_list = pov_vtimer_list;
-	   pov_vtimer_list = tmp;
+	   list_entry_t *tmp = tctx.p_vtimer_list;
+	   tctx.p_vtimer_list = tctx.pov_vtimer_list;
+	   tctx.pov_vtimer_list = tmp;
 	}
 	osvtimer_t vtimer;
-	while( !list_isempty(p_vtimer_list) &&
-		jiffies>=(vtimer = list_first_entry(p_vtimer_list,inode,struct isix_vtimer))->jiffies
+	while( !list_isempty(tctx.p_vtimer_list) &&
+		jiffies>=(vtimer = list_first_entry(tctx.p_vtimer_list,inode,struct isix_vtimer))->jiffies
 	)
 	{
 		list_delete(&vtimer->inode);
@@ -171,7 +167,6 @@ int isix_vtimer_destroy(osvtimer_t timer)
 	_isixp_exit_critical();
 	return ISIX_EOK;
 }
-
 
 
 #endif /* ISIX_CONFIG_USE_TIMERS */

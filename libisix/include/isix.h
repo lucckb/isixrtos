@@ -7,7 +7,7 @@
 #include <isix/scheduler.h>
 #include <isix/semaphore.h>
 #include <isix/task.h>
-#include <isix/irqtimers.h>
+#include <isix/softtimers.h>
 #include <isix/mempool.h>
 #include <isix/ostime.h>
 #include <isix/events.h>
