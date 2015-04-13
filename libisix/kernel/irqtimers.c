@@ -4,7 +4,7 @@
  *  Created on: 05-03-2011
  *      Author: lucck
  */
-/*-----------------------------------------------------------------------*/
+
 #include <isix/prv/irqtimers.h>
 #include <isix/irqtimers.h>
 #include <isix/memory.h>
@@ -12,15 +12,15 @@
 #include <string.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
-/*-----------------------------------------------------------------------*/
+
 #ifdef ISIX_CONFIG_USE_TIMERS 
-/*-----------------------------------------------------------------------*/
+
 //List entry for the virtual timers
 static list_entry_t vtimer_list[2];
 //Overflowed and not overflowed list
 static list_entry_t *p_vtimer_list;
 static list_entry_t *pov_vtimer_list;
-/*-----------------------------------------------------------------------*/
+
 //Initialize vtimers infrastructure
 void _isixp_vtimer_init(void)
 {
@@ -31,7 +31,7 @@ void _isixp_vtimer_init(void)
 	pov_vtimer_list = &vtimer_list[1];
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Move selected task to waiting list
 static void add_vtimer_to_list(osvtimer_t timer)
 {
@@ -62,7 +62,7 @@ static void add_vtimer_to_list(osvtimer_t timer)
     _isixp_exit_critical();
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Call timer funcs in the interrupt context
 void _isixp_vtimer_handle_time(ostick_t jiffies)
 {
@@ -87,7 +87,7 @@ void _isixp_vtimer_handle_time(ostick_t jiffies)
 	}
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Create the virtual timer
 osvtimer_t _isix_vtimer_create_internal_(osvtimer_callback func,void *arg, bool one_shoot )
 {
@@ -113,7 +113,7 @@ osvtimer_t _isix_vtimer_create_internal_(osvtimer_callback func,void *arg, bool 
     return timer;
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Start the virtual timer
 int isix_vtimer_start(osvtimer_t timer, ostick_t timeout)
 {
@@ -134,7 +134,7 @@ int isix_vtimer_start(osvtimer_t timer, ostick_t timeout)
 	_isixp_exit_critical();
 	return ISIX_EOK;
 }
-/*-----------------------------------------------------------------------*/
+
 //! Start one shoot timer
 int isix_vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, void *arg, ostick_t timeout )
 {
@@ -156,7 +156,7 @@ int isix_vtimer_one_shoot( osvtimer_t timer, osvtimer_callback func, void *arg, 
 	_isixp_exit_critical();
 	return ISIX_EOK;
 }
-/*-----------------------------------------------------------------------*/
+
 //Destroy the virtual timer
 int isix_vtimer_destroy(osvtimer_t timer)
 {
@@ -171,7 +171,7 @@ int isix_vtimer_destroy(osvtimer_t timer)
 	_isixp_exit_critical();
 	return ISIX_EOK;
 }
-/*-----------------------------------------------------------------------*/
+
 
 
 #endif /* ISIX_CONFIG_USE_TIMERS */
