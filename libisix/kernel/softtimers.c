@@ -32,11 +32,14 @@ typedef struct command
 	osvtimer_t tmr;
 } command_t;
 
-//Add data to the timer list
-static void add_vtimer_to_list( osvtimer_t timer )
+/** Function add timeout to list
+ * @return How long should wait
+ */
+static void add_vtimer_to_list( osvtimer_t timer, bool overflow )
 {
-    timer->jiffies = isix_get_jiffies() + timer->timeout;
-    if(timer->jiffies < isix_get_jiffies())
+	ostick_t currj = isix_get_jiffies();
+    timer->jiffies = currj + timer->timeout;
+    if( overflow )
     {
     	//Insert on overflow waiting list in time order
     	osvtimer_t waitl;
@@ -58,26 +61,102 @@ static void add_vtimer_to_list( osvtimer_t timer )
     }
 }
 
+//! Handle add to list
+static void handle_add( osvtimer_t tmr, bool overflow )
+{
+	//Check for delayed task 
+	bool handled = false;
+	if( !overflow ) {
+		if( isix_get_jiffies() >= tmr->jiffies+tmr->timeout ) {
+			tmr->callback( tmr->arg );
+			handled = true;
+		}
+	} else {
+		if( isix_get_jiffies() <= tmr->jiffies+tmr->timeout ) {
+			tmr->callback( tmr->arg );
+			handled = true;
+		}
+	}
+	if( handled && tmr->cyclic ) {
+		tmr->jiffies = isix_get_jiffies();
+		add_vtimer_to_list( tmr, overflow );
+	}
+	if( !handled ) {
+		add_vtimer_to_list( tmr, overflow );
+	}
+}
+
+//! Handle time
+ostick_t handle_time( bool overflow )
+{ 
+	if( overflow )
+	{
+		//First execute all remaining task on old list
+		osvtimer_t vtimer;
+		list_for_each_safe( tctx.p_vtimer_list, vtimer, inode )
+		{
+			//SWAP
+			list_entry_t *tmp = tctx.p_vtimer_list;
+			tctx.p_vtimer_list = tctx.pov_vtimer_list;
+			tctx.pov_vtimer_list = tmp;
+		}
+	}
+#if 0
+	if(jiffies == 0)
+	{
+	}
+	osvtimer_t vtimer;
+	while( !list_isempty(p_vtimer_list) &&
+		jiffies>=(vtimer = list_get_first(p_vtimer_list,inode,struct isix_vtimer))->jiffies
+	)
+	{
+		list_delete(&vtimer->inode);
+		if( vtimer->timer_handler ) 
+			vtimer->timer_handler( vtimer->arg );
+		if( !vtimer->one_shoot ) 
+		{
+			add_vtimer_to_list(vtimer);
+		}
+	}
+#endif
+}
+
 //! Worker thread used for 
 static void worker_thread( void* param ) 
 {
 	(void)param;
-	ostick_t tout = ISIX_TIME_INFINITE;
+	printk("Hello from worker thread");
+	ostick_t tout = (ISIX_TIME_MAX_TICK-isix_get_jiffies())+1U;
+	ostick_t pjiff = 0;	//Previous jiffies for detect overflow
 	for(command_t cmd;;) 
-	{
-		switch ( isix_fifo_read(tctx.worker_queue, &cmd, tout) ) 
+	{ 
+		int code = isix_fifo_read(tctx.worker_queue, &cmd, tout);
+		if( code == ISIX_EOK ) code = cmd.cmd;
+		switch ( code ) 
 		{
 		case cmd_add:
+			printk("Timer ADD");
+			handle_add( cmd.tmr, isix_get_jiffies()<pjiff );
 			break;
 		case cmd_cancel:
+			printk("Timer CANCEL");
+			break;
+		case cmd_destroy:
+			printk("Timer DESTROY");
+			break;
+		case cmd_execnow:
+			cmd.tmr->callback( cmd.tmr->arg );
+			printk("Timer EXECNOW");
 			break;
 		case ISIX_ETIMEOUT:
+			tout = handle_time( isix_get_jiffies()<pjiff );
+			printk("Timer HANDLETIME");
 			break;
 		default:
 			return;
 		}
-		isix_wait_ms(50);
-		printk("Command executed %i", cmd.cmd );
+		//Previous jiff for detect overflow
+		pjiff = isix_get_jiffies();
 	}
 }
 
@@ -151,11 +230,12 @@ int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 		//!Element is already assigned
 		return ISIX_EBUSY;
 	}
-	timer->jiffies = isix_get_jiffies() + timeout;
-	timer->timeout = cyclic?timeout:0;
-	timer->timer_handler = func;
+	//! Call @ jiffies
+	timer->jiffies = isix_get_jiffies();
+	timer->timeout = timeout;
+	timer->callback = func;
 	timer->arg = arg;
-	timer->sa_exec = false;
+	timer->cyclic = cyclic;
 	command_t cmd = { cmd_add, timer };
 	return isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
 }
@@ -228,10 +308,10 @@ int isix_schedule_work_isr( osvtimer_t timer, osworkfunc_t func, void* arg )
 		//!Element is already assigned
 		return ISIX_EBUSY;
 	}
-	timer->timer_handler = func;
+	timer->callback = func;
 	timer->arg = arg;
-	timer->sa_exec = true;
-	return ISIX_EOK;
+	command_t cmd = { cmd_execnow, timer };
+	return isix_fifo_write_isr( tctx.worker_queue, &cmd );
 }
 
 

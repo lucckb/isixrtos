@@ -22,10 +22,9 @@
 //! Message type
 typedef int osmsg_t;
 
-
 enum osobject_type_e {
 	osobject_type_semaphore = 1,
 	osobject_type_fifo = 2
 };
-
+//OS object type
 typedef uint8_t osobject_type_t; 

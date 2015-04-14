@@ -10,6 +10,7 @@
 #define ISIX_TIME_INFINITE 0
 #define ISIX_SEM_ULIMITED 0
 #define ISIX_TIME_DONTWAIT 0xFFFFFFFFU
+#define ISIX_TIME_MAX_TICK 0xFFFFFFFFU
 #else
 namespace {
 	constexpr unsigned ISIX_TIME_INFINITE = 0U;

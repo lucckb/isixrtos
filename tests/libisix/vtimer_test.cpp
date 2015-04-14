@@ -17,6 +17,7 @@
  */
 #include "vtimer_test.hpp"
 #include "qunit.hpp"
+#include <foundation/dbglog.h>
 
 namespace tests {
 

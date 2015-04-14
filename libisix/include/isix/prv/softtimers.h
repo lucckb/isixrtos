@@ -23,11 +23,11 @@
 struct isix_vtimer {
 	ostick_t jiffies;	      	  		/* Next timeout handle */
 	ostick_t timeout;			  		/* Timeout timer value */
-	void (*timer_handler)(void*); 		/* Next timer call */
+	void (*callback)(void*); 			/* Next timer call */
 	void *arg;					  		/* Function pointer */
 	list_t inode;				  		/* Inode list */
 	struct isix_semaphore exit;	  		/* Exit sem */
-	bool sa_exec;						/* Single execution */
+	bool cyclic;						/* If timer is cyclic */
 };
 
 struct vtimer_context {
