@@ -64,24 +64,11 @@ int isix_vtimer_destroy( osvtimer_t timer );
 
 /** Only one function schedule task from an interrupt or 
  * other task context for delayed execution 
- * @param[in] timer Pointer to the timer structure
  * @param[in] func Function to call
  * @param[in[ arg Functon argument
  */
-int isix_schedule_work_isr( osvtimer_t timer, osworkfunc_t func, void* arg );
+int isix_schedule_work_isr( osworkfunc_t func, void* arg );
 
-
-/** Schedule task at selected time
- * @param[in] timer Timer handle 
- * @param[in] func  Function to execute
- * @param[in] arg   Function argument 
- * @param[in] time  Schedule wait time
- */
-static inline int isix_schedule_delayed_work_isr( osvtimer_t timer, 
-		osworkfunc_t func, void* arg, ostick_t wtime )
-{
-	return isix_vtimer_start( timer, func, arg, wtime, false );
-}
 
 
 #ifdef __cplusplus
@@ -108,12 +95,8 @@ namespace {
 	inline int vtimer_destroy( osvtimer_t timer ) {
 		return ::isix_vtimer_destroy( timer );
 	}
-	inline int schedule_work_isr( osvtimer_t timer, osworkfunc_t func, void* arg ) {
-		return ::isix_schedule_work_isr( timer, func, arg );
-	}
-	inline int schedule_delayed_work_isr( osvtimer_t timer, 
-			osworkfunc_t func, void* arg, ostick_t wtime ) {
-		return ::isix_schedule_delayed_work_isr( timer, func, arg, wtime );
+	inline int schedule_work_isr( osworkfunc_t func, void* arg ) {
+		return ::isix_schedule_work_isr( func, arg );
 	}
 }}
 #endif /* __cplusplus */

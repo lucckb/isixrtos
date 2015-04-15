@@ -26,11 +26,20 @@ enum command_e {
 	cmd_execnow = 3
 };
 
+struct callable 
+{
+	osworkfunc_t fun;
+	void *arg;
+};
 //! Command queue
 typedef struct command 
 {
 	uint8_t cmd;
-	osvtimer_t tmr;
+	union 
+	{
+		osvtimer_t tmr;
+		struct callable work;
+	};
 } command_t;
 
 //! Execute the callback and free busy flag
@@ -160,7 +169,6 @@ static void handle_cancel( osvtimer_t tmr )
 static void worker_thread( void* param ) 
 {
 	(void)param;
-	printk("Hello from worker thread");
 	ostick_t tout = (0U - isix_get_jiffies())+1U;
 	ostick_t pjiff = 0;	//Previous jiffies for detect overflow
 	for(command_t cmd;;) 
@@ -174,11 +182,9 @@ static void worker_thread( void* param )
 			break;
 		case cmd_cancel:
 			handle_cancel( cmd.tmr );
-			printk("Timer CANCEL");
 			break;
 		case cmd_execnow:
-			exec_timer_callback( cmd.tmr );
-			printk("Timer EXECNOW");
+			cmd.work.fun( cmd.work.arg );
 			break;
 		case ISIX_ETIMEOUT:
 			break;
@@ -216,9 +222,7 @@ static bool lazy_initalize()
 		if( !tctx.worker_queue ) return !tctx.worker_queue;
 		//FIXME that
 		tctx.worker_thread_id = isix_task_create( worker_thread, NULL, 
-			ISIX_PORT_SCHED_MIN_STACK_DEPTH*4, isix_get_min_priority()/2, 0 );
-		printk( "Lazy initialization workthr %p fifo %p", 
-				tctx.worker_thread_id, tctx.worker_queue );
+			ISIX_PORT_SCHED_MIN_STACK_DEPTH*3, isix_get_min_priority()/2, 0 );
 	}
 	return !tctx.worker_thread_id;
 }
@@ -255,7 +259,7 @@ osvtimer_t isix_vtimer_create( void )
 int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
 		void* arg, ostick_t timeout, bool cyclic )
 {
-	printk("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
+	//printk("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
 	if( !timer ) return ISIX_EINVARG;
 	if( isix_sem_get_isr(&timer->busy) ) {
 		//!Element is already assigned
@@ -267,7 +271,7 @@ int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 	timer->callback = func;
 	timer->arg = arg;
 	timer->cyclic = cyclic;
-	command_t cmd = { cmd_add, timer };
+	command_t cmd = { .cmd=cmd_add, .tmr=timer };
 	return isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
 }
 
@@ -284,7 +288,7 @@ int isix_vtimer_cancel( osvtimer_t timer )
 			ret = ISIX_EINVARG;
 			break;
 		}
-		command_t cmd = { cmd_cancel, timer };
+		command_t cmd = { .cmd=cmd_cancel, .tmr=timer };
 		ret = isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
 		if( ret ) break;
 		ret = isix_sem_wait( &timer->busy, ISIX_TIME_INFINITE );
@@ -323,20 +327,12 @@ int isix_vtimer_destroy( osvtimer_t timer )
 
 /** Only one function schedule task from an interrupt or 
  * other task context for delayed execution 
- * @param[in] func  Function to execute
  * @param[in] func Function to call
  * @param[in[ arg Functon argument
  */
-int isix_schedule_work_isr( osvtimer_t timer, osworkfunc_t func, void* arg )
+int isix_schedule_work_isr( osworkfunc_t func, void* arg )
 {
-	if( !timer ) return ISIX_EINVARG;
-	if( isix_sem_get_isr(&timer->busy) ) {
-		//!Element is already assigned
-		return ISIX_EBUSY;
-	}
-	timer->callback = func;
-	timer->arg = arg;
-	command_t cmd = { cmd_execnow, timer };
+	command_t cmd = { .cmd = cmd_execnow, .work = {func,arg} };
 	return isix_fifo_write_isr( tctx.worker_queue, &cmd );
 }
 

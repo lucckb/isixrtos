@@ -21,6 +21,14 @@
 
 namespace tests {
 
+namespace {		//Delayed execution test
+	
+	void delegated_func( void* ptr ) {
+		auto& cnt = *reinterpret_cast<int*>(ptr);
+		++cnt;
+	}
+
+}
 //VTIMER basic test
 void vtimer::basic() 
 {
@@ -28,21 +36,36 @@ void vtimer::basic()
 	static constexpr auto t1 = 100U;
 	static constexpr auto t2 = 3U;
 	static constexpr auto t3 = 50U;
+	int del_exe_cnt = 0;
+
 	m_t1.start_ms(t1);
 	m_t2.start_ms(t2);
+	QUNIT_IS_EQUAL( 
+		isix_schedule_work_isr(delegated_func,&del_exe_cnt), 
+		ISIX_EOK 
+	);
 	m_t3.start_ms(t3);
+	QUNIT_IS_EQUAL( 
+		isix_schedule_work_isr(delegated_func,&del_exe_cnt), 
+		ISIX_EOK 
+	);
 	isix_wait_ms(wait_t);
+	QUNIT_IS_EQUAL( 
+		isix_schedule_work_isr(delegated_func,&del_exe_cnt), 
+		ISIX_EOK 
+	);
 	m_t1.stop();
 	m_t2.stop();
 	m_t3.stop();
 	isix_wait_ms(50);	//Give some time to command exec
-	QUNIT_IS_EQUAL(m_t1.counter(), wait_t/t1 );
-	QUNIT_IS_EQUAL(m_t2.counter(), wait_t/t2 );
-	QUNIT_IS_EQUAL(m_t3.counter(), wait_t/t3 );
+	QUNIT_IS_EQUAL( m_t1.counter(), wait_t/t1 );
+	QUNIT_IS_EQUAL( m_t2.counter(), wait_t/t2 );
+	QUNIT_IS_EQUAL( m_t3.counter(), wait_t/t3 );
 	isix_wait_ms(wait_t);
-	QUNIT_IS_EQUAL(m_t1.counter(), wait_t/t1 );
-	QUNIT_IS_EQUAL(m_t2.counter(), wait_t/t2 );
-	QUNIT_IS_EQUAL(m_t3.counter(), wait_t/t3 );
+	QUNIT_IS_EQUAL( m_t1.counter(), wait_t/t1 );
+	QUNIT_IS_EQUAL( m_t2.counter(), wait_t/t2 );
+	QUNIT_IS_EQUAL( m_t3.counter(), wait_t/t3 );
+	QUNIT_IS_EQUAL( del_exe_cnt, 3 );
 }
 
 namespace {
