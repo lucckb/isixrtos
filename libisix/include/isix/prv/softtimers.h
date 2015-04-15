@@ -26,7 +26,7 @@ struct isix_vtimer {
 	void (*callback)(void*); 			/* Next timer call */
 	void *arg;					  		/* Function pointer */
 	list_t inode;				  		/* Inode list */
-	struct isix_semaphore exit;	  		/* Exit sem */
+	struct isix_semaphore busy;	  		/* busy sem */
 	bool cyclic;						/* If timer is cyclic */
 };
 
