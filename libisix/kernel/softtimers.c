@@ -38,7 +38,7 @@ static inline void exec_timer_callback( osvtimer_t timer )
 {
 	if( timer->callback ) timer->callback( timer->arg );
 	isix_sem_signal_isr( &timer->busy );
-	printk("Execcallback()");
+	//printk(">>>>>>>Execcallback(%p) @%u", timer,  isix_get_jiffies() );
 }
 
 //! Add to list with task order
@@ -60,7 +60,7 @@ static void add_vtimer_to_list( osvtimer_t timer )
 {
 	ostick_t currj = isix_get_jiffies();
 	timer->jiffies += timer->timeout;
-	printk("add_vtimer_to_list( wake@ %i curr %i)", timer->jiffies, currj );
+	//printk("add_vtimer_to_list( tmr %p wake@ %u curr %u)", timer, timer->jiffies, currj );
     if( timer->jiffies < currj )
     {
     	//Insert on overflow waiting list in time order
@@ -96,13 +96,14 @@ static void handle_add( osvtimer_t tmr, bool overflow )
 	if( !handled ) {
 		add_vtimer_to_list( tmr );
 	}
-	printk("Timer ADD handled %i overflow %i", handled, overflow );
+	//printk("Timer %p ADD handled %i overflow %i", tmr, handled, overflow );
 }
 
 //! Handle time
 static ostick_t handle_time( bool overflow )
 { 
 	osvtimer_t vtimer;
+	ostick_t currj = isix_get_jiffies();
 	if( overflow )
 	{
 		//First execute all remaining task on old list
@@ -121,26 +122,27 @@ static ostick_t handle_time( bool overflow )
 			tctx.pov_vtimer_list = tmp;
 		}
 	}
-	while( !list_isempty(tctx.p_vtimer_list) &&
-		isix_get_jiffies()>=
+	while( !list_isempty(tctx.p_vtimer_list) && currj >=
 		(vtimer=list_first_entry(tctx.p_vtimer_list,inode,struct isix_vtimer))->jiffies
 	)
 	{
-		list_delete(&vtimer->inode);
+		list_delete( &vtimer->inode );
 		exec_timer_callback( vtimer );
-		if( !vtimer->cyclic ) 
-		{
+		if( vtimer->cyclic ) {
+			vtimer->jiffies = isix_get_jiffies();
 			add_vtimer_to_list( vtimer );
 		}
 	}
 	ostick_t ret;
-	if( !list_isempty(tctx.p_vtimer_list) ) {
+	if( !list_isempty(tctx.p_vtimer_list) ) 
+	{
 		vtimer = list_first_entry(tctx.p_vtimer_list,inode,struct isix_vtimer);
-		ret = vtimer->jiffies + vtimer->timeout;
-	} else {
-		ret = (0U - isix_get_jiffies()) +1U;
+		ret = vtimer->jiffies - isix_get_jiffies();
+	} 
+	else {
+		ret = (0U - currj) +1U;
 	}
-	printk("Next timeout %i", ret );
+	//printk("nto>%u", ret );
 	return ret;
 }
 
@@ -253,6 +255,7 @@ osvtimer_t isix_vtimer_create( void )
 int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
 		void* arg, ostick_t timeout, bool cyclic )
 {
+	printk("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
 	if( !timer ) return ISIX_EINVARG;
 	if( isix_sem_get_isr(&timer->busy) ) {
 		//!Element is already assigned

@@ -24,20 +24,25 @@ namespace tests {
 //VTIMER basic test
 void vtimer::basic() 
 {
-	m_t1.start_ms(10);
-	m_t2.start_ms(1);
-	m_t3.start_ms(5);
-	isix_wait_ms(100);
+	static constexpr auto wait_t = 1000U;
+	static constexpr auto t1 = 100U;
+	static constexpr auto t2 = 3U;
+	static constexpr auto t3 = 50U;
+	m_t1.start_ms(t1);
+	m_t2.start_ms(t2);
+	m_t3.start_ms(t3);
+	isix_wait_ms(wait_t);
 	m_t1.stop();
 	m_t2.stop();
 	m_t3.stop();
-	QUNIT_IS_EQUAL(m_t1.counter(), 100U/10U );
-	QUNIT_IS_EQUAL(m_t2.counter(), 100U/1U );
-	QUNIT_IS_EQUAL(m_t3.counter(), 100U/5U );
-	isix_wait_ms(100);
-	QUNIT_IS_EQUAL(m_t1.counter(), 100U/10U );
-	QUNIT_IS_EQUAL(m_t2.counter(), 100U );
-	QUNIT_IS_EQUAL(m_t3.counter(), 100U/5U );
+	isix_wait_ms(50);	//Give some time to command exec
+	QUNIT_IS_EQUAL(m_t1.counter(), wait_t/t1 );
+	QUNIT_IS_EQUAL(m_t2.counter(), wait_t/t2 );
+	QUNIT_IS_EQUAL(m_t3.counter(), wait_t/t3 );
+	isix_wait_ms(wait_t);
+	QUNIT_IS_EQUAL(m_t1.counter(), wait_t/t1 );
+	QUNIT_IS_EQUAL(m_t2.counter(), wait_t/t2 );
+	QUNIT_IS_EQUAL(m_t3.counter(), wait_t/t3 );
 }
 
 namespace {
@@ -69,7 +74,7 @@ void vtimer::one_shoot()
 	QUNIT_IS_EQUAL( 
 			isix_vtimer_start( timerh, one_call_timer_fun, &ci, 100, false ),
 			ISIX_EBUSY );
-	isix_wait_ms( 200 );
+	isix_wait_ms( 1000 );
 	QUNIT_IS_EQUAL( ci.count, 1 );
 	QUNIT_IS_EQUAL( ci.last_call - ci.start_call, 100U );
 	QUNIT_IS_EQUAL( isix_vtimer_destroy( timerh ), ISIX_EOK );
