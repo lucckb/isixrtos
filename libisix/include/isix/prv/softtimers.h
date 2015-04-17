@@ -32,10 +32,10 @@ struct isix_vtimer {
 
 struct vtimer_context {
 	//List entry for the virtual timers
-	list_entry_t vtimer_list[2];
+	list_entry_t _vtimer_list_[2];
 	//Overflowed and not overflowed list
-	list_entry_t *p_vtimer_list;	//Normal list 
-	list_entry_t *pov_vtimer_list;	//Overflow list
+	list_entry_t* p_vtimer_list;	//Normal list 
+	list_entry_t* pov_vtimer_list;	//Overflow list
 	ostask_t worker_thread_id;
 	osfifo_t worker_queue;
 } ;
