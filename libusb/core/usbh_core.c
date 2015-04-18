@@ -170,7 +170,13 @@ int USBHcoreConfigure() {
 void USBHdeviceDisconnected() {
   /* Class deinitialization must be called first. */
   if (Machine.class.at_disconnect)
+  {
     Machine.class.at_disconnect(Machine.class.parameter);
+    /* fix for disconnect hang, in some cases at_disconnect was set 0
+    	  before executing the handler */
+    Machine.class.at_disconnect = 0;
+    Machine.class.parameter = 0;
+  }
   USBHcoreDeInit();
 }
 
@@ -507,9 +513,11 @@ void USBHcoreProcess() {
           Machine.g_state = HOST_IDLE;
           Machine.class.machine = 0;
           Machine.class.at_sof = 0;
-          Machine.class.at_disconnect = 0;
-          Machine.class.parameter = 0;
-        }
+          /* commenting out the following as this case can be executed before
+			  at_disconnect is invoked - leading to hang*/
+          //Machine.class.at_disconnect = 0;
+          //Machine.class.parameter = 0;        
+          }
       }
       return;
     default: /* HOST_IDLE */
