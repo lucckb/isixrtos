@@ -155,7 +155,7 @@ static ostick_t handle_time( ostick_t tnow, bool overflow )
 		//printk("nto %u:%p>%u", tnow,vtimer,ret );
 	} 
 	else {
-		ret = (0U - tnow) +1U;
+		ret = 0U - tnow;
 		//printk("ntko %u", ret );
 	}
 	return ret;
@@ -175,7 +175,7 @@ static void handle_cancel( osvtimer_t tmr )
 static void worker_thread( void* param ) 
 {
 	(void)param;
-	ostick_t tout = (0U - isix_get_jiffies())+1U;
+	ostick_t tout = (0U - isix_get_jiffies());
 	ostick_t pjiff = 0;	//Previous jiffies for detect overflow
 	for(command_t cmd;;) 
 	{ 
