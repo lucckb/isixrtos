@@ -16,7 +16,8 @@ extern "C" {
 #endif
 //! Special flags for task create
 enum isix_task_flags {
-	isix_task_flag_newlib = 1U	//! Uses per thread new lib data for ex errno
+	isix_task_flag_newlib = 1U,		//! Uses per thread new lib data for ex errno
+	isix_task_flag_suspended = 2U	//! Create task suspended
 };
 /** Create the task function (System thread)
  * @param[in] task_func Pointer to the thread function
@@ -129,7 +130,7 @@ namespace isix {
 	using thr_state = osthr_state;
 namespace {
 	inline ostask_t task_create(task_func_ptr_t task_func, void *func_param, 
-			unsigned long stack_depth, osprio_t priority, unsigned long flags ) {
+			unsigned long stack_depth, osprio_t priority, unsigned long flags=0 ) {
 		return ::isix_task_create( task_func, func_param, stack_depth,
 				priority, flags );
 	}

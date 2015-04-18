@@ -77,13 +77,14 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
     //Assign task priority
     task->prio = priority;
     //Task is ready
-    task->state = OSTHR_STATE_CREATED;
+    task->state = (flags&isix_task_flag_suspended)?OSTHR_STATE_SUSPEND:OSTHR_STATE_CREATED;
     //Create initial task stack context
     task->top_stack = _isixp_task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler
-    _isixp_enter_critical();
-	_isixp_wakeup_task( task, ISIX_EOK );
-	//_isixp_exit_critical();
+	if( !(flags&isix_task_flag_suspended) ) {
+		_isixp_enter_critical();
+		_isixp_wakeup_task( task, ISIX_EOK );
+	}
     return task;
 }
 

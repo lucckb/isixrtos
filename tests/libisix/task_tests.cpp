@@ -18,6 +18,7 @@
 #include "task_tests.hpp"
 #include <qunit.hpp>
 #include <isix.h>
+#include <foundation/dbglog.h>
 
 
 namespace tests {
@@ -58,13 +59,19 @@ namespace {
 		}
 	};
 
-	
+	void test_task_suspended( void *data ) {
+		auto& do_it = *reinterpret_cast<bool*>(data);
+		do_it = true;
+		for(;;) {
+			isix::wait_ms(10000);
+		}
+	}
 
 }	//Unnamed namespace end
 
 // Basic functionality test without IRQS
 void task_tests::basic_funcs()
-{
+{	
 	auto t1 = new base_task_tests;
 	auto t2 = new base_task_tests;
 	auto t3 = new base_task_tests;
@@ -171,6 +178,25 @@ void task_tests::basic_funcs()
 	delete t2;
 	delete t3;
 	delete t4;
+	// Final test with create suspended
+	{
+
+		const auto oprio = isix::task_change_prio(nullptr, isix::get_min_priority() );
+		QUNIT_IS_TRUE( oprio >= 0 );
+		bool to_change = false;
+		auto tsk = isix::task_create(test_task_suspended,&to_change,
+				512,1, isix_task_flag_suspended );
+		// Check for task create suspended
+		QUNIT_IS_NOT_EQUAL( tsk, nullptr );
+		QUNIT_IS_EQUAL( isix::get_task_state( tsk ) , OSTHR_STATE_SUSPEND );
+		QUNIT_IS_FALSE( to_change );
+		QUNIT_IS_EQUAL( isix::task_resume(tsk), ISIX_EOK );
+		auto state = isix::get_task_state( tsk );
+		QUNIT_IS_TRUE( state==OSTHR_STATE_RUNNING || state==OSTHR_STATE_SLEEPING );
+		QUNIT_IS_TRUE( to_change );
+		QUNIT_IS_TRUE( isix::task_change_prio(nullptr, oprio)>=0 );
+		isix_task_kill( tsk );
+	}
 }
 
 
