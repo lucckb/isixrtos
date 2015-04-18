@@ -117,4 +117,5 @@ ostask_t _isixp_remove_from_prio_queue( list_entry_t* list );
 void _isixp_reallocate_priority( ostask_t task, int newprio );
 //! Reschedule tasks 
 void _isixp_do_reschedule( ostask_t task );
-
+//! Terminate the task
+void __attribute__((noreturn)) _isixp_task_terminator(void);

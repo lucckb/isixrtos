@@ -243,3 +243,11 @@ int isix_task_resume( ostask_t task )
 	}
 	return ISIX_EOK;
 }
+
+
+//! Terminate the process when task exits
+void __attribute__((noreturn)) _isixp_task_terminator(void)
+{
+	isix_task_kill(NULL);
+	for(;;);
+}

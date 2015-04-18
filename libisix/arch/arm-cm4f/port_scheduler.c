@@ -5,7 +5,7 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
-/*-----------------------------------------------------------------------*/
+
 //Save context
 #define cpu_save_context()										\
     asm volatile (												\
@@ -22,7 +22,7 @@
     "msr basepri,r0\t\n"                                        \
     ::"i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)                  \
 	)
-/*-----------------------------------------------------------------------*/
+
 //Restore context
 #define cpu_restore_context()                                   \
     asm volatile  (                                             \
@@ -40,7 +40,7 @@
     ".align 2 \t\n"												\
     "0: .word _isix_current_task\t\n"							\
    )
-/*-----------------------------------------------------------------------*/
+
 /** Restore the context to the place when scheduler was started to run
  *  Use Main stack pointer negate bit 2 of LR
  */
@@ -50,10 +50,10 @@
 	"bx lr\t\n"													\
 	)
 
-/*-----------------------------------------------------------------------*/
+
 #define portNVIC_INT_CTRL           ( ( volatile unsigned long *) 0xe000ed04 )
 #define portNVIC_PENDSVSET          0x10000000
-/*-----------------------------------------------------------------------*/
+
 
 //System Mode enable IRQ and FIQ
 #define INITIAL_XPSR 0x01000000
@@ -62,7 +62,7 @@
 #define DEBUG_SCHEDULER DBG_OFF
 #endif
 
-/*-----------------------------------------------------------------------*/
+
 //Pend SV interrupt (context switch)
 void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 {
@@ -83,7 +83,7 @@ void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 #endif
 }
 
-/*-----------------------------------------------------------------------*/
+
 //SVC handler call for start the first task
 void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
 {
@@ -100,14 +100,7 @@ void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
      "0: .word _isix_current_task\t\n"
       );
 }
-/*-----------------------------------------------------------------------*/
-//! Terminate the process when task exits
-static void __attribute__((noreturn)) _isixp_process_terminator(void)
-{
-	isix_task_delete(NULL);
-	for(;;);
-}
-/*-----------------------------------------------------------------------*/
+
 //Create of stack context 
 unsigned long* _isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, void *param)
 {
@@ -122,7 +115,7 @@ unsigned long* _isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, v
 	sp--;
 	*sp = ( unsigned long ) pfun;	/* PC */
 	sp--;
-	*sp = ( unsigned long ) _isixp_process_terminator;	/* LR */
+	*sp = ( unsigned long ) _isixp_task_terminator;	/* LR */
 
 	/* Save code space by skipping register initialisation. */
 	sp -= 5;	/* R12, R3, R2 and R1. */
@@ -139,7 +132,7 @@ unsigned long* _isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, v
 
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Cyclic schedule time interrupt
 void __attribute__((__interrupt__)) systick_isr_vector(void)
 {
@@ -154,7 +147,7 @@ void __attribute__((__interrupt__)) systick_isr_vector(void)
 
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Set interrupt mask
 void port_set_interrupt_mask(void)
 {
@@ -163,14 +156,14 @@ void port_set_interrupt_mask(void)
              );
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Clear interrupt mask
 void port_clear_interrupt_mask(void)
 {
     asm volatile("msr BASEPRI,%0\t\n"::"r"(0));
 }
 
-/*-----------------------------------------------------------------------*/
+
 //Yield to another task
 void port_yield(void)
 {
@@ -178,7 +171,7 @@ void port_yield(void)
 	*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
 	port_flush_memory();
 }
-/*-----------------------------------------------------------------------*/
+
 //Start first task by svc call
 void  __attribute__((naked)) port_start_first_task( void )
 {
@@ -200,4 +193,4 @@ void  __attribute__((naked)) port_start_first_task( void )
       );
 #endif
 }
-/*-----------------------------------------------------------------------*/
+
