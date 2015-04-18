@@ -71,9 +71,12 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
      task->top_stack = task->init_stack;
 #endif
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
-    memset(task->init_stack,MAGIC_FILL_VALUE,stack_depth);
+    memset( task->init_stack, MAGIC_FILL_VALUE, stack_depth );
 #endif
     printk("Top stack SP=%p",task->top_stack);
+#ifdef ISIX_CONFIG_JOIN_API 
+	list_init( &task->wtexit_list );
+#endif
     //Assign task priority
     task->prio = priority;
     //Task is ready

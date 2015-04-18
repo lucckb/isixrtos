@@ -13,6 +13,7 @@
 /* Enable task stack checking */
 #define ISIX_CONFIG_TASK_STACK_CHECK
 
+#define ISIX_CONFIG_JOIN_API
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			#define CONFIG_XTAL_HZ  25000000U
