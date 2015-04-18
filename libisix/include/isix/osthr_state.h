@@ -25,10 +25,9 @@ enum osthr_state
 	OSTHR_STATE_CREATED		= 2,			//! Task already created but 
 	OSTHR_STATE_SLEEPING	= 3,			//! Thread on sleeping state
 	OSTHR_STATE_WTSEM		= 4,			//! Wait for semaphore state
-	OSTHR_STATE_WTEXIT		= 5,			//! Wait for exit state
-	OSTHR_STATE_ZOMBIE		= 6,			//! In zombie state just before exit
-	OSTHR_STATE_SCHEDULE  	= 7,			//! Schedule only do nothing special
-	OSTHR_STATE_WTEVT	    = 8, 			//! Scheduler on wait event state
-	OSTHR_STATE_SUSPEND		= 9				//! Task is in suspend state
+	OSTHR_STATE_ZOMBIE		= 5,			//! In zombie state just before exit
+	OSTHR_STATE_SCHEDULE  	= 6,			//! Schedule only do nothing special
+	OSTHR_STATE_WTEVT	    = 7, 			//! Scheduler on wait event state
+	OSTHR_STATE_SUSPEND		= 8				//! Task is in suspend state
 };
 

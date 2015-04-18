@@ -44,9 +44,6 @@ struct isix_task
 	struct _reent *impure_data;		//!Newlib per thread private data
     list_t inode;               	//!Inode task for operation
 	list_t inode_time;				//!Waiting inode
-#ifdef ISIX_CONFIG_JOIN_API 
-	list_entry_t wtexit_list;		//! Wait exit task list
-#endif
 };
 
 //!Structure related to isix system

@@ -621,8 +621,7 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 	} 
 	// If if task wait for sem 
 	if( task->state == OSTHR_STATE_WTSEM ||
-		task->state == OSTHR_STATE_WTEVT ||
-		task->state == OSTHR_STATE_WTEXIT )
+		task->state == OSTHR_STATE_WTEVT )
 	{     
 		list_delete( &task->inode );
 	}

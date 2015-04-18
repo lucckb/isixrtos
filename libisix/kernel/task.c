@@ -74,9 +74,6 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
     memset( task->init_stack, MAGIC_FILL_VALUE, stack_depth );
 #endif
     printk("Top stack SP=%p",task->top_stack);
-#ifdef ISIX_CONFIG_JOIN_API 
-	list_init( &task->wtexit_list );
-#endif
     //Assign task priority
     task->prio = priority;
     //Task is ready
@@ -245,47 +242,10 @@ int isix_task_resume( ostask_t task )
 }
 
 
-//! Wakeup waiting taks if join API is required
-#ifdef ISIX_CONFIG_JOIN_API
-static void wakeup_waiting_tasks(void) 
-{
-	ostask_t wkup_task = NULL;
-	ostask_t t;
-    _isixp_enter_critical();
-	while( (t=_isixp_remove_from_prio_queue(&currp->wtexit_list) ) )
-	{
-		//!Assign first task it is a prioritized list highest first
-		if( !wkup_task ) wkup_task = t;
-		_isixp_wakeup_task_l( t, ISIX_EOK );
-	}
-	_isixp_do_reschedule( wkup_task );
-}
-#else /* ISIX_CONFIG_JOIN_API */
-#define wakeup_waiting_tasks() do {} while(0)
-#endif /* ISIX_CONFIG_JOIN_API  */
-
 //! Terminate the process when task exits
 void __attribute__((noreturn)) _isixp_task_terminator(void)
 {
-	//! Wakeup other waiting taks
-	wakeup_waiting_tasks();
-	//! Kill self
 	isix_task_kill(NULL);
 	for(;;);
 }
 
-#ifdef ISIX_CONFIG_JOIN_API
-//! Join and wait when another thread finis work
-int isix_task_join( ostask_t wthr )
-{
-	if( !wthr ) {
-		return ISIX_EINVARG;	
-	}
-	_isixp_enter_critical();
-	_isixp_set_sleep( OSTHR_STATE_WTEXIT );
-	list_insert_end( &wthr->wtexit_list, &currp->inode );
-	_isixp_exit_critical();
-	isix_yield();
-	return currp->obj.dmsg;
-}
-#endif
