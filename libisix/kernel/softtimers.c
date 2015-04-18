@@ -73,6 +73,7 @@ static void add_vtimer_to_list( ostick_t tnow, osvtimer_t timer )
     if( timer->jiffies < currj )
     {
     	//Insert on overflow waiting list in time order
+		//printk("ovr add %p jiff %08x now %08x", timer, timer->jiffies, tnow );
 		add_list_with_prio( tctx.pov_vtimer_list, timer );
     }
     else
@@ -87,7 +88,8 @@ static void handle_add( ostick_t tnow, osvtimer_t tmr )
 {
 	//Check for delayed task 
 	bool handled = false;
-	if( tnow >= tmr->jiffies+tmr->timeout ) 
+	ostick_t tdiff = tnow>=tmr->jiffies?tnow-tmr->jiffies:tmr->jiffies-tnow;
+	if( tdiff >= tmr->timeout ) 
 	{
 		exec_timer_callback( tmr );
 		handled = true;
@@ -105,7 +107,6 @@ static void handle_add( ostick_t tnow, osvtimer_t tmr )
 //Switch timer list if overflow
 static void switch_timer_list( ostick_t tnow )
 {
-
 	osvtimer_t vtimer,tmp;
 	//First execute all remaining task on old list
 	list_for_each_entry_safe( tctx.p_vtimer_list, vtimer, tmp, inode )
