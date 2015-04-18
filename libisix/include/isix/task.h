@@ -115,7 +115,15 @@ static inline int isix_task_delete_tcpip(ostask_t task)
 	if( prv ) isix_free( prv );
 	return ret;
 }
-#endif
+#endif /* WITH_ISIX_TCPIP_LIB */
+
+#ifdef ISIX_CONFIG_JOIN_API
+/** Wait when selected thread will exits
+ * @param wthr Task to wait for
+ * @return error code
+ */
+int isix_task_join( ostask_t wthr );
+#endif /* ISIX_CONFIG_JOIN_API */
 
 #ifdef __cplusplus
 }	//end extern-C
@@ -162,5 +170,10 @@ namespace {
 	inline thr_state get_task_state( const ostask_t task=nullptr ) {
 		return ::isix_get_task_state( task );
 	}
+#ifdef ISIX_CONFIG_JOIN_API
+	inline int task_join( ostask_t wthr ) {
+		return ::isix_task_join( wthr );
+	}
+#endif /* ISIX_CONFIG_JOIN_API */
 }}
 #endif /* __cplusplus */
