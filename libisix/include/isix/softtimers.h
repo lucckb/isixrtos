@@ -23,6 +23,12 @@ typedef void (*osvtimer_callback)(void*);
 typedef osvtimer_callback osworkfunc_t;
 
 
+/** Create global isixvtimer worker thread
+ *  It must be called only when shedule work API is used 
+ *  @return ISIX_EOK if success
+ */
+int isix_vtimer_initialize( void ); 
+
 /** Create virtual timer  object
  * @return Virtual timer or null ptr if cannot be created
  */

@@ -215,7 +215,7 @@ void _isixp_vtimers_finalize()
 }
 
 //! Lazy initializatize worker thread only if feature is used
-static bool lazy_initalize()
+int isix_vtimer_initialize( void )
 {
 	if( !tctx.worker_thread_id ) 
 	{
@@ -231,7 +231,7 @@ static bool lazy_initalize()
 		tctx.worker_thread_id = isix_task_create( worker_thread, NULL, 
 			ISIX_PORT_SCHED_MIN_STACK_DEPTH*4, isix_get_min_priority()/2, 0 );
 	}
-	return !tctx.worker_thread_id;
+	return tctx.worker_thread_id?ISIX_EOK:ISIX_ENOMEM;
 }
 
 
@@ -241,7 +241,7 @@ static bool lazy_initalize()
 osvtimer_t isix_vtimer_create( void ) 
 {
 	//Lazy initialize worker thread (if it was not created)
-	if( lazy_initalize() ) {
+	if( isix_vtimer_initialize() ) {
 		printk("Cannot initialize worker thread");
 		return NULL;
 	}
