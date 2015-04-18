@@ -37,7 +37,6 @@ void vtimer::basic()
 	static constexpr auto t2 = 3U;
 	static constexpr auto t3 = 50U;
 	int del_exe_cnt = 0;
-
 	m_t1.start_ms(t1);
 	m_t2.start_ms(t2);
 	QUNIT_IS_EQUAL( 

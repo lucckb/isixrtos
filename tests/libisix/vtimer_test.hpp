@@ -54,7 +54,7 @@ private:
 		unsigned counter() const {
 			return m_counter;
 		}
-	protected:
+		protected:
 		virtual void handle_timer() 
 		{
 			++m_counter;

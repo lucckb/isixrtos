@@ -505,14 +505,14 @@ void isix_start_scheduler(void) __attribute__((noreturn));
 #endif
 void isix_start_scheduler(void)
 {
-   csys.jiffies = 0;		//Zero jiffies if it was previously run
-   schrun = true;
+	csys.jiffies = 0;		//Zero jiffies if it was previously run
+	schrun = true;
 	port_atomic_init( &csys.critical_count, 0 );
-   //Restore context and run OS
-   currp->state = OSTHR_STATE_RUNNING;
-   port_start_first_task();
+	//Restore context and run OS
+	currp->state = OSTHR_STATE_RUNNING;
+	port_start_first_task();
 #ifndef ISIX_CONFIG_SHUTDOWN_API
-   while(1);    //Prevent compiler warning
+	while(1);    //Prevent compiler warning
 #endif
 }
 
