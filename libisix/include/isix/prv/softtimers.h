@@ -20,6 +20,7 @@
 #define ISIX_CONFIG_TIMERS_CMD_QUEUE_SIZE 8
 #endif
 
+
 struct isix_vtimer {
 	ostick_t jiffies;	      	  		/* Next timeout handle */
 	ostick_t timeout;			  		/* Timeout timer value */

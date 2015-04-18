@@ -26,11 +26,13 @@ enum command_e {
 	cmd_execnow = 3
 };
 
+//! Callable object structure
 struct callable 
 {
 	osworkfunc_t fun;
 	void *arg;
 };
+
 //! Command queue
 typedef struct command 
 {
@@ -47,7 +49,6 @@ static inline void exec_timer_callback( osvtimer_t timer )
 {
 	if( timer->callback ) timer->callback( timer->arg );
 	isix_sem_signal_isr( &timer->busy );
-	//printk("execcallback(%p) @%u", timer,  isix_get_jiffies() );
 }
 
 //! Add to list with task order
@@ -71,7 +72,6 @@ static void add_vtimer_to_list( ostick_t tnow, osvtimer_t timer )
 	timer->jiffies += timer->timeout;
     if( timer->jiffies < currj )
     {
-		//printk("add_vtimer_to_list#1( tmr %p wake@ %u curr %u)", timer, timer->jiffies, currj );
     	//Insert on overflow waiting list in time order
 		add_list_with_prio( tctx.pov_vtimer_list, timer );
     }
@@ -100,7 +100,6 @@ static void handle_add( ostick_t tnow, osvtimer_t tmr )
 			add_vtimer_to_list( tnow, tmr );
 		}
 	}
-	//printk("Timer %p ADD handled %i overflow %i", tmr, handled, overflow );
 }
 
 //Switch timer list if overflow
@@ -228,9 +227,8 @@ static bool lazy_initalize()
 		tctx.worker_queue = 
 			isix_fifo_create( ISIX_CONFIG_TIMERS_CMD_QUEUE_SIZE, sizeof(command_t) );
 		if( !tctx.worker_queue ) return !tctx.worker_queue;
-		//FIXME that
 		tctx.worker_thread_id = isix_task_create( worker_thread, NULL, 
-			2048, isix_get_min_priority()/2, 0 );
+			ISIX_PORT_SCHED_MIN_STACK_DEPTH*4, isix_get_min_priority()/2, 0 );
 	}
 	return !tctx.worker_thread_id;
 }
@@ -291,8 +289,7 @@ int isix_vtimer_cancel( osvtimer_t timer )
 {
 	int ret = ISIX_EOK;
 	do {
-		if( !timer ) 
-		{
+		if( !timer ) {
 			ret = ISIX_EINVARG;
 			break;
 		}
