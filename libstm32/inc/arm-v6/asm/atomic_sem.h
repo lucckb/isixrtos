@@ -37,7 +37,7 @@ enum sys_atomic_const_e {
 /*--------------------------------------------------------------*/
 /** Initialize sem locking primitive 
  * @param [out] lock Lock object
- * @param [in] value Initial semaphore value 
+* @param [in] value Initial semaphore value 
  */
 static inline void sys_atomic_sem_init( sys_atomic_sem_lock_t* lock, int value, int limit )
 {

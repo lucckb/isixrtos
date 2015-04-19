@@ -16,42 +16,41 @@
  * =====================================================================================
  */
 
-/*--------------------------------------------------------------*/
-#ifndef  _ASM_ATOMIC_H
-#define  _ASM_ATOMIC_H
-/*--------------------------------------------------------------*/
+
+#pragma once
+
 #include <stdint.h>
 #include <asm/atomic_int.h>
-/*----------------------------------------------------------*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-/*----------------------------------------------------------*/
+
 //! Atomic basic type
 typedef union 
 {
 	int32_t counter;
 	uint32_t ucounter;
 } sys_atomic_t;
-/*----------------------------------------------------------*/
+
 /** Initialize atomic value  */
 static inline void sys_atomic_init( sys_atomic_t* v, int value )
 {
 	v->counter = value;
 }
-/*----------------------------------------------------------*/
+
 /** Sys atomic set */
 static inline void sys_atomic_set( sys_atomic_t* v, int value ) 
 {
 	sys_atomic_write_int32_t( &v->counter, value );
 }
-/*----------------------------------------------------------*/
+
 /** Sys atomic read */
 static inline int sys_atomic_read( sys_atomic_t* v )
 {
 	return sys_atomic_read_int32_t( &v->counter );
 }
-/*----------------------------------------------------------*/
+
 /** Atomic add integer value */
 static inline void sys_atomic_add( int i, sys_atomic_t* v )
 {
@@ -68,7 +67,7 @@ static inline void sys_atomic_add( int i, sys_atomic_t* v )
 	: "r" (&v->counter), "Ir" (i)
 	: "cc");
 }
-/*----------------------------------------------------------*/
+
 /**  Atomic add and return value  */
 static inline int sys_atomic_add_return( int i, sys_atomic_t *v)
 {
@@ -89,7 +88,7 @@ static inline int sys_atomic_add_return( int i, sys_atomic_t *v)
 
 	return result;
 }
-/*----------------------------------------------------------*/
+
 /** Atomic sub */
 static inline void sys_atomic_sub( int i, sys_atomic_t *v )
 {
@@ -106,7 +105,7 @@ static inline void sys_atomic_sub( int i, sys_atomic_t *v )
 	: "r" (&v->counter), "Ir" (i)
 	: "cc");
 }
-/*----------------------------------------------------------*/
+
 /** Atomic sub and return */
 static inline int sys_atomic_sub_return( int i, sys_atomic_t *v )
 {
@@ -127,29 +126,9 @@ static inline int sys_atomic_sub_return( int i, sys_atomic_t *v )
 
 	return result;
 }
-/*----------------------------------------------------------*/
-/** Atomic xchange  */
-static inline int sys_atomic_cmpxchg( sys_atomic_t *ptr, int old, int newv )
-{
-	unsigned long oldval, res;
 
-	asm volatile("dmb\n");
-	do {
-		asm volatile (
-		"ldrex	%1, [%3]\n"
-		"mov	%0, #0\n"
-		"teq	%1, %4\n"
-		"strexeq %0, %5, [%3]\n"
-		    : "=&r" (res), "=&r" (oldval), "+Qo" (ptr->counter)
-		    : "r" (&ptr->counter), "Ir" (old), "r" (newv)
-		    : "cc");
-	} while (res);
-	asm volatile("dmb\n");
-	return oldval;
-}
-/*----------------------------------------------------------*/
+
+
 #ifdef __cplusplus
 }
 #endif
-/*----------------------------------------------------------*/
-#endif   /* ----- #ifndef atomic_INC  ----- */

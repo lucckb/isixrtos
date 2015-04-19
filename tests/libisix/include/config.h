@@ -12,7 +12,7 @@
 #define ISIX_CONFIG_SHUTDOWN_API
 /* Enable task stack checking */
 #define ISIX_CONFIG_TASK_STACK_CHECK
-
+#define ISIX_CONFIG_FIFO_EVENT_NOTIFY
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			#define CONFIG_XTAL_HZ  25000000U
