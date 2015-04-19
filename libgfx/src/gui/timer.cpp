@@ -28,11 +28,10 @@ namespace gui {
 	*/
 timer::timer( gfx::gui::frame& frm, unsigned elapse, window* win, 
 		bool cyclic, int id ) 
-	: m_frm( frm ), m_win( win ), m_id( id ), 
-	  m_cyclic( cyclic ), m_elapse( elapse )
+	:  m_sys_timer( isix_vtimer_create() ), 
+	   m_frm( frm ), m_win( win ), m_id( id ), 
+	   m_cyclic( cyclic ), m_elapse( elapse )
 {
-	m_sys_timer = _isix_vtimer_create_internal_( 
-		cyclic?raw_timer_callback:nullptr, cyclic?this:nullptr, !cyclic );
 }
 /* ------------------------------------------------------------------ */
 //! Destructor
@@ -66,12 +65,13 @@ int timer::start()
 	int ret { einval };
 	if( m_cyclic ) {
 		if( !m_started ) {
-			ret =  isix_vtimer_start_ms( m_sys_timer, m_elapse );
+			ret =  isix_vtimer_start( m_sys_timer, raw_timer_callback, this, 
+					isix_ms2tick(m_elapse), true );
 			m_started = !ret;
 		} 
 	} else {
-		ret = isix_vtimer_one_shoot_ms( m_sys_timer, 
-			raw_timer_callback, this, m_elapse );
+		ret = isix_vtimer_start( m_sys_timer, 
+			raw_timer_callback, this, isix_ms2tick(m_elapse), false );
 	}
 	return ret;
 }
@@ -81,7 +81,7 @@ int timer::stop()
 {
 	int ret { einval };
 	if( m_started || !m_cyclic ) {
-		ret =  isix_vtimer_stop( m_sys_timer );
+		ret =  isix_vtimer_cancel( m_sys_timer );
 		m_started = false;
 	}
 	return ret;

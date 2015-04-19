@@ -11,7 +11,7 @@
 #include <usb/drivers/controllers/stm32/usb_config.h>
 
 // Isix milisec timer
-static osvtimer_t isix_ms_timers[2];
+static osvtimer_t isix_ms_timers[4];
 
 
 /* Configure millisecond timer.
@@ -20,7 +20,7 @@ static osvtimer_t isix_ms_timers[2];
 int usblibp_timer_configure( void ) 
 {
 	for( unsigned i=0; i<ARRAY_SIZE(isix_ms_timers); ++i ) {
-		isix_ms_timers[i] = isix_vtimer_create_oneshoot();
+		isix_ms_timers[i] = isix_vtimer_create();
 		if( !isix_ms_timers[i] ) {
 			return USBHLIB_ERROR_OS;
 		}
@@ -38,7 +38,8 @@ int usblibp_timer_start(unsigned timer, void (*f)(void*), unsigned time_ms)
 	if( timer >= ARRAY_SIZE( isix_ms_timers ) ) {
 		return USBHLIB_ERROR_NOT_SUPPORTED;
 	}
-	const int err = isix_vtimer_one_shoot(isix_ms_timers[timer], f, NULL, time_ms);
+	const int err = isix_vtimer_start_isr(isix_ms_timers[timer], f, 
+			NULL, isix_ms2tick(time_ms), false );
 	if( err != ISIX_EOK ) {
 		return USBHLIB_ERROR_OS;
 	}
@@ -53,7 +54,7 @@ int usblibp_timer_stop(unsigned timer)
 	if( timer >= ARRAY_SIZE( isix_ms_timers ) ) {
 		return USBHLIB_ERROR_OS;
 	}
-    const int err = isix_vtimer_stop(isix_ms_timers[timer]);
+    const int err = isix_vtimer_cancel_isr(isix_ms_timers[timer]);
 	if( err != ISIX_EOK ) {
 		return USBHLIB_ERROR_OS;
 	}

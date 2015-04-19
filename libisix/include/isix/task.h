@@ -152,9 +152,11 @@ namespace {
 	inline osprio_t get_task_priority( const ostask_t task=nullptr ) {
 		return ::isix_get_task_priority( task );
 	}
+#ifdef ISIX_CONFIG_TASK_STACK_CHECK
 	inline size_t free_stack_space( const ostask_t task=nullptr ) {
 		return ::isix_free_stack_space( task );
 	}
+#endif
 	inline void task_suspend( ostask_t task ) {
 		::isix_task_suspend( task );
 	}
