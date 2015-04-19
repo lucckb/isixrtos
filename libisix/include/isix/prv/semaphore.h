@@ -7,8 +7,6 @@
 //Structure of semaphore
 struct isix_semaphore
 {
-	//Type of object
-	osobject_type_t type;
     //Resource type
     bool static_mem;
 	//Semaphore val
