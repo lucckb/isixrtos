@@ -22,7 +22,8 @@
 
 
 //! Private function for lock
-static inline __attribute__((always_inline)) void _lock( const osfifo_t fifo )
+static inline __attribute__((always_inline)) 
+void _lock( const osfifo_t fifo )
 {
 	if( fifo->flags & isix_fifo_f_noirq ) {
 		_isixp_lock_scheduler();
@@ -32,7 +33,8 @@ static inline __attribute__((always_inline)) void _lock( const osfifo_t fifo )
 }
 
 //! Private function for unlock
-static inline __attribute__((always_inline)) void _unlock( const osfifo_t fifo )
+static inline __attribute__((always_inline)) 
+void _unlock( const osfifo_t fifo )
 {
 	if( fifo->flags & isix_fifo_f_noirq ) {
 		_isixp_unlock_scheduler();
