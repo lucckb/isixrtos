@@ -263,8 +263,8 @@ osvtimer_t isix_vtimer_create( void )
  * @param[in] Cyclic is cyclic timer
  * @return success if ISIX_EOK else isix error
  */
-int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
-		void* arg, ostick_t timeout, bool cyclic )
+int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
+		void* arg, ostick_t timeout, bool cyclic, bool isr )
 {
 	//printk("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
 	if( !timer ) return ISIX_EINVARG;
@@ -279,14 +279,18 @@ int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 	timer->arg = arg;
 	timer->cyclic = cyclic;
 	command_t cmd = { .cmd=cmd_add, .tmr=timer };
-	return isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
+	if( !isr ) {
+		return isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
+	} else {
+		return isix_fifo_write_isr( tctx.worker_queue, &cmd );
+	}
 }
 
 /** Stop the vtimer on the selected period
  * @param[in] timer Pointer to the timer structure
  * @return success if ISIX_EOK , otherwise error
  */
-int isix_vtimer_cancel( osvtimer_t timer ) 
+int _isixp_vtimer_cancel( osvtimer_t timer, bool isr )
 {
 	int ret = ISIX_EOK;
 	do {
@@ -295,9 +299,15 @@ int isix_vtimer_cancel( osvtimer_t timer )
 			break;
 		}
 		command_t cmd = { .cmd=cmd_cancel, .tmr=timer };
-		ret = isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
+		if( !isr ) {
+			ret = isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
+		} else {
+			ret = isix_fifo_write_isr( tctx.worker_queue, &cmd );
+		}
 		if( ret ) break;
-		ret = isix_sem_wait( &timer->busy, ISIX_TIME_INFINITE );
+		if( !isr ) {
+			ret = isix_sem_wait( &timer->busy, ISIX_TIME_INFINITE );
+		}
 	} while(0);
 	return ret;
 }

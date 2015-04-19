@@ -38,6 +38,7 @@ public:
 	}
 	//Run all test
 	void run() {
+		basic_isr();
 		basic();
 		one_shoot();
 	}
@@ -45,6 +46,8 @@ protected:
 private:
 	//Basic test
 	void basic();
+	//Basic test ISR
+	void basic_isr();
 	//One shoot test
 	void one_shoot();
 private:
@@ -53,6 +56,9 @@ private:
 		//Counter get
 		unsigned counter() const {
 			return m_counter;
+		}
+		void clear() {
+			m_counter = 0;
 		}
 		protected:
 		virtual void handle_timer() 

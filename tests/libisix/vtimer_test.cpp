@@ -29,6 +29,7 @@ namespace {		//Delayed execution test
 	}
 
 }
+
 //VTIMER basic test
 void vtimer::basic() 
 {
@@ -36,14 +37,17 @@ void vtimer::basic()
 	static constexpr auto t1 = 100U;
 	static constexpr auto t2 = 3U;
 	static constexpr auto t3 = 50U;
+	m_t1.clear();
+	m_t2.clear();
+	m_t3.clear();
 	int del_exe_cnt = 0;
-	m_t1.start_ms(t1);
-	m_t2.start_ms(t2);
+	QUNIT_IS_EQUAL( m_t1.start_ms(t1), ISIX_EOK );
+	QUNIT_IS_EQUAL( m_t2.start_ms(t2), ISIX_EOK );
 	QUNIT_IS_EQUAL( 
 		isix_schedule_work_isr(delegated_func,&del_exe_cnt), 
 		ISIX_EOK 
 	);
-	m_t3.start_ms(t3);
+	QUNIT_IS_EQUAL( m_t3.start_ms(t3), ISIX_EOK );
 	QUNIT_IS_EQUAL( 
 		isix_schedule_work_isr(delegated_func,&del_exe_cnt), 
 		ISIX_EOK 
@@ -53,10 +57,13 @@ void vtimer::basic()
 		isix_schedule_work_isr(delegated_func,&del_exe_cnt), 
 		ISIX_EOK 
 	);
-	m_t1.stop();
-	m_t2.stop();
-	m_t3.stop();
+	const auto ss1 = m_t1.stop();
+	const auto ss2 = m_t2.stop();
+	const auto ss3 = m_t3.stop();
 	isix_wait_ms(50);	//Give some time to command exec
+	QUNIT_IS_EQUAL( ss1, ISIX_EOK );
+	QUNIT_IS_EQUAL( ss2, ISIX_EOK );
+	QUNIT_IS_EQUAL( ss3, ISIX_EOK );
 	QUNIT_IS_EQUAL( m_t1.counter(), wait_t/t1 );
 	QUNIT_IS_EQUAL( m_t2.counter(), wait_t/t2 );
 	QUNIT_IS_EQUAL( m_t3.counter(), wait_t/t3 );
@@ -65,6 +72,33 @@ void vtimer::basic()
 	QUNIT_IS_EQUAL( m_t2.counter(), wait_t/t2 );
 	QUNIT_IS_EQUAL( m_t3.counter(), wait_t/t3 );
 	QUNIT_IS_EQUAL( del_exe_cnt, 3 );
+}
+
+//VTIMER basic test
+void vtimer::basic_isr() 
+{
+	static constexpr auto wait_t = 1000U;
+	static constexpr auto t1 = 100U;
+	static constexpr auto t2 = 3U;
+	static constexpr auto t3 = 50U;
+	m_t1.clear();
+	m_t2.clear();
+	m_t3.clear();
+	QUNIT_IS_EQUAL( m_t1.start_ms_isr(t1), ISIX_EOK );
+	QUNIT_IS_EQUAL( m_t2.start_ms_isr(t2), ISIX_EOK );
+	QUNIT_IS_EQUAL( m_t3.start_ms_isr(t3), ISIX_EOK );
+	isix_wait_ms(wait_t);
+	QUNIT_IS_EQUAL( m_t1.stop_isr(), ISIX_EOK );
+	QUNIT_IS_EQUAL( m_t2.stop_isr(), ISIX_EOK );
+	QUNIT_IS_EQUAL( m_t3.stop_isr(), ISIX_EOK );
+	isix_wait_ms(50);	//Give some time to command exec
+	QUNIT_IS_EQUAL( m_t1.counter(), wait_t/t1 );
+	QUNIT_IS_EQUAL( m_t2.counter(), wait_t/t2 );
+	QUNIT_IS_EQUAL( m_t3.counter(), wait_t/t3 );
+	isix_wait_ms(wait_t);
+	QUNIT_IS_EQUAL( m_t1.counter(), wait_t/t1 );
+	QUNIT_IS_EQUAL( m_t2.counter(), wait_t/t2 );
+	QUNIT_IS_EQUAL( m_t3.counter(), wait_t/t3 );
 }
 
 namespace {

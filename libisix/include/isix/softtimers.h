@@ -35,7 +35,7 @@ int isix_vtimer_initialize( void );
 osvtimer_t isix_vtimer_create( void );
 
 /**
- * Start one shoot timer execution
+ * Start one shoot timer execution ISR and non ISR ver
  * @param timer	Pointer to the timer structure
  * @param fun Function to be called 
  * @param arg Argument passed to the function
@@ -43,15 +43,37 @@ osvtimer_t isix_vtimer_create( void );
  * @param[in] Cyclic is cyclic timer
  * @return success if ISIX_EOK else isix error
  */
+int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
+		void* arg, ostick_t timeout, bool cyclic, bool isr );
+static inline __attribute__((always_inline))
 int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
-		void* arg, ostick_t timeout, bool cyclic );
+		void* arg, ostick_t timeout, bool cyclic )
+{
+	return _isixp_vtimer_start( timer, func, arg, timeout, cyclic, false );
+}
+static inline __attribute__((always_inline))
+int isix_vtimer_start_isr( osvtimer_t timer, osvtimer_callback func, 
+		void* arg, ostick_t timeout, bool cyclic )
+{
+	return _isixp_vtimer_start( timer, func, arg, timeout, cyclic, true );
+}
 
 /** Stop the vtimer on the selected period
  * @param[in] timer Pointer to the timer structure
  * @return success if ISIX_EOK , otherwise error
  */
-int isix_vtimer_cancel( osvtimer_t timer );
+int _isixp_vtimer_cancel( osvtimer_t timer, bool isr );
+static inline __attribute__((always_inline))
+int isix_vtimer_cancel( osvtimer_t timer )
+{
+	return _isixp_vtimer_cancel( timer, false );
+}
 
+static inline __attribute__((always_inline))
+int isix_vtimer_cancel_isr( osvtimer_t timer )
+{
+	return _isixp_vtimer_cancel( timer, true );
+}
 
 /** Check if timer is still active and it waits for an event
  * @param[in] timer TImer handler
@@ -92,8 +114,15 @@ namespace {
 			void* arg, ostick_t timeout, bool cyclic ) {
 		return ::isix_vtimer_start( timer, func, arg, timeout, cyclic );
 	}
+	inline int vtimer_start_isr( osvtimer_t timer, osvtimer_callback func, 
+			void* arg, ostick_t timeout, bool cyclic ) {
+		return ::isix_vtimer_start_isr( timer, func, arg, timeout, cyclic );
+	}
 	inline int vtimer_cancel( osvtimer_t timer ) {
 		return ::isix_vtimer_cancel( timer );
+	}
+	inline int vtimer_cancel_isr( osvtimer_t timer ) {
+		return ::isix_vtimer_cancel_isr( timer );
 	}
 	inline int vtimer_is_active( osvtimer_t timer ) {
 		return ::isix_vtimer_is_active( timer );

@@ -51,7 +51,20 @@ namespace isix {
             //! Stop the timer
             int stop() { 
 				return isix_vtimer_cancel( timer ); 
+			} 
+			//! Start the timer on selected period
+            int start_isr( ostick_t timeout, bool cyclic=true ) { 
+				return vtimer_start_isr( timer, callback, this, timeout, cyclic ); 
 			}
+            //! Start the timer on selected period
+            int start_ms_isr( ostick_t timeout, bool cyclic=true ) { 
+				return vtimer_start_isr( timer, callback, this, ms2tick(timeout), cyclic ); 
+			}
+            //! Stop the timer
+            int stop_isr() { 
+				return isix_vtimer_cancel_isr( timer ); 
+			}
+
     protected:
             //! Virtual function called on time
             virtual void handle_timer() = 0;
