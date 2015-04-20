@@ -82,16 +82,15 @@ extern "C"
 	void *calloc(size_t nmemb, size_t size);
 	void *realloc(void */*ptr*/, size_t /*size*/);
 	void abort(void);
-	int __cxa_guard_acquire(__guard *);
-	void __cxa_guard_release (__guard *);
 	void __cxa_pure_virtual();
 	int * __errno(void);
+	int __cxa_guard_acquire(__guard *);
+	void __cxa_guard_release (__guard *);
 	void __cxa_guard_abort(__guard *);
-	bool initializerHasRun(__guard *);
-	void setInitializerHasRun(__guard *);
-	bool inUse(__guard *);
-	void setInUse(__guard *);
-	void setNotInUse(__guard *);
+	static bool initializerHasRun(__guard *);
+	static void setInitializerHasRun(__guard *);
+	static void setInUse(__guard *);
+	static void setNotInUse(__guard *);
 }
 /* -------------------------------------------------------------- */
 #ifdef COMPILED_UNDER_ISIX
@@ -162,27 +161,22 @@ void __cxa_guard_abort(__guard *guard_object)
 #endif
 }
 
-bool initializerHasRun(__guard *guard_object)
+static bool initializerHasRun(__guard *guard_object)
 {
     return ( *((uint8_t*)guard_object) != 0 );
 }
 
-void setInitializerHasRun(__guard *guard_object)
+static void setInitializerHasRun(__guard *guard_object)
 {
     *((uint8_t*)guard_object) = 1;
 }
 
-bool inUse(__guard *guard_object)
-{
-    return ( ((uint8_t*)guard_object)[1] != 0 );
-}
-
-void setInUse(__guard *guard_object)
+static void setInUse(__guard *guard_object)
 {
     ((uint8_t*)guard_object)[1] = 1;
 }
 
-void setNotInUse(__guard *guard_object)
+static void setNotInUse(__guard *guard_object)
 {
     ((uint8_t*)guard_object)[1] = 0;
 }
