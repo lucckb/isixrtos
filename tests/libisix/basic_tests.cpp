@@ -53,7 +53,7 @@ class unit_tests : public isix::task_base
     virtual void main() 
 	{
 #if 0
-		task_test.run();
+		event_test.run();
 		dbprintf("Timer tests end");
 		isix::wait_ms(500);
 		isix::shutdown_scheduler();
@@ -71,7 +71,9 @@ class unit_tests : public isix::task_base
 		errno_test.run();
 		event_test.run();
 		isix_wait_ms(100);
+		dbprintf("Bye bye");
 		isix_shutdown_scheduler();
+		dbprintf("It never should show it");
 #else
 		vStartEventGroupTasks();
 		isix::wait_ms(500);

@@ -7,13 +7,16 @@
 
 #pragma once
 
+#include <isix/config.h>
 #include "semaphore.h"
 
+#ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY	
+struct isix_event;
+#endif
 
 /* Queue structure */
 struct isix_fifo
 {
-	osobject_type_t type;	//Type of object
 	char *rx_p;     //Pointer to rx
     char *tx_p;     //Pointer to tx
     char *mem_p;    //Pointer to allocated memory
@@ -22,5 +25,9 @@ struct isix_fifo
     struct isix_semaphore rx_sem;  //Semaphore rx
     struct isix_semaphore tx_sem;  //Semaphore for tx
 	unsigned flags;	//Extra flags
+#ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY	//! Fifo event notify API
+	struct isix_event* evt;
+	unsigned char bitno;
+#endif
 };
 

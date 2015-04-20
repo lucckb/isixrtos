@@ -5,8 +5,8 @@
 #include <isix/fifo.h>
 #include <isix/prv/semaphore.h>
 #include <string.h>
-#include <isix/prv/fifo.h>
 #define _ISIX_KERNEL_CORE_
+#include <isix/prv/fifo_lock.h>
 #include <isix/prv/scheduler.h>
 #ifndef ISIX_DEBUG_FIFO
 #define ISIX_DEBUG_FIFO ISIX_DBG_OFF
@@ -21,25 +21,6 @@
 #endif
 
 
-//! Private function for lock
-static inline __attribute__((always_inline)) void _lock( const osfifo_t fifo )
-{
-	if( fifo->flags & isix_fifo_f_noirq ) {
-		_isixp_lock_scheduler();
-	} else {
-		_isixp_enter_critical();
-	}
-}
-
-//! Private function for unlock
-static inline __attribute__((always_inline)) void _unlock( const osfifo_t fifo )
-{
-	if( fifo->flags & isix_fifo_f_noirq ) {
-		_isixp_unlock_scheduler();
-	} else {
-		_isixp_exit_critical();
-	}
-}
 
 /* Create queue for n elements
  * if succes return queue pointer else return null
@@ -53,8 +34,7 @@ osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
        printk("FifoCreate: Error alloc fifo struct");
        return NULL;
    }
-   //Set type
-   fifo->type = osobject_type_fifo;
+   memset( fifo, 0, sizeof(struct isix_fifo) );
    //Set flags
    fifo->flags = flags;
    //Calculate size
@@ -88,14 +68,15 @@ int isix_fifo_write(osfifo_t fifo,const void *item, ostick_t timeout)
         printk("FifoWrite: Timeout on TX queue");
         return ISIX_ETIMEOUT;
     }
-    _lock(fifo);
+    _fifo_lock(fifo);
     memcpy(fifo->tx_p,item,fifo->elem_size);
     printk("FifoWrite: Data write at TXp %p",fifo->tx_p);
     fifo->tx_p+= fifo->elem_size;
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
-    _unlock(fifo);
+    _fifo_unlock(fifo);
     printk("FifoWrite: New TXp %p",fifo->tx_p);
     //Signaling RX thread with new data
+	_isixp_fifo_rxavail_event_raise( fifo, false );
     return isix_sem_signal(&fifo->rx_sem);
 }
 
@@ -109,14 +90,15 @@ int isix_fifo_write_isr(osfifo_t fifo,const void *item)
         printk("FifoWriteISR: No space in TX queue");
         return ISIX_EFIFOFULL;
     }
-    _lock(fifo);
+    _fifo_lock(fifo);
     memcpy(fifo->tx_p,item,fifo->elem_size);
     printk("FifoWriteISR: Data write at TXp %p",fifo->tx_p);
     fifo->tx_p+= fifo->elem_size;
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
-    _unlock(fifo);
+    _fifo_unlock(fifo);
     printk("FifoWriteISR: New TXp %p",fifo->tx_p);
     //Signaling RX thread with new data
+	_isixp_fifo_rxavail_event_raise( fifo, true );
     return isix_sem_signal_isr(&fifo->rx_sem);
 }
 
@@ -129,12 +111,12 @@ int isix_fifo_read(osfifo_t fifo,void *item, ostick_t timeout)
        printk("FifoRead: Timeout on RX queue");
        return ISIX_ETIMEOUT;
     }
-    _lock(fifo);
+    _fifo_lock(fifo);
     memcpy(item,fifo->rx_p,fifo->elem_size);
     printk("FifoRead: Data write at RXp %p",fifo->rx_p);
     fifo->rx_p+= fifo->elem_size;
     if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;
-    _unlock(fifo);
+    _fifo_unlock(fifo);
     printk("FifoRead: New Rxp %p",fifo->rx_p);
     //Signaling TX for space avail
     return isix_sem_signal(&fifo->tx_sem);
@@ -151,12 +133,12 @@ int isix_fifo_read_isr(osfifo_t fifo,void *item)
        printk("FifoReadISR: No space in RX queue");
        return ISIX_EFIFOFULL;
     }
-    _lock(fifo);
+    _fifo_lock(fifo);
     memcpy(item,fifo->rx_p,fifo->elem_size);
     printk("FifoReadISR: Data write at RXp %p",fifo->rx_p);
     fifo->rx_p+= fifo->elem_size;
     if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;
-    _unlock(fifo);
+    _fifo_unlock(fifo);
     printk("FifoReadISR: New Rxp %p",fifo->rx_p);
     //Signaling TX for space avail
     return isix_sem_signal_isr(&fifo->tx_sem);
@@ -166,11 +148,11 @@ int isix_fifo_read_isr(osfifo_t fifo,void *item)
 /* Delete created queue */
 int isix_fifo_destroy(osfifo_t fifo)
 {
-    _lock(fifo);
+    _fifo_lock(fifo);
     //Destroy RXSEM and TXSEM
     isix_sem_destroy(&fifo->rx_sem);
     isix_sem_destroy(&fifo->tx_sem);
-    _unlock(fifo);
+    _fifo_unlock(fifo);
     //Free queue used memory
     isix_free(fifo->mem_p);
     isix_free(fifo);
