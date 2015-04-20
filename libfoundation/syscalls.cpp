@@ -87,11 +87,14 @@ extern "C"
 	int __cxa_guard_acquire(__guard *);
 	void __cxa_guard_release (__guard *);
 	void __cxa_guard_abort(__guard *);
-	static bool initializerHasRun(__guard *);
-	static void setInitializerHasRun(__guard *);
-	static void setInUse(__guard *);
-	static void setNotInUse(__guard *);
 }
+/* -------------------------------------------------------------- */
+
+static bool initializerHasRun(__guard *);
+static void setInitializerHasRun(__guard *);
+static void setInUse(__guard *);
+static void setNotInUse(__guard *);
+
 /* -------------------------------------------------------------- */
 #ifdef COMPILED_UNDER_ISIX
 static ossem_t ctors_sem;
