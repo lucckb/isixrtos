@@ -22,6 +22,9 @@
 #include "fifo.h"
 #include "events.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Connect event API to the FIFO queue for notify selected
  * if the fifo is readeable or fifo is writable
@@ -37,6 +40,23 @@ int isix_fifo_event_connect( osfifo_t fifo, osevent_t evt, int inbit );
  * @param[in] evt  handle to the osevent notifier
  */
 int isix_fifo_event_disconnect( osfifo_t fifo, osevent_t evt );
+
+#ifdef __cplusplus
+}
+#endif
+
+//! Cplusplus API
+#ifdef __cplusplus
+namespace isix {
+namespace {
+	inline int fifo_event_connect( osfifo_t fifo, osevent_t evt, int inbit ) {
+		return ::isix_fifo_event_connect( fifo, evt, inbit );
+	}
+	inline int fifo_event_disconnect( osfifo_t fifo, osevent_t evt ) {
+		return ::isix_fifo_event_disconnect( fifo, evt );
+	}
+}}
+#endif
 
 
 #endif /* ISIX_CONFIG_FIFO_EVENT_NOTIFY */

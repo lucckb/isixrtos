@@ -47,8 +47,7 @@ namespace {
 			isix_wait_ms(20);
 			static constexpr auto nposts = 1;
 			for( unsigned n=0; n<nposts; ++n ) {
-				auto r = isix_event_set( ev,  EV0|EV1 );
-				dbprintf("Set bit val %08x", r );
+				isix_event_set( ev,  EV0|EV1 );
 			}
 		}
 	private:
@@ -69,11 +68,8 @@ namespace {
 	protected:
 		virtual void main()
 		{
-			isix_wait_ms(20);
-			dbprintf("Hello listen ");
 			while(1) {
-				auto ret = isix_event_wait( ev, id, true, true, ISIX_TIME_INFINITE );
-				dbprintf("Signaled %08x TID %08x", ret, id );
+				isix_event_wait( ev, id, true, true, ISIX_TIME_INFINITE );
 			}
 		}
 	private:
@@ -118,9 +114,9 @@ namespace sync {
 		for(;;) {
 			auto ret = isix_event_sync( ev, TASK_0_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
 			if( (ret&ALL_SYNC_BITS)==ALL_SYNC_BITS ) {
-				dbprintf("Sync from t0 reached %04x", ret );
+				//dbprintf("Sync from t0 reached %04x", ret );
 			} else {
-				dbprintf(" Ret_t0 %08x val %08x", ret, isix_event_get_isr(ev));
+				//dbprintf(" Ret_t0 %08x val %08x", ret, isix_event_get_isr(ev));
 			}
 		}
 	}
@@ -129,36 +125,105 @@ namespace sync {
 	{
 		auto ev = static_cast<osevent_t>(param);
 		for(;;) {
-			auto ret = isix_event_sync( ev, TASK_1_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
-			//dbprintf(" Ret_t1 %08x", ret );
-			fnd::tiny_printf("*");
-			(void)ret;
+			isix_event_sync( ev, TASK_1_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
 		}
 	}
 	void task2( void *param )
 	{
 		auto ev = static_cast<osevent_t>(param);
 		for(;;) {
-			auto ret = isix_event_sync( ev, TASK_2_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
-			//dbprintf(" Ret_t2 %08x", ret );
-			fnd::tiny_printf("^");
-			(void)ret;
+			isix_event_sync( ev, TASK_2_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
 		}
 	}
 }}
 
+//Namespace for fifo conn
+namespace {
+	
+	struct evfifo 
+	{
+		osfifo_t fifo1 { isix_fifo_create( 16, sizeof(char) ) };
+		osfifo_t fifo2 { isix_fifo_create( 16, sizeof(char) ) };
+		osevent_t ev { isix_event_create() };
+		int err1 {};
+		int err2 {};
+	};
+	void fifo_task1( void *ptr ) 
+	{
+		constexpr auto ch = 'A';
+		auto& dt = *static_cast<evfifo*>(ptr);	
+		for(;;) {
+			dt.err1 = isix_fifo_write( dt.fifo1, &ch, ISIX_TIME_INFINITE );
+			isix_task_suspend(nullptr);
+		}
+	}
+	void fifo_task2( void *ptr ) 
+	{
+		constexpr auto ch = 'B';
+		auto& dt = *static_cast<evfifo*>(ptr);	
+		for(;;) {
+			dt.err2 = isix_fifo_write( dt.fifo2, &ch, ISIX_TIME_INFINITE );
+			isix_task_suspend(nullptr);
+		}
+	}
+}
 
 //Sync API test
 void event_test::sync_test()
 {
 	osevent_t ev = isix_event_create();
 	QUNIT_IS_NOT_EQUAL( ev, nullptr );
-	isix_task_create( sync::task0, ev, 1024, 3, 0 );
-	isix_task_create( sync::task1, ev, 1024, 3, 0 );
-	isix_task_create( sync::task2, ev, 1024, 3, 0 );
+	isix_task_create( sync::task0, ev, 512, 3, 0 );
+	isix_task_create( sync::task1, ev, 512, 3, 0 );
+	isix_task_create( sync::task2, ev, 512, 3, 0 );
 	isix_wait_ms(5000);
-	dbprintf("FInal val %08x", isix_event_get_isr(ev) );
 	isix_event_destroy( ev );
+}
+
+//Fifo connection test
+void event_test::fifo_conn()
+{
+	static constexpr auto EV1 = 1U<<0;
+	static constexpr auto EV2 = 1U<<1;
+	evfifo fstr;
+	//Check fifos
+	QUNIT_IS_NOT_EQUAL( fstr.fifo1, nullptr );
+	QUNIT_IS_NOT_EQUAL( fstr.fifo2, nullptr );
+	QUNIT_IS_NOT_EQUAL( fstr.ev, nullptr );
+	QUNIT_IS_EQUAL( isix_fifo_event_connect(fstr.fifo1,fstr.ev,0), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_fifo_event_connect(fstr.fifo2,fstr.ev,1), ISIX_EOK );
+	auto t1 =  isix_task_create( fifo_task1, &fstr, 512, 3, 0 );
+	auto t2 =  isix_task_create( fifo_task2, &fstr, 512, 3, 0 );
+	QUNIT_IS_NOT_EQUAL( t1, nullptr );
+	QUNIT_IS_NOT_EQUAL( t2, nullptr );
+	osbitset_t abits=0;
+	for(int c=0;c<10;) {
+		auto sbits = isix::event_wait( fstr.ev, EV1|EV2, true, false );
+		if( sbits & EV1 ) {
+			char ch;
+			QUNIT_IS_EQUAL( isix::fifo_read(fstr.fifo1,&ch), ISIX_EOK );
+			QUNIT_IS_EQUAL( ch, 'A');
+		}
+		if( sbits & EV2 ) {
+			char ch;
+			QUNIT_IS_EQUAL( isix::fifo_read(fstr.fifo2,&ch), ISIX_EOK );
+			QUNIT_IS_EQUAL( ch, 'B');
+		}
+		abits |= sbits;
+		if( (abits&(EV1|EV2)) == (EV1|EV2) ) {
+			c++;
+			isix_wait_ms(5);	//Get chance to task fin
+			QUNIT_IS_EQUAL(isix_task_resume(t1), ISIX_EOK );
+			QUNIT_IS_EQUAL(isix_task_resume(t2), ISIX_EOK );
+		}
+	}
+	QUNIT_IS_EQUAL( isix_fifo_event_disconnect(fstr.fifo1,fstr.ev), ISIX_EOK);
+	QUNIT_IS_EQUAL( isix_fifo_event_disconnect(fstr.fifo2,fstr.ev), ISIX_EOK);
+	QUNIT_IS_EQUAL( isix_fifo_destroy(fstr.fifo1), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_fifo_destroy(fstr.fifo2), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_event_destroy(fstr.ev), ISIX_EOK );
+	isix_task_kill( t1 );
+	isix_task_kill( t2 );
 }
 
 } //ns tests

@@ -18,6 +18,7 @@
 #define  _ISIX_KERNEL_CORE_
 #include <isix/fifo_event.h>
 #include <isix/prv/fifo_lock.h>
+#include <isix/printk.h>
 
 #ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY
 
@@ -52,7 +53,8 @@ int isix_fifo_event_disconnect( osfifo_t fifo, osevent_t evt )
 	if( !fifo || !evt ) {
 		return ISIX_EINVARG;
 	}
-	if( sys_cmpxchg((uintptr_t*)&fifo->evt,(uintptr_t)evt, (uintptr_t)NULL) )
+	if( sys_cmpxchg((uintptr_t*)&fifo->evt,(uintptr_t)evt,(uintptr_t)NULL)
+			!= (uintptr_t)evt )
 	{	//Already free
 		return ISIX_EBUSY;
 	}
