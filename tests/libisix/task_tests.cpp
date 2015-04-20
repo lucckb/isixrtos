@@ -72,6 +72,8 @@ namespace {
 // Basic functionality test without IRQS
 void task_tests::basic_funcs()
 {	
+	//Check if scheduler is running
+	QUNIT_IS_TRUE( isix_is_scheduler_active() );
 	auto t1 = new base_task_tests;
 	auto t2 = new base_task_tests;
 	auto t3 = new base_task_tests;
