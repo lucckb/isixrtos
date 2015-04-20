@@ -7,7 +7,6 @@
  *
  * ------------------------------------------------------------ */
 #ifndef COMPILED_UNDER_ISIX
-
 #include "foundation/tiny_alloc.h"
 
 #else /*COMPILED_UNDER_ISIX*/
@@ -70,6 +69,8 @@ void operator delete[]( void* p) throw()
 }
 #endif /* CONFIG_ENABLE_EXCEPTIONS  */
 
+typedef unsigned long __guard;
+
 /* -------------------------------------------------------------- */
 // Syscalls definitions
 extern "C"
@@ -81,11 +82,16 @@ extern "C"
 	void *calloc(size_t nmemb, size_t size);
 	void *realloc(void */*ptr*/, size_t /*size*/);
 	void abort(void);
-	int __cxa_guard_acquire(void);
-	void __cxa_guard_release (void);
+	int __cxa_guard_acquire(__guard *);
+	void __cxa_guard_release (__guard *);
 	void __cxa_pure_virtual();
 	int * __errno(void);
-	void __cxa_guard_abort(void *);
+	void __cxa_guard_abort(__guard *);
+	bool initializerHasRun(__guard *);
+	void setInitializerHasRun(__guard *);
+	bool inUse(__guard *);
+	void setInUse(__guard *);
+	void setNotInUse(__guard *);
 }
 /* -------------------------------------------------------------- */
 #ifdef COMPILED_UNDER_ISIX
@@ -95,35 +101,48 @@ static ossem_t ctors_sem;
 #ifdef CPP_STARTUP_CODE
 
 /* thread safe constructed objects  */
-int __cxa_guard_acquire(void)
+int __cxa_guard_acquire(__guard *guard_object)
 {
 #ifdef COMPILED_UNDER_ISIX
-  if(ctors_sem==NULL)
-  {
-	  ctors_sem = isix_sem_create(NULL,1);
-	  if(ctors_sem==NULL)
-	  {
-		  //Remove task if can;t create semaphore
-		  terminate_process();
-	  }
-  }
-  if(ctors_sem && isix_is_scheduler_active())
-  {
-	  isix_sem_wait( ctors_sem, ISIX_TIME_INFINITE);
-  }
-  return 1;
+
+	// check that the initializer has not already been run
+	if (initializerHasRun(guard_object))
+		return 0;
+
+	//  create semaphore if not existing
+	if(ctors_sem == NULL)
+	{
+		ctors_sem = isix_sem_create(NULL, 1);
+
+		if(ctors_sem == NULL)
+		{
+			//Remove task if can't create semaphore
+			terminate_process();
+			return 0;
+		}
+	}
+
+	if(ctors_sem)
+		isix_sem_wait(ctors_sem, ISIX_TIME_INFINITE);
+
+	setInUse(guard_object);
+	return 1;
 #else
-  return 1;
+	if (initializerHasRun(guard_object))
+		return 0;
+
+	setInUse(guard_object);
+	return 1;
 #endif
 }
 
-void __cxa_guard_release(void)
+void __cxa_guard_release(__guard *guard_object)
 {
+    setInitializerHasRun(guard_object);
+
 #ifdef COMPILED_UNDER_ISIX
-	if(ctors_sem && isix_is_scheduler_active())
-	{
+	if(ctors_sem)
 		isix_sem_signal(ctors_sem);
-	}
 #endif
 }
 
@@ -133,9 +152,39 @@ void __cxa_pure_virtual()
 	terminate_process();
 }
 
-void __cxa_guard_abort(void *)
+void __cxa_guard_abort(__guard *guard_object)
 {
-	terminate_process();
+	setNotInUse(guard_object);
+
+#ifdef COMPILED_UNDER_ISIX
+	if(ctors_sem)
+		isix_sem_signal(ctors_sem);
+#endif
+}
+
+bool initializerHasRun(__guard *guard_object)
+{
+    return ( *((uint8_t*)guard_object) != 0 );
+}
+
+void setInitializerHasRun(__guard *guard_object)
+{
+    *((uint8_t*)guard_object) = 1;
+}
+
+bool inUse(__guard *guard_object)
+{
+    return ( ((uint8_t*)guard_object)[1] != 0 );
+}
+
+void setInUse(__guard *guard_object)
+{
+    ((uint8_t*)guard_object)[1] = 1;
+}
+
+void setNotInUse(__guard *guard_object)
+{
+    ((uint8_t*)guard_object)[1] = 0;
 }
 
 #endif /*CPP_STARTUP_CODE*/
