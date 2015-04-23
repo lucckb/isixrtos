@@ -68,6 +68,12 @@ public:
 	}
 	/* Write to the device */
 	virtual int write( const void *buf, size_t len ) = 0;
+	/* Write using dual transfer */
+	virtual int write( const void* /*buf1*/, size_t /*len1*/,
+					   const void* /*buf2*/, size_t /*len2*/) 
+	{
+		return err_not_supported;
+	}
 	/* Read from the device */
 	virtual int read ( void *buf, size_t len ) = 0;
 	/* Transfer (BIDIR) */
