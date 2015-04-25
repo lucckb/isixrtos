@@ -19,16 +19,16 @@ namespace drv {
 /* This is the low level device probably used in the
  * to the other device driver so it need explicit lock unlock to accuire the device
  */
-class spi_device  :  private fnd::noncopyable
+class spi_device : private fnd::noncopyable
 {
 public:
 	enum err {
 		err_ok,
-		err_not_supported,
-		err_hw,
-		err_noinit,
-		err_dma,
-		err_inval
+		err_not_supported = -512,
+		err_hw = -513,
+		err_noinit = -514,
+		err_dma = -515,
+		err_inval = -516
 	};
 	enum data_with
 	{
