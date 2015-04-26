@@ -38,16 +38,16 @@ device::device( fnd::serial_port& comm,  hw_control& hwctl, unsigned cap )
 //! Do enable device
 int device::do_enable () {
 
+	//Try to at if it is enabled reset it
+	m_at.discard_data( 500 );
+	auto resp = m_at.chat();
+	if( resp ) {
+		dbprintf("Modem is online reset it");
+		m_hwctl.reset();
+	} 
 	//Switch power on the device
  	m_hwctl.power_control( true );
 	m_at.discard_data( 500 );
-	//Try to at if it is enabled reset it
-	auto resp = m_at.chat();
-	if( resp ) 
-	{
-		dbprintf("Modem is online reset it");
-		m_hwctl.reset();
-	}
 	//Switch extended error codes
 	resp = m_at.chat("+CMEE=1", nullptr, true, true );
 	if( !resp ) {
