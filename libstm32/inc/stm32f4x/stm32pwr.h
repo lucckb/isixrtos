@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 
-#ifndef STM32F4PWR_H_
-#define STM32F4WR_H_
+#pragma once
 
 #include <stm32lib.h>
 /* ---------------------------------------------------------------------------- */
@@ -303,4 +302,3 @@ static inline void pwr_clear_flag(uint32_t PWR_FLAG)
 #endif
 /* ---------------------------------------------------------------------------- */
 
-#endif /* STM32PWR_H_ */
