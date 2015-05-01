@@ -15,9 +15,7 @@
 //   return qunit.errors();
 // }
 //
-
-#ifndef _QUNIT_HPP_
-#define _QUNIT_HPP_
+#pragma once
 
 #include <cstring>
 #include <foundation/utils.h>
@@ -194,4 +192,3 @@ namespace QUnit {
     };
 }
 
-#endif // _QUNIT_HPP_
