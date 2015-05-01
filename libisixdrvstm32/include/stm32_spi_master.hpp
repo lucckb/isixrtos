@@ -32,15 +32,17 @@ class spi_master : public ::drv::spi_device
 {
 public:
 	/* Constructor */
-	explicit spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2 );
+	explicit spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool alternate=false );
 	/* Destructor */
 	virtual ~spi_master();
 	/* Write to the device */
 	virtual int write( const void *buf, size_t len);
+	virtual int write( const void* buf1, size_t len1,
+					   const void* buf2, size_t len2);
 	/* Read from the device */
 	virtual int read ( void *buf, size_t len);
 	/* Transfer (BIDIR) */
-	virtual int transfer( const void *inbuf, void *outbuf, size_t len  );
+	virtual int transfer( const void *inbuf, void *outbuf, size_t len );
 	/* Set work mode */
 	virtual int set_mode( unsigned mode, unsigned khz );
 	/* Setup CRC */

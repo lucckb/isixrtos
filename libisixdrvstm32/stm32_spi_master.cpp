@@ -4,30 +4,38 @@
  *  Created on: 02-12-2012
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
+
 #include "stm32_spi_master.hpp"
 #include <stm32rcc.h>
 #include <stm32spi.h>
 #ifdef _HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <foundation/dbglog.h>
 
-/*----------------------------------------------------------*/
+
 namespace stm32 {
 namespace drv {
-/*----------------------------------------------------------*/
+
 namespace {
-namespace spi1 {
-	const uint16_t SD_SPI_MISO_PIN	= 6;
-	const uint16_t SD_SPI_MOSI_PIN	= 7;
-	const uint16_t SD_SPI_SCK_PIN   = 5;
-	const uint16_t SD_SPI_CS_PIN 	= 4;
-	GPIO_TypeDef* const SPI_PORT = GPIOA;
+	namespace spi1 {
+		const uint16_t SD_SPI_MISO_PIN	= 6;
+		const uint16_t SD_SPI_MOSI_PIN	= 7;
+		const uint16_t SD_SPI_SCK_PIN   = 5;
+		const uint16_t SD_SPI_CS_PIN 	= 4;
+		GPIO_TypeDef* const SPI_PORT = GPIOA;
+	}
+	namespace spi2 {
+		const uint16_t SD_SPI_MISO_PIN	= 14;
+		const uint16_t SD_SPI_MOSI_PIN	= 15;
+		const uint16_t SD_SPI_SCK_PIN   = 10;
+		const uint16_t SD_SPI_CS_PIN 	= 12;
+		GPIO_TypeDef* const SPI_PORT = GPIOB;
+	}
 }
-}
-/*----------------------------------------------------------*/
+
 /* Constructor */
-spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2 )
+spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool alternate )
 	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1)
 {
 	using namespace stm32;
@@ -36,16 +44,53 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2 )
 		using namespace spi1;
 		rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SPI1, true );
 		/* Configure SPI1 to use it as SPI dev */
-		gpio_clock_enable( SPI_PORT, true );
-		gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
-		gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
-		gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
-		gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_HALF );
+		if( !alternate ) {
+			gpio_clock_enable( SPI_PORT, true );
+			gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
+					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, 
+					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, 
+					AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   
+					AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_FULL );
+			gpio_set( SPI_PORT, SD_SPI_CS_PIN );
+		} else {
+			//TODO: Add alternate support 
+		}
 	}
 #ifdef SPI2
 	else if( m_spi == SPI2 )
 	{
-		stm32::rcc_apb1_periph_clock_cmd( RCC_APB1Periph_SPI2, true );
+		using namespace spi2;
+		rcc_apb1_periph_clock_cmd( RCC_APB1Periph_SPI2, true );
+		if( !alternate ) 
+		{
+			gpio_clock_enable( SPI_PORT, true );
+#if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4) 
+			gpio_config( SPI_PORT, SD_SPI_SCK_PIN, GPIO_MODE_ALTERNATE, 
+					GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, 0 );
+			gpio_config( SPI_PORT, SD_SPI_MOSI_PIN, GPIO_MODE_ALTERNATE, 
+					GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, 0 );
+			gpio_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_MODE_ALTERNATE, 
+					GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, 0 );
+			gpio_config( SPI_PORT, SD_SPI_CS_PIN, GPIO_MODE_OUTPUT,
+					GPIO_PUPD_NONE, GPIO_SPEED_50MHZ );
+			gpio_pin_AF_config( SPI_PORT, SD_SPI_SCK_PIN, GPIO_AF_SPI2 );
+			gpio_pin_AF_config( SPI_PORT, SD_SPI_MOSI_PIN, GPIO_AF_SPI2 );
+			gpio_pin_AF_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_AF_SPI2 );
+#else
+			gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
+					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, 
+					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, 
+					AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   
+					AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_FULL );
+#endif
+			gpio_set( SPI_PORT, SD_SPI_CS_PIN );
+		}
 	}
 #endif
 #ifdef SPI3
@@ -55,7 +100,7 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2 )
 	}
 #endif
 }
-/*----------------------------------------------------------*/
+
 /* Destructor */
 spi_master::~spi_master()
 {
@@ -64,15 +109,28 @@ spi_master::~spi_master()
 	if( m_spi == SPI1 )
 	{
 		using namespace spi1;
-		gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
-		gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
-		gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
-		gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF );
+		gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
+				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+		gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, 
+				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+		gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, 
+				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+		gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   
+				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
 		rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SPI1, false );
 	}
 #ifdef SPI2
 	else if( m_spi == SPI2 )
 	{
+		using namespace spi2;
+		gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
+				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+		gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, 
+				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+		gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, 
+				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+		gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   
+				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
 		stm32::rcc_apb1_periph_clock_cmd( RCC_APB1Periph_SPI2, false );
 	}
 #endif
@@ -83,9 +141,9 @@ spi_master::~spi_master()
 	}
 #endif
 }
-/*----------------------------------------------------------*/
+
 /* Write to the device */
-int spi_master::write( const void *buf, size_t len)
+int spi_master::write( const void *buf, size_t len )
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
@@ -104,13 +162,26 @@ int spi_master::write( const void *buf, size_t len)
 		const uint8_t *b = static_cast<const uint8_t*>(buf);
 		for(size_t p=0; p<len; p++ )
 		{
-			transfer( b[p]);
+			transfer( b[p] );
 			//dbprintf("%02x", b[p]);
 		}
 	}
 	return 0;
 }
-/*----------------------------------------------------------*/
+
+int spi_master::write( const void* buf1, size_t len1,
+					const void* buf2, size_t len2 ) 
+{
+	int ret;
+	do {
+		ret = write( buf1, len1 );
+		if( ret ) break;
+		ret = write( buf2, len2 );
+		if( ret ) break;
+	} while(0);
+	return ret;
+}
+
 /* Read from the device */
 int spi_master::read ( void *buf, size_t len)
 {
@@ -135,7 +206,7 @@ int spi_master::read ( void *buf, size_t len)
 	}
 	return 0;
 }
-/*----------------------------------------------------------*/
+
 /* Transfer (BIDIR) */
 int spi_master::transfer( const void *inbuf, void *outbuf, size_t len )
 {
@@ -162,7 +233,7 @@ int spi_master::transfer( const void *inbuf, void *outbuf, size_t len )
 	}
 	return 0;
 }
-/*----------------------------------------------------------*/
+
 /* Set work mode */
 int spi_master::set_mode( unsigned mode, unsigned khz )
 {
@@ -214,7 +285,7 @@ int spi_master::set_mode( unsigned mode, unsigned khz )
 	spi_cmd( m_spi, true );
 	return 0;
 }
-/*----------------------------------------------------------*/
+
 /* Setup CRC */
 int spi_master::crc_setup( unsigned short polynominal, bool enable )
 {
@@ -223,7 +294,7 @@ int spi_master::crc_setup( unsigned short polynominal, bool enable )
 	spi_calculate_crc( m_spi, enable );
 	return 0;
 }
-/*----------------------------------------------------------*/
+
 /* Control CS manually*/
 void spi_master::CS( bool val, int /*cs_no*/ )
 {
@@ -235,8 +306,8 @@ void spi_master::CS( bool val, int /*cs_no*/ )
 	}
 	else if( m_spi == SPI2 )
 	{
-		//if( val ) gpio_set( spi2::SPI_PORT, spi2::SD_SPI_CS_PIN );
-		//else gpio_clr( spi2::SPI_PORT, spi2::SD_SPI_CS_PIN );
+		if( val ) gpio_set( spi2::SPI_PORT, spi2::SD_SPI_CS_PIN );
+		else gpio_clr( spi2::SPI_PORT, spi2::SD_SPI_CS_PIN );
 	}
 	else if( m_spi == SPI3 )
 	{
@@ -244,7 +315,7 @@ void spi_master::CS( bool val, int /*cs_no*/ )
 		//else gpio_clr( spi3::SPI_PORT, spi3::SD_SPI_CS_PIN );
 	}
 }
-/*----------------------------------------------------------*/
+
 /* Transfer data (nodma) */
 uint16_t spi_master::transfer( uint16_t val )
 {
@@ -266,12 +337,12 @@ uint16_t spi_master::transfer( uint16_t val )
 	 /*!< Return the byte read from the SPI bus */
 	 return spi_i2s_receive_data(m_spi);
 }
-/*----------------------------------------------------------*/
+
 /* Disable enable the device */
 void spi_master::enable( bool en )
 {
 	stm32::spi_cmd( m_spi, en );
 }
-/*----------------------------------------------------------*/
+
 } /* namespace drv */
 } /* namespace stm32 */
