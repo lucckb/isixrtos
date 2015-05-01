@@ -46,7 +46,7 @@ namespace {
 		//Main function from another task
 		virtual void main( ) 
 		{
-			isix_wait_ms(100);
+			//isix_wait_ms(100);
 			for( int i = 0; i< N_ITEMS; ++i ) {
 				m_error = m_fifo.push( m_id );
 				if( m_error ) break;
@@ -122,11 +122,11 @@ namespace {
 			return true;
 		}
 }
+
+
 //Base tests from external task 
 void fifo_test::base_tests() 
 {
-	static constexpr auto test_prio = 3;
-	QUNIT_IS_EQUAL( isix_task_change_prio( nullptr, test_prio ), TASKDEF_PRIORITY );
 	isix::fifo<char> fifo_tst( 32 );
 	QUNIT_IS_TRUE( fifo_tst.is_valid() );  
 	  
@@ -135,7 +135,6 @@ void fifo_test::base_tests()
 	task_test t3( 'C',  1, fifo_tst ); 
 	task_test t4( 'D',  0, fifo_tst );
 	t1.start(); t2.start(); t3.start(); t4.start();
-
 	char tbuf[17] {};
 	size_t tbcnt {};
 	int err;
@@ -144,7 +143,6 @@ void fifo_test::base_tests()
 	QUNIT_IS_EQUAL( err, ISIX_ETIMEOUT );
 	QUNIT_IS_EQUAL( tbcnt, task_test::N_ITEMS * 4U );
 	QUNIT_IS_FALSE( std::strcmp(tbuf, "DDDDCCCCBBBBAAAA") );
-	QUNIT_IS_EQUAL( isix_task_change_prio(nullptr,TASKDEF_PRIORITY ), test_prio );
 }
 
 //Overflow semaphore test

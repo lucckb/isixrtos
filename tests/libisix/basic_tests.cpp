@@ -53,7 +53,7 @@ class unit_tests : public isix::task_base
     virtual void main() 
 	{
 #if 0
-		event_test.run();
+		fifo_test.run();
 		dbprintf("Timer tests end");
 		isix::wait_ms(500);
 		isix::shutdown_scheduler();
@@ -86,8 +86,9 @@ class unit_tests : public isix::task_base
 int main()
 {
 #ifdef PDEBUG
-	static constexpr auto baud = 3000000;
-    stm32::usartsimple_init( USART1, baud ,false, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
+	static constexpr auto baud_hi = 3000000;
+	static constexpr auto baud_lo = 115200;
+    stm32::usartsimple_init( USART1, baud_lo ,false, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
 #endif	
 	dblog_init_putc( stm32::usartsimple_putc, nullptr );
 	dbprintf("-------- BEGIN_TESTS ---------");
