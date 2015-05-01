@@ -418,7 +418,7 @@ static void add_task_to_waiting_list(ostask_t task, ostick_t timeout)
     	ostask_t waitl;
     	list_for_each_entry(csys.pov_wait_list,waitl,inode_time)
     	{
-    	   if(task->jiffies<waitl->jiffies) break;
+    	   if( task->jiffies < waitl->jiffies ) break;
     	}
     	printk("MoveTaskToWaiting: OVERFLOW insert in time list at %p",&waitl->inode);
     	list_insert_before(&waitl->inode_time,&task->inode_time);
