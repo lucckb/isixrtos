@@ -268,7 +268,7 @@ int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 {
 	//printk("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
 	if( !timer ) return ISIX_EINVARG;
-	if( isix_sem_get_isr(&timer->busy) ) {
+	if( schrun && isix_sem_get_isr(&timer->busy) ) {
 		//!Element is already assigned
 		return ISIX_EBUSY;
 	}
@@ -278,11 +278,16 @@ int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 	timer->callback = func;
 	timer->arg = arg;
 	timer->cyclic = cyclic;
-	command_t cmd = { .cmd=cmd_add, .tmr=timer };
-	if( !isr ) {
-		return isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
+	if( schrun ) {
+		command_t cmd = { .cmd=cmd_add, .tmr=timer };
+		if( !isr ) {
+			return isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
+		} else {
+			return isix_fifo_write_isr( tctx.worker_queue, &cmd );
+		}
 	} else {
-		return isix_fifo_write_isr( tctx.worker_queue, &cmd );
+		handle_add( isix_get_jiffies(), timer );
+		return ISIX_EOK;
 	}
 }
 
@@ -333,8 +338,10 @@ int isix_vtimer_destroy( osvtimer_t timer )
 {
 	int ret = ISIX_EOK;
 	do {
-		ret = isix_vtimer_cancel( timer );
-		if( ret ) break;
+		if( schrun ) {
+			ret = isix_vtimer_cancel( timer );
+			if( ret ) break;
+		}
 		isix_free( timer );
 	} while(0);
 	return ret;
@@ -352,6 +359,24 @@ int isix_schedule_work_isr( osworkfunc_t func, void* arg )
 	return isix_fifo_write_isr( tctx.worker_queue, &cmd );
 }
 
+/** Function modify the next timer timeout
+ * it should be called only from from the timer
+ * callback not from normal context function
+ * @param[in] timer to modify
+ * @param[in] New timeout or cancel
+ */
+int isix_vtimer_mod( osvtimer_t timer, ostick_t new_timeout ) 
+{
+	if( !timer && !timer->cyclic ) {
+		return ISIX_EINVARG;
+	}
+	if( new_timeout == OSVTIMER_CB_CANCEL ) {
+	 	timer->cyclic = false;
+	} else {
+		timer->timeout = new_timeout;
+	}
+	return ISIX_EOK;
+}
 
 #endif /* ISIX_CONFIG_USE_TIMERS */
 

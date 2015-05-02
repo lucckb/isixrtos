@@ -41,6 +41,7 @@ public:
 		basic_isr();
 		basic();
 		one_shoot();
+		mod_api();
 	}
 protected:
 private:
@@ -50,6 +51,8 @@ private:
 	void basic_isr();
 	//One shoot test
 	void one_shoot();
+	//Timer mod from handler test
+	void mod_api();
 private:
 	class timer : public isix::virtual_timer {
 	public:

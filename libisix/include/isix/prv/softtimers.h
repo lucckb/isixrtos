@@ -17,7 +17,7 @@
 
 //! Default queue size
 #ifndef ISIX_CONFIG_TIMERS_CMD_QUEUE_SIZE 
-#define ISIX_CONFIG_TIMERS_CMD_QUEUE_SIZE 8
+#define ISIX_CONFIG_TIMERS_CMD_QUEUE_SIZE 16
 #endif
 
 

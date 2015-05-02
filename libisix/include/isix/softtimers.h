@@ -98,6 +98,16 @@ int isix_vtimer_destroy( osvtimer_t timer );
 int isix_schedule_work_isr( osworkfunc_t func, void* arg );
 
 
+/** Virtual timer next cancel from callback */
+enum { OSVTIMER_CB_CANCEL = 0 };
+/** Function modify the next timer timeout
+ * it should be called only from from the timer
+ * callback not from normal context function
+ * @param[in] timer to modify
+ * @param[in] New timeout or cancel
+ */
+int isix_vtimer_mod( osvtimer_t timer, ostick_t new_timeout );
+
 
 #ifdef __cplusplus
 }	//end extern-C
@@ -132,6 +142,9 @@ namespace {
 	}
 	inline int schedule_work_isr( osworkfunc_t func, void* arg ) {
 		return ::isix_schedule_work_isr( func, arg );
+	}
+	inline int vtimer_mod( osvtimer_t timer, ostick_t new_timeout ) {
+		return ::isix_vtimer_mod( timer, new_timeout );
 	}
 }}
 #endif /* __cplusplus */

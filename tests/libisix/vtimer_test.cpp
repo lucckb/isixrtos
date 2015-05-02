@@ -136,5 +136,69 @@ void vtimer::one_shoot()
 	QUNIT_IS_EQUAL( isix_vtimer_destroy( timerh ), ISIX_EOK );
 }
 
+//Vtimer modapi test
+namespace {
+	constexpr auto mod_on = 2000U;
+	constexpr auto mod_off = 800U;
+	constexpr auto mod_iter = 20;
+	struct mod_info 
+	{
+		int on_cnt {};
+		int off_cnt {};
+		int err_cnt {};
+		int tot_cnt {};
+		ostick_t last_call { isix_get_jiffies() };
+		bool on {};
+		osvtimer_t tmr;
+		ossem_t fin { isix_sem_create_limited(NULL,0,1) };
+	};
+
+	void cyclic_modapi_func( void* ptr ) 
+	{
+		auto* mi = reinterpret_cast<mod_info*>(ptr);
+		if( mi->tot_cnt >= mod_iter ) {
+			isix_vtimer_mod( mi->tmr,OSVTIMER_CB_CANCEL );
+			isix_sem_signal( mi->fin );
+			return;
+		} else if( mi->on ) {
+			isix_vtimer_mod( mi->tmr, mod_on );
+		} else if( !mi->on ) {
+			isix_vtimer_mod( mi->tmr, mod_off );
+		}
+		auto cj1 = isix_get_jiffies();
+		if( cj1 - mi->last_call == mod_on ) {
+			++mi->on_cnt;
+		} else if( cj1 - mi->last_call == mod_off ) {
+			++mi->off_cnt;
+		} else {
+			++mi->err_cnt;
+		}
+		mi->on = !mi->on;
+		mi->tot_cnt++;
+		mi->last_call = cj1;
+	}
+}
+
+//VTIMER modapi test
+void vtimer::mod_api() 
+{
+	auto* timerh = isix_vtimer_create();
+	QUNIT_IS_TRUE( timerh != nullptr );
+	mod_info inf;
+	QUNIT_IS_TRUE( inf.fin != nullptr );
+	inf.tmr = timerh;
+	QUNIT_IS_EQUAL( 
+		isix_vtimer_start( timerh, cyclic_modapi_func, &inf, mod_on, true ),
+		ISIX_EOK 
+	);
+	QUNIT_IS_EQUAL( isix::sem_wait( inf.fin ), ISIX_EOK );
+	QUNIT_IS_EQUAL( inf.err_cnt , 0 );
+	QUNIT_IS_EQUAL( inf.on_cnt , mod_iter/2 );
+	QUNIT_IS_EQUAL( inf.off_cnt , mod_iter/2 );
+	QUNIT_IS_EQUAL( isix_vtimer_destroy( timerh ), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_sem_destroy( inf.fin ), ISIX_EOK );
+}
+
+
 } //Namespace tests end
 
