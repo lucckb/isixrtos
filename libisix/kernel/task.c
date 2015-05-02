@@ -8,17 +8,12 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
-#ifndef ISIX_DEBUG_TASK
-#define ISIX_DEBUG_TASK ISIX_DBG_OFF
-#endif
 
-
-#if ISIX_DEBUG_TASK == ISIX_DBG_ON
-#include <isix/printk.h>
-#else
-#undef printk
-#define printk(...) do {} while(0)
+#ifdef ISIX_LOGLEVEL_TASK
+#undef ISIX_CONFIG_LOGLEVEL 
+#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_TASK
 #endif
+#include <isix/prv/printk.h>
 
 //Magic value for stack checking
 enum { MAGIC_FILL_VALUE = 0x55 };
@@ -27,7 +22,7 @@ enum { MAGIC_FILL_VALUE = 0x55 };
 ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
 		unsigned long  stack_depth, osprio_t priority, unsigned long flags )
 {
-	printk("tskcreate: Create task with prio %i",priority);
+	pr_info("tskcreate: Create task with prio %i",priority);
     if(isix_get_min_priority()< priority )
     {
     	return NULL;
@@ -38,14 +33,14 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 	stack_depth = _isixp_align_size( stack_depth );
     //Allocate task_t structure
     ostask_t task = (ostask_t)isix_alloc(sizeof(struct isix_task));
-    printk("Alloc task struct %p",task);
+    pr_debug("Alloc task struct %p",task);
     //No free memory
     if(task==NULL) return NULL;
     //Zero task structure
     memset( task, 0, sizeof(*task) );
     //Try Allocate stack for task
     task->init_stack = isix_alloc(stack_depth);
-    printk("Alloc stack mem %p",task->init_stack);
+    pr_debug("Alloc stack mem %p",task->init_stack);
     if(task->init_stack==NULL)
     {
         //Free allocated stack memory
@@ -73,7 +68,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
     memset( task->init_stack, MAGIC_FILL_VALUE, stack_depth );
 #endif
-    printk("Top stack SP=%p",task->top_stack);
+    pr_debug("Top stack SP=%p",task->top_stack);
     //Assign task priority
     task->prio = priority;
     //Task is ready
@@ -102,7 +97,7 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
 	}
 	_isixp_enter_critical();
     ostask_t taskc = task?task:currp;
-	printk("Change prio curr task ptr %p %i", taskc, taskc->state );
+	pr_debug("Change prio curr task ptr %p %i", taskc, taskc->state );
     //Save task prio
     const osprio_t old_prio = taskc->prio;
     if(old_prio==new_prio)

@@ -1,5 +1,4 @@
 #include <isix/config.h>
-#include <isix/printk.h>
 #include <isix/types.h>
 #include <isix/task.h>
 #define _ISIX_KERNEL_CORE_

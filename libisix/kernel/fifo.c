@@ -13,12 +13,11 @@
 #endif
 
 
-#if ISIX_DEBUG_FIFO == ISIX_DBG_ON
-#include <isix/printk.h>
-#else
-#undef printk
-#define printk(...) do {} while(0)
+#ifdef ISIX_LOGLEVEL_FIFO
+#undef ISIX_CONFIG_LOGLEVEL 
+#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_FIFO
 #endif
+#include <isix/prv/printk.h>
 
 
 
@@ -31,7 +30,7 @@ osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
    osfifo_t fifo = (osfifo_t)isix_alloc(sizeof(struct isix_fifo));
    if(!fifo)
    {
-       printk("FifoCreate: Error alloc fifo struct");
+       pr_err("FifoCreate: Error alloc fifo struct");
        return NULL;
    }
    memset( fifo, 0, sizeof(struct isix_fifo) );
@@ -43,7 +42,7 @@ osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
    fifo->mem_p = (char*)isix_alloc(fifo->size);
    if(!fifo->mem_p)
    {
-     printk("FifoCreate: Error alloc data");
+     pr_err("FifoCreate: Error alloc data");
      isix_free(fifo);
      return NULL;
    }
@@ -54,7 +53,7 @@ osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
    isix_sem_create(&fifo->rx_sem,0);
    //Create tx sem as numer of element in fifo
    isix_sem_create(&fifo->tx_sem,n_elem);
-   printk("FifoCreate New fifo handler %p",fifo);
+   pr_info("FifoCreate New fifo handler %p",fifo);
    return fifo;
 }
 
@@ -65,16 +64,16 @@ int isix_fifo_write(osfifo_t fifo,const void *item, ostick_t timeout)
     if(!fifo) return ISIX_EINVARG;
     if(isix_sem_wait(&fifo->tx_sem,timeout)<0)
     {
-        printk("FifoWrite: Timeout on TX queue");
+        pr_info("FifoWrite: Timeout on TX queue");
         return ISIX_ETIMEOUT;
     }
     _fifo_lock(fifo);
     memcpy(fifo->tx_p,item,fifo->elem_size);
-    printk("FifoWrite: Data write at TXp %p",fifo->tx_p);
+    pr_debug("FifoWrite: Data write at TXp %p",fifo->tx_p);
     fifo->tx_p+= fifo->elem_size;
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
     _fifo_unlock(fifo);
-    printk("FifoWrite: New TXp %p",fifo->tx_p);
+    pr_debug("FifoWrite: New TXp %p",fifo->tx_p);
     //Signaling RX thread with new data
 	_isixp_fifo_rxavail_event_raise( fifo, false );
     return isix_sem_signal(&fifo->rx_sem);
@@ -87,16 +86,16 @@ int isix_fifo_write_isr(osfifo_t fifo,const void *item)
 	if(fifo->flags & isix_fifo_f_noirq) return ISIX_EINVARG;
     if(isix_sem_get_isr(&fifo->tx_sem)<0)
     {
-        printk("FifoWriteISR: No space in TX queue");
+        pr_err("FifoWriteISR: No space in TX queue");
         return ISIX_EFIFOFULL;
     }
     _fifo_lock(fifo);
     memcpy(fifo->tx_p,item,fifo->elem_size);
-    printk("FifoWriteISR: Data write at TXp %p",fifo->tx_p);
+    pr_debug("FifoWriteISR: Data write at TXp %p",fifo->tx_p);
     fifo->tx_p+= fifo->elem_size;
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
     _fifo_unlock(fifo);
-    printk("FifoWriteISR: New TXp %p",fifo->tx_p);
+    pr_debug("FifoWriteISR: New TXp %p",fifo->tx_p);
     //Signaling RX thread with new data
 	_isixp_fifo_rxavail_event_raise( fifo, true );
     return isix_sem_signal_isr(&fifo->rx_sem);
@@ -108,16 +107,16 @@ int isix_fifo_read(osfifo_t fifo,void *item, ostick_t timeout)
     if(!fifo) return ISIX_EINVARG;
     if(isix_sem_wait(&fifo->rx_sem,timeout)<0)
     {
-       printk("FifoRead: Timeout on RX queue");
+       pr_err("FifoRead: Timeout on RX queue");
        return ISIX_ETIMEOUT;
     }
     _fifo_lock(fifo);
     memcpy(item,fifo->rx_p,fifo->elem_size);
-    printk("FifoRead: Data write at RXp %p",fifo->rx_p);
+    pr_debug("FifoRead: Data write at RXp %p",fifo->rx_p);
     fifo->rx_p+= fifo->elem_size;
     if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;
     _fifo_unlock(fifo);
-    printk("FifoRead: New Rxp %p",fifo->rx_p);
+    pr_debug("FifoRead: New Rxp %p",fifo->rx_p);
     //Signaling TX for space avail
     return isix_sem_signal(&fifo->tx_sem);
 }
@@ -130,16 +129,16 @@ int isix_fifo_read_isr(osfifo_t fifo,void *item)
 	if(fifo->flags & isix_fifo_f_noirq) return ISIX_EINVARG;
     if(isix_sem_get_isr(&fifo->rx_sem)<0)
     {
-       printk("FifoReadISR: No space in RX queue");
+       pr_err("FifoReadISR: No space in RX queue");
        return ISIX_EFIFOFULL;
     }
     _fifo_lock(fifo);
     memcpy(item,fifo->rx_p,fifo->elem_size);
-    printk("FifoReadISR: Data write at RXp %p",fifo->rx_p);
+    pr_debug("FifoReadISR: Data write at RXp %p",fifo->rx_p);
     fifo->rx_p+= fifo->elem_size;
     if(fifo->rx_p >= fifo->mem_p+fifo->size) fifo->rx_p = fifo->mem_p;
     _fifo_unlock(fifo);
-    printk("FifoReadISR: New Rxp %p",fifo->rx_p);
+    pr_debug("FifoReadISR: New Rxp %p",fifo->rx_p);
     //Signaling TX for space avail
     return isix_sem_signal_isr(&fifo->tx_sem);
 }

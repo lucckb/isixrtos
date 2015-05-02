@@ -18,7 +18,12 @@
 #define  _ISIX_KERNEL_CORE_
 #include <isix/fifo_event.h>
 #include <isix/prv/fifo_lock.h>
-#include <isix/printk.h>
+
+#ifdef ISIX_LOGLEVEL_FIFO
+#undef ISIX_CONFIG_LOGLEVEL 
+#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_FIFO
+#endif
+#include <isix/prv/printk.h>
 
 #ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY
 

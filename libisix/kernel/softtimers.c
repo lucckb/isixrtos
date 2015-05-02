@@ -6,13 +6,18 @@
  */
 
 #include <isix/prv/softtimers.h>
-#include <isix/printk.h>
 #include <isix/softtimers.h>
 #include <isix/memory.h>
 #include <isix/prv/list.h>
 #include <string.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
+
+#ifdef ISIX_LOGLEVEL_VTIMERS
+#undef ISIX_CONFIG_LOGLEVEL 
+#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_VTIMERS
+#endif
+#include <isix/prv/printk.h>
 
 #ifdef ISIX_CONFIG_USE_TIMERS 
 
@@ -73,7 +78,7 @@ static void add_vtimer_to_list( ostick_t tnow, osvtimer_t timer )
     if( timer->jiffies < currj )
     {
     	//Insert on overflow waiting list in time order
-		//printk("ovr add %p jiff %08x now %08x", timer, timer->jiffies, tnow );
+		pr_debug("ovr add %p jiff %08x now %08x", timer, timer->jiffies, tnow );
 		add_list_with_prio( tctx.pov_vtimer_list, timer );
     }
     else
@@ -153,11 +158,11 @@ static ostick_t handle_time( ostick_t tnow, bool overflow )
 	{
 		vtimer = list_first_entry(tctx.p_vtimer_list,inode,struct isix_vtimer);
 		ret = vtimer->jiffies - tnow;
-		//printk("nto %u:%p>%u", tnow,vtimer,ret );
+		pr_debug("nto %u:%p>%u", tnow,vtimer,ret );
 	} 
 	else {
 		ret = 0U - tnow;
-		//printk("ntko %u", ret );
+		pr_debug("ntko %u", ret );
 	}
 	return ret;
 }
@@ -242,7 +247,7 @@ osvtimer_t isix_vtimer_create( void )
 {
 	//Lazy initialize worker thread (if it was not created)
 	if( isix_vtimer_initialize() ) {
-		printk("Cannot initialize worker thread");
+		pr_err("Cannot initialize worker thread");
 		return NULL;
 	}
 	osvtimer_t timer = (osvtimer_t)isix_alloc(sizeof(struct isix_vtimer));
@@ -251,7 +256,7 @@ osvtimer_t isix_vtimer_create( void )
 	}
 	memset( timer, 0, sizeof(*timer) );
 	isix_sem_create_limited( &timer->busy, 1, 1 );
-	//printk("vtimer created %p sem %p", timer, &timer->busy );
+	pr_info("vtimer created %p sem %p", timer, &timer->busy );
 	return timer;
 }
 
@@ -267,7 +272,7 @@ osvtimer_t isix_vtimer_create( void )
 int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
 		void* arg, ostick_t timeout, bool cyclic, bool isr )
 {
-	//printk("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
+	pr_info("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
 	if( !timer ) return ISIX_EINVARG;
 	if( isix_sem_get_isr(&timer->busy) ) {
 		//!Element is already assigned

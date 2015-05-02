@@ -19,15 +19,22 @@
 #define ISIX_CONFIG_BYTE_ALIGNMENT_SIZE 8
 #endif
 
+/** Define isix config log level */
+
 
 /** Enable disable global debug */
-#define ISIX_DEBUG_ENABLE ISIX_DBG_ON
+#ifndef ISIX_CONFIG_LOGLEVEL
+#define ISIX_CONFIG_LOGLEVEL ISIXLOG_OFF
+#endif
+/** Enable or disable loglevel for modules separately */
 
-/** Enable debugging options */
-#define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
-#define ISIX_DEBUG_FIFO ISIX_DBG_OFF
-#define ISIX_DEBUG_MEMORY ISIX_DBG_OFF
-#define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
-#define ISIX_DEBUG_TASK ISIX_DBG_OFF
-#define ISIX_DEBUG_MULTIOBJECTS ISIX_DBG_OFF
+//#define ISIX_LOGLEVEL_SCHEDULER
+//#define ISIX_LOGLEVEL_FIFO
+//#define ISIX_LOGLEVEL_TASK
+//#define ISIX_LOGLEVEL_FIFO
+//#define ISIX_LOGLEVEL_VTIMERS
+//#define ISIX_LOGLEVEL_MEMORY
+//#define ISIX_LOGLEVEL_SEMAPHORE
+//#define ISIX_LOGLEVEL_EVENTS
+
 

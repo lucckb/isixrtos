@@ -8,17 +8,12 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
-#ifndef ISIX_DEBUG_SEMAPHORE
-#define ISIX_DEBUG_SEMAPHORE ISIX_DBG_OFF
-#endif
 
-
-#if ISIX_DEBUG_SEMAPHORE == ISIX_DBG_ON
-#include <isix/printk.h>
-#else
-#undef printk
-#define printk(...) do {} while(0)
+#ifdef ISIX_LOGLEVEL_SEMAPHORE
+#undef ISIX_CONFIG_LOGLEVEL 
+#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_SEMAPHORE
 #endif
+#include <isix/prv/printk.h>
 
 //Create semaphore
 ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
@@ -37,28 +32,27 @@ ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
     sem->static_mem = static_mem;
 	port_atomic_sem_init( &sem->value, val, limit_val );
     list_init( &sem->wait_list );
-    printk("Create sem %p val %i",sem,(int)sem->value.value);
+    pr_info("Create sem %p val %i",sem,(int)sem->value.value);
     return sem;
 }
 
 //Wait for semaphore P()
 int isix_sem_wait(ossem_t sem, ostick_t timeout)
 {
-	printk("sem: Wait task %p on %p tout %i", currp, sem, timeout );
+	pr_info("sem: Wait task %p on %p tout %i", currp, sem, timeout );
 	//TODO: Wait in separate function
     if( !sem ) {
-		printk("No sem");
+		pr_err("No sem");
 		return ISIX_EINVARG;
 	}
 	_isixp_enter_critical();
 	//Consistency check
 	if( port_atomic_sem_dec(&sem->value) > 0 )
     {
-        //printk("-----  dec value %i",(int)sem->value.value);
 		_isixp_exit_critical();
         return ISIX_EOK;
     }
-	//printk("---- Add to list %p----- ", currp );
+	pr_debug("Add to list %p", currp );
 	_isixp_set_sleep_timeout( OSTHR_STATE_WTSEM, timeout ); 
 	_isixp_add_to_prio_queue( &sem->wait_list, currp );
 	currp->obj.sem = sem;
@@ -70,20 +64,20 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 //Sem signal V()
 int _isixp_sem_signal( ossem_t sem, bool isr )
 { 
-	printk("sem: Signal on %p isr %i", sem, isr );
+	pr_info("sem: Signal on %p isr %i", sem, isr );
 	if(!sem) {
-        printk("No sem");
+        pr_err("No sem");
         return ISIX_EINVARG;
     }
 	_isixp_enter_critical();
 	if( port_atomic_sem_inc( &sem->value ) > 1 )
     {
-        //printk("Waiting list is empty incval to %i",(int)sem->value.value );
+        pr_debug("Waiting list is empty incval to %i",(int)sem->value.value );
 		_isixp_exit_critical();
         return ISIX_EOK;
     }	
 	ostask_t task = _isixp_remove_from_prio_queue( &sem->wait_list );
-	//printk("Task to wakeup %p", task );
+	pr_debug("Task to wakeup %p", task );
 	if( task ) {	//Task can be deleted for EX
 		//Decrement again because are thrd on list
 		port_atomic_sem_dec( &sem->value );

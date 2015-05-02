@@ -15,15 +15,20 @@
  *
  * =====================================================================================
  */
-#include <isix/printk.h>
+#include <isix/prv/printk.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 #include <isix/prv/events.h>
 #include <isix/events.h>
 #include <isix/memory.h>
 #include <isix/task.h>
-#include <isix/printk.h>
 #include <string.h>
+
+#ifdef ISIX_LOGLEVEL_EVENTS
+#undef ISIX_CONFIG_LOGLEVEL 
+#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_EVENTS
+#endif
+#include <isix/prv/printk.h>
 
 //! Check waiting condition
 static inline bool check_cond( osbitset_t curr, osbitset_t wait_for, bool all ) 
@@ -47,7 +52,7 @@ osevent_t isix_event_create( void )
 {
 	osevent_t ev = isix_alloc( sizeof( struct isix_event ) );
 	if( !ev ) {
-		printk("Unable to create events");
+		pr_err("Unable to create events");
 		return ev;
 	}
 	memset( ev, 0, sizeof(*ev) );

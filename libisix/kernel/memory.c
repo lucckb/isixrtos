@@ -1,11 +1,9 @@
-/*------------------------------------------------------*/
 /*
  * memory.c
  *  New heap allocator for the ISIX
  *  Created on: 2009-11-11
  *      Author: lucck
  */
-/*------------------------------------------------------*/
 #include <isix/memory.h>
 #include <isix/types.h>
 #include <isix/semaphore.h>
@@ -13,19 +11,13 @@
 #include <isix/config.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
-#ifndef ISIX_DEBUG_MEMORY
-#define ISIX_DEBUG_MEMORY ISIX_DBG_OFF
+
+#ifdef ISIX_LOGLEVEL_MEMORY
+#undef ISIX_CONFIG_LOGLEVEL 
+#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_MEMORY
 #endif
+#include <isix/prv/printk.h>
 
-
-#if ISIX_DEBUG_MEMORY == ISIX_DBG_ON
-#include <isix/printk.h>
-#else
-#undef printk
-#define printk(...) do {} while(0)
-#endif
-
-/*------------------------------------------------------*/
 
 #define MAGIC 0x19790822
 #define ALIGN_MASK      (ISIX_CONFIG_BYTE_ALIGNMENT_SIZE - 1)
@@ -40,25 +32,25 @@ struct header
   } h;
   size_t                h_size;
 };
-/*------------------------------------------------------*/
+
 static struct
 {
   struct header         free;   /* Guaranteed to be not adjacent to the heap */
 
 } heap;
 
-/*------------------------------------------------------*/
+
 //! Semaphore for locking the memory allocator
 static struct isix_semaphore mem_sem;
 
-/*------------------------------------------------------*/
+
 //!Lock the memory
 static void mem_lock_init(void)
 {
 	//Create unlocked semaphore
 	isix_sem_create( &mem_sem, 1 );
 }
-/*------------------------------------------------------*/
+
 //!Lock the memory
 static void mem_lock(void)
 {
@@ -66,7 +58,7 @@ static void mem_lock(void)
 		isix_sem_wait( &mem_sem, ISIX_TIME_INFINITE );
 }
 
-/*------------------------------------------------------*/
+
 //!Unlock the memory
 static void mem_unlock(void)
 {
@@ -74,7 +66,7 @@ static void mem_unlock(void)
 		isix_sem_signal( &mem_sem );
 }
 
-/*------------------------------------------------------*/
+
 //! Initialize global heap
 void _isixp_alloc_init(void)
 {
@@ -94,7 +86,7 @@ void _isixp_alloc_init(void)
 
 }
 
-/*------------------------------------------------------*/
+
 void *isix_alloc(size_t size)
 {
   struct header *qp, *hp, *fp;
@@ -132,12 +124,12 @@ void *isix_alloc(size_t size)
   return NULL;
 }
 
-/*------------------------------------------------------*/
+
 #define LIMIT(p) (struct header *)((char *)(p) + \
                                    sizeof(struct header) + \
                                    (p)->h_size)
 
-/*------------------------------------------------------*/
+
 void isix_free(void *p)
 {
   struct header *qp, *hp;
@@ -177,7 +169,7 @@ void isix_free(void *p)
   }
   mem_unlock();
 }
-/*------------------------------------------------------*/
+
 size_t isix_heap_free(int *fragments)
 {
 	int frags = 0; size_t mem = 0;
@@ -192,4 +184,4 @@ size_t isix_heap_free(int *fragments)
 		*fragments = frags;
 	return mem;
 }
-/*------------------------------------------------------*/
+

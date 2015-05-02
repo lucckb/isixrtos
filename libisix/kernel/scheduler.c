@@ -1,5 +1,4 @@
 #include <isix/config.h>
-#include <isix/printk.h>
 #include <isix/types.h>
 #include <isix/task.h>
 #include <isix/memory.h>
@@ -9,16 +8,12 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
-#ifndef ISIX_DEBUG_SCHEDULER
-#define ISIX_DEBUG_SCHEDULER ISIX_DBG_OFF
+#ifdef ISIX_LOGLEVEL_SCHEDULER
+#undef ISIX_CONFIG_LOGLEVEL 
+#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_SCHEDULER
 #endif
+#include <isix/prv/printk.h>
 
-#if ISIX_DEBUG_SCHEDULER == ISIX_DBG_ON
-#include <isix/printk.h>
-#else
-#undef printk
-#define printk(...) do {} while(0)
-#endif
 
 //Current task simple def
 static ISIX_TASK_FUNC(idle_task,p);
@@ -166,23 +161,23 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
 {
     //Go to critical sections forever
 	_isixp_enter_critical();
-#if ISIX_DEBUG_SCHEDULER
-	printk("OOPS-PANIC: Please reset board %s:%i [%s]", file, line, msg );
+#if ISIX_CONFIG_LOGLEVEL!=ISIXLOG_OFF
+	pr_crit("OOPS-PANIC: Please reset board %s:%i [%s]", file, line, msg );
     task_ready_t *i;
     ostask_t j;
-    printk("Ready tasks");
+    pr_crit("Ready tasks");
     list_for_each_entry(&csys.ready_list,i,inode)
     {
-         printk("\t* List inode %p prio %i",i, i->prio );
+         pr_crit("\t* List inode %p prio %i",i, i->prio );
          list_for_each_entry(&i->task_list,j,inode)
          {
-              printk("\t\t-> task %p prio %i state %i",j,j->prio,j->state);
+              pr_crit("\t\t-> task %p prio %i state %i",j,j->prio,j->state);
          }
     }
-    printk("Waiting tasks");
+    pr_crit("Waiting tasks");
     list_for_each_entry(csys.p_wait_list,j,inode_time)
     {
-        printk("\t->Task: %p prio: %i state %i jiffies %i",
+        pr_crit("\t->Task: %p prio: %i state %i jiffies %i",
 				j, j->prio, j->state, j->jiffies );
     }
 #endif
@@ -236,11 +231,11 @@ void _isixp_schedule(void)
     //Get first ready prio
     task_ready_t * curr_prio
 		= list_first_entry( &csys.ready_list, inode, task_ready_t );
-    //printk( "tsk prio %i priolist %p", curr_prio->prio, curr_prio );
-    //printk( "Scheduler: prev task %p",currp );
+    pr_debug( "tsk prio %i priolist %p", curr_prio->prio, curr_prio );
+    pr_debug( "Scheduler: prev task %p",currp );
     currp = list_first_entry( &curr_prio->task_list, inode,struct isix_task );
 	if( currp->state != OSTHR_STATE_READY ) {
-		printk("Currp %p state %i", currp, currp->state );
+		pr_crit("Currp %p state %i", currp, currp->state );
 		isix_bug( "Not in READY state. Mem corrupted?" );
 	}
 	currp->state = OSTHR_STATE_RUNNING;
@@ -256,10 +251,9 @@ void _isixp_schedule(void)
 	}
     if(currp->prio != curr_prio->prio)
     {
-		printk("tsk: %p %i != %i ", currp, currp->prio , curr_prio->prio );
+		pr_crit("tsk: %p %i != %i ", currp, currp->prio , curr_prio->prio );
     	isix_bug("Task priority doesn't match to element priority");
     }
-    //printk( "Scheduler: new task %p", currp );
 }
 
 //Time call from isr
@@ -285,7 +279,7 @@ static void internal_schedule_time(void)
 		(task_c=list_first_entry(csys.p_wait_list,inode_time,struct isix_task))->jiffies
 	)
     {
-    	printk("schedtime: task %p jiffies %i task_time %i", task_c,csys.jiffies,task_c->jiffies);
+    	pr_debug("schedtime: task %p jiffies %i task_time %i", task_c,csys.jiffies,task_c->jiffies);
         list_delete(&task_c->inode_time);
 		if( task_c->state == OSTHR_STATE_WTSEM ) {
 			/*
@@ -335,7 +329,7 @@ static task_ready_t *alloc_task_ready_t(void)
         prio = list_first_entry( &csys.free_prio_elem,inode, task_ready_t );
         list_delete( &prio->inode );
         prio->prio = 0;
-        //printk("alloc_task_ready_t: get from list node %p",prio);
+        pr_debug("alloc_task_ready_t: get from list node %p",prio);
    }
    return prio;
 }
@@ -344,7 +338,6 @@ static task_ready_t *alloc_task_ready_t(void)
 static inline void free_task_ready_t(task_ready_t *prio)
 {
     list_insert_end(&csys.free_prio_elem,&prio->inode);
-    //printk("free_task_ready_t move %p to unused list",prio);
 }
 
 
@@ -354,11 +347,11 @@ static void add_ready_list( ostask_t task )
     if(task->prio > csys.number_of_priorities) {
 		isix_bug("Invalid task priority");	
 	}
-	printk("add: trying to add %p prio %i", task, task->prio );
+	pr_debug("add: trying to add %p prio %i", task, task->prio );
 	if( task->state == OSTHR_STATE_READY || 
 		task->state == OSTHR_STATE_ZOMBIE )
 	{
-		printk(" task_id %p state %i", task, task->state );
+		pr_debug(" task_id %p state %i", task, task->state );
 		isix_bug( "add: in READY or ZOMBIE state" );
 	}
 	task->state = OSTHR_STATE_READY; 		//Set task to ready state
@@ -369,7 +362,7 @@ static void add_ready_list( ostask_t task )
         //If task equal entry is found add this task to end list
         if(prio_i->prio==task->prio)
         {
-            printk("ardy:  prio %i equal node %p",prio_i->prio,prio_i);
+            pr_debug("ardy:  prio %i equal node %p",prio_i->prio,prio_i);
             //Set pointer to priority struct
             task->prio_elem = prio_i;
             //Add task at end of ready list
@@ -378,7 +371,7 @@ static void add_ready_list( ostask_t task )
         }
         else if( isixp_prio_gt(task->prio,prio_i->prio) )
         {
-           printk("wkup: Insert prio %i node %p",prio_i->prio,prio_i);
+           pr_debug("wkup: Insert prio %i node %p",prio_i->prio,prio_i);
            break;
         }
     }
@@ -389,8 +382,8 @@ static void add_ready_list( ostask_t task )
     list_init(&prio_n->task_list); 		//Initialize and add at end of list
     list_insert_end( &prio_n->task_list, &task->inode );
     list_insert_before( &prio_i->inode, &prio_n->inode );
-	printk("ardy: task state %i", task->state );
-    printk("ardy: Add new node %p with prio %i",prio_n,prio_n->prio);
+	pr_debug("ardy: task state %i", task->state );
+    pr_debug("ardy: Add new node %p with prio %i",prio_n,prio_n->prio);
 }
 
 //! Delete task from ready list
@@ -420,7 +413,7 @@ static void add_task_to_waiting_list(ostask_t task, ostick_t timeout)
     	{
     	   if( task->jiffies < waitl->jiffies ) break;
     	}
-    	printk("MoveTaskToWaiting: OVERFLOW insert in time list at %p",&waitl->inode);
+    	pr_debug("MoveTaskToWaiting: OVERFLOW insert in time list at %p",&waitl->inode);
     	list_insert_before(&waitl->inode_time,&task->inode_time);
     }
     else
@@ -431,7 +424,7 @@ static void add_task_to_waiting_list(ostask_t task, ostick_t timeout)
     	{
     	    if(task->jiffies<waitl->jiffies) break;
     	}
-    	printk("MoveTaskToWaiting: NO overflow insert in time list at %p",&waitl->inode);
+    	pr_debug("MoveTaskToWaiting: NO overflow insert in time list at %p",&waitl->inode);
     	list_insert_before(&waitl->inode_time,&task->inode_time);
     }
 }
@@ -445,7 +438,7 @@ void _isixp_add_to_prio_queue( list_entry_t *list, ostask_t task )
     {
     	if ( isixp_prio_gt(task->prio,item->prio) ) break;
     }
-    printk("prioqueue: insert in time list at %p", task );
+    pr_debug("prioqueue: insert in time list at %p", task );
     list_insert_before( &item->inode, &task->inode );
 }
 
@@ -471,7 +464,7 @@ static void cleanup_tasks(void)
         {
         	ostask_t task_del = list_first_entry(&csys.zombie_list,inode,struct isix_task);
         	list_delete(&task_del->inode);
-        	printk( "Task to delete: %p(SP %p) PRIO: %i",
+        	pr_info( "Task to delete: %p(SP %p) PRIO: %i",
 						task_del,task_del->init_stack,task_del->prio );
         	port_cleanup_task(task_del->top_stack);
         	isix_free(task_del->init_stack);
@@ -534,7 +527,7 @@ void _isixp_do_reschedule( ostask_t task )
 	{
 		if( isixp_prio_gt(task->prio,currp->prio) ) {
 			//New task have higer priority then current task
-			printk("resched: prio %i>old prio %i",task->prio,currp->prio);
+			pr_debug("resched: prio %i>old prio %i",task->prio,currp->prio);
 			port_yield();
 		}
 	}
@@ -575,14 +568,14 @@ void _isixp_wakeup_task_l( ostask_t task, osmsg_t msg )
 //Delete task from ready list
 void _isixp_set_sleep( thr_state_t newstate )
 {
-	printk("gts: task %p new_state %i", currp, newstate );
+	pr_debug("gts: task %p new_state %i", currp, newstate );
 	delete_from_ready_list( currp );
 	currp->state = newstate;
 }
 
 void _isixp_set_sleep_timeout( thr_state_t newstate, ostick_t timeout )
 {
-	printk("gtsto: task %p new_state %i tout %i", currp ,newstate, timeout );
+	pr_debug("gtsto: task %p new_state %i tout %i", currp ,newstate, timeout );
 	_isixp_set_sleep( newstate );
 	if( timeout != ISIX_TIME_INFINITE ) {
 		add_task_to_waiting_list( currp, timeout );
