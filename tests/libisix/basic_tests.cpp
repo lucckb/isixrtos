@@ -52,7 +52,7 @@ class unit_tests : public isix::task_base
 	//Test basic tasks
     virtual void main() 
 	{
-#if 1
+#if 0
 		timer_test.run();
 		errno_test.run();
 		dbprintf("Timer tests end");
@@ -87,7 +87,7 @@ class unit_tests : public isix::task_base
 int main()
 {
 #ifdef PDEBUG
-	static constexpr auto baud_hi = 3000000;
+	//static constexpr auto baud_hi = 3000000;
 	static constexpr auto baud_lo = 115200;
     stm32::usartsimple_init( USART1, baud_lo ,false, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
 #endif	

@@ -153,6 +153,10 @@ namespace {
 		ossem_t fin { isix_sem_create_limited(NULL,0,1) };
 	};
 
+	inline bool mod_inrange( ostick_t t, ostick_t rng ) {
+		return t >= rng && t<=rng+mod_off/10;
+	}
+
 	void cyclic_modapi_func( void* ptr ) 
 	{
 		auto* mi = reinterpret_cast<mod_info*>(ptr);
@@ -166,11 +170,12 @@ namespace {
 			isix_vtimer_mod( mi->tmr, mod_off );
 		}
 		auto cj1 = isix_get_jiffies();
-		if( cj1 - mi->last_call == mod_on ) {
+		if( mod_inrange(cj1-mi->last_call,mod_on) ) {
 			++mi->on_cnt;
-		} else if( cj1 - mi->last_call == mod_off ) {
+		} else if( mod_inrange(cj1-mi->last_call,mod_off) ) {
 			++mi->off_cnt;
 		} else {
+			dbprintf("OOOOR %i", cj1-mi->last_call );
 			++mi->err_cnt;
 		}
 		mi->on = !mi->on;
@@ -178,6 +183,8 @@ namespace {
 		mi->last_call = cj1;
 	}
 }
+
+
 
 //VTIMER modapi test
 void vtimer::mod_api() 
@@ -195,8 +202,9 @@ void vtimer::mod_api()
 	QUNIT_IS_EQUAL( inf.err_cnt , 0 );
 	QUNIT_IS_EQUAL( inf.on_cnt , mod_iter/2 );
 	QUNIT_IS_EQUAL( inf.off_cnt , mod_iter/2 );
-	QUNIT_IS_EQUAL( isix_vtimer_destroy( timerh ), ISIX_EOK );
 	QUNIT_IS_EQUAL( isix_sem_destroy( inf.fin ), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_vtimer_destroy( timerh ), ISIX_EOK );
+	inf.fin = nullptr;
 }
 
 

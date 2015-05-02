@@ -42,7 +42,6 @@ ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
 }
 
 //Wait for semaphore P()
-//TODO: priority inheritance
 int isix_sem_wait(ossem_t sem, ostick_t timeout)
 {
 	printk("sem: Wait task %p on %p tout %i", currp, sem, timeout );

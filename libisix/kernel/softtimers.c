@@ -48,7 +48,7 @@ typedef struct command
 static inline void exec_timer_callback( osvtimer_t timer ) 
 {
 	if( timer->callback ) timer->callback( timer->arg );
-	isix_sem_signal_isr( &timer->busy );
+	if( !timer->cyclic ) isix_sem_signal_isr( &timer->busy );
 }
 
 //! Add to list with task order
@@ -251,6 +251,7 @@ osvtimer_t isix_vtimer_create( void )
 	}
 	memset( timer, 0, sizeof(*timer) );
 	isix_sem_create_limited( &timer->busy, 1, 1 );
+	//printk("vtimer created %p sem %p", timer, &timer->busy );
 	return timer;
 }
 
@@ -268,7 +269,7 @@ int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 {
 	//printk("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
 	if( !timer ) return ISIX_EINVARG;
-	if( schrun && isix_sem_get_isr(&timer->busy) ) {
+	if( isix_sem_get_isr(&timer->busy) ) {
 		//!Element is already assigned
 		return ISIX_EBUSY;
 	}
