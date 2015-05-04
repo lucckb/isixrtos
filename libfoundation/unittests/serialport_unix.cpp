@@ -191,7 +191,7 @@ int serialport_unix::set_baudrate(unsigned baud )
 }
 /* ------------------------------------------------------------------ */ 
 //!Set parity
-void serialport_unix::set_parity( parity cparity )
+int serialport_unix::set_parity( parity cparity )
 {
 	termios tios;
 	if( ::tcgetattr( m_fd, &tios ) ) {
@@ -206,6 +206,7 @@ void serialport_unix::set_parity( parity cparity )
 	if( tcsetattr( m_fd, TCSANOW, &tios ) ) {
 		throw std::system_error( errno, std::system_category() );
 	}
+	return 0;
 }
 /* ------------------------------------------------------------------ */
 /** Set special control 
@@ -309,7 +310,7 @@ int serialport_unix::get(void *buf, std::size_t max_len, int timeout,
 }
 /* ------------------------------------------------------------------ */
 //! Get avail bytes
-int serialport_unix::rx_avail()
+int serialport_unix::rx_avail() const
 {
 	int result {};
 	if( ::ioctl( m_fd, FIONREAD, &result ) == 0 ) {
@@ -319,7 +320,7 @@ int serialport_unix::rx_avail()
 }
 /* ------------------------------------------------------------------ */
 //!Get status lines
-int serialport_unix::tiocm_get()
+int serialport_unix::tiocm_get() const
 {
 	int status {};
 	if( ::ioctl( m_fd, TIOCMGET, &status ) ) {
@@ -329,7 +330,7 @@ int serialport_unix::tiocm_get()
 }
 /* ------------------------------------------------------------------ */
 //!Get tiocm event
-int serialport_unix::tiocm_flags( unsigned flags )
+int serialport_unix::tiocm_flags( unsigned flags ) const
 {
 	return m_flags.fetch_and( ~flags );
 }

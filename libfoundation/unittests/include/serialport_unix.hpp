@@ -31,7 +31,7 @@ public:
 	//!Set baudrate
 	virtual int set_baudrate(unsigned new_baudrate);
 	//!Set parity
-	virtual void set_parity(parity new_parity);
+	virtual int set_parity(parity new_parity);
 	/** Set special control 
 	 * @param[in] flow Hardware flow control settings
 	 * @param[in] tio_report input line for state change monitoring
@@ -53,11 +53,11 @@ public:
 	virtual int get(void *buf, std::size_t max_len, 
 			int timeout=time_infinite, std::size_t min_len = 0 );
 	//! Get avail bytes
-	virtual int rx_avail() ;
+	virtual int rx_avail() const ;
 	//Get status lines
-	virtual int tiocm_get();
+	virtual int tiocm_get() const;
 	//Get tiocm event
-	virtual int tiocm_flags( unsigned flags ) ;
+	virtual int tiocm_flags( unsigned flags ) const;
 	//Set status line
 	virtual int tiocm_set( unsigned tiosigs );
 	//Sleep support
@@ -70,7 +70,7 @@ private:
 	int m_fd {-1};
 	std::unique_ptr<termios> m_oldcfg;
 	std::unique_ptr<std::thread> m_thr_watch;
-	std::atomic<unsigned> m_flags;
+	mutable std::atomic<unsigned> m_flags;
 	std::atomic<unsigned> m_req_flags;
 };
 
