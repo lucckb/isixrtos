@@ -141,3 +141,18 @@ uint32_t mpu_log2region(size_t size)
 	for (l2size = 5; l2size < 32 && size > (1U << l2size); l2size++);
 	return l2size;
 }
+
+
+/** Get the pow2 region number that is lower than one
+ * @param[in] size Requested size
+ * @return  the minimal sub-region set to span that memory region
+ */
+uint32_t mpu_log2region_lt(size_t size)
+{
+	uint32_t l2size = mpu_log2region(size);
+	if (l2size > 4U && size < (1U << l2size))
+	{
+		l2size--;
+	}
+	return l2size;
+}

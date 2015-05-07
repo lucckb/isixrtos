@@ -22,6 +22,7 @@ ISIX_SRC += $(ISIX_DIR)/kernel/events.c
 ISIX_SRC += $(ISIX_DIR)/kernel/fifo_event.c
 #Architecture specific sources
 ISIX_SRC += $(ISIX_DIR)/arch/$(ISIX_ARCH)/port_scheduler.c
+ISIX_SRC += $(ISIX_DIR)/arch/$(ISIX_ARCH)/port_memprot.c
 
 #Isix includes
 ISIX_INC += -I$(ISIX_DIR)/include -I$(ISIX_DIR)/arch/$(ISIX_ARCH)/include

@@ -116,7 +116,7 @@ static void sem_wakeup_all( ossem_t sem, osmsg_t msg, bool isr )
 		if( !wkup_task ) wkup_task = t;
 		_isixp_wakeup_task_l( t, msg );
 	}
-	if( !isr ) {
+	if( wkup_task && !isr) {
 		_isixp_do_reschedule( wkup_task );
 	} else {
 		_isixp_exit_critical();

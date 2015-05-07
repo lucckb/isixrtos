@@ -34,4 +34,8 @@
 			#define CONFIG_PCLK2_HZ (CONFIG_HCLK_HZ/2)
 #endif
 
+//! Define memory protection model
+#define ISIX_CONFIG_LOGLEVEL ISIXLOG_CRIT
+#define ISIX_CONFIG_MEMORY_PROTECTION_MODEL ISIX_MPROT_LITE
+
 #endif /* CONFIG_H_ */

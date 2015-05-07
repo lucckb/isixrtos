@@ -123,6 +123,7 @@ void _isixp_exit_critical(void)
 void isix_init(osprio_t num_priorities)
 {
 	//Schedule lock count
+	port_memory_protection_set_default_map();
 	port_atomic_sem_init( &csys.sched_lock, 0, 1 );
 	port_atomic_init( &csys.critical_count, 0 );
 	//Copy priority
@@ -513,6 +514,9 @@ void isix_start_scheduler(void)
 //! Reschedule tasks if it can be rescheduled
 void _isixp_do_reschedule( ostask_t task )
 {
+	if( !task ) {
+		isix_bug("Unable to resched itself");
+	}
     if( !schrun ) 
 	{
         //Scheduler not running assign task

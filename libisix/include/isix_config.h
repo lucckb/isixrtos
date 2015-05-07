@@ -19,8 +19,6 @@
 #define ISIX_CONFIG_BYTE_ALIGNMENT_SIZE 8
 #endif
 
-/** Define isix config log level */
-
 
 /** Enable disable global debug */
 #ifndef ISIX_CONFIG_LOGLEVEL
@@ -36,5 +34,13 @@
 //#define ISIX_LOGLEVEL_MEMORY
 //#define ISIX_LOGLEVEL_SEMAPHORE
 //#define ISIX_LOGLEVEL_EVENTS
+//
+//
+/** Define memory protection layout */
+//#define ISIX_CONFIG_MEMORY_PROTECTION_MODEL 
+// ISIX_MPROT_NONE ISIX_MPROT_LITE ISIX_MPROT_FULL
+#ifndef ISIX_CONFIG_MEMORY_PROTECTION_MODEL
+#define ISIX_CONFIG_MEMORY_PROTECTION_MODEL ISIX_MPROT_NONE
+#endif
 
 

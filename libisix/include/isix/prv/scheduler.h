@@ -8,6 +8,7 @@
 #include <isix/events.h>
 #include <isix/scheduler.h>
 #include <isix/port_atomic.h>
+#include <isix/port_memprot.h>
 #include <isix/osthr_state.h>
 
 #ifndef _ISIX_KERNEL_CORE_

@@ -3,6 +3,10 @@
 */
 #pragma once
 
+/** Memory protection model  */
+#define ISIX_MPROT_NONE 0
+#define ISIX_MPROT_LITE 1
+#define ISIX_MPROT_FULL 2
 
 #include <isix_config.h>
 
