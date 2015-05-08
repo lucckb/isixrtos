@@ -27,7 +27,8 @@ void label::repaint( bool /* focus */ )
 	if( m_sel_color ) {
 		gdi.set_fg_color( get_layout().sel() );
 	}
-	const auto ty = c.y() + (c.cy() - gdi.get_text_height())/2;
+	const auto fh = gdi.get_text_height();
+	const auto ty = c.y() + (c.cy() - fh)/2;
 	const auto tx = (m_flags&flags::center)?
 			( c.x() + (c.cx() - gdi.get_text_width(m_caption.c_str()))/2 ):
 			( c.x() );
@@ -42,7 +43,7 @@ void label::repaint( bool /* focus */ )
 	if (text_wdt < draw_text_wdt)
 	{
 		if (!(m_flags & flags::center))
-			gdi.fill_area(text_wdt, ty , draw_text_wdt - text_wdt, get_coord().cy(), true);
+			gdi.fill_area(text_wdt, ty , draw_text_wdt - text_wdt, fh, true);
 	}
 
 	// save last text length
