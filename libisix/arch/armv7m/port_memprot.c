@@ -55,8 +55,7 @@ static void setup_regions()
 
 #if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
 
-/** Function initialize default memory protection layout just before run
- */
+/** Function initialize default memory protection layout just before run */
 void port_memory_protection_set_default_map(void)
 {
 	//If mpu not present don't touch memory map
@@ -68,6 +67,76 @@ void port_memory_protection_set_default_map(void)
 	setup_regions();
 	//Enable MPU using default memory map in system mode
 	mpu_enable( MPU_CONFIG_PRIV_DEFAULT );
+}
+
+
+/**  Set electric fence on the selected address
+ *   this function is used by rtos to protect general heap
+ *   memory region  it must be 32 byte aligned 
+ *   @param[in] addr Set address 
+ */
+#define EFENCE_RGN_SIZE ISIX_MEMORY_PROTECTION_EFENCE_SIZE
+void port_memory_protection_set_efence( uintptr_t estack ) 
+{
+#ifndef ISIX_CONFIG_STACK_GROWTH
+	estack -= EFENCE_RGN_SIZE;
+#endif
+	// Fence region must be inside of alloated space
+	if( estack & (EFENCE_RGN_SIZE-1) ) {
+#ifdef ISIX_CONFIG_STACK_GROWTH
+		estack += EFENCE_RGN_SIZE;
+#else
+		estack -= EFENCE_RGN_SIZE;
+#endif
+	}
+	estack -= estack&(EFENCE_RGN_SIZE-1);
+	int efregion = mpu_get_region_count();
+	if( efregion == 0 ) {
+		return;
+	} else {
+		--efregion;
+	}
+	asm volatile( "cpsid i\n" );
+	//Disable the region first
+	mpu_disable_region( efregion );
+	//Make sure that was apply
+	asm volatile( 
+		"dsb\n"
+		"isb\n" 
+	);
+	//Setup the region again
+	mpu_set_region( efregion, estack, 
+		MPU_RGN_PERM_PRV_NO_USR_NO |
+		MPU_RGN_PERM_NX |
+		MPU_RGN_SIZE_32B |
+		MPU_RGN_ENABLE
+	);
+	//Make sure that was apply
+	asm volatile( 
+		"dsb\n"
+		"isb\n"
+		"cpsie i\n"
+	);
+}
+
+//! Clear the memory protection efence
+void port_memory_protection_reset_efence(void)
+{
+	int efregion = mpu_get_region_count();
+	if( efregion == 0 ) {
+		return;
+	} else {
+		--efregion;
+	}
+	asm volatile( "cpsid i\n" );
+	//Disable the region first
+	mpu_disable_region( efregion );
+	//Make sure that was apply
+	asm volatile( 
+		"dsb\n"
+		"isb\n" 
+		"cpsie i\n"
+	);
 }
 
 #endif /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL  */

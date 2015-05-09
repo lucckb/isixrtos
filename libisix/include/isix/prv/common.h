@@ -18,10 +18,10 @@
 
 #pragma once
 
-#include "isix_config.h"
+#include <isix/config.h>
 #include <stddef.h>
 
-
+//! Get aligned memory req
 static inline __attribute__((always_inline)) 
 size_t _isixp_align_size( size_t len )
 {
@@ -30,5 +30,6 @@ size_t _isixp_align_size( size_t len )
 	else
 		return len;
 }
+
 
 

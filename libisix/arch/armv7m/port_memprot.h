@@ -21,14 +21,36 @@
 #include <isix/config.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 
 /** Function initialize default memory protection layout just before run
  */
 #if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0 
+//! Define memory protection electric fence length
+#define ISIX_MEMORY_PROTECTION_EFENCE_SIZE 32
+
+/** Function initialize default memory protection layout just before run */
 void port_memory_protection_set_default_map(void);
-#else
+
+/**  Set electric fence on the selected address
+ *   this function is used by rtos to protect general heap
+ *   memory region  it must be 32 byte aligned 
+ *   @param[in] endstack Set address 
+ */
+void port_memory_protection_set_efence( uintptr_t endstack );
+
+//! Clear the memory protection efence
+void port_memory_protection_reset_efence(void);
+
+
+#else /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL */
+
+//! Define memory protection electric fence length
+#define ISIX_MEMORY_PROTECTION_EFENCE_SIZE 0
 #define port_memory_protection_set_default_map() do {} while(0)
-#endif
+#define port_memory_set_efence(a) do {} while(0)
+#define port_memory_protection_reset_efence() do {} while(0)
+#endif /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL  */
 
 
