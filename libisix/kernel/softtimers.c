@@ -173,6 +173,7 @@ static void handle_cancel( osvtimer_t tmr )
 	if( list_is_elem_assigned( &tmr->inode ) ) {
 		list_delete( &tmr->inode );
 		isix_sem_signal_isr( &tmr->busy );
+		isix_sem_signal_isr( &tmr->busy );
 	}
 }
 
@@ -276,6 +277,7 @@ int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 	if( !timer ) return ISIX_EINVARG;
 	if( isix_sem_get_isr(&timer->busy) ) {
 		//!Element is already assigned
+		pr_crit("Count %i", timer->busy.value.value );
 		return ISIX_EBUSY;
 	}
 	//! Call @ jiffies
