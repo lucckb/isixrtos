@@ -30,10 +30,17 @@ int fstest_main( int argc, const char** /*  argv*/) {
 	
 	try {
 		// EEPROM type EMULATION
-		fnd::fs_eeprom test( 128, 16 , false );
+		//fnd::fs_eeprom test( 128, 16 , false );
 		//FLASH LIKE EMULATION
-		//fnd::fs_eeprom test( 8, 256 , true );
-		fnd::filesystem::fs_env env { test, true };
+		fnd::fs_eeprom test( 128, 4096 , true );
+	 	fnd::filesystem::fs_env env { test, true, 8 };
+		if( 1 ) {	//Very short data write test
+			char buf[16] {};
+			int ret = env.set(0, "luco", 5 );
+			dbprintf("Ret set %i",  ret );
+			ret = env.get( 0, buf, sizeof buf );
+			dbprintf("Ret %i %s", ret, buf );
+		}
 		if( 1 ) 
 		{
 			auto &m_env = env;

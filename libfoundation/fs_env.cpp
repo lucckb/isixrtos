@@ -241,6 +241,7 @@ int fs_env::write_non_existing( unsigned env_id, const void* buf, size_t buf_len
 	ret = check_chains( nclu );
 	if( m_wear_leveling ) {
 		if( ret==err_fs_full || (ret>0&&ret<int(nclu)) ) {
+			dbprintf("Reclaim caused by reason %i", ret );
 			ret = reclaim();
 			if( ret>=0 ) {
 				ret = check_chains( nclu );
@@ -322,7 +323,9 @@ int fs_env::write_non_existing( unsigned env_id, const void* buf, size_t buf_len
 			fc1 = fc2;
 		}
 		//! Save the last cluster with wear level mode
-		m_last_free_clust = fc2;
+		if( fc2 != node_end ) {
+			m_last_free_clust = fc2;
+		}
 	}
 	return ret;
 }

@@ -21,5 +21,5 @@ int fstest_main( int argc, const char** /*  argv*/);
 int libgsm_main( int argc, const char** /*  argv*/);
 
 int main( int argc, const char* argv[] ) {
-	return libgsm_main( argc, argv );
+	return fstest_main( argc, argv );
 }
