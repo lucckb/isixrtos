@@ -92,7 +92,7 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 }
 
 //Get semaphore from isr
-int isix_sem_get_isr(ossem_t sem)
+int isix_sem_trywait(ossem_t sem)
 {
     if(!sem) return ISIX_EINVARG;
     return port_atomic_sem_trydec(&sem->value)>0?ISIX_EOK:ISIX_EBUSY;

@@ -35,11 +35,17 @@ static inline ossem_t isix_sem_create( ossem_t sem, int val )
  */
 int isix_sem_wait( ossem_t sem, ostick_t timeout );
 
-/** Get semaphore from the ISR context
+/** Get semaphore it also can be called from isr contest
  * @param[in] sem Semaphore object
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-int isix_sem_get_isr( ossem_t sem );
+int isix_sem_trywait( ossem_t sem );
+
+static inline __attribute__((always_inline,deprecated))
+int isix_sem_get_isr( ossem_t sem )
+{
+	return isix_sem_trywait( sem );
+}
 
 /** Semaphore  signal V() private
  * @param[in] sem Semaphore object
@@ -110,8 +116,8 @@ namespace {
 	inline int sem_wait( ossem_t sem, ostick_t timeout=ISIX_TIME_INFINITE ) {
 		return ::isix_sem_wait( sem, timeout );
 	}
-	inline int sem_get_isr( ossem_t sem ) {
-		return ::isix_sem_get_isr( sem );
+	inline int sem_trywait( ossem_t sem ) {
+		return ::isix_sem_trywait( sem );
 	}
 	inline int sem_signal( ossem_t sem ) {
 		return ::isix_sem_signal( sem );

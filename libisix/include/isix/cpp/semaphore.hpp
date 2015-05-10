@@ -53,9 +53,13 @@ namespace isix
 		/** Get the semaphore from the ISR context
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
 		*/
-		int get_isr() const
+		int trywait() const 
 		{
-			return isix_sem_get_isr(sem);
+			return isix_sem_trywait( sem );
+		}
+		int __attribute__((deprecated)) get_isr() const
+		{
+			return isix_sem_trywait(sem);
 		}
 		/** Signaling the semaphore
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code

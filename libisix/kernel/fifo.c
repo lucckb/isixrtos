@@ -84,7 +84,7 @@ int isix_fifo_write_isr(osfifo_t fifo,const void *item)
 {
     if(!fifo) return ISIX_EINVARG;
 	if(fifo->flags & isix_fifo_f_noirq) return ISIX_EINVARG;
-    if(isix_sem_get_isr(&fifo->tx_sem)<0)
+    if(isix_sem_trywait(&fifo->tx_sem)<0)
     {
         pr_err("FifoWriteISR: No space in TX queue");
         return ISIX_EFIFOFULL;
@@ -127,7 +127,7 @@ int isix_fifo_read_isr(osfifo_t fifo,void *item)
 {
     if(!fifo) return ISIX_EINVARG;
 	if(fifo->flags & isix_fifo_f_noirq) return ISIX_EINVARG;
-    if(isix_sem_get_isr(&fifo->rx_sem)<0)
+    if(isix_sem_trywait(&fifo->rx_sem)<0)
     {
        pr_err("FifoReadISR: No space in RX queue");
        return ISIX_EFIFOFULL;

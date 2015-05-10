@@ -117,7 +117,7 @@ void semaphores::isr_test_handler()
 	if( test_count++ < N_TEST_POSTS ) {
 		m_sem_irq.signal_isr();
 	} else {
-		while( m_sem_irq_get.get_isr() == ISIX_EOK ) {
+		while( m_sem_irq_get.trywait() == ISIX_EOK ) {
 			++irq_get_isr_nposts;
 		}
 		detail::periodic_timer_stop();
