@@ -43,6 +43,21 @@ void port_memory_protection_set_efence( uintptr_t endstack );
 //! Clear the memory protection efence
 void port_memory_protection_reset_efence(void);
 
+//! Return the MPU properly alligned region
+static inline 
+uintptr_t port_memory_efence_aligna( uintptr_t addr ) 
+{
+	// Fence region must be inside of alloated space
+	if( addr & (ISIX_MEMORY_PROTECTION_EFENCE_SIZE-1) ) {
+#ifdef ISIX_CONFIG_STACK_GROWTH
+		addr += ISIX_MEMORY_PROTECTION_EFENCE_SIZE;
+#else
+		addr -= ISIX_MEMORY_PROTECTION_EFENCE_SIZE;
+#endif
+	}
+	addr -= addr&(ISIX_MEMORY_PROTECTION_EFENCE_SIZE-1);
+	return addr;
+}
 
 #else /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL */
 
@@ -51,6 +66,11 @@ void port_memory_protection_reset_efence(void);
 #define port_memory_protection_set_default_map() do {} while(0)
 #define port_memory_set_efence(a) do {} while(0)
 #define port_memory_protection_reset_efence() do {} while(0)
+static inline __attribute__((always_inline))
+uintptr_t  port_memory_efence_aligna( uintptr_t addr ) 
+{
+	return addr;
+}
 #endif /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL  */
 
 

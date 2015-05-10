@@ -74,7 +74,7 @@ void* isix_get_task_private_data( ostask_t task );
 
 /** Check of the available stack space
  * @param[in] task Task control block
- * @return Size of the number of bytes used by the task/thread
+ * @return Number of bytes in stack space
  */
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
 size_t isix_free_stack_space( const ostask_t task );

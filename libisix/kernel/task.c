@@ -39,7 +39,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
     //Zero task structure
     memset( task, 0, sizeof(*task) );
     //Try Allocate stack for task
-    task->init_stack = isix_alloc(stack_depth);
+    task->init_stack = isix_alloc(stack_depth+ISIX_MEMORY_PROTECTION_EFENCE_SIZE);
     pr_debug("Alloc stack mem %p",task->init_stack);
     if(task->init_stack==NULL)
     {
@@ -61,13 +61,21 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 		task->impure_data->_current_locale = "C";
 	}
 #ifdef ISIX_CONFIG_STACK_GROWTH
-     task->top_stack = (unsigned long*)(((char*)task->init_stack) + stack_depth - sizeof(long));
-#else
+     task->top_stack = (unsigned long*)(((uintptr_t)task->init_stack) 
+			 + stack_depth + ISIX_MEMORY_PROTECTION_EFENCE_SIZE );
+#	if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
+	 task->fence_estack = (uintptr_t)task->init_stack;
+#	endif /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL  */
+#else /*  ISIX_CONFIG_STACK_GROWTH */
      task->top_stack = task->init_stack;
-#endif
+#	if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
+	task->fence_estack = (uintptr_t)task->init_stack+stack_depth+
+		ISIX_MEMORY_PROTECTION_EFENCE_SIZE;
+#	endif
+#endif /*  ISIX_CONFIG_STACK_GROWTH */
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
     memset( task->init_stack, MAGIC_FILL_VALUE, stack_depth );
-#endif
+#endif	/*  ISIX_CONFIG_TASK_STACK_CHECK */
     pr_debug("Top stack SP=%p",task->top_stack);
     //Assign task priority
     task->prio = priority;
@@ -170,15 +178,17 @@ ostask_t isix_task_self(void)
 
 size_t isix_free_stack_space(const ostask_t task)
 {
-	size_t usage=0;
+	size_t freespc=0;
 	const ostask_t taskd = task?task:currp;
-	unsigned char *b_stack = (unsigned char*)taskd->init_stack;
-	while(*b_stack==MAGIC_FILL_VALUE)
-	{
-		b_stack++;
-		usage++;
+	volatile unsigned char *b_stack = (volatile unsigned char*)
+		(port_memory_efence_aligna((uintptr_t)taskd->init_stack) + 
+		 ISIX_MEMORY_PROTECTION_EFENCE_SIZE );
+
+	while(*b_stack==MAGIC_FILL_VALUE) {
+		++b_stack;
+		++freespc;
 	}
-	return usage;
+	return freespc;
 }
 #endif
 

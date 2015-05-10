@@ -75,21 +75,9 @@ void port_memory_protection_set_default_map(void)
  *   memory region  it must be 32 byte aligned 
  *   @param[in] addr Set address 
  */
-#define EFENCE_RGN_SIZE ISIX_MEMORY_PROTECTION_EFENCE_SIZE
 void port_memory_protection_set_efence( uintptr_t estack ) 
 {
-#ifndef ISIX_CONFIG_STACK_GROWTH
-	estack -= EFENCE_RGN_SIZE;
-#endif
-	// Fence region must be inside of alloated space
-	if( estack & (EFENCE_RGN_SIZE-1) ) {
-#ifdef ISIX_CONFIG_STACK_GROWTH
-		estack += EFENCE_RGN_SIZE;
-#else
-		estack -= EFENCE_RGN_SIZE;
-#endif
-	}
-	estack -= estack&(EFENCE_RGN_SIZE-1);
+	estack = port_memory_efence_aligna( estack );
 	int efregion = mpu_get_region_count();
 	if( efregion == 0 ) {
 		return;
@@ -99,7 +87,7 @@ void port_memory_protection_set_efence( uintptr_t estack )
 	asm volatile( "cpsid i\n" );
 	//Disable the region first
 	mpu_disable_region( efregion );
-	//Make sure that was apply
+	//Make sure that was applied
 	asm volatile( 
 		"dsb\n"
 		"isb\n" 
@@ -111,7 +99,7 @@ void port_memory_protection_set_efence( uintptr_t estack )
 		MPU_RGN_SIZE_32B |
 		MPU_RGN_ENABLE
 	);
-	//Make sure that was apply
+	//Make sure that was applied
 	asm volatile( 
 		"dsb\n"
 		"isb\n"
@@ -131,7 +119,7 @@ void port_memory_protection_reset_efence(void)
 	asm volatile( "cpsid i\n" );
 	//Disable the region first
 	mpu_disable_region( efregion );
-	//Make sure that was apply
+	//Make sure that was applied
 	asm volatile( 
 		"dsb\n"
 		"isb\n" 

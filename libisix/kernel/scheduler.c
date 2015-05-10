@@ -7,6 +7,7 @@
 #include <isix/prv/semaphore.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
+#include <isix/port_memprot.h>
 
 #ifdef ISIX_LOGLEVEL_SCHEDULER
 #undef ISIX_CONFIG_LOGLEVEL 
@@ -82,7 +83,9 @@ void _isixp_unlock_scheduler()
  */
 void isix_shutdown_scheduler(void)
 {
+	//Dropout the task prot region 
 	schrun = false;
+	port_memory_protection_reset_efence();
 	port_yield();
 }
 
@@ -240,6 +243,11 @@ void _isixp_schedule(void)
 		isix_bug( "Not in READY state. Mem corrupted?" );
 	}
 	currp->state = OSTHR_STATE_RUNNING;
+	//Handle fence stuff
+#	if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
+	port_memory_protection_reset_efence( );
+	port_memory_protection_set_efence( currp->fence_estack );
+#	endif
 	//Handle local thread errno
 	if(currp->impure_data ) 
 	{
