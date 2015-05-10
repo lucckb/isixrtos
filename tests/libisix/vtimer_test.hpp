@@ -40,6 +40,7 @@ public:
 	void run() {
 		basic_isr();
 		basic();
+		basic();
 		one_shoot();
 		mod_api();
 	}

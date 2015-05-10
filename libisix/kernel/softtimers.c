@@ -53,7 +53,10 @@ typedef struct command
 static inline void exec_timer_callback( osvtimer_t timer ) 
 {
 	if( timer->callback ) timer->callback( timer->arg );
-	if( !timer->cyclic ) isix_sem_signal_isr( &timer->busy );
+	if( !timer->cyclic ) {
+		isix_sem_signal_isr( &timer->busy );
+		isix_sem_signal_isr( &timer->busy );
+	}
 }
 
 //! Add to list with task order
