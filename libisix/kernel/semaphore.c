@@ -47,18 +47,18 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 	}
 	_isixp_enter_critical();
 	//Consistency check
-	if( port_atomic_sem_dec(&sem->value) > 0 )
+	if( port_atomic_sem_dec(&sem->value) < 0 )
     {
+		pr_debug("Add to list %p", currp );
+		_isixp_set_sleep_timeout( OSTHR_STATE_WTSEM, timeout ); 
+		_isixp_add_to_prio_queue( &sem->wait_list, currp );
+		currp->obj.sem = sem;
 		_isixp_exit_critical();
-        return ISIX_EOK;
+		isix_yield();
+		return currp->obj.dmsg;
     }
-	pr_debug("Add to list %p", currp );
-	_isixp_set_sleep_timeout( OSTHR_STATE_WTSEM, timeout ); 
-	_isixp_add_to_prio_queue( &sem->wait_list, currp );
-	currp->obj.sem = sem;
 	_isixp_exit_critical();
-	isix_yield();
-	return currp->obj.dmsg;
+	return ISIX_EOK;
 }
 
 //Sem signal V()
@@ -70,26 +70,26 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
         return ISIX_EINVARG;
     }
 	_isixp_enter_critical();
-	if( port_atomic_sem_inc( &sem->value ) > 1 )
+	if( port_atomic_sem_inc( &sem->value ) <= 0 )
     {
-        pr_debug("Waiting list is empty incval to %i",(int)sem->value.value );
-		_isixp_exit_critical();
-        return ISIX_EOK;
-    }	
-	ostask_t task = _isixp_remove_from_prio_queue( &sem->wait_list );
-	pr_debug("Task to wakeup %p", task );
-	if( task ) {	//Task can be deleted for EX
-		//Decrement again because are thrd on list
-		port_atomic_sem_dec( &sem->value );
-		if( task->state == OSTHR_STATE_WTSEM ) {
-			if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
-			else _isixp_wakeup_task_i( task, ISIX_EOK );
+		ostask_t task = _isixp_remove_from_prio_queue( &sem->wait_list );
+		pr_debug("Task to wakeup %p", task );
+		if( task ) {	//Task can be deleted for EX
+			//Decrement again because are thrd on list
+			//port_atomic_sem_dec( &sem->value );
+			if( task->state == OSTHR_STATE_WTSEM ) {
+				if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
+				else _isixp_wakeup_task_i( task, ISIX_EOK );
+			} else {
+				_isixp_exit_critical();
+			}
 		} else {
 			_isixp_exit_critical();
 		}
-	} else {
-		_isixp_exit_critical();
-	}
+		return ISIX_EOK;
+    }	
+	pr_debug("Waiting list is empty incval to %i",(int)sem->value.value );
+	_isixp_exit_critical();
 	return ISIX_EOK;
 }
 
@@ -97,12 +97,7 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 int isix_sem_get_isr(ossem_t sem)
 {
     if(!sem) return ISIX_EINVARG;
-    int res = ISIX_EBUSY;
-    if( sem && port_atomic_sem_dec(&sem->value) ) 
-    {
-        res = ISIX_EOK;
-    }
-    return res;
+    return port_atomic_sem_trydec(&sem->value)>0?ISIX_EOK:ISIX_EBUSY;
 }
 
 //! Wakeup semaphore tasks with selected messages
@@ -127,7 +122,7 @@ static void sem_wakeup_all( ossem_t sem, osmsg_t msg, bool isr )
 int _isixp_sem_reset( ossem_t sem, int val, bool isr )
 {
     if( !sem ) return ISIX_EINVARG;
-	if( port_atomic_sem_read_val(&sem->value) < 0 )  {
+	if( port_atomic_sem_read_val(&sem->value) >=0 )  {
 		return ISIX_EINVARG;
 	}
     //Semaphore is used

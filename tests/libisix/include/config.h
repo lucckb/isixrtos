@@ -36,6 +36,8 @@
 
 //! Define memory protection model
 #define ISIX_CONFIG_LOGLEVEL ISIXLOG_CRIT
+#define ISIX_CONFIG
 #define ISIX_CONFIG_MEMORY_PROTECTION_MODEL ISIX_MPROT_LITE
-
+//#define ISIX_LOGLEVEL_SEMAPHORE ISIXLOG_DEBUG
+//
 #endif /* CONFIG_H_ */

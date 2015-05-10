@@ -50,7 +50,7 @@ struct isix_task
 //!Structure related to isix system
 struct isix_system 
 {
-	_port_atomic_t sched_lock;			//! Schedule lock 
+	_port_atomic_sem_t sched_lock;			//! Schedule lock 
 	_port_atomic_int_t critical_count; 	//! Sched lock counter
 	list_entry_t ready_list; 			//! Binary tree of task ready to execute
 	list_entry_t wait_lists[2]; 		//!Task waiting for event

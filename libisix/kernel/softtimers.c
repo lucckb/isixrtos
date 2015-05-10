@@ -277,7 +277,6 @@ int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 	if( !timer ) return ISIX_EINVARG;
 	if( isix_sem_get_isr(&timer->busy) ) {
 		//!Element is already assigned
-		pr_crit("Count %i", timer->busy.value.value );
 		return ISIX_EBUSY;
 	}
 	//! Call @ jiffies

@@ -10,7 +10,7 @@ struct isix_semaphore
     //Resource type
     bool static_mem;
 	//Semaphore val
-  	_port_atomic_t value; 
+  	_port_atomic_sem_t value; 
     //Task val waiting for semaphore
     list_entry_t wait_list;
 };

@@ -289,6 +289,7 @@ static void internal_schedule_time(void)
 			}*/
 			//Much faster but less safe
 			list_delete( &task_c->inode );
+			++task_c->obj.sem->value.value;
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
 		} else if( task_c->state == OSTHR_STATE_WTEVT ) {
 			list_delete( &task_c->inode );
