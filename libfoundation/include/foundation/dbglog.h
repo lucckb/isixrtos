@@ -1,18 +1,33 @@
-/* ------------------------------------------------------------------ */
 /*
  * dbglog.h
  *
  *  Created on: 2010-03-21
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+
 #pragma once
-/* ------------------------------------------------------------------ */
+
+/** Predefined configuration log levels */
+#define FOUNDATION_DBGLOG_OFF 	0
+#define FOUNDATION_DBGLOG_CRIT 	1
+#define FOUNDATION_DBGLOG_ERR 	2
+#define FOUNDATION_DBGLOG_WARN 	3
+#define FOUNDATION_DBGLOG_INFO 	4
+#define FOUNDATION_DBGLOG_DEBUG 5
+
+/* Default log level */
+#ifndef FOUNDATION_CONFIG_LOGLEVEL
+#	ifdef PDEBUG
+#		define FOUNDATION_CONFIG_LOGLEVEL FOUNDATION_DBGLOG_ERR
+#	else
+#		define FOUNDATION_CONFIG_LOGLEVEL FOUNDATION_DBGLOG_OFF
+#	endif
+#endif
+
+
 #ifdef PDEBUG /* Debug enabled */
 #include <foundation/tiny_printf.h>
-
 #pragma GCC system_header
-
 #ifdef __cplusplus
 
 #define dblog_init(function,arg, usart_init,...)	\
@@ -29,8 +44,12 @@
   	   usart_init(__VA_ARGS__); } while(0)
 #define dblog_init_putc(function,arg) register_printf_putc_handler(function,arg)
 #define dblog_init_putc_locked(function,arg,lock,unlock) register_printf_putc_handler_syslock(function,arg,lock,unlock)
-#define dbprintf(fmt, ...) tiny_printf("%s:%d|" fmt "\r\n",__FILE__,__LINE__,## __VA_ARGS__)
 #define dblog_init_simple(function, arg ) register_printf_putc_handler(function,arg)
+
+//! Generic logger appi only if pdebug is defined
+#define dbprintf(fmt, ...) tiny_printf("%s:%d|" fmt "\r\n",__FILE__,__LINE__,## __VA_ARGS__)
+
+
 
 #endif /*__cplusplus */
 
@@ -46,6 +65,35 @@
 #define dblog_init_simple(function, arg ) do {} while(0)
 #define dblog_init_putc_locked(function,arg,lock,unlock) do {} while(0)
 #define dblog_init_locked(function,arg,lock,unlock,usart_init,...) do {} while(0)
+
 #endif /* PDEBUG */
 
-/* ------------------------------------------------------------------ */
+
+#if (FOUNDATION_CONFIG_LOGLEVEL==ISIXLOG_OFF) || !defined(PDEBUG)
+
+#define dbg_crit(...) do {} while(0)
+#define dbg_err(...) do {} while(0)
+#define dbg_warn(...) do {} while(0)
+#define dbg_info(...) do {} while(0)
+#define dbg_debug(...) do {} while(0)
+
+#else
+
+#define dbg_crit(...) do { \
+	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_CRIT ) \
+		dbprintf(__VA_ARGS__); } while(0)
+#define dbg_err(...) do { \
+	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_ERR ) \
+		dbprintf(__VA_ARGS__); } while(0)
+#define dbg_warn(...) do { \
+	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_WARN ) \
+		dbprintf(__VA_ARGS__); } while(0)
+#define dbg_info(...) do { \
+	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_INFO ) \
+		dbprintf(__VA_ARGS__); } while(0)
+#define dbg_debug(...) do { \
+	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_DEBUG ) \
+		dbprintf(__VA_ARGS__); } while(0)
+
+#endif
+
