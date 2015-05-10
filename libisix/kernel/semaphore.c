@@ -75,8 +75,6 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 		ostask_t task = _isixp_remove_from_prio_queue( &sem->wait_list );
 		pr_debug("Task to wakeup %p", task );
 		if( task ) {	//Task can be deleted for EX
-			//Decrement again because are thrd on list
-			//port_atomic_sem_dec( &sem->value );
 			if( task->state == OSTHR_STATE_WTSEM ) {
 				if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
 				else _isixp_wakeup_task_i( task, ISIX_EOK );

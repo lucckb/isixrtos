@@ -289,7 +289,7 @@ static void internal_schedule_time(void)
 			}*/
 			//Much faster but less safe
 			list_delete( &task_c->inode );
-			++task_c->obj.sem->value.value;
+			_isixp_sem_fast_signal( task_c->obj.sem );
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
 		} else if( task_c->state == OSTHR_STATE_WTEVT ) {
 			list_delete( &task_c->inode );
@@ -618,9 +618,13 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 		delete_from_ready_list( task );
 	} 
 	// If if task wait for sem 
-	if( task->state == OSTHR_STATE_WTSEM ||
-		task->state == OSTHR_STATE_WTEVT )
+	if( task->state == OSTHR_STATE_WTEVT )
 	{     
+		list_delete( &task->inode );
+	}
+	else if( task->state == OSTHR_STATE_WTSEM ) 
+	{
+		_isixp_sem_fast_signal( task->obj.sem );
 		list_delete( &task->inode );
 	}
 	if( suspend ) 
