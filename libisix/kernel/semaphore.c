@@ -120,11 +120,12 @@ static void sem_wakeup_all( ossem_t sem, osmsg_t msg, bool isr )
 int _isixp_sem_reset( ossem_t sem, int val, bool isr )
 {
     if( !sem ) return ISIX_EINVARG;
-	if( port_atomic_sem_read_val(&sem->value) >=0 )  {
-		return ISIX_EINVARG;
-	}
     //Semaphore is used
     _isixp_enter_critical();
+	if( port_atomic_sem_read_val(&sem->value) >=0 )  {
+		_isixp_exit_critical();
+		return ISIX_EINVARG;
+	}
     port_atomic_sem_write_val( &sem->value, val );
 	sem_wakeup_all( sem, ISIX_ERESET, isr );
     return ISIX_EOK;
