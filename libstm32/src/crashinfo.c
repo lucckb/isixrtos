@@ -136,7 +136,7 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 	//Disable interrupt
 	irq_disable();
 	//Initialize usart simple no interrupt
-	tiny_printf("\r\n\r\nUnhandled exception in [%s] mode!!!\r\n", 
+	tiny_printf("\r\n\r\nISIX panic! Exception in [%s] mode.\r\n", 
 			crash_type==CRASH_TYPE_USER?"USER":"SYSTEM" );
 	tiny_printf("CPU core regs: \r\n");
 	tiny_printf("\t[R0=%08lx]\t[R1=%08lx]\t[R2=%08lx]\t[R3=%08lx]\r\n", 
