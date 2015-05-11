@@ -577,7 +577,7 @@ void reset_handler(void)
 	SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));	// set CP10 and CP11 Full Access
 #endif
 	//! Trap divide by zero
-#	define SCB_CCR *((unsigned long*)0xE000ED14)
+#	define SCB_CCR *((volatile unsigned long*)0xE000ED14)
 #	define    CCR_DIV0_TRP  (1UL<<4);
 	SCB_CCR |= CCR_DIV0_TRP;
 #	undef SCB_CCR
