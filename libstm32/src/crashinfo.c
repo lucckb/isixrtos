@@ -130,6 +130,10 @@ static void print_bits( const struct reg_desc *table, unsigned long bits )
 	}
 }
 
+#ifdef COMPILED_UNDER_ISIX
+void* isix_task_self(void);
+#endif
+
 //Cortex CM3 print core regs
 void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 {
@@ -138,6 +142,9 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 	//Initialize usart simple no interrupt
 	tiny_printf("\r\n\r\nISIX panic! Exception in [%s] mode.\r\n", 
 			crash_type==CRASH_TYPE_USER?"USER":"SYSTEM" );
+#ifdef COMPILED_UNDER_ISIX
+	tiny_printf("Last executed task TCB is %p\r\n", isix_task_self() );
+#endif
 	tiny_printf("CPU core regs: \r\n");
 	tiny_printf("\t[R0=%08lx]\t[R1=%08lx]\t[R2=%08lx]\t[R3=%08lx]\r\n", 
 			SP[stk_r0],SP[stk_r1],SP[stk_r2],SP[stk_r3]);
