@@ -22,12 +22,11 @@
 struct isix_task;
 
 /** Reschedule API information for task 
- * @param[in] new_task New rescheduled task
- * @param[in] old_task Previously scheduled task
+ * @param[in] idle_scheduled idle task is scheduled
  */
-void _isixp_schedule_update_statistics( 
-	const struct isix_task* new_task, 
-	const struct isix_task* old_task );
+void _isixp_schedule_update_statistics( bool idle_scheduled );
+
 #else
-#define _isixp_schedule_update_statistics(o,n) do {} while(0)
+#define _isixp_schedule_update_statistics(i) \
+	do { (void)i; } while(0)
 #endif

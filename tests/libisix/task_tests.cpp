@@ -121,6 +121,7 @@ void task_tests::basic_funcs()
 	//Active wait tasks shouldnt run
 	for( auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+5000; ) {
 			asm volatile("nop\n");
+			dbprintf("Cpuload %i", isix::cpuload() );
 		}
 	//TASK should run now
 	QUNIT_IS_TRUE( t1->exec_count()>0 );

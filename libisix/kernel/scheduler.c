@@ -249,6 +249,8 @@ void _isixp_schedule(void)
 	port_memory_protection_reset_efence( );
 	port_memory_protection_set_efence( currp->fence_estack );
 #	endif
+	//Update statistics
+	_isixp_schedule_update_statistics( currp->prio==csys.number_of_priorities );
 	//Handle local thread errno
 	if(currp->impure_data ) 
 	{
