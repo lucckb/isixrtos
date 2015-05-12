@@ -40,7 +40,7 @@ static inline void sys_atomic_init( sys_atomic_t* v, int value )
 }
 
 /** Sys atomic set */
-static inline void sys_atomic_set( sys_atomic_t* v, int value ) 
+static inline void sys_atomic_write( sys_atomic_t* v, int value ) 
 {
 	sys_atomic_write_int32_t( &v->counter, value );
 }
@@ -49,6 +49,17 @@ static inline void sys_atomic_set( sys_atomic_t* v, int value )
 static inline int sys_atomic_read( sys_atomic_t* v )
 {
 	return sys_atomic_read_int32_t( &v->counter );
+}
+/** Sys atomic set */
+static inline void sys_atomic_write_unsigned( sys_atomic_t* v, unsigned value ) 
+{
+	sys_atomic_write_uint32_t( &v->ucounter, value );
+}
+
+/** Sys atomic read */
+static inline unsigned sys_atomic_read_unsigned( sys_atomic_t* v )
+{
+	return sys_atomic_read_uint32_t( &v->ucounter );
 }
 
 /** Atomic add integer value */

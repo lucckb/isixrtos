@@ -237,9 +237,19 @@ unsigned port_unsigned_atomic_dec( _port_atomic_int_t* val )
 static inline __attribute__((always_inline))
 unsigned port_unsigned_atomic_read( _port_atomic_int_t* val )
 {
-	return (unsigned)sys_atomic_read( val );
+	return sys_atomic_read_unsigned( val );
 }
 
+/**
+ * Sys atomic read value
+ * @param[in] val Atomic type
+ * @return counter value
+ */
+static inline __attribute__((always_inline))
+void port_unsigned_atomic_write( _port_atomic_int_t* v,  unsigned value )
+{
+	sys_atomic_write_unsigned( v, value );
+}
 
 /** Atomic compare and exchange  */
 static inline __attribute__((always_inline))
