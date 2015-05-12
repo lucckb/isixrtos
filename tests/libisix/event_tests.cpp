@@ -197,9 +197,7 @@ void event_test::fifo_conn()
 	QUNIT_IS_NOT_EQUAL( t1, nullptr );
 	QUNIT_IS_NOT_EQUAL( t2, nullptr );
 	osbitset_t abits=0;
-	dbprintf("Cpuload %i", isix::cpuload() );
 	for(int c=0;c<10;) {
-		dbprintf("Cpuload %i", isix::cpuload() );
 		auto sbits = isix::event_wait( fstr.ev, EV1|EV2, true, false );
 		if( sbits & EV1 ) {
 			char ch;
