@@ -5,6 +5,7 @@
 #include <isix/prv/list.h>
 #include <isix/prv/softtimers.h>
 #include <isix/prv/semaphore.h>
+#include <isix/prv/osstats.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 #include <isix/port_memprot.h>

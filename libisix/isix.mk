@@ -20,6 +20,7 @@ ISIX_SRC += $(ISIX_DIR)/kernel/mempool.c
 ISIX_SRC += $(ISIX_DIR)/kernel/ostime.c
 ISIX_SRC += $(ISIX_DIR)/kernel/events.c
 ISIX_SRC += $(ISIX_DIR)/kernel/fifo_event.c
+ISIX_SRC += $(ISIX_DIR)/kernel/osstats.c
 #Architecture specific sources
 ISIX_SRC += $(ISIX_DIR)/arch/$(ISIX_ARCH)/port_scheduler.c
 ISIX_SRC += $(ISIX_DIR)/arch/$(ISIX_ARCH)/port_memprot.c

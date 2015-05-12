@@ -18,7 +18,7 @@
 #include <isix/ostime.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
-/*--------------------------------------------------------------*/
+
 /** Busy waiting for selecred amount of time
  * @param[in] timeout Number of microseconds for busy wait
  * @return None
@@ -33,7 +33,7 @@ void isix_wait_us( unsigned timeout )
 		else { if( t1-t2>timeout) break; }
 	}
 }
-/*--------------------------------------------------------------*/
+
 //! Convert ms to ticks
 ostick_t isix_ms2tick(unsigned long ms)
 {
@@ -41,7 +41,7 @@ ostick_t isix_ms2tick(unsigned long ms)
 	if(ticks==0) ticks++;
 	return ticks;
 }
-/*--------------------------------------------------------------*/
+
 //! Isix wait selected amount of time
 int isix_wait(ostick_t timeout)
 {
@@ -72,4 +72,4 @@ int isix_wait(ostick_t timeout)
 	}
 }
 
-/*--------------------------------------------------------------*/
+

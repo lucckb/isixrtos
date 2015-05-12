@@ -12,6 +12,7 @@
 #include <isix/ostime.h>
 #include <isix/events.h>
 #include <isix/fifo_event.h>
+#include <isix/osstats.h>
 #include <isix/cpp/fifo.hpp>
 #include <isix/cpp/virtual_timer.hpp>
 #include <isix/cpp/mempool.hpp>
