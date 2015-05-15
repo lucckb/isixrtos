@@ -250,7 +250,8 @@ void _isixp_schedule(void)
 	port_memory_protection_set_efence( currp->fence_estack );
 #	endif
 	//Update statistics
-	_isixp_schedule_update_statistics( currp->prio==csys.number_of_priorities );
+	_isixp_schedule_update_statistics( csys.jiffies, 
+			currp->prio==csys.number_of_priorities );
 	//Handle local thread errno
 	if(currp->impure_data ) 
 	{
@@ -492,7 +493,7 @@ static void cleanup_tasks(void)
 //Idle task function do nothing and lower priority
 ISIX_TASK_FUNC(idle_task,p)
 {
-   (void)p;
+	(void)p;
 	while(1)
     {
         //Cleanup free tasks

@@ -35,10 +35,13 @@ namespace tests {
 		{}
 		//Run all tests
 		void run() {
-			basic_funcs();
+			cpuload_test();
+			//basic_funcs();
 		}
 		//Basic functionality testing 
 		void basic_funcs();
+		// CPU load test
+		void cpuload_test();
 	private:
 		QUnit::UnitTest& qunit;
 	};

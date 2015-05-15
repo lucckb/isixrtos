@@ -15,48 +15,11 @@
  *
  * =====================================================================================
  */
-/*
-task_scheduler
-{
-    ...
-if power up sequence true
-{
-clear bins
-reset timer counter
-}
-    Determine if scheduled task is idle or non-idle
-    Case task idle:
-    {
-        stop timer counter
-        calculate delta from timer counter
-        sum counter delta with contents of non-idle task bin
-        store results in non-idle task bin
-        reset timer counter
-        start timer counter
-    }
-    Case task non-idle:
-    {
-        stop timer counter
-        calculate delta from timer counter
-        sum counter delta with contents of idle task bin
-        store results in idle task bin
-        reset timer counter
-        start timer counter
-    ...
-}
 
- U(n) = S ai / S (ai + bi)
-
- where U(n) is the utilization for n-tasks, ai the deltas for the idle task, S
- ai the summation of the deltas for the idle task, bi the deltas for all the
- nonidle tasks, and S (ai + bi) the summation of all the deltas for both the
- nonidle and idle tasks. This ratio gives the aggregate processor utilization
- for a single task technique. 
-*/
 
 #include <isix/osstats.h>
-#include <isix/ostime.h>
 #include <isix/prv/osstats.h>
+#include <isix/port_atomic.h>
 
 #ifdef ISIX_LOGLEVEL_OSSTATS
 #undef ISIX_CONFIG_OSSTATS 
@@ -65,35 +28,9 @@ reset timer counter
 #include <isix/prv/printk.h>
 
 #ifdef ISIX_CONFIG_CPU_USAGE_API
-struct cpu_stats {
-	ostick_t ilast;
-	ostick_t isum;
-	ostick_t nlast;
-	ostick_t nsum;
-};
 
-//! Cpu global statistics data
-struct cpu_stats cstats;
-
-#define CPULOAD_MAX 1000UL
-
-/** Return the current CPU load of the system 
- * @return CPUload in profiles for ex 1000
- */
-int isix_cpuload( void )
-{
-	ostick_t norm_c = cstats.nsum;
-	ostick_t idle_c = cstats.isum;
-	if( cstats.nsum || cstats.isum ) {
-		return (CPULOAD_MAX*idle_c)/(idle_c+norm_c);
-	}
-	else {
-		return 0;
-	}
-}
 
 //! Calculate nearst power of two 
-
 #define __LOG2A(s) (((s) &0xffffffff00000000) ? (32 +_LOG2B((s) >>32)): (_LOG2B(s)))
 #define _LOG2B(s) (((s) &0xffff0000)         ? (16 +_LOG2C((s) >>16)): (_LOG2C(s)))
 #define _LOG2C(s) (((s) &0xff00)             ? (8  +_LOG2D((s) >>8)) : (_LOG2D(s)))
@@ -106,28 +43,59 @@ int isix_cpuload( void )
 #define LOG2_UINT16 _LOG2C
 #define LOG2_UINT8  _LOG2D
 #define CYCLES_RST_COUNT  (1UL<<((LOG2_UINT64(ISIX_CONFIG_HZ-1)+1)))
+#define CPULOAD_MAX 1000LU
+
+
+struct cpu_stats {
+	ostick_t idle_t;
+	ostick_t idle_sum;
+	ostick_t norm_t;
+	ostick_t norm_sum;
+	_port_atomic_int_t rload;		// Final cpuload
+	bool old_state;
+};
+
+//! Cpu global statistics data
+struct cpu_stats cstats;
+
+
+/** Return the current CPU load of the system 
+ * @return CPUload in profiles for ex 1000
+ */
+int isix_cpuload( void )
+{
+	return port_unsigned_atomic_read( &cstats.rload );
+}
+
 
 /** Reschedule API information for task 
+ * @param[in] t timestamp of event
  * @param[in] idle_scheduled idle task is scheduled
  */
-void _isixp_schedule_update_statistics( bool idle_scheduled )
+void _isixp_schedule_update_statistics( ostick_t t, bool idle_scheduled )
 {
-	ostick_t t = isix_get_jiffies();
-	if( idle_scheduled ) 
+	if( cstats.old_state != idle_scheduled ) 
 	{
-		cstats.nsum += t>cstats.nlast?t-cstats.nlast:cstats.nlast-t;
-		cstats.nlast = t;
+		if( idle_scheduled ) 
+		{
+			cstats.norm_t = t;
+			cstats.idle_sum += t>cstats.idle_t?t-cstats.idle_t:cstats.idle_t-t;
+		}
+		else 
+		{
+			cstats.idle_t = t;
+			cstats.norm_sum += t>cstats.norm_t?t-cstats.norm_t:cstats.norm_t-t;
+		}
 	}
-	else 
+	if( (t%CYCLES_RST_COUNT) == 0 ) 
 	{
-		cstats.isum += t>cstats.ilast?t-cstats.ilast:cstats.ilast-t;
-		cstats.ilast = t;
+		ostick_t den = cstats.idle_sum + cstats.norm_sum;
+		if( den ) {
+			port_unsigned_atomic_write( &cstats.rload, (CPULOAD_MAX*cstats.idle_sum)/den );
+		}
+		cstats.idle_sum = cstats.norm_sum = 0;
 	}
-	if( t % CYCLES_RST_COUNT == 0 ) 
-	{
-		cstats.isum = 0;
-		cstats.nsum = 0;
-	}
+	cstats.old_state = idle_scheduled;
 }
 
 #endif /* ISIX_CONFIG_CPU_USAGE_API */

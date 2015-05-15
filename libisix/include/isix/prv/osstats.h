@@ -22,11 +22,12 @@
 struct isix_task;
 
 /** Reschedule API information for task 
+ * @param[in] t timestamp of event
  * @param[in] idle_scheduled idle task is scheduled
  */
-void _isixp_schedule_update_statistics( bool idle_scheduled );
+void _isixp_schedule_update_statistics( ostick_t t, bool idle_scheduled );
 
 #else
-#define _isixp_schedule_update_statistics(i) \
+#define _isixp_schedule_update_statistics(t,i) \
 	do { (void)i; } while(0)
 #endif

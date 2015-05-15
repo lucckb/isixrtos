@@ -202,5 +202,38 @@ void task_tests::basic_funcs()
 }
 
 
+namespace {
+	void cpuload_task(void *param) 
+	{
+		auto load = reinterpret_cast<const int*>(param);
+		for( ;; ) {
+			static constexpr auto p = 60;
+			isix::wait_us( p*1000  );
+			isix::wait_ms( 100 - p );
+		}
+	}
+}
+
+
+//Task tests
+void task_tests::cpuload_test()
+{
+	int iload = 25;
+	isix::wait_ms( 3000 );
+	//It should be near 0
+	QUNIT_IS_EQUAL( isix::cpuload(), 0 );
+	auto tcb = isix::task_create( cpuload_task, &iload, 512, 1 );
+	QUNIT_IS_NOT_EQUAL( tcb, nullptr );
+	isix::wait_ms( 3000 );
+	QUNIT_IS_EQUAL( isix::cpuload(), 100 );
+	for(;;)
+	{
+		QUNIT_IS_EQUAL( isix::cpuload(), 100 );
+		isix::wait_ms( 1000 );
+	}
+	isix::task_kill( tcb );
+}
+
+
 }	// Namespace test end
 
