@@ -124,10 +124,10 @@ LSSTARGET = $(TARGET).lss
 endif
 
 ifeq ($(DEBUG),y)
-CFLAGS += -g -DPDEBUG
-CXXFLAGS += -g -DPDEBUG
-LDFLAGS += -g -DPDEBUG
-ASFLAGS += -gstabs -DPDEBUG
+CFLAGS += -g -DPDEBUG --unwind-tables
+CXXFLAGS += -g -DPDEBUG --unwind-tables
+LDFLAGS += -g -DPDEBUG --unwind-tables
+ASFLAGS += -gstabs -DPDEBUG --unwind-tables
 else
 CFLAGS += -fomit-frame-pointer 
 CXXFLAGS += -fomit-frame-pointer
