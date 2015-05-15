@@ -205,33 +205,38 @@ void task_tests::basic_funcs()
 namespace {
 	void cpuload_task(void *param) 
 	{
-		auto load = reinterpret_cast<const int*>(param);
+		const auto &load = *reinterpret_cast<const int*>(param);
 		for( ;; ) {
-			static constexpr auto p = 60;
-			isix::wait_us( p*1000  );
-			isix::wait_ms( 100 - p );
+			isix::wait_us( load * 1000  );
+			isix::wait_ms( 100 - load );
 		}
 	}
+
+	static bool cpuload_ok( unsigned val, unsigned reqval ) 
+	{
+		static constexpr auto tolerance1 = 90;
+		static constexpr auto tolerance2 = 110;
+		const auto min = (tolerance1*reqval)/100;
+		const auto max = (tolerance2*reqval)/100;
+		dbprintf("val %i min %i max %i", val, min, max );
+		return val>=min && val<=max;
+	}
 }
+
 
 
 //Task tests
 void task_tests::cpuload_test()
 {
-	int iload = 25;
-	isix::wait_ms( 3000 );
-	//It should be near 0
-	QUNIT_IS_EQUAL( isix::cpuload(), 0 );
-	auto tcb = isix::task_create( cpuload_task, &iload, 512, 1 );
-	QUNIT_IS_NOT_EQUAL( tcb, nullptr );
-	isix::wait_ms( 3000 );
-	QUNIT_IS_EQUAL( isix::cpuload(), 100 );
-	for(;;)
-	{
-		QUNIT_IS_EQUAL( isix::cpuload(), 100 );
-		isix::wait_ms( 1000 );
+	int iload = 10;
+	isix::wait_ms( 2000 );
+	for( iload=10; iload<=99; iload+=10 ) {
+		auto tcb = isix::task_create( cpuload_task, &iload, 512, 1 );
+		QUNIT_IS_NOT_EQUAL( tcb, nullptr );
+		isix::wait_ms( 3000 );
+		QUNIT_IS_TRUE(  cpuload_ok( isix::cpuload(), iload*10 ) );
+		isix::task_kill( tcb );
 	}
-	isix::task_kill( tcb );
 }
 
 

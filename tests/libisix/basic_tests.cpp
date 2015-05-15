@@ -52,7 +52,7 @@ class unit_tests : public isix::task_base
 	//Test basic tasks
     virtual void main() 
 	{
-#if 1
+#if 0
 		task_test.run();
 		dbprintf("Timer tests end");
 		isix::wait_ms(500);
