@@ -201,7 +201,7 @@ void task_tests::basic_funcs()
 	}
 }
 
-
+#ifdef ISIX_CONFIG_CPU_USAGE_API
 namespace {
 	void cpuload_task(void *param) 
 	{
@@ -238,7 +238,7 @@ void task_tests::cpuload_test()
 		isix::task_kill( tcb );
 	}
 }
-
+#endif
 
 }	// Namespace test end
 

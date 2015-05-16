@@ -29,5 +29,5 @@ void _isixp_schedule_update_statistics( ostick_t t, bool idle_scheduled );
 
 #else
 #define _isixp_schedule_update_statistics(t,i) \
-	do { (void)i; } while(0)
+	do {} while(0)
 #endif

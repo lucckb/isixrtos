@@ -36,7 +36,6 @@
 
 //! Enable CPU usage API
 #define ISIX_CONFIG_CPU_USAGE_API
-
 //! Define memory protection model
 #define ISIX_CONFIG_LOGLEVEL ISIXLOG_CRIT
 #define ISIX_CONFIG_MEMORY_PROTECTION_MODEL ISIX_MPROT_LITE
