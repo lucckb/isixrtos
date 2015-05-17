@@ -54,8 +54,7 @@ static inline void exec_timer_callback( osvtimer_t timer )
 {
 	if( timer->callback ) timer->callback( timer->arg );
 	if( !timer->cyclic ) {
-		isix_sem_signal_isr( &timer->busy );
-		isix_sem_signal_isr( &timer->busy );
+		isix_sem_reset( &timer->busy, 1 );
 	}
 }
 
@@ -175,8 +174,7 @@ static void handle_cancel( osvtimer_t tmr )
 {
 	if( list_is_elem_assigned( &tmr->inode ) ) {
 		list_delete( &tmr->inode );
-		isix_sem_signal_isr( &tmr->busy );
-		isix_sem_signal_isr( &tmr->busy );
+		isix_sem_reset( &tmr->busy ,1 );
 	}
 }
 
@@ -322,6 +320,8 @@ int _isixp_vtimer_cancel( osvtimer_t timer, bool isr )
 		if( ret ) break;
 		if( !isr ) {
 			ret = isix_sem_wait( &timer->busy, ISIX_TIME_INFINITE );
+			if( ret == ISIX_ERESET ) 
+				ret = ISIX_EOK;
 		}
 	} while(0);
 	return ret;

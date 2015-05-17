@@ -21,12 +21,16 @@ ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
 	const bool static_mem = (sem!=NULL);
 	if(limit_val<0)
 	{
+		pr_err("Semaphore invalid limit %i", limit_val );
 		return NULL;
 	}
 	if(sem==NULL)
     {
         sem = (ossem_t)isix_alloc(sizeof(struct isix_semaphore));
-        if(sem==NULL) return NULL;
+        if(sem==NULL) {
+			pr_err("No available memory");
+			return NULL;
+		}
     }
     memset( sem, 0, sizeof(*sem) );
     sem->static_mem = static_mem;
@@ -122,10 +126,6 @@ int _isixp_sem_reset( ossem_t sem, int val, bool isr )
     if( !sem ) return ISIX_EINVARG;
     //Semaphore is used
     _isixp_enter_critical();
-	if( port_atomic_sem_read_val(&sem->value) >=0 )  {
-		_isixp_exit_critical();
-		return ISIX_EINVARG;
-	}
     port_atomic_sem_write_val( &sem->value, val );
 	sem_wakeup_all( sem, ISIX_ERESET, isr );
     return ISIX_EOK;
