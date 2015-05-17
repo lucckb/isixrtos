@@ -9,6 +9,8 @@
 #include <isix/prv/scheduler.h>
 
 
+//Note data abort should mark clrex in CM3
+
 #ifdef ISIX_LOGLEVEL_SEMAPHORE
 #undef ISIX_CONFIG_LOGLEVEL 
 #define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_SEMAPHORE

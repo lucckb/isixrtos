@@ -7,6 +7,7 @@
 //Save context
 #define cpu_save_context()										\
     asm volatile (												\
+	"clrex\t\n"													\
     "mrs r0, psp\t\n"					        				\
     "stmdb r0!, {r4-r11}\t\n"                                   \
     "ldr r3,0f\t\n"                                   			\

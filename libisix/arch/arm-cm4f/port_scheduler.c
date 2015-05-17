@@ -8,10 +8,11 @@
 //Save context
 #define cpu_save_context()										\
     asm volatile (												\
+	"clrex\t\n"													\
     "mrs r0, psp\t\n"					        				\
     "ldr r3,0f\t\n"                                   			\
     "ldr r2,[r3]\t\n"                                           \
-    "tst r14, #0x10\t\n"											\
+    "tst r14, #0x10\t\n"										\
     "it eq\t\n"													\
     "vstmdbeq r0!, {s16-s31}\t\n"								\
     "stmdb r0!, {r4-r11,r14}\t\n"                               \
