@@ -1,0 +1,22 @@
+Version 2.1 ( planned )
+- Support for OS MPU protected region and calling syscalls via SVC
+- Support for recovery OS from fault exception and resume execution
+- Circular buffer logger
+- More unit tests
+
+Version 2.0
+- OS core redesigned
+
+- New C++ API isix::function instead isix::isix_
+- Userspace timer and work queues for drivers
+
+- MPU basic protection for 0 (nullptr) region and stack boundary it still not
+  need using SVC calls and don't protect OS core
+- MPU protection on task stack boundary (electric fence if mpu is present)
+  ( Booth features require config
+  ISIX_CONFIG_MEMORY_PROTECTION_MODEL=ISIX_MPROT_LITE )
+- New crash logger with user friendly messages 
+- New API isix::cpuload() for measure current CPU load. Returns value in
+  promiles. It require config  ISIX_CONFIG_CPU_USAGE_API
+
+
