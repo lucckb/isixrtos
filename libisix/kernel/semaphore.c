@@ -21,25 +21,25 @@
 ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
 {
 	const bool static_mem = (sem!=NULL);
-	if(limit_val<0)
+	if( limit_val < 0 )
 	{
 		pr_err("Semaphore invalid limit %i", limit_val );
 		return NULL;
 	}
-	if(sem==NULL)
+	if( sem == NULL )
     {
         sem = (ossem_t)isix_alloc(sizeof(struct isix_semaphore));
-        if(sem==NULL) {
+        if( sem == NULL ) {
 			pr_err("No available memory");
 			return NULL;
 		}
     }
-    memset( sem, 0, sizeof(*sem) );
-    sem->static_mem = static_mem;
+	memset( sem, 0, sizeof(*sem) );
+	sem->static_mem = static_mem;
 	port_atomic_sem_init( &sem->value, val, limit_val );
-    list_init( &sem->wait_list );
-    pr_info("Create sem %p val %i",sem,(int)sem->value.value);
-    return sem;
+	list_init( &sem->wait_list );
+	pr_info("Create sem %p val %i",sem,(int)sem->value.value);
+	return sem;
 }
 
 //Wait for semaphore P()
@@ -63,8 +63,11 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 		isix_yield();
 		return currp->obj.dmsg;
     }
-	_isixp_exit_critical();
-	return ISIX_EOK;
+	else
+	{
+		_isixp_exit_critical();
+		return ISIX_EOK;
+	}
 }
 
 //Sem signal V()
@@ -92,9 +95,12 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 		}
 		return ISIX_EOK;
     }	
-	pr_debug("Waiting list is empty incval to %i",(int)sem->value.value );
-	_isixp_exit_critical();
-	return ISIX_EOK;
+	else
+	{
+		pr_debug("Waiting list is empty incval to %i",(int)sem->value.value );
+		_isixp_exit_critical();
+		return ISIX_EOK;
+	}
 }
 
 //Get semaphore from isr
@@ -125,7 +131,10 @@ static void sem_wakeup_all( ossem_t sem, osmsg_t msg, bool isr )
 //Sem value of semaphore
 int _isixp_sem_reset( ossem_t sem, int val, bool isr )
 {
-    if( !sem ) return ISIX_EINVARG;
+    if( !sem ) { 
+		pr_err("No sem");
+		return ISIX_EINVARG; 
+	}
     //Semaphore is used
     _isixp_enter_critical();
     port_atomic_sem_write_val( &sem->value, val );
@@ -136,18 +145,24 @@ int _isixp_sem_reset( ossem_t sem, int val, bool isr )
 //Get value of semaphore
 int isix_sem_getval(ossem_t sem)
 {
-    if(!sem) return ISIX_EINVARG;
+    if( !sem ) { 
+		pr_err("No sem");
+		return ISIX_EINVARG;
+	}
     return port_atomic_sem_read_val( &sem->value );
 }
 
 //Sem destroy
 int isix_sem_destroy(ossem_t sem)
 {
-   if(!sem) return ISIX_EINVARG;
-    //! Semaphore is used
-   _isixp_enter_critical();
+	if( !sem ) {
+		pr_err("No sem");
+		return ISIX_EINVARG;
+	}
+	//! Semaphore is used
+	_isixp_enter_critical();
 	sem_wakeup_all( sem, ISIX_EDESTROY, false );
-   if(!sem->static_mem) isix_free(sem);
-   return ISIX_EOK;
+	if(!sem->static_mem) isix_free(sem);
+	return ISIX_EOK;
 }
 
