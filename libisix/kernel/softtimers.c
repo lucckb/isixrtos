@@ -311,6 +311,10 @@ int _isixp_vtimer_cancel( osvtimer_t timer, bool isr )
 			ret = ISIX_EINVARG;
 			break;
 		}
+		if( isix_sem_getval( &timer->busy ) > 0 ) {
+			ret = ISIX_EOK;
+			break;
+		}
 		command_t cmd = { .cmd=cmd_cancel, .tmr=timer };
 		if( !isr ) {
 			ret = isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );

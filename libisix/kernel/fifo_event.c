@@ -41,11 +41,11 @@ int isix_fifo_event_connect( osfifo_t fifo, osevent_t evt, int inbit )
 	if( inbit < 0 || inbit > 31 ) {
 		return ISIX_EINVARG;
 	}
-	if( sys_cmpxchg((uintptr_t*)&fifo->evt,(uintptr_t)NULL, (uintptr_t)evt) )
+	if( port_cmpxchg((uintptr_t*)&fifo->evt,(uintptr_t)NULL, (uintptr_t)evt) )
 	{	//Already assigned
 		return ISIX_EBUSY;
 	}
-	sys_atomic_write_uint8_t( &fifo->bitno, inbit );
+	port_atomic_write_uint8_t( &fifo->bitno, inbit );
 	return ISIX_EOK;
 }
 
@@ -58,12 +58,12 @@ int isix_fifo_event_disconnect( osfifo_t fifo, osevent_t evt )
 	if( !fifo || !evt ) {
 		return ISIX_EINVARG;
 	}
-	if( sys_cmpxchg((uintptr_t*)&fifo->evt,(uintptr_t)evt,(uintptr_t)NULL)
+	if( port_cmpxchg((uintptr_t*)&fifo->evt,(uintptr_t)evt,(uintptr_t)NULL)
 			!= (uintptr_t)evt )
 	{	//Already free
 		return ISIX_EBUSY;
 	}
-	sys_atomic_write_uint8_t( &fifo->bitno, ISIX_FIFO_EVENT_INVALID_BITS );
+	port_atomic_write_uint8_t( &fifo->bitno, ISIX_FIFO_EVENT_INVALID_BITS );
 	return ISIX_EOK;
 }
 
@@ -73,7 +73,7 @@ int isix_fifo_event_disconnect( osfifo_t fifo, osevent_t evt )
 void _isixp_fifo_rxavail_event_raise( osfifo_t fifo, bool isr )
 {
 	osevent_t ev = (osevent_t)port_atomic_read_uintptr_t( (uintptr_t*)&fifo->evt );
-	uint8_t bitno = sys_atomic_read_uint8_t( &fifo->bitno );
+	uint8_t bitno = port_atomic_read_uint8_t( &fifo->bitno );
 	if( ev && bitno <= 31 )
 	{
 		if(!isr ) {

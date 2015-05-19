@@ -257,9 +257,29 @@ uintptr_t port_cmpxchg( uintptr_t *ptr, uintptr_t old, uintptr_t newv )
 {
 	return sys_cmpxchg( ptr, old, newv );
 }
-
 static inline __attribute__((always_inline))
 uintptr_t port_atomic_read_uintptr_t( const uintptr_t* ptr )
 {	
 	return sys_atomic_read_uintptr_t( ptr );
 }
+
+static inline __attribute__((always_inline))
+uintptr_t port_atomic_write_uintptr_t( const uintptr_t* ptr, uintptr_t val )
+{
+	return sys_atomic_write_uintptr_t( ptr, val );
+}
+
+//! Atomic unsigned char
+static inline __attribute__((always_inline))
+uint8_t port_atomic_write_uint8_t( volatile uint8_t *addr, uint8_t val ) {
+	return sys_atomic_write_uint8_t( addr, val );
+}
+static inline __attribute__((always_inline))
+long port_atomic_try_write_uint8_t( volatile uint8_t *addr, uint8_t val ) {
+	return sys_atomic_try_write_uint8_t( addr, val );
+}
+static inline __attribute__((always_inline))
+uint8_t port_atomic_read_uint8_t( const volatile uint8_t *addr ) {
+	return sys_atomic_read_uint8_t( addr );
+}
+

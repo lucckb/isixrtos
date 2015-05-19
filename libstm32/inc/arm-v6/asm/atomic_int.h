@@ -310,11 +310,19 @@ static inline uintptr_t sys_cmpxchg( uintptr_t *ptr, uintptr_t old, uintptr_t ne
 	return oldval;
 }
 
-/** Sys atimic read uintptr_t */
+/** Sys atomic read uintptr_t */
 static inline uintptr_t sys_atomic_read_uintptr_t( const uintptr_t* ptr )
 {
 	static_assert(sizeof(uintptr_t)==sizeof(uint32_t), "ARMv4 support only 4b atomics");
 	return (uintptr_t)sys_atomic_read_uint32_t( (volatile uint32_t*)ptr );	
+}
+
+
+/** Sys atomic write uintptr_t */
+static inline uintptr_t sys_atomic_write_uintptr_t( const uintptr_t* ptr, uintptr_t val )
+{
+	static_assert(sizeof(uintptr_t)==sizeof(uint32_t), "ARMv4 support only 4b atomics");
+	return (uintptr_t)sys_atomic_write_uint32_t( (volatile uint32_t*)ptr, val );	
 }
 
 #ifdef __cplusplus
