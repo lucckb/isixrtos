@@ -179,7 +179,7 @@ clean:
 
 
 program: $(TARGET).elf
-	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c "program $(TARGET).elf verify reset" 
+	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c "program $(TARGET).elf verify reset"  -c shutdown
 
 .PHONY : devrst
 devrst:
