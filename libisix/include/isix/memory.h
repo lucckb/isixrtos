@@ -40,5 +40,8 @@ namespace {
 	inline void free(void *mem) {
 		::isix_free( mem );	
 	}
+	inline size_t heap_free(int *fragments=nullptr) {
+		return ::isix_heap_free( fragments );
+	}
 }}
 #endif /*__cplusplus*/
