@@ -204,7 +204,7 @@ static void handle_cancel( osvtimer_t tmr )
 static void worker_thread( void* param ) 
 {
 	(void)param;
-	ostick_t tout = (0U - isix_get_jiffies());
+	ostick_t tout = 1U;
 	ostick_t pjiff = 0;	//Previous jiffies for detect overflow
 	for(command_t cmd;;) 
 	{ 
@@ -337,11 +337,15 @@ int _isixp_vtimer_cancel( osvtimer_t timer, bool isr )
 			ret = ISIX_EINVARG;
 			break;
 		}
-		command_t cmd = { .cmd=cmd_cancel, .generic_args=timer };
-		if( !isr ) {
-			ret = isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
+		if( schrun ) {
+			command_t cmd = { .cmd=cmd_cancel, .generic_args=timer };
+			if( !isr ) {
+				ret = isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
+			} else {
+				ret = isix_fifo_write_isr( tctx.worker_queue, &cmd );
+			}
 		} else {
-			ret = isix_fifo_write_isr( tctx.worker_queue, &cmd );
+			handle_cancel( timer );
 		}
 		if( ret ) break;
 	} while(0);

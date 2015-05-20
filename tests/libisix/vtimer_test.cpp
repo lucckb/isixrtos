@@ -119,6 +119,7 @@ namespace {
 // VTIMER one shoot test
 void vtimer::one_shoot() 
 {
+	const auto before_create = isix::heap_free();
 	auto* timerh = isix_vtimer_create();
 	QUNIT_IS_TRUE( timerh != nullptr );
 	//Run one shoot timer
@@ -127,13 +128,15 @@ void vtimer::one_shoot()
 			isix::vtimer_start( timerh, one_call_timer_fun, &ci, 100, false ),
 			ISIX_EOK );
 	isix_wait_ms( 5 );
-	QUNIT_IS_EQUAL( 
-			isix_vtimer_start( timerh, one_call_timer_fun, &ci, 100, false ),
-			ISIX_EBUSY );
+	QUNIT_IS_EQUAL( isix_vtimer_is_active( timerh ), true );
 	isix_wait_ms( 1000 );
 	QUNIT_IS_EQUAL( ci.count, 1 );
 	QUNIT_IS_EQUAL( ci.last_call - ci.start_call, 100U );
+	isix_wait_ms( 200 );
+	QUNIT_IS_EQUAL( isix_vtimer_is_active( timerh ), false );
 	QUNIT_IS_EQUAL( isix_vtimer_destroy( timerh ), ISIX_EOK );
+	isix_wait_ms(50);
+	QUNIT_IS_EQUAL( before_create ,isix::heap_free() );
 }
 
 //Vtimer modapi test
