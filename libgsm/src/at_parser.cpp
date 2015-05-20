@@ -29,7 +29,7 @@ namespace gsm_modem {
 //! Put line to the serial interface
 int at_parser::put_line( const char* line1, const char* line2, bool carriage_return )
 {
-	dbprintf("tx>[%s%s]", line1, line2);
+	dbg_debug("tx>[%s%s]", line1, line2);
 	auto ret = m_port.puts( line1 );
 	if( ret < 0 ) { m_error = ret; return m_error; }
 	if( line2 ) {
@@ -128,7 +128,7 @@ bool at_parser::handle_unsolicited( char* begin_ptr )
 	if( std::strstr(begin_ptr,"^STN:") ||
 		std::strstr(begin_ptr,"+SIM READY") ) 
 	{
-		dbprintf("ign>[%s]", begin_ptr );
+		dbg_warn("ign>[%s]", begin_ptr );
 		return true;
 	}
 	auto s = normalize(begin_ptr);
@@ -176,7 +176,7 @@ char* at_parser::getline( size_t pos_from, int timeout )
 		if( handle_unsolicited(begin_ptr) ) continue;
 		break;
 	} while(true);
-	dbprintf("rx>[%s]->%i", begin_ptr, ret );
+	dbg_debug("rx>[%s]->%i", begin_ptr, ret );
 	return begin_ptr;
 }
 /* ------------------------------------------------------------------ */
@@ -519,7 +519,7 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		}
 		// else fall through to error
 	}
-	dbprintf("Unexpected response received %s", inp );
+	dbg_err("Unexpected response received %s", inp );
 	m_error = error::unexpected_resp;
 	return nullptr;
 }
@@ -530,15 +530,15 @@ int at_parser::wait( int timeout )
 	for( ; m_ack_excepted_count>0; --m_ack_excepted_count )
 	{
 		//! Set acknowledgement
-		if( !chat("+CNMA") ) dbprintf("Unable to send ACK");
-		else dbprintf("ACK was sent");
+		if( !chat("+CNMA") ) dbg_err("Unable to send ACK");
+		else dbg_err("ACK was sent");
 	}
 	auto ret = (getline(0,timeout))?(error::success):(error());
 	for( ; m_ack_excepted_count>0; --m_ack_excepted_count )
 	{
 		//! Set acknowledgement
-		if( !chat("+CNMA") ) dbprintf("Unable to send ACK");
-		else dbprintf("ACK was sent");
+		if( !chat("+CNMA") ) dbg_err("Unable to send ACK");
+		else dbg_err("ACK was sent");
 	}
 	return ret;
 }

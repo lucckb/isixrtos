@@ -47,7 +47,7 @@ int phonebook::select_book( const phbook_id& id )
 {
 	const auto pbname =  id.get_name();
 	if( !pbname ) {
-		dbprintf("Unable to get phonebook name" );
+		dbg_err("Unable to get phonebook name" );
 		return error::invalid_argument;
 	}
 	//Set phonebook
@@ -55,7 +55,7 @@ int phonebook::select_book( const phbook_id& id )
 	fnd::tiny_snprintf(buf, sizeof(buf)-1, "+CPBS=\"%s\"", pbname );
 	auto resp = at().chat( buf );
 	if( !resp ) {
-		dbprintf( "Modem error response %i", at().error() );	
+		dbg_err( "Modem error response %i", at().error() );	
 		return at().error();
 	}
 	m_curr_book =  id.bits();
@@ -69,13 +69,13 @@ int phonebook::get_phonebooks_identifiers( phbook_id& ids )
 {
 	auto resp = at().chat("+CPBS=?", "+CPBS:");
 	if( !resp ) {
-		dbprintf( "Modem error response %i", at().error() );	
+		dbg_err( "Modem error response %i", at().error() );	
 		return at().error();
 	}
 	param_parser p( resp, at().bufsize() );
 	vector<param_parser::ret_str_t> res;
 	if( p.parse_string_list( res ) < 0 ) {
-		dbprintf("Unable to parse phonebook entries");
+		dbg_err("Unable to parse phonebook entries");
 		return at().error();
 	}
 	ids.clear();
@@ -100,7 +100,7 @@ int phonebook::read_entry( int index, phbook_entry& entry )
 
 	auto resp = at().chat(buf, "+CPBR:", false, true );
 	if( !resp ) {
-		dbprintf( "Modem error response %i", at().error() );	
+		dbg_err( "Modem error response %i", at().error() );	
 		return at().error();
 	}
 	if( *resp == '\0' ) {
@@ -146,7 +146,7 @@ int phonebook::find_entry( phbook_entry& entry )
 	//! Accept empty response but not ignore errors
 	auto resp = at().chat(buf, "+CPBF:", false, true );
 	if( !resp ) {
-		dbprintf( "Modem error response %i", at().error() );	
+		dbg_err( "Modem error response %i", at().error() );	
 		return at().error();
 	}
 	if( resp[0] == '\0' ) {
@@ -176,7 +176,7 @@ int phonebook::write_or_delete_entry( int index, const phbook_entry* phb )
 				phb->phone, type, phb->name );
 	}
 	if( !at().chat(buf) ) {
-		dbprintf( "Modem error response %i", at().error() );	
+		dbg_err( "Modem error response %i", at().error() );	
 		return at().error();
 	}
 	return error::success;
@@ -189,7 +189,7 @@ int phonebook::find_empty_entry()
 {
 	auto resp = at().chat("+CPBS?", "+CPBS:" );
 	if( !resp ) {
-		dbprintf( "Modem error response %i", at().error() );	
+		dbg_err( "Modem error response %i", at().error() );	
 		return at().error();
 	}
 	int used_entries, total_entries;

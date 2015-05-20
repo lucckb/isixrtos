@@ -43,28 +43,28 @@ void event::dispatch( at_parser& at , char* str )
 		param_parser p(str+6, at.bufsize()-6);
 		int regs, lac {}, ci {};
 		if( p.parse_int(regs) < 0 ) {
-			dbprintf("Unable to parse reg status");
+			dbg_warn("Unable to parse reg status");
 			return;
 		}
 		if( regs > int(reg_status::registered_roaming) ) {
-			dbprintf("Value too big");
+			dbg_warn("Value too big");
 			return;
 		}
 		//Optional LAC and CI parsing
 		if( p.parse_comma() > 0 ) {
 			const auto slac = p.parse_string();
 			if( !slac ) {
-				dbprintf("Unable to parse lac");
+				dbg_warn("Unable to parse lac");
 				return;
 			}
 			lac = std::strtol( slac, nullptr, 16 );
 			if( p.parse_comma() < 0 ) {
-				dbprintf("No comma after lac");
+				dbg_warn("No comma after lac");
 				return;
 			}
 			const auto sci = p.parse_string();
 			if( !sci ) {
-				dbprintf("Unable to parse CI");
+				dbg_warn("Unable to parse CI");
 				return;
 			}
 			ci = std::strtol( sci, nullptr, 16 );
@@ -90,7 +90,7 @@ void event::dispatch( at_parser& at , char* str )
 		{
 			int number_format;
 			if( p.parse_int(number_format)<0) {
-				dbprintf("Parse format fail %i", p.error() );
+				dbg_warn("Parse format fail %i", p.error() );
 				return;
 			}
 			if( number_format == number_format::international ) {
@@ -143,7 +143,7 @@ void event::dispatch( at_parser& at , char* str )
 		//! Normal deliver SMS routed to TA
 		if( msg_type == sms::t_deliver ) 
 		{
-			dbprintf("Before PDU %s", str );
+			dbg_debug("Before PDU %s", str );
 			sms_deliver dmsg(p);
 			if( !p.error() ) {
 				const auto pdu = at.get_second_line(str);
@@ -151,10 +151,10 @@ void event::dispatch( at_parser& at , char* str )
 					dmsg.message(pdu);
 					sms_reception( dmsg );
 				} else {
-					dbprintf("Unable to get pdu %i", at.error() );
+					dbg_err("Unable to get pdu %i", at.error() );
 				}
 			} else {
-				dbprintf("Unable to parse message %i", p.error() );
+				dbg_err("Unable to parse message %i", p.error() );
 			}
 		} 
 		//Normal status report
@@ -164,7 +164,7 @@ void event::dispatch( at_parser& at , char* str )
 			if( !p.error() ) {
 				sms_reception( rmsg );
 			} else{
-				dbprintf( "Unable to handle message %i", p.error() );
+				dbg_err( "Unable to handle message %i", p.error() );
 			}
 		}
 		//Notify excepted ACKnowledgement
@@ -176,32 +176,33 @@ void event::dispatch( at_parser& at , char* str )
 void event::sms_reception( sms& sms ) 
 {
 #ifdef PDEBUG
-	dbprintf("Unhandled sms_reception");
-	//FIXME: This a test code only for check indication
+	dbg_info("Unhandled sms_reception");
 	if( sms.type() == sms::t_status_report ) {
 		const auto msg = static_cast<const sms_status_report&>(sms);
-		dbprintf("RecAddr %s SCTS %s DiscTime %s status %i msgreg %i",
+		dbg_debug("RecAddr %s SCTS %s DiscTime %s status %i msgreg %i",
 				msg.receimpent_address(), msg.scs_timestamp(), msg.discharge_time(),
 				msg.status(),  msg.msg_ref() );
 	} else if( sms.type() == sms::t_deliver ) {
 			const auto it = static_cast<const gsm_modem::sms_deliver&>( sms );
-			dbprintf("TSTAMP %s ORIGIN_ADDR %s PID %i REPORT_INDIC %i",
+			dbg_debug("TSTAMP %s ORIGIN_ADDR %s PID %i REPORT_INDIC %i",
 				it.service_tstamp(), it.origin_address(), it.pid(), it.report_indication() );
-			dbprintf("Content %s", it.message() );
+			dbg_debug("Content %s", it.message() );
 	}
+#else
+	static_cast<void>(sms);
 #endif
 }
 /* ------------------------------------------------------------------ */ 
 //SMS reception indication
 void event::sms_reception_indication(const smsmem_id& storage ,int index)
 {
-	dbprintf("Unhandled sms_reception_indication store %08x index %i", storage.bits(), index );
+	dbg_warn("Unhandled sms_reception_indication store %08x index %i", storage.bits(), index );
 }
 /* ------------------------------------------------------------------ */ 
 // number, subaddr, alpha
 void event::caller_line_id( const char* number, const char* alpha) 
 {
-	dbprintf("Unhandled caller_line_id(num=%s, alpha=%s)", number, alpha );
+	dbg_warn("Unhandled caller_line_id(num=%s, alpha=%s)", number, alpha );
 }
 /* ------------------------------------------------------------------ */ 
 }
