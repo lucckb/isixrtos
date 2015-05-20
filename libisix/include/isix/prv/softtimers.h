@@ -9,7 +9,6 @@
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/prv/list.h>
-#include <isix/prv/semaphore.h>
 #include <isix/task.h>
 #include <isix/fifo.h>
 
@@ -27,8 +26,8 @@ struct isix_vtimer {
 	void (*callback)(void*); 			/* Next timer call */
 	void *arg;					  		/* Function pointer */
 	list_t inode;				  		/* Inode list */
-	struct isix_semaphore busy;	  		/* busy sem */
 	bool cyclic;						/* If timer is cyclic */
+	uint8_t is_active;					/* Is timer currently active */
 };
 
 struct vtimer_context {

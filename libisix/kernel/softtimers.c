@@ -28,24 +28,37 @@ static struct vtimer_context tctx;
 enum command_e {
 	cmd_add = 1,
 	cmd_cancel = 2,
-	cmd_execnow = 3
+	cmd_execnow = 3,
+	cmd_delete = 4
 };
 
 //! Callable object structure
-struct callable 
+struct callable_param
 {
 	osworkfunc_t fun;
 	void *arg;
 };
 
+//! Start command config
+struct start_param {
+	osvtimer_t tmr;	//! Timer identifier
+	osvtimer_callback callback;	//! Timer callback
+	void* args;		//! Callback argument
+	ostick_t tout;	//! Timer timeout
+	ostick_t itime;	//! Input time
+	bool cyclic;
+};
+
+
 //! Command queue
 typedef struct command 
 {
-	uint8_t cmd;
+	int8_t cmd;
 	union 
 	{
-		osvtimer_t tmr;
-		struct callable work;
+		osvtimer_t generic_args;
+		struct callable_param work_args;
+		struct start_param start_args;
 	};
 } command_t;
 
@@ -54,7 +67,7 @@ static inline void exec_timer_callback( osvtimer_t timer )
 {
 	if( timer->callback ) timer->callback( timer->arg );
 	if( !timer->cyclic ) {
-		isix_sem_reset( &timer->busy, 1 );
+		port_atomic_write_uint8_t( &timer->is_active, false );
 	}
 }
 
@@ -91,8 +104,16 @@ static void add_vtimer_to_list( ostick_t tnow, osvtimer_t timer )
 }
 
 //! Handle add to list
-static void handle_add( ostick_t tnow, osvtimer_t tmr )
+static void handle_add( ostick_t tnow, const struct start_param* param )
 {
+	//Handle and fill the inputs
+	osvtimer_t tmr =  param->tmr;
+	tmr->jiffies = param->itime;
+	tmr->timeout = param->tout;
+	tmr->callback = param->callback;
+	tmr->arg = param->args;
+	tmr->cyclic = param->cyclic;
+	port_atomic_write_uint8_t( &tmr->is_active, true );
 	//Check for delayed task 
 	bool handled = false;
 	ostick_t tdiff = tnow>=tmr->jiffies?tnow-tmr->jiffies:tmr->jiffies-tnow;
@@ -174,7 +195,7 @@ static void handle_cancel( osvtimer_t tmr )
 {
 	if( list_is_elem_assigned( &tmr->inode ) ) {
 		list_delete( &tmr->inode );
-		isix_sem_reset( &tmr->busy ,1 );
+		port_atomic_write_uint8_t( &tmr->is_active , false );
 	}
 }
 
@@ -193,13 +214,18 @@ static void worker_thread( void* param )
 		switch ( code ) 
 		{
 		case cmd_add:
-			handle_add( tnow, cmd.tmr );
+			handle_cancel( cmd.start_args.tmr );
+			handle_add( tnow, &cmd.start_args );
 			break;
 		case cmd_cancel:
-			handle_cancel( cmd.tmr );
+			handle_cancel( cmd.generic_args );
 			break;
 		case cmd_execnow:
-			cmd.work.fun( cmd.work.arg );
+			cmd.work_args.fun( cmd.work_args.arg );
+			break;
+		case cmd_delete:
+			handle_cancel( cmd.generic_args );
+			isix_free( cmd.generic_args );
 			break;
 		case ISIX_ETIMEOUT:
 			break;
@@ -257,8 +283,7 @@ osvtimer_t isix_vtimer_create( void )
 		return timer;
 	}
 	memset( timer, 0, sizeof(*timer) );
-	isix_sem_create_limited( &timer->busy, 1, 1 );
-	pr_info("vtimer created %p sem %p", timer, &timer->busy );
+	pr_info("vtimer created %p", timer );
 	return timer;
 }
 
@@ -276,25 +301,26 @@ int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 {
 	pr_info("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
 	if( !timer ) return ISIX_EINVARG;
-	if( isix_sem_trywait(&timer->busy) ) {
-		//!Element is already assigned
-		return ISIX_EBUSY;
-	}
 	//! Call @ jiffies
-	timer->jiffies = isix_get_jiffies();
-	timer->timeout = timeout;
-	timer->callback = func;
-	timer->arg = arg;
-	timer->cyclic = cyclic;
+	command_t cmd = { 
+		.cmd=cmd_add, 
+		.start_args = { 
+			.tmr = timer,
+			.callback = func,
+			.args = arg,
+			.tout = timeout,
+			.itime = isix_get_jiffies(),
+			.cyclic = cyclic
+		}
+	};
 	if( schrun ) {
-		command_t cmd = { .cmd=cmd_add, .tmr=timer };
 		if( !isr ) {
 			return isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
 		} else {
 			return isix_fifo_write_isr( tctx.worker_queue, &cmd );
 		}
 	} else {
-		handle_add( isix_get_jiffies(), timer );
+		handle_add( isix_get_jiffies(), &cmd.start_args );
 		return ISIX_EOK;
 	}
 }
@@ -311,22 +337,13 @@ int _isixp_vtimer_cancel( osvtimer_t timer, bool isr )
 			ret = ISIX_EINVARG;
 			break;
 		}
-		if( isix_sem_getval( &timer->busy ) > 0 ) {
-			ret = ISIX_EOK;
-			break;
-		}
-		command_t cmd = { .cmd=cmd_cancel, .tmr=timer };
+		command_t cmd = { .cmd=cmd_cancel, .generic_args=timer };
 		if( !isr ) {
 			ret = isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
 		} else {
 			ret = isix_fifo_write_isr( tctx.worker_queue, &cmd );
 		}
 		if( ret ) break;
-		if( !isr ) {
-			ret = isix_sem_wait( &timer->busy, ISIX_TIME_INFINITE );
-			if( ret == ISIX_ERESET ) 
-				ret = ISIX_EOK;
-		}
 	} while(0);
 	return ret;
 }
@@ -341,7 +358,7 @@ int isix_vtimer_is_active( osvtimer_t timer )
 	if( !timer ) {
 		return ISIX_EINVARG;
 	}
-	return isix_sem_getval(&timer->busy);
+	return port_atomic_read_uint8_t(&timer->is_active);
 }
 
 /** Destroy the vtimer on the selected period
@@ -353,10 +370,13 @@ int isix_vtimer_destroy( osvtimer_t timer )
 	int ret = ISIX_EOK;
 	do {
 		if( schrun ) {
-			ret = isix_vtimer_cancel( timer );
+			command_t cmd = { .cmd=cmd_delete, .generic_args=timer };
+			ret = isix_fifo_write( tctx.worker_queue, &cmd, ISIX_TIME_INFINITE );
 			if( ret ) break;
+		} else {
+			handle_cancel( timer );
+			isix_free( timer );
 		}
-		isix_free( timer );
 	} while(0);
 	return ret;
 }
@@ -369,7 +389,7 @@ int isix_vtimer_destroy( osvtimer_t timer )
  */
 int isix_schedule_work_isr( osworkfunc_t func, void* arg )
 {
-	command_t cmd = { .cmd = cmd_execnow, .work = {func,arg} };
+	command_t cmd = { .cmd = cmd_execnow, .work_args = {func,arg} };
 	return isix_fifo_write_isr( tctx.worker_queue, &cmd );
 }
 
