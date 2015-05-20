@@ -50,7 +50,7 @@ public:
 	{}
 
 	//! Chat with the modem
-	char* chat( const char at_cmd[]=nullptr, const char resp[]=nullptr,
+	char* chat( const char at_cmd[]="", const char resp[]=nullptr,
 			bool ignore_errors=false, bool empty_response=false, char** pdu = nullptr );
 
 	// Chat and get he vector of string

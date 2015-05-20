@@ -219,7 +219,8 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 	do {
 		inp = normalize( getline() );
 		if( !inp ) return nullptr;	
-	} while( inp[0]=='\0' || (inp[0]=='A'&&inp[1]=='T'&&!std::strcmp(inp+2,at_cmd)) ||
+	} while( inp[0]=='\0' || 
+			(inp[0]=='A'&&inp[1]=='T'&&!std::strcmp(inp+2,at_cmd)) ||
 		    ((!resp||!match_response(inp,resp)) && 
 			( expect[0] && match_response(inp,expect))));
 	//! Handle errors
