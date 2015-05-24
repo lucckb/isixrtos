@@ -53,7 +53,7 @@ static void StartSignallingPortReset(void* p) {
   hprt.b.pena = 0;
   hprt.b.pcdet = 0;
   P_USB_OTG_HREGS->HPRT = hprt.d32;
-  usblibp_timer_start(1, StopSignallingPortReset, RESET_TIME_MS);
+  usblibp_timer_start(3, StopSignallingPortReset, RESET_TIME_MS);
 }
 
 static void HostDisconnectHandler(void* p) {
