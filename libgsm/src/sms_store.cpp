@@ -50,7 +50,7 @@ int sms_store::select_store( const smsmem_id& id )
 			id1, id2, id2 );
 	auto resp = at().chat( buf,"+CPMS:" );
 	if( !resp ) {
-		dbprintf("Unable to execute command %i", at().error() );
+		dbg_err("Unable to execute command %i", at().error() );
 		return at().error();
 	}
 	m_store_flags = id.bits();
@@ -82,7 +82,7 @@ int sms_store::get_store_identifiers( smsmem_id& id )
 {
 	auto resp = at().chat( "+CPMS=?","+CPMS:" );
 	if( !resp ) {
-		dbprintf("Unable to execute command %i", at().error() );
+		dbg_err("Unable to execute command %i", at().error() );
 		return at().error();
 	}
 	param_parser p( resp, at().bufsize() );
@@ -107,7 +107,7 @@ sms_store_result_t sms_store::read_entry( int index )
 	char* pdu {};
 	auto resp = at().chat( buf,"+CMGR:", false, true, &pdu );
 	if( !resp ) {
-		dbprintf("Unable to execute command %i", at().error() );
+		dbg_err("Unable to execute command %i", at().error() );
 		return sms_store_result_t( at().error(), nullptr );
 	}
 	param_parser p( resp, at().bufsize() );
@@ -159,7 +159,7 @@ int sms_store::erase_entry( int index, del flags )
 	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CMGD=%i,%i", index, int(flags) );
 	auto resp = at().chat( buf, "+CMGD:", false, true );
 	if( !resp ) {
-		dbprintf("Unable to execute command %i", at().error() );
+		dbg_err("Unable to execute command %i", at().error() );
 		return at().error();
 	}
 	return error::success;

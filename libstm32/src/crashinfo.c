@@ -7,7 +7,6 @@
 
 #include <foundation/tiny_printf.h>
 #include <stm32system.h>
-#include <unwind.h>
 #include "stm32crashinfo.h"
 
 
@@ -136,25 +135,6 @@ void* isix_task_self(void);
 #endif
 
 
-struct unwind_ctx {
-	int depth;
-	uintptr_t addr;
-};
-
-//!Unwind reason code callback handler
-static _Unwind_Reason_Code trace_callback(_Unwind_Context* ctx, void *d )
-{
-	struct unwind_ctx *uctx = (struct unwind_ctx*)d;
-    uctx->depth++;
-	if( uctx->depth > 32 || uctx->addr ==  _Unwind_GetIP(ctx) ) {
-		return _URC_FAILURE;
-	} else {
-		uctx->addr = _Unwind_GetIP(ctx);
-		tiny_printf("\t#%i: 0x%08x\r\n", uctx->depth, (intptr_t)uctx->addr);
-		return _URC_NO_REASON;
-	}
-}
-
 
 //Cortex CM3 print core regs
 void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
@@ -216,10 +196,6 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 	//! Print stack frame only when no stacking error
 	if( !stk_err ) 
 	{
-		struct unwind_ctx uctx;
-		uctx.depth = 0; uctx.addr = 0;
-		tiny_printf( "Call trace:\r\n" );
-		_Unwind_Backtrace( trace_callback, &uctx );
 		tiny_printf("Stack dump:\r\n\t" );
 		for( int i=0; i<32; ++i ) 
 		{

@@ -42,7 +42,7 @@ int device::do_enable () {
 	m_at.discard_data( 500 );
 	auto resp = m_at.chat();
 	if( resp ) {
-		dbprintf("Modem is online reset it");
+		dbg_info("Modem is online reset it");
 		m_hwctl.reset();
 	} 
 	//Switch power on the device
@@ -51,7 +51,7 @@ int device::do_enable () {
 	//Switch extended error codes
 	resp = m_at.chat("+CMEE=1", nullptr, true, true );
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	//Set charset to the GSM
@@ -61,7 +61,7 @@ int device::do_enable () {
 	//!TODO: Enable GPRS modem RS232 hardware pins control
 	if( m_capabilities.has_hw_flow() ) 
 	{
-		dbprintf("Trying to set hardware flow control");
+		dbg_info("Trying to set hardware flow control");
 		int ret;
 		do {
 			resp = m_at.chat("+IFC=2,2");
@@ -69,14 +69,14 @@ int device::do_enable () {
 			if( (ret=m_at.flow_control(true)<0) ) break;
 		} while(0);
 		if( ret ) {
-			dbprintf("Unable to setup hardware flow %i", ret );
+			dbg_err("Unable to setup hardware flow %i", ret );
 			return ret;
 		}
 	}
 	//Set CFUN command
 	resp = m_at.chat("+CFUN=1");
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	//Select Non pdu mode
@@ -87,11 +87,11 @@ int device::do_enable () {
 			if( (m_at.error() == error::at_cme_sim_busy ||
 				m_at.error() == error::at_cme_sim_not_inserted))
 			{
-				dbprintf("Parser code %i", m_at.error() );
+				dbg_err("Parser code %i", m_at.error() );
 				m_at.sleep( 2000 );
 				continue;
 			}
-			dbprintf( "Modem error response %i", m_at.error() );	
+			dbg_err( "Modem error response %i", m_at.error() );	
 			return m_at.error();
 		}
 		else break;
@@ -101,7 +101,7 @@ int device::do_enable () {
 		//! Set extended headers text format
 		resp = m_at.chat("+CSDH=1");
 		if( !resp ) {
-			dbprintf( "Modem error response %i", m_at.error() );	
+			dbg_err( "Modem error response %i", m_at.error() );	
 			return m_at.error();
 		}
 	}
@@ -115,7 +115,7 @@ int device::send_command_noresp( const char *cmd, const char* arg )
 	fnd::tiny_snprintf(buf, sizeof(buf)-1,"%s\"%s\"", cmd, arg );
 	auto resp = m_at.chat(buf);
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	return error::success;
@@ -138,7 +138,7 @@ int device::get_pin_status()
 {
 	auto respn = m_at.chat("+CPIN?", "+CPIN:");
 	if( !respn ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	param_parser p( respn, m_at.bufsize() );
@@ -165,17 +165,17 @@ int device::register_to_network( const char *pin, reg_notify notify )
 	//Set Cops to automatic registration
 	auto ret = get_pin_status( );
 	if( ret < 0 ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	if( ret == sim_req::pin  ) {
 		//! Waiting for sim pin send it
-		dbprintf("SIM pin is required" );
+		dbg_info("SIM pin is required" );
 		ret = set_pin( pin );
 		if( ret ) return ret;
 	}
 	else if( ret == sim_req::ready ) {
-		dbprintf("SIM pin not required" );
+		dbg_info("SIM pin not required" );
 	} else {
 		if(ret>0) ret = error::unsupported_operation;
 	}
@@ -184,7 +184,7 @@ int device::register_to_network( const char *pin, reg_notify notify )
 	fnd::tiny_snprintf( buf,sizeof(buf)-1,"+CREG=%i", int(notify) );
 	auto resp = m_at.chat(buf);
 	if( !resp ) {
-		dbprintf( "Unable to net notifier %i", m_at.error() );	
+		dbg_err( "Unable to net notifier %i", m_at.error() );	
 		return m_at.error();
 	}
 	//Enable CREG handling
@@ -205,39 +205,39 @@ int device::get_current_op_info( oper_info& info )
 		buf[8] = '0' + fmt;
 		auto resp = m_at.chat(buf);
 		if( !resp ) {
-			dbprintf( "Modem error response %i", m_at.error() );	
+			dbg_err( "Modem error response %i", m_at.error() );	
 			return m_at.error();
 		}
 		resp = m_at.chat("+COPS?", "+COPS:");
 		if( !resp ) {
-			dbprintf( "Modem error response %i", m_at.error() );	
+			dbg_err( "Modem error response %i", m_at.error() );	
 			return m_at.error();
 		}
 		param_parser p( resp, m_at.bufsize() );
 		if( p.parse_int(val) < 0 ) {
-			dbprintf("Parse int failed at #1 %i", p.error() );
+			dbg_err("Parse int failed at #1 %i", p.error() );
 			return p.error();	
 		}
 		info.mode = op_modes( val );
 		if( p.parse_comma(true)>0 ) 
 		{
 			if( p.parse_int(val) ) {
-				dbprintf("Parse int failed at #2 %i", p.error() );
+				dbg_err("Parse int failed at #2 %i", p.error() );
 				return p.error();	
 			}
 			if( val != fmt ) {
-				dbprintf("Unexpected response");
+				dbg_err("Unexpected response");
 				return error::unexpected_resp;
 			}
 			if( p.parse_comma() < 0 ) {
-				dbprintf("Parse int failed at #3 %i", p.error() );
+				dbg_err("Parse int failed at #3 %i", p.error() );
 				return p.error();	
 			}
 			if( fmt != 2 ) 
 			{
 				auto ps = p.parse_string();
 				if(!ps) {
-					dbprintf("Parse string failed at #2 %i", p.error() );
+					dbg_err("Parse string failed at #2 %i", p.error() );
 					return p.error();	
 				}
 				if( fmt == 0 ) 
@@ -253,7 +253,7 @@ int device::get_current_op_info( oper_info& info )
 						if( pi ) val = std::atoi( pi );
 						else val = 0;
 					} else {
-						dbprintf("Parse int failed at #3 %i", p.error() );
+						dbg_err("Parse int failed at #3 %i", p.error() );
 						return p.error();	
 					}
 				}
@@ -270,26 +270,26 @@ int device::get_current_op_info( oper_info& info )
 int device::get_registration_status()
 {
 	if( m_at.unsolicited_creg() ) {
-		dbprintf("Unsolicited creg already enabled");
+		dbg_info("Unsolicited creg already enabled");
 		return error::check_unsolicited_notifications;
 	}
 	auto resp = m_at.chat("+CREG?", "+CREG:");
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	param_parser p( resp, m_at.bufsize() );
 	int val;
 	if( p.parse_int(val) < 0 ) {
-		dbprintf("Parse int1 failed %i", p.error() );
+		dbg_err("Parse int1 failed %i", p.error() );
 		return p.error();
 	}
 	if( p.parse_comma() < 0 ) {
-		dbprintf("Parse comma failed %i", p.error() );
+		dbg_err("Parse comma failed %i", p.error() );
 		return p.error();
 	}
 	if( p.parse_int(val) < 0 ) {
-		dbprintf("Unable to get registration status err %i", p.error() );	
+		dbg_err("Unable to get registration status err %i", p.error() );	
 		return p.error();
 	}
 	return val;
@@ -302,13 +302,13 @@ int device::get_signal_strength()
 {
 	auto resp = m_at.chat("+CSQ?", "+CSQ:");
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	param_parser p( resp, m_at.bufsize() );
 	int val;
 	if( p.parse_int(val) < 0 ) {
-		dbprintf("Parse int1 failed %i", p.error() );
+		dbg_err("Parse int1 failed %i", p.error() );
 		return p.error();
 	}
 	return val;
@@ -319,7 +319,7 @@ int device::get_text_mode_param_config( sms_text_params& param )
 {
 	auto resp = m_at.chat("+CSMP?", "+CSMP:");
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	param_parser p( resp, m_at.bufsize() );
@@ -380,13 +380,13 @@ int device::send_sms( const sms_submit& sms )
 		auto new_txt_param = old_txt_param;
 		new_txt_param.validity_period = sms.validity_period();
 		if( sms.flash_message() ) {
-			dbprintf("Flash message param config");
+			dbg_info("Flash message param config");
 			unsigned char dcs = sms.get_dcs();
 			dcs |=  dcsc::FLASH_MESSAGE;
 			new_txt_param.data_coding_scheme = dcs;
 		}
 		if( sms.report_request() ) {
-			dbprintf("Report request");
+			dbg_info("Report request");
 				new_txt_param.first_octet |= foctet::REPORT_REQUEST;
  		}
 		if( new_txt_param != old_txt_param ) {
@@ -405,7 +405,7 @@ int device::send_sms( const sms_submit& sms )
 		
 		auto result = m_at.send_pdu(buf,"+CMGS:", sms.message() );
 		if( !result ) {
-			dbprintf("Unable to send pdu %i", m_at.error() );
+			dbg_err("Unable to send pdu %i", m_at.error() );
 			mref = m_at.error();
 			break;
 		}
@@ -439,7 +439,7 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 	//Find out capabilities
 	auto resp = m_at.chat("+CNMI=?", "+CNMI:");
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	param_parser p( resp, m_at.bufsize() );
@@ -478,7 +478,7 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 			if( sms_modes[1] ) {
 				std::strncat(chat_string,",1",sizeof(chat_string)-1);
 			} else {
-				dbprintf("Cant route SMS to TE");
+				dbg_err("Cant route SMS to TE");
 				return error::cant_route_sms_to_te;
 			}
 		} else {
@@ -491,7 +491,7 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 			} else if( cbs_modes[2] ) {
 				std::strncat(chat_string,",2",sizeof(chat_string)-1);
 			} else {
-				dbprintf("Cant route CBS to TE");
+				dbg_err("Cant route CBS to TE");
 				return error::cant_route_cb_to_te;
 			}
 		} else {
@@ -504,7 +504,7 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 			} else if( stat_modes[2] ) {
 				std::strncat(chat_string,",2",sizeof(chat_string)-1);
 			} else {
-				dbprintf("Cant route StatusReports to TE");	
+				dbg_err("Cant route StatusReports to TE");	
 				return error::cant_route_sr_to_te;
 			}
 		} else {
@@ -522,7 +522,7 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 				std::strncat(chat_string,",3",sizeof(chat_string)-1);
 			}
 			else {
-				dbprintf("Cannot route SMS to TE");
+				dbg_err("Cannot route SMS to TE");
 				return error::cant_route_sms_to_te;
 			}
 		} 
@@ -537,7 +537,7 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 			} else if( cbs_modes[3] ) {
 				std::strncat(chat_string,",3",sizeof(chat_string)-1);
 			} else {
-				dbprintf("Cannot route CB to TE");
+				dbg_err("Cannot route CB to TE");
 				return error::cant_route_cb_to_te;
 			}
 		} else {
@@ -551,7 +551,7 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 			else if( stat_modes[2] ) {
 				std::strncat(chat_string,",2",sizeof(chat_string)-1);
 			} else {
-				dbprintf("Cannot route StatusReports to TE");
+				dbg_err("Cannot route StatusReports to TE");
 				return error::cant_route_sr_to_te;
 			}
 		} else {
@@ -569,7 +569,7 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 	//Set capabilities accept empty response
 	resp = m_at.chat(chat_string, "+CNMI:", false, true );
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	return error::success;
@@ -582,7 +582,7 @@ int device::get_imei( imei_number& inp )
 {
 	auto resp = m_at.chat("+CGSN?", "+CGSN:");
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	param_parser p( resp, m_at.bufsize() );
@@ -601,7 +601,7 @@ int device::get_imsi( imsi_number& inp )
 {
 	auto resp = m_at.chat("+CIMI?", "+CIMI:");
 	if( !resp ) {
-		dbprintf( "Modem error response %i", m_at.error() );	
+		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
 	}
 	param_parser p( resp, m_at.bufsize() );
