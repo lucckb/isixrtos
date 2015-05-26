@@ -60,19 +60,19 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 		memset( task->impure_data, 0, sizeof(struct _reent) );
 		task->impure_data->_current_locale = "C";
 	}
-#ifdef ISIX_CONFIG_STACK_GROWTH
+#ifndef ISIX_CONFIG_STACK_ASCENDING
      task->top_stack = (unsigned long*)(((uintptr_t)task->init_stack) 
 			 + stack_depth + ISIX_MEMORY_PROTECTION_EFENCE_SIZE );
 #	if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
 	 task->fence_estack = (uintptr_t)task->init_stack;
 #	endif /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL  */
-#else /*  ISIX_CONFIG_STACK_GROWTH */
+#else /*  ISIX_CONFIG_STACK_ASCENDING */
      task->top_stack = task->init_stack;
 #	if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
 	task->fence_estack = (uintptr_t)task->init_stack+stack_depth+
 		ISIX_MEMORY_PROTECTION_EFENCE_SIZE;
 #	endif
-#endif /*  ISIX_CONFIG_STACK_GROWTH */
+#endif /*  ISIX_CONFIG_STACK_ASCENDING */
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
     memset( task->init_stack, MAGIC_FILL_VALUE, stack_depth );
 #endif	/*  ISIX_CONFIG_TASK_STACK_CHECK */
@@ -172,8 +172,8 @@ ostask_t isix_task_self(void)
 //Stack check for fill value
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
 
-#ifndef ISIX_CONFIG_STACK_GROWTH
-#error isix_free_stack_space() for growth stack not implemented yet
+#ifdef ISIX_CONFIG_STACK_ASCENDING
+#error isix_free_stack_space() for ascending stack not implemented yet
 #endif
 
 size_t isix_free_stack_space(const ostask_t task)
