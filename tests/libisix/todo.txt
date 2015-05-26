@@ -1,0 +1,10 @@
+ Planned tasks (2.1)
+- API for events without IRQ support or post it by scheduled work
+- Optimize libc and GCC compiler generate new GCC5 
+- Enable and discover -lto support
+- More test on sched_lock/sched unlock functionality
+- Complete unit tests for FS env engine
+- MPU task protection / or basic config
+
+
+

@@ -26,3 +26,8 @@
 	std::printf(__VA_ARGS__); \
 	std::puts(""); \
 } while(0)
+
+#define dbg_warn dbprintf
+#define dbg_err dbprintf
+#define dbg_debug dbprintf
+#define dbg_info dbprintf

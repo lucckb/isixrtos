@@ -29,8 +29,9 @@ public:
 	 *  @param[in] bus_addr Bus memory address
 	 *  @param[in] dev_type Device type
 	 *  @param[in] emulate_flash Emulate flash memory
+	 *  @param[in] filename Filename used for testing 
 	 */
-	fs_eeprom( int n_pages, int page_size, bool emulate_flash );
+	fs_eeprom( int n_pages, int page_size, bool emulate_flash, const char* filename );
 	/** Read data from selected address 
 	 * @param[in] pg Page address
 	 * @param[in] pa Page offset
