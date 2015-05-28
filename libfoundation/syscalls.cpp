@@ -83,6 +83,7 @@ extern "C"
 	void *realloc(void */*ptr*/, size_t /*size*/);
 	void abort(void);
 	void __cxa_pure_virtual();
+	void __cxa_deleted_virtual (void);
 	int * __errno(void);
 	int __cxa_guard_acquire(__guard *);
 	void __cxa_guard_release (__guard *);
@@ -150,6 +151,12 @@ void __cxa_guard_release(__guard *guard_object)
 
 //Pure virtual call error handler
 void __cxa_pure_virtual()
+{
+	terminate_process();
+}
+
+//Deleted virtual
+void __cxa_deleted_virtual (void) 
 {
 	terminate_process();
 }
@@ -255,7 +262,7 @@ int __snprintf_lite(char *__buf, size_t __bufsize, const char *__fmt, va_list __
 
 /* -------------------------------------------------------------- */
 //Bad function call handler if no exception
-#if (__cplusplus > 199711L) && !defined(__EXCEPTIONS)
+#if (__cplusplus > 199711L) && !defined(__EXCEPTIONS) 
 namespace std
 {
 	  void
@@ -329,6 +336,7 @@ namespace std
 	  void
 	  __throw_regex_error()
 	  { terminate_process(); for(;;); }
+
 	void
 	__throw_out_of_range_fmt(const char* , ...)
 	  { terminate_process(); for(;;); }
