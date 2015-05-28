@@ -22,17 +22,19 @@
 #include <cstring>
 #include <foundation/dbglog.h>
 #include <time.h>
+#include <unistd.h>
 #include <cstdio>
 
 
 
-int fstest_main( int argc, const char** /*  argv*/) {
+int _fstest_main_( int argc, const char** /*  argv*/) 
+{
 	
 	try {
 		// EEPROM type EMULATION
 		//fnd::fs_eeprom test( 128, 16 , false );
 		//FLASH LIKE EMULATION
-		fnd::fs_eeprom test( 128, 4096 , true );
+		fnd::fs_eeprom test( 128, 4096 , true, "/tmp/boff_fstestenv.bin");
 	 	fnd::filesystem::fs_env env { test, true, 8 };
 		if( 1 ) {	//Very short data write test
 			char buf[16] {};
@@ -119,3 +121,57 @@ int fstest_main( int argc, const char** /*  argv*/) {
 	}
 	return 0;
 }
+
+#define fatal(x) \
+	do { if( !(x) ) { \
+		fprintf(stderr,"Test error at %s:%i\n", __FILE__,__LINE__); \
+		exit(-1); } \
+	} while(0)
+
+
+// Unit test for memtype
+void fs_tunits( fnd::filesystem::fs_env& env ) 
+{
+	int err;
+	char ibuf[256];
+	using e =  fnd::filesystem::fs_env;
+	//! Try to set non existing item first
+	err = env.get( 1, ibuf, sizeof ibuf );
+	fatal( err == e::err_invalid_id );
+}
+
+
+
+int fstest_main( int, const char** ) 
+{
+	static constexpr auto filename_eep = "/tmp/boff_fsenvtest_storage_eep.bin";
+	static constexpr auto filename_fla = "/tmp/boff_fsenvtest_storage_fla.bin";
+	try 
+	{
+		std::cout << "Trying to flash mode " << std::endl;
+		//Flash emulation
+		unlink( filename_fla );
+		{
+			fnd::fs_eeprom test( 128, 512 , true, filename_fla );
+			fnd::filesystem::fs_env env { test, true, 8 };
+			fs_tunits( env );
+		}
+		std::cout << "Trying to eeprom mode " << std::endl;
+		//EEPROM emulation
+		unlink( filename_eep );
+		{
+			fnd::fs_eeprom test( 128, 16 , false, filename_eep );
+			fnd::filesystem::fs_env env { test, true, 8 };
+			fs_tunits( env );
+		}
+	} 
+	catch( const std::exception &e )  
+	{
+		std::cerr << "Exc " << e.what() << std::endl;
+		return -1;
+	}
+	return 0;
+}
+
+
+

@@ -108,7 +108,14 @@ void choice_menu::repaint( bool /* focus */ )
 		static constexpr coord_t min_slider = 10;
 		const auto c = get_coord() + get_owner().get_coord();
 		const auto twidth = c.cy() - y_margin * 2;
-		const auto sel_width_ =  twidth / m_num_items;
+
+		// division by zero protection (fix)
+		unsigned sel_width_;
+		if (m_num_items > 0)
+			sel_width_ =  twidth / m_num_items;
+		else
+			sel_width_ = 0;
+
 		const auto sel_width = std::max<coord_t>( sel_width_, min_slider );
 		int ypos;
 		if (m_num_items > 1) ypos = ((twidth - sel_width) * m_curr_item) / (m_num_items - 1);

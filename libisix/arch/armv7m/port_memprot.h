@@ -49,7 +49,7 @@ uintptr_t port_memory_efence_aligna( uintptr_t addr )
 {
 	// Fence region must be inside of alloated space
 	if( addr & (ISIX_MEMORY_PROTECTION_EFENCE_SIZE-1) ) {
-#ifdef ISIX_CONFIG_STACK_GROWTH
+#ifndef ISIX_CONFIG_STACK_ASCENDING
 		addr += ISIX_MEMORY_PROTECTION_EFENCE_SIZE;
 #else
 		addr -= ISIX_MEMORY_PROTECTION_EFENCE_SIZE;

@@ -9,11 +9,11 @@ namespace fnd {
 /** @param[in] bus Input bus owner
 	*  @param[in] bus_addr Bus memory address
 	*  @param[in] dev_type Device type
+	*  @param[in] filename Input filename used for testing
 	*/
-fs_eeprom::fs_eeprom( int n_pages, int page_size, bool emulate_flash )
+fs_eeprom::fs_eeprom( int n_pages, int page_size, bool emulate_flash, const char *filename )
 	:  m_page_size( page_size ), m_num_pages( n_pages ), m_emulate_flash(emulate_flash)
 {	
-	static constexpr auto filename = "eeprom.bin";
 	{
 		//Check if file not exist and create it
 		std::ifstream iff ( filename );
