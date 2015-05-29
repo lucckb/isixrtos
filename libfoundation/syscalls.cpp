@@ -195,7 +195,7 @@ static void setNotInUse(__guard *guard_object)
 
 /* ------------------------------------------------------------------ */
 
-
+__attribute__ ((used))
 void abort(void)
 {
 	terminate_process();
