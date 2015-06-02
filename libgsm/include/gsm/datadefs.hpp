@@ -18,6 +18,7 @@
 
 #pragma once
 #include <cstring>
+#include <algorithm>
 
 namespace gsm_modem {
 
@@ -97,8 +98,18 @@ namespace gsm_modem {
 			return std::memcmp( this, &that, sizeof(sms_text_params) );
 		}
 	};
-
 	//! NOTE: non shared version is not thread safe!
 	class sms;
 	using sms_type_ptr_t = sms*;
+	namespace	//Unnamed namespace
+	{
+		/** Check if the number is international format
+		 * @param[in] phoneno Phone number
+		 * @return true if number has in international format*/
+		inline bool is_international_number(const char phoneno[] )
+		{
+			const auto len = std::strlen(phoneno);	
+			return len>1 && phoneno[0]=='+' && std::all_of(phoneno+1,phoneno+len,::isdigit);
+		}
+	}
 }
