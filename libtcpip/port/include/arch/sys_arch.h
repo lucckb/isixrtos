@@ -35,18 +35,18 @@
 
 /* ------------------------------------------------------------------ */
 /* Declare semaphore structure */
-struct sem_struct;
-typedef struct sem_struct  *sys_sem_t;
+struct isix_semaphore;
+typedef struct isix_semaphore  *sys_sem_t;
 
 /* ------------------------------------------------------------------ */
 /* Declare os specific fifo struct */
-struct fifo_struct;
-typedef struct fifo_struct *sys_mbox_t;
+struct isix_fifo;
+typedef struct isix_fifo *sys_mbox_t;
 
 /* ------------------------------------------------------------------ */
 /* Declare system thread structure */
-struct task_struct;
-typedef struct task_struct* sys_thread_t;
+struct isix_task;
+typedef struct isix_task* sys_thread_t;
 
 /* ------------------------------------------------------------------ */
 /*Declare system protect structure */

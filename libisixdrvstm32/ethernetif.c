@@ -21,6 +21,9 @@
 #include "config.h"
 #endif
 /* ------------------------------------------------------------------ */
+#ifndef STM32MCU_MAJOR_TYPE_F1
+#error This driver is not ported to F2 and F4 mcu families
+#endif
 /**************************** DRIVER CONFIGURATION ********************/
 //Use interrupt instead of polling
 #ifndef PHY_INT_USE_INTERRUPT
@@ -102,13 +105,13 @@ static volatile size_t dma_tx_idx;
 static volatile size_t dma_rx_idx;
 
 //Lock semaphore for the driver
-static sem_t *netif_sem;
+static ossem_t netif_sem;
 
 //TCPIP task event type
 static unsigned ethif_events;
 
 //Net interface copy task
-static task_t *netif_task_id;
+static ostask_t netif_task_id;
 /* ------------------------------------------------------------------ */
 //Ethernet if task event
 enum ethif_events_e
@@ -350,7 +353,7 @@ static inline void eth_start(void)
   /* Start DMA transmission */
   eth_dma_transmission_cmd(true);
   /* Start DMA reception */
-  eth_dma_reception_cmd(ENABLE);
+  eth_dma_reception_cmd(true);
 }
 
 /**
@@ -918,7 +921,7 @@ static int low_level_init(struct netif *netif)
   ETH->DMARDLAR = (uint32_t)dma_rx_ring;
 
   /* Enable the Ethernet Rx Tx Interrupt */
-  eth_dma_it_config(ETH_DMA_IT_NIS | ETH_DMA_IT_R | ETH_DMA_IT_T, ENABLE);
+  eth_dma_it_config(ETH_DMA_IT_NIS | ETH_DMA_IT_R | ETH_DMA_IT_T, true);
   /* Enable interrupt in NVIC */
   nvic_irq_enable( ETH_IRQn, true );
 #if PHY_INT_USE_INTERRUPT
@@ -945,7 +948,7 @@ static int low_level_init(struct netif *netif)
   if(eth_write_phy_register(ETH_DRV_PHY_ADDR, PHY_BCR, PHY_AutoNegotiation) != ERR_OK)
   {
   	  /* Return ERROR in case of write timeout */
-  	  isix_task_delete(netif_task_id);
+  	  isix_task_kill(netif_task_id);
   	  isix_sem_destroy(netif_sem);
 	  return ERR_IF;
   }
@@ -1185,11 +1188,13 @@ err_t stm32_emac_if_init_callback(struct netif *netif)
   */
 static void eth_deinit(void)
 {
-
+#ifdef STM32MCU_MAJOR_TYPE_F1
   rcc_ahb_periph_reset_cmd( RCC_AHBPeriph_ETH_MAC, true );
   nop();
   rcc_ahb_periph_reset_cmd( RCC_AHBPeriph_ETH_MAC, false );
   nop();
+#else
+#endif
 }
 
 /* ------------------------------------------------------------------ */
