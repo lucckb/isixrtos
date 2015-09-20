@@ -187,7 +187,14 @@ namespace gsm_modem {
 		 * @param[in] apn APN name
 		 * @return Error code
 		 */
-		int activate_gprs_session( const char *apn );
+		int connect_gprs( const char *apn );
+
+
+		/** Deactivate GPRS session and return to command mode 
+		 * @return Error code
+		 */
+		int disconnect_gprs();
+		
 
 	private:
 		/** Private function for set and get text mode parameters

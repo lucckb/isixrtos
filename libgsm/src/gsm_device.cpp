@@ -662,7 +662,7 @@ int device::data_mode()
 		return error::success;
 	if( m_at.in_data_mode() ) 
 		return error::success;
-	const auto resp = m_at.chat("O", "CONNECT" );
+	const auto resp = m_at.chat("O", nullptr, false, true );
 	if(!resp) {
 		dbg_err("Unable to switch data mode %i", m_at.error() );
 		return m_at.error();
@@ -671,7 +671,7 @@ int device::data_mode()
 }
 /* ------------------------------------------------------------------ */ 
 //! Activate GPRS session
-int device::activate_gprs_session( const char* apn )
+int device::connect_gprs( const char* apn )
 {
  	if( m_at.in_data_mode() ) {
 		dbg_err("GPRS session already established");
@@ -687,13 +687,11 @@ int device::activate_gprs_session( const char* apn )
 			return res;
 		}
 		if( res==int(reg_status::registered_home) || 
-			res==int(reg_status::registered_roaming) )
-		{
+			res==int(reg_status::registered_roaming) ) {
 			res = error::success;
 			break;
 		}
-		else
-		{
+		else {
 			res = error::receive_timeout;
 		}
 		isix::wait_ms(5000);
@@ -713,10 +711,45 @@ int device::activate_gprs_session( const char* apn )
 			break;
 		}
 		//Try to establish session
-		resp = m_at.chat("D*99#");
+		resp = m_at.chat("D*99#",nullptr,false,true);
 		if(!resp) {
 			res = m_at.error();
-			dbg_err("Unable to gprs actvivate %i", m_at.error() );
+			dbg_err("Unable activate grps session %i", m_at.error() );
+			break;
+		}
+		if( !m_at.in_data_mode() ) {
+			dbg_err("Not in data mode session failed");
+			res = error::invalid_dcd_state;
+			break;
+		}
+	} while(0);
+	return res;
+}
+/* ------------------------------------------------------------------ */
+/** Deactivate GPRS session and return to command mode 
+	* @return Error code
+	*/
+int device::disconnect_gprs()
+{
+	if( !m_at.in_data_mode() ) {
+		dbg_err("We are in data mode disconnection not needed");
+		return error::session_already_connected;
+	}
+	int res { error::success };
+	do {
+		res = command_mode();
+		if( res ) {
+			break;
+		}
+		auto resp = m_at.chat("H");
+		if(!resp) {
+			dbg_err("Hangup ACT err %i", m_at.error() );
+			break;
+		}
+		isix::wait_ms(1000);
+		if( m_at.in_data_mode() ) {
+			dbg_err("Invalid handshake");
+			res = error::invalid_dcd_state;
 			break;
 		}
 	} while(0);

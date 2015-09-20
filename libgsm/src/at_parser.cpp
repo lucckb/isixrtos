@@ -247,6 +247,11 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 		m_cmd_buffer[0] = '\0';
 		return m_cmd_buffer;	
 	}
+	//Added exception for connect and empty response
+	if( empty_response && !std::strcmp(inp,"CONNECT") ) {
+		m_cmd_buffer[0] = '\0';
+		return m_cmd_buffer;	
+	}
 	//Empty sms handling
 	bool got_ok {};
 	//Handle PDU if it is expected
@@ -552,11 +557,10 @@ int at_parser::hw_command_mode()
 		m_port.tiocm_set( fnd::serial_port::tiocm_dtr );
 		m_port.sleep(2);
 		m_port.tiocm_set( 0 );
-		m_port.sleep(2);
+		m_port.sleep(20);
+		discard_data(500);
 	}
-	return (in_data_mode()) ?
-		   (error::invalid_dcd_state) :
-		   ( 0 );
+	return error::success;
 }
 /* ------------------------------------------------------------------ */ 
 }
