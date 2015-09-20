@@ -494,21 +494,18 @@ int usart_buffered::gets(value_type *str, std::size_t max_len, int timeout)
 int usart_buffered::get(void *buf, std::size_t max_len, 
 		int timeout, std::size_t min_len )
 {
-	int res =0;
+	int res = 0;
 	char *fbuf = static_cast<char*>(buf);
     std::size_t l;
-	for(l=0; l<max_len; l++)
+	for(l=0; l<max_len; )
 	{
-		res = getchar ((unsigned char &) fbuf[l],timeout );
-		if( res == 0 ) 
+		res = getchar ((unsigned char &) fbuf[l], timeout );
+		if( res == 1 ) 
 		{
-			if( l >= min_len )
-				return l;
-			else 
-				continue;
-			
+			++l;
+			if( l >= min_len && !rx_avail() ) return l;
 		} 
-		else if( res < 0) 
+		else
 		{
 			return res;
 		}
