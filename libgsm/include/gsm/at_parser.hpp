@@ -111,6 +111,14 @@ public:
 		return m_unsolicited_creg;
 	}
 
+	//! Switch to command mode if DSR/DTR not set ignore
+	int hw_command_mode();
+	
+	//! Return true if in data mode
+	bool in_data_mode() {
+		 return !(m_port.tiocm_get()&fnd::serial_port::tiocm_dcd) ;
+	}
+
 private:
 	//! Put line to the serial interface
 	int put_line( const char* line1, const char* line2=nullptr,

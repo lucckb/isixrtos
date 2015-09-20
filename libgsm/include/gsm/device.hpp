@@ -42,14 +42,18 @@ namespace gsm_modem {
 			cap( unsigned bits_ )
 				: bits(bits_) {}
 			enum cap_ {
-				hw_flow = 1<<0,	//! Hardware flow control
-				sms_pdu = 1<<1,	//! SMS in pdu mode not suported yet
+				hw_flow 	= 1<<0,	//! Hardware flow control
+				sms_pdu 	= 1<<1,	//! SMS in pdu mode not suported yet
+				hw_datamode = 1<<2,	//! Hardware data mode DTR/DSR
 			}; 
 			bool has_hw_flow() const {
 				return bits & hw_flow;
 			}
 			bool has_sms_pdu() const {
 				return bits & sms_pdu;
+			}
+			bool has_hw_data() const {
+				return bits & hw_datamode;
 			}
 		};
 		//Noncopyable
@@ -101,9 +105,10 @@ namespace gsm_modem {
 		int get_current_op_info( oper_info& info );
 
 		/** Print registration status
+		 * @param[in] gprs Gprs registration status if true CGREG instead of CREG
 		 * @return registration code or failed if fatal
 		 */
-		int get_registration_status();
+		int get_registration_status( bool gprs = false );
 
 
 		/** Get phone IMEI
@@ -171,6 +176,18 @@ namespace gsm_modem {
 		void set_event_handler( event* ev ) {
 			m_at.set_event_handler( ev );
 		}
+
+		//! Switch to command mode if DSR/DTR not set ignore
+		int command_mode();
+		
+		//! Switch to data mode if DSR/DTR not set ignore
+		int data_mode();
+
+		/** Activate GPRS session and switch to data mode
+		 * @param[in] apn APN name
+		 * @return Error code
+		 */
+		int activate_gprs_session( const char *apn );
 
 	private:
 		/** Private function for set and get text mode parameters

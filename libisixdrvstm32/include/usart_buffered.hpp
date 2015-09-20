@@ -34,6 +34,16 @@ extern "C"
 }
 
 /*----------------------------------------------------------*/
+//! Usart control lines config
+struct usart_cfgctl_lines {
+	static constexpr char NC=-1;
+	GPIO_TypeDef * port ;
+	char ri_pin ;	// Input
+	char dsr_pin ;	// Input
+	char dtr_pin ;	// Output
+	char dcd_pin ;   // Input
+};
+/*----------------------------------------------------------*/
 class usart_buffered : public fnd::serial_port 
 {
 	friend void usart1_isr_vector(void);
@@ -73,15 +83,22 @@ public:
 	virtual ~usart_buffered() {
 
 	}
-
+	//! Set baudrate
 	virtual int set_baudrate(unsigned new_baudrate);
 
+	//! Set parity
 	virtual int set_parity(parity new_parity);
 
+	//! Set flow control
 	virtual int set_flow( flow_control flow );
 
-	virtual int putchar(value_type c, int timeout=tinf);
+	//! Map control lines
+	void map_control_lines( const usart_cfgctl_lines& cfg );
 
+	//! Put char
+	virtual int putchar(value_type c, int timeout=tinf);
+	
+	//! Get char
 	int getchar(value_type &c, int timeout=tinf);
 
 	template <typename T> 
@@ -92,31 +109,42 @@ public:
 		return ret;
 	}
 
+	//! Put string
 	virtual int puts(const value_type *str);
-
+	
+	//! Put some data
 	virtual int put(const void *buf, size_t buf_len);
-
+	
+	//! Read string
 	virtual int gets(value_type *str, size_t max_len, int timeout=tinf);
-
+	
+	//! Read some data
 	virtual
 	int get(void *buf, size_t max_len, int timeout, size_t min_len=0 );
 
+	//! Set IO reporting flags
 	virtual int set_ioreport( unsigned tio_report );
-
+	
+	//! Get tiomcm statate
 	virtual int tiocm_get() const;
-
+	
+	//! Set event interrupt
 	virtual int tiocm_flags( unsigned flags ) const;
-
+	
+	//!Set event
 	virtual int tiocm_set( unsigned tiosigs );
 
+	//! Set amount of time
 	virtual void sleep( unsigned ms ) {
 		isix_wait_ms( ms );
 	}
-
+	
+	//! Number of bytes avail
 	virtual int rx_avail() const { 
 		return rx_queue.size(); 
 	}
 
+	//! Get internal RX fifo
 	const isix::fifo_base& get_rxfifo() const {
 		return rx_queue; 
 	} 
@@ -148,6 +176,7 @@ private:
 	const unsigned char irq_prio;
 	const unsigned char irq_sub;
 	std::atomic<bool> tx_restart {true};
+	usart_cfgctl_lines m_ctl_map;
 private: 	//Noncopyable
 	usart_buffered(usart_buffered &);
 	usart_buffered& operator=(const usart_buffered&);

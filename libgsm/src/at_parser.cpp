@@ -542,6 +542,22 @@ int at_parser::wait( int timeout )
 	}
 	return ret;
 }
+/* ------------------------------------------------------------------ */
+//! Switch to command mode if DSR/DTR not set ignore
+int at_parser::hw_command_mode()
+{
+	if( in_data_mode() ) 
+	{
+		dbg_info("modem mode data->command switch");
+		m_port.tiocm_set( fnd::serial_port::tiocm_dtr );
+		m_port.sleep(2);
+		m_port.tiocm_set( 0 );
+		m_port.sleep(2);
+	}
+	return (in_data_mode()) ?
+		   (error::invalid_dcd_state) :
+		   ( 0 );
+}
 /* ------------------------------------------------------------------ */ 
 }
 
