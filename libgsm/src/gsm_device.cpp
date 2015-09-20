@@ -660,8 +660,6 @@ int device::data_mode()
 {
 	if( !m_capabilities.has_hw_data() ) 
 		return error::success;
-	if( m_at.in_data_mode() ) 
-		return error::success;
 	const auto resp = m_at.chat("O", nullptr, false, true );
 	if(!resp) {
 		dbg_err("Unable to switch data mode %i", m_at.error() );
