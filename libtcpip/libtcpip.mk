@@ -1,5 +1,5 @@
 #Lwip library version
-LWIP_VERSION := 1.4.0
+LWIP_VERSION := 1.4.1
 
 #LWIP base dir
 LWIPDIR := $(LIBTCPIP_DIR)/lwip-$(LWIP_VERSION)/src

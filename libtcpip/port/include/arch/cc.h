@@ -77,6 +77,7 @@ typedef unsigned long mem_ptr_t;
 
 #include <foundation/dbglog.h>
 #include <isix.h>
+#include <stdlib.h>
 
 
 /* Isix by default don't have a calloc create it */
