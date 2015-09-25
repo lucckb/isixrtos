@@ -390,9 +390,9 @@
 /**
  * LWIP_ARP==1: Enable ARP functionality.
  */
-
+#ifdef ISIX_TCPIPLIB_ETHERNET
 #define LWIP_ARP                        1
-
+#endif
 /**
  * ARP_TABLE_SIZE: Number of active MAC-IP address pairs cached.
  */
@@ -621,7 +621,9 @@
  * LWIP_DHCP==1: Enable DHCP module.
  */
 
+#ifdef ISIX_TCPIPLIB_ETHERNET
 #define LWIP_DHCP                      1
+#endif
 
 
 /**
@@ -1349,7 +1351,7 @@
  * names (read, write & close). (only used if you use sockets.c)
  */
 
-#define LWIP_POSIX_SOCKETS_IO_NAMES     1
+#define LWIP_POSIX_SOCKETS_IO_NAMES     0
 
 
 /**
