@@ -139,6 +139,12 @@ public:
 		isix_wait_ms( ms );
 	}
 	
+	//! Inject character into rx queue
+	virtual int push_rx_char( value_type ch )  {
+		auto res = rx_queue.push( ch );
+		return res==ISIX_EOK?1:res;
+	}
+
 	//! Number of bytes avail
 	virtual int rx_avail() const { 
 		return rx_queue.size(); 

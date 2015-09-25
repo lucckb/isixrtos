@@ -1191,7 +1191,7 @@
  * sys_thread_new() when the thread is created.
  */
 
-//#define SLIPIF_THREAD_STACKSIZE         0
+//#define SLIPIF_THREAD_STACKSIZE         512
 
 
 /**
@@ -1216,7 +1216,7 @@
  * sys_thread_new() when the thread is created.
  */
 
-//#define PPP_THREAD_STACKSIZE            0
+#define PPP_THREAD_STACKSIZE            1024
 
 
 /**
@@ -1225,7 +1225,7 @@
  * sys_thread_new() when the thread is created.
  */
 
-//#define PPP_THREAD_PRIO                 1
+#define PPP_THREAD_PRIO                 3
 
 
 /**
@@ -1340,7 +1340,7 @@
  * (only used if you use sockets.c)
  */
 
-//#define LWIP_COMPAT_SOCKETS             1
+#define LWIP_COMPAT_SOCKETS             1
 
 
 /**
@@ -1349,7 +1349,7 @@
  * names (read, write & close). (only used if you use sockets.c)
  */
 
-//#define LWIP_POSIX_SOCKETS_IO_NAMES     1
+#define LWIP_POSIX_SOCKETS_IO_NAMES     1
 
 
 /**
@@ -1507,7 +1507,7 @@
  * PPP_SUPPORT==1: Enable PPP.
  */
 
-//#define PPP_SUPPORT                     0
+#define PPP_SUPPORT                     1
 
 
 /**
@@ -1530,21 +1530,21 @@
  * NUM_PPP: Max PPP sessions.
  */
 
-//#define NUM_PPP                         1
+#define NUM_PPP                         1
 
 
 /**
  * PAP_SUPPORT==1: Support PAP.
  */
 
-//#define PAP_SUPPORT                     0
+#define PAP_SUPPORT                     1
 
 
 /**
  * CHAP_SUPPORT==1: Support CHAP.
  */
 
-//#define CHAP_SUPPORT                    0
+#define CHAP_SUPPORT                    1
 
 
 /**
@@ -1660,7 +1660,8 @@
    ---------------------------------------
 */
 
-#undef LWIP_DEBUG
+//#undef LWIP_DEBUG
+#define LWIP_DEBUG 1
 
 /**
  * LWIP_DBG_MIN_LEVEL: After masking, the value of the debug is
@@ -1669,13 +1670,11 @@
  */
 
 #define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_OFF
-
-
 /**
  * LWIP_DBG_TYPES_ON: A mask that can be used to globally enable/disable
  * debug messages of certain types.
  */
-#define LWIP_DBG_TYPES_ON               LWIP_DBG_OFF
+#define LWIP_DBG_TYPES_ON               LWIP_DBG_ON
 /**
  * ETHARP_DEBUG: Enable debugging in etharp.c.
  */
@@ -1695,12 +1694,12 @@
 /**
  * API_MSG_DEBUG: Enable debugging in api_msg.c.
  */
-#define API_MSG_DEBUG                   LWIP_DBG_OFF
+#define API_MSG_DEBUG                   LWIP_DBG_ON
 
 /**
  * SOCKETS_DEBUG: Enable debugging in sockets.c.
  */
-#define SOCKETS_DEBUG                   LWIP_DBG_OFF
+#define SOCKETS_DEBUG                   LWIP_DBG_ON
 
 
 /**

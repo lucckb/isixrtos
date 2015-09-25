@@ -11,8 +11,12 @@ LWIPPORTDIR := $(LIBTCPIP_DIR)/port
 ISIX_TCPIPLIB_ENABLED=y
 
 #CFLAGS for hardware checksum
-CFLAGS 	 += -DISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE -DWITH_ISIX_TCPIP_LIB
-CXXFLAGS += -DISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE -DWITH_ISIX_TCPIP_LIB
+CFLAGS 	 += -DWITH_ISIX_TCPIP_LIB
+CXXFLAGS += -DWITH_ISIX_TCPIP_LIB
+ifeq ($(ISIX_TCPIPLIB_HWSUM),y)
+CFLAGS 	 += -DISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE 
+CXXFLAGS += -DISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE
+endif
 
 
 # COREFILES, CORE4FILES: The minimum set of files needed for lwIP.
@@ -38,14 +42,16 @@ APIFILES=$(LWIPDIR)/api/api_lib.c $(LWIPDIR)/api/api_msg.c $(LWIPDIR)/api/tcpip.
 # NETIFFILES: Files implementing various generic network interface functions.'
 NETIFFILES=$(LWIPDIR)/netif/etharp.c $(LWIPDIR)/netif/slipif.c
 
-# NETIFFILES: Add PPP netif
-NETIFFILES+=$(LWIPDIR)/netif/ppp/auth.c $(LWIPDIR)/netif/ppp/chap.c \
+# PPP interface: Add PPP 
+LIBPPP_SRC=$(LWIPDIR)/netif/ppp/auth.c $(LWIPDIR)/netif/ppp/chap.c \
 	$(LWIPDIR)/netif/ppp/chpms.c $(LWIPDIR)/netif/ppp/fsm.c \
 	$(LWIPDIR)/netif/ppp/ipcp.c $(LWIPDIR)/netif/ppp/lcp.c \
 	$(LWIPDIR)/netif/ppp/magic.c $(LWIPDIR)/netif/ppp/md5.c \
 	$(LWIPDIR)/netif/ppp/pap.c $(LWIPDIR)/netif/ppp/ppp.c \
-	$(LWIPDIR)/netif/ppp/randm.c $(LWIPDIR)/netif/ppp/vj.c 
+	$(LWIPDIR)/netif/ppp/randm.c $(LWIPDIR)/netif/ppp/vj.c
+LIBPPP_CPPSRC=$(LWIPPORTDIR)/sio_ppp.cpp
 
+#Arch specific 
 LWIPPORTFILES = $(LWIPPORTDIR)/sys_arch.c
 
 #TCPIP source files
@@ -56,13 +62,22 @@ LIBTCPIP_INC = -I$(LWIPDIR)/include -I$(LWIPDIR)/include/ipv4 -I$(LWIPPORTDIR)/i
 
 
 LIBTCPIP_LIB = $(LIBTCPIP_DIR)/libtcpip.a
+LIBIFPPP_LIB = $(LIBTCPIP_DIR)/libifppp.a
+
+LIBIFPPP_OBJS += $(LIBPPP_SRC:%.c=%.o) $(LIBPPP_CPPSRC:%.cpp=%.o)
 LIBTCPIP_OBJS += $(LIBTCPIP_SRC:%.c=%.o) $(LIBTCPIP_CPPSRC:%.cpp=%.o)
-DEPFILES += $(LIBTCPIP_SRC:%.c=%.dep)  $(LIBTCPIP_CPPSRC:%.cpp=%.dep)
+DEPFILES += $(LIBTCPIP_SRC:%.c=%.dep) $(LIBTCPIP_CPPSRC:%.cpp=%.dep) 
+DEPFILES += $(LIBPPP_SRC:%.c=%.dep) $(LIBPPP_CPPSRC:%.cpp=%.dep) 
 
 .ONESHELL:
 $(LIBTCPIP_LIB): $(LIBTCPIP_OBJS)
 	    $(AR) $(ARFLAGS) $@ $^
+	    
+.ONESHELL:
+$(LIBIFPPP_LIB): $(LIBIFPPP_OBJS)
+	    $(AR) $(ARFLAGS) $@ $^
+	    
 
-LIBS += $(LIBTCPIP_LIB)
-LIBS_OBJS += $(LIBTCPIP_OBJS)
+LIBS += $(LIBIFPPP_LIB) $(LIBTCPIP_LIB)
+LIBS_OBJS += $(LIBIFPPP_OBJS) $(LIBTCPIP_OBJS) 
 COMMON_FLAGS += $(LIBTCPIP_INC)
