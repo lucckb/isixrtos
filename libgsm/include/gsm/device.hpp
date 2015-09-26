@@ -178,7 +178,7 @@ namespace gsm_modem {
 		}
 
 		//! Switch to command mode if DSR/DTR not set ignore
-		int command_mode();
+		int command_mode( bool hang = false );
 		
 		//! Switch to data mode if DSR/DTR not set ignore
 		int data_mode();

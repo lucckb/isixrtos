@@ -28,5 +28,6 @@ namespace sio {
 	void connect_usart( fnd::serial_port* ser );
 	//! Disconnect hardware usart form the SIO stuff
 	void disconnect_usart( fnd::serial_port* ser );
-
+	//! Allow sio operation
+	void allow( bool on );
 }}

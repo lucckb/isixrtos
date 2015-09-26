@@ -635,7 +635,7 @@ int device::get_imsi( imsi_number& inp )
 }
 /* ------------------------------------------------------------------ */
 //! Switch to command mode if DSR/DTR not set ignore
-int device::command_mode()
+int device::command_mode( bool hang )
 {
 	if( !m_capabilities.has_hw_data() ) 
 		return error::success;
@@ -650,6 +650,24 @@ int device::command_mode()
 		if( !resp ) {
 			dbg_err("Invalid at_hanshake");
 			break;
+		}
+		if( hang && m_at.in_data_mode() )
+		{
+			resp = m_at.chat("H");
+			if( !resp ) {
+				dbg_err("Invalid hang");
+				break;
+			}
+			static constexpr auto max_retries = 10;
+			auto retries=0;
+			for(; retries<max_retries;++retries ) {
+				m_at.sleep( 500 );
+				if( !m_at.in_data_mode() ) break;
+			}
+			if( retries >= max_retries ) {
+				dbg_err("Unable to hang device");
+				break;
+			}
 		}
 	} while(0);
 	return err;

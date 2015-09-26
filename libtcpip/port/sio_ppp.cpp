@@ -27,6 +27,7 @@ extern "C" {
 namespace {
 	fnd::serial_port* g_serial;
 	volatile bool g_intr;
+	volatile bool g_sio_allow;
 }
 
 
@@ -34,7 +35,7 @@ namespace {
 	bool in_data_mode() 
 	{
 		 if( g_serial ) 
-			return !(g_serial->tiocm_get()&fnd::serial_port::tiocm_dcd) ;
+			return g_sio_allow;
 		 else 
 			return false;
 	}
@@ -53,6 +54,11 @@ void connect_usart( fnd::serial_port* ser )
 void disconnect_usart( fnd::serial_port* )
 {
 	g_serial = nullptr;
+}
+
+void allow( bool en ) 
+{
+	g_sio_allow =  en;
 }
 
 
