@@ -1218,7 +1218,7 @@
  * sys_thread_new() when the thread is created.
  */
 
-#define PPP_THREAD_STACKSIZE            1024
+#define PPP_THREAD_STACKSIZE            512
 
 
 /**
