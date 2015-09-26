@@ -558,7 +558,7 @@ int at_parser::hw_command_mode()
 		m_port.sleep(2);
 		m_port.tiocm_set( 0 );
 		m_port.sleep(20);
-		discard_data(50);
+		discard_data(100);
 	}
 	return error::success;
 }
