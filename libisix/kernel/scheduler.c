@@ -482,8 +482,9 @@ static void cleanup_tasks(void)
 						task_del,task_del->init_stack,task_del->prio );
         	port_cleanup_task(task_del->top_stack);
         	isix_free(task_del->init_stack);
-        	isix_free(task_del);
 			if( task_del->impure_data ) isix_free( task_del->impure_data );
+			if( task_del->prv ) isix_free( task_del->prv );
+        	isix_free(task_del);
         	csys.number_of_task_deleted--;
         }
         _isixp_exit_critical();

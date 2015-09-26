@@ -47,6 +47,7 @@ namespace isix {
 		{
 			if( task_id ) {
 				isix_task_delete_tcpip(task_id);
+				task_id = nullptr;
 			}
 		}
 #else

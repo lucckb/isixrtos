@@ -51,8 +51,9 @@ ostask_t isix_task_self(void);
 
 /* Isix set private data task
  * This function assign private data to the current task control block
- * The data can be assigned only once. The memory is managed manualy
- * and it should be deletede before task deletion
+ * The data can be assigned only once. The memory pointer should be
+ * allocated on the heap with @see isix_alloc. Memory will be deleted automaticaly
+ * when task will be deleted.
  * @param [in] task Task control object
  * @param [in] data Private data pointer assigned to the task
  * @return ISIX_EOK if success, ISIX_EINVAL when pointer is already assigned */
@@ -111,9 +112,7 @@ static inline ostask_t isix_task_create_tcpip(task_func_ptr_t task_func,
 /* Isix task delete TCPIP version */
 static inline void isix_task_delete_tcpip(ostask_t task)
 {
-	void *prv = isix_get_task_private_data( task );
 	isix_task_kill( task );
-	if( prv ) isix_free( prv );
 }
 #endif /* WITH_ISIX_TCPIP_LIB */
 
