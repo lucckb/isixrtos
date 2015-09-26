@@ -13,7 +13,7 @@
 #define LWIP_TIMEVAL_PRIVATE 0
 
 /* OS dont provide standard unix like errnos */
-#define LWIP_PROVIDE_ERRNO 1
+//#define LWIP_PROVIDE_ERRNO 1
 
 /* Use semaphores instead of mutexes */
 #define LWIP_COMPAT_MUTEX 1

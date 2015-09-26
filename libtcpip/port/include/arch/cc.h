@@ -35,6 +35,7 @@
 /* Include some files for defining library routines */
 #include <string.h>
 #include <sys/time.h>
+#include <errno.h>
 
 /* Define platform endianness */
 #ifndef BYTE_ORDER
