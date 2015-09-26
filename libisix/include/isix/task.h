@@ -132,6 +132,15 @@ namespace {
 		return ::isix_task_create( task_func, func_param, stack_depth,
 				priority, flags );
 	}
+
+#ifdef WITH_ISIX_TCPIP_LIB
+	/* Isix task create TCPIP version for usage with the TCPIP stack */
+	static inline ostask_t task_create_tcpip(task_func_ptr_t task_func, 
+			void *func_param, unsigned long stack_depth, osprio_t priority )
+	{
+		return ::isix_task_create_tcpip(task_func,func_param, stack_depth, priority );
+	}
+#endif
 	inline int task_change_prio( ostask_t task, osprio_t new_prio ) {
 		return ::isix_task_change_prio( task, new_prio );
 	}
