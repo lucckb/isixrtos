@@ -115,7 +115,7 @@ public:
 	int hw_command_mode();
 	
 	//! Return true if in data mode
-	bool in_data_mode() {
+	bool in_data_mode() const {
 		 return !(m_port.tiocm_get()&fnd::serial_port::tiocm_dcd) ;
 	}
 

@@ -195,6 +195,10 @@ namespace gsm_modem {
 		 */
 		int disconnect_gprs();
 		
+		/** Check if modem is currently in data mode */
+		bool in_data_mode() const {
+			return m_at.in_data_mode();
+		}
 
 	private:
 		/** Private function for set and get text mode parameters
