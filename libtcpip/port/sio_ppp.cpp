@@ -85,6 +85,7 @@ u32_t sio_read(sio_fd_t , u8_t *data, u32_t len)
 		}
 	} else {
 		dbg_warn("wrong_read In cmd mode %p", g_serial );
+		g_serial->sleep( 500 );
 	}
 	return ret;
 }
@@ -108,8 +109,8 @@ u32_t sio_write(sio_fd_t , u8_t *data, u32_t len)
 		ret = g_serial->put(data,len);
 		if( ret < 0 ) ret = 0;
 	} else {
-
 		dbg_warn("wrong_write In cmd mode %p", g_serial );
+		g_serial->sleep( 500 );
 	}
 	return ret;
 }
