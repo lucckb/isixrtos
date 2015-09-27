@@ -42,6 +42,10 @@
 #define BYTE_ORDER LITTLE_ENDIAN
 #endif /* BYTE_ORDER */
 
+#ifdef errno
+#define ERRNO
+#endif
+
 /* Define generic types used in lwIP */
 typedef unsigned   char    u8_t;
 typedef signed     char    s8_t;

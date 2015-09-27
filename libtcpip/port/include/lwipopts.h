@@ -1663,7 +1663,7 @@
 */
 
 //#undef LWIP_DEBUG
-#define LWIP_DEBUG 1
+//#define LWIP_DEBUG 1
 
 /**
  * LWIP_DBG_MIN_LEVEL: After masking, the value of the debug is
