@@ -37,10 +37,13 @@ static inline __attribute__((always_inline))
 
 /*-----------------------------------------------------------------------*/
 //Idle task additional
-static inline __attribute__((always_inline)) void port_idle_cpu( void )
+static inline __attribute__((always_inline)) 
+void port_idle_cpu( void )
 {
 #ifndef ISIX_DEBUG
 	asm volatile("wfi\t\n");
+#else
+	asm volatile("nop\t\n");
 #endif
 }
 /*-----------------------------------------------------------------------*/
