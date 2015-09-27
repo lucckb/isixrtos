@@ -357,19 +357,33 @@ int at_parser::chatv( resp_vec& ans_vec, const char at_cmd[], const char respons
 int at_parser::discard_data( int timeout )
 {
 	int ret {};
-	if( timeout != time_infinite ) {
-		ret = m_port.get( m_cmd_buffer, sizeof m_cmd_buffer, timeout );
-		if( ret <=0 ) return ret;
-	}
-	while( true ) 
+	if( timeout != time_infinite ) 
 	{
-		static constexpr auto c_timeout = 2000;
-		ret = m_port.rx_avail();
-		if( ret <= 0 ) break;
-		ret = m_port.get( m_cmd_buffer, std::min<size_t>(sizeof m_cmd_buffer,ret), c_timeout );
-		if( ret < 0 ) break;
+		const auto jbeg = isix::get_jiffies();
+		while( true ) 
+		{
+			ret = m_port.get( m_cmd_buffer, sizeof m_cmd_buffer, timeout );
+			if( ret <=0 ) {
+				break;
+			} else {
+				if( isix::timer_elapsed(jbeg,timeout) ) {
+					break;
+				}
+			}
+		}
+	} 
+	else 
+	{
+		while( true ) 
+		{
+			static constexpr auto c_timeout = 2000;
+			ret = m_port.rx_avail();
+			if( ret <= 0 ) break;
+			ret = m_port.get( m_cmd_buffer, std::min<size_t>(sizeof m_cmd_buffer,ret), c_timeout );
+			if( ret < 0 ) break;
+		}
+		m_cmd_buffer[0] = '\0';
 	}
-	m_cmd_buffer[0] = '\0';
 	return ret;
 }
 /* ------------------------------------------------------------------ */ 
