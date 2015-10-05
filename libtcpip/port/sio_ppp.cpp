@@ -112,6 +112,7 @@ u32_t sio_write(sio_fd_t , u8_t *data, u32_t len)
 	int ret = 0 ;
 	if( in_data_mode() )
 	{
+		dbg_info("sio_wr(%u)", len );
 		ret = g_serial->put(data,len);
 		if( ret < 0 ) ret = 0;
 	} else {

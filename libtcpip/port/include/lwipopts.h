@@ -379,7 +379,14 @@
  * PBUF_POOL_SIZE: the number of buffers in the pbuf pool. 
  */
 
-#define PBUF_POOL_SIZE                  14
+#define PBUF_POOL_SIZE                  8
+
+/** 
+ * Place data on selected section
+ * */
+#if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4 )
+#define PBUF_POOL_MEMP_MEMORY_SECTION __attribute__((section(".auxram")))
+#endif
 
 
 /*

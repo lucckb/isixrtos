@@ -158,6 +158,7 @@ static const char *memp_desc[MEMP_MAX] = {
   [((num) * (MEMP_SIZE + MEMP_ALIGN_SIZE(size)))];   
 #include "lwip/memp_std.h"
 
+
 /** This array holds the base of each memory pool. */
 static u8_t *const memp_bases[] = { 
 #define LWIP_MEMPOOL(name,num,size,desc) memp_memory_ ## name ## _base,   
@@ -166,11 +167,16 @@ static u8_t *const memp_bases[] = {
 
 #else /* MEMP_SEPARATE_POOLS */
 
+/** Boff extension */
+#ifndef PBUF_POOL_MEMP_MEMORY_SECTION
+#define PBUF_POOL_MEMP_MEMORY_SECTION
+#endif
+
 /** This is the actual memory used by the pools (all pools in one big block). */
 static u8_t memp_memory[MEM_ALIGNMENT - 1 
 #define LWIP_MEMPOOL(name,num,size,desc) + ( (num) * (MEMP_SIZE + MEMP_ALIGN_SIZE(size) ) )
 #include "lwip/memp_std.h"
-];
+] PBUF_POOL_MEMP_MEMORY_SECTION;
 
 #endif /* MEMP_SEPARATE_POOLS */
 
