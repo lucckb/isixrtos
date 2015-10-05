@@ -13,6 +13,7 @@ INCLUDE "stm32_common.ld"
 MEMORY
 {
   RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K  /* also change _estack below */
+  AUX_RAM (xrw) : ORIGIN = 0x2001C000, LENGTH = 16K  /* Second SRAM bank - unused */
   FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 1M
   FLASHB1 (rx) : ORIGIN = 0x00000000, LENGTH = 0
   EXTMEMB0 (rx) : ORIGIN = 0x00000000, LENGTH = 0

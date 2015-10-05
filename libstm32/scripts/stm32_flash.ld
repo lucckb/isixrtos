@@ -168,6 +168,12 @@ SECTIONS
     PROVIDE( __heap_start = _heap_start );
     PROVIDE( __heap_end = _estack - _sys_stack_size );
    
+	.auxram (NOLOAD):
+	{
+		. =  ALIGN(4);
+		*(.auxram)
+	} > AUX_RAM
+
     /* this is the FLASH Bank1 */
     /* the C or assembly source must explicitly place the code or data there
     using the "section" attribute */
