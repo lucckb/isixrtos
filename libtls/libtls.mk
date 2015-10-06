@@ -1,0 +1,27 @@
+#LIBTLS base library 
+#LWIP base dir
+MBEDTLS_VER:=2.1.1
+LIBTLSDIR := $(LIBTLS_DIR)/mbedtls-$(MBEDTLS_VER)
+LIBTLS_LIB_DIR = $(LIBTLSDIR)/library
+
+# TLS CORE
+LIBTLS_LIB_SRC = $(wildcard $(LIBTLS_LIB_DIR)/*.c)
+
+#LIBTLS source files
+LIBTLS_SRC = $(LIBTLS_LIB_SRC)
+
+#LIBTLS include files
+LIBTLS_INC = -I$(LIBTLSDIR)/include
+COMMON_FLAGS += $(LIBTLS_INC)
+
+LIBTLS_LIB = $(LIBTLS_DIR)/libtls.a
+LIBTLS_OBJS += $(LIBTLS_SRC:%.c=%.o) $(LIBTLS_CPPSRC:%.cpp=%.o)
+DEPFILES += $(LIBTLS_SRC:%.c=%.dep)  $(LIBTLS_CPPSRC:%.cpp=%.dep)
+
+.ONESHELL:
+$(LIBTLS_LIB): $(LIBTLS_OBJS)
+	    $(AR) $(ARFLAGS) $@ $^
+
+LIBS += $(LIBTLS_LIB)
+LIBS_OBJS += $(LIBTLS_OBJS)
+COMMON_FLAGS += $(LIBTLS_INC)
