@@ -28,6 +28,9 @@
 #define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 #define MBEDTLS_SSL_PROTO_TLS1_2
 
+//#define MBEDTLS_DEBUG_C
+//#define MBEDTLS_SSL_DEBUG_ALL
+
 /* mbed TLS modules */
 #define MBEDTLS_AES_C
 #define MBEDTLS_CCM_C
@@ -51,6 +54,7 @@
 #define MBEDTLS_SSL_CIPHERSUITES                        \
         MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8,             \
         MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8
+
 #define MBEDTLS_SSL_MAX_CONTENT_LEN             512
 #include "isixcommon_config.h"
 #include "check_config.h"
