@@ -164,7 +164,7 @@ namespace {
 		return ::isix_free_stack_space( task );
 	}
 #endif
-	inline void task_suspend( ostask_t task ) {
+	inline void task_suspend( ostask_t task = nullptr ) {
 		::isix_task_suspend( task );
 	}
 	inline int task_resume( ostask_t task ) {
