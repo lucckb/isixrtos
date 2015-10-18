@@ -7,6 +7,7 @@
  */
 /* ------------------------------------------------------------ */
 #pragma once
+#include <stddef.h>
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
 namespace fnd {
@@ -48,6 +49,13 @@ static inline void fnd_itoa(char *str, int val , int fmt, char fmtch )
 void fnd_dtoa(double value, char* str, int prec);
 //Float ver
 void fnd_ftoa(float value, char* str, int prec);
+/* ------------------------------------------------------------ */
+/** Convert hex string to binary buffer
+ * @param[in] hex Input hex string buffer
+ * @param[out] buf Output buffer 
+ * @param[in]  len Buffer len
+ * @return 0 if sucessful */
+int fnd_hexstr2bin(const char *hex, unsigned char *buf, size_t len);
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
  }}
