@@ -110,3 +110,16 @@ int fnd_hexstr2bin(const char *hex, unsigned char *buf, size_t len)
 	}
 	return 0;
 }
+
+/* ------------------------------------------------------------------ */ 
+char* fnd_bin2hexstr( const unsigned char* bin, char *buf, size_t bytes)
+{
+	const char* const hex = "0123456789abcdef";
+	for (const unsigned char* binEnd = bin + bytes; bin != binEnd; ++bin)
+	{
+			*buf++ = hex[*(unsigned char*)bin >> 4];
+			*buf++ = hex[*bin & 0xf];
+	}
+	*buf = '\0';
+	return buf;
+}

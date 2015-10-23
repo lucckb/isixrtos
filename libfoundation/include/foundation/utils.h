@@ -56,6 +56,16 @@ void fnd_ftoa(float value, char* str, int prec);
  * @param[in]  len Buffer len
  * @return 0 if sucessful */
 int fnd_hexstr2bin(const char *hex, unsigned char *buf, size_t len);
+
+/* ------------------------------------------------------------ */
+/** Convert binary buffer to hex string
+ * @param[in] bin Binary buffer for input
+ * @param[out] buf Binary buffer for output
+ * @param[in] len Input length
+   @return Buffer to the end of string
+*/
+char* fnd_bin2hexstr( const unsigned char* bin, char *buf, size_t len);
+
 /* ------------------------------------------------------------ */
 #ifdef __cplusplus
  }}
