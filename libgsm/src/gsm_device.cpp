@@ -687,7 +687,7 @@ int device::data_mode()
 }
 /* ------------------------------------------------------------------ */ 
 //! Activate GPRS session
-int device::connect_gprs( const char* apn )
+int device::connect_gprs(  std::function<const char*()> apn_callback )
 {
  	if( m_at.in_data_mode() ) {
 		dbg_err("GPRS session already established");
@@ -718,6 +718,12 @@ int device::connect_gprs( const char* apn )
 			break;
 		}
 		char cgdcont[48] {"+CGDCONT=1,\"IP\",\""};
+		const auto apn = apn_callback();
+		if( !apn ) {
+			dbg_err("Apn handshake failed" );
+			res =  m_at.error();
+			break;
+		}
 		std::strncat( cgdcont, apn, sizeof(cgdcont)-1 );
 		std::strncat( cgdcont, "\"", sizeof(cgdcont)-1 );
 		auto resp = m_at.chat(cgdcont);

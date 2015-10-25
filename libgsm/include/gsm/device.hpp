@@ -27,6 +27,7 @@
 #include <gsm/sms_message.hpp>
 #include <gsm/phonebook.hpp>
 #include <gsm/sms_store.hpp>
+#include <functional>
 
 namespace gsm_modem {
 
@@ -184,10 +185,12 @@ namespace gsm_modem {
 		int data_mode();
 
 		/** Activate GPRS session and switch to data mode
-		 * @param[in] apn APN name
+		 * @param[in] query_apn function callback for query APN
 		 * @return Error code
+		 * @note query_apn callback should return const string
+		 * to the callback name
 		 */
-		int connect_gprs( const char *apn );
+		int connect_gprs( std::function<const char*()> apn_callback );
 
 
 		/** Deactivate GPRS session and return to command mode 
