@@ -78,9 +78,9 @@ extern "C"
 {
 	void *_malloc_r(struct _reent */*r*/, size_t size);
 	void _free_r(struct _reent */*r*/, void *ptr);
-	void* malloc(size_t size);
-	void free(void *ptr);
-	void *calloc(size_t nmemb, size_t size);
+	void* malloc(size_t size) __attribute__((used));
+	void free(void *ptr) __attribute__((used));
+	void *calloc(size_t nmemb, size_t size) __attribute__((used));
 	void *realloc(void */*ptr*/, size_t /*size*/);
 	void abort(void);
 	void __cxa_pure_virtual();
