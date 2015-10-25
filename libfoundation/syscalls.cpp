@@ -15,6 +15,7 @@
 /* -------------------------------------------------------------- */
 #include <cstring>
 #include <cstdarg>
+#include <cstdint>
 #include "foundation/tiny_vaprintf.h"
 /* -------------------------------------------------------------- */
 
