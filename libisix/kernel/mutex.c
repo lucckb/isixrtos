@@ -33,6 +33,10 @@ osmtx_t isix_mutex_create( osmtx_t mutex )
 // Mutex lock
 int isix_mutex_lock( osmtx_t mutex )
 {
+	if( !mutex ) {
+		pr_err("No mutex");
+		return ISIX_EINVARG;
+	}
 	isix_enter_critical();
 	//! If owner is assigned
 	if( mutex->owner ) {
@@ -72,4 +76,64 @@ int isix_mutex_lock( osmtx_t mutex )
 	return ISIX_EOK;
 }
 
+
+// Mutex try lock
+int isix_mutex_trylock( osmtx_t mutex )
+{
+	int ret;
+	if( !mutex ) {
+		pr_err("No mutex");
+		return ISIX_EINVARG;
+	}
+	isix_enter_critical();
+	if( mutex->owner )
+	{
+		if( mutex->count < 1 ) {
+			isix_bug("Invalid mtx lock count");
+		}
+		if( mutex->owner == currp ) {
+			++mutex->count;
+			ret = ISIX_EOK;
+		} else {
+			ret = ISIX_EPERM;
+		}
+	}
+	else
+	{
+		if( mutex->count != 0 ) {
+			isix_bug( "Mutex counter is not zero" );
+		}
+		++mutex->count;
+		mutex->owner = currp;
+		ret = ISIX_EOK;
+	}
+	isix_exit_critical();
+	return ret;
+}
+
+//Mutex unlock
+int isix_mutex_unlock( osmtx_t mutex )
+{
+	if( !mutex ) {
+		pr_err("No mutex");
+		return ISIX_EINVARG;
+	}
+	isix_enter_critical();
+	if( !mutex->owner ) {
+		isix_exit_critical();
+		return ISIX_ENOTLOCKED;
+	}
+	if( mutex->count < 1 ) {
+		isix_bug("Mutex not positive");
+	}
+	if( mutex->owner != currp ) {
+		isix_exit_critical();
+		return ISIX_EPERM;
+	}
+	if( !list_isempty(&mutex->wait_list) )
+	{
+		
+	}
+
+}
 

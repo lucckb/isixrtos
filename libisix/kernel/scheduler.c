@@ -643,7 +643,7 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 {
 	// Remove task from timing list
-	if( list_is_elem_assigned( &task->inode_time ) ) 
+	if( list_is_elem_assigned( &task->inode_time ) )
 	{
 		list_delete( &task->inode_time );
 	}

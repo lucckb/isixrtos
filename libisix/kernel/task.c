@@ -79,6 +79,10 @@ ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
     pr_debug("Top stack SP=%p",task->top_stack);
     //Assign task priority
     task->prio = priority;
+	//Assing real priority
+	task->real_prio = priority;
+	//Mutex list init
+	list_init( &task->owned_mutexes );
     //Task is ready
     task->state = (flags&isix_task_flag_suspended)?OSTHR_STATE_SUSPEND:OSTHR_STATE_CREATED;
     //Create initial task stack context

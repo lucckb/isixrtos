@@ -36,7 +36,9 @@ struct isix_task
 #if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
 	uintptr_t fence_estack;			//! Electric fence stack protector base
 #endif
-    osprio_t prio;					//!Priority of task
+    osprio_t prio;					//! Priority of task
+	osprio_t real_prio;				//! Real non inherited priority mtx
+	list_entry_t owned_mutexes;		//! Owned mutexes list
     thr_state_t state;				//!Thread state
     ostick_t jiffies;				//!Ticks when task wake up
     task_ready_t *prio_elem;		//!Pointer to own prio list
