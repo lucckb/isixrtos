@@ -36,7 +36,7 @@ class at_parser
 	at_parser( at_parser& ) = delete;
 	static constexpr auto cmd_buffer_len = 1024U;
 	static constexpr auto atcmd_maxlen = 64U;
-	static constexpr auto def_timeout = 10000;
+	static constexpr auto def_timeout = 15000;
 	static constexpr char CR = 13;             // ASCII carriage return
 	static constexpr char LF = 10;             // ASCII line feed
 public:
@@ -109,6 +109,14 @@ public:
 	//! Get unsolicited creg status
 	bool unsolicited_creg() const {
 		return m_unsolicited_creg;
+	}
+
+	//! Switch to command mode if DSR/DTR not set ignore
+	int hw_command_mode();
+	
+	//! Return true if in data mode
+	bool in_data_mode() const {
+		 return !(m_port.tiocm_get()&fnd::serial_port::tiocm_dcd) ;
 	}
 
 private:

@@ -35,11 +35,16 @@
 /* Include some files for defining library routines */
 #include <string.h>
 #include <sys/time.h>
+#include <errno.h>
 
 /* Define platform endianness */
 #ifndef BYTE_ORDER
 #define BYTE_ORDER LITTLE_ENDIAN
 #endif /* BYTE_ORDER */
+
+#ifdef errno
+#define ERRNO
+#endif
 
 /* Define generic types used in lwIP */
 typedef unsigned   char    u8_t;
@@ -77,6 +82,7 @@ typedef unsigned long mem_ptr_t;
 
 #include <foundation/dbglog.h>
 #include <isix.h>
+#include <stdlib.h>
 
 
 /* Isix by default don't have a calloc create it */

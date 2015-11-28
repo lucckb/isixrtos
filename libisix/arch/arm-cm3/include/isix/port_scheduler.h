@@ -40,6 +40,8 @@ static inline  __attribute__((always_inline))
 {
 #ifndef ISIX_DEBUG
 	asm volatile("wfi\t\n");
+#else
+	asm volatile("nop\t\n");
 #endif
 }
 /*-----------------------------------------------------------------------*/

@@ -298,6 +298,9 @@ static inline int flash_mem_size(void)
 	return (*(vu16 *)(STM32LIB_FLSIZ_ADDR));
 }
 /*----------------------------------------------------------*/
+//! Cpuid size
+#define STM32_CPUID_SIZE (96/8)
+
 /** Return CPUID
  * @param[in] word pos number
  * @return value

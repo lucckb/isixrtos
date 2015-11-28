@@ -7,6 +7,11 @@
 
 #pragma once
 
+
+#ifdef _HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /** Predefined configuration log levels */
 #define FOUNDATION_DBGLOG_OFF 	0
 #define FOUNDATION_DBGLOG_CRIT 	1

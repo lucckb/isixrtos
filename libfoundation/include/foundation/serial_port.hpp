@@ -88,6 +88,10 @@ public:
 	virtual int tiocm_set( unsigned tiosigs ) = 0;
 	//Sleep for amount of time
 	virtual void sleep( unsigned ms ) = 0;
+	//Inject data into rx buffer
+	virtual int push_rx_char( value_type )  {
+		return ISIX_ENOTSUP;
+	}
 };
 /* ------------------------------------------------------------------ */
 }

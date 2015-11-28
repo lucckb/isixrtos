@@ -15,6 +15,7 @@
 /* -------------------------------------------------------------- */
 #include <cstring>
 #include <cstdarg>
+#include <cstdint>
 #include "foundation/tiny_vaprintf.h"
 /* -------------------------------------------------------------- */
 
@@ -77,12 +78,13 @@ extern "C"
 {
 	void *_malloc_r(struct _reent */*r*/, size_t size);
 	void _free_r(struct _reent */*r*/, void *ptr);
-	void* malloc(size_t size);
-	void free(void *ptr);
-	void *calloc(size_t nmemb, size_t size);
+	void* malloc(size_t size) __attribute__((used));
+	void free(void *ptr) __attribute__((used));
+	void *calloc(size_t nmemb, size_t size) __attribute__((used));
 	void *realloc(void */*ptr*/, size_t /*size*/);
 	void abort(void);
 	void __cxa_pure_virtual();
+	void __cxa_deleted_virtual (void);
 	int * __errno(void);
 	int __cxa_guard_acquire(__guard *);
 	void __cxa_guard_release (__guard *);
@@ -154,6 +156,12 @@ void __cxa_pure_virtual()
 	terminate_process();
 }
 
+//Deleted virtual
+void __cxa_deleted_virtual (void) 
+{
+	terminate_process();
+}
+
 void __cxa_guard_abort(__guard *guard_object)
 {
 	setNotInUse(guard_object);
@@ -188,7 +196,7 @@ static void setNotInUse(__guard *guard_object)
 
 /* ------------------------------------------------------------------ */
 
-
+__attribute__ ((used))
 void abort(void)
 {
 	terminate_process();
@@ -255,7 +263,7 @@ int __snprintf_lite(char *__buf, size_t __bufsize, const char *__fmt, va_list __
 
 /* -------------------------------------------------------------- */
 //Bad function call handler if no exception
-#if (__cplusplus > 199711L) && !defined(__EXCEPTIONS)
+#if (__cplusplus > 199711L) && !defined(__EXCEPTIONS) 
 namespace std
 {
 	  void
@@ -329,6 +337,7 @@ namespace std
 	  void
 	  __throw_regex_error()
 	  { terminate_process(); for(;;); }
+
 	void
 	__throw_out_of_range_fmt(const char* , ...)
 	  { terminate_process(); for(;;); }

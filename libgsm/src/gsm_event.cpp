@@ -197,12 +197,20 @@ void event::sms_reception( sms& sms )
 void event::sms_reception_indication(const smsmem_id& storage ,int index)
 {
 	dbg_warn("Unhandled sms_reception_indication store %08x index %i", storage.bits(), index );
+#ifndef PDEBUG
+	static_cast<void>(storage);
+	static_cast<void>(index);
+#endif
 }
 /* ------------------------------------------------------------------ */ 
 // number, subaddr, alpha
 void event::caller_line_id( const char* number, const char* alpha) 
 {
 	dbg_warn("Unhandled caller_line_id(num=%s, alpha=%s)", number, alpha );
+#ifndef PDEBUG
+	static_cast<void>(number);
+	static_cast<void>(alpha);
+#endif
 }
 /* ------------------------------------------------------------------ */ 
 }

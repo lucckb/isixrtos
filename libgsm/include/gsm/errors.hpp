@@ -22,6 +22,8 @@ namespace gsm_modem {
 	struct error {
 		enum error_ {
 			success = 0,
+			session_already_connected = -16378,
+			invalid_dcd_state = -16379,
 			check_unsolicited_notifications = - 16380, //! Check unsolicited notification
 			sms_store_not_selected = -16381,
 			sms_length_mismatch = -16382,

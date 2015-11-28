@@ -58,7 +58,7 @@ int device::do_enable () {
 	if( set_charset("GSM") ) {
 		return m_at.error();
 	}
-	//!TODO: Enable GPRS modem RS232 hardware pins control
+	//! Hardware flow config setup
 	if( m_capabilities.has_hw_flow() ) 
 	{
 		dbg_info("Trying to set hardware flow control");
@@ -70,6 +70,22 @@ int device::do_enable () {
 		} while(0);
 		if( ret ) {
 			dbg_err("Unable to setup hardware flow %i", ret );
+			return ret;
+		}
+	}
+	//! DTR DSR control
+	if( m_capabilities.has_hw_data() ) 
+	{
+		dbg_info("Trying to set DTR/DSR control");
+		int ret {};
+		do {
+			resp = m_at.chat("&C1");
+			if(!resp) { ret = m_at.error(); break; }
+			resp = m_at.chat("&D1");
+			if(!resp) { ret = m_at.error(); break; }
+		} while(0);
+		if( ret ) {
+			dbg_err("Unable to set hw DTR/DSR%i", ret );
 			return ret;
 		}
 	}
@@ -265,15 +281,20 @@ int device::get_current_op_info( oper_info& info )
 }
 /* ------------------------------------------------------------------ */ 
 /** Print registration status
+* @param[in] gprs Gprs registration status
 * @return registration code or failed if fatal
 */
-int device::get_registration_status()
+int device::get_registration_status( bool gprs )
 {
-	if( m_at.unsolicited_creg() ) {
+	if( !gprs && m_at.unsolicited_creg() ) {
 		dbg_info("Unsolicited creg already enabled");
 		return error::check_unsolicited_notifications;
 	}
-	auto resp = m_at.chat("+CREG?", "+CREG:");
+	char* resp;
+	if( !gprs ) 
+		resp = m_at.chat("+CREG?", "+CREG:");
+	else
+		resp = m_at.chat("+CGREG?", "+CGREG:");
 	if( !resp ) {
 		dbg_err( "Modem error response %i", m_at.error() );	
 		return m_at.error();
@@ -611,6 +632,150 @@ int device::get_imsi( imsi_number& inp )
 	}
 	std::strncpy( inp.value, imsi, sizeof(inp)-1 );
 	return error::success;
+}
+/* ------------------------------------------------------------------ */
+//! Switch to command mode if DSR/DTR not set ignore
+int device::command_mode( bool hang )
+{
+	if( !m_capabilities.has_hw_data() ) 
+		return error::success;
+	int err {};
+	do {
+		err = m_at.hw_command_mode();
+		if( err ) {
+			dbg_err("DTR hanshake failed");	
+			break;
+		}
+		auto resp = m_at.chat();
+		if( !resp ) {
+			dbg_err("Invalid at_hanshake");
+			break;
+		}
+		if( hang && m_at.in_data_mode() )
+		{
+			resp = m_at.chat("H");
+			if( !resp ) {
+				dbg_err("Invalid hang");
+				break;
+			}
+			static constexpr auto max_retries = 10;
+			auto retries=0;
+			for(; retries<max_retries;++retries ) {
+				m_at.sleep( 500 );
+				if( !m_at.in_data_mode() ) break;
+			}
+			if( retries >= max_retries ) {
+				dbg_err("Unable to hang device");
+				break;
+			}
+		}
+	} while(0);
+	return err;
+}
+/* ------------------------------------------------------------------ */ 
+//! Switch to data mode if DSR/DTR not set ignore
+int device::data_mode()
+{
+	if( !m_capabilities.has_hw_data() ) 
+		return error::success;
+	const auto resp = m_at.chat("O", nullptr, false, true );
+	if(!resp) {
+		dbg_err("Unable to switch data mode %i", m_at.error() );
+		return m_at.error();
+	}
+	return error::success;
+}
+/* ------------------------------------------------------------------ */ 
+//! Activate GPRS session
+int device::connect_gprs(  std::function<const char*()> apn_callback )
+{
+ 	if( m_at.in_data_mode() ) {
+		dbg_err("GPRS session already established");
+		return error::session_already_connected;
+	}
+	static constexpr auto c_retries = 10;
+	int res;
+	for( int i=0; i<c_retries; ++i )
+	{
+		res = get_registration_status(true);
+		if( res < 0 ) {
+			dbg_err("Net registration status failed %i", res );
+			return res;
+		}
+		if( res==int(reg_status::registered_home) || 
+			res==int(reg_status::registered_roaming) ) {
+			res = error::success;
+			break;
+		}
+		else {
+			res = error::receive_timeout;
+		}
+		isix::wait_ms(5000);
+	}
+	do {
+		if( res ) {
+			dbg_err("Unable to establish connection %i", res );
+			break;
+		}
+		char cgdcont[48] {"+CGDCONT=1,\"IP\",\""};
+		const auto apn = apn_callback();
+		if( !apn ) {
+			dbg_err("Apn handshake failed" );
+			res =  m_at.error();
+			break;
+		}
+		std::strncat( cgdcont, apn, sizeof(cgdcont)-1 );
+		std::strncat( cgdcont, "\"", sizeof(cgdcont)-1 );
+		auto resp = m_at.chat(cgdcont);
+		if(!resp) {
+			res = m_at.error();
+			dbg_err("Unable to gprs cgdcont %i", m_at.error() );
+			break;
+		}
+		//Try to establish session
+		resp = m_at.chat("D*99#",nullptr,false,true);
+		if(!resp) {
+			res = m_at.error();
+			dbg_err("Unable activate grps session %i", m_at.error() );
+			break;
+		}
+		if( !m_at.in_data_mode() ) {
+			dbg_err("Not in data mode session failed");
+			res = error::invalid_dcd_state;
+			break;
+		}
+	} while(0);
+	return res;
+}
+/* ------------------------------------------------------------------ */
+/** Deactivate GPRS session and return to command mode 
+	* @return Error code
+	*/
+int device::disconnect_gprs()
+{
+	if( !m_at.in_data_mode() ) {
+		dbg_err("We are in data mode disconnection not needed");
+		return error::session_already_connected;
+	}
+	int res { error::success };
+	do {
+		res = command_mode();
+		if( res ) {
+			break;
+		}
+		auto resp = m_at.chat("H");
+		if(!resp) {
+			dbg_err("Hangup ACT err %i", m_at.error() );
+			break;
+		}
+		isix::wait_ms(1000);
+		if( m_at.in_data_mode() ) {
+			dbg_err("Invalid handshake");
+			res = error::invalid_dcd_state;
+			break;
+		}
+	} while(0);
+	return res;
 }
 /* ------------------------------------------------------------------ */
 }

@@ -71,3 +71,55 @@ void fnd_uitoa(char *str, unsigned val ,int fmt, char fmtch, int base)
 }
 
 /* ------------------------------------------------------------ */
+static int hex2num(char c)
+{
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	if (c >= 'a' && c <= 'f')
+		return c - 'a' + 10;
+	if (c >= 'A' && c <= 'F')
+		return c - 'A' + 10;
+	return -1;
+}
+/* ------------------------------------------------------------ */
+static int hex2byte(const char *hex)
+{
+        int a, b;
+        a = hex2num(*hex++);
+        if (a < 0)
+			return -1;
+        b = hex2num(*hex++);
+        if (b < 0)
+			return -1;
+        return (a << 4) | b;
+}
+/* ------------------------------------------------------------------ */ 
+int fnd_hexstr2bin(const char *hex, unsigned char *buf, size_t len)
+{
+	size_t i;
+	int a;
+	const char *ipos = hex;
+	unsigned char *opos = buf;
+
+	for (i = 0; i < len; i++) {
+		a = hex2byte(ipos);
+		if (a < 0)
+			return -1;
+		*opos++ = a;
+		ipos += 2;
+	}
+	return 0;
+}
+
+/* ------------------------------------------------------------------ */ 
+char* fnd_bin2hexstr( const unsigned char* bin, char *buf, size_t bytes)
+{
+	const char* const hex = "0123456789abcdef";
+	for (const unsigned char* binEnd = bin + bytes; bin != binEnd; ++bin)
+	{
+			*buf++ = hex[*(unsigned char*)bin >> 4];
+			*buf++ = hex[*bin & 0xf];
+	}
+	*buf = '\0';
+	return buf;
+}

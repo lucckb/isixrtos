@@ -1,20 +1,19 @@
-/*----------------------------------------------------------*/
 /*
  * usart_buffered.cpp
  *
  *  Created on: 2009-12-09
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
+
 #include "usart_buffered.hpp"
 #include <stm32system.h>
 //!TODO: Usart status codes
-/*----------------------------------------------------------*/
+
 namespace stm32
 {
 namespace dev
 {
-/*----------------------------------------------------------*/
+
 namespace	//Object pointers for interrupt
 {
 	usart_buffered *usart1_obj;
@@ -32,7 +31,7 @@ namespace	//Object pointers for interrupt
 #endif
 }
 
-/*----------------------------------------------------------*/
+
 namespace
 {
 	//USART1 port
@@ -99,7 +98,7 @@ namespace
 	const unsigned CR2_RTSE = 1<<8;
 }
 
-/*----------------------------------------------------------*/
+
 void usart_buffered::flow_gpio_config( const USART_TypeDef* usart, altgpio_mode )
 {
 	if( usart == USART1 ) 
@@ -139,7 +138,7 @@ void usart_buffered::flow_gpio_config( const USART_TypeDef* usart, altgpio_mode 
 #endif
 	}
 }
-/*----------------------------------------------------------*/
+
 void usart_buffered::periphcfg_usart1(altgpio_mode mode)
 {
 	using namespace stm32;
@@ -179,7 +178,7 @@ void usart_buffered::periphcfg_usart1(altgpio_mode mode)
 #endif
 	}
 }
-/*----------------------------------------------------------*/
+
 void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 {
 	using namespace stm32;
@@ -281,7 +280,7 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 		gpio_abstract_config(USART5_PORT_RX,USART5_RX_BIT,AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_HALF);
 	}
 #endif
-/*----------------------------------------------------------*/
+
 //! Constructor called for usart buffered
 usart_buffered::usart_buffered(USART_TypeDef *_usart,
 		unsigned _pclk1_hz, unsigned _pclk2_hz, unsigned cbaudrate,
@@ -354,7 +353,7 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 	}
 }
 
-/*----------------------------------------------------------*/
+
 int usart_buffered::set_baudrate(unsigned new_baudrate)
 {
 	unsigned hz = usart==USART1?pclk2_hz:pclk1_hz;
@@ -369,7 +368,7 @@ int usart_buffered::set_baudrate(unsigned new_baudrate)
 	return 0;
 }
 
-/*----------------------------------------------------------*/
+
 int usart_buffered::set_parity(parity new_parity)
 {
 	//TODO: Sem wait not busy waiting
@@ -396,7 +395,6 @@ int usart_buffered::set_parity(parity new_parity)
 	return 0;
 }
 
-/*----------------------------------------------------------*/
 //! Usart start transmision called by usb endpoint
 void usart_buffered::start_tx()
 {
@@ -404,7 +402,7 @@ void usart_buffered::start_tx()
 		usart->CR1 |= USART_TXEIE;
 	}
 }
-/*----------------------------------------------------------*/
+
 
 //! Usart interrupt handler
 void usart_buffered::isr()
@@ -430,13 +428,13 @@ void usart_buffered::isr()
 		}
 	}
 }
-/*----------------------------------------------------------*/
+
 int usart_buffered::getchar(value_type &c, int timeout) 
 {
 	auto ret = rx_queue.pop( c, timeout );
 	return ret==ISIX_EOK?(1):(ret==ISIX_ETIMEOUT?0:ret);
 }
-/*----------------------------------------------------------*/
+
 //Put string
 int usart_buffered::puts(const value_type *str)
 {
@@ -449,14 +447,14 @@ int usart_buffered::puts(const value_type *str)
 	}
 	return ptr-str;
 }
-/* ---------------------------------------------------------*/
+
 int usart_buffered::putchar(value_type c, int timeout)
 {
 	start_tx();
 	int result = tx_queue.push( c, timeout );
 	return result==ISIX_EOK?(1):(result);
 }
-/*----------------------------------------------------------*/
+
 int usart_buffered::put(const void *buf, std::size_t buf_len)
 {
 	int r;
@@ -470,7 +468,7 @@ int usart_buffered::put(const void *buf, std::size_t buf_len)
 	return s;
 }
 
-/*----------------------------------------------------------*/
+
 int usart_buffered::gets(value_type *str, std::size_t max_len, int timeout)
 {
 	int res;
@@ -492,32 +490,29 @@ int usart_buffered::gets(value_type *str, std::size_t max_len, int timeout)
 	str[l] = '\0';
 	return l;
 }
-/*----------------------------------------------------------*/
+
 int usart_buffered::get(void *buf, std::size_t max_len, 
 		int timeout, std::size_t min_len )
 {
-	int res =0;
+	int res = 0;
 	char *fbuf = static_cast<char*>(buf);
     std::size_t l;
-	for(l=0; l<max_len; l++)
+	for(l=0; l<max_len; )
 	{
-		res = getchar ((unsigned char &) fbuf[l],timeout );
-		if( res == 0 ) 
+		res = getchar ((unsigned char &) fbuf[l], timeout );
+		if( res == 1 ) 
 		{
-			if( l >= min_len )
-				return l;
-			else 
-				continue;
-			
+			++l;
+			if( l >= min_len && !rx_avail() ) return l;
 		} 
-		else if( res < 0) 
+		else
 		{
 			return res;
 		}
 	}
 	return l;
 }
-/*----------------------------------------------------------*/
+
 //! Set flow control
 int usart_buffered::set_flow( flow_control flow )
 {
@@ -533,29 +528,71 @@ int usart_buffered::set_flow( flow_control flow )
 	}
 	return ISIX_EINVARG;
 }
-/*----------------------------------------------------------*/
+
 int usart_buffered::set_ioreport( unsigned tio_report )
 {
 	(void)tio_report;
 	return ISIX_EINVARG;
 }
-/*----------------------------------------------------------*/
+
 int usart_buffered::tiocm_get() const
 {
-	return ISIX_ENOTSUP;
+	int flags {};
+	if( m_ctl_map.ri_pin != usart_cfgctl_lines::NC ) {
+		flags |= gpio_get( m_ctl_map.port, m_ctl_map.ri_pin )?tiocm_ri:0;
+	}
+	if( m_ctl_map.dsr_pin != usart_cfgctl_lines::NC ) {
+		flags |= gpio_get( m_ctl_map.port, m_ctl_map.dsr_pin )?tiocm_dsr:0;
+	}
+	if( m_ctl_map.dcd_pin != usart_cfgctl_lines::NC ) {
+		flags |= gpio_get( m_ctl_map.port, m_ctl_map.dcd_pin )?tiocm_dcd:0;
+	}
+	if( m_ctl_map.dtr_pin != usart_cfgctl_lines::NC ) {
+		flags |=  gpio_get( m_ctl_map.port, m_ctl_map.dtr_pin )?tiocm_dtr:0;
+	}
+	return flags;
 }
-/*----------------------------------------------------------*/
+
 int usart_buffered::tiocm_flags( unsigned /*flags*/ ) const
 {
 	return ISIX_ENOTSUP;
 }
 
-/*----------------------------------------------------------*/
-int usart_buffered::tiocm_set( unsigned /* tiosigs */ )
+
+int usart_buffered::tiocm_set( unsigned tiosigs )
 {
+	if( m_ctl_map.dtr_pin != usart_cfgctl_lines::NC &&
+		m_ctl_map.port ) 
+	{
+		if( tiosigs & tiocm_dtr ) 
+			gpio_set( m_ctl_map.port, m_ctl_map.dtr_pin );
+		else 
+			gpio_clr( m_ctl_map.port, m_ctl_map.dtr_pin );
+	}
 	return ISIX_ENOTSUP;
 }
-/*----------------------------------------------------------*/
+
+//! Map control lines
+void usart_buffered::map_control_lines( const usart_cfgctl_lines& cfg )
+{
+	if( !cfg.port ) {
+		return;
+	}
+	if( cfg.ri_pin != usart_cfgctl_lines::NC ) {
+		gpio_abstract_config( cfg.port, cfg.ri_pin, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_LOW );
+	}
+	if( cfg.dsr_pin != usart_cfgctl_lines::NC ) {
+		gpio_abstract_config( cfg.port, cfg.dsr_pin, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_LOW );
+	}
+	if( cfg.dcd_pin != usart_cfgctl_lines::NC ) {
+		gpio_abstract_config( cfg.port, cfg.dcd_pin, AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_LOW );
+	}
+	if( cfg.dtr_pin != usart_cfgctl_lines::NC ) {
+		gpio_abstract_config( cfg.port, cfg.dtr_pin, AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_LOW );
+	}
+ 	m_ctl_map = cfg;
+}
+
 //Serial interrupts handlers
 extern "C"
 {
@@ -593,7 +630,7 @@ extern "C"
 #endif /* #if defined(STM32F10X_HD) || defined(STM32F10X_CL) */
 }
 
-/*----------------------------------------------------------*/
+
 }
 }
-/*----------------------------------------------------------*/
+

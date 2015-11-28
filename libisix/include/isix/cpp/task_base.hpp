@@ -35,7 +35,7 @@ namespace isix {
 		* @param[in] priority Thread/task priority
 		*/
 #ifdef WITH_ISIX_TCPIP_LIB
-		void start_thread( std::size_t stack_depth, osprio_t priority, unsigned flags )
+		void start_thread( std::size_t stack_depth, osprio_t priority, unsigned flags=0 )
 		{
 			task_id = isix_task_create( start_task, this, stack_depth, priority, flags );
 		}
@@ -47,6 +47,7 @@ namespace isix {
 		{
 			if( task_id ) {
 				isix_task_delete_tcpip(task_id);
+				task_id = nullptr;
 			}
 		}
 #else

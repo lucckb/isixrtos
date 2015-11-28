@@ -25,6 +25,13 @@ void _isixp_alloc_init(void);
  */
 size_t isix_heap_free(int *fragments);
 
+
+/** Function return heap current memory size 
+ *	@param[in] Pointer to the dynamic allocated memory
+ *	@return 0 if mem is not dynamic block or size if it is
+ */
+size_t isix_heap_getsize( void* ptr );
+
 #ifdef __cplusplus
 }	//end extern-C
 #endif /* __cplusplus */
@@ -42,6 +49,10 @@ namespace {
 	}
 	inline size_t heap_free(int *fragments=nullptr) {
 		return ::isix_heap_free( fragments );
+	}
+	inline size_t heap_getsize( void* ptr )
+	{
+		return ::isix_heap_getsize( ptr );
 	}
 }}
 #endif /*__cplusplus*/

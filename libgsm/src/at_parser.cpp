@@ -247,6 +247,11 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 		m_cmd_buffer[0] = '\0';
 		return m_cmd_buffer;	
 	}
+	//Added exception for connect and empty response
+	if( empty_response && !std::strcmp(inp,"CONNECT") ) {
+		m_cmd_buffer[0] = '\0';
+		return m_cmd_buffer;	
+	}
 	//Empty sms handling
 	bool got_ok {};
 	//Handle PDU if it is expected
@@ -352,19 +357,33 @@ int at_parser::chatv( resp_vec& ans_vec, const char at_cmd[], const char respons
 int at_parser::discard_data( int timeout )
 {
 	int ret {};
-	if( timeout != time_infinite ) {
-		ret = m_port.get( m_cmd_buffer, sizeof m_cmd_buffer, timeout );
-		if( ret <=0 ) return ret;
-	}
-	while( true ) 
+	if( timeout != time_infinite ) 
 	{
-		static constexpr auto c_timeout = 2000;
-		ret = m_port.rx_avail();
-		if( ret <= 0 ) break;
-		ret = m_port.get( m_cmd_buffer, std::min<size_t>(sizeof m_cmd_buffer,ret), c_timeout );
-		if( ret < 0 ) break;
+		const auto jbeg = isix::get_jiffies();
+		while( true ) 
+		{
+			ret = m_port.get( m_cmd_buffer, sizeof m_cmd_buffer, timeout );
+			if( ret <=0 ) {
+				break;
+			} else {
+				if( isix::timer_elapsed(jbeg,timeout) ) {
+					break;
+				}
+			}
+		}
+	} 
+	else 
+	{
+		while( true ) 
+		{
+			static constexpr auto c_timeout = 2000;
+			ret = m_port.rx_avail();
+			if( ret <= 0 ) break;
+			ret = m_port.get( m_cmd_buffer, std::min<size_t>(sizeof m_cmd_buffer,ret), c_timeout );
+			if( ret < 0 ) break;
+		}
+		m_cmd_buffer[0] = '\0';
 	}
-	m_cmd_buffer[0] = '\0';
 	return ret;
 }
 /* ------------------------------------------------------------------ */ 
@@ -541,6 +560,21 @@ int at_parser::wait( int timeout )
 		else dbg_err("ACK was sent");
 	}
 	return ret;
+}
+/* ------------------------------------------------------------------ */
+//! Switch to command mode if DSR/DTR not set ignore
+int at_parser::hw_command_mode()
+{
+	if( in_data_mode() ) 
+	{
+		dbg_info("modem mode data->command switch");
+		m_port.tiocm_set( fnd::serial_port::tiocm_dtr );
+		m_port.sleep(2);
+		m_port.tiocm_set( 0 );
+		m_port.sleep(20);
+		discard_data(100);
+	}
+	return error::success;
 }
 /* ------------------------------------------------------------------ */ 
 }

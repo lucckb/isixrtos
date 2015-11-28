@@ -14,12 +14,12 @@
 
 /* ------------------------------------------------------------------ */
 //Semaphore for locking the mempool
-static sem_t* arch_protect_sem;
+static ossem_t arch_protect_sem;
 
 
 /* ------------------------------------------------------------------ */
 //Create basic thread structure for LWIP
-static task_t* introduce_thread(task_t *task)
+static ostask_t introduce_thread(struct isix_task *task)
 {
 	struct sys_timeo *sto = isix_alloc(sizeof(struct sys_timeo));
     if(sto)
@@ -45,7 +45,8 @@ static task_t* introduce_thread(task_t *task)
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize, int prio)
 {
     (void)name;
-    task_t* task = isix_task_create( thread, arg, stacksize, prio, isix_task_flag_newlib );
+    struct isix_task* task = isix_task_create
+		( thread, arg, stacksize, prio, isix_task_flag_newlib );
     if(task != NULL )
     {
         task = introduce_thread(task);
@@ -91,7 +92,7 @@ void sys_sem_signal(sys_sem_t *sem)
 u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 {
     timeout = (timeout*ISIX_HZ)/1000;
-    tick_t t = isix_get_jiffies();
+    ostick_t t = isix_get_jiffies();
     int reason = isix_sem_wait(*sem,timeout);
     t =  isix_get_jiffies() - t;
     t = (t*1000)/ISIX_HZ;
@@ -139,7 +140,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, message_t *msg, u32_t timeout)
 {
     message_t m;
 	timeout = (timeout*ISIX_HZ)/1000;
-    tick_t t = isix_get_jiffies();
+    ostick_t t = isix_get_jiffies();
     int reason = isix_fifo_read( *mbox, &m, timeout);
     if(reason == ISIX_ETIMEOUT)
     	return SYS_ARCH_TIMEOUT;

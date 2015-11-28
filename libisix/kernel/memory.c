@@ -185,3 +185,12 @@ size_t isix_heap_free(int *fragments)
 	return mem;
 }
 
+size_t isix_heap_getsize( void* ptr )
+{ 
+	struct header* hp = (struct header *)ptr - 1;
+	if( hp->h.h_magic != MAGIC ) { //Not dyn block
+		return 0;
+	} else {
+		return hp->h_size;
+	}
+}
