@@ -15,7 +15,7 @@ namespace gui {
 label::label( rectangle const& rect,layout const& layout ,
 		window &win, unsigned flags )
 	: widget( rect, layout, win, false ), 
-	  draw_text_wdt(0), m_flags(flags)
+	  m_flags(flags)
 {
 }
 /* ------------------------------------------------------------------ */
@@ -32,22 +32,21 @@ void label::repaint( bool /* focus */ )
 	const auto tx = (m_flags&flags::center)?
 			( c.x() + (c.cx() - gdi.get_text_width(m_caption.c_str()))/2 ):
 			( c.x() );
-	auto text_wdt = 0;
+
 	// draw text
-	if( !m_caption.empty() )
-		text_wdt = gdi.draw_text( tx, ty, m_caption.c_str() );
-	else
-		text_wdt = tx;
+	auto text_px = gdi.draw_text(tx, ty, m_caption.c_str());
 
 	// clear background part
-	if (text_wdt < draw_text_wdt)
+	if (!(m_flags & flags::center))
 	{
-		if (!(m_flags & flags::center))
-			gdi.fill_area(text_wdt, ty , draw_text_wdt - text_wdt, fh, true);
+		if (text_px < text_px_old)
+		{
+			gdi.fill_area(text_px, ty , text_px_old - text_px, fh, true);
+		}
 	}
 
 	// save last text length
-	draw_text_wdt = text_wdt;
+	text_px_old = text_px;
 }
 /* ------------------------------------------------------------------ */
 } /* namespace gui */

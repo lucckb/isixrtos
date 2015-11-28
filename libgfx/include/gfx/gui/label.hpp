@@ -41,7 +41,7 @@ protected:
 private:
 	static constexpr auto c_default = -1;
 	detail::string m_caption;
-	coord_t draw_text_wdt;
+	coord_t text_px_old = 0;
 	bool m_sel_color {};
 	unsigned m_flags {};
 };
