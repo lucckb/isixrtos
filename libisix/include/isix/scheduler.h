@@ -87,9 +87,11 @@ namespace {
 	inline void start_scheduler() {
 		isix_start_scheduler();
 	}
+#ifdef ISIX_CONFIG_SHUTDOWN_API
 	inline void shutdown_scheduler() {
 		::isix_shutdown_scheduler();
 	}
+#endif
 	inline void init( osprio_t num_priorities ) {
 		::isix_init( num_priorities );	
 	}
