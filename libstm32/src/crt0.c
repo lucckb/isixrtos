@@ -5,7 +5,6 @@
 
 //Cortex startup file based on STM32 code
 
-/*----------------------------------------------------------*/
 extern unsigned long _etext;
 extern unsigned long _sidata;		/* start address for the initialization values
                                    of the .data section. defined in linker script */
@@ -21,28 +20,21 @@ extern unsigned long _ebss;			/* end address for the .bss section. defined in
 extern unsigned long _estack;	   /* init value for the stack pointer. defined in linker script */
 
 
-/*----------------------------------------------------------*/
 
 static void reset_handler(void) __attribute__((__interrupt__,noreturn));
-
 extern int main(void);
 
-/*----------------------------------------------------------*/
 static void unused_vector(void) __attribute__((__interrupt__,noreturn));
 //Unused vector dummy function
 static void unused_vector() { while(1); }
 
-/*----------------------------------------------------------*/
 typedef void(*vect_fun_t)(void);
 
-/*----------------------------------------------------------*/
 #define DEFINE_INTERRUPT_HANDLER( handler_name ) void handler_name(void) __attribute__ ((interrupt, weak, alias("unused_vector")))
 #define DEFINE_REAL_INTERRUPT_HANDLER( handler_name )  void handler_name(void) __attribute__ ((interrupt))
-/*----------------------------------------------------------*/
 #if defined(COMPILED_UNDER_ISIX) && defined(FUNCTION_MAIN_RETURN)
 void  __attribute__((weak,alias("empty_func")))_isixp_finalize();
 #endif
-/*----------------------------------------------------------*/
 DEFINE_INTERRUPT_HANDLER(nmi_exception_vector);
 DEFINE_INTERRUPT_HANDLER(hard_fault_exception_vector);
 DEFINE_INTERRUPT_HANDLER(mem_manage_exception_vector);
@@ -197,7 +189,6 @@ DEFINE_INTERRUPT_HANDLER(exti15_isr_vector);
 
 #undef DEFINE_INTERRUPT_HANDLER
 #undef DEFINE_REAL_INTERRUPT_HANDLER
-/*---------------------------------------------------------*/
 #if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 //Interrupt vector table
 __attribute__ ((section(".isr_vector")))
@@ -467,10 +458,8 @@ const vect_fun_t const exceptions_vectors[] =
   };
 
 #endif /* defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || (defined STM32F10X_HD_VL) */
-/*----------------------------------------------------------*/
 #ifdef CPP_STARTUP_CODE	/* Include cpp startup code */
 
-/*----------------------------------------------------------*/
 #if !defined(__ARM_EABI__)
 
 typedef void(ctors_t)(void);
@@ -479,7 +468,6 @@ extern ctors_t *__ctors_end__;		/* Constructor end */
 extern ctors_t *__dtors_start__;		/* Constructor start */
 extern ctors_t *__dtors_end__;		/* Constructor end */
 
-/*----------------------------------------------------------*/
 static void crt0_sys_construction(void)
 {
     //Call constructors
@@ -488,7 +476,6 @@ static void crt0_sys_construction(void)
             (**(cons))();
 }
 #endif
-/*----------------------------------------------------------*/
 #if defined(FUNCTION_MAIN_RETURN) && !defined(__ARM_EABI__)
 static void crt0_sys_destruction(void)
 {
@@ -499,11 +486,9 @@ static void crt0_sys_destruction(void)
         (**(cons))();
 }
 #endif
-/*----------------------------------------------------------*/
 /*only the address of this symbol is taken by gcc*/
 void *__dso_handle = (void*) &__dso_handle;
 
-/*----------------------------------------------------------*/
 #ifdef FUNCTION_MAIN_RETURN
 struct cxa_object
 {
@@ -567,7 +552,6 @@ void _external_exit(void) __attribute__ ((weak, alias("empty_func")));
 #endif /* CPP_STARTUP_CODE */
 
 
-/*----------------------------------------------------------*/
 //Default reset handler
 void reset_handler(void)
 {
@@ -629,7 +613,6 @@ void reset_handler(void)
     while(1);
 }
 
-/*----------------------------------------------------------*/
 //EXTI pending register for route interrupt
 #if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 #define EXTI_PR (*((volatile unsigned long*)(0x40000000 + 0x00010000 + 0x3C00 + 0x14)))
@@ -694,4 +677,3 @@ void exti15_10_isr_vector(void)
 }
 #undef EXTI_PR
 #undef EXTI_PEND
-/*----------------------------------------------------------*/
