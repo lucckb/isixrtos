@@ -20,7 +20,7 @@ endif
 
 #CROSS COMPILE
 CROSS_COMPILE ?= arm-none-eabi-
-#Definicje programow
+# Cross compile stuff
 CC_V     	:= $(CROSS_COMPILE)gcc
 CXX_V	  	:= $(CROSS_COMPILE)g++
 AR_V      	:= $(CROSS_COMPILE)ar
@@ -141,20 +141,18 @@ endif
 CXXFLAGS+= $(COMMON_FLAGS)
 CFLAGS+= $(COMMON_FLAGS)
 
-ifeq ($(SMALL_WORK_AREA),y)
-OCDSCRIPT_FILE=stm32small.cfg
-else
-ifeq ($(MCU_MAJOR_TYPE),f4)
-OCDSCRIPT_FILE=stm32f4x.cfg
+#Assume default programmer
+PGM_TYPE?=BF30
+PGM_CMDLINE_CFG:='set ISIX_INTERFACE $(PGM_TYPE); 
+PGM_CMDLINE_CFG+=set ISIX_INTERFACE_TARGET stm32$(MCU_MAJOR_TYPE)x; 
+ifeq ($(PGM_SWD),y)
+PGM_CMDLINE_CFG+=set ISIX_INTERFACE_SWD 1; 
 endif
-ifeq ($(MCU_MAJOR_TYPE),f2)
-OCDSCRIPT_FILE=stm32f2x.cfg
+ifdef PGM_SPEED_KHZ
+PGM_CMDLINE_CFG+=set ISIX_INTERFACE_SPEED_KHZ $(PGM_SPEED_KHZ); 
 endif
-ifeq ($(MCU_MAJOR_TYPE),f1)
-OCDSCRIPT_FILE=stm32.cfg
-endif
-endif
-OCDSCRIPT_FILE ?= stm32.cfg
+PGM_CMDLINE_CFG+='
+
 
 ifdef MCU_SYSTEM_STACK_SIZE
 LDFLAGS += -Wl,--defsym=_sys_stack_size=$(MCU_SYSTEM_STACK_SIZE)
@@ -179,12 +177,15 @@ clean:
 
 
 program: $(TARGET).elf
-	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c "program $(TARGET).elf verify reset"  -c shutdown
+	$(JTAGPROG) -c $(PGM_CMDLINE_CFG) -f $(SCRIPTS_DIR)/stm32.cfg -c "program $(TARGET).elf verify reset"  -c shutdown
 
 .PHONY : devrst
 devrst:
-	$(JTAGPROG) -f $(SCRIPTS_DIR)/$(OCDSCRIPT_FILE) -c init -c reset run -c shutdown
+	$(JTAGPROG) -c $(PGM_CMDLINE_CFG) -f $(SCRIPTS_DIR)/stm32.cfg -c init -c reset run -c shutdown
 
+.PHONY : devdbg
+devdbg:
+	@echo "openocd -c $(PGM_CMDLINE_CFG) -f $(SCRIPTS_DIR)/stm32.cfg"
 
 ifeq ($(LIBRARY),y)
 build:	target  

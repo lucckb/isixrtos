@@ -1,8 +1,0 @@
-reset halt
-sleep 100
-wait_halt
-sleep 100
-flash probe 0
-sleep 200
-flash info 0
-sleep 10
