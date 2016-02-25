@@ -20,9 +20,9 @@ extern unsigned long _estack;	   /* init value for the stack pointer. defined in
 
 #define ISR_VECTOR( handler_name ) void handler_name(void) \
 	__attribute__ ((interrupt, weak, alias("unused_vector")))
-#define ISR_VECTOR_FORCED( handler_name )  void handler_name(void) __attribute__ ((interrupt))
+#define ISR_VECTOR_FORCED( handler_name )  \
+	void handler_name(void) __attribute__ ((interrupt))
 
-\
 
 extern void _mcu_reset_handler_(void) __attribute__((interrupt,noreturn));
 static void unused_vector(void) __attribute__((interrupt,noreturn));
