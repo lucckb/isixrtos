@@ -185,7 +185,7 @@ devrst:
 
 .PHONY : devdbg
 devdbg:
-	@echo "openocd -c $(PGM_CMDLINE_CFG) -f $(SCRIPTS_DIR)/stm32.cfg"
+	@echo "openocd -c $(PGM_CMDLINE_CFG) -f $(realpath $(SCRIPTS_DIR)/stm32.cfg)"
 
 ifeq ($(LIBRARY),y)
 build:	target  

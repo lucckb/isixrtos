@@ -32,6 +32,11 @@ COMMON_FLAGS+= -D_HAVE_CONFIG_H -I./include -DFUNCTION_MAIN_RETURN
 #only for f1 lib
 #COMMON_FLAGS +=-DSTM32F10X_CL
 
+#Use SWD programmer
+PGM_SWD = y
+PGM_SPEED_KHZ=3000
+
+
 #C compiler options
 CFLAGS += $(COMMON_FLAGS)
 CFLAGS += -std=gnu11
