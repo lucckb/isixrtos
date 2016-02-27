@@ -34,7 +34,7 @@ COMMON_FLAGS+= -D_HAVE_CONFIG_H -I./include -DFUNCTION_MAIN_RETURN
 
 #Use SWD programmer
 PGM_SWD = y
-PGM_SPEED_KHZ=3000
+PGM_SPEED_KHZ=2000
 
 
 #C compiler options

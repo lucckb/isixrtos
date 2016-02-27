@@ -78,16 +78,16 @@ void task_tests::basic_funcs()
 	auto t2 = new base_task_tests;
 	auto t3 = new base_task_tests;
 	auto t4 = new base_task_tests; 
+	auto p1 = isix_alloc(16);
+	auto p2 = isix_alloc(16);
+	auto p3 = isix_alloc(16);
+	auto p4 = isix_alloc(16);
 	t1->start(); t2->start(); t3->start(); t4->start();
 	//Try set private data
-	QUNIT_IS_EQUAL( isix_set_task_private_data(t1->get_taskid(), 
-				reinterpret_cast<void*>(1)), ISIX_EOK );
-	QUNIT_IS_EQUAL( isix_set_task_private_data(t2->get_taskid(), 
-				reinterpret_cast<void*>(2)), ISIX_EOK );
-	QUNIT_IS_EQUAL( isix_set_task_private_data(t3->get_taskid(), 
-				reinterpret_cast<void*>(3)), ISIX_EOK );
-	QUNIT_IS_EQUAL( isix_set_task_private_data(t4->get_taskid(), 
-				reinterpret_cast<void*>(4)), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_set_task_private_data(t1->get_taskid(), p1), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_set_task_private_data(t2->get_taskid(), p2), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_set_task_private_data(t3->get_taskid(), p3), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_set_task_private_data(t4->get_taskid(), p4), ISIX_EOK );
 	//Active wait tasks shouldnt run
 	for(auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+5000; ) {
 		asm volatile("nop\n");
@@ -127,10 +127,11 @@ void task_tests::basic_funcs()
 	QUNIT_IS_TRUE( t4->exec_count()>0 );
 	
 	//After finish all tasks check private data
-	QUNIT_IS_EQUAL( isix_get_task_private_data(t1->get_taskid()), reinterpret_cast<void*>(1) );
-	QUNIT_IS_EQUAL( isix_get_task_private_data(t2->get_taskid()), reinterpret_cast<void*>(2) );
-	QUNIT_IS_EQUAL( isix_get_task_private_data(t3->get_taskid()), reinterpret_cast<void*>(3) );
-	QUNIT_IS_EQUAL( isix_get_task_private_data(t4->get_taskid()), reinterpret_cast<void*>(4) );
+	QUNIT_IS_EQUAL( isix_get_task_private_data(t1->get_taskid()), p1 );
+	QUNIT_IS_EQUAL( isix_get_task_private_data(t2->get_taskid()), p2 );
+	QUNIT_IS_EQUAL( isix_get_task_private_data(t3->get_taskid()), p3 );
+	QUNIT_IS_EQUAL( isix_get_task_private_data(t4->get_taskid()), p4 );
+
 	
 	//Validate stack space functionality
 	QUNIT_IS_TRUE( isix_free_stack_space(t1->get_taskid()) > MIN_STACK_FREE  );
