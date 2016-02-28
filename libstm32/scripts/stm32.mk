@@ -140,6 +140,7 @@ LDFLAGS+= -Wl,--gc-sections -flto
 endif
 CXXFLAGS+= $(COMMON_FLAGS)
 CFLAGS+= $(COMMON_FLAGS)
+CFLAGS += -std=gnu11
 
 #Assume default programmer
 PGM_TYPE?=BF30

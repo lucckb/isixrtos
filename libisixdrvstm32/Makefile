@@ -16,7 +16,6 @@ COMMON_FLAGS = -Wall -I./include -I../isix/include
 
 #Opcje kompilatora C
 CFLAGS += $(COMMON_FLAGS)
-CFLAGS += -std=gnu99 
 
 #Opcje kompilatora C++
 CXXFLAGS += $(COMMON_FLAGS)

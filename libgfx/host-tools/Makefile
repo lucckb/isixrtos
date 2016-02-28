@@ -1,4 +1,3 @@
-CFLAGS += --std=gnu99 -Wall -O2 -pedantic -g
 CXXFLAGS += --std=c++11 -Wall -O2 -pedantic -g
 LDFLAGS += -s
 

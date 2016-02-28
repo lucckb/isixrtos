@@ -39,7 +39,6 @@ PGM_SPEED_KHZ=2000
 
 #C compiler options
 CFLAGS += $(COMMON_FLAGS)
-CFLAGS += -std=gnu11
 
 #C++ compiler options 
 CXXFLAGS += $(COMMON_FLAGS)

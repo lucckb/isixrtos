@@ -1419,10 +1419,7 @@ int stm32_emac_netif_shutdown( struct netif *netif )
 	 int ret_code = ERR_OK;
 	 if( netif_task_id )
 	 {
-		 if ( isix_task_delete( netif_task_id ) )
-		 {
-			 ret_code = ERR_IF;
-		 }
+		 isix_task_kill( netif_task_id );
 		 netif_task_id = NULL;
 	 }
 	 else

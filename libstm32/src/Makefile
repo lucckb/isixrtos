@@ -17,7 +17,6 @@ COMMON_FLAGS = -Wall -I../inc -DCPP_STARTUP_CODE  -I../../libfoundation/include
 
 #Opcje kompilatora C
 CFLAGS += $(COMMON_FLAGS)
-CFLAGS += -std=gnu99 
 
 #Opcje kompilatora C++
 CXXFLAGS += $(COMMON_FLAGS)

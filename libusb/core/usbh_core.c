@@ -127,10 +127,10 @@ static void USBHcoreDeInit(void) {
 
   Device.speed = NO_SPEED;
   Device.visible_state = DISCONNECTED;
-  isix_sem_get_isr( devrdy_sem );
+  isix_sem_trywait( devrdy_sem );
   Device.address = 0;
   memset(&Device.dev_desc, 0, sizeof(usb_device_descriptor_t));
-  isix_sem_get_isr( notify_sem );
+  isix_sem_trywait( notify_sem );
 }
 
 /* This function is called only once at configuration phase.
@@ -568,7 +568,7 @@ int usbh_control_request(int synch, usb_setup_packet_t const *setup,
       return USBHLIB_ERROR_BUSY;
     }
     else {
-      isix_sem_get_isr( notify_sem );
+      isix_sem_trywait( notify_sem );
       USBHsubmitControlRequest(setup, buffer);
       /*if (Machine.control.state != CTRL_DONE)*/ {
         usbhp_unprotect_interrupt(x);
