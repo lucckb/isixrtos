@@ -18,7 +18,7 @@ extern "C" {
 enum isix_task_flags {
 	isix_task_flag_newlib = 1U,		//! Uses per thread new lib data for ex errno
 	isix_task_flag_suspended = 2U,	//! Create task suspended
-	isix_task_flag_tcpip = 4U,
+	isix_task_flag_tcpip = 4U,		//! tcpip thread flag
 };
 
 /** Create the task function (System thread)
@@ -76,7 +76,7 @@ ostask_t isix_task_self(void);
 /* Isix set private data task
  * This function assign private data to the current task control block
  * The data can be assigned only once. The memory pointer should be
- * allocated on the heap with @see isix_alloc. Memory will be deleted automaticaly
+ * allocated on the heap using @see isix_alloc. Memory will be freed 
  * when task will be deleted.
  * @param [in] task Task control object
  * @param [in] data Private data pointer assigned to the task
