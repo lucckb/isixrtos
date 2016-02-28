@@ -34,23 +34,6 @@ namespace isix {
 		* @param[in] stack_depth Stack depth of the thread/task
 		* @param[in] priority Thread/task priority
 		*/
-#ifdef WITH_ISIX_TCPIP_LIB
-		void start_thread( std::size_t stack_depth, osprio_t priority, unsigned flags=0 )
-		{
-			task_id = isix_task_create( start_task, this, stack_depth, priority, flags );
-		}
-		void start_tcpip_thread( std::size_t stack_depth, osprio_t priority )
-		{
-			task_id = isix_task_create_tcpip( start_task, this, stack_depth, priority );
-		}
-		virtual ~task_base()
-		{
-			if( task_id ) {
-				isix_task_delete_tcpip(task_id);
-				task_id = nullptr;
-			}
-		}
-#else
 		void start_thread(std::size_t stack_depth, osprio_t priority, unsigned flags=0)
 		{
 			task_id = isix_task_create( start_task, this, stack_depth, priority, flags );
@@ -62,7 +45,6 @@ namespace isix {
 				task_id = nullptr;
 			}
 		}
-#endif
 		/** Get thread task id
 		* @return Task control object
 		*/
