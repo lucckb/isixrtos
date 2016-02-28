@@ -17,8 +17,10 @@ extern "C" {
 //! Special flags for task create
 enum isix_task_flags {
 	isix_task_flag_newlib = 1U,		//! Uses per thread new lib data for ex errno
-	isix_task_flag_suspended = 2U	//! Create task suspended
+	isix_task_flag_suspended = 2U,	//! Create task suspended
+	isix_task_flag_tcpip = 4U,
 };
+
 /** Create the task function (System thread)
  * @param[in] task_func Pointer to the thread function
  * @param[in] func_param Function parameter
@@ -26,8 +28,30 @@ enum isix_task_flags {
  * @param[in] priority The task priority
  * @param[in] flags extra flags for control task parameters
  * @return Task control object, or NULL when task can't be created */
-ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
+ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param, 
 		unsigned long stack_depth, osprio_t priority, unsigned long flags );
+
+#ifndef WITH_ISIX_TCPIP_LIB
+inline __attribute__((always_inline)) 
+ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
+		unsigned long stack_depth, osprio_t priority, unsigned long flags )
+{
+	return _isixp_task_create( task_func, func_param, stack_depth, priority, flags );
+}
+#else /* defined WITH_ISIX_TCPIP_LIB */
+ostask_t sys_thread_new(const char *name, task_func_ptr_t thread,  
+		void *arg, int stacksize, int prio );
+inline __attribute__((always_inline)) 
+ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
+		unsigned long stack_depth, osprio_t priority, unsigned long flags )
+{
+	if( flags & isix_task_flag_tcpip ) 
+		return sys_thread_new( NULL, task_func, func_param, stack_depth, priority );
+	else
+		return _isixp_task_create( task_func, func_param, stack_depth, priority, flags );
+}
+#endif /* defined WITH_ISIX_TCPIP_LIB */ 
+
 
 /** Change the task/thread priority
  * @param[in] task Task pointer structure if NULL change the current prio
@@ -100,21 +124,6 @@ int isix_task_resume( ostask_t task );
 enum osthr_state isix_get_task_state( const ostask_t task );
 
 
-#ifdef WITH_ISIX_TCPIP_LIB
-ostask_t sys_thread_new(const char *name, task_func_ptr_t thread,  void *arg, int stacksize, int prio);
-/* Isix task create TCPIP version for usage with the TCPIP stack */
-static inline ostask_t isix_task_create_tcpip(task_func_ptr_t task_func, 
-		void *func_param, unsigned long stack_depth, osprio_t priority )
-{
-	return sys_thread_new( NULL, task_func, func_param, stack_depth, priority );
-}
-
-/* Isix task delete TCPIP version */
-static inline void isix_task_delete_tcpip(ostask_t task)
-{
-	isix_task_kill( task );
-}
-#endif /* WITH_ISIX_TCPIP_LIB */
 
 
 #ifdef __cplusplus
@@ -132,15 +141,6 @@ namespace {
 		return ::isix_task_create( task_func, func_param, stack_depth,
 				priority, flags );
 	}
-
-#ifdef WITH_ISIX_TCPIP_LIB
-	/* Isix task create TCPIP version for usage with the TCPIP stack */
-	static inline ostask_t task_create_tcpip(task_func_ptr_t task_func, 
-			void *func_param, unsigned long stack_depth, osprio_t priority )
-	{
-		return ::isix_task_create_tcpip(task_func,func_param, stack_depth, priority );
-	}
-#endif
 	inline int task_change_prio( ostask_t task, osprio_t new_prio ) {
 		return ::isix_task_change_prio( task, new_prio );
 	}

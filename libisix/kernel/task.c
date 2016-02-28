@@ -19,7 +19,7 @@
 enum { MAGIC_FILL_VALUE = 0x55 };
 
 /* Create task function */
-ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
+ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param, 
 		unsigned long  stack_depth, osprio_t priority, unsigned long flags )
 {
 	pr_info("tskcreate: Create task with prio %i",priority);
