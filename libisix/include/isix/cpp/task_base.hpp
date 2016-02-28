@@ -71,6 +71,13 @@ namespace isix {
 		* @return True when the object is in valid state
 		*/
 		bool is_valid() { return task_id!=0; }
+		
+
+		task_base(const task_base&) = delete;
+		task_base(task_base&&) = default;
+		const task_base& operator=(const task_base&) = delete;
+		task_base& operator=(task_base&&) = delete;
+
 	protected:
 		/** Pure virtual method for the object main thread */
 		virtual void main() = 0;
@@ -80,9 +87,6 @@ namespace isix {
 			static_cast<task_base*>(ptr)->main();
 			static_cast<task_base*>(ptr)->task_id = NULL;
 		}
-	private:
-		task_base(const task_base&);
-		task_base& operator=(const task_base&);
 	private:
 		ostask_t task_id;
 	}; 

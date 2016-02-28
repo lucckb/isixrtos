@@ -19,3 +19,4 @@
 #include <isix/cpp/semaphore.hpp>
 #include <isix/cpp/task_base.hpp>
 #include <isix/cpp/events.hpp>
+#include <isix/cpp/thread11.hpp>

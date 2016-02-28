@@ -241,5 +241,23 @@ void task_tests::cpuload_test()
 }
 #endif
 
+
+void task_tests::thread_test()
+{
+	bool finished = false;
+	auto thr1 = isix::thread_create( 1024, 3, 0,
+		[&]( volatile bool &a, int b ) { 
+			QUNIT_IS_EQUAL( b, 15 );	
+			isix::wait_ms( 100 );
+			a = true;
+		},
+		std::ref(finished),
+		15
+	);
+	isix::wait_ms( 200 );
+	QUNIT_IS_TRUE( finished );
+}
+
+
 }	// Namespace test end
 
