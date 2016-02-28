@@ -245,7 +245,7 @@ void task_tests::cpuload_test()
 void task_tests::thread_test()
 {
 	bool finished = false;
-	auto thr1 = isix::thread_create( 1024, 3, 0,
+	auto thr1 = isix::thread_create_and_run( 1024, 3, 0,
 		[&]( volatile bool &a, int b ) { 
 			QUNIT_IS_EQUAL( b, 15 );	
 			isix::wait_ms( 100 );

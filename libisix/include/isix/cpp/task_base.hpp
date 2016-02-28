@@ -27,9 +27,9 @@ namespace isix {
 	{
 	public:
 		/** Default constructor (empty) */
-		task_base()
-			: task_id(NULL)
-		{}
+		task_base() {
+
+		}
 		/** Construct the task
 		* @param[in] stack_depth Stack depth of the thread/task
 		* @param[in] priority Thread/task priority
@@ -85,10 +85,10 @@ namespace isix {
 		static void start_task(void *ptr)
 		{
 			static_cast<task_base*>(ptr)->main();
-			static_cast<task_base*>(ptr)->task_id = NULL;
+			static_cast<task_base*>(ptr)->task_id = nullptr;
 		}
 	private:
-		ostask_t task_id;
+		ostask_t task_id { nullptr };
 	}; 
 
 }
