@@ -13,7 +13,7 @@
 #include <usb_hcd_int.h>
 #include <foundation/dbglog.h>
 #include <isix.h>
-#include <prv/list.h>
+#include <isix/prv/list.h>
 #include <string.h>
 #ifdef _HAVE_CONFIG_H
 #include "config.h"
@@ -144,17 +144,17 @@ struct usbpkt_buf
 typedef struct usbpkt_buf usbpkt_buf_t;
 /* ------------------------------------------------------------------ */
 //TX fifo packet hdr
-static fifo_t* tx_fifo;
+static osfifo_t tx_fifo;
 //TX mempool
-static isix_mempool_t tx_mempool;
+static osmempool_t tx_mempool;
 //RX fifo packet hdr
-static fifo_t* rx_fifo;
+static osfifo_t rx_fifo;
 //RX mempool
-static isix_mempool_t rx_mempool;
+static osmempool_t rx_mempool;
 //API lock sem
-static sem_t* lock_sem;
+static ossem_t lock_sem;
 //Sem for wait for activate USB device
-static sem_t *usb_ready_sem;
+static ossem_t usb_ready_sem;
 //Actually processed packet
 static usbpkt_buf_t *tx_proc_pkt;
 
@@ -266,7 +266,7 @@ static void device_configured_cb(void)
 /* ------------------------------------------------------------------ */
 static void device_suspended_cb(void)
 {
-	isix_sem_get_isr( usb_ready_sem );
+	isix_sem_trywait( usb_ready_sem );
 	flush_tx_data();
 }
 /* ------------------------------------------------------------------ */
@@ -278,7 +278,7 @@ static void device_resumed_cb(void)
 /* ------------------------------------------------------------------ */
 static void device_disconnected_cb(void)
 {
-	isix_sem_get_isr( usb_ready_sem );
+	isix_sem_trywait( usb_ready_sem );
 	flush_tx_data();
 }
 
