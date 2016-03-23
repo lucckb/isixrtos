@@ -1,12 +1,12 @@
 /*
- * fir_decimate.hpp
+ * fir.hpp
  *
  *  Created on: 22-04-2013
  *      Author: lucck
  */
 /* ------------------------------------------------------------------------- */
-#ifndef DSP_FIR_DECIMATE_HPP_
-#define DSP_FIR_DECIMATE_HPP_
+#ifndef DSP_FIR_HPP_
+#define DSP_FIR_HPP_
 /* ------------------------------------------------------------------------- */
 #include <array>
 #include <cmath>
@@ -62,11 +62,11 @@ namespace integer
  * N  - decimate length
  */
 template<typename DT, typename CT, size_t TAPS, typename ACC = DT>
-class fir_decimate
+class fir
 {
 
 public:
-	explicit constexpr fir_decimate( const CT * const coefs )
+	explicit constexpr fir( const CT * const coefs )
         : m_coefs( coefs ), m_state()
 	{       
 	}
@@ -106,6 +106,6 @@ private:
 /* ------------------------------------------------------------------------- */
 }
 /* ------------------------------------------------------------------------- */
-#endif /* DSP_FIR_DECIMATE_HPP_ */
+#endif /* DSP_FIR_HPP_ */
 
 /* ------------------------------------------------------------------------- */
