@@ -19,5 +19,6 @@
 #pragma once
 #include <stdbool.h>
 #include "stm32f37x.h"
+#include "stm32f37x_rcc.h"
 #include "misc.h"
 //TODO: More headers

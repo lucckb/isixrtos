@@ -505,18 +505,18 @@ static inline void rcc_mco2_config(uint32_t RCC_MCO2Source, uint32_t RCC_MCO2Div
   *            @arg RCC_SYSCLKSource_PLLCLK: PLL selected as system clock source
   * @retval None
   */
-static inline void rcc_sysclk_config(uint32_t RCC_SYSCLKSource)
+static inline void rcc_sysclk_config(uint32_t rcc_sysclksource)
 {
-  uint32_t tmpreg = RCC->CFGR;
+  uint32_t tmpreg = rcc->cfgr;
 
-  /* Clear SW[1:0] bits */
-  tmpreg &= ~RCC_CFGR_SW;
+  /* clear sw[1:0] bits */
+  tmpreg &= ~rcc_cfgr_sw;
 
-  /* Set SW[1:0] bits according to RCC_SYSCLKSource value */
-  tmpreg |= RCC_SYSCLKSource;
+  /* set sw[1:0] bits according to rcc_sysclksource value */
+  tmpreg |= rcc_sysclksource;
 
-  /* Store the new value */
-  RCC->CFGR = tmpreg;
+  /* store the new value */
+  rcc->cfgr = tmpreg;
 }
 
 /**
@@ -1377,7 +1377,8 @@ enum e_sysclk_mode
  * @retval best fit frequency
  *
  */
-static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, uint32_t crystal, uint32_t frequency)
+static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, 
+		uint32_t crystal, uint32_t frequency)
 {
 #ifdef __cplusplus
 	static const uint32_t RCC_PLLCFGR_PLLM_bit          =                  0;
