@@ -236,8 +236,6 @@
 #define RCC_LSE_ON                       RCC_BDCR_LSEON
 #define RCC_LSE_Bypass                   ((uint32_t)(RCC_BDCR_LSEON | RCC_BDCR_LSEBYP))
 
-  * @}
-  */
 
 /** @defgroup RCC_RTC_Clock_Source
   * @{

@@ -1,4 +1,14 @@
+#ADC driver is deprecated only F1,F2,F4 is supported but not recommended
+ifeq ($(MCU_MAJOR_TYPE),f1)
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/adc_converter.cpp
+endif
+ifeq ($(MCU_MAJOR_TYPE),f2)
+ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/adc_converter.cpp
+endif
+ifeq ($(MCU_MAJOR_TYPE),f4)
+ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/adc_converter.cpp
+endif
+
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/usart_buffered.cpp
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/i2c_bus.cpp
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/stm32_spi_master.cpp
