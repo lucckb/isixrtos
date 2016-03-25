@@ -7,16 +7,14 @@
 
 #ifndef GPIO_F4X_H_
 #define GPIO_F4X_H_
-/*----------------------------------------------------------*/
 
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32lib.h"
-/*----------------------------------------------------------*/
+
 #ifdef __cplusplus
 namespace stm32 {
 #endif
-/*----------------------------------------------------------*/
 
 /** GPIO bits macros */
 enum e_gpio_mode
@@ -63,32 +61,27 @@ enum e_gpio_pullup
 	GPIO_PUPD_PULLDOWN 	= 2
 };
 
-/*----------------------------------------------------------*/
 //! Set GPIO bit macro
 static inline void gpio_set(GPIO_TypeDef* port , unsigned bit)
 {
 	port->BSRRL = 1<<bit;
 }
-/*----------------------------------------------------------*/
 //! Clear GPIO bit macro
 static inline void gpio_clr(GPIO_TypeDef* port , unsigned bit)
 {
 	port->BSRRH = 1<<bit;
 }
-/*----------------------------------------------------------*/
 //! Set by the mask
 static inline void gpio_set_mask(GPIO_TypeDef* port , uint16_t bitmask)
 {
 	//Uggly hack for complette 32 bit reg
 	port->BSRRL = bitmask;
 }
-/*----------------------------------------------------------*/
 //! Clear GPIO bit mask
 static inline void gpio_clr_mask(GPIO_TypeDef* port , uint16_t bitmask)
 {
 	port->BSRRH = bitmask;
 }
-/*----------------------------------------------------------*/
 //! set clr in one op
 static inline void gpio_set_clr_mask(GPIO_TypeDef* port , uint16_t enflags, uint16_t mask)
 {
@@ -96,20 +89,17 @@ static inline void gpio_set_clr_mask(GPIO_TypeDef* port , uint16_t enflags, uint
 	__IO uint32_t * const BSRR = (__IO uint32_t*)&port->BSRRL;
 	*BSRR = (uint32_t)(enflags & mask) | ((uint32_t)( ~enflags & mask)<<16);
 }
-/*----------------------------------------------------------*/
 //! Get GPIO bit macro
 //#define io_get(PORT,BIT) (((PORT)->IDR & (1<<(BIT)))?1:0)
 static inline bool gpio_get(GPIO_TypeDef* port , unsigned bit)
 {
 	return (port->IDR >> (bit))&1;
 }
-/*----------------------------------------------------------*/
 //! Get GPIO bit mask
 static inline uint16_t gpio_get_mask(GPIO_TypeDef* port , uint16_t bitmask)
 {
 	return port->IDR & bitmask;
 }
-/*----------------------------------------------------------*/
 /**
  * 	Configure GPIO line into selected mode
  *	@param[in] port Port to configure
@@ -148,7 +138,6 @@ static inline void gpio_config(GPIO_TypeDef* port, uint8_t bit , uint16_t mode, 
 	port->PUPDR |= ((uint32_t)pullup & C_mode_mask) << (2*bit);
 }
 
-/*----------------------------------------------------------*/
 enum gpio_port_source
 {
 	GPIO_PortSourceGPIOA   =    0x00,
@@ -180,7 +169,6 @@ enum gpio_pin_source
 	GPIO_PinSource14    =       0x0E,
 	GPIO_PinSource15    =       0x0F
 };
-/*----------------------------------------------------------*/
 //GPIO alternate functions
 enum { GPIO_AF_RTC_50Hz = 0   };  /* RTC_50Hz Alternate Function mapping */
 enum { GPIO_AF_MCO      = 0   };  /* MCO (MCO1 and MCO2) Alternate Function mapping */
@@ -269,7 +257,6 @@ enum {  GPIO_AF_EVENTOUT   =    0x0F };  /* EVENTOUT Alternate Function mapping 
 
 
 
-/*----------------------------------------------------------*/
 
 /**
   * @brief  Selects the GPIO pin used as EXTI Line.
@@ -287,7 +274,6 @@ static inline void gpio_exti_line_config(uint8_t GPIO_PortSource, uint8_t GPIO_P
   SYSCFG->EXTICR[GPIO_PinSource >> 0x02] |= (((uint32_t)GPIO_PortSource) << (0x04 * (GPIO_PinSource & (uint8_t)0x03)));
 }
 
-/*----------------------------------------------------------*/
 /**
  * 	Configure GPIO line into selected mode
  *	@param[in] port Port to configure
@@ -312,7 +298,6 @@ static inline void gpio_config_ext(GPIO_TypeDef* port, uint16_t bit, uint16_t mo
 		}
 	}
 }
-/*----------------------------------------------------------*/
 /**
   * @brief  Locks GPIO Pins configuration registers.
   * @note   The locked registers are GPIOx_MODER, GPIOx_OTYPER, GPIOx_OSPEEDR,
@@ -339,7 +324,6 @@ static inline void gpio_pin_lock_config(GPIO_TypeDef* port, uint16_t bit )
 	 tmp = port->LCKR;
 
 }
-/*----------------------------------------------------------*/
 /**
   * @brief  Changes the mapping of the specified pin.
   * @param  GPIOx: where x can be (A..I) to select the GPIO peripheral.
@@ -389,7 +373,6 @@ static inline void gpio_pin_lock_config(GPIO_TypeDef* port, uint16_t bit )
   *            @arg GPIO_AF_EVENTOUT: Connect EVENTOUT pins to AF15
   * @retval None
   */
-/*----------------------------------------------------------*/
 /** Setup alternate function for the pin
  * @param[in] GPIOx Gpio port
  * @param[in] GPIO_PinSource Pin number
@@ -404,12 +387,10 @@ static inline void gpio_pin_AF_config(GPIO_TypeDef* GPIOx, uint16_t GPIO_PinSour
   uint32_t temp_2 = GPIOx->AFR[GPIO_PinSource >> 0x03] | temp;
   GPIOx->AFR[GPIO_PinSource >> 0x03] = temp_2;
 }
-/*----------------------------------------------------------*/
 #ifdef __cplusplus
 namespace _internal {
 namespace gpio_f4 {
 #endif
-/*----------------------------------------------------------*/
 //Internal port to number conversion
 static inline int _gpio_clock_port_to_number( GPIO_TypeDef* port )
 {
@@ -424,11 +405,9 @@ static inline int _gpio_clock_port_to_number( GPIO_TypeDef* port )
 	else if ( port == GPIOI ) return RCC_AHB1ENR_GPIOIEN;
 	else return -1;
 }
-/*----------------------------------------------------------*/
 #ifdef __cplusplus
 }}
 #endif
-/*----------------------------------------------------------*/
 
 /*** Enable or disable CLK for selected port
  * @param[in] port GPIO porrt
@@ -447,10 +426,7 @@ static inline void gpio_clock_enable( GPIO_TypeDef* port, bool enable )
 	else
 		RCC->AHB1ENR &=  ~_gpio_clock_port_to_number( port );
 }
-/*----------------------------------------------------------*/
 #ifdef __cplusplus
 }
 #endif
-/*----------------------------------------------------------*/
 #endif /* GPIO_F1X_H_ */
-/*----------------------------------------------------------*/
