@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 
-#ifndef STM32RCC_H_
-#define STM32RCC_H_
+#pragma once
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 #include "stm32f1xx/stm32rcc.h"
@@ -18,5 +17,3 @@
 #error "Unknown device type"
 #endif
 
-
-#endif /* STM32DMA_H_ */

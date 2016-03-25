@@ -8,19 +8,19 @@
 #ifndef STM32F1_STM32RCC_H_
 #define STM32F1_STM32RCC_H_
 
-/* ---------------------------------------------------------------------------- */
+
 #include <stm32f1xx/stm32f10x_lib.h>
 #include <stddef.h>
 #include "stm32f10x_rcc.h"
-/* ---------------------------------------------------------------------------- */
+
 #ifdef __cplusplus
  namespace stm32 {
 #endif
- /* ---------------------------------------------------------------------------- */
+ 
 #ifdef __cplusplus
 namespace _internal {
 namespace rcc {
-/* ------------ RCC registers bit address in the alias region ----------- */
+
 static const uint32_t RCC_OFFSET         =       (RCC_BASE - PERIPH_BASE);
 /* --- CR Register ---*/
 /* Alias word address of HSION bit */
@@ -74,7 +74,7 @@ static const uint32_t CSR_LSION_BB        =      (PERIPH_BB_BASE + (CSR_OFFSET *
  static const uint32_t I2S3SRC_BitNumber    =     0x12;
  static const uint32_t CFGR2_I2S3SRC_BB     =     (PERIPH_BB_BASE + (CFGR2_OFFSET * 32) + (I2S3SRC_BitNumber * 4));
 #endif /* STM32F10X_CL */
-/* ---------------------- RCC registers bit mask ------------------------ */
+
 /* CR register bit mask */
 static const uint32_t CR_HSEBYP_Reset    =      0xFFFBFFFF;
 static const uint32_t CR_HSEBYP_Set      =      0x00040000;
@@ -126,7 +126,7 @@ static const uint32_t BDCR_ADDRESS         =     (PERIPH_BASE + BDCR_OFFSET);
 }}
 #else	//C defines
 
-/* ------------ RCC registers bit address in the alias region ----------- */
+
 #define RCC_OFFSET                (RCC_BASE - PERIPH_BASE)
 /* --- CR Register ---*/
 /* Alias word address of HSION bit */
@@ -180,7 +180,7 @@ static const uint32_t BDCR_ADDRESS         =     (PERIPH_BASE + BDCR_OFFSET);
  #define I2S3SRC_BitNumber         0x12
  #define CFGR2_I2S3SRC_BB          (PERIPH_BB_BASE + (CFGR2_OFFSET * 32) + (I2S3SRC_BitNumber * 4))
 #endif /* STM32F10X_CL */
-/* ---------------------- RCC registers bit mask ------------------------ */
+
 /* CR register bit mask */
 #define CR_HSEBYP_Reset           ((uint32_t)0xFFFBFFFF)
 #define CR_HSEBYP_Set             ((uint32_t)0x00040000)
@@ -229,7 +229,7 @@ static const uint32_t BDCR_ADDRESS         =     (PERIPH_BASE + BDCR_OFFSET);
 /* BDCR register base address */
 #define BDCR_ADDRESS              (PERIPH_BASE + BDCR_OFFSET)
 #endif
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Resets the RCC clock configuration to the default reset state.
   * @param  None
@@ -277,7 +277,7 @@ static inline void rcc_deinit(void)
 #endif /* STM32F10X_CL */
 
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the External High Speed oscillator (HSE).
   * @note   HSE can not be stopped if it is used directly or through the PLL as system clock.
@@ -314,7 +314,7 @@ static inline void rcc_hse_config(uint32_t RCC_HSE)
       break;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Checks whether the specified RCC flag is set or not.
   * @param  RCC_FLAG: specifies the flag to check.
@@ -376,7 +376,7 @@ static inline bool rcc_get_flag_status(uint8_t RCC_FLAG)
   return (statusreg & ((uint32_t)1 << tmp))?true:false;
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Waits for HSE start-up.
   * @param  None
@@ -401,7 +401,7 @@ static inline bool rcc_wait_for_hse_start_up(void)
 
   return rcc_get_flag_status(RCC_FLAG_HSERDY)?false:true;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Adjusts the Internal High Speed oscillator (HSI) calibration value.
   * @param  HSICalibrationValue: specifies the calibration trimming value.
@@ -423,7 +423,7 @@ static inline void rcc_adjust_hsi_calibration_value(uint8_t HSICalibrationValue)
   /* Store the new value */
   RCC->CR = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the Internal High Speed oscillator (HSI).
   * @note   HSI can not be stopped if it is used directly or through the PLL as system clock.
@@ -438,7 +438,7 @@ static inline void rcc_hsi_cmd(bool enable)
    /* Check the parameters */
   *(__IO uint32_t *) CR_HSION_BB = enable;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the PLL clock source and multiplication factor.
   * @note   This function must be used only when the PLL is disabled.
@@ -470,7 +470,7 @@ static inline void rcc_pll_config(uint32_t RCC_PLLSource, uint32_t RCC_PLLMul)
   /* Store the new value */
   RCC->CFGR = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the PLL.
   * @note   The PLL can not be disabled if it is used as system clock.
@@ -484,7 +484,7 @@ static inline void rcc_pll_cmd(bool enable)
 #endif
   *(__IO uint32_t *) CR_PLLON_BB = enable;
 }
-/* ---------------------------------------------------------------------------- */
+
 #if defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL) || defined (STM32F10X_CL)
 /**
   * @brief  Configures the PREDIV1 division factor.
@@ -517,7 +517,7 @@ static inline void rcc_prediv1_config(uint32_t RCC_PREDIV1_Source, uint32_t RCC_
   RCC->CFGR2 = tmpreg;
 }
 #endif
-/* ---------------------------------------------------------------------------- */
+
 #ifdef STM32F10X_CL
 /**
   * @brief  Configures the PREDIV2 division factor.
@@ -542,7 +542,7 @@ static inline void rcc_prediv2_config(uint32_t RCC_PREDIV2_Div)
   /* Store the new value */
   RCC->CFGR2 = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the PLL2 multiplication factor.
   * @note
@@ -567,7 +567,7 @@ static inline void rcc_pll2_config(uint32_t RCC_PLL2Mul)
   /* Store the new value */
   RCC->CFGR2 = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 
 /**
   * @brief  Enables or disables the PLL2.
@@ -587,7 +587,7 @@ static inline void rcc_pll2_cmd(bool enable)
   *(__IO uint32_t *) CR_PLL2ON_BB = enable;
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the PLL3 multiplication factor.
   * @note
@@ -612,7 +612,7 @@ static inline void rcc_pll3_config(uint32_t RCC_PLL3Mul)
   /* Store the new value */
   RCC->CFGR2 = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 
 /**
   * @brief  Enables or disables the PLL3.
@@ -628,7 +628,7 @@ static inline void rcc_pll3_cmd(bool enable)
   *(__IO uint32_t *) CR_PLL3ON_BB = enable;
 }
 #endif /* STM32F10X_CL */
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the system clock (SYSCLK).
   * @param  RCC_SYSCLKSource: specifies the clock source used as system clock.
@@ -652,7 +652,7 @@ static inline void rcc_sysclk_config(uint32_t RCC_SYSCLKSource)
   /* Store the new value */
   RCC->CFGR = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Returns the clock source used as system clock.
   * @param  None
@@ -669,7 +669,7 @@ static inline uint8_t rcc_get_sysclk_source(void)
 #endif
   return ((uint8_t)(RCC->CFGR & CFGR_SWS_Mask));
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the AHB clock (HCLK).
   * @param  RCC_SYSCLK: defines the AHB clock divider. This clock is derived from
@@ -700,7 +700,7 @@ static inline void rcc_hclk_config( uint32_t RCC_SYSCLK )
   /* Store the new value */
   RCC->CFGR = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the Low Speed APB clock (PCLK1).
   * @param  RCC_HCLK: defines the APB1 clock divider. This clock is derived from
@@ -727,7 +727,7 @@ static inline void rcc_pclk1_config(uint32_t RCC_HCLK)
   /* Store the new value */
   RCC->CFGR = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the High Speed APB clock (PCLK2).
   * @param  RCC_HCLK: defines the APB2 clock divider. This clock is derived from
@@ -754,7 +754,7 @@ static inline void rcc_pclk2_config(uint32_t RCC_HCLK)
   /* Store the new value */
   RCC->CFGR = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the specified RCC interrupts.
   * @param  RCC_IT: specifies the RCC interrupt sources to be enabled or disabled.
@@ -797,7 +797,7 @@ static inline void rcc_it_config(uint8_t RCC_IT, bool enable)
     *(__IO uint8_t *) CIR_BYTE2_ADDRESS &= (uint8_t)~RCC_IT;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 #ifndef STM32F10X_CL
 /**
   * @brief  Configures the USB clock (USBCLK).
@@ -837,7 +837,7 @@ static inline void rcc_otgfs_clk_config(uint32_t RCC_OTGFSCLKSource)
   *(__IO uint32_t *) CFGR_OTGFSPRE_BB = RCC_OTGFSCLKSource;
 }
 #endif /* STM32F10X_CL */
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the ADC clock (ADCCLK).
   * @param  RCC_PCLK2: defines the ADC clock divider. This clock is derived from
@@ -863,7 +863,7 @@ static inline void rcc_adc_clk_config(uint32_t RCC_PCLK2)
   /* Store the new value */
   RCC->CFGR = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 #ifdef STM32F10X_CL
 /**
   * @brief  Configures the I2S2 clock source(I2S2CLK).
@@ -904,7 +904,7 @@ static inline void rcc_i2s3_clk_config(uint32_t RCC_I2S3CLKSource)
   *(__IO uint32_t *) CFGR2_I2S3SRC_BB = RCC_I2S3CLKSource;
 }
 #endif /* STM32F10X_CL */
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the External Low Speed oscillator (LSE).
   * @param  RCC_LSE: specifies the new state of the LSE.
@@ -941,7 +941,7 @@ static inline void rcc_lse_config(uint8_t RCC_LSE)
       break;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the Internal Low Speed oscillator (LSI).
   * @note   LSI can not be disabled if the IWDG is running.
@@ -955,7 +955,7 @@ static inline void rcc_lsi_cmd(bool enable)
 #endif
   *(__IO uint32_t *) CSR_LSION_BB = enable;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the RTC clock (RTCCLK).
   * @note   Once the RTC clock is selected it can't be changed unless the Backup domain is reset.
@@ -974,7 +974,7 @@ static inline void rcc_rtc_clk_config(uint32_t RCC_RTCCLKSource)
   /* Select the RTC clock source */
   RCC->BDCR |= RCC_RTCCLKSource;
 }
-/* ---------------------------------------------------------------------------- */
+
 
 /**
   * @brief  Enables or disables the RTC clock.
@@ -989,7 +989,7 @@ static inline void rcc_rtc_clk_cmd(FunctionalState NewState)
 #endif
   *(__IO uint32_t *) BDCR_RTCEN_BB = (uint32_t)NewState;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
  * @brief Enable or disable selected perhipheral
  * @param clock_type Clock type depends on the bus
@@ -1021,7 +1021,7 @@ static inline void rcc_periph_clock_cmd( enum rcc_clock_type clock_type, uint32_
 		break;
 	}
 }
-/*----------------------------------------------------------*/
+
 /** Compatibility with old stdlib */
 static inline void rcc_apb2_periph_clock_cmd( uint32_t periph, bool enable)
 {
@@ -1037,7 +1037,7 @@ static inline void rcc_ahb_periph_clock_cmd( uint32_t periph, bool enable)
 {
     rcc_periph_clock_cmd(rcc_clk_ahb, periph, enable);
 }
-/*----------------------------------------------------------*/
+
 /**
  * @brief Set reset on selected peripheral
  * @param clock_type Clock type depends on the bus
@@ -1057,7 +1057,7 @@ static inline void rcc_ahb_periph_reset_cmd(uint32_t periph, bool enable )
   }
 }
 #endif
-/*----------------------------------------------------------*/
+
 /**
  * @brief Set reset on selected peripheral
  * @param clock_type Clock type depends on the bus
@@ -1075,7 +1075,7 @@ static inline void rcc_apb2_periph_reset_cmd(uint32_t periph, bool enable )
 	  RCC->APB2RSTR &= ~periph;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
  * @brief Set reset on selected peripheral
  * @param clock_type Clock type depends on the bus
@@ -1093,7 +1093,7 @@ static inline void rcc_apb1_periph_reset_cmd(uint32_t periph, bool enable )
 	  RCC->APB1RSTR &= ~periph;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
  * @brief Set reset on selected peripheral
  * @param clock_type Clock type depends on the bus
@@ -1117,7 +1117,7 @@ static inline void rcc_periph_reset_cmd(enum rcc_clock_type clock_type, uint32_t
 		break;
 	}
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Forces or releases the Backup domain reset.
   * @param  NewState: new state of the Backup domain reset.
@@ -1131,7 +1131,7 @@ static inline void rcc_backup_reset_cmd(bool enable)
 #endif
   *(__IO uint32_t *) BDCR_BDRST_BB = enable;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the Clock Security System.
   * @param  NewState: new state of the Clock Security System..
@@ -1145,7 +1145,7 @@ static inline void rcc_clock_security_system_cmd(bool enable)
 #endif
   *(__IO uint32_t *) CR_CSSON_BB = enable;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Selects the clock source to output on MCO pin.
   * @param  RCC_MCO: specifies the clock source to output.
@@ -1180,7 +1180,7 @@ static inline void rcc_mco_config(uint8_t RCC_MCO)
   /* Perform Byte access to MCO bits to select the MCO source */
   *(__IO uint8_t *) CFGR_BYTE4_ADDRESS = RCC_MCO;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Clears the RCC reset flags.
   * @note   The reset flags are: RCC_FLAG_PINRST, RCC_FLAG_PORRST, RCC_FLAG_SFTRST,
@@ -1196,7 +1196,7 @@ static inline void rcc_clear_flag(void)
   /* Set RMVF bit to clear the reset flags */
   RCC->CSR |= CSR_RMVF_Set;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Checks whether the specified RCC interrupt has occurred or not.
   * @param  RCC_IT: specifies the RCC interrupt source to check.
@@ -1232,7 +1232,7 @@ static inline bool rcc_get_it_status(uint8_t RCC_IT)
   return (RCC->CIR & RCC_IT)?true:false;
 
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Clears the RCC's interrupt pending bits.
   * @param  RCC_IT: specifies the interrupt pending bit to clear.
@@ -1270,9 +1270,9 @@ static inline void rcc_clear_it_pending_bit(uint8_t RCC_IT)
 }
 
 
-/* ------------------------------------------------------------------ */
+
 /*****    EXTENDED ISIX LIBRARY FUNCTIONS  *******/
-/* ------------------------------------------------------------------ */
+
 /** Setup the best flash latency according to the CPU speed
  * @param[in] frequency Sysclk frequency */
 static inline void rcc_flash_latency(uint32_t frequency)
@@ -1289,7 +1289,7 @@ static inline void rcc_flash_latency(uint32_t frequency)
 #endif
 }
 
-/* ------------------------------------------------------------------ */
+
 //! Structure for defining sysclk mode
 enum e_sysclk_mode
 {
@@ -1415,7 +1415,7 @@ static const unsigned PRE1Div_Offset = 1;
 #endif
 
 
-/* ---------------------------------------------------------------------------- */
+
 #ifdef __cplusplus
 }
 #else	//Undefine local #define
@@ -1479,5 +1479,5 @@ static const unsigned PRE1Div_Offset = 1;
 #undef CFGR_BYTE4_ADDRESS
 #undef BDCR_ADDRESS
 #endif
-/* ---------------------------------------------------------------------------- */
+
 #endif /* STM32RCC_H_ */

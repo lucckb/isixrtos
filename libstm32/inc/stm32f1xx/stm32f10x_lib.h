@@ -1,5 +1,4 @@
-#ifndef STM32f10x_lib_H_
-#define STM32f10x_lib_H_
+#pragma once
 
 #include <stdbool.h>
 #include "stm32f10x.h"
@@ -14,5 +13,4 @@
 #include "stm32f10x_tim.h"
 #include "misc.h"
 
-#endif
 

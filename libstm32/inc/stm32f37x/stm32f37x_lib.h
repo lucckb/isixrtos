@@ -1,0 +1,23 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename:  stm32f37xx_lib.h
+ *
+ *    Description:  STM32F37 library header
+ *
+ *        Version:  1.0
+ *        Created:  25.03.2016 18:16:12
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  Lucjan Bryndza (LB), lucck(at)boff(dot)pl
+ *   Organization:  BoFF
+ *
+ * =====================================================================================
+ */
+
+#pragma once
+#include <stdbool.h>
+#include "stm32f37x.h"
+#include "misc.h"
+//TODO: More headers
