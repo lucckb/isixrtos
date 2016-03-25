@@ -7,6 +7,15 @@ endif
 ifeq ($(MCU_MAJOR_TYPE),f2)
 ISIX_ARCH ?= arm-cm3
 endif
+ifeq ($(MCU_MAJOR_TYPE),f3)
+ISIX_ARCH ?= arm-cm4f
+endif
+ifeq ($(MCU_MAJOR_TYPE),f37)
+ISIX_ARCH ?= arm-cm4f
+endif
+ifeq ($(ISIX_ARCH),)
+$(error Unknown ISIX_ARCH)
+endif
 
 
 #Kernel source 
