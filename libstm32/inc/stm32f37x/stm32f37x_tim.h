@@ -1,36 +1,44 @@
 /**
   ******************************************************************************
-  * @file    stm32f10x_tim.h
+  * @file    stm32f37x_tim.h
   * @author  MCD Application Team
-  * @version V3.5.0
-  * @date    11-March-2011
-  * @brief   This file contains all the functions prototypes for the TIM firmware 
-  *          library.
+  * @version V1.0.0
+  * @date    20-September-2012
+  * @brief   This file contains all the functions prototypes for the TIM 
+  *          firmware library.
   ******************************************************************************
   * @attention
   *
-  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
-  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
-  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
-  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
-  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
+  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
   *
-  * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
+  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        http://www.st.com/software_license_agreement_liberty_v2
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
   ******************************************************************************
-  */
+  */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F10x_TIM_H
-#define __STM32F10x_TIM_H
+#ifndef __STM32F37X_TIM_H
+#define __STM32F37X_TIM_H
 
 #ifdef __cplusplus
  extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f10x.h"
 
+
+/** @defgroup TIM_Output_Compare_and_PWM_modes 
+  * @{
+  */
 
 #define TIM_OCMode_Timing                  ((uint16_t)0x0000)
 #define TIM_OCMode_Active                  ((uint16_t)0x0010)
@@ -39,13 +47,12 @@
 #define TIM_OCMode_PWM1                    ((uint16_t)0x0060)
 #define TIM_OCMode_PWM2                    ((uint16_t)0x0070)
 
+/** @defgroup TIM_One_Pulse_Mode 
+  * @{
+  */
 
 #define TIM_OPMode_Single                  ((uint16_t)0x0008)
 #define TIM_OPMode_Repetitive              ((uint16_t)0x0000)
-
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_Channel 
   * @{
@@ -56,10 +63,6 @@
 #define TIM_Channel_3                      ((uint16_t)0x0008)
 #define TIM_Channel_4                      ((uint16_t)0x000C)
 
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_Clock_Division_CKD 
   * @{
   */
@@ -68,21 +71,11 @@
 #define TIM_CKD_DIV2                       ((uint16_t)0x0100)
 #define TIM_CKD_DIV4                       ((uint16_t)0x0200)
 
-/**
-  * @}
-  */
-
-/** @defgroup TIM_Counter_Mode 
-  * @{
-  */
-
 #define TIM_CounterMode_Up                 ((uint16_t)0x0000)
 #define TIM_CounterMode_Down               ((uint16_t)0x0010)
 #define TIM_CounterMode_CenterAligned1     ((uint16_t)0x0020)
 #define TIM_CounterMode_CenterAligned2     ((uint16_t)0x0040)
 #define TIM_CounterMode_CenterAligned3     ((uint16_t)0x0060)
-
-
 
 /** @defgroup TIM_Output_Compare_Polarity 
   * @{
@@ -91,10 +84,6 @@
 #define TIM_OCPolarity_High                ((uint16_t)0x0000)
 #define TIM_OCPolarity_Low                 ((uint16_t)0x0002)
 
-/**
-  * @}
-  */
-
 /** @defgroup TIM_Output_Compare_N_Polarity 
   * @{
   */
@@ -102,15 +91,12 @@
 #define TIM_OCNPolarity_High               ((uint16_t)0x0000)
 #define TIM_OCNPolarity_Low                ((uint16_t)0x0008)
 
-
-
-/** @defgroup TIM_Output_Compare_state 
+/** @defgroup TIM_Output_Compare_state
   * @{
   */
 
 #define TIM_OutputState_Disable            ((uint16_t)0x0000)
 #define TIM_OutputState_Enable             ((uint16_t)0x0001)
-
 
 /** @defgroup TIM_Output_Compare_N_state 
   * @{
@@ -118,11 +104,6 @@
 
 #define TIM_OutputNState_Disable           ((uint16_t)0x0000)
 #define TIM_OutputNState_Enable            ((uint16_t)0x0004)
-#define IS_TIM_OUTPUTN_STATE(STATE) (((STATE) == TIM_OutputNState_Disable) || \
-                                     ((STATE) == TIM_OutputNState_Enable))
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_Capture_Compare_state 
   * @{
@@ -131,10 +112,6 @@
 #define TIM_CCx_Enable                      ((uint16_t)0x0001)
 #define TIM_CCx_Disable                     ((uint16_t)0x0000)
 
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_Capture_Compare_N_state 
   * @{
   */
@@ -142,31 +119,19 @@
 #define TIM_CCxN_Enable                     ((uint16_t)0x0004)
 #define TIM_CCxN_Disable                    ((uint16_t)0x0000)
 
-/**
-  * @}
-  */ 
-
-/** @defgroup Break_Input_enable_disable 
+/** @defgroup TIM_Break_Input_enable_disable 
   * @{
   */
 
 #define TIM_Break_Enable                   ((uint16_t)0x1000)
 #define TIM_Break_Disable                  ((uint16_t)0x0000)
 
-/**
-  * @}
-  */ 
-
-/** @defgroup Break_Polarity 
+/** @defgroup TIM_Break_Polarity 
   * @{
   */
 
 #define TIM_BreakPolarity_Low              ((uint16_t)0x0000)
 #define TIM_BreakPolarity_High             ((uint16_t)0x2000)
-
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_AOE_Bit_Set_Reset 
   * @{
@@ -175,11 +140,7 @@
 #define TIM_AutomaticOutput_Enable         ((uint16_t)0x4000)
 #define TIM_AutomaticOutput_Disable        ((uint16_t)0x0000)
 
-/**
-  * @}
-  */ 
-
-/** @defgroup Lock_level 
+/** @defgroup TIM_Lock_level 
   * @{
   */
 
@@ -188,31 +149,19 @@
 #define TIM_LOCKLevel_2                    ((uint16_t)0x0200)
 #define TIM_LOCKLevel_3                    ((uint16_t)0x0300)
 
-/**
-  * @}
-  */ 
-
-/** @defgroup OSSI_Off_State_Selection_for_Idle_mode_state 
+/** @defgroup TIM_OSSI_Off_State_Selection_for_Idle_mode_state 
   * @{
   */
 
 #define TIM_OSSIState_Enable               ((uint16_t)0x0400)
 #define TIM_OSSIState_Disable              ((uint16_t)0x0000)
 
-/**
-  * @}
-  */
-
-/** @defgroup OSSR_Off_State_Selection_for_Run_mode_state 
+/** @defgroup TIM_OSSR_Off_State_Selection_for_Run_mode_state 
   * @{
   */
 
 #define TIM_OSSRState_Enable               ((uint16_t)0x0800)
 #define TIM_OSSRState_Disable              ((uint16_t)0x0000)
-
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_Output_Compare_Idle_State 
   * @{
@@ -221,20 +170,12 @@
 #define TIM_OCIdleState_Set                ((uint16_t)0x0100)
 #define TIM_OCIdleState_Reset              ((uint16_t)0x0000)
 
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_Output_Compare_N_Idle_State 
   * @{
   */
 
 #define TIM_OCNIdleState_Set               ((uint16_t)0x0200)
 #define TIM_OCNIdleState_Reset             ((uint16_t)0x0000)
-
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_Input_Capture_Polarity 
   * @{
@@ -243,12 +184,6 @@
 #define  TIM_ICPolarity_Rising             ((uint16_t)0x0000)
 #define  TIM_ICPolarity_Falling            ((uint16_t)0x0002)
 #define  TIM_ICPolarity_BothEdge           ((uint16_t)0x000A)
-#define IS_TIM_IC_POLARITY(POLARITY) (((POLARITY) == TIM_ICPolarity_Rising) || \
-                                      ((POLARITY) == TIM_ICPolarity_Falling))
-
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_Input_Capture_Selection 
   * @{
@@ -260,10 +195,6 @@
                                                                    connected to IC2, IC1, IC4 or IC3, respectively. */
 #define TIM_ICSelection_TRC                ((uint16_t)0x0003) /*!< TIM Input 1, 2, 3 or 4 is selected to be connected to TRC. */
 
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_Input_Capture_Prescaler 
   * @{
   */
@@ -272,7 +203,6 @@
 #define TIM_ICPSC_DIV2                     ((uint16_t)0x0004) /*!< Capture performed once every 2 events. */
 #define TIM_ICPSC_DIV4                     ((uint16_t)0x0008) /*!< Capture performed once every 4 events. */
 #define TIM_ICPSC_DIV8                     ((uint16_t)0x000C) /*!< Capture performed once every 8 events. */
-
 /**
   * @}
   */ 
@@ -291,10 +221,6 @@
 #define TIM_IT_Break                       ((uint16_t)0x0080)
 #define IS_TIM_IT(IT) ((((IT) & (uint16_t)0xFF00) == 0x0000) && ((IT) != 0x0000))
 
-
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_DMA_Base_address 
   * @{
@@ -319,10 +245,7 @@
 #define TIM_DMABase_CCR4                   ((uint16_t)0x0010)
 #define TIM_DMABase_BDTR                   ((uint16_t)0x0011)
 #define TIM_DMABase_DCR                    ((uint16_t)0x0012)
-
-/**
-  * @}
-  */ 
+#define TIM_DMABase_OR                     ((uint16_t)0x0013)
 
 /** @defgroup TIM_DMA_Burst_Length 
   * @{
@@ -347,14 +270,6 @@
 #define TIM_DMABurstLength_17Transfers         ((uint16_t)0x1000)
 #define TIM_DMABurstLength_18Transfers         ((uint16_t)0x1100)
 
-/**
-  * @}
-  */ 
-
-/** @defgroup TIM_DMA_sources 
-  * @{
-  */
-
 #define TIM_DMA_Update                     ((uint16_t)0x0100)
 #define TIM_DMA_CC1                        ((uint16_t)0x0200)
 #define TIM_DMA_CC2                        ((uint16_t)0x0400)
@@ -362,7 +277,6 @@
 #define TIM_DMA_CC4                        ((uint16_t)0x1000)
 #define TIM_DMA_COM                        ((uint16_t)0x2000)
 #define TIM_DMA_Trigger                    ((uint16_t)0x4000)
-
 
 /**
   * @}
@@ -377,10 +291,6 @@
 #define TIM_ExtTRGPSC_DIV4                 ((uint16_t)0x2000)
 #define TIM_ExtTRGPSC_DIV8                 ((uint16_t)0x3000)
 
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_Internal_Trigger_Selection 
   * @{
   */
@@ -394,10 +304,6 @@
 #define TIM_TS_TI2FP2                      ((uint16_t)0x0060)
 #define TIM_TS_ETRF                        ((uint16_t)0x0070)
 
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_TIx_External_Clock_Source 
   * @{
   */
@@ -406,16 +312,11 @@
 #define TIM_TIxExternalCLK1Source_TI2      ((uint16_t)0x0060)
 #define TIM_TIxExternalCLK1Source_TI1ED    ((uint16_t)0x0040)
 
-
 /** @defgroup TIM_External_Trigger_Polarity 
   * @{
   */ 
 #define TIM_ExtTRGPolarity_Inverted        ((uint16_t)0x8000)
 #define TIM_ExtTRGPolarity_NonInverted     ((uint16_t)0x0000)
-
-/**
-  * @}
-  */
 
 /** @defgroup TIM_Prescaler_Reload_Mode 
   * @{
@@ -424,20 +325,12 @@
 #define TIM_PSCReloadMode_Update           ((uint16_t)0x0000)
 #define TIM_PSCReloadMode_Immediate        ((uint16_t)0x0001)
 
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_Forced_Action 
   * @{
   */
 
 #define TIM_ForcedAction_Active            ((uint16_t)0x0050)
 #define TIM_ForcedAction_InActive          ((uint16_t)0x0040)
-
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_Encoder_Mode 
   * @{
@@ -446,10 +339,6 @@
 #define TIM_EncoderMode_TI1                ((uint16_t)0x0001)
 #define TIM_EncoderMode_TI2                ((uint16_t)0x0002)
 #define TIM_EncoderMode_TI12               ((uint16_t)0x0003)
-
-/**
-  * @}
-  */ 
 
 
 /** @defgroup TIM_Event_Source 
@@ -465,11 +354,6 @@
 #define TIM_EventSource_Trigger            ((uint16_t)0x0040)
 #define TIM_EventSource_Break              ((uint16_t)0x0080)
 
-
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_Update_Source 
   * @{
   */
@@ -479,17 +363,10 @@
                                                                    through the slave mode controller. */
 #define TIM_UpdateSource_Regular           ((uint16_t)0x0001) /*!< Source of update is counter overflow/underflow. */
 
-/**
-  * @}
-  */ 
-
-/** @defgroup TIM_Output_Compare_Preload_State 
-  * @{
-  */
-
 #define TIM_OCPreload_Enable               ((uint16_t)0x0008)
 #define TIM_OCPreload_Disable              ((uint16_t)0x0000)
-
+#define IS_TIM_OCPRELOAD_STATE(STATE) (((STATE) == TIM_OCPreload_Enable) || \
+                                       ((STATE) == TIM_OCPreload_Disable))
 /**
   * @}
   */ 
@@ -500,21 +377,9 @@
 
 #define TIM_OCFast_Enable                  ((uint16_t)0x0004)
 #define TIM_OCFast_Disable                 ((uint16_t)0x0000)
-                                     
-/**
-  * @}
-  */ 
-
-/** @defgroup TIM_Output_Compare_Clear_State 
-  * @{
-  */
 
 #define TIM_OCClear_Enable                 ((uint16_t)0x0080)
 #define TIM_OCClear_Disable                ((uint16_t)0x0000)
-
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_Trigger_Output_Source 
   * @{
@@ -529,10 +394,6 @@
 #define TIM_TRGOSource_OC3Ref              ((uint16_t)0x0060)
 #define TIM_TRGOSource_OC4Ref              ((uint16_t)0x0070)
 
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_Slave_Mode 
   * @{
   */
@@ -542,20 +403,12 @@
 #define TIM_SlaveMode_Trigger              ((uint16_t)0x0006)
 #define TIM_SlaveMode_External1            ((uint16_t)0x0007)
 
-/**
-  * @}
-  */ 
-
 /** @defgroup TIM_Master_Slave_Mode 
   * @{
   */
 
 #define TIM_MasterSlaveMode_Enable         ((uint16_t)0x0080)
 #define TIM_MasterSlaveMode_Disable        ((uint16_t)0x0000)
-
-/**
-  * @}
-  */ 
 
 /** @defgroup TIM_Flags 
   * @{
@@ -574,8 +427,29 @@
 #define TIM_FLAG_CC3OF                     ((uint16_t)0x0800)
 #define TIM_FLAG_CC4OF                     ((uint16_t)0x1000)
 
-                               
+/** @defgroup TIM_Input_Capture_Filer_Value 
+  * @{
+  */
 
+
+/** @defgroup TIM_OCReferenceClear 
+  * @{
+  */
+#define TIM_OCReferenceClear_ETRF          ((uint16_t)0x0008)
+#define TIM_OCReferenceClear_OCREFCLR      ((uint16_t)0x0000)
+
+/** @defgroup TIM_Remap 
+  * @{
+  */
+#define TIM14_GPIO                      ((uint16_t)0x0000)
+#define TIM14_RTC_CLK                   ((uint16_t)0x0001)
+#define TIM14_HSEDiv32                  ((uint16_t)0x0002)
+#define TIM14_MCO                       ((uint16_t)0x0003)
+
+
+/** @defgroup TIM_Legacy 
+  * @{
+  */
 
 #define TIM_DMABurstLength_1Byte           TIM_DMABurstLength_1Transfer
 #define TIM_DMABurstLength_2Bytes          TIM_DMABurstLength_2Transfers
@@ -595,27 +469,26 @@
 #define TIM_DMABurstLength_16Bytes         TIM_DMABurstLength_16Transfers
 #define TIM_DMABurstLength_17Bytes         TIM_DMABurstLength_17Transfers
 #define TIM_DMABurstLength_18Bytes         TIM_DMABurstLength_18Transfers
+/**
+  * @}
+  */
 
 #define _TIM_IS_ON_LIST_1( TIMx ) \
-  (TIMx == TIM1) || (TIMx == TIM8)|| (TIMx == TIM2) || (TIMx == TIM3)|| \
-     (TIMx == TIM4) || (TIMx == TIM5)
-
+  (TIMx == TIM2) || (TIMx == TIM3)|| (TIMx == TIM4) || (TIMx == TIM5) || (TIMx == TIM19)
 
 #define _TIM_IS_ON_LIST_2( TIMx ) \
-  (TIMx != TIM6) && (TIMx != TIM7)
+  (TIMx != TIM6) && (TIMx != TIM7) && (TIMx != TIM18)
 
 
 #define _TIM_IS_ON_LIST_3( TIMx ) \
-  (TIMx == TIM1) || (TIMx == TIM8)|| (TIMx == TIM15)|| (TIMx == TIM16) || (TIMx == TIM17)
+  (TIMx == TIM15)|| (TIMx == TIM16) || (TIMx == TIM17)
 
-#define _TIM_IS_ON_LIST_4( TIMx ) \
-  (TIMx == TIM1) || (TIMx == TIM8) || (TIMx == TIM2) || (TIMx == TIM3) || \
-     (TIMx == TIM4) ||(TIMx == TIM5) 
+typedef unsigned short stm32tim_oc_t;
+
+#define _TIM_IS_ON_LIST_4( TIMx ) 1
 
 #ifdef __cplusplus
 }
 #endif
 
-typedef unsigned short stm32tim_oc_t;
-
-#endif /*__STM32F10x_TIM_H */
+#endif /*__STM32F37X_TIM_H */
