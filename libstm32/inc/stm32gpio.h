@@ -65,13 +65,13 @@ static inline int _gpio_speed_to_value(enum e_abstract_gpio_speed vspeed )
 	case AGPIO_SPEED_FULL:  return GPIO_MODE_50MHZ;
 	}
 	return GPIO_MODE_2MHZ;
-#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#else
 	switch( vspeed )
 	{
-	case AGPIO_SPEED_VLOW:  return GPIO_SPEED_2MHZ;
-	case AGPIO_SPEED_LOW:   return GPIO_SPEED_25MHZ;
-	case AGPIO_SPEED_HALF:  return GPIO_SPEED_50MHZ;
-	case AGPIO_SPEED_FULL:  return GPIO_SPEED_100MHZ;
+	case AGPIO_SPEED_VLOW:  return GPIO_SPEED_LOW;
+	case AGPIO_SPEED_LOW:   return GPIO_SPEED_MED;
+	case AGPIO_SPEED_HALF:  return GPIO_SPEED_FAST;
+	case AGPIO_SPEED_FULL:  return GPIO_SPEED_HI;
 	}
 	return GPIO_SPEED_2MHZ;
 #endif
@@ -124,7 +124,7 @@ static inline int gpio_abstract_config(GPIO_TypeDef* port, uint8_t bit, enum e_a
 		gpio_config( port, bit, GPIO_MODE_INPUT, GPIO_CNF_IN_ANALOG );
 		break;
 	}
-#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#else
 	switch( conf )
 	{
 	case AGPIO_MODE_INPUT_PULLUP:
