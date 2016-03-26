@@ -73,7 +73,7 @@ static inline int _gpio_speed_to_value(enum e_abstract_gpio_speed vspeed )
 	case AGPIO_SPEED_HALF:  return GPIO_SPEED_FAST;
 	case AGPIO_SPEED_FULL:  return GPIO_SPEED_HI;
 	}
-	return GPIO_SPEED_2MHZ;
+	return AGPIO_SPEED_VLOW;
 #endif
 }
 #ifdef __cplusplus
