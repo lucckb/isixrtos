@@ -146,23 +146,45 @@ static inline void rcc_hse_config(uint8_t RCC_HSE)
   *(__IO uint8_t *) CR_BYTE2_ADDRESS = RCC_HSE;
 
 }
-
+/**
+  * @brief  Checks whether the specified RCC flag is set or not.
+  * @param  RCC_FLAG: specifies the flag to check.
+  *   This parameter can be one of the following values:
+  *     @arg RCC_FLAG_HSIRDY: HSI oscillator clock ready  
+  *     @arg RCC_FLAG_HSERDY: HSE oscillator clock ready
+  *     @arg RCC_FLAG_PLLRDY: PLL clock ready
+  *     @arg RCC_FLAG_MCOF: MCO Flag  
+  *     @arg RCC_FLAG_LSERDY: LSE oscillator clock ready
+  *     @arg RCC_FLAG_LSIRDY: LSI oscillator clock ready
+  *     @arg RCC_FLAG_OBLRST: Option Byte Loader (OBL) reset 
+  *     @arg RCC_FLAG_PINRST: Pin reset
+  *     @arg RCC_FLAG_PORRST: POR/PDR reset
+  *     @arg RCC_FLAG_SFTRST: Software reset
+  *     @arg RCC_FLAG_IWDGRST: Independent Watchdog reset
+  *     @arg RCC_FLAG_WWDGRST: Window Watchdog reset
+  *     @arg RCC_FLAG_LPWRRST: Low Power reset
+  * @retval The new state of RCC_FLAG (SET or RESET).
+  */
 static inline bool rcc_get_flag_status(uint8_t RCC_FLAG)
 {
   uint32_t tmp = 0;
   uint32_t statusreg = 0;
-
-
   /* Get the RCC register index */
   tmp = RCC_FLAG >> 5;
-  if (tmp == 1)               /* The flag to check is in CR register */
+  if (tmp == 0)               /* The flag to check is in CR register */
   {
     statusreg = RCC->CR;
   }
-  else if (tmp == 2)          /* The flag to check is in BDCR register */
+  else if (tmp == 1)          /* The flag to check is in BDCR register */
   {
     statusreg = RCC->BDCR;
   }
+#if defined(STM32MCU_MAJOR_TYPE_F3)
+  else if (tmp == 4)          /* The flag to check is in CFGR register */
+  {
+    statusreg = RCC->CFGR;
+  }
+#endif
   else                       /* The flag to check is in CSR register */
   {
     statusreg = RCC->CSR;
@@ -170,7 +192,8 @@ static inline bool rcc_get_flag_status(uint8_t RCC_FLAG)
 
   /* Get the flag position */
   tmp = RCC_FLAG & FLAG_MASK;
-  return ((statusreg & ((uint32_t)1 << tmp)) != (uint32_t)0);
+
+  return ((statusreg & ((uint32_t)1 << tmp)) != 0 );
 }
 
 
@@ -184,9 +207,9 @@ static inline bool rcc_wait_for_hse_startup(void)
   {
     hsestatus = rcc_get_flag_status(RCC_FLAG_HSERDY);
     StartUpCounter++;  
-  } while((StartUpCounter != HSE_STARTUP_TIMEOUT) && (HSEStatus == RESET));
+  } while((StartUpCounter != HSE_STARTUP_TIMEOUT) && (hsestatus == RESET));
   
-  return (RCC_GetFlagStatus(RCC_FLAG_HSERDY);
+  return rcc_get_flag_status(RCC_FLAG_HSERDY);
 }
 
 /**
@@ -419,9 +442,6 @@ static inline void rcc_mco_config(uint8_t RCC_MCOSource, uint32_t RCC_MCOPrescal
   */
 static inline void rcc_mco_config(uint8_t RCC_MCOSource)
 {
-  /* Check the parameters */
-  assert_param(IS_RCC_MCO_SOURCE(RCC_MCOSource));
-    
   /* Select MCO clock source and prescaler */
   *(__IO uint8_t *) CFGR_BYTE3_ADDRESS =  RCC_MCOSource; 
 }
@@ -448,16 +468,16 @@ static inline void rcc_mco_config(uint8_t RCC_MCOSource)
   */
 static inline void rcc_sysclk_config(uint32_t rcc_sysclksource)
 {
-  uint32_t tmpreg = rcc->cfgr;
+  uint32_t tmpreg = RCC->CFGR;
 
   /* clear sw[1:0] bits */
-  tmpreg &= ~rcc_cfgr_sw;
+  tmpreg &= ~RCC_CFGR_SW;
 
   /* set sw[1:0] bits according to rcc_sysclksource value */
   tmpreg |= rcc_sysclksource;
 
   /* store the new value */
-  rcc->cfgr = tmpreg;
+  RCC->CFGR = tmpreg;
 }
 
 /**
@@ -904,55 +924,7 @@ static inline void rcc_it_config(uint8_t RCC_IT, bool enable)
   }
 }
 
-/**
-  * @brief  Checks whether the specified RCC flag is set or not.
-  * @param  RCC_FLAG: specifies the flag to check.
-  *   This parameter can be one of the following values:
-  *     @arg RCC_FLAG_HSIRDY: HSI oscillator clock ready  
-  *     @arg RCC_FLAG_HSERDY: HSE oscillator clock ready
-  *     @arg RCC_FLAG_PLLRDY: PLL clock ready
-  *     @arg RCC_FLAG_MCOF: MCO Flag  
-  *     @arg RCC_FLAG_LSERDY: LSE oscillator clock ready
-  *     @arg RCC_FLAG_LSIRDY: LSI oscillator clock ready
-  *     @arg RCC_FLAG_OBLRST: Option Byte Loader (OBL) reset 
-  *     @arg RCC_FLAG_PINRST: Pin reset
-  *     @arg RCC_FLAG_PORRST: POR/PDR reset
-  *     @arg RCC_FLAG_SFTRST: Software reset
-  *     @arg RCC_FLAG_IWDGRST: Independent Watchdog reset
-  *     @arg RCC_FLAG_WWDGRST: Window Watchdog reset
-  *     @arg RCC_FLAG_LPWRRST: Low Power reset
-  * @retval The new state of RCC_FLAG (SET or RESET).
-  */
-static inline bool rcc_get_flag_status(uint8_t RCC_FLAG)
-{
-  uint32_t tmp = 0;
-  uint32_t statusreg = 0;
-  /* Get the RCC register index */
-  tmp = RCC_FLAG >> 5;
-  if (tmp == 0)               /* The flag to check is in CR register */
-  {
-    statusreg = RCC->CR;
-  }
-  else if (tmp == 1)          /* The flag to check is in BDCR register */
-  {
-    statusreg = RCC->BDCR;
-  }
-#if defined(STM32MCU_MAJOR_TYPE_F3)
-  else if (tmp == 4)          /* The flag to check is in CFGR register */
-  {
-    statusreg = RCC->CFGR;
-  }
-#endif
-  else                       /* The flag to check is in CSR register */
-  {
-    statusreg = RCC->CSR;
-  }
 
-  /* Get the flag position */
-  tmp = RCC_FLAG & FLAG_MASK;
-
-  return ((statusreg & ((uint32_t)1 << tmp)) != 0 )
-}
 
 /**
   * @brief  Clears the RCC reset flags.
@@ -999,14 +971,20 @@ static inline bool rcc_get_it_status(uint8_t RCC_IT)
   */
 static inline void rcc_clear_it_pending_bit(uint8_t RCC_IT)
 {
-  /* Check the parameters */
-  assert_param(IS_RCC_CLEAR_IT(RCC_IT));
-  
   /* Perform Byte access to RCC_CIR[23:16] bits to clear the selected interrupt
      pending bits */
   *(__IO uint8_t *) CIR_BYTE3_ADDRESS = RCC_IT;
 }
 
+
+//! Structure for defining sysclk mode
+enum e_sysclk_mode
+{
+	e_sysclk_hsi,		//! hi speed internal oscilator only
+	e_sysclk_hse,		//! hi speed external oscilator only
+	e_sysclk_hsi_pll,	//! hi speed internal PLL
+	e_sysclk_hse_pll	//! hi speed external PLL
+};
 
 //TODO: Fill the PLL1 calculation
 static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, 
