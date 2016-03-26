@@ -641,7 +641,6 @@ typedef struct
 /** 
   * @brief General Purpose I/O
   */
-
 typedef struct
 {
   __IO uint32_t MODER;    /*!< GPIO port mode register,               Address offset: 0x00      */

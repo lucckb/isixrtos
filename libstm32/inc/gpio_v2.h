@@ -140,31 +140,50 @@ enum gpio_af
 //! Set GPIO bit macro
 static inline void gpio_set(GPIO_TypeDef* port , unsigned bit)
 {
+#ifdef _GPIO_TYPEDEF_BRR_DEFINED
+	port->BSRR = 1<<bit;
+#else
 	port->BSRRL = 1<<bit;
+#endif
 }
 //! Clear GPIO bit macro
 static inline void gpio_clr(GPIO_TypeDef* port , unsigned bit)
 {
+#ifdef _GPIO_TYPEDEF_BRR_DEFINED
+	port->BRR = 1<<bit;
+#else
 	port->BSRRH = 1<<bit;
+#endif
 }
 //! Set by the mask
 static inline void gpio_set_mask(GPIO_TypeDef* port , uint16_t bitmask)
 {
-	//Uggly hack for complette 32 bit reg
+#ifdef _GPIO_TYPEDEF_BRR_DEFINED
+	port->BSRR = bitmask;
+#else
 	port->BSRRL = bitmask;
+#endif
 }
 //! Clear GPIO bit mask
 static inline void gpio_clr_mask(GPIO_TypeDef* port , uint16_t bitmask)
 {
+#ifdef _GPIO_TYPEDEF_BRR_DEFINED
+	port->BRR = bitmask;
+#else
 	port->BSRRH = bitmask;
+#endif
 }
 //! set clr in one op
 static inline void gpio_set_clr_mask(GPIO_TypeDef* port , uint16_t enflags, uint16_t mask)
 {
-
+#ifdef _GPIO_TYPEDEF_BRR_DEFINED
+	port->BSRR = (uint32_t)(enflags & mask) | ((uint32_t)( ~enflags & mask)<<16);
+#else
 	__IO uint32_t * const BSRR = (__IO uint32_t*)&port->BSRRL;
 	*BSRR = (uint32_t)(enflags & mask) | ((uint32_t)( ~enflags & mask)<<16);
+#endif
 }
+
 //! Get GPIO bit macro
 //#define io_get(PORT,BIT) (((PORT)->IDR & (1<<(BIT)))?1:0)
 static inline bool gpio_get(GPIO_TypeDef* port , unsigned bit)
@@ -308,13 +327,16 @@ static inline void gpio_pin_AF_config(GPIO_TypeDef* GPIOx, uint16_t GPIO_PinSour
   uint32_t temp_2 = GPIOx->AFR[GPIO_PinSource >> 0x03] | temp;
   GPIOx->AFR[GPIO_PinSource >> 0x03] = temp_2;
 }
+
+
 #ifdef __cplusplus
 namespace _internal {
-namespace gpio_f4 {
+namespace gpio_v2 {
 #endif
 //Internal port to number conversion
 static inline int _gpio_clock_port_to_number( GPIO_TypeDef* port )
 {
+#if defined(RCC_AHB1ENR_GPIOAEN)
 	if		( port == GPIOA ) return RCC_AHB1ENR_GPIOAEN;
 	else if ( port == GPIOB ) return RCC_AHB1ENR_GPIOBEN;
 	else if ( port == GPIOC ) return RCC_AHB1ENR_GPIOCEN;
@@ -325,6 +347,15 @@ static inline int _gpio_clock_port_to_number( GPIO_TypeDef* port )
 	else if ( port == GPIOH ) return RCC_AHB1ENR_GPIOHEN;
 	else if ( port == GPIOI ) return RCC_AHB1ENR_GPIOIEN;
 	else return -1;
+#elif defined(RCC_AHBENR_GPIOAEN)
+	if		( port == GPIOA ) return RCC_AHBENR_GPIOAEN;
+	else if ( port == GPIOB ) return RCC_AHBENR_GPIOBEN;
+	else if ( port == GPIOC ) return RCC_AHBENR_GPIOCEN;
+	else if ( port == GPIOD ) return RCC_AHBENR_GPIODEN;
+	else if ( port == GPIOE ) return RCC_AHBENR_GPIOEEN;
+	else if ( port == GPIOF ) return RCC_AHBENR_GPIOFEN;
+	else return -1;
+#endif
 }
 #ifdef __cplusplus
 }}
@@ -338,15 +369,22 @@ static inline void gpio_clock_enable( GPIO_TypeDef* port, bool enable )
 {
 #ifdef __cplusplus
 	using namespace stm32;
-	using namespace _internal::gpio_f4;
+	using namespace _internal::gpio_v2;
+#endif
+#if defined(RCC_AHB1ENR_GPIOAEN)
+#define _ENR_REG_ RCC->AHB1ENR 
+#elif defined(RCC_AHBENR_GPIOAEN)
+#define _ENR_REG_ RCC->AHBENR 
 #endif
 	if(_gpio_clock_port_to_number( port ) < 0 )
 		return;
 	if( enable )
-		RCC->AHB1ENR |=  _gpio_clock_port_to_number( port );
+		_ENR_REG_ |=  _gpio_clock_port_to_number( port );
 	else
-		RCC->AHB1ENR &=  ~_gpio_clock_port_to_number( port );
+		_ENR_REG_ &=  ~_gpio_clock_port_to_number( port );
+#undef ENR_REG
 }
+
 #ifdef __cplusplus
 }
 #endif
