@@ -1299,13 +1299,7 @@ enum e_sysclk_mode
 	e_sysclk_hse_pll	//! hi speed external PLL
 };
 
-#ifndef __cplusplus
-#define PLL1_Bit_Shift 18ul
-#define PLL1_Bit_Mask 0xf
-#define PLL1_Mul_Offset  2ul
-#define PRE1Div_Mask 0x0F
-#define PRE1Div_Offset  1ul
-#endif
+
 
 /** Setup SYSCLK mode by unified way without required manual intervention
  * @param[in] mode System mode
@@ -1314,15 +1308,14 @@ enum e_sysclk_mode
  * @retval best fit frequency
  *
  */
-static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, uint32_t crystal, uint32_t frequency)
+static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, 
+		uint32_t crystal, uint32_t frequency)
 {
-#ifdef __cplusplus
-static const unsigned PLL1_Bit_Shift = 18;
-static const unsigned PLL1_Bit_Mask = 0xf;
-static const unsigned PLL1_Mul_Offset = 2;
-static const unsigned PRE1Div_Mask = 0x0F;
-static const unsigned PRE1Div_Offset = 1;
-#endif
+	static const unsigned PLL1_Bit_Shift = 18;
+	static const unsigned PLL1_Bit_Mask = 0xf;
+	static const unsigned PLL1_Mul_Offset = 2;
+	static const unsigned PRE1Div_Mask = 0x0F;
+	static const unsigned PRE1Div_Offset = 1;
 	uint32_t best_frequency_core = 0;
 	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hse )
 		RCC->CR  |= RCC_CR_HSEON;
@@ -1406,13 +1399,6 @@ static const unsigned PRE1Div_Offset = 1;
 	}
 	return best_frequency_core;
 }
-#ifndef __cplusplus
-#undef  PLL1_Bit_Shift
-#undef  PLL1_Bit_Mask
-#undef PLL1_Mul_Offset
-#undef PRE1Div_Mask
-#undef PRE1Div_Offset
-#endif
 
 
 

@@ -986,13 +986,100 @@ enum e_sysclk_mode
 	e_sysclk_hse_pll	//! hi speed external PLL
 };
 
-//TODO: Fill the PLL1 calculation
+
+
+
+/** Setup the best flash latency according to the CPU speed
+ * @param[in] frequency Sysclk frequency */
+static inline void rcc_flash_latency(uint32_t frequency)
+{
+	uint32_t wait_states;
+	if(frequency > 72000000ul) frequency = 72000000ul;
+	wait_states = (frequency-1) / 24000000ul;	// calculate wait_states (30M is valid for 2.7V to 3.6V voltage range, use 24M for 2.4V to 2.7V, 18M for 2.1V to 2.4V or 16M for  1.8V to 2.1V)
+	wait_states &= FLASH_ACR_LATENCY;			// trim to max allowed value - 7
+	FLASH->ACR = wait_states;				    // set wait_states, disable all caches and prefetch
+	FLASH->ACR = FLASH_ACR_PRFTBE  | wait_states;	// enable caches and prefetch
+}
+
+
+/** Setup SYSCLK mode by unified way without required manual intervention
+ * @param[in] mode System mode
+ * @param[in] crystal Crystal frequency value
+ * @param[in] frequency Excepted system frequency
+ * @retval best fit frequency
+ *
+ */
 static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, 
 		uint32_t crystal, uint32_t frequency)
 {
-	return 0;
+	static const unsigned PLL1_Bit_Shift = 18;
+	static const unsigned PLL1_Bit_Mask = 0xf;
+	static const unsigned PLL1_Mul_Offset = 2;
+	static const unsigned PRE1Div_Mask = 0x0F;
+	static const unsigned PRE1Div_Offset = 1;
+	uint32_t best_frequency_core = 0;
+	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hse )
+		RCC->CR  |= RCC_CR_HSEON;
+	else
+		crystal = 8000000ul;
+	if( mode == e_sysclk_hsi_pll ) crystal /= 2;
+	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hsi_pll )
+	{
+		uint32_t div, mul, vco_input_frequency, frequency_core;
+		uint32_t best_div = 0, best_mul = 0;
+		for (div = 1; div <= 16; div++)			// PLL divider
+		{
+			vco_input_frequency = crystal / div;
+			for (mul = 2; mul <= 16; mul++)	// Multiply
+			{
+				frequency_core = vco_input_frequency * mul;
+				if (frequency_core > frequency)	// skip values over desired frequency
+				continue;
+				if (frequency_core > best_frequency_core)	// is this configuration better than previous one?
+				{
+					best_frequency_core = frequency_core;	// yes - save values
+					best_div = div;
+					best_mul = mul;
+				}
+			}
+		}
+	   // configure PLL
+	   RCC->CFGR = ((best_mul - PLL1_Mul_Offset) & PLL1_Bit_Mask) << PLL1_Bit_Shift;
+	   RCC->CFGR2 = (best_div - PRE1Div_Offset) & PRE1Div_Mask;
+	   if( mode == e_sysclk_hse_pll ) RCC->CFGR |= RCC_CFGR_PLLSRC;
+		// AHB - no prescaler, APB1 - divide by 16, APB2 - divide by 16 (adefine always safe value)
+		RCC->CFGR |= RCC_CFGR_PPRE2_DIV16 | RCC_CFGR_PPRE1_DIV16 | RCC_CFGR_HPRE_DIV1;
+	}
+	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hse ) while(1)
+	{
+	   if(RCC->CR & RCC_CR_HSERDY) break;
+	}
+	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hsi_pll )
+	{
+		RCC->CR |= RCC_CR_PLLON;
+		while(1)
+		{
+			if(RCC->CR & RCC_CR_PLLRDY) break;
+		}
+		RCC->CFGR |= RCC_CFGR_SW_PLL;			// change SYSCLK to PLL
+		while (((RCC->CFGR) & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);	// wait for switch
+	}
+	else if( mode == e_sysclk_hsi )
+	{
+		RCC->CFGR |= RCC_CFGR_SW_HSI;			// change SYSCLK to PLL
+		while ( ((RCC->CFGR) & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI );	// wait for switch
+		RCC->CR &= ~RCC_CR_PLLON;
+		best_frequency_core = crystal;
+	}
+	else if( mode == e_sysclk_hse )
+	{
+		RCC->CFGR |= RCC_CFGR_SW_HSE;			// change SYSCLK to PLL
+		while ( ((RCC->CFGR) & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSE );	// wait for switch
+		RCC->CR &= ~RCC_CR_PLLON;
+		best_frequency_core = crystal;
+	}
+	return best_frequency_core;
 }
-
 
 #ifdef __cplusplus
  }
