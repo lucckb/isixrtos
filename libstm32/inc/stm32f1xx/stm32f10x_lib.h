@@ -11,6 +11,7 @@
 #include "stm32f10x_exti.h"
 #include "stm32f10x_pwr.h"
 #include "stm32f10x_tim.h"
+#include "stm32f1f2f4_usart.h"
 #include "misc.h"
 
 

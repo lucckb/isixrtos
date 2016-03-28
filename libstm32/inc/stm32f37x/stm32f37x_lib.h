@@ -22,5 +22,6 @@
 #include "stm32f37x_rcc.h"
 #include "stm32f37x_iwdg.h"
 #include "stm32f37x_tim.h"
+#include "stm32f3xx_usart.h"
 #include "../stm32f1xx/stm32dma.h"
 #include "misc.h"

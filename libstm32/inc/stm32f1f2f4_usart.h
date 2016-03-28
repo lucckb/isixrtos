@@ -9,6 +9,9 @@
 #define STM32F_XXX_USART_H_
 
 
+typedef unsigned short stm32_usart_reg_t;
+#define USART_HARDWARE_VERSION 1
+
 /* Word length */
 #define USART_WordLength_8b                  ((uint16_t)0x0000)
 #define USART_WordLength_9b                  ((uint16_t)0x1000)
