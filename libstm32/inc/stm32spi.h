@@ -1,4 +1,4 @@
-/*----------------------------------------------------------*/
+
 /*
  * stm32spi.h
  *
@@ -6,17 +6,17 @@
  *  Created on: 27-11-2012
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
+
 #ifndef STM32_SPI_H_
 #define STM32_SPI_H_
-/*----------------------------------------------------------*/
+
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32lib.h"
 #include "stm32fxxx_spi.h"
 #include <stm32lib.h>
 #include <stm32rcc.h>
-/*----------------------------------------------------------*/
+
 #define CR1_CLEAR_MASK            ((uint16_t)0x3040)
 #define I2SCFGR_CLEAR_MASK        ((uint16_t)0xF040)
 #define SPI_CR2_FRF               ((uint16_t)0x0010)
@@ -26,11 +26,11 @@
 #define I2S_MUL_MASK         ((uint32_t)(0x0000F000))
 #define I2S_DIV_MASK         ((uint32_t)(0x000000F0))
 #endif
-/*----------------------------------------------------------*/
+
 #ifdef __cplusplus
 namespace stm32 {
 #endif
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Deinitialize the SPIx peripheral registers to their default reset values.
   * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3
@@ -69,7 +69,7 @@ static inline void spi_i2s_deinit(SPI_TypeDef* SPIx)
     }
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Initializes the SPIx peripheral according to the specified
   *         parameters in the SPI_InitStruct.
@@ -106,7 +106,7 @@ static inline void spi_init(SPI_TypeDef* SPIx, uint16_t direction, uint16_t mode
 	  if(crc_polynomial > 0)
 		  SPIx->CRCPR = crc_polynomial;
 }
-/*----------------------------------------------------------*/
+
 #if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4)
 /**
   * @brief  Initializes the SPIx peripheral according to the specified
@@ -374,7 +374,7 @@ static inline void i2s_init(SPI_TypeDef* SPIx, uint16_t mode, uint16_t standard,
   SPIx->I2SCFGR = tmpreg;
 }
 #endif
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified SPI peripheral.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -395,14 +395,14 @@ static inline void spi_cmd(SPI_TypeDef* SPIx, bool enable)
     SPIx->CR1 &= (uint16_t)~((uint16_t)SPI_CR1_SPE);
   }
 }
-/*----------------------------------------------------------*/
+
 /** Check if SPI is enabled */
 static inline bool spi_is_enabled( SPI_TypeDef* SPIx )
 {
 	return !!(SPIx->CR1 & SPI_CR1_SPE);
 }
 
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified SPI peripheral (in I2S mode).
   * @param  SPIx: where x can be 2 or 3 to select the SPI peripheral (or I2Sxext
@@ -424,7 +424,7 @@ static inline void i2s_cmd(SPI_TypeDef* SPIx, bool enable)
     SPIx->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SE);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Configures the data size for the selected SPI.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -441,7 +441,7 @@ static inline void spi_data_size_config(SPI_TypeDef* SPIx, uint16_t SPI_DataSize
   /* Set new DFF bit value */
   SPIx->CR1 |= SPI_DataSize;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Selects the data transfer direction in bidirectional mode for the specified SPI.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -464,7 +464,7 @@ static inline void spi_bidirectional_line_config(SPI_TypeDef* SPIx, uint16_t SPI
     SPIx->CR1 &= SPI_Direction_Rx;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Configures internally by software the NSS pin for the selected SPI.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -487,7 +487,7 @@ static inline void spi_nss_internal_software_config(SPI_TypeDef* SPIx, uint16_t 
     SPIx->CR1 &= SPI_NSSInternalSoft_Reset;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the SS output for the selected SPI.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -508,7 +508,7 @@ static inline void spi_ss_output_cmd(SPI_TypeDef* SPIx, bool enable)
     SPIx->CR2 &= (uint16_t)~((uint16_t)SPI_CR2_SSOE);
   }
 }
-/*----------------------------------------------------------*/
+
 #if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4)
 /**
   * @brief  Enables or disables the SPIx/I2Sx DMA interface.
@@ -539,7 +539,7 @@ static inline void spi_ti_mode_cmd(SPI_TypeDef* SPIx, bool enable)
   }
 }
 #endif
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Configures the full duplex mode for the I2Sx peripheral using its
   *         extension I2Sxext according to the specified parameters in the
@@ -590,7 +590,7 @@ static inline void i2s_full_duplex_config(SPI_TypeDef* I2Sxext, uint16_t mode,
   /* Write to SPIx I2SCFGR */
   I2Sxext->I2SCFGR = tmpreg;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Returns the most recent received data by the SPIx/I2Sx peripheral.
   * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3
@@ -602,7 +602,7 @@ static inline uint16_t spi_i2s_receive_data(SPI_TypeDef* SPIx)
   /* Return the data in the DR register */
   return SPIx->DR;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Transmits a Data through the SPIx/I2Sx peripheral.
   * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3
@@ -615,7 +615,7 @@ static inline void spi_i2s_send_data(SPI_TypeDef* SPIx, uint16_t Data)
   /* Write in the DR register the data to be sent */
   SPIx->DR = Data;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the CRC value calculation of the transferred bytes.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -636,7 +636,7 @@ static inline void spi_calculate_crc(SPI_TypeDef* SPIx, bool enable)
     SPIx->CR1 &= (uint16_t)~((uint16_t)SPI_CR1_CRCEN);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Transmit the SPIx CRC value.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -648,7 +648,7 @@ static inline void spi_transmit_crc(SPI_TypeDef* SPIx)
   /* Enable the selected SPI CRC transmission */
   SPIx->CR1 |= SPI_CR1_CRCNEXT;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Returns the transmit or the receive CRC register value for the specified SPI.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -674,7 +674,7 @@ static inline uint16_t spi_get_crc(SPI_TypeDef* SPIx, uint8_t SPI_CRC)
   /* Return the selected CRC register */
   return crcreg;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Returns the CRC Polynomial register value for the specified SPI.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -685,7 +685,7 @@ static inline uint16_t spi_get_crc_polynomial(SPI_TypeDef* SPIx)
   /* Return the CRC polynomial register */
   return SPIx->CRCPR;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Returns the CRC Polynomial register value for the specified SPI.
   * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
@@ -697,7 +697,7 @@ static inline void spi_set_crc_polynomial(SPI_TypeDef* SPIx, uint16_t polynomial
   SPIx->CRCPR = polynomial;
 }
 
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the SPIx/I2Sx DMA interface.
   * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3
@@ -724,7 +724,7 @@ static inline void spi_i2s_dma_cmd(SPI_TypeDef* SPIx, uint16_t SPI_I2S_DMAReq, b
     SPIx->CR2 &= (uint16_t)~SPI_I2S_DMAReq;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified SPI/I2S interrupts.
   * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3
@@ -759,7 +759,7 @@ static inline void spi_i2s_it_config(SPI_TypeDef* SPIx, uint8_t SPI_I2S_IT, bool
     SPIx->CR2 &= (uint16_t)~itmask;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Checks whether the specified SPIx/I2Sx flag is set or not.
   * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3
@@ -782,7 +782,7 @@ static inline bool spi_i2s_get_flag_status(SPI_TypeDef* SPIx, uint16_t SPI_I2S_F
   /* Return the SPI_I2S_FLAG status */
   return  (SPIx->SR & SPI_I2S_FLAG)?(true):(false);
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Clears the SPIx CRC Error (CRCERR) flag.
   * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3
@@ -808,7 +808,7 @@ static inline void spi_i2s_clear_flag(SPI_TypeDef* SPIx, uint16_t SPI_I2S_FLAG)
   /* Clear the selected SPI CRC Error (CRCERR) flag */
   SPIx->SR = (uint16_t)~SPI_I2S_FLAG;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Checks whether the specified SPIx/I2Sx interrupt has occurred or not.
   * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3
@@ -843,7 +843,7 @@ static inline bool spi_i2s_hetit_status(SPI_TypeDef* SPIx, uint8_t SPI_I2S_IT)
   return ((SPIx->SR & itpos) && enablestatus)?(true):(false);
   /* Check the status of the specified SPI interrupt */
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Clears the SPIx CRC Error (CRCERR) interrupt pending bit.
   * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3
@@ -874,11 +874,11 @@ static inline void spi_i2s_clear_it_pending_bit(SPI_TypeDef* SPIx, uint8_t SPI_I
   SPIx->SR = (uint16_t)~itpos;
 }
 
-/*----------------------------------------------------------*/
+
 #ifdef __cplusplus
 }
 #endif
-/*----------------------------------------------------------*/
+
 #undef CR1_CLEAR_MASK
 #undef I2SCFGR_CLEAR_MASK
 #undef I2S2_CLOCK_SRC
@@ -886,6 +886,6 @@ static inline void spi_i2s_clear_it_pending_bit(SPI_TypeDef* SPIx, uint8_t SPI_I
 #undef I2S_MUL_MASK
 #undef I2S_DIV_MASK
 #undef SPI_CR2_FRF
-/*----------------------------------------------------------*/
+
 #endif /* STM32SPI_H_ */
-/*----------------------------------------------------------*/
+
