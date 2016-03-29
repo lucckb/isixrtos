@@ -7,7 +7,6 @@ Configure memory sizes, end of stack and boot mode for your project here.
 
 
 /* include the common STM32F10x sub-script */
-INCLUDE "stm32_common.ld"
 
 /* Memory Spaces Definitions */
 MEMORY
