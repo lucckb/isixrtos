@@ -92,6 +92,7 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 	usart_init( usart, baudrate, USART_WordLength_8b, USART_StopBits_1,
 			    USART_Parity_No, USART_Mode_Rx|USART_Mode_Tx, 
 				USART_HardwareFlowControl_None, pclk1_hz, pclk2_hz );
+    usart_cmd( usart, true );
     return USARTSIMPLE_INIT_OK;
 }
 
