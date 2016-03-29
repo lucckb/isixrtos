@@ -21,14 +21,13 @@ extern "C"
 {
 	void usart1_isr_vector(void) __attribute__ ((interrupt));
 	void usart2_isr_vector(void) __attribute__ ((interrupt));
-#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || \
-	defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4) || \
-	defined(STM32MCU_MAJOR_TYPE_F2)
+#ifdef USART3
 	void usart3_isr_vector(void) __attribute__ ((interrupt));
 #endif
-#if	defined(STM32F10X_HD) || defined(STM32F10X_CL) || \
-	defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#ifdef USART4
 	void usart4_isr_vector(void) __attribute__ ((interrupt));
+#endif
+#ifdef USART5
 	void usart5_isr_vector(void) __attribute__ ((interrupt));
 #endif
 }
@@ -48,14 +47,13 @@ class usart_buffered : public fnd::serial_port
 {
 	friend void usart1_isr_vector(void);
 	friend void usart2_isr_vector(void);
-#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || \
-	defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4) \
-	|| defined(STM32MCU_MAJOR_TYPE_F2)
+#ifdef USART3
 	friend void usart3_isr_vector(void);
 #endif
-#if	defined(STM32F10X_HD) || defined(STM32F10X_CL) || \
-	defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#ifdef USART4
 	friend void usart4_isr_vector(void);
+#endif
+#ifdef USART5
 	friend void usart5_isr_vector(void);
 #endif
 public:
@@ -163,14 +161,13 @@ private:
 	void periphcfg_usart1(altgpio_mode mode);
 	void periphcfg_usart2(altgpio_mode mode);
 	void flow_gpio_config( const USART_TypeDef* usart, altgpio_mode );
-#if	defined(STM32F10X_MD) || defined(STM32F10X_HD) || \
-	defined(STM32F10X_CL) || defined(STM32MCU_MAJOR_TYPE_F4) \
-	|| defined(STM32MCU_MAJOR_TYPE_F2)
+#ifdef USART3
 	void periphcfg_usart3(altgpio_mode mode);
 #endif
-#if defined(STM32F10X_HD) || defined(STM32F10X_CL) \
-	|| defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#ifdef USART4
 	void periphcfg_usart4(altgpio_mode mode);
+#endif
+#ifdef USART5
 	void periphcfg_usart5(altgpio_mode mode);
 #endif
 private:
