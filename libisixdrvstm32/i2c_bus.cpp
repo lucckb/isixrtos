@@ -28,17 +28,17 @@
 #ifdef _HAVE_CONFIG_H
 #include <config.h>
 #endif
-/* ------------------------------------------------------------------ */ 
+
 #define CONFIG_ISIXDRV_I2C_DEBUG 
 #ifdef CONFIG_ISIXDRV_I2C_DEBUG 
 #include <foundation/dbglog.h>
 #else
 #define dbprintf(...) do {} while(0)
 #endif
-/* ------------------------------------------------------------------ */ 
+
 namespace stm32 {
 namespace drv {
-/* ------------------------------------------------------------------ */
+
 #ifdef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 namespace {
 #if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
@@ -48,7 +48,7 @@ namespace {
 #endif
 }
 #endif
-/* ------------------------------------------------------------------ */ 
+
 //! Unnnamed namespace for internal functions
 namespace {
 	//Cast to device type
@@ -264,7 +264,6 @@ namespace {
 #endif
 #endif
 }
-/* ------------------------------------------------------------------ */ 
 /** Constructor
 	* @param[in] _i2c Interface bus ID
 	* @param[in] clk_speed CLK speed in HZ
@@ -318,7 +317,7 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 	i2c_cmd( dcast(m_i2c), true );
 	gpio_initialize();
 }
-/* ------------------------------------------------------------------ */ 
+
 void i2c_bus::gpio_initialize()
 {
 	if( m_i2c == I2C1 ) {
@@ -336,7 +335,7 @@ void i2c_bus::gpio_initialize()
 		terminate();
 	}
 }
-/* ------------------------------------------------------------------ */ 
+
 /** Destructor */
 i2c_bus::~i2c_bus()
 {
@@ -349,7 +348,7 @@ i2c_bus::~i2c_bus()
 	}
 	i2c_deinit( dcast(m_i2c) );
 }
-/* ------------------------------------------------------------------ */ 
+
 /* Get hwerror */
 int i2c_bus::get_hwerror(void) const
 {
@@ -371,7 +370,7 @@ int i2c_bus::get_hwerror(void) const
 	}
 	return 0;
 }
-/* ------------------------------------------------------------------ */
+
 /** Transfer one byte over i2c interface
 * @param[in] addr I2C address
 * @param[in] wbuffer Memory pointer for write
@@ -430,7 +429,7 @@ int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rb
 	m_lock.signal();
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 
 /** Double non continous transaction write 
 	* @param[in] addr I2C address
@@ -445,7 +444,7 @@ int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void*
 	m_tx2_buf = const_cast<const uint8_t * volatile>(reinterpret_cast<const uint8_t*>(wbuf2));
 	return transfer( addr, wbuf1, wsize1, nullptr, 0 );
 }
-/* ------------------------------------------------------------------ */ 
+
 void i2c_bus::ev_irq()
 {
 	using namespace stm32;
@@ -513,7 +512,7 @@ void i2c_bus::ev_irq()
 		break;
 	}
 }
-/* ------------------------------------------------------------------ */
+
 //! Finalize transaction
 void i2c_bus::ev_finalize( bool inv_state )
 {
@@ -530,7 +529,7 @@ void i2c_bus::ev_finalize( bool inv_state )
 	//ACK config
 	m_notify.signal_isr();
 }
-/* ------------------------------------------------------------------ */
+
 //Error event handler
 void i2c_bus::err_irq()
 {
@@ -549,7 +548,7 @@ void i2c_bus::err_irq()
 	}
 	m_notify.signal_isr();
 }
-/* ------------------------------------------------------------------ */ 
+
 //Dma trasfer complete
 void i2c_bus::ev_dma_tc() 
 {
@@ -560,12 +559,12 @@ void i2c_bus::ev_dma_tc()
 	//ACK config
 	m_notify.signal_isr();
 }
-/* ------------------------------------------------------------------ */
+
 void i2c_bus::mdelay( unsigned timeout ) 
 {
 	isix_wait_ms( timeout );
 }
-/* ------------------------------------------------------------------ */ 
+
 extern "C" {
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	/* Irq ev handler */
@@ -627,7 +626,7 @@ extern "C" {
 #endif
 #endif
 }
-/* ------------------------------------------------------------------ */ 
+
 }
 }
-/* ------------------------------------------------------------------ */ 
+

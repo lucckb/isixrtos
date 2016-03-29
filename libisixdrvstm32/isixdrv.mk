@@ -1,16 +1,18 @@
 #ADC driver is deprecated only F1,F2,F4 is supported but not recommended
 ifeq ($(MCU_MAJOR_TYPE),f1)
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/adc_converter.cpp
+ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/i2c_bus.cpp
 endif
 ifeq ($(MCU_MAJOR_TYPE),f2)
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/adc_converter.cpp
+ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/i2c_bus.cpp
 endif
 ifeq ($(MCU_MAJOR_TYPE),f4)
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/adc_converter.cpp
+ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/i2c_bus.cpp
 endif
 
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/usart_buffered.cpp
-ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/i2c_bus.cpp
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/stm32_spi_master.cpp
 #TODO: Ethernet if for F2 and F4 platforms if needed
 ifeq ($(MCU_MAJOR_TYPE),f1)

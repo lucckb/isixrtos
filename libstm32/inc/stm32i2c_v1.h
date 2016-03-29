@@ -11,7 +11,7 @@
 /*----------------------------------------------------------*/
 #include <stdbool.h>
 #include <stdint.h>
-#include "stm32fxxx_i2c.h"
+#include "stm32f1f2f4_i2c.h"
 #include "stm32lib.h"
 #include "stm32rcc.h"
 
