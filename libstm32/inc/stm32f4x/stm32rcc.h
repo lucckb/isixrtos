@@ -507,16 +507,16 @@ static inline void rcc_mco2_config(uint32_t RCC_MCO2Source, uint32_t RCC_MCO2Div
   */
 static inline void rcc_sysclk_config(uint32_t rcc_sysclksource)
 {
-  uint32_t tmpreg = rcc->cfgr;
+  uint32_t tmpreg = RCC->CFGR;
 
   /* clear sw[1:0] bits */
-  tmpreg &= ~rcc_cfgr_sw;
+  tmpreg &= ~RCC_CFGR_SW;
 
   /* set sw[1:0] bits according to rcc_sysclksource value */
   tmpreg |= rcc_sysclksource;
 
   /* store the new value */
-  rcc->cfgr = tmpreg;
+  RCC->CFGR = tmpreg;
 }
 
 /**
