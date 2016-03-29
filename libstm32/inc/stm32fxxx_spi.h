@@ -3,6 +3,10 @@
 #define _STM32Fxxx_SPI_H_
 
 
+#if defined(STM32MCU_MAJOR_TYPE_F3) || defined(STM32MCU_MAJOR_TYPE_F37) 
+#define STM32_SPI_V2
+#endif
+
 
 /** @defgroup SPI_data_direction 
   * @{
@@ -30,8 +34,32 @@
   * @{
   */
 
+#ifdef STM32_SPI_V2
+#define SPI_DataSize_4b                 ((uint16_t)0x0300)
+#define SPI_DataSize_5b                 ((uint16_t)0x0400)
+#define SPI_DataSize_6b                 ((uint16_t)0x0500)
+#define SPI_DataSize_7b                 ((uint16_t)0x0600)
+#define SPI_DataSize_8b                 ((uint16_t)0x0700)
+#define SPI_DataSize_9b                 ((uint16_t)0x0800)
+#define SPI_DataSize_10b                ((uint16_t)0x0900)
+#define SPI_DataSize_11b                ((uint16_t)0x0A00)
+#define SPI_DataSize_12b                ((uint16_t)0x0B00)
+#define SPI_DataSize_13b                ((uint16_t)0x0C00)
+#define SPI_DataSize_14b                ((uint16_t)0x0D00)
+#define SPI_DataSize_15b                ((uint16_t)0x0E00)
+#define SPI_DataSize_16b                ((uint16_t)0x0F00)
+#else
 #define SPI_DataSize_16b                ((uint16_t)0x0800)
 #define SPI_DataSize_8b                 ((uint16_t)0x0000)
+#endif
+
+#ifdef STM32_SPI_V2
+#define SPI_CRCLength_8b                ((uint16_t)0x0000)
+#define SPI_CRCLength_16b               ((uint16_t)0x0800)
+#endif
+
+
+
 
 /**
   * @}
@@ -233,9 +261,8 @@
 #define SPI_I2S_IT_RXNE                 ((uint8_t)0x60)
 #define SPI_I2S_IT_ERR                  ((uint8_t)0x50)
 #define I2S_IT_UDR                      ((uint8_t)0x53)
-#if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4)
 #define SPI_I2S_IT_TIFRFE               ((uint8_t)0x58)
-#endif
+#define SPI_I2S_IT_FRE                  ((uint8_t)0x58)
 
 #define SPI_I2S_IT_OVR                  ((uint8_t)0x56)
 #define SPI_IT_MODF                     ((uint8_t)0x55)
@@ -286,6 +313,22 @@
 #define SPI_ClearFlag                SPI_I2S_ClearFlag
 #define SPI_GetITStatus              SPI_I2S_GetITStatus
 #define SPI_ClearITPendingBit        SPI_I2S_ClearITPendingBit
+
+
+
+
+#ifdef STM32_SPI_V2
+#define SPI_TransmissionFIFOStatus_Empty           ((uint16_t)0x0000)
+#define SPI_TransmissionFIFOStatus_1QuarterFull    ((uint16_t)0x0800) 
+#define SPI_TransmissionFIFOStatus_HalfFull        ((uint16_t)0x1000)
+#define SPI_TransmissionFIFOStatus_Full            ((uint16_t)0x1800)
+#define SPI_ReceptionFIFOStatus_Empty           ((uint16_t)0x0000)
+#define SPI_ReceptionFIFOStatus_1QuarterFull    ((uint16_t)0x0200)
+#define SPI_ReceptionFIFOStatus_HalfFull        ((uint16_t)0x0400)
+#define SPI_ReceptionFIFOStatus_Full            ((uint16_t)0x0600)
+#endif
+
+
 
 
 

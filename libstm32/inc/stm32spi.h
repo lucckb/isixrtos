@@ -26,7 +26,8 @@
 #define I2S_MUL_MASK         ((uint32_t)(0x0000F000))
 #define I2S_DIV_MASK         ((uint32_t)(0x000000F0))
 #endif
-
+#define CR1_CLEAR_MASK2      ((uint16_t)0xFFFB)
+#define CR2_LDMA_MASK        ((uint16_t)0x9FFF)
 #ifdef __cplusplus
 namespace stm32 {
 #endif
@@ -58,16 +59,23 @@ static inline void spi_i2s_deinit(SPI_TypeDef* SPIx)
      /* Release SPI2 from reset state */
 	 rcc_apb1_periph_reset_cmd(RCC_APB1Periph_SPI2, false );
   }
-  else
+ #ifdef SPI3
+  else if (SPIx == SPI3)
   {
-    if (SPIx == SPI3)
-    {
       /* Enable SPI3 reset state */
       rcc_apb1_periph_reset_cmd(RCC_APB1Periph_SPI3, true );
       /* Release SPI3 from reset state */
       rcc_apb1_periph_reset_cmd(RCC_APB1Periph_SPI3, false );
-    }
   }
+ #endif
+ #ifdef SPI4
+  else if (SPIx == SPI4)
+  {
+     rcc_apb2_periph_reset_cmd(RCC_APB2Periph_SPI4, true);
+     /* Release SPI4 from reset state */
+	 rcc_apb2_periph_reset_cmd(RCC_APB2Periph_SPI4, false);
+  }
+ #endif
 }
 
 /**
@@ -82,29 +90,70 @@ static inline void spi_init(SPI_TypeDef* SPIx, uint16_t direction, uint16_t mode
 		uint16_t data_size, uint16_t cpol, uint16_t cpha, uint16_t nss,
 		uint16_t baudrate_prescaler, uint16_t first_bit, int crc_polynomial )
 {
-	  uint16_t tmpreg = 0;
-	  /* Get the SPIx CR1 value */
-	  tmpreg = SPIx->CR1;
-	  /* Clear BIDIMode, BIDIOE, RxONLY, SSM, SSI, LSBFirst, BR, MSTR, CPOL and CPHA bits */
-	  tmpreg &= CR1_CLEAR_MASK;
-	  /* Configure SPIx: direction, NSS management, first transmitted bit, BaudRate prescaler
-		 master/salve mode, CPOL and CPHA */
-	  /* Set BIDImode, BIDIOE and RxONLY bits according to SPI_Direction value */
-	  /* Set SSM, SSI and MSTR bits according to SPI_Mode and SPI_NSS values */
-	  /* Set LSBFirst bit according to SPI_FirstBit value */
-	  /* Set BR bits according to SPI_BaudRatePrescaler value */
-	  /* Set CPOL bit according to SPI_CPOL value */
-	  /* Set CPHA bit according to SPI_CPHA value */
-	  tmpreg |= (uint16_t)((uint32_t)direction| mode |
+	uint16_t tmpreg = 0;
+#ifdef STM32_SPI_V2
+	/* Get the SPIx CR1 value */
+	tmpreg = SPIx->CR1;
+	/* Clear BIDIMode, BIDIOE, RxONLY, SSM, SSI, LSBFirst, BR, CPOL and CPHA bits */
+	tmpreg &= CR1_CLEAR_MASK;
+	/* Configure SPIx: direction, NSS management, first transmitted bit, BaudRate prescaler
+	   master/slave mode, CPOL and CPHA */
+	/* Set BIDImode, BIDIOE and RxONLY bits according to SPI_Direction value */
+	/* Set SSM, SSI bit according to SPI_NSS values */
+	/* Set LSBFirst bit according to SPI_FirstBit value */
+	/* Set BR bits according to SPI_BaudRatePrescaler value */
+	/* Set CPOL bit according to SPI_CPOL value */
+	/* Set CPHA bit according to SPI_CPHA value */
+	tmpreg |= (uint16_t)((uint32_t)direction | first_bit |
+			cpol | cpha |
+			nss | baudrate_prescaler ); 
+	/* Write to SPIx CR1 */
+	SPIx->CR1 = tmpreg;
+	/* Get the SPIx CR2 value */
+	tmpreg = SPIx->CR2;
+	/* Clear DS[3:0] bits */
+	tmpreg &=(uint16_t)~SPI_CR2_DS;
+	/* Configure SPIx: Data Size */
+	tmpreg |= (uint16_t)(data_size);
+	/* Write to SPIx CR2 */
+	SPIx->CR2 = tmpreg;
+	/* Write to SPIx CRCPOLY */
+	SPIx->CRCPR = crc_polynomial;
+		/* Get the SPIx CR1 value */
+	tmpreg = SPIx->CR1;
+	/* Clear MSTR bit */
+	tmpreg &= CR1_CLEAR_MASK2;
+	/* Configure SPIx: master/slave mode */  
+	/* Set MSTR bit according to SPI_Mode */
+	tmpreg |= (uint16_t)((uint32_t)mode); 
+	/* Write to SPIx CR1 */
+	SPIx->CR1 = tmpreg; 
+	/* Activate the SPI mode (Reset I2SMOD bit in I2SCFGR register) */
+	SPIx->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD);
+#else
+	/* Get the SPIx CR1 value */
+	tmpreg = SPIx->CR1;
+	/* Clear BIDIMode, BIDIOE, RxONLY, SSM, SSI, LSBFirst, BR, MSTR, CPOL and CPHA bits */
+	tmpreg &= CR1_CLEAR_MASK;
+	/* Configure SPIx: direction, NSS management, first transmitted bit, BaudRate prescaler
+	   master/salve mode, CPOL and CPHA */
+	/* Set BIDImode, BIDIOE and RxONLY bits according to SPI_Direction value */
+	/* Set SSM, SSI and MSTR bits according to SPI_Mode and SPI_NSS values */
+	/* Set LSBFirst bit according to SPI_FirstBit value */
+	/* Set BR bits according to SPI_BaudRatePrescaler value */
+	/* Set CPOL bit according to SPI_CPOL value */
+	/* Set CPHA bit according to SPI_CPHA value */
+	tmpreg |= (uint16_t)((uint32_t)direction| mode |
 			data_size | cpol |cpha  | nss | baudrate_prescaler | first_bit);
-	  /* Write to SPIx CR1 */
-	  SPIx->CR1 = tmpreg;
+	/* Write to SPIx CR1 */
+	SPIx->CR1 = tmpreg;
 
-	  /* Activate the SPI mode (Reset I2SMOD bit in I2SCFGR register) */
-	  SPIx->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD);
-	  /* Write to SPIx CRCPOLY */
-	  if(crc_polynomial > 0)
-		  SPIx->CRCPR = crc_polynomial;
+	/* Activate the SPI mode (Reset I2SMOD bit in I2SCFGR register) */
+	SPIx->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD);
+	/* Write to SPIx CRCPOLY */
+	if(crc_polynomial > 0)
+		SPIx->CRCPR = crc_polynomial;
+#endif
 }
 
 #if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4)
@@ -242,7 +291,8 @@ static inline void i2s_init( SPI_TypeDef* SPIx, uint16_t mode, uint16_t standard
   /* Write to SPIx I2SCFGR */
   SPIx->I2SCFGR = tmpreg;
 }
-#elif defined(STM32MCU_MAJOR_TYPE_F1)
+#elif defined(STM32MCU_MAJOR_TYPE_F1) || defined(STM32MCU_MAJOR_TYPE_F3 ) || \
+	defined(STM32MCU_MAJOR_TYPE_F37) 
 
 static inline void i2s_init(SPI_TypeDef* SPIx, uint16_t mode, uint16_t standard, uint16_t data_format,
 		uint16_t mclk_output, uint32_t audio_freq, uint16_t cpol, uint32_t sysclk_freq)
@@ -280,6 +330,7 @@ static inline void i2s_init(SPI_TypeDef* SPIx, uint16_t mode, uint16_t standard,
       packetlength = 2;
     }
 
+#ifdef STM32F10X_CL
     /* Get the I2S clock source mask depending on the peripheral number */
     if(((uint32_t)SPIx) == SPI2_BASE)
     {
@@ -294,7 +345,6 @@ static inline void i2s_init(SPI_TypeDef* SPIx, uint16_t mode, uint16_t standard,
 
     /* Check the I2S clock source configuration depending on the Device:
        Only Connectivity line devices have the PLL3 VCO clock */
-#ifdef STM32F10X_CL
     if((RCC->CFGR2 & tmp) != 0)
     {
       /* Get the configuration bits of RCC PLL3 multiplier */
@@ -436,10 +486,20 @@ static inline void i2s_cmd(SPI_TypeDef* SPIx, bool enable)
   */
 static inline void spi_data_size_config(SPI_TypeDef* SPIx, uint16_t SPI_DataSize)
 {
+#ifdef STM32_SPI_V2
+  /* Read the CR2 register */
+  uint16_t tmpreg = SPIx->CR2;
+  /* Clear DS[3:0] bits */
+  tmpreg &= (uint16_t)~SPI_CR2_DS;
+  /* Set new DS[3:0] bits value */
+  tmpreg |= SPI_DataSize;
+  SPIx->CR2 = tmpreg;
+#else
   /* Clear DFF bit */
   SPIx->CR1 &= (uint16_t)~SPI_DataSize_16b;
   /* Set new DFF bit value */
   SPIx->CR1 |= SPI_DataSize;
+#endif
 }
 
 /**
@@ -824,7 +884,7 @@ static inline void spi_i2s_clear_flag(SPI_TypeDef* SPIx, uint16_t SPI_I2S_FLAG)
   *            @arg SPI_I2S_IT_TIFRFE: Format Error interrupt.
   * @retval The new state of SPI_I2S_IT (SET or RESET).
   */
-static inline bool spi_i2s_hetit_status(SPI_TypeDef* SPIx, uint8_t SPI_I2S_IT)
+static inline bool spi_i2s_get_it_status(SPI_TypeDef* SPIx, uint8_t SPI_I2S_IT)
 {
   uint16_t itpos, itmask, enablestatus;
 
@@ -875,6 +935,76 @@ static inline void spi_i2s_clear_it_pending_bit(SPI_TypeDef* SPIx, uint8_t SPI_I
 }
 
 
+#ifdef STM32_SPI_V2
+/**
+  * @brief  Configures the FIFO reception threshold for the selected SPI.
+  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPI_RxFIFOThreshold: specifies the FIFO reception threshold.
+  *          This parameter can be one of the following values:
+  *            @arg SPI_RxFIFOThreshold_HF: RXNE event is generated if the FIFO 
+  *                                         level is greater or equal to 1/2. 
+  *            @arg SPI_RxFIFOThreshold_QF: RXNE event is generated if the FIFO 
+  *                                         level is greater or equal to 1/4. 
+  * @retval None
+  */
+static inline void spi_rx_fifo_threshold_config(SPI_TypeDef* SPIx, uint16_t SPI_RxFIFOThreshold)
+{
+  /* Clear FRXTH bit */
+  SPIx->CR2 &= (uint16_t)~((uint16_t)SPI_CR2_FRXTH);
+  /* Set new FRXTH bit value */
+  SPIx->CR2 |= SPI_RxFIFOThreshold;
+}
+
+/**
+  * @brief  Configures the CRC calculation length for the selected SPI.
+  * @note   This function can be called only after the SPI_Init() function has 
+  *         been called.  
+  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPI_CRCLength: specifies the SPI CRC calculation length.
+  *          This parameter can be one of the following values:
+  *            @arg SPI_CRCLength_8b: Set CRC Calculation to 8 bits
+  *            @arg SPI_CRCLength_16b: Set CRC Calculation to 16 bits
+  * @retval None
+  */
+static inline void spi_crc_length_config(SPI_TypeDef* SPIx, uint16_t SPI_CRCLength)
+{
+  /* Clear CRCL bit */
+  SPIx->CR1 &= (uint16_t)~((uint16_t)SPI_CR1_CRCL);
+  /* Set new CRCL bit value */
+  SPIx->CR1 |= SPI_CRCLength;
+}
+
+
+/**
+  * @brief  Configures the number of data to transfer type(Even/Odd) for the DMA
+  *         last transfers and for the selected SPI.
+  * @note   This function have a meaning only if DMA mode is selected and if 
+  *         the packing mode is used (data length <= 8 and DMA transfer size halfword)  
+  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPI_LastDMATransfer: specifies the SPI last DMA transfers state.
+  *          This parameter can be one of the following values:
+  *            @arg SPI_LastDMATransfer_TxEvenRxEven: Number of data for transmission Even
+  *                                                   and number of data for reception Even.
+  *            @arg SPI_LastDMATransfer_TxOddRxEven: Number of data for transmission Odd
+  *                                                  and number of data for reception Even.
+  *            @arg SPI_LastDMATransfer_TxEvenRxOdd: Number of data for transmission Even
+  *                                                  and number of data for reception Odd.
+  *            @arg SPI_LastDMATransfer_TxOddRxOdd: Number of data for transmission Odd
+  *                                                 and number of data for reception Odd.
+  * @retval None
+  */
+static inline void spi_last_dma_transfer_cmd(SPI_TypeDef* SPIx, uint16_t SPI_LastDMATransfer)
+{
+  /* Clear LDMA_TX and LDMA_RX bits */
+  SPIx->CR2 &= CR2_LDMA_MASK;
+  /* Set new LDMA_TX and LDMA_RX bits value */
+  SPIx->CR2 |= SPI_LastDMATransfer; 
+}
+
+
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif
@@ -886,6 +1016,7 @@ static inline void spi_i2s_clear_it_pending_bit(SPI_TypeDef* SPIx, uint8_t SPI_I
 #undef I2S_MUL_MASK
 #undef I2S_DIV_MASK
 #undef SPI_CR2_FRF
-
+#undef CR2_LDMA_MASK
+#undef STM32_SPI_V2
 #endif /* STM32SPI_H_ */
 
