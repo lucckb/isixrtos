@@ -39,68 +39,19 @@
 namespace stm32 {
 #endif
 
-/**
-  * @brief  Initializes the USARTx peripheral according to the specified
-  *         parameters in the USART_InitStruct .
-  * @param  USARTx: where x can be 1, 2, 3, 4, 5 or 6 to select the USART or
-  *         UART peripheral.
-  * @param  USART_InitStruct: pointer to a USART_InitTypeDef structure that contains
-  *         the configuration information for the specified USART peripheral.
-  * @retval None
-  */
-static inline void usart_init(USART_TypeDef* USARTx, uint32_t baudrate, uint16_t word_length,
-		uint16_t stop_bits, uint16_t parity, uint16_t mode, uint16_t hw_flow_ctl,
-		unsigned pclk1, unsigned pclk2)
-{
+
+static inline void usart_set_baudrate( USART_TypeDef* USARTx, 
+		uint32_t baudrate, unsigned pclk1, unsigned pclk2 )
+{  
   uint32_t tmpreg = 0x00, apbclock = 0x00;
+
+#if USART_HARDWARE_VERSION == 2
+  uint32_t divider = 0;
+#else
   uint32_t integerdivider = 0x00;
   uint32_t fractionaldivider = 0x00;
-
-/* Disable USART */
-  USARTx->CR1 &= (uint32_t)~((uint32_t)USART_CR1_UE);
-
-  tmpreg = USARTx->CR2;
-
-  /* Clear STOP[13:12] bits */
-  tmpreg &= (uint32_t)~((uint32_t)USART_CR2_STOP);
-
-  /* Configure the USART Stop Bits, Clock, CPOL, CPHA and LastBit :
-      Set STOP[13:12] bits according to USART_StopBits value */
-  tmpreg |= (uint32_t)stop_bits;
-
-  /* Write to USART CR2 */
-  USARTx->CR2 = tmpreg;
-
-
-  tmpreg = USARTx->CR1;
-
-  /* Clear M, PCE, PS, TE and RE bits */
-  tmpreg &= (uint32_t)~((uint32_t)CR1_CLEAR_MASK);
-
-  /* Configure the USART Word Length, Parity and mode:
-     Set the M bits according to USART_WordLength value
-     Set PCE and PS bits according to USART_Parity value
-     Set TE and RE bits according to USART_Mode value */
-  tmpreg |= (uint32_t)word_length | parity | mode;
-
-  /* Write to USART CR1 */
-  USARTx->CR1 = tmpreg;
-
-
-  tmpreg = USARTx->CR3;
-
-  /* Clear CTSE and RTSE bits */
-  tmpreg &= (uint32_t)~((uint32_t)CR3_CLEAR_MASK);
-
-  /* Configure the USART HFC :
-      Set CTSE and RTSE bits according to USART_HardwareFlowControl value */
-  tmpreg |= hw_flow_ctl;
-
-  /* Write to USART CR3 */
-  USARTx->CR3 = tmpreg;
-
-
-#ifndef STM32MCU_MAJOR_TYPE_F1
+#endif
+#ifdef USART6
   if ((USARTx == USART1) || (USARTx == USART6))
 #else
   if( USARTx == USART1 ) 
@@ -129,7 +80,7 @@ static inline void usart_init(USART_TypeDef* USARTx, uint32_t baudrate, uint16_t
   }
   
   /* round the divider : if fractional part i greater than 0.5 increment divider */
-  if (tmpreg >=  (USART_InitStruct->USART_BaudRate) / 2)
+  if (tmpreg >=  (baudrate) / 2)
   {
     divider++;
   } 
@@ -173,6 +124,68 @@ static inline void usart_init(USART_TypeDef* USARTx, uint32_t baudrate, uint16_t
   /* Write to USART BRR register */
   USARTx->BRR = (uint16_t)tmpreg;
 }
+
+/**
+  * @brief  Initializes the USARTx peripheral according to the specified
+  *         parameters in the USART_InitStruct .
+  * @param  USARTx: where x can be 1, 2, 3, 4, 5 or 6 to select the USART or
+  *         UART peripheral.
+  * @param  USART_InitStruct: pointer to a USART_InitTypeDef structure that contains
+  *         the configuration information for the specified USART peripheral.
+  * @retval None
+  */
+static inline void usart_init(USART_TypeDef* USARTx, uint32_t baudrate, uint16_t word_length,
+		uint16_t stop_bits, uint16_t parity, uint16_t mode, uint16_t hw_flow_ctl,
+		unsigned pclk1, unsigned pclk2)
+{
+
+
+/* Disable USART */
+  USARTx->CR1 &= (uint32_t)~((uint32_t)USART_CR1_UE);
+
+  uint32_t tmpreg = USARTx->CR2;
+
+  /* Clear STOP[13:12] bits */
+  tmpreg &= (uint32_t)~((uint32_t)USART_CR2_STOP);
+
+  /* Configure the USART Stop Bits, Clock, CPOL, CPHA and LastBit :
+      Set STOP[13:12] bits according to USART_StopBits value */
+  tmpreg |= (uint32_t)stop_bits;
+
+  /* Write to USART CR2 */
+  USARTx->CR2 = tmpreg;
+
+
+  tmpreg = USARTx->CR1;
+
+  /* Clear M, PCE, PS, TE and RE bits */
+  tmpreg &= (uint32_t)~((uint32_t)CR1_CLEAR_MASK);
+
+  /* Configure the USART Word Length, Parity and mode:
+     Set the M bits according to USART_WordLength value
+     Set PCE and PS bits according to USART_Parity value
+     Set TE and RE bits according to USART_Mode value */
+  tmpreg |= (uint32_t)word_length | parity | mode;
+
+  /* Write to USART CR1 */
+  USARTx->CR1 = tmpreg;
+
+
+  tmpreg = USARTx->CR3;
+
+  /* Clear CTSE and RTSE bits */
+  tmpreg &= (uint32_t)~((uint32_t)CR3_CLEAR_MASK);
+
+  /* Configure the USART HFC :
+      Set CTSE and RTSE bits according to USART_HardwareFlowControl value */
+  tmpreg |= hw_flow_ctl;
+
+  /* Write to USART CR3 */
+  USARTx->CR3 = tmpreg;
+
+  usart_set_baudrate( USARTx, baudrate, pclk1, pclk2 );
+}
+
 
 /**
   * @brief  Initializes the USARTx peripheral Clock according to the
@@ -523,9 +536,9 @@ static inline void usart_send_data(USART_TypeDef* USARTx, uint16_t data)
 {
   /* Transmit Data */
 #if USART_HARDWARE_VERSION==2
-	USARTx->TDR = (Data & (uint16_t)0x01FF);
+	USARTx->TDR = (data & (uint16_t)0x01FF);
 #else
-  USARTx->DR = (data & (uint16_t)0x01FF);
+	USARTx->DR = (data & (uint16_t)0x01FF);
 #endif
 }
 
@@ -602,12 +615,9 @@ static inline void usart_mute_mode_wakeup_config(USART_TypeDef* USARTx, uint32_t
   *            @arg USART_AddressLength_7b: 7-bit address length detection 
   * @retval None
   */
-static inline void usart_address_detection_config(USART_TypeDef* USARTx, uint32_t USART_AddressLength)
+static inline void usart_address_detection_config(USART_TypeDef* USARTx, 
+		uint32_t USART_AddressLength)
 {
-  /* Check the parameters */
-  assert_param(IS_USART_ALL_PERIPH(USARTx));
-  assert_param(IS_USART_ADDRESS_DETECTION(USART_AddressLength));
-
   USARTx->CR2 &= (uint32_t)~((uint32_t)USART_CR2_ADDM7);
   USARTx->CR2 |= USART_AddressLength;
 }
@@ -694,17 +704,21 @@ static inline void usart_lin_cmd(USART_TypeDef* USARTx, bool enabled)
   }
 }
 
+
 /**
   * @brief  Transmits break characters.
   * @param  USARTx: where x can be 1, 2, 3, 4, 5 or 6 to select the USART or
   *         UART peripheral.
   * @retval None
   */
-static inline void USART_SendBreak(USART_TypeDef* USARTx)
+
+#if USART_HARDWARE_VERSION==1
+static inline void usart_send_break(USART_TypeDef* USARTx)
 {
   /* Send break characters */
   USARTx->CR1 |= USART_CR1_SBK;
 }
+#endif
 
 /**
   * @brief  Enables or disables the USART's Half Duplex communication.
@@ -987,7 +1001,7 @@ static inline void usart_dma_reception_error_config(USART_TypeDef* USARTx, uint3
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None
   */
-static inline void usart_it_config(USART_TypeDef* USARTx, uint16_t USART_IT, bool enabled )
+static inline void usart_it_config(USART_TypeDef* USARTx, uint32_t USART_IT, bool enabled )
 {
   uint32_t usartreg = 0x00, itpos = 0x00, itmask = 0x00;
   uint32_t usartxbase = 0x00;
@@ -1048,7 +1062,7 @@ static inline void usart_it_config(USART_TypeDef* USARTx, uint32_t USART_IT, boo
   else /* The IT is in CR1 register */
   {
   }
-  if (NewState != DISABLE)
+  if (enable)
   {
     *(__IO uint32_t*)usartxbase  |= itmask;
   }
@@ -1120,7 +1134,12 @@ static inline void usart_overrun_detection_config(USART_TypeDef* USARTx, uint32_
   */
 static inline bool usart_get_flag_status(USART_TypeDef* USARTx, uint32_t flag)
 {
-	return ((USARTx->SR & flag) != 0);
+
+#if USART_HARDWARE_VERSION==2
+	return (USARTx->ISR & flag) != 0;
+#else
+	return (USARTx->SR & flag) != 0;
+#endif
 }
 
 /**
@@ -1129,7 +1148,7 @@ static inline bool usart_get_flag_status(USART_TypeDef* USARTx, uint32_t flag)
 static inline void usart_clear_flag(USART_TypeDef* USARTx, uint32_t flag)
 {
 #if USART_HARDWARE_VERSION==2
-  USARTx->ICR = USART_FLAG;
+  USARTx->ICR = flag;
 #else
   USARTx->SR = (uint16_t)~flag;
 #endif
@@ -1162,7 +1181,7 @@ static inline bool usart_get_it_status(USART_TypeDef* USARTx, uint32_t usart_it)
   /* Get the USART register index */
 
 #if USART_HARDWARE_VERSION==2
-  usartreg = (((uint16_t)USART_IT) >> 0x08);
+  usartreg = (((uint16_t)usart_it) >> 0x08);
 #else
   usartreg = (((uint8_t)usart_it) >> 0x05);
 #endif
@@ -1184,7 +1203,7 @@ static inline bool usart_get_it_status(USART_TypeDef* USARTx, uint32_t usart_it)
   }
 
 #if USART_HARDWARE_VERSION==2
-  bitpos = USART_IT >> 0x10;
+  bitpos = usart_it >> 0x10;
 #else
   bitpos = usart_it >> 0x08;
 #endif
