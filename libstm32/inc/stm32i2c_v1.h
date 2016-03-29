@@ -1,30 +1,29 @@
-/*----------------------------------------------------------*/
+
 /*
  * stm32i2c.h
  *
  *  Created on: 23-07-2012
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
-#ifndef STM32I2C_H_
-#define STM32I2C_H_
-/*----------------------------------------------------------*/
+
+#pragma once
+
 #include <stdbool.h>
 #include <stdint.h>
 #include "stm32f1f2f4_i2c.h"
 #include "stm32lib.h"
 #include "stm32rcc.h"
 
-/*----------------------------------------------------------*/
+
 #define CR1_CLEAR_MASK    ((uint16_t)0xFBF5)
 #define FLAG_MASK         ((uint32_t)0x00FFFFFF)  /*<! I2C FLAG mask */
 #define ITEN_MASK         ((uint32_t)0x07000000)  /*<! I2C Interrupt Enable mask */
-/*----------------------------------------------------------*/
+
 #ifdef __cplusplus
 namespace stm32 {
 #endif
 
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Deinitialize the I2Cx peripheral registers to their default reset values.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -61,14 +60,14 @@ static inline void i2c_deinit(I2C_TypeDef* I2Cx)
 #endif
 }
 
-/*----------------------------------------------------------*/
+
 static inline void i2c_init(I2C_TypeDef* I2Cx, uint32_t clock_speed, uint16_t mode, uint16_t duty_cycle,
 		uint16_t own_address, uint16_t ack, uint16_t acknowledged_address, uint32_t pclk1 )
 {
   uint16_t tmpreg = 0, freqrange = 0;
   uint16_t result = 0x04;
 
-/*---------------------------- I2Cx CR2 Configuration ------------------------*/
+
   /* Get the I2Cx CR2 value */
   tmpreg = I2Cx->CR2;
   /* Clear frequency FREQ[5:0] bits */
@@ -79,7 +78,7 @@ static inline void i2c_init(I2C_TypeDef* I2Cx, uint32_t clock_speed, uint16_t mo
   /* Write to I2Cx CR2 */
   I2Cx->CR2 = tmpreg;
 
-/*---------------------------- I2Cx CCR Configuration ------------------------*/
+
   /* Disable the selected I2C peripheral to configure TRISE */
   I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_PE);
   /* Reset tmpreg value */
@@ -137,7 +136,7 @@ static inline void i2c_init(I2C_TypeDef* I2Cx, uint32_t clock_speed, uint16_t mo
   /* Enable the selected I2C peripheral */
   I2Cx->CR1 |= I2C_CR1_PE;
 
-/*---------------------------- I2Cx CR1 Configuration ------------------------*/
+
   /* Get the I2Cx CR1 value */
   tmpreg = I2Cx->CR1;
   /* Clear ACK, SMBTYPE and  SMBUS bits */
@@ -149,11 +148,11 @@ static inline void i2c_init(I2C_TypeDef* I2Cx, uint32_t clock_speed, uint16_t mo
   /* Write to I2Cx CR1 */
   I2Cx->CR1 = tmpreg;
 
-/*---------------------------- I2Cx OAR1 Configuration -----------------------*/
+
   /* Set I2Cx Own Address1 and acknowledged address */
   I2Cx->OAR1 = (acknowledged_address | own_address);
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified I2C peripheral.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -176,7 +175,7 @@ static inline void i2c_cmd(I2C_TypeDef* I2Cx, bool en)
   }
 }
 
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Generates I2Cx communication START condition.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -197,7 +196,7 @@ static inline void i2c_generate_start(I2C_TypeDef* I2Cx, bool en)
     I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_START);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Generates I2Cx communication STOP condition.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -218,7 +217,7 @@ static inline void i2c_generate_stop(I2C_TypeDef* I2Cx, bool en)
     I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_STOP);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Transmits the address byte to select the slave device.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -246,7 +245,7 @@ static inline void i2c_send_7bit_address(I2C_TypeDef* I2Cx, uint8_t Address, uin
   /* Send the address */
   I2Cx->DR = Address;
 }
-/*----------------------------------------------------------*/
+
 /**
  * Send 7 bit full address
  * @param I2Cx I2C periph
@@ -257,7 +256,7 @@ static inline void i2c_send_f7bit_address(I2C_TypeDef* I2Cx, uint8_t Address)
 	I2Cx->DR = Address;
 }
 
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified I2C acknowledge feature.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -278,7 +277,7 @@ static inline void i2c_acknowledge_config(I2C_TypeDef* I2Cx, bool en)
     I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_ACK);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Configures the specified I2C own address2.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -301,7 +300,7 @@ static inline void i2c_own_address2config(I2C_TypeDef* I2Cx, uint8_t Address)
   /* Store the new register value */
   I2Cx->OAR2 = tmpreg;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified I2C dual addressing mode.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -322,7 +321,7 @@ static inline void i2c_dual_address_cmd(I2C_TypeDef* I2Cx, bool NewState)
     I2Cx->OAR2 &= (uint16_t)~((uint16_t)I2C_OAR2_ENDUAL);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified I2C general call feature.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -344,7 +343,7 @@ static inline void i2c_general_call_cmd(I2C_TypeDef* I2Cx, bool NewState)
     I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_ENGC);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified I2C software reset.
   * @note   When software reset is enabled, the I2C IOs are released (this can
@@ -367,7 +366,7 @@ static inline void i2c_software_reset_cmd(I2C_TypeDef* I2Cx, bool NewState)
     I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_SWRST);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified I2C Clock stretching.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -388,7 +387,7 @@ static inline void i2c_stretch_clock_cmd(I2C_TypeDef* I2Cx, bool NewState)
     I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_NOSTRETCH);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Selects the specified I2C fast mode duty cycle.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -411,7 +410,7 @@ static inline void i2c_fast_mode_duty_cycle_config(I2C_TypeDef* I2Cx, uint16_t I
     I2Cx->CCR |= I2C_DutyCycle_16_9;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Selects the specified I2C NACK position in master receiver mode.
   * @note   This function is useful in I2C Master Receiver mode when the number
@@ -447,7 +446,7 @@ static inline void i2c_nack_position_config(I2C_TypeDef* I2Cx, uint16_t I2C_NACK
     I2Cx->CR1 &= I2C_NACKPosition_Current;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Drives the SMBusAlert pin high or low for the specified I2C.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -470,7 +469,7 @@ static inline void i2c_smbus_alert_config(I2C_TypeDef* I2Cx, uint16_t I2C_SMBusA
     I2Cx->CR1 &= I2C_SMBusAlert_High;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified I2C ARP.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -491,7 +490,7 @@ static inline void i2c_arp_cmd(I2C_TypeDef* I2Cx, bool NewState)
     I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_ENARP);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Sends a data byte through the I2Cx peripheral.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -503,7 +502,7 @@ static inline void i2c_send_data(I2C_TypeDef* I2Cx, uint8_t Data)
   /* Write in the DR register the data to be sent */
   I2Cx->DR = Data;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Returns the most recent received data by the I2Cx peripheral.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -514,7 +513,7 @@ static inline uint8_t i2c_receive_data(I2C_TypeDef* I2Cx)
   /* Return the data in the DR register */
   return (uint8_t)I2Cx->DR;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified I2C PEC transfer.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -535,7 +534,7 @@ static inline void i2c_transmit_pec(I2C_TypeDef* I2Cx, bool NewState)
     I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_PEC);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Selects the specified I2C PEC position.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -563,7 +562,7 @@ static inline void i2c_pec_position_config(I2C_TypeDef* I2Cx, uint16_t I2C_PECPo
     I2Cx->CR1 &= I2C_PECPosition_Current;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Returns the PEC value for the specified I2C.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -574,7 +573,7 @@ static inline uint8_t i2c_get_pec(I2C_TypeDef* I2Cx)
   /* Return the selected I2C PEC value */
   return ((I2Cx->SR2) >> 8);
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Enables or disables the specified I2C DMA requests.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -595,7 +594,7 @@ static inline void i2c_dma_cmd(I2C_TypeDef* I2Cx, bool en)
     I2Cx->CR2 &= (uint16_t)~((uint16_t)I2C_CR2_DMAEN);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Specifies that the next DMA transfer is the last one.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -616,7 +615,7 @@ static inline void i2c_dma_last_transfer_cmd(I2C_TypeDef* I2Cx, bool NewState)
     I2Cx->CR2 &= (uint16_t)~((uint16_t)I2C_CR2_LAST);
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Reads the specified I2C register and returns its value.
   * @param  I2C_Register: specifies the register to read.
@@ -643,7 +642,7 @@ static inline uint16_t i2c_read_register(I2C_TypeDef* I2Cx, uint8_t I2C_Register
   /* Return the selected register value */
   return (*(__IO uint16_t *) tmp);
 }
-/*----------------------------------------------------------*/
+
 
 /**
   * @brief  Enables or disables the specified I2C interrupts.
@@ -670,7 +669,7 @@ static inline void i2c_it_config(I2C_TypeDef* I2Cx, uint16_t I2C_IT, bool en )
     I2Cx->CR2 &= (uint16_t)~I2C_IT;
   }
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Checks whether the last I2Cx Event is equal to the one passed
   *         as parameter.
@@ -722,7 +721,7 @@ static inline bool i2c_check_event(I2C_TypeDef* I2Cx, uint32_t I2C_EVENT)
   return ((lastevent & I2C_EVENT) == I2C_EVENT)?true:false;
 
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Returns the last I2Cx Event.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -748,7 +747,7 @@ static inline uint32_t i2c_get_last_event(I2C_TypeDef* I2Cx)
   /* Return status */
   return lastevent;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Checks whether the specified I2C flag is set or not.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -806,7 +805,7 @@ static inline bool i2c_get_flag_status(I2C_TypeDef* I2Cx, uint32_t I2C_FLAG)
   return (((*(__IO uint32_t *)i2cxbase) & I2C_FLAG) != (uint32_t)0);
 
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Clears the I2Cx's pending flags.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -846,7 +845,7 @@ static inline void i2c_clear_flag(I2C_TypeDef* I2Cx, uint32_t I2C_FLAG)
   /* Clear the selected I2C flag */
   I2Cx->SR1 = (uint16_t)~flagpos;
 }
-/*----------------------------------------------------------*/
+
 /**
   * @brief  Checks whether the specified I2C interrupt has occurred or not.
   * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
@@ -882,7 +881,7 @@ static inline bool i2c_get_it_status(I2C_TypeDef* I2Cx, uint32_t I2C_IT)
   /* Check the status of the specified I2C flag */
   return (((I2Cx->SR1 & I2C_IT) != (uint32_t)0) && enablestatus);
 }
-/*----------------------------------------------------------*/
+
 
 /**
   * @brief  Clears the I2Cx's interrupt pending bits.
@@ -924,14 +923,13 @@ static inline void i2c_clear_it_pending_bit(I2C_TypeDef* I2Cx, uint32_t I2C_IT)
   /* Clear the selected I2C flag */
   I2Cx->SR1 = (uint16_t)~flagpos;
 }
-/*----------------------------------------------------------*/
+
 #ifdef __cplusplus
 }
 #endif
-/*----------------------------------------------------------*/
+
 #undef CR1_CLEAR_MASK
 #undef FLAG_MASK
 #undef ITEN_MASK
-/*----------------------------------------------------------*/
-#endif /* STM32ADC_H_ */
-/*----------------------------------------------------------*/
+
+
