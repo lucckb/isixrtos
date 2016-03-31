@@ -17,6 +17,7 @@
  */
 
 #include <iostream>
+#include <emeter/energy_meter.hpp>
 
 int main() {
 	std::cout << "Hello " << std::endl;

@@ -18,10 +18,11 @@
 #include <cstddef>
 #include <array>
 #include "types.hpp"
+#include "energy_phase_n.hpp"
 
 namespace emeter {
 
-	template <std::size_t PHASES = 3, std::size_t FFTSIZE=256>
+	template <std::size_t PHASES = 3, unsigned FS = 4000, std::size_t FFTSIZE=256>
 	//! Main energy meter class library
 	class energy_meter 
 	{
@@ -32,26 +33,27 @@ namespace emeter {
 		 * @param[in] input Input buffer pointer with resampled data
 		 * @return Buffer to fill by sampling procedure
 		 */
-		template< std::size_t PHASE>
-			sample_t* process_voltage( sample_t* input ) noexcept {
-				std::static_assert( PHASE<PHASES, "Invalid V phase num" );
-				m_energies[PHASE].process_voltage( input );
+		template<std::size_t PHASE>
+			sample_t* swap_volt_samples() noexcept {
+				static_assert( PHASE<PHASES, "Invalid V phase num" );
+				return m_energies[PHASE].process_voltage();
 		}
 
-		template< std::size_t PHASE>
-			sample_t* process_current( sample_t* input ) noexcept {
-				std::static_assert( PHASE<PHASES, "Invalid I phase num" );
-				m_energies[PHASE].process_current( input );
+		template<std::size_t PHASE>
+			sample_t* swap_current_samples() noexcept {
+				static_assert( PHASE<PHASES, "Invalid I phase num" );
+				return m_energies[PHASE].process_current();
+		}
+		
+		//! Process thread
+		void calculate() noexcept {
+		
 		}
 		
 		//! Get phase defined type
-		template< std::size_t PHASE, typename TAG >
-			TAG operator()( const TAG& tag ) const noexcept {
-				return m_energies<TAG>();
-			}
-		template< typename TAG > 
-			decltype() operator( const TAG& tag ) const noexcept {
-				
+		template<typename TAG>
+			TAG operator()( const std::size_t phase, 
+					const TAG tag ) const noexcept {
 			}
 	private:
 		std::array<energy_phase_n<FFTSIZE>, PHASES> m_energies;

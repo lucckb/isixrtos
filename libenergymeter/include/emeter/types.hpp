@@ -19,7 +19,6 @@
 #pragma once
 
 namespace emeter {
-namespace detail {
 	//! Type used for energy calculation
 	using energy_t = unsigned long long;
 	//! Type used for voltage calculation
@@ -30,5 +29,4 @@ namespace detail {
 	using sample_t =  unsigned short;
 	//! Thd type 
 	using thd_t = float;
-}
 }

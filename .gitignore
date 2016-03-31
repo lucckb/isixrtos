@@ -10,12 +10,10 @@
 libgfx/host-tools/convbdf
 libgfx/host-tools/convflashbmp
 libgfx/host-tools/tags
+tests/**/Makefile
+tests/libenergymeter/emtest
 CMakeFiles
-libfoundation/unittests/tags
-libfoundation/unittests/ftest
-libfoundation/unittests/cmake_install.cmake
-libfoundation/unittests/Makefile
-libfoundation/unittests/.session.vim
-libfoundation/unittests/CMakeCache.txt
+CMakeCache.txt
+*.cmake
 tags
 .session.vim
