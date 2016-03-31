@@ -18,9 +18,17 @@
 
 #include <iostream>
 #include <emeter/energy_meter.hpp>
+#include <gtest/gtest.h>
 
-int main() {
-	std::cout << "Hello " << std::endl;
+TEST( is_test, test )
+{
+	EXPECT_FALSE( false );
+	EXPECT_FALSE( true );
+}
+
+int main( int argc, char** argv ) {
+	::testing::InitGoogleTest( &argc, argv );
+	return RUN_ALL_TESTS();
 }
 
 
