@@ -29,6 +29,8 @@ namespace emeter {
 	public:
 		energy_phase_n( energy_phase_n& ) = delete;
 		energy_phase_n& operator=(energy_phase_n&) = delete;
+		energy_phase_n() {
+		}
 	private:
 		std::array<std::array<sample_t,BUFLEN>,2> m_buf {{{}}};
 	};

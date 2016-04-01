@@ -15,26 +15,29 @@
  *
  * =====================================================================================
  */
+#include <emeter/types.hpp>
+
 namespace emeter {
-namespace tag {
+namespace tags {
 
 	//! Non billing information voltage currrent
-	struct u_rms {};
-	struct i_rms {};
-	struct thd {};
-	struct pwr_fact {};
-	struct freq {};
+	struct u_rms {  using value_type = measure_t; };
+	struct i_rms {  using value_type = measure_t; };
+	struct thd { using value_type = measure_t;  };
+	struct pwr_fact { using value_type = measure_t; };
+	struct freq { using value_type = measure_t; };
 
 	//! Non biling information
-	struct p_avg {}; 
-	struct q_avg {};
-	struct s_avg {};
+	struct p_avg { using value_type = measure_t; }; 
+	struct q_avg { using value_type = measure_t; };
+	struct s_avg { using value_type = measure_t; };
 
 	//! Billing information
-	struct var_h_pos {};
-	struct watt_h_pos {};
-	struct var_h_neg {};
-	struct watt_h_neg {};
+	struct var_h_pos { using value_type = accum_t; };
+	struct watt_h_pos { using value_type = accum_t; };
+	struct var_h_neg { using value_type = accum_t; };
+	struct watt_h_neg { using value_type = accum_t; };
+
 }
 }
 

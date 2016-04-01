@@ -19,14 +19,10 @@
 #pragma once
 
 namespace emeter {
-	//! Type used for energy calculation
-	using energy_t = unsigned long long;
-	//! Type used for voltage calculation
-	using voltage_t = float;
-	//! Type used for current calculation
-	using current_t = float;
-	//! Type used for sampling 
+	//! Accumulative type
+	using accum_t = unsigned long long;
+	//! Sample type
 	using sample_t =  unsigned short;
-	//! Thd type 
-	using thd_t = float;
+	//! Simple measure type
+	using measure_t = float;
 }

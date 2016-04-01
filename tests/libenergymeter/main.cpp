@@ -22,8 +22,8 @@
 
 TEST( is_test, test )
 {
-	EXPECT_FALSE( false );
-	EXPECT_FALSE( true );
+	emeter::energy_meter<> emo;
+	EXPECT_EQ( emo(1, emeter::tags::u_rms() ), 0 );
 }
 
 int main( int argc, char** argv ) {
