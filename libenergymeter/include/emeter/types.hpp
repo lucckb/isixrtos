@@ -17,12 +17,13 @@
  */
 
 #pragma once
+#include <cstdint>
 
 namespace emeter {
 	//! Accumulative type
-	using accum_t = unsigned long long;
+	using accum_t = std::uint64_t;
 	//! Sample type
-	using sample_t =  unsigned short;
+	using sample_t = std::uint16_t;
 	//! Simple measure type
 	using measure_t = float;
 }
