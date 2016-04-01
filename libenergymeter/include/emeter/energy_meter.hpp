@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <array>
 #include <atomic>
+#include <utility>
 #include "types.hpp"
 #include "detail/tags.hpp"
 #include "energy_phase_n.hpp"
@@ -59,9 +60,10 @@ namespace emeter {
 		
 		//! Get phase defined type
 		template<typename TAG>
-			typename TAG::value_type operator()( const std::size_t phase, 
-					const TAG ) const noexcept {
-				return {};
+			typename TAG::value_type operator()
+			( const std::size_t phase, const TAG& p ) const noexcept 
+			{
+				return m_energies[phase]( p );
 			}
 	private:
 		std::array<energy_phase_n<FFTSIZE>, PHASES> m_energies;

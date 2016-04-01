@@ -15,11 +15,13 @@
  *
  * =====================================================================================
  */
+#pragma once
+
 #include <emeter/types.hpp>
 
 namespace emeter {
 namespace tags {
-
+namespace detail {
 	//! Non billing information voltage currrent
 	struct u_rms {  using value_type = measure_t; };
 	struct i_rms {  using value_type = measure_t; };
@@ -37,7 +39,20 @@ namespace tags {
 	struct watt_h_pos { using value_type = accum_t; };
 	struct var_h_neg { using value_type = accum_t; };
 	struct watt_h_neg { using value_type = accum_t; };
-
+}
+	namespace {
+		constexpr detail::var_h_pos  var_h_pos{};
+		constexpr detail::watt_h_pos watt_h_pos{};
+		constexpr detail::var_h_neg var_h_neg{};
+		constexpr detail::watt_h_neg watt_h_neg{};
+		constexpr detail::p_avg p_avg{};
+		constexpr detail::q_avg q_avg{};
+		constexpr detail::s_avg s_avg{};
+		constexpr detail::u_rms u_rms{};
+		constexpr detail::i_rms i_rms{};
+		constexpr detail::thd thd{};
+		constexpr detail::pwr_fact pwr_fact{};
+		constexpr detail::freq freq{};
+	}
 }
 }
-

@@ -18,7 +18,8 @@
 #pragma once
 #include <cstddef>
 #include <array>
-#include "types.hpp"
+#include <atomic>
+#include "detail/tags.hpp"
 
 namespace emeter {
 
@@ -31,6 +32,13 @@ namespace emeter {
 		energy_phase_n& operator=(energy_phase_n&) = delete;
 		energy_phase_n() {
 		}
+		// Get URMS
+		typename tags::detail::u_rms::value_type 
+			operator()( const tags::detail::u_rms& ) const noexcept
+		{
+			return 1;
+		}
+
 	private:
 		std::array<std::array<sample_t,BUFLEN>,2> m_buf {{{}}};
 	};

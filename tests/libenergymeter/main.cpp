@@ -23,7 +23,7 @@
 TEST( is_test, test )
 {
 	emeter::energy_meter<> emo;
-	EXPECT_EQ( emo(1, emeter::tags::u_rms() ), 0 );
+	EXPECT_EQ( emo(1, emeter::tags::u_rms ), 1 );
 }
 
 int main( int argc, char** argv ) {
