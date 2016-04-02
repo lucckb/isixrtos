@@ -25,7 +25,8 @@ namespace detail {
 	//! Non billing information voltage currrent
 	struct u_rms {  using value_type = measure_t; };
 	struct i_rms {  using value_type = measure_t; };
-	struct thd { using value_type = measure_t;  };
+	struct thd_u { using value_type = measure_t;  };
+	struct thd_i { using value_type = measure_t;  };
 	struct pwr_fact { using value_type = measure_t; };
 	struct freq { using value_type = measure_t; };
 
@@ -50,7 +51,8 @@ namespace detail {
 		constexpr detail::s_avg s_avg{};
 		constexpr detail::u_rms u_rms{};
 		constexpr detail::i_rms i_rms{};
-		constexpr detail::thd thd{};
+		constexpr detail::thd_u thd_u{};
+		constexpr detail::thd_i thd_i{};
 		constexpr detail::pwr_fact pwr_fact{};
 		constexpr detail::freq freq{};
 	}

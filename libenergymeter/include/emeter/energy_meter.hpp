@@ -37,7 +37,7 @@ namespace emeter {
 
 		}
 
-		/**   Calculate energy called from ISR vector
+		/**Calculate energy called from ISR vector
 		 * @param[in] input Input buffer pointer with resampled data
 		 * @return Buffer to fill by sampling procedure
 		 */
@@ -55,7 +55,9 @@ namespace emeter {
 		
 		//! Process thread should be called after calculation
 		void calculate() noexcept {
-		
+			for( std::size_t ph=0; ph<PHASES; ++ph ) {
+				m_energies[ph].calculate();
+			}
 		}
 		
 		//! Get phase defined type
