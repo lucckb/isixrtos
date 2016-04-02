@@ -42,22 +42,24 @@ namespace emeter {
 		 * @return Buffer to fill by sampling procedure
 		 */
 		template<std::size_t PHASE>
-			sample_t* swap_volt_samples() noexcept {
+			sample_t* sample_voltage_begin() noexcept {
 				static_assert( PHASE<PHASES, "Invalid V phase num" );
-				return m_energies[PHASE].process_voltage();
+				return m_energies[PHASE].sample_voltage_begin();
 		}
 
 		template<std::size_t PHASE>
-			sample_t* swap_current_samples() noexcept {
+			sample_t* sample_current_begin() noexcept {
 				static_assert( PHASE<PHASES, "Invalid I phase num" );
-				return m_energies[PHASE].process_current();
+				return m_energies[PHASE].sample_current_begin();
 		}
 		
 		//! Process thread should be called after calculation
-		void calculate() noexcept {
+		int calculate() noexcept {
 			for( std::size_t ph=0; ph<PHASES; ++ph ) {
-				m_energies[ph].calculate();
+				auto err = m_energies[ph].calculate();
+				if( err ) return err;
 			}
+			return 0;
 		}
 		
 		//! Get phase defined type
