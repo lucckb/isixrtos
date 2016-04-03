@@ -68,8 +68,8 @@ namespace emeter {
 			const auto state = m_free[I_IDX].load();
 			if( state>>2 != 0b10 && state>>2 !=0b01 )
 				return e_buff;
-			m_rdy.fetch_or( (~(state>>2) & 0b11)<<I_IDX*2 );
-			m_free[I_IDX].fetch_and( ~state & 0b1100 );
+			m_rdy.fetch_or( ((state>>2) & 0b11)<<I_IDX*2 );
+			m_free[I_IDX].fetch_and( 0b0011 );
 			return e_ok;
 		}
 		// End voltage processing
@@ -78,24 +78,29 @@ namespace emeter {
 			const auto state = m_free[U_IDX].load();
 			if( state>>2 != 0b10 && state>>2 !=0b01 ) 
 				return e_buff;
-			m_rdy.fetch_or( (~(state>>2) & 0b11)<<U_IDX*2 );
+			m_rdy.fetch_or( ((state>>2) & 0b11)<<U_IDX*2 );
+			m_free[U_IDX].fetch_and( 0b0011 );
 			return e_ok;
 		}
 		//! Calculate after data get
 		int calculate( ) noexcept 
 		{
 			const auto rdy = m_rdy.load();
-			if( __builtin_popcount(rdy) != 2 ) {
-				return e_buff;
+			int err;
+			if( rdy&0b0001 && rdy&0b0100 ) {
+				err = do_calculate( m_buf[U_IDX*2].data(), m_buf[I_IDX*2].data(), buflen );
+				m_rdy.fetch_and( 0b1010 );
+				m_free[U_IDX].fetch_or( 0b01 );
+				m_free[I_IDX].fetch_or( 0b01 );
 			}
-			const auto err = do_calculate( 
-				(rdy&0b01?m_buf[U_IDX*2]:m_buf[U_IDX*2+1]).data(),
-				(rdy&0b0100?m_buf[I_IDX*2]:m_buf[I_IDX*2+1]).data(),
-				buflen
-			);
-			m_rdy.store( 0 );
-			m_free[U_IDX].store( 0b11 );
-			m_free[I_IDX].store( 0b11 );
+			if( !err ) {
+				if( rdy&0b0010 && rdy&0b1000 ) {
+					err = do_calculate( m_buf[U_IDX*2+1].data(), m_buf[I_IDX*2+1].data(), buflen );
+					m_rdy.fetch_and( 0b0101 );
+					m_free[U_IDX].fetch_or( 0b10 );
+					m_free[I_IDX].fetch_or( 0b10 );
+				}
+			}
 			return err;
 		}
 	private:
