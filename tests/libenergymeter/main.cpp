@@ -16,16 +16,9 @@
  * =====================================================================================
  */
 
-#include <iostream>
-#include <emeter/energy_meter.hpp>
 #include <gtest/gtest.h>
 
-TEST( is_test, test )
-{
-	emeter::energy_meter<> emo;
-	EXPECT_TRUE( emo.sample_current_begin<1>() );
-	EXPECT_EQ( emo.calculate(), 0 );
-}
+
 
 int main( int argc, char** argv ) {
 	::testing::InitGoogleTest( &argc, argv );

@@ -33,6 +33,10 @@ namespace emeter {
 		static constexpr auto buflen = FFTLEN+FFTLEN/2;
 		static constexpr auto fftlen = FFTLEN+FFTLEN/2;
 	public:
+		enum error {
+			e_ok = 0,
+			e_buff = -768
+		};
 		energy_phase_n( energy_phase_n& ) = delete;
 		energy_phase_n& operator=(energy_phase_n&) = delete;
 		energy_phase_n() {
@@ -59,23 +63,30 @@ namespace emeter {
 			return sample_select_buf( U_IDX );
 		}
 		// End current processing	
-		void sample_current_end() noexcept {
+		int sample_current_end() noexcept 
+		{
 			const auto state = m_free[I_IDX].load();
-			if( state == 0b11 ) return;
-			m_rdy.fetch_or( (~state & 0b11)<<I_IDX*2 );
+			if( state>>2 != 0b10 && state>>2 !=0b01 )
+				return e_buff;
+			m_rdy.fetch_or( (~(state>>2) & 0b11)<<I_IDX*2 );
+			m_free[I_IDX].fetch_and( ~state & 0b1100 );
+			return e_ok;
 		}
 		// End voltage processing
-		void sample_voltage_end() noexcept {
+		int sample_voltage_end() noexcept 
+		{
 			const auto state = m_free[U_IDX].load();
-			if( state == 0b11 ) return;
-			m_rdy.fetch_or( (~state & 0b11)<<U_IDX*2 );
+			if( state>>2 != 0b10 && state>>2 !=0b01 ) 
+				return e_buff;
+			m_rdy.fetch_or( (~(state>>2) & 0b11)<<U_IDX*2 );
+			return e_ok;
 		}
 		//! Calculate after data get
 		int calculate( ) noexcept 
 		{
 			const auto rdy = m_rdy.load();
 			if( __builtin_popcount(rdy) != 2 ) {
-				return -1;
+				return e_buff;
 			}
 			const auto err = do_calculate( 
 				(rdy&0b01?m_buf[U_IDX*2]:m_buf[U_IDX*2+1]).data(),
@@ -83,8 +94,8 @@ namespace emeter {
 				buflen
 			);
 			m_rdy.store( 0 );
-			m_free[U_IDX].store( 0 );
-			m_free[I_IDX].store( 0 );
+			m_free[U_IDX].store( 0b11 );
+			m_free[I_IDX].store( 0b11 );
 			return err;
 		}
 	private:
@@ -95,12 +106,15 @@ namespace emeter {
 			unsigned char oldval,newval;
 			do {
 				oldval = m_free[idx].load();
+				if( oldval & 0b1100 ) {
+					return nullptr;
+				}
 				if( oldval & 0b01 ) {
 					ret = m_buf[idx*2].data();
-					newval &= ~0b01;
+					newval = ( oldval & 0b10 ) | 0b0100;
 				} else if( oldval & 0b10 ) {
 					ret = m_buf[idx*2+1].data();
-					newval &= ~0b10;
+					newval = ( oldval & 0b01 ) | 0b1000;
 				} else {
 					break;
 				}
