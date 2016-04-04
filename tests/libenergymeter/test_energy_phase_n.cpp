@@ -72,6 +72,12 @@ TEST( energy_phase_n, buffer_swap_match2 )
 	auto i3 = o.sample_current_begin();
 	ASSERT_FALSE( v3 );
 	ASSERT_FALSE( i3 );
+	ASSERT_EQ( o.calculate(), 0 );
+	ASSERT_TRUE( o.sample_voltage_begin() );
+	ASSERT_TRUE( o.sample_current_begin() );
+	ASSERT_EQ( o.sample_voltage_end(), 0 );
+	ASSERT_EQ( o.sample_current_end(), 0 );
+	ASSERT_EQ( o.calculate(), 0 );
 }
 
 
