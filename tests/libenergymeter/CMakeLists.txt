@@ -24,7 +24,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/include"
 	"../../libenergymeter/include")
 
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -Wextra" )
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c11 -Wextra" )
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -Wextra -Wall -Wstack-protector" )
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c11 -Wextra -Wstack-protector" )
 SET(CMAKE_CXX_FLAGS_DEBUG "-DCONFIG_LIBFOUNDATION_ENV_FS_DEBUG -O0 -g")
 TARGET_LINK_LIBRARIES(emtest ${CMAKE_THREAD_LIBS_INIT})

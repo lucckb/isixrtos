@@ -1,6 +1,6 @@
 #ifndef _FFT_H_
 #define _FFT_H_
-/*-----------------------------------------------------------*/
+
 #include <cstddef>
 #include <cmath>
 #include <limits>
@@ -9,10 +9,10 @@
 #include <complex>
 #include "array_sinus.hpp"
 
-/*-----------------------------------------------------------*/
+
 namespace dsp {
 namespace refft {
-/*-----------------------------------------------------------*/
+
 namespace _internal
 {
 		//Generate SIN cos array in C99 lang
@@ -217,10 +217,10 @@ namespace _internal
 		}
 }	//Internal namespace end
 
-/*-----------------------------------------------------------*/
+
 //Calculate complex fft
 template<typename T, typename K=short>
-void fft_complex( std::complex<T> *x, const std::complex<T> * const in, int m )
+void fft_complex( std::complex<T>* x, const std::complex<T>* const in, int m )
 {
 	using namespace _internal;
 	const int n = 1 << m;
@@ -262,7 +262,7 @@ void fft_complex( std::complex<T> *x, const std::complex<T> * const in, int m )
 		fft_stage_3_n<T,K>( x, l, m );
 	}
 }
-/*-----------------------------------------------------------*/
+
 // Real fft
 // Input: 2^m real points in time domain
 // Output: (2^m)*2 complex points in frequency domain
@@ -296,7 +296,7 @@ void fft_real( std::complex<T> *xc, const T * const x, int m )
 	 //Ostatni stopien fft (trzeba powtorzyc)
 	 fft_stage_3_n<T,K>( xc, m, m );
 }
-/*-----------------------------------------------------------*/
+
 }}
-/*-----------------------------------------------------------*/
+
 #endif
