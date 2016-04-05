@@ -25,7 +25,7 @@
 // FFT basic test
 TEST( fft_test, real_impulse_response ) 
 {
-	for( auto len=16UL; len<16384; len<<=1 ) 
+	for( auto len=16UL; len<config_fft_max+1; len<<=1 ) 
 	{
 		const int m  = std::log2( len );
 		std::complex<double> input[len] { {1.0,0.0} };
@@ -52,7 +52,7 @@ TEST( fft_test, real_impulse_response )
 // FFT basic test
 TEST( fft_test, real_shifted_impulse_response ) 
 {
-	for( auto len=16UL; len<16384; len<<=1 ) 
+	for( auto len=16UL; len<config_fft_max+1; len<<=1 ) 
 	{
 		const int m  = std::log2( len );
 		std::complex<double> input[len] { {0.0,0.0},{1.0,0.0} };
@@ -75,7 +75,7 @@ TEST( fft_test, real_shifted_impulse_response )
 // FFT basic test
 TEST( fft_test, int_impulse_response ) 
 {
-	for( auto len=16UL; len<16384; len<<=1 ) 
+	for( auto len=16UL; len<config_fft_max+1; len<<=1 ) 
 	{
 		const int m  = std::log2( len );
 		std::complex<ifft_t> input[len] { {std::numeric_limits<ifft_t>::max(),0} };
@@ -99,11 +99,11 @@ TEST( fft_test, int_impulse_response )
 	}
 }
 
-//Todo tweak to better accuracy
+//TODO tweak to better accuracy
 // FFT basic test
 TEST( fft_test, int_shifted_impulse_response ) 
 {
-	for( auto len=16UL; len<16384; len<<=1 ) 
+	for( auto len=16UL; len<config_fft_max+1; len<<=1 ) 
 	{
 		const int m  = std::log2( len );
 		std::complex<ifft_t> input[len] { {0,0},{std::numeric_limits<ifft_t>::max(),0} };
