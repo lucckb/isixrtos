@@ -1,0 +1,30 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename:  fft_tests_common.hpp
+ *
+ *    Description:  FFT test common
+ *
+ *        Version:  1.0
+ *        Created:  05.04.2016 21:23:15
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  Lucjan Bryndza (LB), lucck(at)boff(dot)pl
+ *   Organization:  BoFF
+ *
+ * =====================================================================================
+ */
+#pragma once
+#include <limits>
+
+namespace {
+
+	using ifft_t = short;
+	//!Integer max error
+	constexpr auto fmaxerr = 1E-12;
+	constexpr auto imaxerr = 0.0005;
+	namespace num {
+		constexpr auto imaxerr =  std::numeric_limits<short>::max() * (::imaxerr);
+	}
+}
