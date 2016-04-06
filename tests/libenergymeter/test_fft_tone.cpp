@@ -75,7 +75,7 @@ namespace {
 		}
 }
 
-struct snr_status {
+struct min_max {
 	void operator()( double snr ) {
 		min = std::min( min, snr );
 		max = std::max( max, snr );
@@ -86,7 +86,7 @@ struct snr_status {
 
 template<typename T>
 static void fft_tone_real_bin_iter( int bin1, int bin2, size_t len, 
-		double err, double snr_err, snr_status& snr )
+		double err, double snr_err, min_max& snr )
 {
 	const int m  = std::log2( len );
 	std::complex<T> input[len] {};
@@ -142,7 +142,7 @@ static void fft_tone_real_bin_iter( int bin1, int bin2, size_t len,
 //Real signal type1
 TEST( fft_test, real_bin_points_type1 ) 
 {
-	snr_status snr;
+	min_max snr;
 	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
 	{
 		fft_tone_real_bin_iter<double>( 10, 22, len, fsymetryerr, snrerr, snr );
@@ -154,7 +154,7 @@ TEST( fft_test, real_bin_points_type1 )
 //Real signal type1
 TEST( fft_test, real_bin_points_type2 ) 
 {
-	snr_status snr;
+	min_max snr;
 	constexpr auto nfft = config_fft_max;
 	for (size_t i=0;i<nfft/2;i+= (nfft>>4)+1) {
 		for (size_t j=i;j<nfft/2;j+=(nfft>>4)+7) {
@@ -169,7 +169,7 @@ TEST( fft_test, real_bin_points_type2 )
 //Real signal type1
 TEST( fft_test, integer_bin_points_type1 )
 {
-	snr_status snr;
+	min_max snr;
 	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
 	{
 		fft_tone_real_bin_iter<ifft_t>( 10, 22, len, ifsymetryerr, isnrerr, snr );
@@ -181,7 +181,7 @@ TEST( fft_test, integer_bin_points_type1 )
 //Real signal type1
 TEST( fft_test, integer_bin_points_type2 ) 
 {
-	snr_status snr;
+	min_max snr;
 	constexpr auto nfft = config_fft_max;
 	for (size_t i=0;i<nfft/2;i+= (nfft>>4)+1) {
 		for (size_t j=i;j<nfft/2;j+=(nfft>>4)+7) {
