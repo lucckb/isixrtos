@@ -53,12 +53,13 @@ namespace {
 			}
 		}
 		template <typename T>
-		double fft_snr( T const * const input, size_t nfft, size_t bin1, size_t bin2 ) 
+		double fft_snr( std::complex<T> const * const input, size_t nfft, size_t bin1, size_t bin2 ) 
 		{
 			double noisepow=0, sigpow=0;
+			const auto scale = std::is_integral<T>()?1.0:double(nfft);
 			for( size_t i=0; i<nfft/2+1; ++i ) {
-				double re = double(input[i].real())/double(nfft);
-				double im = double(input[i].imag())/double(nfft);
+				double re = double(input[i].real())/scale;
+				double im = double(input[i].imag())/scale;
 				double mag2 =  re*re + im*im ;
 				if( i!=0 && i!= nfft/2 ) {
 					//all bins exept DC and nyqist have symetric counterparts implied
