@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  test_fft_dft.cpp
+ *       Filename:  test_fft_vs_fftw3.cpp
  *
- *    Description:  DFT vs FFT test cases
+ *    Description:  FFT vs FFTW3
  *
  *        Version:  1.0
- *        Created:  06.04.2016 20:51:16
+ *        Created:  06.04.2016 22:29:47
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -14,6 +14,7 @@
  *   Organization:  BoFF
  *
  * =====================================================================================
+ *
  */
 
 #include <gtest/gtest.h>
@@ -21,6 +22,7 @@
 #include <limits>
 #include "gprint.hpp"
 #include "fft_tests_common.hpp"
+#include <fftw3.h>
 
 template <typename T> 
 void check_vs_dft( std::complex<T> const * const in,
@@ -28,34 +30,31 @@ void check_vs_dft( std::complex<T> const * const in,
 	std::complex<double> * const dftout, 
 	size_t nfft )
 {
-    size_t bin,k;
+	auto inf = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nfft);
+	double difr,difi;
     double errpow=0,sigpow=0;
-    
-    for (bin=0;bin<nfft;++bin) {
-        double ansr = 0;
-        double ansi = 0;
-        double difr;
-        double difi;
-
-        for (k=0;k<nfft;++k) {
-            double phase = -2*M_PI*bin*k/nfft;
-            double re = std::cos(phase);
-            double im = std::sin(phase);
-			if( std::is_integral<T>() ) {
-				re /= nfft;
-				im /= nfft;
-			}
-            ansr += in[k].real() * re - in[k].imag() * im;
-            ansi += in[k].real() * im + in[k].imag() * re;
-        }
-		dftout[bin].real( ansr ); 
-		dftout[bin].imag( ansi ); 
-        difr = ansr - out[bin].real();
-        difi = ansi - out[bin].imag();
+	//Convert to fftw format
+	for( size_t i=0; i<nfft;++i ) {
+		inf[i][0] = in[i].real();
+		inf[i][1] = in[i].imag();
+	}
+	auto outf = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nfft);
+	auto plan = fftw_plan_dft_1d( nfft, inf, outf, FFTW_FORWARD, FFTW_ESTIMATE );
+	fftw_execute( plan );
+	//Convert back again
+	for( size_t i=0; i<nfft;++i ) {
+		dftout[i].real( outf[i][0] ); 
+		dftout[i].imag( outf[i][1] ); 
+        difr = outf[i][0] - out[i].real();
+        difi = outf[i][1] - out[i].imag();
         errpow += difr*difr + difi*difi;
-        sigpow += ansr*ansr+ansi*ansi;
-    }
-    PRINTF("FFTvsDFT nfft=%d snr = %f\n",nfft,10*log10(sigpow/errpow) );
+        sigpow += outf[i][0]*outf[i][0]+outf[i][1]*outf[i][1];
+	}
+
+	fftw_destroy_plan( plan );
+	fftw_free(inf);
+	fftw_free(outf);
+    PRINTF("FFTW3vsFFT nfft=%d snr = %f\n",nfft,10*log10(sigpow/errpow) );
 }
 
 template <typename T> void do_test( size_t nfft, double maxerr )
@@ -76,10 +75,7 @@ template <typename T> void do_test( size_t nfft, double maxerr )
 	}
 }
 
-
-
-//Real signal type1
-TEST( fft_test, real_fft_vs_dft ) 
+TEST( fft_test, real_fftw ) 
 {
 	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
 	{
@@ -87,8 +83,9 @@ TEST( fft_test, real_fft_vs_dft )
 	}
 }
 
+
 //Real signal type1
-TEST( fft_test, integer_fft_vs_dft ) 
+TEST( fft_test, integer_fftw ) 
 {
 	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
 	{

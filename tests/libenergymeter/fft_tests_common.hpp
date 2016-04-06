@@ -17,6 +17,8 @@
  */
 #pragma once
 #include <limits>
+#include <complex>
+#include <foundation/dsp/fft.hpp>
 
 namespace {
 	constexpr auto config_fft_max = 16384;
@@ -38,4 +40,7 @@ namespace {
 	namespace num {
 		constexpr auto imaxerr =  std::numeric_limits<short>::max() * (::imaxerr);
 	}
+
+
+
 }
