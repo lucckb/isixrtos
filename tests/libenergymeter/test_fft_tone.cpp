@@ -40,9 +40,10 @@ namespace {
 		template <typename T>
 		void fft_magnitude( T* output, std::complex<T> const * const input, size_t nfft )
 		{
+			const auto scale = std::is_integral<T>()?1.0:double(nfft);
 			for( size_t i=0; i<nfft/2+1; ++i ) {
-				double re = double(input[i].real())/double(nfft);
-				double im = double(input[i].imag())/double(nfft);
+				double re = double(input[i].real())/scale;
+				double im = double(input[i].imag())/scale;
 				double mag = std::sqrt( re*re + im*im );
 				if( i!=0 && i!= nfft/2 ) {
 					//all bins exept DC and nyqist have symetric counterparts implied
@@ -51,16 +52,35 @@ namespace {
 				output[i] = mag;
 			}
 		}
+		template <typename T>
+		double fft_snr( T const * const input, size_t nfft, size_t bin1, size_t bin2 ) 
+		{
+			double noisepow=0, sigpow=0;
+			for( size_t i=0; i<nfft/2+1; ++i ) {
+				double re = double(input[i].real())/double(nfft);
+				double im = double(input[i].imag())/double(nfft);
+				double mag2 =  re*re + im*im ;
+				if( i!=0 && i!= nfft/2 ) {
+					//all bins exept DC and nyqist have symetric counterparts implied
+					mag2 *= 2;
+				}
+				/* if there is power in one of the expected bins, it is signal, otherwise noise*/
+				if ( i!=bin1 && i != bin2 ) noisepow += mag2;
+				else sigpow += mag2;
+			}
+			return 10.0*std::log10(sigpow/(noisepow+1e-50));
+		}
 }
 
 
-static void fft_tone_real_bin_iter( int bin1, int bin2, size_t len, double err )
+template<typename T>
+static void fft_tone_real_bin_iter( int bin1, int bin2, size_t len, double err, double snr_err )
 {
 	const int m  = std::log2( len );
-	std::complex<double> input[len] { {1.0,0.0} };
-	double reinput[len] { 1.0 };
-	std::complex<double> output[len] {};
-	std::complex<double> output2[len] {};
+	std::complex<T> input[len] {};
+	T reinput[len] {};
+	std::complex<T> output[len] {};
+	std::complex<T> output2[len] {};
 	//Twp tones bean at  10 and 20
 	gen_tone( input, bin1, bin2, len );
 	gen_tone( reinput, bin1, bin2, len );
@@ -84,18 +104,23 @@ static void fft_tone_real_bin_iter( int bin1, int bin2, size_t len, double err )
 		ASSERT_NEAR( output2[i].imag(), output2[j].imag(), err );
 	}
 	//Calculate the values and frequency beans
-	double reout[len/2+1] {};
+	T reout[len/2+1] {};
 	fft_magnitude( reout, output, len );
 	//Check equality of magnitude
 	ASSERT_NEAR( reout[bin1], max_range>>1, err );
 	ASSERT_NEAR( reout[bin2], max_range>>1, err );
 
 	//Magnitude of real fft
-	double reout2[len/2+1] {};
+	T reout2[len/2+1] {};
 	fft_magnitude( reout2, output2, len );
 	ASSERT_NEAR( reout2[bin1], max_range>>1, err );
 	ASSERT_NEAR( reout2[bin2], max_range>>1, err );
+	//Double SNR should be greater than 200db
+	ASSERT_GT( fft_snr( output, len, bin1, bin2 ), snr_err );
+	ASSERT_GT( fft_snr( output2, len, bin1, bin2 ), snr_err );
 }
+
+
 
 
 //Real signal type1
@@ -103,7 +128,7 @@ TEST( fft_test, real_bin_points_type1 )
 {
 	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
 	{
-		fft_tone_real_bin_iter( 10, 22, len, fsymetryerr );
+		fft_tone_real_bin_iter<double>( 10, 22, len, fsymetryerr, snrerr );
 	}
 }
 
@@ -115,14 +140,33 @@ TEST( fft_test, real_bin_points_type2 )
 	for (size_t i=0;i<nfft/2;i+= (nfft>>4)+1) {
 		for (size_t j=i;j<nfft/2;j+=(nfft>>4)+7) {
 			if( i!=j )
-			fft_tone_real_bin_iter( i, j, nfft, fsymetryerr2 );
+			fft_tone_real_bin_iter<double>( i, j, nfft, fsymetryerr2, snrerr );
 		}
 	}
 }
 
 
+//Real signal type1
+TEST( fft_test, integer_bin_points_type1 )
+{
+	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
+	{
+		fft_tone_real_bin_iter<ifft_t>( 10, 22, len, ifsymetryerr, isnrerr );
+	}
+}
 
 
+//Real signal type1
+TEST( fft_test, integer_bin_points_type2 ) 
+{
+	constexpr auto nfft = config_fft_max;
+	for (size_t i=0;i<nfft/2;i+= (nfft>>4)+1) {
+		for (size_t j=i;j<nfft/2;j+=(nfft>>4)+7) {
+			if( i!=j )
+			fft_tone_real_bin_iter<ifft_t>( i, j, nfft, ifsymetryerr2, isnrerr );
+		}
+	}
+}
 
 
 
