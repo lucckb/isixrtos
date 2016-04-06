@@ -19,7 +19,9 @@
 #include <gtest/gtest.h>
 #include <foundation/dsp/fft.hpp>
 #include <limits>
+#include "gprint.hpp"
 #include "fft_tests_common.hpp"
+#include <algorithm>
 
 namespace {
 	//Maximum tone value
@@ -73,9 +75,18 @@ namespace {
 		}
 }
 
+struct snr_status {
+	void operator()( double snr ) {
+		min = std::min( min, snr );
+		max = std::max( max, snr );
+	}
+	double min { std::numeric_limits<double>::max() };
+	double max { std::numeric_limits<double>::min() };
+};
 
 template<typename T>
-static void fft_tone_real_bin_iter( int bin1, int bin2, size_t len, double err, double snr_err )
+static void fft_tone_real_bin_iter( int bin1, int bin2, size_t len, 
+		double err, double snr_err, snr_status& snr )
 {
 	const int m  = std::log2( len );
 	std::complex<T> input[len] {};
@@ -117,8 +128,12 @@ static void fft_tone_real_bin_iter( int bin1, int bin2, size_t len, double err, 
 	ASSERT_NEAR( reout2[bin1], max_range>>1, err );
 	ASSERT_NEAR( reout2[bin2], max_range>>1, err );
 	//Double SNR should be greater than 200db
-	ASSERT_GT( fft_snr( output, len, bin1, bin2 ), snr_err );
-	ASSERT_GT( fft_snr( output2, len, bin1, bin2 ), snr_err );
+	const auto snr_ = fft_snr( output, len, bin1, bin2 );
+	const auto snr2_ = fft_snr( output2, len, bin1, bin2 );
+	ASSERT_GT( snr_ , snr_err );
+	ASSERT_GT( snr2_, snr_err );
+	snr( snr_ );
+	snr( snr2_ );
 }
 
 
@@ -127,46 +142,54 @@ static void fft_tone_real_bin_iter( int bin1, int bin2, size_t len, double err, 
 //Real signal type1
 TEST( fft_test, real_bin_points_type1 ) 
 {
+	snr_status snr;
 	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
 	{
-		fft_tone_real_bin_iter<double>( 10, 22, len, fsymetryerr, snrerr );
+		fft_tone_real_bin_iter<double>( 10, 22, len, fsymetryerr, snrerr, snr );
 	}
+	PRINTF("real#1 SNR min %f max %f\n", snr.min, snr.max  );
 }
 
 
 //Real signal type1
 TEST( fft_test, real_bin_points_type2 ) 
 {
+	snr_status snr;
 	constexpr auto nfft = config_fft_max;
 	for (size_t i=0;i<nfft/2;i+= (nfft>>4)+1) {
 		for (size_t j=i;j<nfft/2;j+=(nfft>>4)+7) {
 			if( i!=j )
-			fft_tone_real_bin_iter<double>( i, j, nfft, fsymetryerr2, snrerr );
+			fft_tone_real_bin_iter<double>( i, j, nfft, fsymetryerr2, snrerr, snr );
 		}
 	}
+	PRINTF("real#2 SNR min %f max %f\n", snr.min, snr.max  );
 }
 
 
 //Real signal type1
 TEST( fft_test, integer_bin_points_type1 )
 {
+	snr_status snr;
 	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
 	{
-		fft_tone_real_bin_iter<ifft_t>( 10, 22, len, ifsymetryerr, isnrerr );
+		fft_tone_real_bin_iter<ifft_t>( 10, 22, len, ifsymetryerr, isnrerr, snr );
 	}
+	PRINTF("integer#1 SNR min %f max %f\n", snr.min, snr.max  );
 }
 
 
 //Real signal type1
 TEST( fft_test, integer_bin_points_type2 ) 
 {
+	snr_status snr;
 	constexpr auto nfft = config_fft_max;
 	for (size_t i=0;i<nfft/2;i+= (nfft>>4)+1) {
 		for (size_t j=i;j<nfft/2;j+=(nfft>>4)+7) {
 			if( i!=j )
-			fft_tone_real_bin_iter<ifft_t>( i, j, nfft, ifsymetryerr2, isnrerr );
+			fft_tone_real_bin_iter<ifft_t>( i, j, nfft, ifsymetryerr2, isnrerr, snr );
 		}
 	}
+	PRINTF("integer#2 SNR min %f max %f\n", snr.min, snr.max  );
 }
 
 
