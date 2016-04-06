@@ -33,6 +33,8 @@ namespace {
 	constexpr auto ifsymetryerr2 = 256;
 	constexpr auto snrerr = 200.0;
 	constexpr auto isnrerr = 42;
+	constexpr auto fdfterr = 0.0001;
+	constexpr auto idfterr = 15;
 	namespace num {
 		constexpr auto imaxerr =  std::numeric_limits<short>::max() * (::imaxerr);
 	}
