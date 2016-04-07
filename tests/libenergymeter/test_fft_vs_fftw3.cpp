@@ -33,6 +33,8 @@ namespace {
 				size_t nfft )
 		{
 			auto inf = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nfft);
+			auto outf = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nfft);
+			std::memset( outf, 0, sizeof(fftw_complex)*nfft );
 			double difr,difi;
 			double errpow=0,sigpow=0;
 			//Convert to fftw format
@@ -40,11 +42,14 @@ namespace {
 				inf[i][0] = in[i].real();
 				inf[i][1] = in[i].imag();
 			}
-			auto outf = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nfft);
 			auto plan = fftw_plan_dft_1d( nfft, inf, outf, FFTW_FORWARD, FFTW_ESTIMATE );
 			fftw_execute( plan );
 			//Convert back again
 			for( size_t i=0; i<nfft;++i ) {
+				if( std::is_integral<T>() ){
+					outf[i][0] /= nfft;
+					outf[i][1] /= nfft;
+				}
 				dftout[i].real( outf[i][0] ); 
 				dftout[i].imag( outf[i][1] ); 
 				difr = outf[i][0] - out[i].real();
@@ -77,7 +82,7 @@ namespace {
 		}
 	}
 
-}
+} //unnamed NS
 
 TEST( fft_test, real_fftw ) 
 {

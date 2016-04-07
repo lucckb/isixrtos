@@ -45,6 +45,10 @@ namespace {
 			fftw_execute( plan );
 			//Convert back again
 			for( size_t i=0; i<nfft;++i ) {
+				if( std::is_integral<T>() ){
+					outf[i][0] /= nfft;
+					outf[i][1] /= nfft;
+				}
 				dftout[i].real( outf[i][0] ); 
 				dftout[i].imag( outf[i][1] ); 
 				difr = outf[i][0] - out[i].real();
