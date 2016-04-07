@@ -86,9 +86,9 @@ namespace {
 
 TEST( fft_test, real_fftw ) 
 {
-	for( auto len=32LU; len<config_fft_max+1; len<<=1 ) 
+	for( auto len=32LU; len<cfg::fft_max+1; len<<=1 ) 
 	{
-		do_test<double>( len, fdfterr );
+		do_test<rfft_t>( len, cfg::fft_res_cmp_err );
 	}
 }
 
@@ -96,9 +96,9 @@ TEST( fft_test, real_fftw )
 //Real signal type1
 TEST( fft_test, integer_fftw ) 
 {
-	for( auto len=32UL; len<config_fft_max+1; len<<=1 ) 
+	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 ) 
 	{
-		do_test<ifft_t>( len, idfterr);
+		do_test<ifft_t>( len, cfg::fft_res_cmp_err_int);
 	}
 }
 

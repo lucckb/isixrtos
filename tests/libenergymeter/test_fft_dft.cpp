@@ -84,17 +84,17 @@ namespace {
 //Real signal type1
 TEST( fft_test, real_fft_vs_dft )
 {
-	for( auto len=64LU; len<config_fft_max; len<<=1 )
+	for( auto len=64LU; len<cfg::fft_max; len<<=1 )
 	{
-		do_test<double>( len, fdfterr );
+		do_test<rfft_t>( len, cfg::fft_res_cmp_err );
 	}
 }
 
 //Real signal type1
 TEST( fft_test, integer_fft_vs_dft )
 {
-	for( auto len=64LU; len<config_fft_max; len<<=1 )
+	for( auto len=64LU; len<cfg::fft_max; len<<=1 )
 	{
-		do_test<ifft_t>( len, idfterr);
+		do_test<ifft_t>( len, cfg::fft_res_cmp_err_int );
 	}
 }

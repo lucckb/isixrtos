@@ -20,27 +20,29 @@
 #include <complex>
 #include <foundation/dsp/fft.hpp>
 
-namespace {
-	constexpr auto config_fft_max = 16384;
 	using ifft_t = short;
+	using rfft_t  = double;
+
+namespace {
+//Configuration namespace
+namespace cfg {
+	//! Maximum Nth points used in tests
+	constexpr auto fft_max = 16384;
 	//!Floating point match error
-	constexpr auto fmaxerr = 1E-12;
+	constexpr auto max_shifted_resp = 1E-12;
 	//! Integer maximum error
-	constexpr auto imaxerr = 0.0005;
+	constexpr auto max_shifted_resp_int = 3;
 	//! Symetry check max error for floating point
-	constexpr auto fsymetryerr = 0.0001;
-	constexpr auto ifsymetryerr = 70;
-	//! Symetry bean test2
-	constexpr auto fsymetryerr2 = 0.01;
-	constexpr auto ifsymetryerr2 = 256;
-	constexpr auto snrerr = 200.0;
-	constexpr auto isnrerr = 42;
-	constexpr auto fdfterr = 0.0001;
-	constexpr auto idfterr = 20;
-	namespace num {
-		constexpr auto imaxerr =  std::numeric_limits<short>::max() * (::imaxerr);
-	}
+	constexpr auto symetry_err = 0.01;
+	constexpr auto symetery_err_int = 256;
 
+	//! Signal to noise ratio compare
+	constexpr auto snr_err = 200.0;
+	constexpr auto snr_err_int = 42;
 
+	//! Compare two ffts err
+	constexpr auto fft_res_cmp_err = 0.0001;
+	constexpr auto fft_res_cmp_err_int = 20;
 
+}
 }

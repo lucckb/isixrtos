@@ -144,9 +144,9 @@ namespace {
 TEST( fft_test, real_bin_points_type1 )
 {
 	min_max snr;
-	for( auto len=64LU; len<config_fft_max; len<<=1 )
+	for( auto len=64LU; len<cfg::fft_max; len<<=1 )
 	{
-		fft_tone_real_bin_iter<double>( 10, 22, len, fsymetryerr, snrerr, snr );
+		fft_tone_real_bin_iter<rfft_t>( 10, 22, len, cfg::symetry_err, cfg::snr_err, snr );
 	}
 	PRINTF("real#1 SNR min %f max %f\n", snr.min, snr.max  );
 }
@@ -156,11 +156,11 @@ TEST( fft_test, real_bin_points_type1 )
 TEST( fft_test, real_bin_points_type2 ) 
 {
 	min_max snr;
-	constexpr auto nfft = config_fft_max;
+	constexpr auto nfft = cfg::fft_max;
 	for (size_t i=0;i<nfft/2;i+= (nfft>>4)+1) {
 		for (size_t j=i;j<nfft/2;j+=(nfft>>4)+7) {
 			if( i!=j )
-			fft_tone_real_bin_iter<double>( i, j, nfft, fsymetryerr2, snrerr, snr );
+			fft_tone_real_bin_iter<rfft_t>( i, j, nfft, cfg::symetry_err, cfg::snr_err, snr );
 		}
 	}
 	PRINTF("real#2 SNR min %f max %f\n", snr.min, snr.max  );
@@ -171,9 +171,9 @@ TEST( fft_test, real_bin_points_type2 )
 TEST( fft_test, integer_bin_points_type1 )
 {
 	min_max snr;
-	for( auto len=64LU; len<config_fft_max; len<<=1 )
+	for( auto len=64LU; len<cfg::fft_max; len<<=1 )
 	{
-		fft_tone_real_bin_iter<ifft_t>( 10, 22, len, ifsymetryerr, isnrerr, snr );
+		fft_tone_real_bin_iter<ifft_t>( 10,22,len,cfg::symetery_err_int, cfg::snr_err_int, snr );
 	}
 	PRINTF("integer#1 SNR min %f max %f\n", snr.min, snr.max  );
 }
@@ -183,11 +183,11 @@ TEST( fft_test, integer_bin_points_type1 )
 TEST( fft_test, integer_bin_points_type2 )
 {
 	min_max snr;
-	constexpr auto nfft = config_fft_max;
+	constexpr auto nfft = cfg::fft_max;
 	for (size_t i=0;i<nfft/2;i+= (nfft>>4)+1) {
 		for (size_t j=i;j<nfft/2;j+=(nfft>>4)+7) {
 			if( i!=j )
-			fft_tone_real_bin_iter<ifft_t>( i, j, nfft, ifsymetryerr2, isnrerr, snr );
+			fft_tone_real_bin_iter<ifft_t>( i,j,nfft,cfg::symetery_err_int,cfg::snr_err_int,snr );
 		}
 	}
 	PRINTF("integer#2 SNR min %f max %f\n", snr.min, snr.max  );
