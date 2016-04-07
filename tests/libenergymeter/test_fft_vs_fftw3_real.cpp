@@ -27,7 +27,7 @@
 namespace {
 
 	template <typename T> 
-		void check_vs_dft( std::complex<T> const * const in,
+		void check_vs_dft( T const * const in,
 				std::complex<T> const * const out, 
 				std::complex<double> * const dftout, 
 				size_t nfft )
@@ -37,8 +37,8 @@ namespace {
 			double errpow=0,sigpow=0;
 			//Convert to fftw format
 			for( size_t i=0; i<nfft;++i ) {
-				inf[i][0] = in[i].real();
-				inf[i][1] = in[i].imag();
+				inf[i][0] = in[i];
+				inf[i][1] = 0;
 			}
 			auto outf = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nfft);
 			auto plan = fftw_plan_dft_1d( nfft, inf, outf, FFTW_FORWARD, FFTW_ESTIMATE );
@@ -56,20 +56,19 @@ namespace {
 			fftw_destroy_plan( plan );
 			fftw_free(inf);
 			fftw_free(outf);
-			PRINTF("FFTW3vsFFT nfft=%d snr = %f\n",nfft,10*log10(sigpow/errpow) );
+			PRINTF("FFTW3vsFFT_REAL nfft=%d snr = %f\n",nfft,10*log10(sigpow/errpow) );
 		}
 
 	template <typename T> void do_test( size_t nfft, double maxerr )
 	{
-		std::complex<T> input[nfft] {};
+		T input[nfft] {};
 		std::complex<T> output[nfft] {};
 		std::complex<double> dftout[nfft] {};
 		const int m  = std::log2( nfft );
 		for( auto& in : input ) {
-			in.real(  (std::rand() % 65536) - 32768 );
-			in.imag(  (std::rand() % 65536) - 32768 );
+			in = (std::rand() % 65536) - 32768;
 		}
-		dsp::refft::fft_complex( output, input, m );
+		dsp::refft::fft_real( output, input, m );
 		check_vs_dft( input, output, dftout, nfft );
 		for( size_t i=0; i<nfft; ++i ) {
 			ASSERT_NEAR( output[i].real(), dftout[i].real(), maxerr );
@@ -79,7 +78,7 @@ namespace {
 
 }
 
-TEST( fft_test, real_fftw ) 
+TEST( fft_test, real_fftw_fft_real ) 
 {
 	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
 	{
@@ -89,7 +88,7 @@ TEST( fft_test, real_fftw )
 
 
 //Real signal type1
-TEST( fft_test, integer_fftw ) 
+TEST( fft_test, integer_fftw_fftw_real ) 
 {
 	for( auto len=64LU; len<config_fft_max; len<<=1 ) 
 	{

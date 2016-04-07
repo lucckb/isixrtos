@@ -36,7 +36,7 @@ namespace {
 	constexpr auto snrerr = 200.0;
 	constexpr auto isnrerr = 42;
 	constexpr auto fdfterr = 0.0001;
-	constexpr auto idfterr = 15;
+	constexpr auto idfterr = 20;
 	namespace num {
 		constexpr auto imaxerr =  std::numeric_limits<short>::max() * (::imaxerr);
 	}
