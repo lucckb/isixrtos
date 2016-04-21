@@ -20,7 +20,7 @@
 
 /* ------------------------------------------------------------------ */ 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
-#error RTC for stm32f1 platform is not supported yet
+#include "stm32f1xx/stm32rtc.h"
 #elif defined(STM32MCU_MAJOR_TYPE_F4)
 #include "stm32f4x/stm32rtc.h"
 #elif defined(STM32MCU_MAJOR_TYPE_F2)
