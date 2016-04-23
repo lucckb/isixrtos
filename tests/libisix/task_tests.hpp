@@ -40,6 +40,7 @@ namespace tests {
 #endif
 			basic_funcs();
 			thread_test();
+			thread_test2();
 		}
 		//Basic functionality testing 
 		void basic_funcs();
@@ -47,6 +48,8 @@ namespace tests {
 		void cpuload_test();
 		// CPP11 thread API 
 		void thread_test();
+		// Thread test2
+		void thread_test2();
 	private:
 		QUnit::UnitTest& qunit;
 	};
