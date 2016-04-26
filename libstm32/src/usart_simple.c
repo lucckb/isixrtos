@@ -63,13 +63,14 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 		{
 			gpio_clock_enable( GPIOB, true );
 			//Configure GPIO port TxD and RxD
-			gpio_abstract_config(GPIOB,USART1_ALT_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+			gpio_abstract_config(GPIOB,USART1_ALT_TX_BIT, AGPIO_MODE_ALTERNATE_PP,AGPIO_SPEED_HALF );
 			gpio_abstract_config(GPIOB,USART1_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
 #if defined(STM32MCU_MAJOR_TYPE_F2) || 	defined(STM32MCU_MAJOR_TYPE_F4)
 			gpio_pin_AF_config(GPIOB, USART1_ALT_TX_BIT , GPIO_AF_USART1 );
 			gpio_pin_AF_config(GPIOB, USART1_ALT_RX_BIT , GPIO_AF_USART1 );
 #else
-			return USARTSIMPLE_NOT_INIT;
+			RCC->APB2ENR |= RCC_APB2Periph_AFIO;
+			AFIO->MAPR |= AFIO_MAPR_USART1_REMAP;
 #endif
 		}
 	}
