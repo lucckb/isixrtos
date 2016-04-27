@@ -25,7 +25,6 @@ namespace isix {
 
 
 /** \brief thread class is a template interface for thread */
-template <typename FN, typename ... ARGS>
 class thread : public task_base 
 {
 public:
@@ -33,6 +32,7 @@ public:
 	 *  \param[in] fn Function executed in separate thread
 	 *  \param[in] args Arguments passed to the function
 	 */
+	template <typename FN, typename ... ARGS>
 	thread( FN&& function, ARGS&&... args )
 		: m_bound_fn( std::bind(std::forward<FN>(function), std::forward<ARGS>(args)... ) )
 		 {
@@ -54,12 +54,12 @@ private:
 		m_bound_fn();
 	}
 
-	decltype( std::bind(std::declval<FN>(), std::declval<ARGS>()...)) m_bound_fn;
+	std::function<void()> m_bound_fn;
 };
 
 /** Helper factory function for thread creation  */
 template <typename FN, typename ... ARGS>
-	thread<FN,ARGS...> thread_create( FN&& fn, ARGS&&... args )
+	thread thread_create( FN&& fn, ARGS&&... args )
 	{
 		return {  std::forward<FN>(fn), std::forward<ARGS>(args)... };
 	}
@@ -72,7 +72,7 @@ template <typename FN, typename ... ARGS>
 	 *  \param[in] args Arguments passed to the function
 	 */
 template <typename FN, typename ... ARGS>
-	thread<FN,ARGS...> thread_create_and_run( const size_t size, const osprio_t priority, 
+	thread thread_create_and_run( const size_t size, const osprio_t priority, 
 			unsigned flags, FN&& fn, ARGS&&... args )
 {
 	auto thr = thread_create( std::forward<FN>(fn), std::forward<ARGS>(args)... );
