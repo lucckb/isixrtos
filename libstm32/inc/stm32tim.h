@@ -1858,6 +1858,7 @@ static inline uint16_t tim_get_ccr(TIM_TypeDef* TIMx, enum tim_cc_chns chn)
 		case tim_cc_chn2:	return TIMx->CCR2;
 		case tim_cc_chn3:	return TIMx->CCR3;
 		case tim_cc_chn4:	return TIMx->CCR4;
+		default: 			return 0;
 	}
 }
 /* ---------------------------------------------------------------------------- */
