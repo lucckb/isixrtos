@@ -4,6 +4,8 @@
  *       Filename:  i2c_bus.cpp
  *
  *    Description:  I2C bus isix specific implementation with DMA support
+ *	  Some STM32F1 devices has a lot of I2C bug. Especially you need to read and write
+ *	  minimum 2 bytes
  *
  *        Version:  1.0
  *        Created:  03.03.2014 18:06:20
@@ -15,8 +17,8 @@
  *
  * =====================================================================================
  */
-//TODO: Check for STM32F1 platform
 #include <isixdrv/i2c_bus.hpp>
+#include <foundation/dbglog.h>
 #include <stm32system.h>
 #include <stm32i2c.h>
 #include <stm32rcc.h>
@@ -29,12 +31,6 @@
 #include <config.h>
 #endif
 
-#define CONFIG_ISIXDRV_I2C_DEBUG 
-#ifdef CONFIG_ISIXDRV_I2C_DEBUG 
-#include <foundation/dbglog.h>
-#else
-#define dbprintf(...) do {} while(0)
-#endif
 
 namespace stm32 {
 namespace drv {
@@ -228,6 +224,7 @@ namespace {
 	//AFIO optional config
 	inline void afio_config( I2C_TypeDef * const i2c )
 	{
+
 		if( i2c == I2C1 ) {
 			gpio_pin_AF_config( I2C1_PORT, I2C1_SDA_PIN_, GPIO_AF_I2C1 );
 			gpio_pin_AF_config( I2C1_PORT, I2C1_SCL_PIN_, GPIO_AF_I2C1 );
@@ -298,6 +295,7 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 #endif
 	}
 	afio_config( dcast(m_i2c) );
+	gpio_initialize();
 	//FIXME: Previous GPIO
 	i2c_init( dcast(m_i2c), clk_speed, I2C_Mode_I2C, I2C_DutyCycle_2, 1, 
 			  I2C_Ack_Enable, I2C_AcknowledgedAddress_7bit, pclk1 );
@@ -316,7 +314,15 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 	i2c_dma_irq_on( dcast(m_i2c), IRQ_PRIO, IRQ_SUB );
 	i2c_dma_cmd( dcast(m_i2c), true );
 	i2c_cmd( dcast(m_i2c), true );
-	gpio_initialize();
+#ifdef STM32MCU_MAJOR_TYPE_F1
+	//! STM32F1 errata PAGE 21
+	//Some software events must be managed before the current byte is being transferred
+	if( i2c_get_last_event(dcast(m_i2c)) & I2C_EVENT_SLAVE_STOP_DETECTED ) {
+		i2c_software_reset_cmd( dcast(m_i2c), true );
+		nop(); nop(); nop(); nop();
+		i2c_software_reset_cmd( dcast(m_i2c), false );
+	}
+#endif
 }
 
 void i2c_bus::gpio_initialize()
@@ -325,12 +331,14 @@ void i2c_bus::gpio_initialize()
 		if( !gpio_get( I2C1_PORT, I2C1_SDA_PIN_) ||  !gpio_get( I2C1_PORT, I2C1_SCL_PIN_ ) ) {
 			dbprintf("BUSY?");
 		}
-		gpio_abstract_config_ext( I2C1_PORT, I2C1_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
+		gpio_abstract_config_ext( I2C1_PORT, I2C1_PINS, 
+			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
 	} else if( m_i2c == I2C2 ) {
 		if( !gpio_get( I2C2_PORT, I2C2_SDA_PIN_) ||  !gpio_get( I2C2_PORT, I2C2_SCL_PIN_ ) ) {
 			dbprintf("BUSY?");
 		}
-		gpio_abstract_config_ext( I2C2_PORT, I2C2_PINS, AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
+		gpio_abstract_config_ext( I2C2_PORT, I2C2_PINS, 
+			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
 	} else {
 		//! Not supported yet
 		terminate();
@@ -382,7 +390,7 @@ int i2c_bus::get_hwerror(void) const
 int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize)
 {
 	using namespace stm32;
-//	dbprintf("i2c_bus::transfer( addr=%u wsize=%u rsize=%u", addr, wsize, rsize );
+	//dbprintf("i2c_bus::transfer( addr=%u wsize=%u rsize=%u", addr, wsize, rsize );
 	if( (addr>0xFF) || (addr&1) ) {
 		return err_invaddr;
 	}
@@ -504,12 +512,16 @@ void i2c_bus::ev_irq()
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_RECEIVED:
+	case (I2C_EVENT_MASTER_BYTE_RECEIVED|0x04):		//+BTF Byte transfer finished
 		m_rx_buf[0] = i2c_receive_data( dcast(m_i2c) );
 		ev_finalize();
 	break;
+	case 0x00030084:	//Handle extra states during DMA transfer
+	case 0x00030000:
+		break;
 	default:
 		//dbprintf("Unknown event %08x", event );
-		//ev_finalize( true );
+		ev_finalize( true );
 		break;
 	}
 }
