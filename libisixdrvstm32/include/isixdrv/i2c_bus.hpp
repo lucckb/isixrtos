@@ -46,10 +46,10 @@
 	The setup time can be violated independently of the APB peripheral frequency.
  */
 //#define CONFIG_ISIXDRV_I2C_USE_FIXED_I2C CONFIG_ISIXDRV_I2C_1 
-/* ------------------------------------------------------------------ */ 
+
 namespace stm32 {
 namespace drv {
-/* ------------------------------------------------------------------ */ 
+
 extern "C" {
 #ifdef STM32MCU_MAJOR_TYPE_F1
 	__attribute__((interrupt)) void dma1_channel7_isr_vector();
@@ -75,7 +75,7 @@ extern "C" {
 #endif
 	void dma1_stream6_isr_vector() __attribute__((interrupt));
 }
-/* ------------------------------------------------------------------ */ 
+
 class i2c_bus : public fnd::bus::ibus {
 	static constexpr auto IRQ_PRIO = 1;
 	static constexpr auto IRQ_SUB = 7;
@@ -168,7 +168,7 @@ private:
 	isix::semaphore m_lock {1, 1};		//! Lock semaphore
 	isix::semaphore m_notify { 0, 1 };	//! Notify semaphore
 };
-/* ------------------------------------------------------------------ */ 
+
 
 }
 }
