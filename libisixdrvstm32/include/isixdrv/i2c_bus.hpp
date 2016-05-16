@@ -125,8 +125,29 @@ public:
 	 * @param[out] rbuffer Read data buffer pointer
 	 * @param[in] rsize Read buffer sizes
 	 * @return Error code or success */
-	virtual int 
-		transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize);
+	int transfer(unsigned addr, const void* wbuffer, 
+			size_t wsize, void* rbuffer, size_t rsize) override 
+	{
+		//STM32F1 Medium density Errata 
+		//Some software events must be managed before the current byte is being transferred
+		//Workarround1 (USE DMA but number of bytest must be > 1)
+#		if defined(STM32MCU_MAJOR_TYPE_F1)
+		if( rsize == 1 ) {
+			unsigned char tmprx[2];
+			const auto ret = transfer_impl( addr, wbuffer, wsize, tmprx, sizeof tmprx );
+			if( !ret ) {
+				*reinterpret_cast<unsigned char*>(rbuffer) = tmprx[0];
+			}
+			return ret;
+
+		} else {
+			return transfer_impl( addr, wbuffer, wsize, rbuffer, rsize );
+		}
+			
+#		else 
+			return transfer_impl( addr, wbuffer, wsize, rbuffer, rsize );
+#		endif
+	}
 	
 	/** Double non continous transaction write 
 	 * @param[in] addr I2C address
@@ -135,11 +156,11 @@ public:
 	 * @param[in] wbuf2 Write buffer first transaction
 	 * @param[in] wsize2 Transaction size 1
 	 * @return error code or success */
-	virtual int 
-		write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 );
+	int write( unsigned addr, const void* wbuf1, size_t wsize1, 
+			const void* wbuf2, size_t wsize2 ) override;
 
 	/** Mdelay bus tout impl */
-	virtual void mdelay( unsigned timeout );
+	void mdelay( unsigned timeout ) override;
 private:
 	//! Hardware init
 	void gpio_initialize();
@@ -155,6 +176,8 @@ private:
 	void ev_dma_tc();
 	//! Finalize transaction
 	void ev_finalize( bool state_err = false );
+	int transfer_impl(unsigned addr, const void* wbuffer, 
+			size_t wsize, void* rbuffer, size_t rsize);
 private:
 #ifndef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 	void* const m_i2c;					//! I2C

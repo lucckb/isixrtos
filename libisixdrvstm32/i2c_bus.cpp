@@ -387,7 +387,8 @@ int i2c_bus::get_hwerror(void) const
 * @param[out] rbuffer Read data buffer pointer
 * @param[in] rsize Read buffer sizes
 * @return Error code or success */
-int i2c_bus::transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize)
+int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer, 
+		size_t wsize, void* rbuffer, size_t rsize)
 {
 	using namespace stm32;
 	//dbprintf("i2c_bus::transfer( addr=%u wsize=%u rsize=%u", addr, wsize, rsize );
