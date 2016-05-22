@@ -69,9 +69,15 @@ static inline void rtc_exit_config_mode(void)
   */
 static inline uint32_t rtc_get_counter(void)
 {
-  uint16_t tmp = 0;
-  tmp = RTC->CNTL;
-  return (((uint32_t)RTC->CNTH << 16 ) | tmp) ;
+	uint16_t tmp;
+	uint32_t tmp1, tmp2;
+	do {
+		tmp = RTC->CNTL;
+		tmp1 =  (((uint32_t)RTC->CNTH << 16 ) | tmp) ;
+		tmp = RTC->CNTL;
+		tmp2 =  (((uint32_t)RTC->CNTH << 16 ) | tmp) ;
+	} while( tmp1!=tmp2 );
+	return tmp1;
 }
 
 
