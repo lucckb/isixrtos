@@ -22,7 +22,7 @@
  ******************************************************************************/
 #if defined ( __GNUC__ )
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-pedantic"
+//#pragma GCC diagnostic ignored "-pedantic"
 #endif
 
 
