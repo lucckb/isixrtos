@@ -38,9 +38,9 @@ namespace drv {
 #ifdef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 namespace {
 #if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
-	static constexpr void* m_i2c = I2C1;
+	static const void* m_i2c = I2C1;
 #elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2
-	static constexpr void* m_i2c = I2C2;
+	static const void* m_i2c = I2C2;
 #endif
 }
 #endif
@@ -66,12 +66,12 @@ namespace {
 		std::abort();
 #endif
 	}
-	static constexpr auto I2C1_PORT = GPIOB;
+	static const auto I2C1_PORT = GPIOB;
 	static constexpr auto I2C1_SDA_PIN_ = 7;
 	static constexpr auto I2C1_SCL_PIN_ = 6;
 	static constexpr auto I2C1_SDA_PIN = 1U<<I2C1_SDA_PIN_;
 	static constexpr auto I2C1_SCL_PIN = 1U<<I2C1_SCL_PIN_;
-	static constexpr auto I2C2_PORT = GPIOB;
+	static const auto I2C2_PORT = GPIOB;
 	static constexpr auto I2C2_SDA_PIN_ = 11;
 	static constexpr auto I2C2_SCL_PIN_ = 10;
 	static constexpr auto I2C2_SDA_PIN = 1U<<I2C2_SDA_PIN_;
