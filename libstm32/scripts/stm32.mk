@@ -177,6 +177,19 @@ clean:
 	$(RM) -f $(OBJ) $(LST) $(DEPFILES) $(LIBS) $(LIBS_OBJS)
 
 
+CC_VFX := 'python2 ~/worksrc/sysscripts/cc_args.py $(CC_V)'
+CXX_VFX := 'python2 ~/worksrc/sysscripts/cc_args.py $(CXX_V)'
+
+.PHONY : vimfiles
+.ONESHELL: vimfiles
+vimfiles:
+	@rm -f .clang_complete
+	@$(MAKE) -s clean all CC=$(CC_VFX) CXX=$(CXX_VFX)
+	@echo | $(CC_V) -Wp,-v -x c++ - -fsyntax-only 2>&1 | awk ' /^ / { print "-isystem\n"$$1 >> ".clang_complete"; } END { print "-std=c++14" >> ".clang_complete"; } '
+	@awk 'BEGIN { v="."; }  /^-I/ { gsub("-I","", $$1); v=v","$$1} END { print "set path="v  > ".vim.custom"; }' .clang_complete
+	@echo "let lb_grep_path='$(realpath $(ISIX_BASE_DIR)/..)'" >> .vim.custom
+
+
 program: $(TARGET).elf
 	$(JTAGPROG) -c $(PGM_CMDLINE_CFG) -f $(SCRIPTS_DIR)/stm32.cfg -c "program $(TARGET).elf verify reset"  -c shutdown
 
