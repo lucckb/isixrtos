@@ -176,9 +176,9 @@ clean:
 	$(RM) -f lib$(TARGET).a
 	$(RM) -f $(OBJ) $(LST) $(DEPFILES) $(LIBS) $(LIBS_OBJS)
 
-
-CC_VFX := 'python2 ~/worksrc/sysscripts/cc_args.py $(CC_V)'
-CXX_VFX := 'python2 ~/worksrc/sysscripts/cc_args.py $(CXX_V)'
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+CC_VFX := 'python2 $(ROOT_DIR)/cc_args.py $(CC_V)'
+CXX_VFX := 'python2 $(ROOT_DIR)/cc_args.py $(CXX_V)'
 
 .PHONY : vimfiles
 .ONESHELL: vimfiles
