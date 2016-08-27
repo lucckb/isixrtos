@@ -46,14 +46,14 @@ void frame::execute()
 					rpt_wnd = m_windows.back();
 				}
 			}
-			//! Dispatch hotplug event to all widows 
+			//! Dispatch hotplug event to all widows
 			if( ev.type==evinfo::EV_HOTPLUG ) {
 				rpt_wnd = nullptr;
 				isix::sem_lock _lck( m_lock );
 				for( const auto item : m_windows ) {
 					item->report_event( ev );
 				}
-			} 
+			}
 			if( ev.type==evinfo::EV_TIMER && !ev.window ) {
 				rpt_wnd = nullptr;
 				isix::sem_lock _lck( m_lock );
@@ -86,7 +86,7 @@ void frame::delete_window( window* window )
 	m_windows.remove( window );
 	//queue_repaint( true, nullptr, true );
 }
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 /** Refresh frame manual requirement */
 int frame::queue_repaint( bool force, window* wnd, bool force_clr )
 {
@@ -122,7 +122,7 @@ void frame::repaint( bool force, window *wnd, bool force_clr )
 int frame::set_focus( window* win, window* back_win )
 {
 	isix::sem_lock _lck( m_lock );
-	auto elem = std::find_if( std::begin(m_windows), std::end(m_windows), 
+	auto elem = std::find_if( std::begin(m_windows), std::end(m_windows),
 			[&]( const window* w ) { return w == win; } );
 	if( elem != m_windows.end() ) {
 		m_windows.erase( elem );
@@ -131,10 +131,10 @@ int frame::set_focus( window* win, window* back_win )
 		}
 		m_windows.push_back( *elem );
 		queue_repaint( true, win, true );
-		return errno::success;
+		return error::success;
 	} else {
 		dbprintf("ERROR: Window %p not found", win );
-		return errno::wnd_not_found;
+		return error::wnd_not_found;
 	}
 }
 /* ------------------------------------------------------------------ */
