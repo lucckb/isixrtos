@@ -103,7 +103,8 @@ class i2c_bus : public fnd::bus::ibus {
 public:
 	enum class busid { //! Interface independent bus ID
 		i2c1,			//I2C1 
-		i2c2			//I2C2
+		i2c2,			//I2C2
+		i2c1_alt		//Alternate PINS on i2c1 bus
 	};
 	/** Constructor
 	 * @param[in] _i2c Interface bus ID
@@ -163,7 +164,7 @@ public:
 	void mdelay( unsigned timeout ) override;
 private:
 	//! Hardware init
-	void gpio_initialize();
+	void gpio_initialize( bool alt );
 	//! Get hardware error code
 	int get_hwerror(void) const;
 	//Interrupt event handler

@@ -55,10 +55,16 @@ namespace {
 	inline void* to_i2c( i2c_bus::busid id ) {
 		switch( id ) {
 			case i2c_bus::busid::i2c1: return I2C1;
+			case i2c_bus::busid::i2c1_alt: return I2C1;
 			case i2c_bus::busid::i2c2: return I2C2;
 			default: return nullptr;
 		}
 	}
+	//Is GPIO alternate mode
+	inline auto is_alt_i2c( i2c_bus::busid id ) {
+		return id==i2c_bus::busid::i2c1_alt;
+	}
+
 	inline void terminate() {
 #ifdef __EXCEPTIONS
 		throw std::bad_alloc();
@@ -71,12 +77,21 @@ namespace {
 	static constexpr auto I2C1_SCL_PIN_ = 6;
 	static constexpr auto I2C1_SDA_PIN = 1U<<I2C1_SDA_PIN_;
 	static constexpr auto I2C1_SCL_PIN = 1U<<I2C1_SCL_PIN_;
+
+	static constexpr auto I2C1ALT_SDA_PIN_ = 9;
+	static constexpr auto I2C1ALT_SCL_PIN_ = 8;
+	static constexpr auto I2C1ALT_SDA_PIN = 1U<<I2C1ALT_SDA_PIN_;
+	static constexpr auto I2C1ALT_SCL_PIN = 1U<<I2C1ALT_SCL_PIN_;
+
+
 	static const auto I2C2_PORT = GPIOB;
 	static constexpr auto I2C2_SDA_PIN_ = 11;
 	static constexpr auto I2C2_SCL_PIN_ = 10;
 	static constexpr auto I2C2_SDA_PIN = 1U<<I2C2_SDA_PIN_;
 	static constexpr auto I2C2_SCL_PIN = 1U<<I2C2_SCL_PIN_;
+
 	static constexpr auto I2C1_PINS = I2C1_SDA_PIN|I2C1_SCL_PIN;
+	static constexpr auto I2C1ALT_PINS = I2C1ALT_SDA_PIN|I2C1ALT_SCL_PIN;
 	static constexpr auto I2C2_PINS = I2C2_SDA_PIN|I2C2_SCL_PIN;
 }
 /** DMA Function depends on device STM32F1 and F2/F4 have incompatibile DMA controller */
@@ -131,8 +146,8 @@ namespace {
 		stm32::dma_channel_disable( i2c2rxdma(i2c) );
 	}
 	//AFIO optional config
-	inline void afio_config( I2C_TypeDef * const  ) {}
-	
+	inline void afio_config( I2C_TypeDef * const, bool  ) {}
+
 	//I2C dma NVIC On
 	inline void i2c_dma_irq_on( I2C_TypeDef * const i2c , int prio, int sub )
 	{
@@ -152,7 +167,7 @@ namespace {
 		tx
 	};
 	inline DMA_Stream_TypeDef* _i2c_stream( I2C_TypeDef* i2c, dma_dir d ) {
-		if( i2c == I2C1 ) {	
+		if( i2c == I2C1 ) {
 			if( d == dma_dir::rx ) {
 				return DMA1_Stream0;
 			} else {
@@ -222,12 +237,18 @@ namespace {
 		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::rx), false );
 	}
 	//AFIO optional config
-	inline void afio_config( I2C_TypeDef * const i2c )
+	inline void afio_config( I2C_TypeDef * const i2c, bool alt )
 	{
 
 		if( i2c == I2C1 ) {
-			gpio_pin_AF_config( I2C1_PORT, I2C1_SDA_PIN_, GPIO_AF_I2C1 );
-			gpio_pin_AF_config( I2C1_PORT, I2C1_SCL_PIN_, GPIO_AF_I2C1 );
+			if( ! alt ) {
+				gpio_pin_AF_config( I2C1_PORT, I2C1_SDA_PIN_, GPIO_AF_I2C1 );
+				gpio_pin_AF_config( I2C1_PORT, I2C1_SCL_PIN_, GPIO_AF_I2C1 );
+			}
+			else {
+				gpio_pin_AF_config( I2C1_PORT, I2C1ALT_SDA_PIN_, GPIO_AF_I2C1 );
+				gpio_pin_AF_config( I2C1_PORT, I2C1ALT_SCL_PIN_, GPIO_AF_I2C1 );
+			}
 		} else if( i2c == I2C2 ) {
 			gpio_pin_AF_config( I2C2_PORT, I2C2_SDA_PIN_, GPIO_AF_I2C2 );
 			gpio_pin_AF_config( I2C2_PORT, I2C2_SCL_PIN_, GPIO_AF_I2C2 );
@@ -271,7 +292,7 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 	: m_i2c( to_i2c(_i2c) )
 #endif
 {
-#if defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) 
+#if defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C)
 	static_cast<void>(_i2c);
 #endif
 	using namespace stm32;
@@ -294,10 +315,10 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 		obj_i2c2 = this;
 #endif
 	}
-	afio_config( dcast(m_i2c) );
-	gpio_initialize();
+	afio_config( dcast(m_i2c), is_alt_i2c(_i2c) );
+	gpio_initialize( is_alt_i2c(_i2c) );
 	//FIXME: Previous GPIO
-	i2c_init( dcast(m_i2c), clk_speed, I2C_Mode_I2C, I2C_DutyCycle_2, 1, 
+	i2c_init( dcast(m_i2c), clk_speed, I2C_Mode_I2C, I2C_DutyCycle_2, 1,
 			  I2C_Ack_Enable, I2C_AcknowledgedAddress_7bit, pclk1 );
 	i2c_acknowledge_config( dcast(m_i2c), true );
 	if( m_i2c == I2C1 ) {
@@ -325,19 +346,20 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 #endif
 }
 
-void i2c_bus::gpio_initialize()
+void i2c_bus::gpio_initialize( bool alt )
 {
 	if( m_i2c == I2C1 ) {
-		if( !gpio_get( I2C1_PORT, I2C1_SDA_PIN_) ||  !gpio_get( I2C1_PORT, I2C1_SCL_PIN_ ) ) {
+		if( !gpio_get( I2C1_PORT, alt?I2C1ALT_SDA_PIN_:I2C1_SDA_PIN_) ||
+			!gpio_get( I2C1_PORT, alt?I2C1ALT_SCL_PIN_:I2C1_SCL_PIN_ ) ) {
 			dbprintf("BUSY?");
 		}
-		gpio_abstract_config_ext( I2C1_PORT, I2C1_PINS, 
+		gpio_abstract_config_ext( I2C1_PORT, alt?I2C1ALT_PINS:I2C1_PINS,
 			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
 	} else if( m_i2c == I2C2 ) {
 		if( !gpio_get( I2C2_PORT, I2C2_SDA_PIN_) ||  !gpio_get( I2C2_PORT, I2C2_SCL_PIN_ ) ) {
 			dbprintf("BUSY?");
 		}
-		gpio_abstract_config_ext( I2C2_PORT, I2C2_PINS, 
+		gpio_abstract_config_ext( I2C2_PORT, I2C2_PINS,
 			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
 	} else {
 		//! Not supported yet
@@ -387,7 +409,7 @@ int i2c_bus::get_hwerror(void) const
 * @param[out] rbuffer Read data buffer pointer
 * @param[in] rsize Read buffer sizes
 * @return Error code or success */
-int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer, 
+int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer,
 		size_t wsize, void* rbuffer, size_t rsize)
 {
 	using namespace stm32;
@@ -441,7 +463,7 @@ int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer,
 }
 
 
-/** Double non continous transaction write 
+/** Double non continous transaction write
 	* @param[in] addr I2C address
 	* @param[in] wbuf1 Write buffer first transaction
 	* @param[in] wsize1 Transaction size 1
@@ -449,7 +471,7 @@ int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer,
 	* @param[in] wsize2 Transaction size 1
 	* @return error code or success */
 int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 )
-{   
+{
 	m_tx2_len = (wbuf2!=nullptr)?(wsize2):(0);
 	m_tx2_buf = const_cast<const uint8_t * volatile>(reinterpret_cast<const uint8_t*>(wbuf2));
 	return transfer( addr, wbuf1, wsize1, nullptr, 0 );
@@ -476,7 +498,7 @@ void i2c_bus::ev_irq()
 	case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	//EV8
 	{
 		i2c_dma_tx_disable( dcast(m_i2c) );
-		if( m_rx_len ) 
+		if( m_rx_len )
 		{
 			//Change address to read
 			m_addr |= I2C_OAR1_ADD0;
@@ -484,19 +506,20 @@ void i2c_bus::ev_irq()
 			//ACK config
 			//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDtoRX");
 		}
-		else 
+		else
 		{
 			if( m_tx2_len == 0 )
 				ev_finalize();
-			else 
+			else
 			{
 				i2c_dma_tx_config( dcast(m_i2c), m_tx2_buf, m_tx2_len );
 				i2c_dma_tx_enable( dcast(m_i2c) );
 				m_tx2_len = 0;
 				m_tx2_buf = nullptr;
 			}
-		} 
+		}
 		//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
+		dsb(); isb(); nop(); nop();
 	}
 	break;
 
@@ -564,7 +587,7 @@ void i2c_bus::err_irq()
 }
 
 //Dma trasfer complete
-void i2c_bus::ev_dma_tc() 
+void i2c_bus::ev_dma_tc()
 {
 	i2c_generate_stop(dcast(m_i2c),true);
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, false );
@@ -574,7 +597,7 @@ void i2c_bus::ev_dma_tc()
 	m_notify.signal_isr();
 }
 
-void i2c_bus::mdelay( unsigned timeout ) 
+void i2c_bus::mdelay( unsigned timeout )
 {
 	isix_wait_ms( timeout );
 }
@@ -624,15 +647,15 @@ extern "C" {
 #else
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	//I2C1 RX
-	__attribute__((interrupt)) void dma1_channel7_isr_vector() 
+	__attribute__((interrupt)) void dma1_channel7_isr_vector()
 	{
-		stm32::dma_clear_flag( DMA1_FLAG_TC7 );	
+		stm32::dma_clear_flag( DMA1_FLAG_TC7 );
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
 	}
 #endif
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2 RX
-	__attribute__((interrupt)) void dma1_channel5_isr_vector() 
+	__attribute__((interrupt)) void dma1_channel5_isr_vector()
 	{
 		stm32::dma_clear_flag( DMA1_FLAG_TC5 );
 		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
