@@ -13,85 +13,23 @@
 #include <stdbool.h>
 #include <isix.h>
 #include <stm32system.h>
-#include <stm32rcc.h>
 #include <stm32exti.h>
 #include <stm32bitbang.h>
 #include "ethernetif.h"
-#ifdef _HAVE_CONFIG_H
-#include "config.h"
-#endif
-/* ------------------------------------------------------------------ */
-#ifndef STM32MCU_MAJOR_TYPE_F1
-#error This driver is not ported to F2 and F4 mcu families
-#endif
-/**************************** DRIVER CONFIGURATION ********************/
-//Use interrupt instead of polling
-#ifndef PHY_INT_USE_INTERRUPT
-#define PHY_INT_USE_INTERRUPT 1
-#endif
-//Exti interrupt
-#ifndef PHY_INT_EXTI_LINE_IRQ_N
-#define PHY_INT_EXTI_LINE_IRQ_N EXTI15_10_IRQn
-#endif
-//Exti line num
-#ifndef PHY_INT_EXTI_NUM
-#define PHY_INT_EXTI_NUM 13
-#endif
-//Exti port
-#ifndef PHY_INT_GPIO_PORT
-#define PHY_INT_GPIO_PORT D
-#endif
-//Does use RMII interface
-#ifndef ETH_DRV_USE_RMII
-#define ETH_DRV_USE_RMII 0
-#endif
-//Configure clock for provide MCO
-#ifndef ETH_DRV_CONFIGURE_MCO_OUTPUT
-#define ETH_DRV_CONFIGURE_MCO_OUTPUT 0
-#endif
-//Driver interrupt priority and subpriority
-#ifndef ETH_DRV_IRQ_PRIO
-#define ETH_DRV_IRQ_PRIO 1
-#endif
-#ifndef ETH_DRV_IRQ_SUBPRIO
-#define ETH_DRV_IRQ_SUBPRIO 7
-#endif
-//Operating system driver copy data priority
-#ifndef ETH_DRV_ISIX_THREAD_PRIORITY
-#define ETH_DRV_ISIX_THREAD_PRIORITY (isix_get_min_priority() - 1)
-#endif
-//SYSTEM HCLK for PHY emac speed calculation
-#ifndef ETH_DRV_HCLK_HZ
-#define ETH_DRV_HCLK_HZ 72000000
-#endif
-//PHY Address 1 for DP83848
-#ifndef ETH_DRV_PHY_ADDR
-#define ETH_DRV_PHY_ADDR 1
-#endif
-
-/* ------------------------------------------------------------------ */
-//Macros
-#define PHY_INT_EXTI_CAT(x, y) x##y
-#define PHY_INT_EXTI_XGPIO(X)PHY_INT_EXTI_CAT(GPIO, X)
-#define PHY_INT_EXTI_XGPIOCAT(x, y) x##GPIO##y
-#define PHY_INT_EXTI_LINENUM(x) 	 PHY_INT_EXTI_CAT(EXTI_Line , x )
-#define PHY_INT_EXTI_PORT_SOURCE(x)  PHY_INT_EXTI_XGPIOCAT(GPIO_PortSource, x  )
-#define PHY_INT_EXTI_PIN_SOURCE(x)   PHY_INT_EXTI_CAT(GPIO_PinSource, x  )
-
-/* ------------------------------------------------------------------ */
+#include "ethernetif_prv.h"
 
 enum { ETH_RXBUFNB = 4 };
 enum { ETH_TXBUFNB = 16 };
 
 
-/* ------------------------------------------------------------------ */
+//
 struct drv_rx_buff_s
 {
 	struct pbuf *pbuf;		//Receive pbuf
 	bool used;				//Buffer is used
 };
 
-/* ------------------------------------------------------------------ */
+//
 //Transmit and receive descriptors
 static ETH_DMADESCTypeDef  dma_rx_ring[ETH_RXBUFNB];
 static ETH_DMADESCTypeDef  dma_tx_ring[ETH_TXBUFNB];
@@ -112,7 +50,7 @@ static unsigned ethif_events;
 
 //Net interface copy task
 static ostask_t netif_task_id;
-/* ------------------------------------------------------------------ */
+//
 //Ethernet if task event
 enum ethif_events_e
 {
@@ -121,7 +59,7 @@ enum ethif_events_e
 	ETHIF_EVENT_EMAC_TX_BIT
 };
 
-/* ------------------------------------------------------------------ */
+//
 //PHY registers and bits
 enum { MICR_INTEN = (1<<1),  MICR_INTOE = (1<<0 ) };
 
@@ -134,7 +72,7 @@ enum { BMSR_LINK_STATUS=(1<<2), BMSR_LINK_AUTONEG_COMPLETE=(1<<5),
      };
 
 enum { PHYBMSR=0x01, PHYIDR1=0x02, PHYIDR2=0x03, PHYMICR=0x11,PHYMICSR=0x12, PHYCR=0x19 };
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Write to a PHY register
   * @param PHYAddress: PHY device address, is the index of one of supported 32 PHY devices.
@@ -175,7 +113,7 @@ static int eth_write_phy_register(uint16_t phy_addr, uint16_t phy_reg, uint16_t 
   /* Return failed */
   return ERR_IF;
 }
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Read a PHY register
   * @param PHYAddress: PHY device address, is the index of one of supported 32 PHY devices.
@@ -216,7 +154,7 @@ static int eth_read_phy_register(uint16_t phy_address, uint16_t phy_reg )
 }
 
 
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Clears the ETHERNETs DMA IT pending bit.
   * @param  ETH_DMA_IT: specifies the interrupt pending bit to clear.
@@ -244,7 +182,7 @@ static inline void eth_dma_clear_it_pending_bit(uint32_t ETH_DMA_IT)
   /* Clear the selected ETHERNET DMA IT */
   ETH->DMASR = (uint32_t) ETH_DMA_IT;
 }
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Enables or disables the MAC transmission.
   * @param  NewState: new state of the MAC transmission.
@@ -264,7 +202,7 @@ static inline void eth_mac_transmission_cmd( bool enable )
     ETH->MACCR &= ~ETH_MACCR_TE;
   }
 }
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Clears the ETHERNET transmit FIFO.
   * @param  None
@@ -275,7 +213,7 @@ static inline void eth_flush_transmit_fifo(void)
   /* Set the Flush Transmit FIFO bit */
   ETH->DMAOMR |= ETH_DMAOMR_FTF;
 }
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Enables or disables the MAC reception.
   * @param  NewState: new state of the MAC reception.
@@ -295,7 +233,7 @@ static inline void eth_mac_reception_cmd( bool enable )
     ETH->MACCR &= ~ETH_MACCR_RE;
   }
 }
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Enables or disables the DMA transmission.
   * @param  NewState: new state of the DMA transmission.
@@ -315,7 +253,7 @@ static inline void eth_dma_transmission_cmd( bool enable )
     ETH->DMAOMR &= ~ETH_DMAOMR_ST;
   }
 }
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Enables or disables the DMA reception.
   * @param  NewState: new state of the DMA reception.
@@ -335,7 +273,7 @@ static inline void eth_dma_reception_cmd( bool enable )
     ETH->DMAOMR &= ~ETH_DMAOMR_SR;
   }
 }
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Enables ENET MAC and DMA reception/transmission
   * @param  None
@@ -393,7 +331,7 @@ static inline void eth_dma_it_config(uint32_t ETH_DMA_IT, bool enable )
     ETH->DMAIER &=(~(uint32_t)ETH_DMA_IT);
   }
 }
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Checks whether the specified ETHERNET DMA interrupt has occured or not.
   * @param  ETH_DMA_IT: specifies the interrupt source to check.
@@ -423,7 +361,7 @@ static inline bool eth_get_dma_it_status(uint32_t ETH_DMA_IT)
   return (ETH->DMASR & ETH_DMA_IT)?true:false;
 }
 
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Returns the specified DMA Rx Desc frame length.
   * @param  DMARxDesc: pointer on a DMA Rx descriptor
@@ -436,7 +374,7 @@ static inline uint32_t eth_get_dma_rx_desc_frame_length(ETH_DMADESCTypeDef *DMAR
   return ((DMARxDesc->Status & ETH_DMARxDesc_FL) >> ETH_DMARXDESC_FRAME_LENGTHSHIFT);
 }
 
-/* ------------------------------------------------------------------ */
+//
 static void eth_mac_address_config(uint32_t MacAddr, const uint8_t *Addr)
 {
   static const uint32_t ETH_MAC_ADDR_HBASE  = (ETH_MAC_BASE + 0x40);  /* ETHERNET MAC address high offset */
@@ -453,7 +391,7 @@ static void eth_mac_address_config(uint32_t MacAddr, const uint8_t *Addr)
   (*(__IO uint32_t *) (ETH_MAC_ADDR_LBASE + MacAddr)) = tmpreg;
 }
 
-/* ------------------------------------------------------------------ */
+//
 static int eth_init_0_no_autonegotiate(uint16_t phy_addr, uint32_t hclk )
 {
 	static const uint32_t MACMIIAR_CR_MASK  = 0xFFFFFFE3;
@@ -635,7 +573,7 @@ static inline void eth_init_7_dma_bmr(uint32_t address_aligned_beats , uint32_t 
 	       dma_arbitration | ETH_DMABMR_USP; /* Enable use of separate PBL for Rx and Tx */
 }
 
-/* ------------------------------------------------------------------ */
+//
 /* Setup DMA RX buffer */
 static void dma_rx_buffer_set(ETH_DMADESCTypeDef *rx_desc, struct pbuf *p)
 {
@@ -649,7 +587,7 @@ static void dma_rx_buffer_set(ETH_DMADESCTypeDef *rx_desc, struct pbuf *p)
   rx_desc->Status = ETH_DMARxDesc_OWN;
 }
 
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Resets all MAC subsystem internal registers and logic.
   * @param  None
@@ -662,7 +600,7 @@ static inline void eth_software_reset(void)
   ETH->DMABMR |= ETH_DMABMR_SR;
 }
 
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Checks whether the ETHERNET software reset bit is set or not.
   * @param  None
@@ -673,7 +611,7 @@ static inline bool eth_get_software_reset_status(void)
   return (ETH->DMABMR & ETH_DMABMR_SR)?(true):(false);
 }
 
-/* ------------------------------------------------------------------ */
+//
 /** Reallocat receive buffers */
 static int realloc_rx_pbufs(void)
 {
@@ -701,7 +639,7 @@ static int realloc_rx_pbufs(void)
   return ERR_OK;
 }
 
-/* ------------------------------------------------------------------ */
+//
 /* Initialize allocation of RX buffers in the ethernet driver */
 static int alloc_rx_pbufs(void)
 {
@@ -721,7 +659,7 @@ static int alloc_rx_pbufs(void)
   }
   return ERR_OK;
 }
-/* ------------------------------------------------------------------ */
+//
 /* Free Tx buffers */
 static void free_tx_pbufs(void)
 {
@@ -736,7 +674,7 @@ static void free_tx_pbufs(void)
     }
   }
 }
-/* ------------------------------------------------------------------ */
+//
 //DMA pbuf set
 static struct pbuf* dma_tx_pbuf_set(ETH_DMADESCTypeDef *tx_desc, struct pbuf *p, bool fs)
 {
@@ -756,11 +694,11 @@ static struct pbuf* dma_tx_pbuf_set(ETH_DMADESCTypeDef *tx_desc, struct pbuf *p,
           (p->next?0:ETH_DMATxDesc_LS) | ETH_DMATxDesc_OWN;
   return p->next;
 }
-/* ------------------------------------------------------------------ */
+//
 /* Forward declarations. */
 static err_t  ethernetif_input(struct netif *netif);
 
-/* ------------------------------------------------------------------ */
+//
 /*
   * @brief  Called when a frame is received
   * @param  None
@@ -788,7 +726,7 @@ void eth_isr_vector(void)
 	eth_dma_clear_it_pending_bit(ETH_DMA_IT_NIS);
 }
 
-/* ------------------------------------------------------------------ */
+//
 /**
  *  Interrupt handler for MAC dervice
  */
@@ -806,7 +744,7 @@ EXTI_HANDLER(PHY_INT_EXTI_NUM)
 #undef DO_EXTI_HANLDLER
 #undef EXTI_HANDLER
 #endif
-/* ------------------------------------------------------------------ */
+//
 //Check the ethernet link status
 static void check_link_status( struct netif *netif )
 {
@@ -826,7 +764,7 @@ static void check_link_status( struct netif *netif )
 		}
 	}
 }
-/* ------------------------------------------------------------------ */
+//
 /* Network interrupt bottom half Linux concept of bottom halfes */
 static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 {
@@ -834,7 +772,7 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 	eth_start();
 	struct netif *netif = (struct netif*)(ifc);
 #if !PHY_INT_USE_INTERRUPT
-	tick_t link_last_call_time = 0;
+	ostick_t link_last_call_time = 0;
 #endif
 	for(;;)
 	{
@@ -881,7 +819,7 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 #endif
 	}
 }
-/* ------------------------------------------------------------------ */
+//
 
 /**
  * In this function, the hardware should be initialized.
@@ -893,7 +831,7 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 static int low_level_init(struct netif *netif)
 {
 
-  /* ---------------------> Configure TX descriptors */
+  //
   dma_tx_idx = 0;
   for (int i = 0; i < ETH_TXBUFNB; ++i)
   {
@@ -954,7 +892,7 @@ static int low_level_init(struct netif *netif)
   }
   return ERR_OK;
 }
-/* ------------------------------------------------------------------ */
+//
 //Check if pbuf packet is DMA safe
 static bool is_pbuf_dma_safe( const struct pbuf *p )
 {
@@ -968,14 +906,14 @@ static bool is_pbuf_dma_safe( const struct pbuf *p )
 	}
 	return true;
 }
-/* ------------------------------------------------------------------ */
+//
 //Convert puf to req desc
 static inline size_t pbuf_chains_to_dma_descs_num(int pbuf_chains)
 {
 
 	return pbuf_chains / 2 + pbuf_chains % 2;
 }
-/* ------------------------------------------------------------------ */
+//
 /**
  * This function should do the actual transmission of the packet. The packet is
  * contained in the pbuf that is passed to the function. This pbuf
@@ -1042,7 +980,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	 return ERR_OK;
 }
 
-/* ------------------------------------------------------------------ */
+//
 /**
  * Should allocate a pbuf and transfer the bytes of the incoming
  * packet from the interface into the pbuf.
@@ -1094,7 +1032,7 @@ static struct pbuf* low_level_input(struct netif *netif)
 	  return p;
 }
 
-/* ------------------------------------------------------------------ */
+//
 /**
  * This function should be called when a packet is ready to be read
  * from the interface. It uses the function low_level_input() that
@@ -1124,7 +1062,7 @@ err_t ethernetif_input(struct netif *netif)
   return err;
 }
 
-/* ------------------------------------------------------------------ */
+//
 /**
  * Should be called at the beginning of the program to set up the
  * network interface. It calls the function low_level_init() to do the
@@ -1180,111 +1118,40 @@ err_t stm32_emac_if_init_callback(struct netif *netif)
 }
 
 
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Deinitializes the ETHERNET peripheral registers to their default reset values.
   * @param  None
   * @retval None
   */
-static void eth_deinit(void)
-{
-#ifdef STM32MCU_MAJOR_TYPE_F1
-  rcc_ahb_periph_reset_cmd( RCC_AHBPeriph_ETH_MAC, true );
-  nop();
-  rcc_ahb_periph_reset_cmd( RCC_AHBPeriph_ETH_MAC, false );
-  nop();
-#else
-#endif
-}
 
-/* ------------------------------------------------------------------ */
-//GPIO initialize
-static void eth_gpio_mii_init(void)
-{
-    //Enable gpios
-	rcc_apb2_periph_clock_cmd( RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
-		RCC_APB2Periph_GPIOC |	RCC_APB2Periph_GPIOD |RCC_APB2Periph_AFIO, true);
-	/* ETHERNET pins configuration */
-	  /* AF Output Push Pull:
-	  - ETH_MII_MDIO / ETH_RMII_MDIO: PA2
-	  - ETH_MII_MDC / ETH_RMII_MDC: PC1
-	  - ETH_MII_TXD2: PC2
-	  - ETH_MII_TX_EN / ETH_RMII_TX_EN: PB11
-	  - ETH_MII_TXD0 / ETH_RMII_TXD0: PB12
-	  - ETH_MII_TXD1 / ETH_RMII_TXD1: PB13
-	  - ETH_MII_PPS_OUT / ETH_RMII_PPS_OUT: PB5
-	  - ETH_MII_TXD3: PB8 */
 
-	  /* Configure PA2 as alternate function push-pull */
-	  gpio_config( GPIOA, 2,  GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP );
-	  /* Configure PC1, PC2 and PC3 as alternate function push-pull */
-	  gpio_config_ext( GPIOC, (1<<1)| (1<<2), GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP );
-	  /* Configure PB5, PB8, PB11, PB12 and PB13 as alternate function push-pull */
-	  gpio_config_ext( GPIOB, (1<<5)|(1<<8)|(1<<11)|(1<<12)|(1<<13), GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP );
-	  /*               For Remapped Ethernet pins                   */
-	  /* Input (Reset Value):
-	  - ETH_MII_CRS CRS: PA0
-	  - ETH_MII_RX_CLK / ETH_RMII_REF_CLK: PA1
-	  - ETH_MII_COL: PA3
-	  - ETH_MII_RX_DV / ETH_RMII_CRS_DV: PD8
-	  - ETH_MII_TX_CLK: PC3
-	  - ETH_MII_RXD0 / ETH_RMII_RXD0: PD9
-	  - ETH_MII_RXD1 / ETH_RMII_RXD1: PD10
-	  - ETH_MII_RXD2: PD11
-	  - ETH_MII_RXD3: PD12
-	  - ETH_MII_RX_ER: PB10 */
-
-	  /* ETHERNET pins remapp in STM3210C-EVAL board: RX_DV and RxD[3:0] */
-	  gpio_pin_remap_config(GPIO_Remap_ETH, true);
-
-	  /* Configure PA0, PA1 and PA3 as input */
-	  gpio_config_ext(GPIOA, (1<<0)|(1<<1)|(1<<3), GPIO_MODE_INPUT, GPIO_CNF_IN_FLOAT );
-
-	  /* Configure PB10 as input */
-	  gpio_config( GPIOB, 10, GPIO_MODE_INPUT, GPIO_CNF_IN_FLOAT );
-
-	  /* Configure PC3 as input */
-	  gpio_config( GPIOC, 3, GPIO_MODE_INPUT, GPIO_CNF_IN_FLOAT );
-
-	  /* Configure PD8, PD9, PD10, PD11 and PD12 as input */
-	  gpio_config_ext(GPIOD, (1<<8)|(1<<9)|(1<<10)|(1<<11)|(1<<12), GPIO_MODE_INPUT, GPIO_CNF_IN_FLOAT );
-
-	  /* MCO pin configuration */
-	  /* Configure MCO (PA8) as alternate function push-pull */
-#if  ETH_DRV_CONFIGURE_MCO_OUTPUT
-	  gpio_config( GPIOA, 8 , GPIO_MODE_50MHZ, GPIO_CNF_ALT_PP);
-#endif
-	  //Configure interrupt PHY port
-	  gpio_config( PHY_INT_EXTI_XGPIO(PHY_INT_GPIO_PORT), PHY_INT_EXTI_NUM, GPIO_MODE_INPUT, GPIO_CNF_IN_FLOAT );
-}
-
-/* ------------------------------------------------------------------ */
+//
 /**
   * @brief  Configures the Ethernet Interface
   */
 static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
 {
   //Enable eth stuff
-  rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
-			RCC_AHBPeriph_ETH_MAC_Rx, true );
+  _ethernetif_clock_setup_arch_( true );
 
   /* MII/RMII Media interface selection */
 #if ETH_DRV_USE_RMII
-  	 gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_RMII);
-#error RMII mode not implemented YET
+	 _ethernetif_gpio_rmii_init_arch_();
 #else
-	 eth_gpio_mii_init();
-	 gpio_eth_media_interface_config(GPIO_ETH_MediaInterface_MII);
+	 _ethernetif_gpio_mii_init_arch_();
 #endif
 
   /* Reset ETHERNET on AHB Bus */
-  eth_deinit();
+   _ethernetif_deinit_arch_();
 
   /* Software reset */
   eth_software_reset();
 
   /* Wait for software reset */
-  while (eth_get_software_reset_status() ) nop();
+  while (eth_get_software_reset_status() ) {
+	isix_wait_ms(10);
+  }
 
   /* Configure Ethernet */
   if( eth_init_0_no_autonegotiate( phy_addr, hclk ) )
@@ -1354,25 +1221,13 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
   }
   return ERR_OK;
 }
-/* ------------------------------------------------------------------ */
+//
 
 /** Input packet handling */
 struct netif* stm32_emac_netif_create( const uint8_t *hw_addr )
 {
 
-#ifdef STM32MCU_MAJOR_TYPE_F1
-	/*
-	 * Description
-		If a WFI/WFE instruction is executed to put the system in sleep mode while the Ethernet
-		MAC master clock on the AHB bus matrix is ON and all remaining masters clocks are OFF,
-		the Ethernet DMA will be not able to perform any AHB master accesses during sleep mode.
-		Workaround
-		Enable DMA1 or DMA2 clocks in the RCC_AHBENR register before executing the
-		WFI/WFE instruction.
-	 *
-	 */
-	rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_DMA1 | RCC_AHBPeriph_DMA2, true );
-#endif
+	_ethernetif_dma_setup_arch_();
 	//Create NETIF interface
 	if( ethernet_init( ETH_DRV_HCLK_HZ, ETH_DRV_PHY_ADDR ) )
 	{
@@ -1399,7 +1254,7 @@ struct netif* stm32_emac_netif_create( const uint8_t *hw_addr )
 	nvic_set_priority( PHY_INT_EXTI_LINE_IRQ_N, ETH_DRV_IRQ_PRIO, ETH_DRV_IRQ_SUBPRIO  );
 	return nifc;
 }
-/* ------------------------------------------------------------------ */
+//
 /* Destroy the netif stm32 interface */
 int stm32_emac_netif_shutdown( struct netif *netif )
 {
@@ -1435,9 +1290,8 @@ int stm32_emac_netif_shutdown( struct netif *netif )
 		 netif_sem = NULL;
 	 }
 	 //Reset the ethernet controler using RST signal
-	 eth_deinit();
+	 _ethernetif_deinit_arch_();
 	 //Disable ETH clocks
-	 rcc_ahb_periph_clock_cmd( RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
-	 		RCC_AHBPeriph_ETH_MAC_Rx, false );
+	 _ethernetif_clock_setup_arch_(false);
 	 return ret_code;
 }

@@ -3,10 +3,9 @@ ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/usart_buffered.cpp
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/i2c_bus.cpp
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/stm32_spi_master.cpp
 #TODO: Ethernet if for F2 and F4 platforms if needed
-ifeq ($(MCU_MAJOR_TYPE),f1)
 ifeq ($(ISIX_TCPIPLIB_ENABLED),y)
 ISIXDRV_SRC    += $(ISIXDRV_DIR)/ethernetif.c
-endif
+ISIXDRV_SRC    += $(ISIXDRV_DIR)/ethernetif_$(MCU_MAJOR_TYPE).c
 endif
 ifeq ($(MCU_MAJOR_TYPE),f2)
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/stm32_sdio_mmc_host.cpp
