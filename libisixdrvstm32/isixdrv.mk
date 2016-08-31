@@ -4,8 +4,9 @@ ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/i2c_bus.cpp
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/stm32_spi_master.cpp
 #TODO: Ethernet if for F2 and F4 platforms if needed
 ifeq ($(ISIX_TCPIPLIB_ENABLED),y)
-ISIXDRV_SRC    += $(ISIXDRV_DIR)/ethernetif.c
-ISIXDRV_SRC    += $(ISIXDRV_DIR)/ethernetif_$(MCU_MAJOR_TYPE).c
+ISIXDRV_SRC    += $(ISIXDRV_DIR)/ethernet/ethernetif.c
+ISIXDRV_SRC    += $(ISIXDRV_DIR)/ethernet/ethernetif_$(MCU_MAJOR_TYPE).c
+ISIXDRV_SRC    += $(wildcard $(ISIXDRV_DIR)/ethernet/phy_*.c)
 endif
 ifeq ($(MCU_MAJOR_TYPE),f2)
 ISIXDRV_CPPSRC += $(ISIXDRV_DIR)/stm32_sdio_mmc_host.cpp
