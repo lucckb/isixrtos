@@ -11,6 +11,10 @@
 extern "C" {
 #endif
 
+//! Forward decl
+struct phy_device;
+
+
 //
 /* Initialize ethernet if interface */
 err_t stm32_emac_if_init_callback(struct netif *netif);
@@ -28,6 +32,8 @@ struct netif* stm32_emac_netif_create( const uint8_t *hw_addr );
  * @note allocated netif struct must be deleted manualy,
  * netif interface must be deassert using LWIP netif API */
 int stm32_emac_netif_shutdown( struct netif *netif);
+
+
 
 //
 #ifdef __cplusplus

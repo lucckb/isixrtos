@@ -15,14 +15,14 @@
 #include <stm32system.h>
 #include <stm32exti.h>
 #include <stm32bitbang.h>
-#include "ethernetif.h"
+#include <eth/ethernetif.h>
+#include <eth/phy.h>
 #include "ethernetif_prv.h"
 
 enum { ETH_RXBUFNB = 4 };
 enum { ETH_TXBUFNB = 16 };
 
 
-//
 struct drv_rx_buff_s
 {
 	struct pbuf *pbuf;		//Receive pbuf
@@ -51,6 +51,11 @@ static unsigned ethif_events;
 //Net interface copy task
 static ostask_t netif_task_id;
 //
+
+//define phy ethernet driver pointer
+define_phy_driver( ETH_PHY_DRIVER_NAME );
+
+
 //Ethernet if task event
 enum ethif_events_e
 {
@@ -59,19 +64,8 @@ enum ethif_events_e
 	ETHIF_EVENT_EMAC_TX_BIT
 };
 
-//
-//PHY registers and bits
-enum { MICR_INTEN = (1<<1),  MICR_INTOE = (1<<0 ) };
 
-enum { MICSR_ANC_INT_EN=(1<<2), MICSR_DUP_INT_EN=(1<<3), MICSR_SPD_INT_EN=(1<<4),
-		MICSR_LINK_INT_EN=(1<<5), MICSR_LINK_INT=(1<<13) };
 
-enum { BMSR_LINK_STATUS=(1<<2), BMSR_LINK_AUTONEG_COMPLETE=(1<<5),
-	   BMSR_100M_FULL=(1<<14), BMSR_100M_HALF=(1<<13), BMSR_10M_FULL=(1<<12),
-	   BMSR_10M_HALF=(1<<11)
-     };
-
-enum { PHYBMSR=0x01, PHYIDR1=0x02, PHYIDR2=0x03, PHYMICR=0x11,PHYMICSR=0x12, PHYCR=0x19 };
 //
 /**
   * @brief  Write to a PHY register
@@ -85,7 +79,7 @@ enum { PHYBMSR=0x01, PHYIDR1=0x02, PHYIDR2=0x03, PHYMICR=0x11,PHYMICSR=0x12, PHY
   * @retval ETH_ERROR: in case of timeout
   *         ETH_SUCCESS: for correct write
   */
-static int eth_write_phy_register(uint16_t phy_addr, uint16_t phy_reg, uint16_t phy_value)
+int _ethernetif_write_phy_register_(uint16_t phy_addr, uint16_t phy_reg, uint16_t phy_value)
 {
   static const uint32_t MACMIIAR_CR_MASK =0xFFFFFFE3;
 	/* Get the ETHERNET MACMIIAR value */
@@ -127,7 +121,7 @@ static int eth_write_phy_register(uint16_t phy_addr, uint16_t phy_reg, uint16_t 
   * @retval ETH_ERROR: in case of timeout
   *         MAC MIIDR register value: Data read from the selected PHY register (correct read )
   */
-static int eth_read_phy_register(uint16_t phy_address, uint16_t phy_reg )
+int _ethernetif_read_phy_register_(uint16_t phy_address, uint16_t phy_reg )
 {
   static const uint32_t MACMIIAR_CR_MASK = 0xFFFFFFE3;
   /* Get the ETHERNET MACMIIAR value */
@@ -419,7 +413,7 @@ static int eth_init_0_no_autonegotiate(uint16_t phy_addr, uint32_t hclk )
 	ETH->MACMIIAR = (uint32_t)tmpreg;
 	/* PHY initialization and configuration */
 	/* Put the PHY in reset mode */
-	if( eth_write_phy_register(phy_addr, PHY_BCR, PHY_Reset) != ERR_OK)
+	if( phy->reset( phy_addr ) )
 	{
 	  /* Return ERROR in case of write timeout */
 	  return ERR_IF;
@@ -746,22 +740,18 @@ EXTI_HANDLER(PHY_INT_EXTI_NUM)
 #endif
 //
 //Check the ethernet link status
-static void check_link_status( struct netif *netif )
+static void check_link_status( uint8_t addr, struct netif *netif )
 {
-	const uint16_t sr = eth_read_phy_register(ETH_DRV_PHY_ADDR, PHYMICSR);
-	if( sr & MICSR_LINK_INT )
+	const int ls = phy->read_status(addr);
+	if( ls & phy_stat_autoneg_compl )
 	{
-		const uint16_t bmsr = eth_read_phy_register( ETH_DRV_PHY_ADDR,  PHYBMSR  );
-		if(bmsr & BMSR_LINK_AUTONEG_COMPLETE )
-		{
-			eth_cr_set_speed_mode( (bmsr&BMSR_100M_FULL)||(bmsr&BMSR_100M_HALF),
-					(bmsr&BMSR_10M_FULL)||(bmsr&BMSR_100M_FULL) );
-			tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_up, netif, 0 );
-		}
-		else
-		{
-			tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_down, netif, 0 );
-		}
+		eth_cr_set_speed_mode( (ls&phy_stat_100m_full)||(ls&phy_stat_100m_half),
+				(ls&phy_stat_10m_full)||(ls&phy_stat_100m_full) );
+		tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_up, netif, 0 );
+	}
+	else
+	{
+		tcpip_callback_with_block( (tcpip_callback_fn)netif_set_link_down, netif, 0 );
 	}
 }
 //
@@ -787,7 +777,7 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 #if PHY_INT_USE_INTERRUPT
 			if( getBit_BB(&ethif_events, ETHIF_EVENT_PHY_BIT) )
 			{
-				check_link_status( netif );
+				check_link_status( ETH_DRV_PHY_ADDR, netif );
 			}
 #endif
 			//If TX int
@@ -813,7 +803,7 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 #if !PHY_INT_USE_INTERRUPT
 		if( link_last_call_time - isix_get_jiffies() > LINK_CHECK_INTERVAL )
 		{
-			check_link_status( netif );
+			check_link_status( ETH_DRV_PHY_ADDR, netif );
 			link_last_call_time = isix_get_jiffies();
 		}
 #endif
@@ -831,7 +821,9 @@ static void  __attribute__((__noreturn__)) netif_task( void *ifc )
 static int low_level_init(struct netif *netif)
 {
 
-  //
+  if( !phy ) {
+	  return ERR_IF;
+  }
   dma_tx_idx = 0;
   for (int i = 0; i < ETH_TXBUFNB; ++i)
   {
@@ -867,7 +859,8 @@ static int low_level_init(struct netif *netif)
   exti_init( PHY_INT_EXTI_LINENUM(PHY_INT_EXTI_NUM), EXTI_Mode_Interrupt, EXTI_Trigger_Falling, true );
   exti_clear_it_pending_bit( PHY_INT_EXTI_LINENUM(PHY_INT_EXTI_NUM) );
   nvic_irq_enable( PHY_INT_EXTI_LINE_IRQ_N, true );
-  eth_read_phy_register( ETH_DRV_PHY_ADDR, PHYMICSR );
+  //eth_read_phy_register( ETH_DRV_PHY_ADDR, PHYMICSR );
+  phy->read_status( ETH_DRV_PHY_ADDR );
 #endif
   /* Create task and sem */
   enum { C_netif_task_stack_size = 384 };
@@ -883,11 +876,11 @@ static int low_level_init(struct netif *netif)
 	  return ERR_MEM;
   }
   /* Enable Auto-Negotiation */
-  if(eth_write_phy_register(ETH_DRV_PHY_ADDR, PHY_BCR, PHY_AutoNegotiation) != ERR_OK)
+  if(phy->config_speed(ETH_DRV_PHY_ADDR, phy_link_auto ) != ERR_OK)
   {
-  	  /* Return ERROR in case of write timeout */
-  	  isix_task_kill(netif_task_id);
-  	  isix_sem_destroy(netif_sem);
+	  /* Return ERROR in case of write timeout */
+	  isix_task_kill(netif_task_id);
+	  isix_sem_destroy(netif_sem);
 	  return ERR_IF;
   }
   return ERR_OK;
@@ -1132,6 +1125,9 @@ err_t stm32_emac_if_init_callback(struct netif *netif)
   */
 static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
 {
+	if( !phy ) {
+		return ERR_IF;
+	}
   //Enable eth stuff
   _ethernetif_clock_setup_arch_( true );
 
@@ -1151,6 +1147,9 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
   /* Wait for software reset */
   while (eth_get_software_reset_status() ) {
 	isix_wait_ms(10);
+  }
+  if( phy->probe( phy_addr, phy_link_auto ) ) {
+	  return ERR_IF;
   }
 
   /* Configure Ethernet */
@@ -1189,35 +1188,8 @@ static int ethernet_init(uint32_t hclk, uint8_t phy_addr)
 
   eth_init_7_dma_bmr( ETH_AddressAlignedBeats_Enable, ETH_FixedBurst_Enable, ETH_RxDMABurstLength_32Beat,
 		  ETH_TxDMABurstLength_32Beat, 0, ETH_DMAArbitration_RoundRobin_RxTx_2_1 );
-
-
-  /* konfiguracja diod świecących na ZL3ETH
-	 zielona - link status: on = good link, off = no link, blink = activity
-	pomarańczowa - speed: on = 100 Mb/s, off = 10 Mb/s
-   */
-  {
-	  enum { LED_CNFG0 = 0x0020 };
-	  enum { LED_CNFG1 = 0x0040 };
-	  enum { DP83848_ID = 0x080017 };
-	  uint32_t phy_idcode = (((uint32_t)eth_read_phy_register( phy_addr, PHYIDR1)<<16) |
-			  eth_read_phy_register( phy_addr, PHYIDR2)) >> 10;
-	  if( phy_idcode == DP83848_ID )
-	  {
-		  uint16_t phyreg = eth_read_phy_register( phy_addr, PHYCR);
-		  phyreg &= ~(LED_CNFG0 | LED_CNFG1);
-		  eth_write_phy_register( phy_addr, PHYCR, phyreg);
-	  }
-  }
-  /* Configure PHY for link status interrupt gen */
-  {
-	  if( eth_write_phy_register( phy_addr, PHYMICR,  MICR_INTEN | MICR_INTOE ) )
-	  {
-		  return ERR_IF;
-	  }
-	  if( eth_write_phy_register( phy_addr, PHYMICSR,  MICSR_LINK_INT_EN ) )
-	  {
-	  	 return ERR_IF;
-	  }
+  if( phy->config_intr( phy_addr, true ) ) {
+	  return ERR_IF;
   }
   return ERR_OK;
 }

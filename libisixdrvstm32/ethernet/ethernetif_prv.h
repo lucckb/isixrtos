@@ -20,6 +20,7 @@
 #include "config.h"
 #endif
 #include <stdbool.h>
+#include <stdint.h>
 
 
 #pragma once
@@ -61,12 +62,22 @@
 #endif
 //SYSTEM HCLK for PHY emac speed calculation
 #ifndef ETH_DRV_HCLK_HZ
-#define ETH_DRV_HCLK_HZ CONFIG_HCLK_HZ
+#	ifdef CONFIG_HCLK_HZ
+#		define ETH_DRV_HCLK_HZ CONFIG_HCLK_HZ
+#	else
+#		define ETH_DRV_HCLK_HZ 72000000
+#	endif
 #endif
-//PHY Address 1 for DP83848
 #ifndef ETH_DRV_PHY_ADDR
-#define ETH_DRV_PHY_ADDR 1
+#error ETH_DRV_PHY_ADDR is not defined
 #endif
+
+#ifndef ETH_PHY_DRIVER_NAME
+#error ETH_PHY_DRIVER_NAME is not defined
+#endif
+
+
+
 
 //
 //Macros
@@ -78,11 +89,24 @@
 #define PHY_INT_EXTI_PIN_SOURCE(x)   PHY_INT_EXTI_CAT(GPIO_PinSource, x  )
 
 
-
+/**  
+ * Platform specific ops
+ */
 void _ethernetif_deinit_arch_(void);
 void _ethernetif_gpio_mii_init_arch_(void);
 void _ethernetif_gpio_rmii_init_arch_(void);
 void _ethernetif_clock_setup_arch_(bool enable);
 void _ethernetif_dma_setup_arch_(void);
+
+
+/** Phy specifics ops */
+int _ethernetif_read_phy_register_(uint16_t phy_address, uint16_t phy_reg );
+int _ethernetif_write_phy_register_(uint16_t phy_addr, uint16_t phy_reg, uint16_t phy_value);
+
+
+
+#define define_phy_driver( driver_name )  \
+	extern const struct phy_device driver_name  ; \
+	static const struct phy_device * const  phy = & driver_name
 
 //
