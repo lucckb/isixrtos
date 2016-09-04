@@ -337,7 +337,9 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 	}
 	afio_config( dcast(m_i2c), is_alt_i2c(_i2c) );
 	gpio_initialize( is_alt_i2c(_i2c) );
-	//FIXME: Previous GPIO
+	//Some I2C ip cores raise errors during GPIO config so make the software reset
+	i2c_software_reset_cmd( dcast(m_i2c), true ); dmb();
+	i2c_software_reset_cmd( dcast(m_i2c), false ); dmb();
 	i2c_init( dcast(m_i2c), clk_speed, I2C_Mode_I2C, I2C_DutyCycle_2, 1,
 			  I2C_Ack_Enable, I2C_AcknowledgedAddress_7bit, pclk1 );
 	i2c_acknowledge_config( dcast(m_i2c), true );
@@ -386,7 +388,6 @@ void i2c_bus::gpio_initialize( bool alt )
 		//! Not supported yet
 		terminate();
 	}
-	dbg_debug("DBG initialize in mode i2c1 %i i2c2 %i alt %i", m_i2c==I2C1, m_i2c==I2C2, alt );
 }
 
 /** Destructor */
