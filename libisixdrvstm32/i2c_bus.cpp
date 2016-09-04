@@ -376,14 +376,14 @@ void i2c_bus::gpio_initialize( bool alt )
 			dbprintf("BUSY?");
 		}
 		gpio_abstract_config_ext( I2C1_PORT, alt?I2C1ALT_PINS:I2C1_PINS,
-			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
+			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_LOW );
 	} else if( m_i2c == I2C2 ) {
 		if( !gpio_get( alt?I2C2ALT_PORT:I2C2_PORT, alt?I2C2ALT_SDA_PIN_:I2C2_SDA_PIN_) ||
 				!gpio_get( alt?I2C2ALT_PORT:I2C2_PORT, alt?I2C2ALT_SCL_PIN_:I2C2_SCL_PIN_ ) ) {
 			dbprintf("BUSY?");
 		}
 		gpio_abstract_config_ext( alt?I2C2ALT_PORT:I2C2_PORT, alt?I2C2ALT_PINS:I2C2_PINS,
-			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
+			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_LOW );
 	} else {
 		//! Not supported yet
 		terminate();
