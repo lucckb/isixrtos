@@ -57,12 +57,14 @@ namespace {
 			case i2c_bus::busid::i2c1: return I2C1;
 			case i2c_bus::busid::i2c1_alt: return I2C1;
 			case i2c_bus::busid::i2c2: return I2C2;
+			case i2c_bus::busid::i2c2_alt: return I2C2;
 			default: return nullptr;
 		}
 	}
 	//Is GPIO alternate mode
 	inline auto is_alt_i2c( i2c_bus::busid id ) {
-		return id==i2c_bus::busid::i2c1_alt;
+		return id==i2c_bus::busid::i2c1_alt ||
+			   id==i2c_bus::busid::i2c2_alt;
 	}
 
 	inline void terminate() {
@@ -90,9 +92,20 @@ namespace {
 	static constexpr auto I2C2_SDA_PIN = 1U<<I2C2_SDA_PIN_;
 	static constexpr auto I2C2_SCL_PIN = 1U<<I2C2_SCL_PIN_;
 
+
+	static const auto I2C2ALT_PORT = GPIOF;
+	static constexpr auto I2C2ALT_SDA_PIN_ = 0;
+	static constexpr auto I2C2ALT_SCL_PIN_ = 1;
+	static constexpr auto I2C2ALT_SDA_PIN = 1U<<I2C2ALT_SDA_PIN_;
+	static constexpr auto I2C2ALT_SCL_PIN = 1U<<I2C2ALT_SCL_PIN_;
+
+
 	static constexpr auto I2C1_PINS = I2C1_SDA_PIN|I2C1_SCL_PIN;
 	static constexpr auto I2C1ALT_PINS = I2C1ALT_SDA_PIN|I2C1ALT_SCL_PIN;
 	static constexpr auto I2C2_PINS = I2C2_SDA_PIN|I2C2_SCL_PIN;
+	static constexpr auto I2C2ALT_PINS = I2C2ALT_SDA_PIN|I2C2ALT_SCL_PIN;
+
+
 }
 /** DMA Function depends on device STM32F1 and F2/F4 have incompatibile DMA controller */
 #ifdef STM32MCU_MAJOR_TYPE_F1
@@ -160,7 +173,8 @@ namespace {
 		}
 	}
 }
-#else
+#else /* !STM32MCU_MAJOR_TYPE_F1 */
+
 namespace {
 	enum class dma_dir : bool {
 		rx,
@@ -241,7 +255,7 @@ namespace {
 	{
 
 		if( i2c == I2C1 ) {
-			if( ! alt ) {
+			if( !alt ) {
 				gpio_pin_AF_config( I2C1_PORT, I2C1_SDA_PIN_, GPIO_AF_I2C1 );
 				gpio_pin_AF_config( I2C1_PORT, I2C1_SCL_PIN_, GPIO_AF_I2C1 );
 			}
@@ -250,8 +264,13 @@ namespace {
 				gpio_pin_AF_config( I2C1_PORT, I2C1ALT_SCL_PIN_, GPIO_AF_I2C1 );
 			}
 		} else if( i2c == I2C2 ) {
-			gpio_pin_AF_config( I2C2_PORT, I2C2_SDA_PIN_, GPIO_AF_I2C2 );
-			gpio_pin_AF_config( I2C2_PORT, I2C2_SCL_PIN_, GPIO_AF_I2C2 );
+			if( !alt ) {
+				gpio_pin_AF_config( I2C2_PORT, I2C2_SDA_PIN_, GPIO_AF_I2C2 );
+				gpio_pin_AF_config( I2C2_PORT, I2C2_SCL_PIN_, GPIO_AF_I2C2 );
+			} else {
+				gpio_pin_AF_config( I2C2ALT_PORT, I2C2ALT_SDA_PIN_, GPIO_AF_I2C2 );
+				gpio_pin_AF_config( I2C2ALT_PORT, I2C2ALT_SCL_PIN_, GPIO_AF_I2C2 );
+			}
 
 		}
 	}
@@ -261,8 +280,8 @@ namespace {
 			nvic_set_priority( DMA1_Stream0_IRQn, prio, sub );
 			nvic_irq_enable( DMA1_Stream0_IRQn, true );
 		} else if( i2c == I2C2 ) {
-			nvic_set_priority( DMA1_Stream7_IRQn, prio, sub );
-			nvic_irq_enable( DMA1_Stream7_IRQn, true );
+			nvic_set_priority( DMA1_Stream2_IRQn, prio, sub );
+			nvic_irq_enable( DMA1_Stream2_IRQn, true );
 		}
 	}
 }
@@ -307,7 +326,8 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 #endif
 	} else if ( m_i2c == I2C2 ) {
 		rcc_apb1_periph_clock_cmd( RCC_APB1Periph_I2C2, true );
-		gpio_clock_enable( I2C2_PORT, true );
+		if( !is_alt_i2c(_i2c))  gpio_clock_enable( I2C2_PORT, true );
+		else gpio_clock_enable( I2C2ALT_PORT, true );
 		if(obj_i2c2) {
 			terminate();
 		}
@@ -356,15 +376,17 @@ void i2c_bus::gpio_initialize( bool alt )
 		gpio_abstract_config_ext( I2C1_PORT, alt?I2C1ALT_PINS:I2C1_PINS,
 			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
 	} else if( m_i2c == I2C2 ) {
-		if( !gpio_get( I2C2_PORT, I2C2_SDA_PIN_) ||  !gpio_get( I2C2_PORT, I2C2_SCL_PIN_ ) ) {
+		if( !gpio_get( alt?I2C2ALT_PORT:I2C2_PORT, alt?I2C2ALT_SDA_PIN_:I2C2_SDA_PIN_) ||
+				!gpio_get( alt?I2C2ALT_PORT:I2C2_PORT, alt?I2C2ALT_SCL_PIN_:I2C2_SCL_PIN_ ) ) {
 			dbprintf("BUSY?");
 		}
-		gpio_abstract_config_ext( I2C2_PORT, I2C2_PINS,
+		gpio_abstract_config_ext( alt?I2C2ALT_PORT:I2C2_PORT, alt?I2C2ALT_PINS:I2C2_PINS,
 			AGPIO_MODE_ALTERNATE_OD_PULLUP, AGPIO_SPEED_HALF );
 	} else {
 		//! Not supported yet
 		terminate();
 	}
+	dbg_debug("DBG initialize in mode i2c1 %i i2c2 %i alt %i", m_i2c==I2C1, m_i2c==I2C2, alt );
 }
 
 /** Destructor */
@@ -638,9 +660,9 @@ extern "C" {
 #endif
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2DMARX
-	__attribute__((interrupt)) void dma1_stream7_isr_vector()
+	__attribute__((interrupt)) void dma1_stream2_isr_vector()
 	{
-		dma_clear_flag( DMA1_Stream7, DMA_FLAG_TCIF7|DMA_FLAG_TEIF7 );
+		dma_clear_flag( DMA1_Stream2, DMA_FLAG_TCIF2|DMA_FLAG_TEIF2 );
 		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
 	}
 #endif
