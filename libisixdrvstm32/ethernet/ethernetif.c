@@ -65,7 +65,6 @@ enum ethif_events_e
 };
 
 
-
 //
 /**
   * @brief  Write to a PHY register
