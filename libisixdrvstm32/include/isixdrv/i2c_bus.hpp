@@ -26,7 +26,7 @@
 #define CONFIG_ISIXDRV_I2C_2 2
 /**
  * If channel is defined only one ch is enabled
- * #define CONFIG_ISIXDRV_I2C_USE_FIXED_I2C 1 
+ * #define CONFIG_ISIXDRV_I2C_USE_FIXED_I2C 1
  * Value 1 , 2 , 3  are allowed if not defined all is enabled
  */
 /** CAUTION On some F20x devices exists bug in I2C hardware !! 
@@ -128,7 +128,7 @@ public:
 	int transfer(unsigned addr, const void* wbuffer,
 			size_t wsize, void* rbuffer, size_t rsize) override
 	{
-		//STM32F1 Medium density Errata 
+		//STM32F1 Medium density Errata
 		//Some software events must be managed before the current byte is being transferred
 		//Workarround1 (USE DMA but number of bytest must be > 1)
 #		if defined(STM32MCU_MAJOR_TYPE_F1)
