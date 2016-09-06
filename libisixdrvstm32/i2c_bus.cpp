@@ -38,9 +38,9 @@ namespace drv {
 #ifdef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 namespace {
 #if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
-	static const void* m_i2c = I2C1;
+	static void* const m_i2c = I2C1;
 #elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2
-	static const void* m_i2c = I2C2;
+	static void* const m_i2c = I2C2;
 #endif
 }
 #endif
