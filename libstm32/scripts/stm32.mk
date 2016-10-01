@@ -11,25 +11,36 @@ endif
 #Old MCU variant now is defined as minor major CPU code
 MCU_VARIANT ?= $(MCU_MAJOR_TYPE)$(MCU_MINOR_TYPE)
 
-#Skrypt linkera
+#Linker scripts config
 ifeq ($(USE_SBL_BOOTLOADER),y)
 SCRIPTLINK = stm32-$(MCU_VARIANT)-sbl
 else
 SCRIPTLINK = stm32-$(MCU_VARIANT)
 endif
 
+#Check for ccache
+CCACHE_VER := $(shell ccache --version 2> /dev/null )
+
 #CROSS COMPILE
 CROSS_COMPILE ?= arm-none-eabi-
+
+ifdef CCACHE_VER 
+CROSS_COMPILE_0 = ccache $(CROSS_COMPILE)
+else
+CROSS_COMPILE_0 = $(CROSS_COMPILE)
+endif
+
+
 # Cross compile stuff
-CC_V     	:= $(CROSS_COMPILE)gcc
-CXX_V	  	:= $(CROSS_COMPILE)g++
-AR_V      	:= $(CROSS_COMPILE)ar
-CP_V      	:= $(CROSS_COMPILE)objcopy
-OBJDUMP_V 	:= $(CROSS_COMPILE)objdump 
-SIZE_V 	  	:= $(CROSS_COMPILE)size
+CC_V     	:= $(CROSS_COMPILE_0)gcc
+CXX_V	  	:= $(CROSS_COMPILE_0)g++
+AR_V      	:= $(CROSS_COMPILE_0)ar
+CP_V      	:= $(CROSS_COMPILE_0)objcopy
+OBJDUMP_V 	:= $(CROSS_COMPILE_0)objdump 
+SIZE_V 	  	:= $(CROSS_COMPILE_0)size
 JTAGPROG_V  := openocd
 RM_V		:= rm
-LD_V		:= $(CROSS_COMPILE)g++
+LD_V		:= $(CROSS_COMPILE_0)g++
  
 #Verbose stuff BEGIN
 V?=0
