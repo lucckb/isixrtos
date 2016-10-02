@@ -5,13 +5,11 @@
  *      Author: lucck
  */
 
-#ifndef DSP_ATAN2_INT_HPP_
-#define DSP_ATAN2_INT_HPP_
+#pragma once
 
-/* ------------------------------------------------------------------------- */
 namespace dsp {
 namespace integer {
-/* ------------------------------------------------------------------------- */
+
 //Template for calculate integer version of the ATAN2
 template<typename T, int SCALE>
 T atan2( T y , T x )
@@ -38,7 +36,4 @@ T atan2( T y , T x )
    return (y < 0)?(-angle):(angle);
 }
 
-/* ------------------------------------------------------------------------- */
 }}
-/* ------------------------------------------------------------------------- */
-#endif /* ATAN2_INT_HPP_ */

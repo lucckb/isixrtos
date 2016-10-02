@@ -5,13 +5,11 @@
  *      Author: lucck
  */
 
-#ifndef DSP_LOG2_INT_HPP_
-#define DSP_LOG2_INT_HPP_
+#pragma once
 
-/* ------------------------------------------------------------------------- */
 namespace dsp {
 namespace integer {
-/* ------------------------------------------------------------------------- */
+
 /* Taylor series log in range 1-2 */
     template <typename N, unsigned SC>
     inline unsigned log_1_2( N x )
@@ -53,8 +51,7 @@ namespace integer {
 	   return log2_1_n<N,SC>( x * N(SC) )  - LN2SC;
 	 }
 
-/* ------------------------------------------------------------------------- */
-}}
-/* ------------------------------------------------------------------------- */
 
-#endif /* LOG2_INT_HPP_ */
+}}
+
+

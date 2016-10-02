@@ -5,27 +5,25 @@
  *      Author: lucck
  */
 
-#ifndef DSP_SQRT_INT_HPP_
-#define DSP_SQRT_INT_HPP_
+#pragma once
 
-/* ------------------------------------------------------------------------- */
+
 namespace dsp {
 namespace integer {
-/* ------------------------------------------------------------------------- */
-//Integer SQRT
-unsigned int inline sqrt(unsigned int n)
-{
-	unsigned int c = 0x8000;
-	unsigned int g = 0x8000;
-	for(;;)
+
+	//Integer SQRT
+	unsigned int inline sqrt(unsigned int n)
 	{
-		if(g*g > n) g ^= c;
-		c >>= 1;
-		if(c == 0) return g;
-		g |= c;
+		unsigned int c = 0x8000;
+		unsigned int g = 0x8000;
+		for(;;)
+		{
+			if(g*g > n) g ^= c;
+			c >>= 1;
+			if(c == 0) return g;
+			g |= c;
+		}
 	}
-}
-/* ------------------------------------------------------------------------- */
+
 }}
-/* ------------------------------------------------------------------------- */
-#endif /* SQRT_INT_HPP_ */
+
