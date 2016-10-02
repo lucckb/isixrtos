@@ -82,13 +82,14 @@ namespace gsm_modem {
 	};
 
 	//! Registration status code
-	 enum class reg_status {
+	enum class reg_status {
 		not_registered_not_active = 0,
 		registered_home = 1,
 		not_registered_searching = 2,
-		unknown = 3,
-		registered_roaming = 4
-	};
+		denied = 3,
+		unknown = 4,
+		registered_roaming = 5
+    };
 	struct sms_text_params {
 		unsigned char first_octet;
 		unsigned char validity_period;

@@ -51,14 +51,14 @@ private:
 	}
 private:
 	//Wait for card semaphore
-	immc_det_pin&				 	m_det_pin;
+	immc_det_pin&					m_det_pin;
 	mmc_host&						m_host;
 	mmc_card*						m_card;
-	isix_vtimer* 					m_det_timer;
-	volatile uint8_t 				m_event;
-	volatile bool 					m_p_card_inserted;
-	volatile bool 					m_init_req;
-	isix::semaphore 				m_card_sem;
+	isix_vtimer*					m_det_timer;
+	volatile uint8_t				m_event;
+	volatile bool					m_p_card_inserted;
+	volatile bool					m_init_req;
+	isix::semaphore					m_card_sem;
 	callback_t						m_callback;
 };
 

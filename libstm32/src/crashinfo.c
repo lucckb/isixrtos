@@ -33,18 +33,6 @@
 #define HSFR_BFORCED (1U<<30)
 #define AR_VALID (1U<<7)
 
-//! Set position on stack
-enum stk_regs {
-	stk_r0,
-	stk_r1,
-	stk_r2,
-	stk_r3,
-	stk_r12,
-	stk_lr,
-	stk_pc,
-	stk_psr,
-	stk_data	//!User data on stack
-};
 
 //! Register descrition
 struct reg_desc {

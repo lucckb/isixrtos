@@ -1,16 +1,16 @@
-/* ---------------------------------------------------------------------------- */
+
 /*
  * usart_simple.c
  *
  *  Created on: 2009-10-13
  *      Author: lucck
  */
-/* ---------------------------------------------------------------------------- */
+
 #include <stm32lib.h>
 #include "stm32system.h"
 #include "usart_simple.h"
 
-/* ---------------------------------------------------------------------------- */
+
 
 #define USART1_TX_BIT 9
 #define USART1_RX_BIT 10
@@ -37,45 +37,52 @@
 #define USART_ORE (1<<3)
 
 
-/* ---------------------------------------------------------------------------- */
+
 
 static USART_TypeDef *usart;
 
-/* ---------------------------------------------------------------------------- */
-int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
+
+int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 		unsigned long pclk1_hz, unsigned long pclk2_hz)
 {
 	if(usart_==USART1)
 	{
 		RCC->APB2ENR |= RCC_APB2Periph_USART1;
-		if(!alternate)
+		if(!(flags & USARTSIMPLE_FL_ALTERNATE))
 		{
 			gpio_clock_enable( GPIOA, true );
 			//Configure GPIO port TxD and RxD
 			gpio_abstract_config(GPIOA,USART1_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
-			gpio_abstract_config(GPIOA,USART1_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
+			if(!(flags & USARTSIMPLE_FL_NORX ) )
+				gpio_abstract_config(GPIOA,USART1_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
 #if defined(STM32MCU_MAJOR_TYPE_F2) || 	defined(STM32MCU_MAJOR_TYPE_F4)
 			gpio_pin_AF_config(GPIOA, USART1_TX_BIT , GPIO_AF_USART1 );
-			gpio_pin_AF_config(GPIOA, USART1_RX_BIT , GPIO_AF_USART1 );
+			if(!(flags & USARTSIMPLE_FL_NORX ) )
+				gpio_pin_AF_config(GPIOA, USART1_RX_BIT , GPIO_AF_USART1 );
 #endif
 		}
 		else
 		{
 			gpio_clock_enable( GPIOB, true );
 			//Configure GPIO port TxD and RxD
-			gpio_abstract_config(GPIOB,USART1_ALT_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
-			gpio_abstract_config(GPIOB,USART1_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
+			gpio_abstract_config(GPIOB,USART1_ALT_TX_BIT, AGPIO_MODE_ALTERNATE_PP,AGPIO_SPEED_HALF );
+
+			if(!(flags & USARTSIMPLE_FL_NORX ) )
+				gpio_abstract_config(GPIOB,USART1_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
 #if defined(STM32MCU_MAJOR_TYPE_F2) || 	defined(STM32MCU_MAJOR_TYPE_F4)
 			gpio_pin_AF_config(GPIOB, USART1_ALT_TX_BIT , GPIO_AF_USART1 );
-			gpio_pin_AF_config(GPIOB, USART1_ALT_RX_BIT , GPIO_AF_USART1 );
+
+			if(!(flags & USARTSIMPLE_FL_NORX ) )
+				gpio_pin_AF_config(GPIOB, USART1_ALT_RX_BIT , GPIO_AF_USART1 );
 #else
-			return USARTSIMPLE_NOT_INIT;
+			RCC->APB2ENR |= RCC_APB2Periph_AFIO;
+			AFIO->MAPR |= AFIO_MAPR_USART1_REMAP;
 #endif
 		}
 	}
 	else if(usart_==USART2)
 	{
-		if(!alternate)
+		if(!(flags & USARTSIMPLE_FL_ALTERNATE))
 		{
 			gpio_clock_enable( GPIOA, true );
 			RCC->APB1ENR |= RCC_APB1Periph_USART2;
@@ -91,11 +98,13 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
 #endif
 			RCC->APB1ENR |= RCC_APB1Periph_USART2;
 			gpio_abstract_config(GPIOD,USART2_ALT_TX_BIT,AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+			if(!(flags & USARTSIMPLE_FL_NORX ) )
 			gpio_abstract_config(GPIOD,USART2_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0);
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			AFIO->MAPR |= AFIO_MAPR_USART2_REMAP;
 #elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 			gpio_pin_AF_config( GPIOD, USART2_ALT_TX_BIT, 7 );
+			if(!(flags & USARTSIMPLE_FL_NORX ) )
 			gpio_pin_AF_config( GPIOD, USART2_ALT_RX_BIT, 7 );
 #endif
 		}
@@ -126,7 +135,7 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, bool alternate,
     return USARTSIMPLE_INIT_OK;
 }
 
-/* ---------------------------------------------------------------------------- */
+
 //USART putchar
 int usartsimple_putc(int ch, void* p)
 {
@@ -136,7 +145,7 @@ int usartsimple_putc(int ch, void* p)
     usart->DR = ch & 0xff;
     return ch;
 }
-/* ---------------------------------------------------------------------------- */
+
 //Usart get char
 int usartsimple_getc(void)
 {
@@ -146,19 +155,19 @@ int usartsimple_getc(void)
 	else
 		return USARTSIMPLE_EOF;
 }
-/* ---------------------------------------------------------------------------- */
+
 //Check if char is available
 int usartsimple_isc(void)
 {
 	if(!usart) return USARTSIMPLE_NOT_INIT;
 	return usart->SR & USART_RXNE;
 }
-/* ---------------------------------------------------------------------------- */
+
 void usartsimple_puts(const char * str)
 {
 	while(*str)
 		usartsimple_putc(*str++,0);
 }
-/* ---------------------------------------------------------------------------- */
+
 
 

@@ -73,7 +73,7 @@ namespace algo {
 			if (size == 0) {
 				return 0; // No entries => 0 average
 			}
-			return total / T(size); // Cast to T for floating point arithmetic
+			return total / A(size); // Cast to T for floating point arithmetic
 		}
 		
 		//! Clear
@@ -106,7 +106,7 @@ namespace algo {
 		T * head; // Points at the oldest element we've stored.
 		T * tail; // Points at the newest element we've stored.
 	
-		T total; // Cache the total so we don't sum everything each time.
+		A total; // Cache the total so we don't sum everything each time.
 	
 		// Bumps the given pointer up by one.
 		// Wraps to the start of the array if needed.

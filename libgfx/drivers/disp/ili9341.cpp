@@ -209,7 +209,7 @@ void ili9341::rotate( rotation_t rot )
 /* ------------------------------------------------------------------ */
 void ili9341::reset()
 {
-	m_bus.set_ctlbits( RST_BIT_CMD, true );
+	m_bus.set_ctlbits( RST_BIT_CMD, false );
 	m_bus.delay( 10 );
 	m_bus.set_ctlbits( RST_BIT_CMD, true );
 	m_bus.delay( 150 );

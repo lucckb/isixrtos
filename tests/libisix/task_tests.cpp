@@ -259,5 +259,24 @@ void task_tests::thread_test()
 }
 
 
+namespace {
+	bool fin2 = false;
+	void thread2_func() 
+	{
+		fin2 = false;
+		for( int i=0;i<5;++i ) {
+			isix::wait_ms( 100 );
+		}
+		fin2 = true;
+	}
+}
+
+void task_tests::thread_test2() {
+	auto thr1 = isix::thread_create_and_run( 1024, 3, 0, thread2_func );
+	isix_wait_ms( 900 );
+	QUNIT_IS_TRUE( fin2 );
+}
+
+
 }	// Namespace test end
 

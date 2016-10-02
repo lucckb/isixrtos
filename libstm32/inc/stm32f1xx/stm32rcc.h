@@ -982,12 +982,12 @@ static inline void rcc_rtc_clk_config(uint32_t RCC_RTCCLKSource)
   * @param  NewState: new state of the RTC clock. This parameter can be: ENABLE or DISABLE.
   * @retval None
   */
-static inline void rcc_rtc_clk_cmd(FunctionalState NewState)
+static inline void rcc_rtc_clk_cmd(bool enable )
 {
 #ifdef __cplusplus
 	using namespace _internal::rcc;
 #endif
-  *(__IO uint32_t *) BDCR_RTCEN_BB = (uint32_t)NewState;
+  *(__IO uint32_t *) BDCR_RTCEN_BB = (uint32_t)enable;
 }
 /* ---------------------------------------------------------------------------- */
 /**
@@ -1299,13 +1299,11 @@ enum e_sysclk_mode
 	e_sysclk_hse_pll	//! hi speed external PLL
 };
 
-#ifndef __cplusplus
 #define PLL1_Bit_Shift 18ul
 #define PLL1_Bit_Mask 0xf
 #define PLL1_Mul_Offset  2ul
 #define PRE1Div_Mask 0x0F
 #define PRE1Div_Offset  1ul
-#endif
 
 /** Setup SYSCLK mode by unified way without required manual intervention
  * @param[in] mode System mode
@@ -1316,13 +1314,7 @@ enum e_sysclk_mode
  */
 static inline uint32_t rcc_pll1_sysclk_setup(enum e_sysclk_mode mode, uint32_t crystal, uint32_t frequency)
 {
-#ifdef __cplusplus
-static const unsigned PLL1_Bit_Shift = 18;
-static const unsigned PLL1_Bit_Mask = 0xf;
-static const unsigned PLL1_Mul_Offset = 2;
-static const unsigned PRE1Div_Mask = 0x0F;
-static const unsigned PRE1Div_Offset = 1;
-#endif
+
 	uint32_t best_frequency_core = 0;
 	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hse )
 		RCC->CR  |= RCC_CR_HSEON;
@@ -1332,7 +1324,8 @@ static const unsigned PRE1Div_Offset = 1;
 	if( mode == e_sysclk_hse_pll || mode == e_sysclk_hsi_pll )
 	{
 		uint32_t div, mul, vco_input_frequency, frequency_core;
-		uint32_t best_div = 0, best_mul = 0;
+		uint32_t best_div __attribute__((unused)) = 0;
+		uint32_t best_mul = 0;
 #if defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) || \
 	defined(STM32F10X_HD_VL) || defined(STM32F10X_CL)
 		for (div = 1; div <= 16; div++)			// PLL divider
@@ -1406,13 +1399,11 @@ static const unsigned PRE1Div_Offset = 1;
 	}
 	return best_frequency_core;
 }
-#ifndef __cplusplus
 #undef  PLL1_Bit_Shift
 #undef  PLL1_Bit_Mask
 #undef PLL1_Mul_Offset
 #undef PRE1Div_Mask
 #undef PRE1Div_Offset
-#endif
 
 
 /* ---------------------------------------------------------------------------- */
