@@ -22,22 +22,21 @@ namespace _internal
 		template<unsigned... Is>
 		struct gen_seq<0, Is...> : seq<Is...>{};
 
-	    
 		template <typename T, size_t S=17>
 	    class fft_sin_cos
 	    {
 	    public:
-    		constexpr std::complex<T> operator()( const size_t m )
-	    	{
+			constexpr std::complex<T> operator()( const size_t m ) const
+			{
 		        return sine_array[m];
 		    }
-    		std::complex<T> sine_array[S];
+			std::complex<T> sine_array[S];
 	    };
-		
+
 		template <typename T>
 		constexpr std::complex<T> get_mfft_tab(const size_t idx)
 		{
-		    return 
+		    return
 		    {
 				T(  std::cos( (4.0 * std::atan(1.0)) / double(1<<idx) )  ),
 			    T(  -std::sin( (4.0 * std::atan(1.0)) / double(1<<idx) ) )
