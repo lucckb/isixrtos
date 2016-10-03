@@ -27,9 +27,9 @@ namespace emeter {
 
 	template <std::size_t PHASES = 3,unsigned FS = 4000,std::size_t FFTSIZE=256>
 	//! Main energy meter class library
-	class energy_meter 
+	class energy_meter
 	{
-	
+
 	public:
 		energy_meter( energy_meter& ) = delete;
 		energy_meter& operator=( energy_meter& ) = delete;
@@ -52,7 +52,7 @@ namespace emeter {
 				static_assert( PHASE<PHASES, "Invalid I phase num" );
 				return m_energies[PHASE].sample_current_begin();
 		}
-		
+
 		//! Process thread should be called after calculation
 		int calculate() noexcept {
 			for( std::size_t ph=0; ph<PHASES; ++ph ) {
@@ -61,11 +61,11 @@ namespace emeter {
 			}
 			return 0;
 		}
-		
+
 		//! Get phase defined type
 		template<typename TAG>
 			typename TAG::value_type operator()
-			( const std::size_t phase, const TAG& p ) const noexcept 
+			( const std::size_t phase, const TAG& p ) const noexcept
 			{
 				return m_energies[phase]( p );
 			}

@@ -31,7 +31,7 @@ namespace detail {
 	struct freq { using value_type = measure_t; };
 
 	//! Non biling information
-	struct p_avg { using value_type = measure_t; }; 
+	struct p_avg { using value_type = measure_t; };
 	struct q_avg { using value_type = measure_t; };
 	struct s_avg { using value_type = measure_t; };
 

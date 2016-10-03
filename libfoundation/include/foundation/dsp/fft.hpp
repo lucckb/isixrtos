@@ -1,5 +1,4 @@
-#ifndef _FFT_H_
-#define _FFT_H_
+#pragma once
 
 #include <cstddef>
 #include <cmath>
@@ -298,4 +297,3 @@ void fft_real( std::complex<T> *xc, const T * const x, int m )
 
 }}
 
-#endif

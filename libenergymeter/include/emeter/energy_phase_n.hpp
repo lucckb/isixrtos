@@ -27,7 +27,7 @@ namespace emeter {
 	//! Calculate energy in the Nth phase
 	template <std::size_t FFTLEN>
 	class energy_phase_n : public detail::emeter_phase_impl
-	{	
+	{
 		enum { U_IDX, I_IDX };
 	protected:
 		static constexpr auto buflen = FFTLEN+FFTLEN/2;
@@ -42,19 +42,19 @@ namespace emeter {
 		energy_phase_n() {
 		}
 		// Get URMS
-		typename tags::detail::u_rms::value_type 
+		typename tags::detail::u_rms::value_type
 			operator()( const tags::detail::u_rms& ) const noexcept
 		{
 			return m_u.load();
 		}
 		// Get IRMS
-		typename tags::detail::i_rms::value_type 
+		typename tags::detail::i_rms::value_type
 			operator()( const tags::detail::i_rms& ) const noexcept
 		{
 			return m_i.load();
 		}
 		//ADC sampling process current
-		sample_t* sample_current_begin() noexcept 
+		sample_t* sample_current_begin() noexcept
 		{
 			return sample_select_buf( I_IDX );
 		}
@@ -62,8 +62,8 @@ namespace emeter {
 		sample_t* sample_voltage_begin() noexcept {
 			return sample_select_buf( U_IDX );
 		}
-		// End current processing	
-		int sample_current_end() noexcept 
+		// End current processing
+		int sample_current_end() noexcept
 		{
 			const auto state = m_free[I_IDX].load();
 			if( state>>2 != 0b10 && state>>2 !=0b01 )
@@ -73,17 +73,17 @@ namespace emeter {
 			return e_ok;
 		}
 		// End voltage processing
-		int sample_voltage_end() noexcept 
+		int sample_voltage_end() noexcept
 		{
 			const auto state = m_free[U_IDX].load();
-			if( state>>2 != 0b10 && state>>2 !=0b01 ) 
+			if( state>>2 != 0b10 && state>>2 !=0b01 )
 				return e_buff;
 			m_rdy.fetch_or( ((state>>2) & 0b11)<<U_IDX*2 );
 			m_free[U_IDX].fetch_and( 0b0011 );
 			return e_ok;
 		}
 		//! Calculate after data get
-		int calculate( ) noexcept 
+		int calculate( ) noexcept
 		{
 			const auto rdy = m_rdy.load();
 			int err;
@@ -105,7 +105,7 @@ namespace emeter {
 		}
 	private:
 		/** Get sample buffer */
-		sample_t* sample_select_buf( size_t idx ) noexcept
+		sample_t* sample_select_buf( std::size_t idx ) noexcept
 		{
 			sample_t* ret {};
 			unsigned char oldval,newval;

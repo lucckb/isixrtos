@@ -21,7 +21,7 @@
 
 namespace emeter {
 namespace detail {
-	class emeter_phase_impl 
+	class emeter_phase_impl
 	{
 	public:
 		emeter_phase_impl( emeter_phase_impl& ) = delete;
