@@ -34,10 +34,10 @@ TEST( energy_phase_n, buffer_swap_simple )
 }
 
 /** Test multi loop  */
-TEST( energy_phase_n, buffer_swap_match ) 
+TEST( energy_phase_n, buffer_swap_match )
 {
 	emeter::energy_phase_n<256> o;
-	for( int i=0; i<64; ++i ) 
+	for( int i=0; i<64; ++i )
 	{
 		auto p1 = o.sample_voltage_begin();
 		ASSERT_TRUE( p1 );
@@ -51,7 +51,7 @@ TEST( energy_phase_n, buffer_swap_match )
 }
 
 /** Test multi loop  */
-TEST( energy_phase_n, buffer_swap_match2 ) 
+TEST( energy_phase_n, buffer_swap_match2 )
 {
 	emeter::energy_phase_n<256> o;
 	auto v1 = o.sample_voltage_begin();

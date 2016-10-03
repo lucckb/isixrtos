@@ -20,7 +20,7 @@
 #include <complex>
 #include <foundation/dsp/fft.hpp>
 
-	using ifft_t = short;
+	using ifft_t = int16_t;
 	using rfft_t  = double;
 
 namespace {

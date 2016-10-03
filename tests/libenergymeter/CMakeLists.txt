@@ -7,6 +7,13 @@ find_package(FFTW REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 include_directories(${FFTW3_INCLUDE_DIRS})
 
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
+
 file( GLOB emlib_SRC "../../libenergymeter/src/*.cpp" "../../libenergymeter/src/*.c" )
 file( GLOB unittest_SRC "*.cpp" "*.c" )
 file( GLOB foundation_SRC "../../libfoundation/util*.c*"

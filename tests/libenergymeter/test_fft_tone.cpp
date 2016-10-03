@@ -153,7 +153,7 @@ TEST( fft_test, real_bin_points_type1 )
 
 
 //Real signal type1
-TEST( fft_test, real_bin_points_type2 ) 
+TEST( fft_test, real_bin_points_type2 )
 {
 	min_max snr;
 	constexpr auto nfft = cfg::fft_max;
