@@ -63,8 +63,9 @@ namespace {
 			PRINTF("FFTW3vsFFT_REAL nfft=%d snr = %f\n",nfft,10*log10(sigpow/errpow) );
 		}
 
-	template <typename T> void do_test( std::size_t nfft, double maxerr )
+	template <typename T> void do_test( std::size_t nfft )
 	{
+		constexpr double maxerr = cfg::ans<T>::fft_res_cmp_err;
 		T input[nfft] {};
 		std::complex<T> output[nfft] {};
 		std::complex<double> dftout[nfft] {};
@@ -86,17 +87,18 @@ TEST( fft_test, real_fftw_fft_real )
 {
 	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 )
 	{
-		do_test<rfft_t>( len, cfg::fft_res_cmp_err );
+		do_test<rfft_t>( len );
 	}
 }
 
 
 //Real signal type1
-TEST( fft_test, integer_fftw_fftw_real ) 
+TEST( fft_test, integer_fftw_fftw_real )
 {
-	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 ) 
+	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 )
 	{
-		do_test<ifft_t>( len, cfg::fft_res_cmp_err_int );
+		do_test<ifft_t>( len );
 	}
 }
+
 

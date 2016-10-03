@@ -26,23 +26,39 @@
 namespace {
 //Configuration namespace
 namespace cfg {
-	//! Maximum Nth points used in tests
-	constexpr auto fft_max = 16384;
-	//!Floating point match error
-	constexpr auto max_shifted_resp = 1E-12;
-	//! Integer maximum error
-	constexpr auto max_shifted_resp_int = 3;
-	//! Symetry check max error for floating point
-	constexpr auto symetry_err = 0.01;
-	constexpr auto symetery_err_int = 256;
 
-	//! Signal to noise ratio compare
-	constexpr auto snr_err = 200.0;
-	constexpr auto snr_err_int = 42;
+		//! Maximum Nth points used in tests
+		constexpr auto fft_max = 16384;
 
-	//! Compare two ffts err
-	constexpr auto fft_res_cmp_err = 0.0001;
-	constexpr auto fft_res_cmp_err_int = 20;
+		template< typename T > struct ans {
+		};
+		//! Type IFFFT
+		template<> struct ans<ifft_t> {
+			//Maximum difference for shifted_impulse_response
+			static constexpr auto max_shifted_resp = 3;
+			//Tone test fft real symetry error check
+			static constexpr auto symetry_err = 256;
+			//! Signal to noise ratio tolerance
+			static constexpr auto snr_err = 42;
+			//! Compare two ffts err
+			static constexpr auto fft_res_cmp_err = 20;
+		};
+		//! Type RFFT
+		template<> struct ans<rfft_t> {
+			//Maximum difference for shifted_impulse_response
+			static constexpr auto max_shifted_resp = 1E-12;
+			//Tone test fft real symetry error check
+			static constexpr auto symetry_err = 0.01;
+			//! Signal to noise ratio tolerance
+			static constexpr auto snr_err = 200.0;
+			//! Compare two ffts err
+			static constexpr auto fft_res_cmp_err = 0.0001;
+		};
 
 }
+
+	namespace cnf {
+	}
+
 }
+

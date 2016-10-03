@@ -69,14 +69,14 @@ template <typename T> void shifted_impulse_response()
 			std::numeric_limits<T>::max()/len : 1.0;
 		for( const auto i : output ) {
 			const auto ii = std::complex<double>(i.real(), i.imag() );
-			ASSERT_NEAR( std::abs(ii), expected, cfg::max_shifted_resp_int );
+			ASSERT_NEAR( std::abs(ii), expected, cfg::ans<T>::max_shifted_resp );
 		}
 		//! fft real test
 		for( auto& i : output ) i=0;
 		dsp::refft::fft_real( output, reinput, m );
 		for( const auto i : output ) {
 			const auto ii = std::complex<double>(i.real(), i.imag() );
-			ASSERT_NEAR( std::abs(ii), expected, cfg::max_shifted_resp_int );
+			ASSERT_NEAR( std::abs(ii), expected, cfg::ans<T>::max_shifted_resp );
 		}
 	}
 }

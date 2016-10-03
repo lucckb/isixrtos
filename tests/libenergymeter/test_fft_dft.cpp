@@ -60,8 +60,9 @@ namespace {
 	}
 
 	template <typename T>
-	void do_test( size_t nfft, double maxerr )
+	void do_test( size_t nfft )
 	{
+		constexpr double maxerr = cfg::ans<T>::fft_res_cmp_err;
 		std::complex<T> input[nfft] {};
 		std::complex<T> output[nfft] {};
 		std::complex<double> dftout[nfft] {};
@@ -86,7 +87,7 @@ TEST( fft_test, real_fft_vs_dft )
 {
 	for( auto len=64LU; len<cfg::fft_max; len<<=1 )
 	{
-		do_test<rfft_t>( len, cfg::fft_res_cmp_err );
+		do_test<rfft_t>( len );
 	}
 }
 
@@ -95,6 +96,6 @@ TEST( fft_test, integer_fft_vs_dft )
 {
 	for( auto len=64LU; len<cfg::fft_max; len<<=1 )
 	{
-		do_test<ifft_t>( len, cfg::fft_res_cmp_err_int );
+		do_test<ifft_t>( len );
 	}
 }

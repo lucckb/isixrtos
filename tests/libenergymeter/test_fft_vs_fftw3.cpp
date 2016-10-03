@@ -64,8 +64,9 @@ namespace {
 			PRINTF("FFTW3vsFFT nfft=%d snr = %f\n",nfft,10*log10(sigpow/errpow) );
 		}
 
-	template <typename T> void do_test( std::size_t nfft, double maxerr )
+	template <typename T> void do_test( std::size_t nfft )
 	{
+		constexpr double maxerr = cfg::ans<T>::fft_res_cmp_err;
 		std::complex<T> input[nfft] {};
 		std::complex<T> output[nfft] {};
 		std::complex<double> dftout[nfft] {};
@@ -88,7 +89,7 @@ TEST( fft_test, real_fftw )
 {
 	for( auto len=32LU; len<cfg::fft_max+1; len<<=1 )
 	{
-		do_test<rfft_t>( len, cfg::fft_res_cmp_err );
+		do_test<rfft_t>( len );
 	}
 }
 
@@ -98,7 +99,7 @@ TEST( fft_test, integer_fftw )
 {
 	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 )
 	{
-		do_test<ifft_t>( len, cfg::fft_res_cmp_err_int);
+		do_test<ifft_t>( len );
 	}
 }
 
