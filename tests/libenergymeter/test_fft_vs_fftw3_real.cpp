@@ -71,7 +71,7 @@ namespace {
 		std::complex<double> dftout[nfft] {};
 		const int m  = std::log2( nfft );
 		for( auto& in : input ) {
-			in = (std::rand() % 65536) - 32768;
+			in = get_rand<T>();
 		}
 		dsp::refft::fft_real( output, input, m );
 		check_vs_dft( input, output, dftout, nfft );
@@ -83,7 +83,7 @@ namespace {
 
 }
 
-TEST( fft_test, real_fftw_fft_real )
+TEST( fft_test, double_fftw_fft_real )
 {
 	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 )
 	{
@@ -91,13 +91,28 @@ TEST( fft_test, real_fftw_fft_real )
 	}
 }
 
+TEST( fft_test, float_fftw_fft_real )
+{
+	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 )
+	{
+		do_test<ffft_t>( len );
+	}
+}
 
-//Real signal type1
-TEST( fft_test, integer_fftw_fftw_real )
+TEST( fft_test, int16_fftw_fftw_real )
 {
 	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 )
 	{
 		do_test<ifft_t>( len );
+	}
+}
+
+
+TEST( fft_test, int32_fftw_fftw_real )
+{
+	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 )
+	{
+		do_test<lfft_t>( len );
 	}
 }
 

@@ -24,18 +24,16 @@
 #include <algorithm>
 
 namespace {
-	//Maximum tone value
-	constexpr auto max_range = std::numeric_limits<ifft_t>::max();
 
 	//Generate dual tone at selected bins
 	template<typename T>
-		void gen_tone( T* buf, int bin1, int bin2, size_t nfft )
+		void gen_tone( T* buf, int bin1, int bin2, size_t nfft, double max )
 		{
 			const double f1 = bin1*2*M_PI/nfft;
 			const double f2 = bin2*2*M_PI/nfft;
 			for( size_t i=0; i<nfft; ++i ) {
-				buf[i] = (max_range>>1)*std::cos( f1*i )
-					+ (max_range>>1)*std::cos( f2*i );
+				buf[i] = (max/2)*std::cos( f1*i )
+					+ (max/2)*std::cos( f2*i );
 			}
 		}
 
@@ -79,6 +77,10 @@ namespace {
 			min = std::min( min, snr );
 			max = std::max( max, snr );
 		}
+		void clear() {
+			min = std::numeric_limits<double>::max();
+			max = std::numeric_limits<double>::min();
+		}
 		double min { std::numeric_limits<double>::max() };
 		double max { std::numeric_limits<double>::min() };
 	};
@@ -87,14 +89,16 @@ namespace {
 		void fft_tone_real_bin_iter( int bin1, int bin2, size_t len,
 				double err, double snr_err, min_max& snr )
 		{
+			const double max_range = std::is_integral<T>()?
+					std::numeric_limits<T>::max():1.0;
 			const int m  = std::log2( len );
 			std::complex<T> input[len] {};
 			T reinput[len] {};
 			std::complex<T> output[len] {};
 			std::complex<T> output2[len] {};
 			//Twp tones bean at  10 and 20
-			gen_tone( input, bin1, bin2, len );
-			gen_tone( reinput, bin1, bin2, len );
+			gen_tone( input, bin1, bin2, len, max_range );
+			gen_tone( reinput, bin1, bin2, len, max_range );
 			// fft complex test
 			dsp::refft::fft_complex( output, input, m );
 			// fft real test
@@ -118,14 +122,14 @@ namespace {
 			T reout[len/2+1] {};
 			fft_magnitude( reout, output, len );
 			//Check equality of magnitude
-			ASSERT_NEAR( reout[bin1], max_range>>1, err );
-			ASSERT_NEAR( reout[bin2], max_range>>1, err );
+			ASSERT_NEAR( reout[bin1], max_range/2, err );
+			ASSERT_NEAR( reout[bin2], max_range/2, err );
 
 			//Magnitude of real fft
 			T reout2[len/2+1] {};
 			fft_magnitude( reout2, output2, len );
-			ASSERT_NEAR( reout2[bin1], max_range>>1, err );
-			ASSERT_NEAR( reout2[bin2], max_range>>1, err );
+			ASSERT_NEAR( reout2[bin1], max_range/2, err );
+			ASSERT_NEAR( reout2[bin2], max_range/2, err );
 			//Double SNR should be greater than 200db
 			const auto snr_ = fft_snr( output, len, bin1, bin2 );
 			const auto snr2_ = fft_snr( output2, len, bin1, bin2 );
@@ -166,26 +170,30 @@ template <typename T> min_max _bin_points_type2()
 TEST( fft_test, real_bin_points_type1 )
 {
 	auto snr = _bin_points_type1<rfft_t>();
-	PRINTF("real#1 SNR min %f max %f\n", snr.min, snr.max  );
+	PRINTF("double#1 SNR min %f max %f\n", snr.min, snr.max  );
+	snr = _bin_points_type1<ffft_t>();
+	PRINTF("float#1 SNR min %f max %f\n", snr.min, snr.max  );
 }
-
-//Real signal type1
-TEST( fft_test, integer_bin_points_type1 )
-{
-	auto snr = _bin_points_type1<ifft_t>();
-	PRINTF("integer#1 SNR min %f max %f\n", snr.min, snr.max  );
-}
-
-
-
 
 //Real signal type1
 TEST( fft_test, real_bin_points_type2 )
 {
 	auto snr = _bin_points_type2<rfft_t>();
-	PRINTF("real#2 SNR min %f max %f\n", snr.min, snr.max  );
+	PRINTF("double#2 SNR min %f max %f\n", snr.min, snr.max  );
+	snr = _bin_points_type2<ffft_t>();
+	PRINTF("float#2 SNR min %f max %f\n", snr.min, snr.max  );
 }
 
+
+
+//Real signal type1
+TEST( fft_test, integer_bin_points_type1 )
+{
+	auto snr = _bin_points_type1<ifft_t>();
+	PRINTF("int16_t#1 SNR min %f max %f\n", snr.min, snr.max  );
+	snr = _bin_points_type1<lfft_t>();
+	PRINTF("int32_t#1 SNR min %f max %f\n", snr.min, snr.max  );
+}
 
 
 
@@ -194,4 +202,7 @@ TEST( fft_test, integer_bin_points_type2 )
 {
 	auto snr = _bin_points_type2<ifft_t>();
 	PRINTF("integer#2 SNR min %f max %f\n", snr.min, snr.max  );
+	snr = _bin_points_type2<lfft_t>();
+	PRINTF("int32_t#2 SNR min %f max %f\n", snr.min, snr.max  );
 }
+

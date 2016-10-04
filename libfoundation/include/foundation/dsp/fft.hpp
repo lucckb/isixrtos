@@ -14,6 +14,17 @@ namespace refft {
 
 namespace _internal
 {
+		template< typename T > struct limits {
+		};
+
+		template<> struct limits <int16_t> {
+			using acc_t = int32_t;
+		};
+
+		template<> struct limits <int32_t> {
+			using acc_t = int64_t;
+		};
+
 		//Generate SIN cos array in C99 lang
 		template<unsigned... Is> struct seq{};
 		template<unsigned N, unsigned... Is>
@@ -21,7 +32,7 @@ namespace _internal
 		template<unsigned... Is>
 		struct gen_seq<0, Is...> : seq<Is...>{};
 
-		template <typename T, size_t S=17>
+		template <typename T, size_t S=128>
 	    class fft_sin_cos
 	    {
 	    public:
@@ -83,34 +94,36 @@ namespace _internal
 			return result >> ( 32 - m );
 		}
 		#endif
+#if 1
 		//Constant class definition
-		template<typename T, typename K> class scaledV
+		template<typename T> class scaledV
 		{
-		public:
-			constexpr scaledV( double re, double im )
-			: m_v(
-					re * ( ( std::is_floating_point<T>::value)?(1.0):(std::numeric_limits<K>::max())),
-					im * ( ( std::is_floating_point<T>::value)?(1.0):(std::numeric_limits<K>::max()))
-				  )
-			{
-			}
-		constexpr operator std::complex<T>()
-		{
-			return m_v;
-		}
-		private:
-			std::complex<T> m_v;
+			public:
+				constexpr scaledV( double re, double im )
+					: m_v(
+							re * ( ( std::is_floating_point<T>::value)?(1.0):(std::numeric_limits<T>::max())),
+							im * ( ( std::is_floating_point<T>::value)?(1.0):(std::numeric_limits<T>::max()))
+						 )
+					{
+					}
+				constexpr operator std::complex<T>()
+				{
+					return m_v;
+				}
+			private:
+				std::complex<T> m_v;
 		};
+#endif
 		//Multiply integer
-		template<typename T, typename K>
+		template<typename T,typename A=typename limits<T>::acc_t >
 		typename std::enable_if<std::is_integral<T>::value, T>::type
 		inline impy( T x, T y )
 		{
-			static constexpr T scale = std::numeric_limits<K>::max();
-			return (x * y)/scale;
+			static constexpr T scale = std::numeric_limits<T>::max();
+			return (A(x) * A(y))/scale;
 		}
 		//Multiply floating
-		template<typename T, typename K>
+		template<typename T, typename A>
 		typename std::enable_if<std::is_floating_point<T>::value, T>::type
 		inline impy( T x, T y )
 		{
@@ -123,6 +136,7 @@ namespace _internal
 		{
 		    return t;
 		}
+		//Scale for integer value
 		template<class T>
 		typename std::enable_if<std::is_integral<T>::value, std::complex<T>>::type
 			inline fft_scale(std::complex<T> v )
@@ -144,7 +158,7 @@ namespace _internal
 		}
 
 		//FFT STAGE FLOAT VERSION
-		template<typename T, typename K>
+		template<typename T>
 		typename std::enable_if<std::is_floating_point<T>::value, std::complex<T>*>::type
 		inline fft_stage_3_n( std::complex<T> *x, int l, int m )
 		{
@@ -175,19 +189,19 @@ namespace _internal
 			return x;
 		}
 		//Internal SINUS integer version
-		template <typename T, typename K>
+		template <typename T>
 		inline std::complex<T> fft_sin_cos_int( int le2, int i )
 		{
 			constexpr auto SINSIZE = 512;
-			constexpr int CPI = dsp::integer::trig::sin_arg_max<K,SINSIZE>();
-			const int angle = (CPI/2*i)/le2;
+			constexpr auto CPI = dsp::integer::trig::sin_arg_max<T,SINSIZE>();
+			const auto angle = (CPI/2*i)/le2;
 			return {
-				  T((dsp::integer::trig::sin<K,SINSIZE>(CPI/4+angle) + dsp::integer::trig::sin<K,SINSIZE>(CPI/4+angle+1))/2),
-			      T(-(dsp::integer::trig::sin<K,SINSIZE>(angle) + dsp::integer::trig::sin<K,SINSIZE>(angle+1))/2)
+				  T((dsp::integer::trig::sin<T,SINSIZE>(CPI/4+angle) + dsp::integer::trig::sin<T,SINSIZE>(CPI/4+angle))/2),
+			      T(-(dsp::integer::trig::sin<T,SINSIZE>(angle) + dsp::integer::trig::sin<T,SINSIZE>(angle))/2)
 			};
 		}
 		//FFT stage INTEGER VERSION
-		template<typename T, typename K>
+		template<typename T>
 		typename std::enable_if<std::is_integral<T>::value, std::complex<T>*>::type
 		inline fft_stage_3_n( std::complex<T> *x, int l, int m )
 		{
@@ -197,15 +211,15 @@ namespace _internal
 			//Kazde widmo
 			for(int j=0;j<le2;j++)
 			{
-				//const std::complex<T> s = scaledV<T,K>( std::cos( (M_PI*j)/double(le2) ), -std::sin( (M_PI*j)/double(le2)) );
-				const std::complex<T> s( fft_sin_cos_int<T,K>(le2, j) );
+				const std::complex<T> s = scaledV<T>( std::cos( (M_PI*j)/double(le2) ), -std::sin( (M_PI*j)/double(le2)) );
+				//const std::complex<T> s( fft_sin_cos_int<T>(le2, j) );
 				//Motylek
 				for(int i=j;i<n;i+=le)
 				{
 					const int ip = i + le2;
 					const std::complex<T> t(
-						impy<T,K>(x[ip].real() , fft_scale(s.real())) - impy<T,K>( x[ip].imag() , fft_scale(s.imag()) ),
-						impy<T,K>(x[ip].imag() , fft_scale(s.real())) + impy<T,K>( x[ip].real() , fft_scale(s.imag()) )
+						impy<T>(x[ip].real() , fft_scale(s.real())) - impy<T>( x[ip].imag() , fft_scale(s.imag()) ),
+						impy<T>(x[ip].imag() , fft_scale(s.real())) + impy<T>( x[ip].real() , fft_scale(s.imag()) )
 					);
 					x[ip] = fft_scale(x[i]) - t;
 					x[i] =  fft_scale(x[i]) + t;
@@ -217,7 +231,7 @@ namespace _internal
 
 
 //Calculate complex fft
-template<typename T, typename K=short>
+template<typename T>
 void fft_complex( std::complex<T>* x, const std::complex<T>* const in, int m )
 {
 	using namespace _internal;
@@ -257,19 +271,19 @@ void fft_complex( std::complex<T>* x, const std::complex<T>* const in, int m )
 	//Next passes
 	for(int l=3;l<=m;l++)
 	{
-		fft_stage_3_n<T,K>( x, l, m );
+		fft_stage_3_n<T>( x, l, m );
 	}
 }
 
 // Real fft
 // Input: 2^m real points in time domain
 // Output: (2^m)*2 complex points in frequency domain
-template<typename T, typename K=short>
+template<typename T>
 void fft_real( std::complex<T> *xc, const T * const x, int m )
 {
 	 using namespace _internal;
 	 //Rozklad parzysto-nieparzysty w dziedzinie czasu
-	 fft_complex<T,K>( xc, reinterpret_cast<const std::complex<T>* const>(x), m-1 );
+	 fft_complex<T>( xc, reinterpret_cast<const std::complex<T>* const>(x), m-1 );
 	 //Rozklad parzysto nieparzysty w dziedzinie czestotliwosci
 	 for(int i=1;i<((1<<m)/4);i++)
 	 {
@@ -292,7 +306,7 @@ void fft_real( std::complex<T> *xc, const T * const x, int m )
 	 xc[(1<<m)/4].imag( 0 );
 	 xc[0].imag( 0 );
 	 //Ostatni stopien fft (trzeba powtorzyc)
-	 fft_stage_3_n<T,K>( xc, m, m );
+	 fft_stage_3_n<T>( xc, m, m );
 }
 
 }}

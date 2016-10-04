@@ -64,6 +64,8 @@ namespace {
 			PRINTF("FFTW3vsFFT nfft=%d snr = %f\n",nfft,10*log10(sigpow/errpow) );
 		}
 
+
+
 	template <typename T> void do_test( std::size_t nfft )
 	{
 		constexpr double maxerr = cfg::ans<T>::fft_res_cmp_err;
@@ -71,9 +73,10 @@ namespace {
 		std::complex<T> output[nfft] {};
 		std::complex<double> dftout[nfft] {};
 		const int m  = std::log2( nfft );
+
 		for( auto& in : input ) {
-			in.real(  (std::rand() % 65536) - 32768 );
-			in.imag(  (std::rand() % 65536) - 32768 );
+			in.real( get_rand<T>() );
+			in.imag( get_rand<T>() );
 		}
 		dsp::refft::fft_complex( output, input, m );
 		check_vs_dft( input, output, dftout, nfft );
@@ -85,7 +88,7 @@ namespace {
 
 } //unnamed NS
 
-TEST( fft_test, real_fftw )
+TEST( fft_test, double_fftw )
 {
 	for( auto len=32LU; len<cfg::fft_max+1; len<<=1 )
 	{
@@ -94,12 +97,32 @@ TEST( fft_test, real_fftw )
 }
 
 
+TEST( fft_test, float_fftw )
+{
+	for( auto len=32LU; len<cfg::fft_max+1; len<<=1 )
+	{
+		do_test<ffft_t>( len );
+	}
+}
+
+
+
 //Real signal type1
-TEST( fft_test, integer_fftw )
+TEST( fft_test, int16_fftw )
 {
 	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 )
 	{
 		do_test<ifft_t>( len );
+	}
+}
+
+
+//Real signal type1
+TEST( fft_test, int32_fftw )
+{
+	for( auto len=32UL; len<cfg::fft_max+1; len<<=1 )
+	{
+		do_test<lfft_t>( len );
 	}
 }
 

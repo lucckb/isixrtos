@@ -82,16 +82,13 @@ template <typename T> void shifted_impulse_response()
 }
 
 
-TEST( fft_test, int_impulse_response )
-{
-	impulse_response<ifft_t>();
-}
 
 
 // FFT basic test
 TEST( fft_test, real_impulse_response )
 {
 	impulse_response<rfft_t>();
+	impulse_response<ffft_t>();
 }
 
 
@@ -100,14 +97,22 @@ TEST( fft_test, real_impulse_response )
 TEST( fft_test, real_shifted_impulse_response )
 {
 	shifted_impulse_response<rfft_t>();
+	shifted_impulse_response<ffft_t>();
+}
+;
+
+// Integer impulse response
+TEST( fft_test, int_impulse_response )
+{
+	impulse_response<ifft_t>();
+	impulse_response<lfft_t>();
 }
 
-
-
-
-//TODO tweak to better accuracy
 // FFT basic test
 TEST( fft_test, int_shifted_impulse_response )
 {
 	shifted_impulse_response<ifft_t>();
+	shifted_impulse_response<lfft_t>();
 }
+
+

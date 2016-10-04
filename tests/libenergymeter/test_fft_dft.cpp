@@ -68,9 +68,8 @@ namespace {
 		std::complex<double> dftout[nfft] {};
 		const int m  = std::log2( nfft );
 		for( auto& in : input ) {
-			in.real(  (std::rand() % 65536) - 32768 );
-			in.imag(  (std::rand() % 65536) - 32768 );
-
+			in.real( get_rand<T>() );
+			in.imag( get_rand<T>() );
 		}
 		dsp::refft::fft_complex( output, input, m );
 		check_vs_dft( input, output, dftout, nfft );
@@ -92,10 +91,22 @@ TEST( fft_test, real_fft_vs_dft )
 }
 
 //Real signal type1
-TEST( fft_test, integer_fft_vs_dft )
+TEST( fft_test, int16_fft_vs_dft )
 {
 	for( auto len=64LU; len<cfg::fft_max; len<<=1 )
 	{
 		do_test<ifft_t>( len );
 	}
 }
+
+
+//Real signal type1
+TEST( fft_test, int32_fft_vs_dft )
+{
+	for( auto len=64LU; len<cfg::fft_max; len<<=1 )
+	{
+		do_test<lfft_t>( len );
+	}
+}
+
+
