@@ -67,17 +67,18 @@ namespace integer {
       }
       namespace trig
       {
-
-	  template < typename T, std::size_t S, T MAX = std::numeric_limits<T>::max() > T sin( const T angle )
-		  {
-			static constexpr _internal::SinInternal<T,S> sin_tbl = _internal::CreateSinSinInternal<T,S>( MAX );
-			return sin_tbl( angle );
-		  }
-
 		  template < typename T, std::size_t S > constexpr T sin_arg_max()
 		  {
 			  return _internal::SinInternal<T,S>::pi2();
 		  }
+
+	  template < typename T, std::size_t S, T MAX = std::numeric_limits<T>::max() > T sin( const T angle )
+		  {
+			static constexpr _internal::SinInternal<T,S> sin_tbl = _internal::CreateSinSinInternal<T,S>( MAX );
+			constexpr auto mod = sin_arg_max<T,S>();
+			return sin_tbl( angle % mod );
+		  }
+
 
       }
  }}
