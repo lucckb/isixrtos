@@ -63,7 +63,7 @@ namespace _internal
 		{
 		    return create_fft_sin_cos<T,S>(gen_seq<S>{});
 		}
-		template<typename T, size_t S = 17>
+		template<typename T, size_t S=17>
 		inline std::complex<T>  fft_sincos_get( const size_t idx )
 		{
 			static constexpr fft_sin_cos<T,S> sin_tab = create_fft_sin_cos<T,S>( );
@@ -192,13 +192,22 @@ namespace _internal
 		template <typename T>
 		inline std::complex<T> fft_sin_cos_int( int le2, int i )
 		{
-			constexpr auto SINSIZE = 512;
+			constexpr auto SINSIZE = 256;
 			constexpr auto CPI = dsp::integer::trig::sin_arg_max<T,SINSIZE>();
+#if 1
 			const auto angle = (CPI/2*i)/le2;
+
 			return {
 				  T((dsp::integer::trig::sin<T,SINSIZE>(CPI/4+angle) + dsp::integer::trig::sin<T,SINSIZE>(CPI/4+angle))/2),
 			      T(-(dsp::integer::trig::sin<T,SINSIZE>(angle) + dsp::integer::trig::sin<T,SINSIZE>(angle))/2)
 			};
+#else
+			const int ii = CPI/2*i;
+			return {
+				   T(dsp::integer::trig::cos<T,SINSIZE>(ii,le2) ),
+				   T(-dsp::integer::trig::sin<T,SINSIZE>(ii,le2) )
+			};
+#endif
 		}
 		//FFT stage INTEGER VERSION
 		template<typename T>
@@ -211,7 +220,8 @@ namespace _internal
 			//Kazde widmo
 			for(int j=0;j<le2;j++)
 			{
-				const std::complex<T> s = scaledV<T>( std::cos( (M_PI*j)/double(le2) ), -std::sin( (M_PI*j)/double(le2)) );
+				const std::complex<T> s = scaledV<T>( cosf( (float(M_PI)*j)/float(le2) ), -sinf( (float(M_PI)*j)/float(le2)) );
+				//const std::complex<T> s = scaledV<T>( cos( (double(M_PI)*j)/double(le2) ), -sin( (double(M_PI)*j)/double(le2)) );
 				//const std::complex<T> s( fft_sin_cos_int<T>(le2, j) );
 				//Motylek
 				for(int i=j;i<n;i+=le)
