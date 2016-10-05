@@ -27,24 +27,27 @@ namespace integer {
 		  {
 			  private:
 				  static constexpr std::size_t elm = S -1;
-				  constexpr int quad( const T phase ) const
+				  constexpr int quad( const int phase ) const
 				  {
-					  return (phase / elm ) %4;
+					  return ((phase<0?-phase:phase) / elm ) % 4;
 				  }
-				  constexpr std::size_t angle( const T phase ) const
+				  constexpr std::size_t angle( const int phase ) const
 				  {
-					  return phase % elm;
+					  return (phase<0?-phase:phase) % elm;
 				  }
-			  public:
-				  constexpr T operator()( const T phase ) const
+				  constexpr T pre_op( const int phase ) const
 				  {
 					  return ((quad(phase)==0)?(sine_array[angle(phase)]) :
 							  ((quad(phase)==1)?(sine_array[elm - angle(phase)]) :
 							   ((quad(phase)==2)?(-sine_array[angle(phase)]) :
 								((quad(phase)==3)?(-sine_array[elm-angle(phase)]):(0)))));
 				  }
-				  T sine_array[S];
+			  public:
 				  static constexpr T pi2() { return  4 * elm; }
+				  constexpr T operator()( const int phase ) const {
+					  return phase>0?(pre_op(phase)):(-pre_op(phase));
+				  }
+				T sine_array[S];
 		  };
 	  template <typename T>
 		  constexpr T genSin(T v, std::size_t s, T max_value)
@@ -72,15 +75,21 @@ namespace integer {
 			  return _internal::SinInternal<T,S>::pi2();
 		  }
 
-	  template < typename T, std::size_t S, T MAX = std::numeric_limits<T>::max() > T sin( const T angle )
+	  template < typename T, std::size_t S, T MAX = std::numeric_limits<T>::max() >
+		  T sin( const int angle )
 		  {
-			static constexpr _internal::SinInternal<T,S> sin_tbl = _internal::CreateSinSinInternal<T,S>( MAX );
-			constexpr auto mod = sin_arg_max<T,S>();
-			return sin_tbl( angle % mod );
+			static constexpr _internal::SinInternal<T,S> sin_tbl =
+				_internal::CreateSinSinInternal<T,S>( MAX );
+			return sin_tbl( angle );
 		  }
 
-
-      }
+	  template < typename T, std::size_t S, T MAX = std::numeric_limits<T>::max() >
+		  T cos( const int angle )
+		  {
+			constexpr auto pi2 = sin_arg_max<T,S>() / 4;
+			return sin<T,S,MAX>( pi2 + angle );
+		  }
+	}
  }}
 
 
