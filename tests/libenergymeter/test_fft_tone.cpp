@@ -187,22 +187,31 @@ TEST( fft_test, real_bin_points_type2 )
 
 
 //Real signal type1
-TEST( fft_test, integer_bin_points_type1 )
+TEST( fft_test, integer_bin_points_type1_int16 )
 {
 	auto snr = _bin_points_type1<ifft_t>();
 	PRINTF("int16_t#1 SNR min %f max %f\n", snr.min, snr.max  );
-	snr = _bin_points_type1<lfft_t>();
+}
+
+//Real signal type1
+TEST( fft_test, integer_bin_points_type1_int32 )
+{
+	auto snr = _bin_points_type1<lfft_t>();
 	PRINTF("int32_t#1 SNR min %f max %f\n", snr.min, snr.max  );
 }
 
 
-
 //Real signal type1
-TEST( fft_test, integer_bin_points_type2 )
+TEST( fft_test, integer_bin_points_type2_int16 )
 {
 	auto snr = _bin_points_type2<ifft_t>();
 	PRINTF("integer#2 SNR min %f max %f\n", snr.min, snr.max  );
-	snr = _bin_points_type2<lfft_t>();
+}
+
+//Real signal type1
+TEST( fft_test, integer_bin_points_type2_int32 )
+{
+	auto snr = _bin_points_type2<lfft_t>();
 	PRINTF("int32_t#2 SNR min %f max %f\n", snr.min, snr.max  );
 }
 

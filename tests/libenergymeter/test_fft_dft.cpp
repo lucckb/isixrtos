@@ -60,7 +60,7 @@ namespace {
 	}
 
 	template <typename T>
-	void do_test( size_t nfft )
+	void do_test( size_t nfft, bool print = false )
 	{
 		constexpr double maxerr = cfg::ans<T>::fft_res_cmp_err;
 		std::complex<T> input[nfft] {};
@@ -76,6 +76,8 @@ namespace {
 		for( size_t i=0; i<nfft; ++i ) {
 			ASSERT_NEAR( output[i].real(), dftout[i].real(), maxerr );
 			ASSERT_NEAR( output[i].imag(), dftout[i].imag(), maxerr );
+			if( print )
+				PRINTF("SMPL %i\n", i );
 		}
 	}
 
@@ -109,4 +111,17 @@ TEST( fft_test, int32_fft_vs_dft )
 	}
 }
 
+
+//Real signal type1
+TEST( fft_test, int32_fft_vs_dft_256p )
+{
+	do_test<lfft_t>( 256, false  );
+}
+
+
+//Real signal type1
+TEST( fft_test, int16_fft_vs_dft_256p )
+{
+	do_test<ifft_t>( 256, false );
+}
 
