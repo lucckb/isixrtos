@@ -38,9 +38,9 @@ namespace integer {
 				  constexpr T pre_op( const int phase ) const
 				  {
 					  return ((quad(phase)==0)?(sine_array[angle(phase)]) :
-							  ((quad(phase)==1)?(sine_array[elm - angle(phase)]) :
-							   ((quad(phase)==2)?(-sine_array[angle(phase)]) :
-								((quad(phase)==3)?(-sine_array[elm-angle(phase)]):(0)))));
+							 ((quad(phase)==1)?(sine_array[elm - angle(phase)]) :
+							 ((quad(phase)==2)?(-sine_array[angle(phase)]) :
+						     ((quad(phase)==3)?(-sine_array[elm-angle(phase)]):(0)))));
 				  }
 			  public:
 				  static constexpr T pi2() { return  4 * elm; }
