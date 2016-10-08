@@ -76,14 +76,14 @@ namespace cfg {
 		};
 		//! Type int32 integer aritmetics
 		template<> struct ans<lfft_t> {
-			static constexpr auto tol = 0.001;
+			static constexpr auto tol = 0.01;
 			static constexpr double max = std::numeric_limits<lfft_t>::max();
 			//Maximum difference for shifted_impulse_response
 			static constexpr auto max_shifted_resp = proc(tol,max);
 			//Tone test fft real symetry error check
 			static constexpr auto symetry_err = proc(tol,max);
 			//! Signal to noise ratio tolerance
-			static constexpr auto snr_err = 130;
+			static constexpr auto snr_err = 100;
 			//! Compare two ffts err
 			static constexpr auto fft_res_cmp_err = proc(tol,max);
 		};
