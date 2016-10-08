@@ -191,8 +191,8 @@ namespace {
 		{
 			using namespace q_arithmetic_for_sin;
 			constexpr size_t SINSIZE = 256;
-			constexpr uint32_t CPI = dsp::integer::trig::sin_arg_max<T,SINSIZE>();
-			auto angle = qdiv(ui2q(CPI/2*i),ui2q(le2));
+			constexpr uint32_t CPI = dsp::integer::trig::sin_arg_max<T,SINSIZE>()/2;
+			auto angle = qdiv(ui2q(CPI*i),ui2q(le2));
 			const auto a2 = qfract( angle );
 			const auto a1 = ui2q(1) - a2;
 			angle = q2ui( angle );
