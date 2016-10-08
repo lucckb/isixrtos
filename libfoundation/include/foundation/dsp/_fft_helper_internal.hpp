@@ -196,11 +196,11 @@ namespace {
 			const auto a2 = qfract( angle );
 			const auto a1 = ui2q(1) - a2;
 			angle = q2ui( angle );
+			constexpr auto cos = dsp::integer::trig::cos<T,SINSIZE>;
+			constexpr auto sin = dsp::integer::trig::sin<T,SINSIZE>;
 			return {
-				  T( mulqi(a1,(dsp::integer::trig::cos<T,SINSIZE>(angle))) +
-					 mulqi(a2,(dsp::integer::trig::cos<T,SINSIZE>(+angle+1))) ),
-			      T(-mulqi(a1,(dsp::integer::trig::sin<T,SINSIZE>(angle))) -
-					 mulqi(a2,dsp::integer::trig::sin<T,SINSIZE>(angle+1)))
+				  T( mulqi(a1,cos(angle)) + mulqi(a2,cos(angle+1)) ),
+			      T(-mulqi(a1,sin(angle)) - mulqi(a2,sin(angle+1)) )
 			};
 		}
 
