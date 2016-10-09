@@ -25,33 +25,17 @@
 #include <cstring>
 #include <complex>
 #include "array_sinus.hpp"
+#include "common.hpp"
 
 namespace dsp {
 namespace refft {
 
 namespace _internal {
 namespace {
-		template< typename T > struct limits {
-		};
 
-		template<> struct limits <int16_t> {
-			using acc_t = int32_t;
-		};
 
-		template<> struct limits <int32_t> {
-			using acc_t = int64_t;
-		};
-
-		//Generate SIN cos array in C99 lang
-		template<unsigned... Is> struct seq{};
-		template<unsigned N, unsigned... Is>
-		struct gen_seq : gen_seq<N-1, N-1, Is...>{};
-		template<unsigned... Is>
-		struct gen_seq<0, Is...> : seq<Is...>{};
-
-		template <typename T, size_t S=128>
-	    class fft_sin_cos
-	    {
+		template <typename T, std::size_t S>
+	    class fft_sin_cos {
 	    public:
 			constexpr std::complex<T> operator()( const size_t m ) const
 			{
@@ -70,7 +54,7 @@ namespace {
 			};
 		}
 		template<typename T, size_t S, unsigned... Is>
-		constexpr fft_sin_cos<T,S> create_fft_sin_cos( seq<Is...>)
+		constexpr fft_sin_cos<T,S> create_fft_sin_cos( common::seq<Is...>)
 		{
 			return {{ get_mfft_tab<T>(Is)... }};
 		}
@@ -78,7 +62,7 @@ namespace {
 		template <typename T, size_t S>
 		constexpr fft_sin_cos<T,S> create_fft_sin_cos(  )
 		{
-		    return create_fft_sin_cos<T,S>(gen_seq<S>{});
+		    return create_fft_sin_cos<T,S>(common::gen_seq<S>{});
 		}
 		template<typename T>
 		inline std::complex<T>  fft_sincos_get( const size_t idx )
@@ -96,7 +80,7 @@ namespace {
 			v = ((v >> 1) & 0x55555555) | ((v & 0x55555555) << 1);
 			// swap consecutive pairs
 			v = ((v >> 2) & 0x33333333) | ((v & 0x33333333) << 2);
-			// swap nibbles ... 
+			// swap nibbles ...
 			v = ((v >> 4) & 0x0F0F0F0F) | ((v & 0x0F0F0F0F) << 4);
 			// swap bytes
 			v = ((v >> 8) & 0x00FF00FF) | ((v & 0x00FF00FF) << 8);
@@ -114,7 +98,7 @@ namespace {
 #	endif
 
 		//Multiply integer
-		template<typename T,typename A=typename limits<T>::acc_t >
+		template<typename T,typename A=typename common::types<T>::acc_t >
 		typename std::enable_if<std::is_integral<T>::value, T>::type
 		inline impy( T x, T y )
 		{
