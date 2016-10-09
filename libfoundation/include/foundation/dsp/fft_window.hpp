@@ -61,11 +61,17 @@ namespace {
 			return (A(x) * A(y) + K) / scale;
 		}
 		//Multiply floating
-		template<typename T, typename A>
-		typename std::enable_if<std::is_floating_point<T>::value, T>::type
-		inline impy( T x, T y )
+		template<typename T>
+		inline typename std::enable_if<std::is_floating_point<T>::value, T>::type
+		impy( T x, T y )
 		{
 			return (x * y);
+		}
+		//Multiply int by float return float
+		template<typename I, typename F> 
+		inline typename std::enable_if<std::is_floating_point<F>::value, F>::type
+		impy( I x, F y ) {
+			return (F(x)/std::numeric_limits<I>::max()) * y;
 		}
 		//Scale value
 		template<typename T> inline constexpr
