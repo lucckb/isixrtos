@@ -1,2 +1,2 @@
 #!/bin/sh
-cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_MODULE_PATH=.
+cmake . -DCMAKE_BUILD_TYPE=$1 -DCMAKE_MODULE_PATH=.

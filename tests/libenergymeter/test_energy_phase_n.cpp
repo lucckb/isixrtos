@@ -53,6 +53,7 @@ TEST( energy_phase_n, buffer_swap_match )
 /** Test multi loop  */
 TEST( energy_phase_n, buffer_swap_match2 )
 {
+
 	emeter::energy_phase_n<256> o;
 	auto v1 = o.sample_voltage_begin();
 	auto i1 = o.sample_current_begin();

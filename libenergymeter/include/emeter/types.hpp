@@ -18,6 +18,7 @@
 
 #pragma once
 #include <cstdint>
+#include <complex>
 
 namespace emeter {
 	//! Accumulative type
@@ -26,4 +27,6 @@ namespace emeter {
 	using sample_t = std::uint16_t;
 	//! Simple measure type
 	using measure_t = float;
+	//! Complex type
+	using cplxmeas_t = std::complex<measure_t>;
 }

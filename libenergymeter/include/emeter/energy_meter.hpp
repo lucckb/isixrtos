@@ -19,22 +19,25 @@
 #include <array>
 #include <atomic>
 #include <utility>
+#include <complex>
 #include "types.hpp"
 #include "detail/tags.hpp"
 #include "energy_phase_n.hpp"
 
 namespace emeter {
 
-	template <std::size_t PHASES = 3,unsigned FS = 4000,std::size_t FFTSIZE=256>
+
+	template <std::size_t PHASES=3, unsigned FS = 4000, std::size_t FFTSIZE=256 >
 	//! Main energy meter class library
 	class energy_meter
 	{
-
 	public:
 		energy_meter( energy_meter& ) = delete;
 		energy_meter& operator=( energy_meter& ) = delete;
 		energy_meter() {
-
+			for( auto& ph : m_energies ) {
+				ph.set_scratch_area( m_scratch.data() );
+			}
 		}
 
 		/**Calculate energy called from ISR vector
@@ -70,6 +73,7 @@ namespace emeter {
 				return m_energies[phase]( p );
 			}
 	private:
+		std::array<cplxmeas_t,FFTSIZE> m_scratch;
 		std::array<energy_phase_n<FFTSIZE>, PHASES> m_energies;
 	};
 };

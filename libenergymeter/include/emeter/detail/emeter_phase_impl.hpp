@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "detail/tags.hpp"
+#include <emeter/detail/tags.hpp>
 
 namespace emeter {
 namespace detail {
@@ -29,10 +29,8 @@ namespace detail {
 		emeter_phase_impl() {
 		}
 	protected:
-		int do_calculate( sample_t* , sample_t* , std::size_t ) noexcept
-		{
-			return 0;
-		}
+		//!Calculate FFT ops
+		int do_calculate( const sample_t* u, const sample_t* i, std::size_t size ) noexcept;
 	};
 };
 };
