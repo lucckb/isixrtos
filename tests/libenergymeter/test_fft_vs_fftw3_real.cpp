@@ -116,4 +116,25 @@ TEST( fft_test, int32_fftw_fftw_real )
 	}
 }
 
+TEST( fft_test, fft_inplace_test ) 
+{
+	using T = float;
+	constexpr auto nfft = 256;
+	constexpr double maxerr = cfg::ans<T>::fft_res_cmp_err;
+	T input[nfft*8] {};
+	std::complex<double> dftout[nfft] {};
+	const int m  = std::log2( nfft );
+	for( auto& in : input ) {
+		in = get_rand<T>();
+	}
+	T input2[nfft];
+	std::copy( input, input+nfft, input2 );
+	auto inout = reinterpret_cast<std::complex<T>*>(input);
+	dsp::refft::fft_real( inout, input, m );
+	check_vs_dft( input2, inout, dftout, nfft );
+	for( std::size_t i=0; i<nfft; ++i ) {
+		ASSERT_NEAR( inout[i].real(), dftout[i].real(), maxerr );
+		ASSERT_NEAR( inout[i].imag(), dftout[i].imag(), maxerr );
+	}
+}
 
