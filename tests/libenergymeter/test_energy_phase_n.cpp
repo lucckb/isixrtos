@@ -18,12 +18,18 @@
 
 #include <emeter/energy_meter.hpp>
 #include <gtest/gtest.h>
+#include <cstring>
+#include "gprint.hpp"
 
 /** Compare simple buffer management */
 TEST( energy_phase_n, buffer_swap_simple )
 {
 	emeter::energy_phase_n o;
-	o.set_scratch_area( new char[8192] );
+	auto scratch =  new char[8192];
+	o.set_scratch_area( scratch );
+	std::memset( scratch, 0x55, 8192 );
+
+
 	auto p1 = o.sample_voltage_begin();
 	ASSERT_TRUE( p1 );
 	auto p2 = o.sample_current_begin();
@@ -32,6 +38,13 @@ TEST( energy_phase_n, buffer_swap_simple )
 	ASSERT_EQ( o.sample_voltage_end(), 0 );
 	ASSERT_EQ( o.calculate(), 0 );
 	ASSERT_NE( p1, p2 );
+	//Check scratch usage area
+	for( int s=8191; s>=0; --s ) {
+		if( scratch[s] != 0x55 ) {
+			PRINTF("Buffer usage %i\n", s );
+			break;
+		}
+	}
 }
 
 /** Test multi loop  */
