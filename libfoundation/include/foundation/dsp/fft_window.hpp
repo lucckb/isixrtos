@@ -130,7 +130,7 @@ namespace {
 			(std::forward<In_Type>(input),std::forward<Out_Type>(output));
 	}
 	/** Sum of hanning window */
-	template <size_t Size, typename Type> 
+	template <size_t Size, typename Type>
 		constexpr double sum_hanning() {
 			return sum_generic<Size,Type,_internal::hanning_function>();
 		}

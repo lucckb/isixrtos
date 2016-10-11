@@ -21,5 +21,5 @@
 
 
 TEST( energy_meter, basic ) {
-	emeter::energy_meter<3> em;
+	emeter::energy_meter em;
 }

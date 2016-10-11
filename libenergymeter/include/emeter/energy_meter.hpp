@@ -21,13 +21,11 @@
 #include <utility>
 #include <complex>
 #include "types.hpp"
+#include "detail/config.hpp"
 #include "detail/tags.hpp"
 #include "energy_phase_n.hpp"
 
 namespace emeter {
-
-
-	template <std::size_t PHASES=3, unsigned FS = 4000, std::size_t FFTSIZE=256 >
 	//! Main energy meter class library
 	class energy_meter
 	{
@@ -36,7 +34,7 @@ namespace emeter {
 		energy_meter& operator=( energy_meter& ) = delete;
 		energy_meter() {
 			for( auto& ph : m_energies ) {
-				ph.set_scratch_area( m_scratch.data() );
+				ph.set_scratch_area( m_scratch );
 			}
 		}
 
@@ -46,19 +44,19 @@ namespace emeter {
 		 */
 		template<std::size_t PHASE>
 			sample_t* sample_voltage_begin() noexcept {
-				static_assert( PHASE<PHASES, "Invalid V phase num" );
+				static_assert( PHASE<config::n_phases, "Invalid V phase num" );
 				return m_energies[PHASE].sample_voltage_begin();
 		}
 
 		template<std::size_t PHASE>
 			sample_t* sample_current_begin() noexcept {
-				static_assert( PHASE<PHASES, "Invalid I phase num" );
+				static_assert( PHASE<config::n_phases, "Invalid I phase num" );
 				return m_energies[PHASE].sample_current_begin();
 		}
 
 		//! Process thread should be called after calculation
 		int calculate() noexcept {
-			for( std::size_t ph=0; ph<PHASES; ++ph ) {
+			for( std::size_t ph=0; ph<config::n_phases; ++ph ) {
 				auto err = m_energies[ph].calculate();
 				if( err ) return err;
 			}
@@ -73,8 +71,9 @@ namespace emeter {
 				return m_energies[phase]( p );
 			}
 	private:
-		std::array<cplxmeas_t,FFTSIZE> m_scratch;
-		std::array<energy_phase_n<FFTSIZE>, PHASES> m_energies;
+		//Temporary scratch memory for FFT calculation
+		char m_scratch[ config::fft_size * sizeof(cplxmeas_t) ];
+		std::array<energy_phase_n, config::n_phases> m_energies;
 	};
 };
 

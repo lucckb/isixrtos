@@ -18,19 +18,43 @@
 #pragma once
 
 #include <emeter/detail/tags.hpp>
+#include <emeter/detail/energy_phase_bufs.hpp>
+#include <atomic>
 
 namespace emeter {
-namespace detail {
-	class emeter_phase_impl
+	class energy_phase_n : public detail::energy_phase_bufs
 	{
 	public:
-		emeter_phase_impl( emeter_phase_impl& ) = delete;
-		emeter_phase_impl& operator=(emeter_phase_impl&) = delete;
-		emeter_phase_impl() {
+		energy_phase_n( energy_phase_n& ) = delete;
+		energy_phase_n& operator=(energy_phase_n&) = delete;
+		energy_phase_n() {
+		}
+		virtual ~energy_phase_n() {
+		}
+		// Get URMS
+		typename tags::detail::u_rms::value_type
+			operator()( const tags::detail::u_rms& ) const noexcept {
+			return m_u.load();
+		}
+		// Get IRMS
+		typename tags::detail::i_rms::value_type
+			operator()( const tags::detail::i_rms& ) const noexcept {
+			return m_i.load();
+		}
+		//! Set scratch area
+		void set_scratch_area( void *scratch ) noexcept {
+			m_scratch = scratch;
 		}
 	protected:
-		//!Calculate FFT ops
-		int do_calculate( const sample_t* u, const sample_t* i, std::size_t size ) noexcept;
+		//!Calculate FFT voltage
+		int calculate_u( const sample_t* raw_u, std::size_t size ) noexcept override;
+		//! Caculate FFT current
+		int calculate_i( const sample_t* raw_i, std::size_t size ) noexcept override;
+	private:
+		std::atomic<typename tags::detail::u_rms::value_type> m_u;
+		std::atomic<typename tags::detail::i_rms::value_type> m_i;
+		std::atomic<typename tags::detail::thd_u::value_type> m_thdu;
+		std::atomic<typename tags::detail::thd_i::value_type> m_thdi;
+		void *m_scratch;
 	};
-};
-};
+}
