@@ -154,4 +154,11 @@ TEST( window_test, hann_src_int16_dst_float ) {
 	}
 }
 
-
+TEST( window_test, hann_sum_of_raw_window )
+{
+	using namespace dsp::window;
+	constexpr auto value = sum_hanning<256,float>();
+	ASSERT_NEAR( value, 127.5, 0.00001 );
+	constexpr auto v1024 = sum_hanning<1024,float>();
+	ASSERT_NEAR( v1024, 511.5, 0.00001 );
+}

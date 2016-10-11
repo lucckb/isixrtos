@@ -111,6 +111,17 @@ namespace {
 				}
 			);
 	}
+
+	/* CPP compile time sum */
+	template <size_t Size, typename Type, Type (*Func)(size_t,size_t)>
+		constexpr double sum_generic() {
+			double sum {};
+			for( size_t i=0; i<Size; ++i )
+				sum += Func(i,Size);
+			return sum;
+		}
+
+
 	/** Hanning window */
 	template<size_t Size, typename In_Type, typename Out_Type>
 	void apply_hanning( In_Type input, Out_Type output )
@@ -118,7 +129,11 @@ namespace {
 		apply_generic<Size, In_Type, Out_Type, _internal::hanning_function>
 			(std::forward<In_Type>(input),std::forward<Out_Type>(output));
 	}
-
+	/** Sum of hanning window */
+	template <size_t Size, typename Type> 
+		constexpr double sum_hanning() {
+			return sum_generic<Size,Type,_internal::hanning_function>();
+		}
 }}
 
 
