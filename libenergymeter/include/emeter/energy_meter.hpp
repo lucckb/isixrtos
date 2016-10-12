@@ -90,8 +90,10 @@ namespace emeter {
 				return std::ref(*energy(phase))( p );
 			}
 	private:
+		static constexpr auto scratch_siz =
+			(config::fft_size+config::fft_size/2+1) * sizeof(cplxmeas_t);
 		//Temporary scratch memory for FFT calculation
-		char m_scratch[ config::fft_size * sizeof(cplxmeas_t) ];
+		alignas(8) char m_scratch[ scratch_siz ];
 		std::array<energy_storage, config::n_phases> m_energies;
 	};
 };

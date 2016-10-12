@@ -22,6 +22,7 @@ namespace {
 	//! Default FFT size
 	constexpr auto fft_bits = 8U;
 	constexpr int fft_size = 1<<fft_bits;
+	constexpr auto fftbuf_size = fft_size + fft_size/2;
 	//! Number of phases to measure
 	constexpr auto n_phases = 3U;
 	//! Sample rate

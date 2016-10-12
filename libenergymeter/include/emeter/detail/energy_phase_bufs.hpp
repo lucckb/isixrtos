@@ -44,7 +44,7 @@ namespace detail {
 			ready_u,			//buffer is ready for calculate voltage,
 			ready_i				//buffer is ready for calculate current
 		};
-		static constexpr auto buflen = config::fft_size+config::fft_size/2;
+		static constexpr auto buflen = config::fftbuf_size;
 	public:
 		enum error {
 			e_ok = 0,
@@ -87,9 +87,7 @@ namespace detail {
 		}
 	protected:
 		//!Calculate FFT voltage
-		virtual int calculate_u( const sample_t* u, std::size_t size ) noexcept = 0;
-		//! Caculate FFT current
-		virtual int calculate_i( const sample_t* i, std::size_t size ) noexcept = 0;
+		virtual void do_calculate( const sample_t* u, const sample_t* raw_i ) noexcept = 0;
 	private:
 		std::array<std::array<sample_t,buflen>,nbufs> m_buf {{{}}};
 		std::atomic<unsigned> m_states;

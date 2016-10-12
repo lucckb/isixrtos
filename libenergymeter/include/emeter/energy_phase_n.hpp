@@ -27,7 +27,7 @@ namespace emeter {
 	public:
 		energy_phase_n( energy_phase_n& ) = delete;
 		energy_phase_n& operator=(energy_phase_n&) = delete;
-		energy_phase_n( void *scratch ) 
+		energy_phase_n( void *scratch )
 			: m_scratch( scratch ) {
 		}
 		virtual ~energy_phase_n() {
@@ -35,23 +35,29 @@ namespace emeter {
 		// Get URMS
 		typename tags::detail::u_rms::value_type
 			operator()( const tags::detail::u_rms& ) const noexcept {
-			return m_u.load();
+			return m_U.load();
 		}
 		// Get IRMS
 		typename tags::detail::i_rms::value_type
 			operator()( const tags::detail::i_rms& ) const noexcept {
-			return m_i.load();
+			return m_I.load();
 		}
 	protected:
 		//!Calculate FFT voltage
-		int calculate_u( const sample_t* raw_u, std::size_t size ) noexcept override;
-		//! Caculate FFT current
-		int calculate_i( const sample_t* raw_i, std::size_t size ) noexcept override;
+		void do_calculate( const sample_t* raw_u, const sample_t* raw_i ) noexcept override;
 	private:
-		std::atomic<typename tags::detail::u_rms::value_type> m_u;
-		std::atomic<typename tags::detail::i_rms::value_type> m_i;
-		std::atomic<typename tags::detail::thd_u::value_type> m_thdu;
-		std::atomic<typename tags::detail::thd_i::value_type> m_thdi;
+		// Calculate single stage u or i
+		static const cplxmeas_t* fft_calc( void *result, const sample_t* raw );
+		// RMS calculate
+		static measure_t rms( const cplxmeas_t input[] );
+		// Measure power . 
+		static std::pair<measure_t,measure_t>
+			power( const cplxmeas_t ub[], const cplxmeas_t ib[] );
+	private:
+		std::atomic<typename tags::detail::u_rms::value_type> m_U;
+		std::atomic<typename tags::detail::i_rms::value_type> m_I;
+		std::atomic<typename tags::detail::p_avg::value_type> m_P;
+		std::atomic<typename tags::detail::q_avg::value_type> m_Q;
 		void* const m_scratch; //! Scratch memory temporary_fft
 	};
 }
