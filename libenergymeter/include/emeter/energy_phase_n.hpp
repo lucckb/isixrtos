@@ -27,7 +27,8 @@ namespace emeter {
 	public:
 		energy_phase_n( energy_phase_n& ) = delete;
 		energy_phase_n& operator=(energy_phase_n&) = delete;
-		energy_phase_n() {
+		energy_phase_n( void *scratch ) 
+			: m_scratch( scratch ) {
 		}
 		virtual ~energy_phase_n() {
 		}
@@ -41,10 +42,6 @@ namespace emeter {
 			operator()( const tags::detail::i_rms& ) const noexcept {
 			return m_i.load();
 		}
-		//! Set scratch area
-		void set_scratch_area( void *scratch ) noexcept {
-			m_scratch = scratch;
-		}
 	protected:
 		//!Calculate FFT voltage
 		int calculate_u( const sample_t* raw_u, std::size_t size ) noexcept override;
@@ -55,6 +52,6 @@ namespace emeter {
 		std::atomic<typename tags::detail::i_rms::value_type> m_i;
 		std::atomic<typename tags::detail::thd_u::value_type> m_thdu;
 		std::atomic<typename tags::detail::thd_i::value_type> m_thdi;
-		void *m_scratch;
+		void* const m_scratch; //! Scratch memory temporary_fft
 	};
 }

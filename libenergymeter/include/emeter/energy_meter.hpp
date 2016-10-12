@@ -20,6 +20,7 @@
 #include <atomic>
 #include <utility>
 #include <complex>
+#include <functional>
 #include "types.hpp"
 #include "detail/config.hpp"
 #include "detail/tags.hpp"
@@ -29,12 +30,29 @@ namespace emeter {
 	//! Main energy meter class library
 	class energy_meter
 	{
+		using energy_storage = typename std::aligned_storage_t<
+			sizeof(energy_phase_n), alignof(energy_phase_n)>::type;
+		//Get energy phase helper
+			auto energy( size_t phase ) {
+				return reinterpret_cast<energy_phase_n*>(&m_energies[phase]);
+			}
+			auto energy( size_t phase ) const {
+				return reinterpret_cast<const energy_phase_n*>(&m_energies[phase]);
+			}
 	public:
 		energy_meter( energy_meter& ) = delete;
 		energy_meter& operator=( energy_meter& ) = delete;
+		//! Constructor
 		energy_meter() {
-			for( auto& ph : m_energies ) {
-				ph.set_scratch_area( m_scratch );
+			//Placement new initialization
+			for( auto &ph : m_energies ) {
+				new (&ph) energy_phase_n { m_scratch };
+			}
+		}
+		//! Destructor
+		~energy_meter() {
+			for( auto &ph : m_energies ) {
+				reinterpret_cast<energy_phase_n*>(&ph)->~energy_phase_n();
 			}
 		}
 
@@ -45,22 +63,23 @@ namespace emeter {
 		template<std::size_t PHASE>
 			sample_t* sample_voltage_begin() noexcept {
 				static_assert( PHASE<config::n_phases, "Invalid V phase num" );
-				return m_energies[PHASE].sample_voltage_begin();
+				return energy(PHASE)->sample_voltage_begin();
 		}
 
 		template<std::size_t PHASE>
 			sample_t* sample_current_begin() noexcept {
 				static_assert( PHASE<config::n_phases, "Invalid I phase num" );
-				return m_energies[PHASE].sample_current_begin();
+				return energy(PHASE)->sample_current_begin();
 		}
 
 		//! Process thread should be called after calculation
 		int calculate() noexcept {
+			int err {};
 			for( std::size_t ph=0; ph<config::n_phases; ++ph ) {
-				auto err = m_energies[ph].calculate();
-				if( err ) return err;
+				auto err2 = energy(ph)->calculate();
+				if( !err ) err = err2;
 			}
-			return 0;
+			return err;
 		}
 
 		//! Get phase defined type
@@ -68,12 +87,12 @@ namespace emeter {
 			typename TAG::value_type operator()
 			( const std::size_t phase, const TAG& p ) const noexcept
 			{
-				return m_energies[phase]( p );
+				return std::ref(*energy(phase))( p );
 			}
 	private:
 		//Temporary scratch memory for FFT calculation
 		char m_scratch[ config::fft_size * sizeof(cplxmeas_t) ];
-		std::array<energy_phase_n, config::n_phases> m_energies;
+		std::array<energy_storage, config::n_phases> m_energies;
 	};
 };
 

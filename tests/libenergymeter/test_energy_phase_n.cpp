@@ -24,9 +24,8 @@
 /** Compare simple buffer management */
 TEST( energy_phase_n, buffer_swap_simple )
 {
-	emeter::energy_phase_n o;
 	auto scratch =  new char[8192];
-	o.set_scratch_area( scratch );
+	emeter::energy_phase_n o(scratch);
 	std::memset( scratch, 0x55, 8192 );
 
 
@@ -50,9 +49,7 @@ TEST( energy_phase_n, buffer_swap_simple )
 /** Test multi loop  */
 TEST( energy_phase_n, buffer_swap_match )
 {
-	emeter::energy_phase_n o;
-	o.set_scratch_area( new char[8192] );
-	for( int i=0; i<64; ++i )
+	emeter::energy_phase_n o(  new char[8192]  );
 	{
 		auto p1 = o.sample_voltage_begin();
 		ASSERT_TRUE( p1 );
@@ -69,8 +66,7 @@ TEST( energy_phase_n, buffer_swap_match )
 TEST( energy_phase_n, buffer_swap_match2 )
 {
 
-	emeter::energy_phase_n o;
-	o.set_scratch_area( new char[8192] );
+	emeter::energy_phase_n o(  new char[8192]  );
 	auto v1 = o.sample_voltage_begin();
 	auto i1 = o.sample_current_begin();
 	o.sample_current_end();
