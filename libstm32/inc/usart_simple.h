@@ -26,11 +26,12 @@ enum usartsimple_errno
 	USARTSIMPLE_INIT_FAIL=-3
 };
 
-enum usartsimple_flags
-{
-	USARTSIMPLE_FL_ALTERNATE = 0x1U,
-	USARTSIMPLE_FL_NORX =	   0x80000000U
-};
+
+
+#define USARTSIMPLE_FL_ALTERNATE 1U
+#define USARTSIMPLE_FL_NORX  0x80000000U
+
+
 
 //Initialize uart
 int usartsimple_init(USART_TypeDef *usart, unsigned baudrate, unsigned flags,
