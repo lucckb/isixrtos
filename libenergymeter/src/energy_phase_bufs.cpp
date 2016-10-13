@@ -29,7 +29,7 @@ int energy_phase_bufs::calculate() noexcept
 	auto ui = bs.find( state::ready_u );
 	auto ii = bs.find( state::ready_i );
 	if( ui!=buf_stat::npos && ii!=buf_stat::npos ) {
-		do_calculate( m_buf[ii].data(), m_buf[ii].data() );
+		do_calculate( m_buf[ui].data(), m_buf[ii].data() );
 		sample_change_state_idx( ui, state::free );
 		sample_change_state_idx( ii, state::free );
 		err = e_ok;

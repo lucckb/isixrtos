@@ -26,8 +26,10 @@
 TEST( energy_phase_n_compute, base_test ) {
 	constexpr auto sim_duration = 60;
 	const auto v_vect = sim::generate_sinus( 230, 50, 0, sim_duration );
-	const auto i_vect = sim::generate_sinus( 230, 50, 0, sim_duration );
+	const auto i_vect = sim::generate_sinus( 1, 50, 45, sim_duration, 1 );
 	emeter::energy_phase_n o(  new char[8192]  );
+	o.set_scale_u( 333.333 * 1.65 );
+	o.set_scale_i( 1.65 );
 	auto vb = o.sample_voltage_begin();
 	ASSERT_TRUE( vb );
 	std::copy( &v_vect[0][0], &v_vect[0][256+256/2], vb );
@@ -38,6 +40,9 @@ TEST( energy_phase_n_compute, base_test ) {
 	ASSERT_EQ( o.sample_current_end(), 0 );
 	ASSERT_EQ( o.calculate(), 0 );
 	PRINTF("URMS: %f\n", o( emeter::tags::u_rms ) );
+	PRINTF("IRMS: %f\n", o( emeter::tags::i_rms ) );
+	PRINTF("P: %f\n", o( emeter::tags::p_avg ) );
+	PRINTF("Q: %f\n", o( emeter::tags::q_avg ) );
 }
 
 

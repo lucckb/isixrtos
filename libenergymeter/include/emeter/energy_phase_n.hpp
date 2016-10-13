@@ -42,6 +42,24 @@ namespace emeter {
 			operator()( const tags::detail::i_rms& ) const noexcept {
 			return m_I.load();
 		}
+		// Get Active power
+		typename tags::detail::i_rms::value_type
+			operator()( const tags::detail::p_avg& ) const noexcept {
+			return m_P.load();
+		}
+		// Get Reactive power
+		typename tags::detail::i_rms::value_type
+			operator()( const tags::detail::q_avg& ) const noexcept {
+			return m_Q.load();
+		}
+		// Set voltage scale
+		void set_scale_u( measure_t scale ) {
+			m_scale_u = scale;
+		}
+		// Set voltage scale
+		void set_scale_i( measure_t scale ) {
+			m_scale_i = scale;
+		}
 	protected:
 		//!Calculate FFT voltage
 		void do_calculate( const sample_t* raw_u, const sample_t* raw_i ) noexcept override;
@@ -59,5 +77,7 @@ namespace emeter {
 		std::atomic<typename tags::detail::p_avg::value_type> m_P;
 		std::atomic<typename tags::detail::q_avg::value_type> m_Q;
 		void* const m_scratch; //! Scratch memory temporary_fft
+		measure_t m_scale_u { 1.0 };
+		measure_t m_scale_i { 1.0 };
 	};
 }

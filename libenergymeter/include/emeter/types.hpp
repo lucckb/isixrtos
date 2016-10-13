@@ -24,7 +24,7 @@ namespace emeter {
 	//! Accumulative type
 	using accum_t = std::uint64_t;
 	//! Sample type
-	using sample_t = std::uint16_t;
+	using sample_t = std::int16_t;
 	//! Simple measure type
 	using measure_t = float;
 	//! Complex type

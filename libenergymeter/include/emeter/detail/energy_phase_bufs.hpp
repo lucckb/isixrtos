@@ -90,7 +90,7 @@ namespace detail {
 		virtual void do_calculate( const sample_t* u, const sample_t* raw_i ) noexcept = 0;
 	private:
 		std::array<std::array<sample_t,buflen>,nbufs> m_buf {{{}}};
-		std::atomic<unsigned> m_states;
+		std::atomic<unsigned> m_states {};
 	private:
 		//! Internal class for handle buffer status
 		class buf_stat {

@@ -21,6 +21,7 @@
 #include <cmath>
 #include <tuple>
 
+
 namespace emeter {
 
 namespace {
@@ -37,15 +38,14 @@ namespace {
 // Calculate single stage u or i
 const cplxmeas_t* energy_phase_n::fft_calc( void* result, const sample_t* raw )
 {
-	constexpr auto wnd_s1 = dsp::window::sum_hanning<fftsiz,measure_t>();
-	constexpr auto wnd_s2 = wnd_s1 * wnd_s1;
-	constexpr measure_t wscale =  std::sqrt( wnd_s2 * fftsiz );
+	constexpr auto wnd_s = dsp::window::sum_hanning<fftsiz,measure_t>(true);
+	constexpr measure_t wscale =  std::sqrt( wnd_s * fftsiz );
 	auto fft_in = reinterpret_cast<measure_t*>(result);
 	auto fft_out = reinterpret_cast<cplxmeas_t*>(result);
 	dsp::window::apply_hanning<fftsiz>( raw, fft_in );
 	dsp::refft::fft_real( fft_out, fft_in, config::fft_bits );
 	for( size_t i=0; i<=fftsiz/2; ++i ) {
-		fft_out[i] = std::sqrt(2.0f) * fft_out[i] / wscale;
+		fft_out[i] = std::sqrt(measure_t(2.0)) * fft_out[i] / wscale;
 	}
 	return reinterpret_cast<const cplxmeas_t*>( result );
 }
@@ -53,7 +53,7 @@ const cplxmeas_t* energy_phase_n::fft_calc( void* result, const sample_t* raw )
 // RMS calculate
 measure_t energy_phase_n::rms( const cplxmeas_t input[] ) {
 	measure_t sum { };
-	for( size_t i=0; i<=fftsiz/2; ++i ) {
+	for( size_t i=1; i<=fftsiz/2; ++i ) {
 		const auto r = input[i];
 		sum += r.real()*r.real()+r.imag()*r.imag();
 	}
@@ -65,7 +65,7 @@ std::pair<measure_t,measure_t>
 {
 	measure_t sum_p {};
 	measure_t sum_q {};
-	for( size_t i=1; i<=fftsiz/2; ++i ) {
+	for( size_t i=0; i<=fftsiz/2; ++i ) {
 		const auto P = ub[i] * std::conj(ib[i]);
 		sum_p += P.real();
 		sum_q += P.imag();
@@ -88,10 +88,14 @@ void energy_phase_n::do_calculate( const sample_t* raw_u, const sample_t* raw_i 
 		I = I + rms( fft_i );
 		P = P + power( fft_u, fft_i );
 	}
-	m_U.store( U / 2 );
-	m_I.store( I / 2 );
-	m_P.store( P.first / 2 );
-	m_Q.store( P.second / 2 );
+	U = (U/2)*m_scale_u;
+	I = (I/2)*m_scale_i;
+	P.first = (P.first/2)*m_scale_u*m_scale_i;
+	P.second = (P.second/2)*m_scale_u*m_scale_i;
+	m_U.store( U );
+	m_I.store( I );
+	m_P.store( P.first  );
+	m_Q.store( P.second );
 }
 
 }

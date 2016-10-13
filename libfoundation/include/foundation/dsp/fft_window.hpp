@@ -114,10 +114,10 @@ namespace {
 
 	/* CPP compile time sum */
 	template <size_t Size, typename Type, Type (*Func)(size_t,size_t)>
-		constexpr double sum_generic() {
+		constexpr double sum_generic( const bool ispow2 ) {
 			double sum {};
 			for( size_t i=0; i<Size; ++i )
-				sum += Func(i,Size);
+				sum += (Func(i,Size) * (ispow2?Func(i,Size):0) );
 			return sum;
 		}
 
@@ -131,8 +131,8 @@ namespace {
 	}
 	/** Sum of hanning window */
 	template <size_t Size, typename Type>
-		constexpr double sum_hanning() {
-			return sum_generic<Size,Type,_internal::hanning_function>();
+		constexpr double sum_hanning( const bool ispow2 ) {
+			return sum_generic<Size,Type,_internal::hanning_function>(ispow2);
 		}
 }}
 
