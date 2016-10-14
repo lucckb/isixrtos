@@ -73,6 +73,7 @@ std::pair<measure_t,measure_t>
 	return std::make_pair( sum_p, sum_q );
 }
 
+
 //! TODO: maybe thd as extras
 //!Calculate FFT voltage
 void energy_phase_n::do_calculate( const sample_t* raw_u, const sample_t* raw_i ) noexcept
@@ -96,6 +97,7 @@ void energy_phase_n::do_calculate( const sample_t* raw_u, const sample_t* raw_i 
 	m_I.store( I );
 	m_P.store( P.first  );
 	m_Q.store( P.second );
+	m_S.store( U * I );
 }
 
 }
