@@ -20,6 +20,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <cmath>
 
 #pragma once
 namespace sim {
@@ -50,5 +51,8 @@ namespace {
 		}
 	}
 
+	constexpr auto deg2rad( double deg ) {
+		return (deg/360.0)*2.0*M_PI;
+	}
 }
 

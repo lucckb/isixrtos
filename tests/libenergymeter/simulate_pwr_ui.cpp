@@ -25,8 +25,9 @@
 namespace sim {
 
 
-
 namespace {
+
+
 		constexpr meas_t d2m( double V, double k ) {
 			auto tmp =  V/k;
 			if( tmp > Vref/2 )
