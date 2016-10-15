@@ -31,8 +31,14 @@ namespace {
 		double p;
 		double q;
 		double s;
+		void dbg() const {
+			PRINTF("U: %f I: %f P: %f Q: %f S: %f\n", u, i, p, q, s );
+		}
 	};
 }
+
+
+
 
 namespace {
 
@@ -82,6 +88,66 @@ TEST( energy_phase_n_compute, sinusoidal_energy_angle ) {
 	}
 }
 
+
+//! Base fft calculation options
+TEST( energy_phase_n_compute, sinusoidal_energy_frequency ) {
+	constexpr auto sim_duration = 5;
+	constexpr auto voltage = 230.0;
+	constexpr auto current = 1.0;
+	for( int freq=50;freq<=600; freq+= 50 )
+	for( int angle=0;angle<=360;angle+=15 ) {
+		auto v_vect = sim::generate_sinus( voltage, freq, angle, sim_duration );
+		auto i_vect = sim::generate_sinus( current, freq, 0, sim_duration, 1 );
+		auto r = normal_test( v_vect, i_vect );
+		//Sinusoidal wave power factors compare
+		ASSERT_NEAR( r.p, voltage*current*std::cos( sim::deg2rad(angle)), 0.05 ) ;
+		ASSERT_NEAR( r.q, voltage*current*std::sin( sim::deg2rad(angle)), 0.05 ) ;
+		ASSERT_NEAR( r.s, voltage*current, 0.05 );
+		ASSERT_NEAR( r.u, voltage, 0.05 );
+		ASSERT_NEAR( r.i, current, 0.05 );
+	}
+}
+
+//! Test with third harmonic
+TEST( energy_phase_n_compute, third_harmonic_same_val ) {
+	constexpr auto sim_duration = 5;
+	//Due to hardware limitation
+	constexpr auto voltage = 230.0/2;
+	constexpr auto current = 1.0/2;
+	constexpr auto freq = 50;
+	constexpr auto freq3 = 3*freq;
+	constexpr auto angle = 45;
+	auto v_vect = sim::generate_sinus( voltage, freq, 0, sim_duration )
+		+ sim::generate_sinus( voltage, freq3, 0, sim_duration );
+	auto i_vect = sim::generate_sinus( current, freq, angle, sim_duration, 1 )
+		+ sim::generate_sinus( current, freq3, angle, sim_duration, 1 );
+	auto r = normal_test( v_vect, i_vect );
+	ASSERT_NEAR( r.p, 81.314, 0.05 );
+	ASSERT_NEAR( r.q, -81.310, 0.05 );
+	ASSERT_NEAR( r.s, 114.99, 0.05 );
+	ASSERT_NEAR( r.u, voltage*std::sqrt(2), 0.05 );
+	ASSERT_NEAR( r.i, current*std::sqrt(2), 0.05 );
+
+}
+
+
+//Test for DC cutoff
+TEST( energy_phase_n_compute, dc_cutoff_test ) {
+	constexpr auto sim_duration = 5;
+	constexpr auto voltage = 230.0;
+	constexpr auto current = 0.9;
+	constexpr auto freq = 50;
+	constexpr auto angle = 0;
+	auto v_vect = sim::generate_sinus( voltage, freq, angle, sim_duration ) + 20.0;
+	auto i_vect = sim::generate_sinus( current, freq, 0, sim_duration, 1 ) + 0.1;
+	auto r = normal_test( v_vect, i_vect );
+	ASSERT_NEAR( r.p, voltage*current, 0.05 );
+	ASSERT_NEAR( r.q, 0.0, 0.05 );
+	ASSERT_NEAR( r.s, voltage*current, 0.05 );
+	ASSERT_NEAR( r.u, voltage, 0.05 );
+	ASSERT_NEAR( r.i, current, 0.05 );
+
+}
 
 
 
