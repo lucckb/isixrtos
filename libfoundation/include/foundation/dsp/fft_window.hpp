@@ -117,7 +117,7 @@ namespace {
 		constexpr double sum_generic( const bool ispow2 ) {
 			double sum {};
 			for( size_t i=0; i<Size; ++i )
-				sum += (Func(i,Size) * (ispow2?Func(i,Size):0) );
+				sum += (Func(i,Size) * (ispow2?Func(i,Size):1.0) );
 			return sum;
 		}
 

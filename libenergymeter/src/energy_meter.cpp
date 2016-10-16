@@ -85,7 +85,5 @@ typename tags::detail::var_h_neg::value_type energy_meter::operator()
 	return scale_energy_div( val, p );
 }
 
-
-
 }
 
