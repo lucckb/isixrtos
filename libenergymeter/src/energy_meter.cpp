@@ -20,11 +20,11 @@
 namespace emeter {
 
 
-//Adjust input energy
+//Adjust input energy cuttof when energy is less than 0.5W
 measure_t energy_meter::adjust_energy( measure_t e ) {
-	if( e > 0 && e<measure_t(0.5)  ) {
+	if( e > 0 && e<config::energy_cnt_tresh  ) {
 		return 0;
-	} else if( e < 0 && e>measure_t(-0.5) ) {
+	} else if( e < 0 && e>-config::energy_cnt_tresh ) {
 		return 0;
 	} else {
 		return std::round( e * measure_t(100) );

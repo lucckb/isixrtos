@@ -55,6 +55,7 @@ namespace emeter {
 				return reinterpret_cast<const energy_phase_n*>(&m_energies[phase]);
 			}
 		// Get 64 bit value with interrupt nolock
+		//NOTE: ARM32 bit doesn't support 64 bit atomic ops
 		static inline accum_t read_atomic_accum_t( const accum_t& input )
 		{
 			accum_t v1, v2;
