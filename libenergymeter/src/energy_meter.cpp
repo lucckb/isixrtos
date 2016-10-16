@@ -21,13 +21,13 @@ namespace emeter {
 
 
 //Adjust input energy cuttof when energy is less than 0.5W
-measure_t energy_meter::adjust_energy( measure_t e ) {
+measure_t energy_meter::scale_energy_mul( measure_t e ) {
 	if( e > 0 && e<config::energy_cnt_tresh  ) {
 		return 0;
 	} else if( e < 0 && e>-config::energy_cnt_tresh ) {
 		return 0;
 	} else {
-		return std::round( e * measure_t(100) );
+		return std::round( e * measure_t(ecnt_scale) );
 	}
 }
 
@@ -36,13 +36,13 @@ measure_t energy_meter::adjust_energy( measure_t e ) {
 void energy_meter::calculate_energies( pwr_cnt& ecnt, const energy_phase_n& ephn ) noexcept
 {
 	measure_t val;
-	val = adjust_energy( ephn( emeter::tags::p_avg ) );
+	val = scale_energy_mul( ephn( emeter::tags::p_avg ) );
 	if( val > 0 ) {
 		ecnt.p_plus += measure_t(val);
 	} else {
 		ecnt.p_minus += measure_t(-val);
 	}
-	val = adjust_energy( ephn( emeter::tags::q_avg ) );
+	val = scale_energy_mul( ephn( emeter::tags::q_avg ) );
 	if( val > 0 ) {
 		ecnt.q_plus += measure_t(val);
 	} else {
@@ -56,7 +56,7 @@ typename tags::detail::watt_h_pos::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::watt_h_pos p ) const noexcept
 {
 	auto val = read_atomic_accum_t( m_ecnt[phase].p_plus );
-	return rescale_pwr( val, p );
+	return scale_energy_div( val, p );
 }
 
 // Wh produced
@@ -64,7 +64,7 @@ typename tags::detail::watt_h_neg::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::watt_h_neg p) const noexcept
 {
 	auto val = read_atomic_accum_t( m_ecnt[phase].p_minus );
-	return rescale_pwr( val, p );
+	return scale_energy_div( val, p );
 }
 
 
@@ -73,7 +73,7 @@ typename tags::detail::var_h_pos::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::var_h_pos p) const noexcept
 {
 	auto val = read_atomic_accum_t( m_ecnt[phase].q_plus );
-	return rescale_pwr( val, p );
+	return scale_energy_div( val, p );
 }
 
 
@@ -82,7 +82,7 @@ typename tags::detail::var_h_neg::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::var_h_neg p) const noexcept
 {
 	auto val = read_atomic_accum_t( m_ecnt[phase].q_minus );
-	return rescale_pwr( val, p );
+	return scale_energy_div( val, p );
 }
 
 }

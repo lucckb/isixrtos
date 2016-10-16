@@ -68,7 +68,7 @@ namespace emeter {
 
 		//! Auto scale energy calculation
 		template< typename TAG >
-		static typename TAG::value_type rescale_pwr( accum_t val, const TAG& ) {
+		static typename TAG::value_type scale_energy_div( accum_t val, const TAG& ) {
 			using mtype = typename TAG::value_type;
 			bool half = ( val % ecnt_scale > ecnt_scale / 2 );
 			val /= ecnt_scale;
@@ -157,8 +157,8 @@ namespace emeter {
 	private:
 		//! Calculate energies based on the phase
 		void calculate_energies( pwr_cnt& ecnt, const energy_phase_n& ephn ) noexcept;
-		//Adjust input energy
-		static measure_t adjust_energy( measure_t e );
+		//Adjust input energy multiply
+		static measure_t scale_energy_mul( measure_t e );
 	private:
 		// Energy counter for 3phases
 		std::array<pwr_cnt,config::n_phases> m_ecnt {{}};
