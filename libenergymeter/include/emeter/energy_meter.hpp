@@ -151,9 +151,20 @@ namespace emeter {
 		typename tags::detail::var_h_pos::value_type operator()
 			( const std::size_t phase, tags::detail::var_h_pos p) const noexcept;
 
-		// Wh produced
+		// varh produced
 		typename tags::detail::var_h_neg::value_type operator()
 			( const std::size_t phase, tags::detail::var_h_neg p) const noexcept;
+
+		// All phases together.
+		template<typename TAG>
+		typename TAG::value_type operator() ( const TAG& p ) const noexcept {
+			decltype(TAG::value_type) acc = 0;
+			for( size_t ph=0; ph<config::n_phases; ++ph ) {
+				acc += operator()( ph, p );
+			}
+			return acc;
+		}
+
 	private:
 		//! Calculate energies based on the phase
 		void calculate_energies( pwr_cnt& ecnt, const energy_phase_n& ephn ) noexcept;
