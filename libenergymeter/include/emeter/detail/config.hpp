@@ -16,6 +16,9 @@
  * =====================================================================================
  */
 #pragma once
+
+#include "../types.hpp"
+
 namespace emeter {
 namespace config {
 namespace {
@@ -27,5 +30,7 @@ namespace {
 	constexpr auto n_phases = 3U;
 	//! Sample rate
 	constexpr auto sample_rate = 4000;
+	//! Energy measure treshold
+	constexpr measure_t energy_cnt_tresh = 0.5;
 }}}
 

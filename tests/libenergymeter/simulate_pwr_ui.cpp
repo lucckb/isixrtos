@@ -60,7 +60,7 @@ namespace {
 	 *	 @param[in] angle Start angle
 	 *	 @param[in] Time duration
 	 */
-	phases_buf_t generate_sinus( double ampl, double freq, 
+	phases_buf_t generate_sinus( double ampl, double freq,
 			double angle, double time, double ku )
 	{
 		auto al2 = std::async(std::launch::async, gen_1ph_sin, ampl, freq, angle, time, 2, ku );

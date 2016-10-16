@@ -36,10 +36,10 @@ namespace detail {
 	struct s_avg { using value_type = measure_t; };
 
 	//! Billing information
-	struct var_h_pos { using value_type = accum_t; };
-	struct watt_h_pos { using value_type = accum_t; };
-	struct var_h_neg { using value_type = accum_t; };
-	struct watt_h_neg { using value_type = accum_t; };
+	struct var_h_pos { using value_type = energymeas_t; };
+	struct watt_h_pos { using value_type = energymeas_t; };
+	struct var_h_neg { using value_type = energymeas_t; };
+	struct watt_h_neg { using value_type = energymeas_t; };
 }
 	namespace {
 		constexpr detail::var_h_pos  var_h_pos{};
