@@ -21,13 +21,13 @@ namespace emeter {
 
 
 //Adjust input energy cuttof when energy is less than 0.5W
-measure_t energy_meter::scale_energy_mul( measure_t e ) {
+int energy_meter::scale_energy_mul( measure_t e ) {
 	if( e > 0 && e<config::energy_cnt_tresh  ) {
 		return 0;
 	} else if( e < 0 && e>-config::energy_cnt_tresh ) {
 		return 0;
 	} else {
-		return std::round( e * measure_t(ecnt_scale) );
+		return std::lround( e * measure_t(ecnt_scale) );
 	}
 }
 
@@ -35,18 +35,17 @@ measure_t energy_meter::scale_energy_mul( measure_t e ) {
 //! Calculate energies based on the phase
 void energy_meter::calculate_energies( pwr_cnt& ecnt, const energy_phase_n& ephn ) noexcept
 {
-	measure_t val;
-	val = scale_energy_mul( ephn( emeter::tags::p_avg ) );
+	auto val = scale_energy_mul( ephn( emeter::tags::p_avg ) );
 	if( val > 0 ) {
-		ecnt.p_plus += measure_t(val);
+		ecnt.p_plus += val;
 	} else {
-		ecnt.p_minus += measure_t(-val);
+		ecnt.p_minus += -val;
 	}
 	val = scale_energy_mul( ephn( emeter::tags::q_avg ) );
 	if( val > 0 ) {
-		ecnt.q_plus += measure_t(val);
+		ecnt.q_plus += val;
 	} else {
-		ecnt.q_minus += measure_t(-val);
+		ecnt.q_minus += -val;
 	}
 }
 

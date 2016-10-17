@@ -96,29 +96,35 @@ namespace emeter {
 		 * @param[in] input Input buffer pointer with resampled data
 		 * @return Buffer to fill by sampling procedure
 		 */
-		template<std::size_t PHASE>
-			sample_t* sample_voltage_begin() noexcept {
-				static_assert( PHASE<config::n_phases, "Invalid V phase num" );
-				return energy(PHASE)->sample_voltage_begin();
+		sample_t* sample_voltage_begin(size_t ph) noexcept {
+			return energy(ph)->sample_voltage_begin();
 		}
 
-		template<std::size_t PHASE>
-			int sample_voltage_end() noexcept {
-				static_assert( PHASE<config::n_phases, "Invalid V phase num" );
-				return energy(PHASE)->sample_voltage_end();
-			}
-
-		template<std::size_t PHASE>
-			sample_t* sample_current_begin() noexcept {
-				static_assert( PHASE<config::n_phases, "Invalid I phase num" );
-				return energy(PHASE)->sample_current_begin();
+		int sample_voltage_end(size_t ph) noexcept {
+			return energy(ph)->sample_voltage_end();
 		}
 
-		template<std::size_t PHASE>
-			int sample_current_end() noexcept {
-				static_assert( PHASE<config::n_phases, "Invalid V phase num" );
-				return energy(PHASE)->sample_current_end();
+		sample_t* sample_current_begin(size_t ph) noexcept {
+			return energy(ph)->sample_current_begin();
+		}
+
+		int sample_current_end(size_t ph) noexcept {
+			return energy(ph)->sample_current_end();
+		}
+
+		// Set voltage scale
+		void set_scale_u( measure_t scale ) {
+			for( std::size_t ph=0; ph<config::n_phases; ++ph ) {
+				energy(ph)->set_scale_u( scale );
 			}
+		}
+
+		// Set current scale
+		void set_scale_i( measure_t scale ) {
+			for( std::size_t ph=0; ph<config::n_phases; ++ph ) {
+				energy(ph)->set_scale_i( scale );
+			}
+		}
 
 		//! Process thread should be called after calculation
 		int calculate() noexcept {
@@ -158,7 +164,7 @@ namespace emeter {
 		// All phases together.
 		template<typename TAG>
 		typename TAG::value_type operator() ( const TAG& p ) const noexcept {
-			decltype(TAG::value_type) acc = 0;
+			typename TAG::value_type acc = 0;
 			for( size_t ph=0; ph<config::n_phases; ++ph ) {
 				acc += operator()( ph, p );
 			}
@@ -169,7 +175,7 @@ namespace emeter {
 		//! Calculate energies based on the phase
 		void calculate_energies( pwr_cnt& ecnt, const energy_phase_n& ephn ) noexcept;
 		//Adjust input energy multiply
-		static measure_t scale_energy_mul( measure_t e );
+		static int scale_energy_mul( measure_t e );
 	private:
 		// Energy counter for 3phases
 		std::array<pwr_cnt,config::n_phases> m_ecnt {{}};
