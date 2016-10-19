@@ -18,6 +18,7 @@
 
 #include <emeter/energy_meter.hpp>
 #include <gtest/gtest.h>
+#include <boost/lexical_cast.hpp>
 #include "simulate_pwr_ui.hpp"
 #include "gprint.hpp"
 
@@ -63,11 +64,11 @@ namespace {
 }
 
 // Base rective energy only caculate up to 1KW
-TEST( energy_meter, _1KW_r_only ) {
+TEST( energy_meter, long_r_only ) {
 	emeter::energy_meter em;
 	em.set_scale_u( u_scale );
 	em.set_scale_i( i_scale );
-	constexpr auto sim_duration = 3600*1;
+	constexpr auto sim_duration = 3600*10;
 	constexpr auto voltage = 230.0;
 	constexpr auto current = 1.0;
 	constexpr auto freq = 50;
@@ -75,14 +76,166 @@ TEST( energy_meter, _1KW_r_only ) {
 	auto v_vect = sim::generate_sinus( voltage, freq, angle, sim_duration );
 	auto i_vect = sim::generate_sinus( current, freq, 0, sim_duration, 1 );
 	process_time( em, v_vect, i_vect );
+	for( size_t ph=0; ph<3; ++ph ) {
+		SCOPED_TRACE( "PHASE("+ boost::lexical_cast<std::string>(ph)+ ")" );
+		EXPECT_NEAR( em(ph,tg::p_avg), 23000 , 0.4 );
+		EXPECT_NEAR( em(ph,tg::q_avg), 0 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::watt_h_pos), 230000000 , 7000 );
+		EXPECT_EQ( em(ph,tg::watt_h_neg), 0 );
+		EXPECT_EQ( em(ph,tg::var_h_pos), 0 );
+		EXPECT_EQ( em(ph,tg::var_h_neg), 0 );
+	}
+	EXPECT_NEAR( em(tg::watt_h_pos), 230000000*3 , 7000*3);
+	EXPECT_EQ( em(tg::watt_h_neg), 0 );
+	EXPECT_EQ( em(tg::var_h_pos), 0 );
+	EXPECT_EQ( em(tg::var_h_neg), 0 );
+
 	PRINTF("P %f Q %f\n", em(1,tg::p_avg), em(1,tg::q_avg) );
 	PRINTF("U %f I %f\n", em(1,tg::u_rms), em(1, tg::i_rms) );
-	PRINTF("1:E+ %f Q+ %f E- %f Q- %f\n", em(0,tg::watt_h_pos), em(0,tg::var_h_pos),
+	PRINTF("1:E+ %lu Q+ %lu E- %lu Q- %lu\n", em(0,tg::watt_h_pos), em(0,tg::var_h_pos),
 			em(0,tg::watt_h_neg), em(0,tg::var_h_neg ) );
-	PRINTF("2:E+ %f Q+ %f E- %f Q- %f\n", em(1,tg::watt_h_pos), em(1,tg::var_h_pos),
+	PRINTF("2:E+ %lu Q+ %lu E- %lu Q- %lu\n", em(1,tg::watt_h_pos), em(1,tg::var_h_pos),
 			em(1,tg::watt_h_neg), em(1,tg::var_h_neg ) );
-	PRINTF("3:E+ %f Q+ %f E- %f Q- %f\n", em(2,tg::watt_h_pos), em(2,tg::var_h_pos),
+	PRINTF("3:E+ %lu Q+ %lu E- %lu Q- %lu\n", em(2,tg::watt_h_pos), em(2,tg::var_h_pos),
 			em(2,tg::watt_h_neg), em(2,tg::var_h_neg ) );
-	PRINTF("3f: E+ %f Q+ %f E- %f Q- %f\n", em(tg::watt_h_pos), em(tg::var_h_pos),
+	PRINTF("3f: E+ %lu Q+ %lu E- %lu Q- %lu\n", em(tg::watt_h_pos), em(tg::var_h_pos),
 			em(tg::watt_h_neg), em(tg::var_h_neg ) );
+}
+
+
+// Base rective energy only caculate up to 1KW
+TEST( energy_meter, short_r_only ) {
+	emeter::energy_meter em;
+	em.set_scale_u( u_scale );
+	em.set_scale_i( i_scale );
+	constexpr auto sim_duration = 3600*0.5;
+	constexpr auto voltage = 230.0;
+	constexpr auto current = 1.0;
+	constexpr auto freq = 50;
+	constexpr auto angle = 0;
+	auto v_vect = sim::generate_sinus( voltage, freq, angle, sim_duration );
+	auto i_vect = sim::generate_sinus( current, freq, 0, sim_duration, 1 );
+	process_time( em, v_vect, i_vect );
+	for( size_t ph=0; ph<3; ++ph ) {
+		SCOPED_TRACE( "PHASE("+ boost::lexical_cast<std::string>(ph)+ ")" );
+		EXPECT_NEAR( em(ph,tg::p_avg), 23000 , 0.4 );
+		EXPECT_NEAR( em(ph,tg::q_avg), 0 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::watt_h_pos), 11500000 , 400);
+		EXPECT_EQ( em(ph,tg::watt_h_neg), 0 );
+		EXPECT_EQ( em(ph,tg::var_h_pos), 0 );
+		EXPECT_EQ( em(ph,tg::var_h_neg), 0 );
+	}
+	EXPECT_NEAR( em(tg::watt_h_pos), 11500000*3 , 400*3);
+	EXPECT_EQ( em(tg::watt_h_neg), 0 );
+	EXPECT_EQ( em(tg::var_h_pos), 0 );
+	EXPECT_EQ( em(tg::var_h_neg), 0 );
+}
+
+constexpr inline double p2err( double exc, double perc ) {
+	return std::abs(exc) * perc * 0.01;
+}
+
+// Base rective energy only caculate up to 1KW
+TEST( energy_meter, short_rl_motor_only ) {
+	emeter::energy_meter em;
+	em.set_scale_u( u_scale );
+	em.set_scale_i( i_scale );
+	constexpr auto sim_duration = 3600*0.5;
+	constexpr auto voltage = 230.0;
+	constexpr auto current = 1.0;
+	constexpr auto freq = 50;
+	constexpr auto angle = 45;
+	constexpr auto Pexc = voltage * current * 100.0 * std::cos(sim::deg2rad(angle));
+	constexpr auto Qexc = voltage * current * 100.0 * std::sin(sim::deg2rad(angle));
+	auto v_vect = sim::generate_sinus( voltage, freq, angle, sim_duration );
+	auto i_vect = sim::generate_sinus( current, freq, 0, sim_duration, 1 );
+	process_time( em, v_vect, i_vect );
+	for( size_t ph=0; ph<3; ++ph ) {
+		SCOPED_TRACE( "PHASE("+ boost::lexical_cast<std::string>(ph)+ ")" );
+		EXPECT_NEAR( em(ph,tg::p_avg), Pexc , 2 );
+		EXPECT_NEAR( em(ph,tg::q_avg), Qexc , 2 );
+		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::watt_h_pos), (Pexc/2)*1000.0 , p2err((Pexc/2)*1000.0, 0.006) );
+		EXPECT_EQ( em(ph,tg::watt_h_neg), 0 );
+		EXPECT_NEAR( em(ph,tg::var_h_pos), (Qexc/2)*1000.0 , p2err((Qexc/2)*1000.0, 0.006) );
+		EXPECT_EQ( em(ph,tg::var_h_neg), 0 );
+	}
+	EXPECT_NEAR( em(tg::watt_h_pos), (Pexc/2)*3000.0 , p2err((Pexc/2)*3000.0, 0.006 ) );
+	EXPECT_EQ( em(tg::watt_h_neg), 0 );
+	EXPECT_NEAR( em(tg::var_h_pos), (Qexc/2)*3000.0, p2err((Qexc/2)*3000.0, 0.006 )  );
+	EXPECT_EQ( em(tg::var_h_neg), 0 );
+
+}
+
+
+// Base rective energy only caculate up to 1KW
+TEST( energy_meter, short_rl_gen_qm ) {
+	emeter::energy_meter em;
+	em.set_scale_u( u_scale );
+	em.set_scale_i( i_scale );
+	constexpr auto sim_duration = 3600*0.5;
+	constexpr auto voltage = 230.0;
+	constexpr auto current = 1.0;
+	constexpr auto freq = 50;
+	constexpr auto angle = -45;
+	constexpr auto Pexc = voltage * current * 100.0 * std::cos(sim::deg2rad(angle));
+	constexpr auto Qexc = voltage * current * 100.0 * std::sin(sim::deg2rad(angle));
+	auto v_vect = sim::generate_sinus( voltage, freq, angle, sim_duration );
+	auto i_vect = sim::generate_sinus( current, freq, 0, sim_duration, 1 );
+	process_time( em, v_vect, i_vect );
+	for( size_t ph=0; ph<3; ++ph ) {
+		SCOPED_TRACE( "PHASE("+ boost::lexical_cast<std::string>(ph)+ ")" );
+		EXPECT_NEAR( em(ph,tg::p_avg), Pexc , 2 );
+		EXPECT_NEAR( em(ph,tg::q_avg), Qexc , 2 );
+		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::watt_h_pos), (Pexc/2)*1000.0 , p2err((Pexc/2)*1000.0, 0.006) );
+		EXPECT_EQ( em(ph,tg::watt_h_neg), 0 );
+		EXPECT_NEAR( em(ph,tg::var_h_neg), -(Qexc/2)*1000.0 , p2err((Qexc/2)*1000.0, 0.006) );
+		EXPECT_EQ( em(ph,tg::var_h_pos), 0 );
+	}
+	EXPECT_NEAR( em(tg::watt_h_pos), (Pexc/2)*3000.0 , p2err((Pexc/2)*3000.0, 0.006 ) );
+	EXPECT_EQ( em(tg::watt_h_neg), 0 );
+	EXPECT_NEAR( em(tg::var_h_neg), -(Qexc/2)*3000.0, p2err((Qexc/2)*3000.0, 0.006 )  );
+	EXPECT_EQ( em(tg::var_h_pos), 0 );
+
+}
+
+
+// Base rective energy only caculate up to 1KW
+TEST( energy_meter, short_rl_gen_qm_pm ) {
+	emeter::energy_meter em;
+	em.set_scale_u( u_scale );
+	em.set_scale_i( i_scale );
+	constexpr auto sim_duration = 3600*0.5;
+	constexpr auto voltage = 230.0;
+	constexpr auto current = 1.0;
+	constexpr auto freq = 50;
+	constexpr auto angle = -45*3;
+	constexpr auto Pexc = voltage * current * 100.0 * std::cos(sim::deg2rad(angle));
+	constexpr auto Qexc = voltage * current * 100.0 * std::sin(sim::deg2rad(angle));
+	auto v_vect = sim::generate_sinus( voltage, freq, angle, sim_duration );
+	auto i_vect = sim::generate_sinus( current, freq, 0, sim_duration, 1 );
+	process_time( em, v_vect, i_vect );
+	for( size_t ph=0; ph<3; ++ph ) {
+		SCOPED_TRACE( "PHASE("+ boost::lexical_cast<std::string>(ph)+ ")" );
+		EXPECT_NEAR( em(ph,tg::p_avg), Pexc , 2 );
+		EXPECT_NEAR( em(ph,tg::q_avg), Qexc , 2 );
+		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::watt_h_neg), -(Pexc/2)*1000.0 , p2err((Pexc/2)*1000.0, 0.006) );
+		EXPECT_EQ( em(ph,tg::watt_h_pos), 0 );
+		EXPECT_NEAR( em(ph,tg::var_h_neg), -(Qexc/2)*1000.0 , p2err((Qexc/2)*1000.0, 0.006) );
+		EXPECT_EQ( em(ph,tg::var_h_pos), 0 );
+	}
+	EXPECT_NEAR( em(tg::watt_h_neg), -(Pexc/2)*3000.0 , p2err((Pexc/2)*3000.0, 0.006 ) );
+	EXPECT_EQ( em(tg::watt_h_pos), 0 );
+	EXPECT_NEAR( em(tg::var_h_neg), -(Qexc/2)*3000.0, p2err((Qexc/2)*3000.0, 0.006 )  );
+	EXPECT_EQ( em(tg::var_h_pos), 0 );
+
 }

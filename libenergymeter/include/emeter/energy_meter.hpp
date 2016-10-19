@@ -31,10 +31,10 @@ namespace emeter {
 	static constexpr auto ethresh = config::energy_cnt_tresh;
 	static constexpr auto ecnt_scale  = 128;
 	//! How long takes a single sampling time
-	static constexpr energymeas_t wnd_smp_time = energymeas_t(1) /
-		(energymeas_t( config::sample_rate )/energymeas_t(config::fftbuf_size));
+	static constexpr energymeas_t wnd_smp_time_s = 1000.0 /
+		(double( config::sample_rate )/double(config::fftbuf_size));
 	//! Per hour sampling time divide
-	static constexpr auto wnd_smp_time_hrs = wnd_smp_time/energymeas_t(3600);
+	static constexpr auto hr = energymeas_t(3600);
 	//! Main energy meter class library
 	class energy_meter
 	{
@@ -69,17 +69,19 @@ namespace emeter {
 		//! Auto scale energy calculation
 		template< typename TAG >
 		static typename TAG::value_type scale_energy_div( accum_t val, const TAG& ) {
-			using mtype = typename TAG::value_type;
 			bool half = ( val % ecnt_scale > ecnt_scale / 2 );
-			val /= ecnt_scale;
-			if( half ) ++val;
-			return mtype(val) * wnd_smp_time_hrs;
+			val /= ecnt_scale; if( half ) ++val;
+			val *= wnd_smp_time_s;
+			half = ( val % hr > hr / 2 );
+			val /= hr; if( half ) ++val;
+			return val;
 		}
 	public:
 		energy_meter( energy_meter& ) = delete;
 		energy_meter& operator=( energy_meter& ) = delete;
 		//! Constructor
 		energy_meter() {
+			static_assert( ecnt_scale >= wnd_smp_time_s, "multiply must be less than scale");
 			//Placement new initialization
 			for( auto &ph : m_energies ) {
 				new (&ph) energy_phase_n { m_scratch };
