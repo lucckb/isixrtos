@@ -25,7 +25,7 @@ class window;
 class frame : public object {
 	static constexpr auto system_events_qsize = 64;
 public:
-	struct errno { enum {
+	struct error { enum {
 		success = 0,
 		wnd_not_found = -4096
 	};};
@@ -81,7 +81,7 @@ public:
 			m_win_stack.pop();
 			return set_focus( cf );
 		} else {
-			return errno::wnd_not_found;
+			return error::wnd_not_found;
 		}
 	}
 	//! If previous focus is empty

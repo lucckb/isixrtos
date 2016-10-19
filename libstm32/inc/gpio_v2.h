@@ -385,6 +385,34 @@ static inline void gpio_clock_enable( GPIO_TypeDef* port, bool enable )
 #undef ENR_REG
 }
 
+/**
+  * @brief  Selects the ETHERNET media interface
+  * @param  SYSCFG_ETH_MediaInterface: specifies the Media Interface mode.
+  *          This parameter can be one of the following values:
+  *            @arg SYSCFG_ETH_MediaInterface_MII: MII mode selected
+  *            @arg SYSCFG_ETH_MediaInterface_RMII: RMII mode selected
+  * @retval None
+  */
+enum gpio_media_interface_enum {
+	GPIO_ETH_MediaInterface_MII = 0,
+	GPIO_ETH_MediaInterface_RMII = 1
+};
+
+static inline void gpio_eth_media_interface_config( uint32_t media_ifc )
+{
+
+#   define SYSCFG_OFFSET             (SYSCFG_BASE - PERIPH_BASE)
+#	define PMC_OFFSET                (SYSCFG_OFFSET + 0x04)
+#	define MII_RMII_SEL_BitNumber    ((uint8_t)0x17) 
+#	define PMC_MII_RMII_SEL_BB       (PERIPH_BB_BASE + (PMC_OFFSET * 32) + (MII_RMII_SEL_BitNumber * 4))
+	  *(__IO uint32_t *) PMC_MII_RMII_SEL_BB = media_ifc;
+#undef PMC_OFFSET
+#undef MII_RMII_SEL_BitNumber
+#undef PMC_MII_RMII_SEL_BB
+#undef SYSCFG_OFFSET
+}
+
+
 #ifdef __cplusplus
 }
 #endif

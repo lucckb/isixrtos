@@ -26,7 +26,7 @@
 #define CONFIG_ISIXDRV_I2C_2 2
 /**
  * If channel is defined only one ch is enabled
- * #define CONFIG_ISIXDRV_I2C_USE_FIXED_I2C 1 
+ * #define CONFIG_ISIXDRV_I2C_USE_FIXED_I2C 1
  * Value 1 , 2 , 3  are allowed if not defined all is enabled
  */
 /** CAUTION On some F20x devices exists bug in I2C hardware !! 
@@ -46,14 +46,14 @@
 	The setup time can be violated independently of the APB peripheral frequency.
  */
 //#define CONFIG_ISIXDRV_I2C_USE_FIXED_I2C CONFIG_ISIXDRV_I2C_1 
-/* ------------------------------------------------------------------ */ 
+
 namespace stm32 {
 namespace drv {
-/* ------------------------------------------------------------------ */ 
+
 extern "C" {
 #ifdef STM32MCU_MAJOR_TYPE_F1
 	__attribute__((interrupt)) void dma1_channel7_isr_vector();
-	__attribute__((interrupt)) void dma1_channel5_isr_vector(); 
+	__attribute__((interrupt)) void dma1_channel5_isr_vector();
 #endif
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C)
 	void i2c1_ev_isr_vector() __attribute__ ((interrupt));
@@ -61,7 +61,7 @@ extern "C" {
 	void i2c2_ev_isr_vector() __attribute__ ((interrupt));
 	void i2c2_er_isr_vector() __attribute__ ((interrupt));
 	void dma1_stream0_isr_vector() __attribute__((interrupt));
-	void dma1_stream7_isr_vector() __attribute__((interrupt));
+	void dma1_stream2_isr_vector() __attribute__((interrupt));
 #elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
 	void i2c1_ev_isr_vector() __attribute__ ((interrupt));
 	void i2c1_er_isr_vector() __attribute__ ((interrupt));
@@ -73,48 +73,48 @@ extern "C" {
 #else
 #error Unknown I2C
 #endif
-	void dma1_stream6_isr_vector() __attribute__((interrupt));
 }
-/* ------------------------------------------------------------------ */ 
+
 class i2c_bus : public fnd::bus::ibus {
 	static constexpr auto IRQ_PRIO = 1;
 	static constexpr auto IRQ_SUB = 7;
 	static constexpr auto TRANSACTION_TIMEOUT = 5000;
-	
+
 #if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C)
 	friend void i2c1_ev_isr_vector();
 	friend void i2c1_er_isr_vector();
 	friend void i2c2_ev_isr_vector();
 	friend void i2c2_er_isr_vector();
 	friend void dma1_stream0_isr_vector();
-	friend void dma1_stream6_isr_vector();
-	friend void dma1_stream7_isr_vector();
-#elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1 
+	friend void dma1_stream2_isr_vector();
+#elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
 	friend void i2c1_ev_isr_vector();
 	friend void i2c1_er_isr_vector();
 	friend void dma1_stream0_isr_vector();
 #elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2
 	friend void i2c2_ev_isr_vector();
 	friend void i2c2_er_isr_vector();
-	friend void dma1_stream7_isr_vector();
+	friend void dma1_stream2_isr_vector();
 #endif
 	friend void dma1_channel7_isr_vector();
 	friend void dma1_channel5_isr_vector();
 public:
 	enum class busid { //! Interface independent bus ID
-		i2c1,			//I2C1 
-		i2c2			//I2C2
+		i2c1,			//I2C1
+		i2c2,			//I2C2
+		i2c1_alt,		//Alternate PINS on i2c1 bus
+		i2c2_alt		//I2C2 on the alternate pinout
 	};
 	/** Constructor
 	 * @param[in] _i2c Interface bus ID
 	 * @param[in] clk_speed CLK speed in HZ
 	 */
-#ifdef CONFIG_PCLK1_HZ 
+#ifdef CONFIG_PCLK1_HZ
 	i2c_bus( busid _i2c, unsigned clk_speed=100000, unsigned pclk1 = CONFIG_PCLK1_HZ );
 #else
 	i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 );
 #endif
-	/** 
+	/**
 	 * Destructor
 	 */
 	virtual ~i2c_bus();
@@ -125,24 +125,44 @@ public:
 	 * @param[out] rbuffer Read data buffer pointer
 	 * @param[in] rsize Read buffer sizes
 	 * @return Error code or success */
-	virtual int 
-		transfer(unsigned addr, const void* wbuffer, size_t wsize, void* rbuffer, size_t rsize);
-	
-	/** Double non continous transaction write 
+	int transfer(unsigned addr, const void* wbuffer,
+			size_t wsize, void* rbuffer, size_t rsize) override
+	{
+		//STM32F1 Medium density Errata
+		//Some software events must be managed before the current byte is being transferred
+		//Workarround1 (USE DMA but number of bytest must be > 1)
+#		if defined(STM32MCU_MAJOR_TYPE_F1)
+		if( rsize == 1 ) {
+			unsigned char tmprx[2];
+			const auto ret = transfer_impl( addr, wbuffer, wsize, tmprx, sizeof tmprx );
+			if( !ret ) {
+				*reinterpret_cast<unsigned char*>(rbuffer) = tmprx[0];
+			}
+			return ret;
+
+		} else {
+			return transfer_impl( addr, wbuffer, wsize, rbuffer, rsize );
+		}
+#		else
+			return transfer_impl( addr, wbuffer, wsize, rbuffer, rsize );
+#		endif
+	}
+
+	/** Double non continous transaction write
 	 * @param[in] addr I2C address
 	 * @param[in] wbuf1 Write buffer first transaction
 	 * @param[in] wsize1 Transaction size 1
 	 * @param[in] wbuf2 Write buffer first transaction
 	 * @param[in] wsize2 Transaction size 1
 	 * @return error code or success */
-	virtual int 
-		write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 );
+	int write( unsigned addr, const void* wbuf1, size_t wsize1,
+			const void* wbuf2, size_t wsize2 ) override;
 
 	/** Mdelay bus tout impl */
-	virtual void mdelay( unsigned timeout );
+	void mdelay( unsigned timeout ) override;
 private:
 	//! Hardware init
-	void gpio_initialize();
+	void gpio_initialize( bool alt );
 	//! Get hardware error code
 	int get_hwerror(void) const;
 	//Interrupt event handler
@@ -155,6 +175,8 @@ private:
 	void ev_dma_tc();
 	//! Finalize transaction
 	void ev_finalize( bool state_err = false );
+	int transfer_impl(unsigned addr, const void* wbuffer, 
+			size_t wsize, void* rbuffer, size_t rsize);
 private:
 #ifndef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 	void* const m_i2c;					//! I2C
@@ -168,7 +190,7 @@ private:
 	isix::semaphore m_lock {1, 1};		//! Lock semaphore
 	isix::semaphore m_notify { 0, 1 };	//! Notify semaphore
 };
-/* ------------------------------------------------------------------ */ 
+
 
 }
 }

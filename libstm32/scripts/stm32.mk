@@ -3,25 +3,36 @@
 #Old MCU variant now is defined as minor major CPU code
 MCU_VARIANT ?= $(MCU_MAJOR_TYPE)$(MCU_MINOR_TYPE)
 
-#Skrypt linkera
+#Linker scripts config
 ifeq ($(USE_SBL_BOOTLOADER),y)
 SCRIPTLINK = stm32-$(MCU_VARIANT)-sbl
 else
 SCRIPTLINK = stm32-$(MCU_VARIANT)
 endif
 
+#Check for ccache
+CCACHE_VER := $(shell ccache --version 2> /dev/null )
+
 #CROSS COMPILE
 CROSS_COMPILE ?= arm-none-eabi-
+
+ifdef CCACHE_VER 
+CROSS_COMPILE_0 = ccache $(CROSS_COMPILE)
+else
+CROSS_COMPILE_0 = $(CROSS_COMPILE)
+endif
+
+
 # Cross compile stuff
-CC_V     	:= $(CROSS_COMPILE)gcc
-CXX_V	  	:= $(CROSS_COMPILE)g++
-AR_V      	:= $(CROSS_COMPILE)ar
-CP_V      	:= $(CROSS_COMPILE)objcopy
-OBJDUMP_V 	:= $(CROSS_COMPILE)objdump 
-SIZE_V 	  	:= $(CROSS_COMPILE)size
+CC_V     	:= $(CROSS_COMPILE_0)gcc
+CXX_V	  	:= $(CROSS_COMPILE_0)g++
+AR_V      	:= $(CROSS_COMPILE_0)ar
+CP_V      	:= $(CROSS_COMPILE_0)objcopy
+OBJDUMP_V 	:= $(CROSS_COMPILE_0)objdump 
+SIZE_V 	  	:= $(CROSS_COMPILE_0)size
 JTAGPROG_V  := openocd
 RM_V		:= rm
-LD_V		:= $(CROSS_COMPILE)g++
+LD_V		:= $(CROSS_COMPILE_0)g++
  
 #Verbose stuff BEGIN
 V?=0
@@ -95,8 +106,8 @@ $(error MCU_MAJOR_TYPE CPU type is invalid)
 endif
 
 
-CXXFLAGS += -std=gnu++11
-ASFLAGS += -Wa,-mapcs-32 $(MCU_FLAGS) -mthumb $(COMMON_FLAGS)
+CXXFLAGS += -std=gnu++14
+ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb $(COMMON_FLAGS)
 LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
 CPFLAGS =  -S
 ARFLAGS = rcs
@@ -175,6 +186,19 @@ clean:
 	$(RM) -f $(TARGET).lss
 	$(RM) -f lib$(TARGET).a
 	$(RM) -f $(OBJ) $(LST) $(DEPFILES) $(LIBS) $(LIBS_OBJS)
+
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+CC_VFX := 'python2 $(ROOT_DIR)/cc_args.py $(CC_V)'
+CXX_VFX := 'python2 $(ROOT_DIR)/cc_args.py $(CXX_V)'
+
+.PHONY : vimfiles
+.ONESHELL: vimfiles
+vimfiles:
+	@rm -f .clang_complete
+	@$(MAKE) -s clean all CC=$(CC_VFX) CXX=$(CXX_VFX)
+	@echo | $(CC_V) -Wp,-v -x c++ - -fsyntax-only 2>&1 | awk ' /^ / { print "-isystem\n"$$1 >> ".clang_complete"; } END { print "-std=c++14" >> ".clang_complete"; } '
+	@awk 'BEGIN { v="."; }  /^-I/ { gsub("-I","", $$1); v=v","$$1} END { print "set path="v  > ".vim.custom"; }' .clang_complete
+	@echo "let lb_grep_path='$(realpath $(ISIX_BASE_DIR)/..)'" >> .vim.custom
 
 
 program: $(TARGET).elf

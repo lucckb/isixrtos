@@ -49,7 +49,14 @@ void* operator new( size_t n ) throw()
     return ptr;
 }
 
-void operator delete( void* p) throw()
+void operator delete( void* p ) throw()
+{
+    if(p)
+    	foundation_free(p);
+}
+
+
+void operator delete( void* p, size_t ) throw()
 {
     if(p)
     	foundation_free(p);
@@ -64,6 +71,12 @@ void* operator new[]( size_t n) throw()
 }
 
 void operator delete[]( void* p) throw()
+{
+    if(p)
+    	foundation_free(p);
+}
+
+void operator delete[]( void* p, size_t) throw()
 {
     if(p)
     	foundation_free(p);

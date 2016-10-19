@@ -61,6 +61,7 @@ static inline char base_to_digit( int digit )
 void fnd_uitoa(char *str, unsigned val ,int fmt, char fmtch, int base)
 {
     int digits;
+	char z = val==0;
     if(fmt>16) return;
     for(digits=0; val>0; val/=base,digits++)
         str[digits] = base_to_digit(val % base);
@@ -68,6 +69,8 @@ void fnd_uitoa(char *str, unsigned val ,int fmt, char fmtch, int base)
         str[digits] = fmtch;
     str[digits] = '\0';
     strrev(str,digits);
+	if( z && str[digits-1]!='0' ) 
+		str[digits-1] = '0';
 }
 
 /* ------------------------------------------------------------ */
