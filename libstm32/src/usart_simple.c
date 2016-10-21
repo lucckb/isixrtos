@@ -23,6 +23,9 @@
 #define USART2_RX_BIT 3
 
 
+#define IS_NEW_GPIO defined(STM32MCU_MAJOR_TYPE_F2) || 	defined(STM32MCU_MAJOR_TYPE_F4) \
+|| defined(STM32MCU_MAJOR_TYPE_F37)
+
 static USART_TypeDef *usart;
 
 
@@ -39,10 +42,11 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 			gpio_abstract_config(GPIOA,USART1_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
 			if(!(flags & USARTSIMPLE_FL_NORX ) )
 				gpio_abstract_config(GPIOA,USART1_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
-#if defined(STM32MCU_MAJOR_TYPE_F2) || 	defined(STM32MCU_MAJOR_TYPE_F4)
-			gpio_pin_AF_config(GPIOA, USART1_TX_BIT , GPIO_AF_USART1 );
+#if  IS_NEW_GPIO
+ 
+			gpio_pin_AF_config(GPIOA, USART1_TX_BIT , GPIO_AF_7 );
 			if(!(flags & USARTSIMPLE_FL_NORX ) )
-				gpio_pin_AF_config(GPIOA, USART1_RX_BIT , GPIO_AF_USART1 );
+				gpio_pin_AF_config(GPIOA, USART1_RX_BIT , GPIO_AF_7 );
 #endif
 		}
 		else
@@ -53,11 +57,11 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 
 			if(!(flags & USARTSIMPLE_FL_NORX ) )
 				gpio_abstract_config(GPIOB,USART1_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
-#if defined(STM32MCU_MAJOR_TYPE_F2) || 	defined(STM32MCU_MAJOR_TYPE_F4)
-			gpio_pin_AF_config(GPIOB, USART1_ALT_TX_BIT , GPIO_AF_USART1 );
+#if IS_NEW_GPIO
+			gpio_pin_AF_config(GPIOB, USART1_ALT_TX_BIT , GPIO_AF_7 );
 
 			if(!(flags & USARTSIMPLE_FL_NORX ) )
-				gpio_pin_AF_config(GPIOB, USART1_ALT_RX_BIT , GPIO_AF_USART1 );
+				gpio_pin_AF_config(GPIOB, USART1_ALT_RX_BIT , GPIO_AF_7 );
 #else
 			RCC->APB2ENR |= RCC_APB2Periph_AFIO;
 			AFIO->MAPR |= AFIO_MAPR_USART1_REMAP;
@@ -86,7 +90,7 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 			gpio_abstract_config(GPIOD,USART2_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0);
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			AFIO->MAPR |= AFIO_MAPR_USART2_REMAP;
-#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#elif IS_NEW_GPIO
 			gpio_pin_AF_config( GPIOD, USART2_ALT_TX_BIT, 7 );
 			if(!(flags & USARTSIMPLE_FL_NORX ) )
 			gpio_pin_AF_config( GPIOD, USART2_ALT_RX_BIT, 7 );
