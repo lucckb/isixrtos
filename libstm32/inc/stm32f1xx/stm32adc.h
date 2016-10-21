@@ -5,73 +5,19 @@
  *      Author: lucck
  */
 
-#ifndef STM32F1ADC_H_
-#define STM32F1ADC_H_
-/* ---------------------------------------------------------------------------- */
+#pragma once
+
 #include "stm32f10x_lib.h"
 #include "stm32f10x_adc.h"
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
-/* ---------------------------------------------------------------------------- */
+
 
 #ifdef __cplusplus
  namespace stm32 {
 #endif
-/* ---------------------------------------------------------------------------- */
-#ifdef __cplusplus
-namespace _internal {
-namespace adc {
-/* ADC DISCNUM mask */
-static const uint32_t CR1_DISCNUM_Reset  =  0xFFFF1FFF;
-/* ADC DISCEN mask */
-static const uint32_t CR1_DISCEN_Set     =  0x00000800;
-static const uint32_t CR1_DISCEN_Reset   =  0xFFFFF7FF;
-/* ADC JAUTO mask */
-static const uint32_t CR1_JAUTO_Set      =  0x00000400;
-static const uint32_t CR1_JAUTO_Reset    =  0xFFFFFBFF;
-/* ADC JDISCEN mask */
-static const uint32_t CR1_JDISCEN_Set    =  0x00001000;
-static const uint32_t CR1_JDISCEN_Reset  =  0xFFFFEFFF;
-/* ADC AWDCH mask */
-static const uint32_t CR1_AWDCH_Reset    =  0xFFFFFFE0;
-/* ADC Analog watchdog enable mode mask */
-static const uint32_t CR1_AWDMode_Reset  =         0xFF3FFDFF;
-static const uint32_t CR1_CLEAR_Mask     =         0xFFF0FEFF;
-/* ADC ADON mask */
-static const uint32_t CR2_ADON_Set       =         0x00000001;
-static const uint32_t CR2_ADON_Reset     =         0xFFFFFFFE;
-static const uint32_t CR2_DMA_Set        =         0x00000100;
-static const uint32_t CR2_DMA_Reset      =         0xFFFFFEFF;
-static const uint32_t CR2_RSTCAL_Set     =         0x00000008;
-static const uint32_t CR2_CAL_Set        =         0x00000004;
-static const uint32_t CR2_SWSTART_Set    =         0x00400000;
-static const uint32_t CR2_EXTTRIG_Set    =         0x00100000;
-static const uint32_t CR2_EXTTRIG_Reset  =         0xFFEFFFFF;
-static const uint32_t CR2_EXTTRIG_SWSTART_Set  =   0x00500000;
-static const uint32_t CR2_EXTTRIG_SWSTART_Reset =  0xFFAFFFFF;
-static const uint32_t CR2_JEXTSEL_Reset        =   0xFFFF8FFF;
-static const uint32_t CR2_JEXTTRIG_Set         =   0x00008000;
-static const uint32_t CR2_JEXTTRIG_Reset       =   0xFFFF7FFF;
-static const uint32_t CR2_JSWSTART_Set         =   0x00200000;
-static const uint32_t CR2_JEXTTRIG_JSWSTART_Set =  0x00208000;
-static const uint32_t CR2_JEXTTRIG_JSWSTART_Reset =0xFFDF7FFF;
-static const uint32_t CR2_TSVREFE_Set            = 0x00800000;
-static const uint32_t CR2_TSVREFE_Reset          = 0xFF7FFFFF;
-static const uint32_t CR2_CLEAR_Mask             = 0xFFF1F7FD;
-static const uint32_t SQR3_SQ_Set                = 0x0000001F;
-static const uint32_t SQR2_SQ_Set                = 0x0000001F;
-static const uint32_t SQR1_SQ_Set                = 0x0000001F;
-static const uint32_t SQR1_CLEAR_Mask            = 0xFF0FFFFF;
-static const uint32_t JSQR_JSQ_Set               = 0x0000001F;
-static const uint32_t JSQR_JL_Set                = 0x00300000;
-static const uint32_t JSQR_JL_Reset              = 0xFFCFFFFF;
-static const uint32_t SMPR1_SMP_Set              = 0x00000007;
-static const uint32_t SMPR2_SMP_Set              = 0x00000007;
-static const uint32_t JDR_Offset                 = 0x28;
-static const uint32_t DR_ADDRESS                 = 0x4001244C;
-}}
-#else
+
 
 #define CR1_DISCNUM_Reset    0xFFFF1FFF
 #define CR1_DISCEN_Set       0x00000800
@@ -115,17 +61,14 @@ static const uint32_t DR_ADDRESS                 = 0x4001244C;
 #define JDR_Offset                  0x28
 #define DR_ADDRESS                  0x4001244C
 
-#endif
 
-/* ---------------------------------------------------------------------------- */
+
+
 /* Initialize the ADC converter */
 static inline void adc_init(ADC_TypeDef* ADCx, uint32_t adc_mode, bool adc_scan_conv_mode,
 	bool adc_continous_conv_mode, uint32_t adc_external_trig_conv,
 	uint32_t adc_data_align, uint8_t adc_n_of_channels )
 {
-  #ifdef __cplusplus
-	using namespace _internal::adc;
-  #endif
   uint32_t tmpreg1 = 0;
   uint8_t tmpreg2 = 0;
   /* Get the ADCx CR1 value */
@@ -165,7 +108,7 @@ static inline void adc_init(ADC_TypeDef* ADCx, uint32_t adc_mode, bool adc_scan_
   /* Write to ADCx SQR1 */
   ADCx->SQR1 = tmpreg1;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the specified ADC peripheral.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -175,9 +118,6 @@ static inline void adc_init(ADC_TypeDef* ADCx, uint32_t adc_mode, bool adc_scan_
   */
 static inline void adc_cmd(ADC_TypeDef* ADCx, bool enable)
 {
-  #ifdef __cplusplus
-	using namespace _internal::adc;
-  #endif
   /* Check the parameters */
   if ( enable )
   {
@@ -190,7 +130,7 @@ static inline void adc_cmd(ADC_TypeDef* ADCx, bool enable)
     ADCx->CR2 &= CR2_ADON_Reset;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the specified ADC DMA request.
   * @param  ADCx: where x can be 1 or 3 to select the ADC peripheral.
@@ -201,9 +141,6 @@ static inline void adc_cmd(ADC_TypeDef* ADCx, bool enable)
   */
 static inline void adc_dma_cmd(ADC_TypeDef* ADCx, bool enable)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
 
   /* Check the parameters */
   if( enable )
@@ -218,7 +155,7 @@ static inline void adc_dma_cmd(ADC_TypeDef* ADCx, bool enable)
   }
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the specified ADC interrupts.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -233,9 +170,6 @@ static inline void adc_dma_cmd(ADC_TypeDef* ADCx, bool enable)
   */
 static inline void adc_it_config(ADC_TypeDef* ADCx, uint16_t ADC_IT, bool enable)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
  
   uint8_t itmask = 0;
   /* Get the ADC IT index */
@@ -251,7 +185,7 @@ static inline void adc_it_config(ADC_TypeDef* ADCx, uint16_t ADC_IT, bool enable
     ADCx->CR1 &= (~(uint32_t)itmask);
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Resets the selected ADC calibration registers.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -259,14 +193,11 @@ static inline void adc_it_config(ADC_TypeDef* ADCx, uint16_t ADC_IT, bool enable
   */
 static inline void adc_reset_calibration(ADC_TypeDef* ADCx)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
  
  /* Resets the selected ADC calibration registers */  
   ADCx->CR2 |= CR2_RSTCAL_Set;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Gets the selected ADC reset calibration registers status.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -274,13 +205,10 @@ static inline void adc_reset_calibration(ADC_TypeDef* ADCx)
   */
 static inline bool adc_get_reset_calibration_status(ADC_TypeDef* ADCx)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
    return ( ADCx->CR2 & CR2_RSTCAL_Set)?true:false;
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Starts the selected ADC calibration process.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -288,13 +216,10 @@ static inline bool adc_get_reset_calibration_status(ADC_TypeDef* ADCx)
   */
 static inline void adc_start_calibration(ADC_TypeDef* ADCx)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
   /* Enable the selected ADC calibration process */  
   ADCx->CR2 |= CR2_CAL_Set;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Gets the selected ADC calibration status.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -302,12 +227,9 @@ static inline void adc_start_calibration(ADC_TypeDef* ADCx)
   */
 static inline bool adc_get_calibration_status(ADC_TypeDef* ADCx)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
    return (ADCx->CR2 & CR2_CAL_Set)?true:false;
 }
-/* ---------------------------------------------------------------------------- */
+
   /* @brief  Enables or disables the selected ADC software start conversion  
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
   * @param  NewState: new state of the selected ADC software start conversion.
@@ -316,9 +238,6 @@ static inline bool adc_get_calibration_status(ADC_TypeDef* ADCx)
   */
 static inline void adc_software_start_conv_cmd(ADC_TypeDef* ADCx, bool start_conv)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
  
   if ( start_conv )
   {
@@ -333,7 +252,7 @@ static inline void adc_software_start_conv_cmd(ADC_TypeDef* ADCx, bool start_con
     ADCx->CR2 &= CR2_EXTTRIG_SWSTART_Reset;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Gets the selected ADC Software start conversion Status.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -341,13 +260,10 @@ static inline void adc_software_start_conv_cmd(ADC_TypeDef* ADCx, bool start_con
   */
 static inline bool adc_get_software_start_conv_status(ADC_TypeDef* ADCx)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
   return (ADCx->CR2 & CR2_SWSTART_Set)?true:false;
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the discontinuous mode for the selected ADC regular
   *         group channel.
@@ -358,9 +274,6 @@ static inline bool adc_get_software_start_conv_status(ADC_TypeDef* ADCx)
   */
 static inline void adc_disc_mode_channel_count_config(ADC_TypeDef* ADCx, uint8_t number)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
   uint32_t tmpreg1 = 0;
   uint32_t tmpreg2 = 0;
   /* Get the old register value */
@@ -373,7 +286,7 @@ static inline void adc_disc_mode_channel_count_config(ADC_TypeDef* ADCx, uint8_t
   /* Store the new register value */
   ADCx->CR1 = tmpreg1;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the discontinuous mode on regular group
   *         channel for the specified ADC
@@ -385,9 +298,6 @@ static inline void adc_disc_mode_channel_count_config(ADC_TypeDef* ADCx, uint8_t
   */
 static inline void adc_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
   if (enable)
   {
     /* Enable the selected ADC regular discontinuous mode */
@@ -399,7 +309,7 @@ static inline void adc_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
     ADCx->CR1 &= CR1_DISCEN_Reset;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures for the selected ADC regular channel its corresponding
   *         rank in the sequencer and its sample time.
@@ -439,9 +349,6 @@ static inline void adc_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
   */
 static inline void adc_regular_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Channel, uint8_t Rank, uint8_t ADC_SampleTime)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
  
    uint32_t tmpreg1 = 0, tmpreg2 = 0;
   /* if ADC_Channel_10 ... ADC_Channel_17 is selected */
@@ -524,7 +431,7 @@ static inline void adc_regular_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Cha
     ADCx->SQR1 = tmpreg1;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the ADCx conversion through external trigger.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -534,9 +441,6 @@ static inline void adc_regular_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Cha
   */
 static inline void adc_external_trig_conv_cmd(ADC_TypeDef* ADCx, bool enable )
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
  
   if ( enable )
   {
@@ -549,7 +453,7 @@ static inline void adc_external_trig_conv_cmd(ADC_TypeDef* ADCx, bool enable )
     ADCx->CR2 &= CR2_EXTTRIG_Reset;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Returns the last ADCx conversion result data for regular channel.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -561,20 +465,17 @@ static inline uint16_t adc_get_conversion_value(ADC_TypeDef* ADCx)
   return (uint16_t) ADCx->DR;
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Returns the last ADC1 and ADC2 conversion result data in dual mode.
   * @retval The Data conversion value.
   */
 static inline uint32_t adc_get_dual_mode_conversion_value(void)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif 
  /* Return the dual mode conversion value */
   return (*(__IO uint32_t *) DR_ADDRESS);
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the selected ADC automatic injected group
   *         conversion after regular one.
@@ -585,10 +486,6 @@ static inline uint32_t adc_get_dual_mode_conversion_value(void)
   */
 static inline void adc_auto_injected_conv_cmd(ADC_TypeDef* ADCx, bool enable)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif 
- 
   if ( enable )
   {
     /* Enable the selected ADC automatic injected group conversion */
@@ -600,7 +497,7 @@ static inline void adc_auto_injected_conv_cmd(ADC_TypeDef* ADCx, bool enable)
     ADCx->CR1 &= CR1_JAUTO_Reset;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the discontinuous mode for injected group
   *         channel for the specified ADC
@@ -612,10 +509,6 @@ static inline void adc_auto_injected_conv_cmd(ADC_TypeDef* ADCx, bool enable)
   */
 static inline void adc_injected_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif 
- 
   if ( enable )
   {
     /* Enable the selected ADC injected discontinuous mode */
@@ -628,7 +521,7 @@ static inline void adc_injected_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
   }
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the ADCx external trigger for injected channels conversion.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -653,9 +546,6 @@ static inline void adc_injected_disc_mode_cmd(ADC_TypeDef* ADCx, bool enable)
   */
 static inline void adc_external_trig_injected_conv_config(ADC_TypeDef* ADCx, uint32_t ADC_ExternalTrigInjecConv)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
   uint32_t tmpreg = 0;
   /* Get the old register value */
   tmpreg = ADCx->CR2;
@@ -667,7 +557,7 @@ static inline void adc_external_trig_injected_conv_config(ADC_TypeDef* ADCx, uin
   ADCx->CR2 = tmpreg;
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the ADCx injected channels conversion through
   *         external trigger
@@ -679,9 +569,6 @@ static inline void adc_external_trig_injected_conv_config(ADC_TypeDef* ADCx, uin
   */
 static inline void adc_external_trig_injected_conv_cmd(ADC_TypeDef* ADCx, bool enable)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-  #endif
 
   if ( enable )
   {
@@ -694,7 +581,7 @@ static inline void adc_external_trig_injected_conv_cmd(ADC_TypeDef* ADCx, bool e
     ADCx->CR2 &= CR2_JEXTTRIG_Reset;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the selected ADC start of the injected 
   *         channels conversion.
@@ -705,9 +592,6 @@ static inline void adc_external_trig_injected_conv_cmd(ADC_TypeDef* ADCx, bool e
   */
 static inline void adc_software_start_injected_conv_cmd(ADC_TypeDef* ADCx, bool enable)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
   if ( enable )
   {
     /* Enable the selected ADC conversion for injected group on external event and start the selected
@@ -722,7 +606,7 @@ static inline void adc_software_start_injected_conv_cmd(ADC_TypeDef* ADCx, bool 
   }
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Gets the selected ADC Software start injected conversion Status.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -730,12 +614,9 @@ static inline void adc_software_start_injected_conv_cmd(ADC_TypeDef* ADCx, bool 
   */
 static inline bool adc_get_software_start_injected_conv_cmd_status(ADC_TypeDef* ADCx)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
    return (ADCx->CR2 & CR2_JSWSTART_Set)?true:false;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures for the selected ADC injected channel its corresponding
   *         rank in the sequencer and its sample time.
@@ -775,9 +656,6 @@ static inline bool adc_get_software_start_injected_conv_cmd_status(ADC_TypeDef* 
   */
 static inline void adc_injected_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Channel, uint8_t Rank, uint8_t ADC_SampleTime)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
 
   uint32_t tmpreg1 = 0, tmpreg2 = 0, tmpreg3 = 0;
   /* if ADC_Channel_10 ... ADC_Channel_17 is selected */
@@ -827,7 +705,7 @@ static inline void adc_injected_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Ch
   /* Store the new register value */
   ADCx->JSQR = tmpreg1;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the sequencer length for injected channels
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -837,9 +715,6 @@ static inline void adc_injected_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Ch
   */
 static inline void adc_injected_sequencer_length_config(ADC_TypeDef* ADCx, uint8_t Length)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
   uint32_t tmpreg1 = 0;
   uint32_t tmpreg2 = 0;
   
@@ -853,7 +728,7 @@ static inline void adc_injected_sequencer_length_config(ADC_TypeDef* ADCx, uint8
   /* Store the new register value */
   ADCx->JSQR = tmpreg1;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Set the injected channels conversion value offset
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -869,9 +744,6 @@ static inline void adc_injected_sequencer_length_config(ADC_TypeDef* ADCx, uint8
   */
 static inline void adc_set_injected_offset(ADC_TypeDef* ADCx, uint8_t ADC_InjectedChannel, uint16_t Offset)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
   __IO uint32_t tmp = 0;
   tmp = (uint32_t)ADCx;
   tmp += ADC_InjectedChannel;
@@ -879,7 +751,7 @@ static inline void adc_set_injected_offset(ADC_TypeDef* ADCx, uint8_t ADC_Inject
   /* Set the selected injected channel data offset */
   *(__IO uint32_t *) tmp = (uint32_t)Offset;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Returns the ADC injected channel conversion result
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -893,9 +765,6 @@ static inline void adc_set_injected_offset(ADC_TypeDef* ADCx, uint8_t ADC_Inject
   */
 static inline uint16_t adc_get_injected_conversion_value(ADC_TypeDef* ADCx, uint8_t ADC_InjectedChannel)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
  
   __IO uint32_t tmp = 0;
   
@@ -906,7 +775,7 @@ static inline uint16_t adc_get_injected_conversion_value(ADC_TypeDef* ADCx, uint
   return (uint16_t) (*(__IO uint32_t*)  tmp);   
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the analog watchdog on single/all regular
   *         or injected channels
@@ -924,9 +793,6 @@ static inline uint16_t adc_get_injected_conversion_value(ADC_TypeDef* ADCx, uint
   */
 static inline void adc_analog_watchdog_cmd(ADC_TypeDef* ADCx, uint32_t ADC_AnalogWatchdog)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
   uint32_t tmpreg = 0;
   /* Get the old register value */
   tmpreg = ADCx->CR1;
@@ -937,7 +803,7 @@ static inline void adc_analog_watchdog_cmd(ADC_TypeDef* ADCx, uint32_t ADC_Analo
   /* Store the new register value */
   ADCx->CR1 = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the high and low thresholds of the analog watchdog.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -950,15 +816,12 @@ static inline void adc_analog_watchdog_cmd(ADC_TypeDef* ADCx, uint32_t ADC_Analo
 static inline void adc_analog_watchdog_thresholds_config(ADC_TypeDef* ADCx, uint16_t HighThreshold,
                                         uint16_t LowThreshold)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
   /* Set the ADCx high threshold */
   ADCx->HTR = HighThreshold;
   /* Set the ADCx low threshold */
   ADCx->LTR = LowThreshold;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the analog watchdog guarded single channel
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -986,9 +849,6 @@ static inline void adc_analog_watchdog_thresholds_config(ADC_TypeDef* ADCx, uint
   */
 static inline void adc_analog_watchdog_single_channel_config(ADC_TypeDef* ADCx, uint8_t ADC_Channel)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
  
   uint32_t tmpreg = 0;
    /* Get the old register value */
@@ -1000,7 +860,7 @@ static inline void adc_analog_watchdog_single_channel_config(ADC_TypeDef* ADCx, 
   /* Store the new register value */
   ADCx->CR1 = tmpreg;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the temperature sensor and Vrefint channel.
   * @param  NewState: new state of the temperature sensor.
@@ -1009,9 +869,6 @@ static inline void adc_analog_watchdog_single_channel_config(ADC_TypeDef* ADCx, 
   */
 static inline void adc_temp_sensor_vref_int_cmd( bool enable )
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
   
  /* Check the parameters */
   if ( enable )
@@ -1025,7 +882,7 @@ static inline void adc_temp_sensor_vref_int_cmd( bool enable )
     ADC1->CR2 &= CR2_TSVREFE_Reset;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Checks whether the specified ADC flag is set or not.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -1040,12 +897,9 @@ static inline void adc_temp_sensor_vref_int_cmd( bool enable )
   */
 static inline bool adc_get_status_flag(ADC_TypeDef* ADCx, uint8_t ADC_FLAG)
 {
-  #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
    return (ADCx->SR & ADC_FLAG)?true:false;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Clears the ADCx's pending flags.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -1060,13 +914,10 @@ static inline bool adc_get_status_flag(ADC_TypeDef* ADCx, uint8_t ADC_FLAG)
   */
 static inline void adc_clear_flag(ADC_TypeDef* ADCx, uint8_t ADC_FLAG)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
   /* Clear the selected ADC flags */
   ADCx->SR = ~(uint32_t)ADC_FLAG;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Checks whether the specified ADC interrupt has occurred or not.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -1079,9 +930,6 @@ static inline void adc_clear_flag(ADC_TypeDef* ADCx, uint8_t ADC_FLAG)
   */
 static inline bool adc_get_it_status(ADC_TypeDef* ADCx, uint16_t ADC_IT)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
   
   uint32_t itmask = 0, enablestatus = 0;
 
@@ -1092,7 +940,7 @@ static inline bool adc_get_it_status(ADC_TypeDef* ADCx, uint16_t ADC_IT)
   /* Check the status of the specified ADC interrupt */
   return ( (ADCx->SR & itmask)  && enablestatus)?true:false;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Clears the ADCx's interrupt pending bits.
   * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
@@ -1105,9 +953,6 @@ static inline bool adc_get_it_status(ADC_TypeDef* ADCx, uint16_t ADC_IT)
   */
 static inline void adc_clear_it_pending_bit(ADC_TypeDef* ADCx, uint16_t ADC_IT)
 {
-   #ifdef __cplusplus
-      using namespace _internal::adc;
-   #endif
   uint8_t itmask = 0;
   /* Get the ADC IT index */
   itmask = (uint8_t)(ADC_IT >> 8);
@@ -1115,10 +960,10 @@ static inline void adc_clear_it_pending_bit(ADC_TypeDef* ADCx, uint16_t ADC_IT)
   ADCx->SR = ~(uint32_t)itmask;
 }
 
-/* ---------------------------------------------------------------------------- */
+
 #ifdef __cplusplus
 }
-#else /* __cplusplus */
+#endif
 
 #undef CR1_DISCNUM_Reset
 #undef CR1_DISCEN_Set
@@ -1162,7 +1007,5 @@ static inline void adc_clear_it_pending_bit(ADC_TypeDef* ADCx, uint16_t ADC_IT)
 #undef JDR_Offset
 #undef DR_ADDRESS
 
-#endif
 
-#endif /* STM32ADC_H_ */
 
