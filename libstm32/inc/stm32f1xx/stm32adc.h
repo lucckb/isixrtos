@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "stm32f10x_lib.h"
+#include <stm32lib.h>
 #include "stm32f10x_adc.h"
 #include <stddef.h>
 #include <stdbool.h>
