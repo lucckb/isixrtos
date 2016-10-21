@@ -19,3 +19,5 @@
 #include "stm32f2xx_tim.h"
 #include "stm32f1f2f4_usart.h"
 #include "misc.h"
+
+#define STM32_CRC_HARDWARE_VERSION 1

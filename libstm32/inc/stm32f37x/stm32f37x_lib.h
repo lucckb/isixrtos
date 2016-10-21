@@ -26,3 +26,5 @@
 #include "stm32f37x_comp.h"
 #include "../stm32f1xx/stm32dma.h"
 #include "misc.h"
+
+#define STM32_CRC_HARDWARE_VERSION 2
