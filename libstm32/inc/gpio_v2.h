@@ -53,35 +53,35 @@ enum e_lvl_gpio_ospeed {
 #if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4)
 enum e_gpio_ospeed {
 	//! GPIO port speed 2MHz
-	GPIO_SPEED_LOW = 	GPIO_SPEED_LEVEL_0,
+	GPIO_SPEED_LOW =	GPIO_SPEED_LEVEL_0,
 	//! GPIO port speed 25MHz
-	GPIO_SPEED_MED = 	GPIO_SPEED_LEVEL_1,
+	GPIO_SPEED_MED =	GPIO_SPEED_LEVEL_1,
 	//! GPIO port speed 50MHz
-	GPIO_SPEED_FAST = 	GPIO_SPEED_LEVEL_2,
+	GPIO_SPEED_FAST =	GPIO_SPEED_LEVEL_2,
 	//! GPIO port speed 100MHz
-	GPIO_SPEED_HI = 	GPIO_SPEED_LEVEL_3
+	GPIO_SPEED_HI =		GPIO_SPEED_LEVEL_3
 };
-#elif defined(STM32MCU_MAJOR_TYPE_F37) || defined(STM32MCU_MAJOR_TYPE_F3) 
+#elif defined(STM32MCU_MAJOR_TYPE_F37) || defined(STM32MCU_MAJOR_TYPE_F3)
 enum e_gpio_ospeed {
 	//! GPIO port speed 2MHz
-	GPIO_SPEED_LOW = 	GPIO_SPEED_LEVEL_2,
+	GPIO_SPEED_LOW =	GPIO_SPEED_LEVEL_2,
 	//! GPIO port speed 10M
-	GPIO_SPEED_MED = 	GPIO_SPEED_LEVEL_1,
+	GPIO_SPEED_MED =	GPIO_SPEED_LEVEL_1,
 	//! GPIO port speed 10M
-	GPIO_SPEED_FAST = 	GPIO_SPEED_LEVEL_1,
+	GPIO_SPEED_FAST =	GPIO_SPEED_LEVEL_1,
 	//! GPIO port speed 50M
-	GPIO_SPEED_HI = 	GPIO_SPEED_LEVEL_3
+	GPIO_SPEED_HI =		GPIO_SPEED_LEVEL_3
 };
 #endif
 
 
 enum e_gpio_pullup {
 	//! No pullup
-	GPIO_PUPD_NONE 		= 0,
+	GPIO_PUPD_NONE		= 0,
 	//!Pull up config
-	GPIO_PUPD_PULLUP 	= 1,
+	GPIO_PUPD_PULLUP	= 1,
 	//! Pull down config
-	GPIO_PUPD_PULLDOWN 	= 2
+	GPIO_PUPD_PULLDOWN	= 2
 };
 
 enum gpio_port_source {
