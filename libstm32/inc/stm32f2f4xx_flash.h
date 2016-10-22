@@ -14,15 +14,15 @@
  * =====================================================================================
  */
 #pragma once 
-/* ------------------------------------------------------------------ */
+
 #include "stm32f2f4xx_flash_defs.h"
 #include "stm32lib.h"
-/* ------------------------------------------------------------------ */ 
+
 #ifdef __cplusplus
 namespace stm32 {
 #endif
 #define SECTOR_MASK               ((uint32_t)0xFFFFFF07)
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Sets the code latency value.
   * @param  FLASH_Latency: specifies the FLASH Latency value.
@@ -34,7 +34,7 @@ namespace stm32 {
   *            @arg FLASH_Latency_4: FLASH Four Latency cycles 
   *            @arg FLASH_Latency_5: FLASH Five Latency cycles 
   *            @arg FLASH_Latency_6: FLASH Six Latency cycles
-  *            @arg FLASH_Latency_7: FLASH Seven Latency cycles      
+  *            @arg FLASH_Latency_7: FLASH Seven Latency cycles 
   * @retval None
   */
 static inline void flash_set_latency(uint32_t flash_latency)
@@ -42,7 +42,7 @@ static inline void flash_set_latency(uint32_t flash_latency)
   /* Perform Byte access to FLASH_ACR[8:0] to set the Latency value */
   *(__IO uint8_t *)ACR_BYTE0_ADDRESS = (uint8_t)flash_latency;
 }
-/* ------------------------------------------------------------------ */
+
 static inline void flash_prefetch_buffer_cmd( bool en )
 {
   
@@ -56,7 +56,7 @@ static inline void flash_prefetch_buffer_cmd( bool en )
 	FLASH->ACR &= (~FLASH_ACR_PRFTEN);
   }
 }
-/* ------------------------------------------------------------------ */
+
 /*
   * @brief  Enables or disables the Instruction Cache feature.
   * @param  NewState: new state of the Instruction Cache.
@@ -74,7 +74,7 @@ static inline void flash_instruction_cache_cmd( bool  en )
     FLASH->ACR &= (~FLASH_ACR_ICEN);
   }
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Enables or disables the Data Cache feature.
   * @param  NewState: new state of the Data Cache.
@@ -93,7 +93,7 @@ static inline void flash_data_cache_cmd( bool en)
     FLASH->ACR &= (~FLASH_ACR_DCEN);
   }
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Resets the Instruction Cache.
   * @note   This function must be used only when the Instruction Cache is disabled.  
@@ -104,7 +104,7 @@ static inline void flash_instruction_cache_reset(void)
 {
   FLASH->ACR |= FLASH_ACR_ICRST;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Resets the Data Cache.
   * @note   This function must be used only when the Data Cache is disabled.  
@@ -115,7 +115,7 @@ static inline void flash_data_cache_reset(void)
 {
   FLASH->ACR |= FLASH_ACR_DCRST;
 }
-/* ------------------------------------------------------------------ */ /**
+
   * @brief  Unlocks the FLASH control register access
   * @param  None
   * @retval None
@@ -129,7 +129,7 @@ static inline void flash_unlock(void)
     FLASH->KEYR = FLASH_KEY2;
   }  
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Locks the FLASH control register access
   * @param  None
@@ -140,7 +140,7 @@ static inline void flash_lock(void)
   /* Set the LOCK Bit to lock the FLASH Registers access */
   FLASH->CR |= FLASH_CR_LOCK;
 }
-/* ------------------------------------------------------------------ */ /**
+
   * @brief  Returns the FLASH Status.
   * @param  None
   * @retval FLASH Status: The returned value can be: FLASH_BUSY, FLASH_ERROR_PROGRAM,
@@ -182,7 +182,7 @@ static inline FLASH_Status flash_get_status(void)
   /* Return the FLASH Status */
   return flashstatus;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Waits for a FLASH operation to complete.
   * @param  None
@@ -206,7 +206,7 @@ static inline FLASH_Status flash_wait_for_last_operation(void)
   /* Return the operation status */
   return status;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Erases a specified FLASH Sector.
   *   
@@ -271,7 +271,7 @@ static inline FLASH_Status flash_erase_sector(uint32_t FLASH_Sector, uint8_t Vol
   /* Return the Erase Status */
   return status;
 }
-/* ------------------------------------------------------------------ */ 
+
 /**
   * @brief  Erases all FLASH Sectors.
   *    
@@ -331,7 +331,7 @@ static inline FLASH_Status flash_erase_all_sectors(uint8_t VoltageRange)
   /* Return the Erase Status */
   return status;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Programs a double word (64-bit) at a specified address.
   * @note   This function must be used when the device voltage range is from
@@ -367,7 +367,7 @@ static inline FLASH_Status flash_program_double_word(uint32_t Address, uint64_t 
   /* Return the Program Status */
   return status;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Programs a word (32-bit) at a specified address.
   * @param  Address: specifies the address to be programmed.
@@ -403,7 +403,7 @@ static inline FLASH_Status flash_program_word(uint32_t Address, uint32_t Data)
   /* Return the Program Status */
   return status;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Programs a half word (16-bit) at a specified address. 
   * @note   This function must be used when the device voltage range is from 2.1V to 3.6V.               
@@ -439,12 +439,12 @@ static inline FLASH_Status flash_program_half_word(uint32_t Address, uint16_t Da
   /* Return the Program Status */
   return status;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Programs a byte (8-bit) at a specified address.
-  * @note   This function can be used within all the device supply voltage ranges.               
+  * @note   This function can be used within all the device supply voltage ranges.
   * @param  Address: specifies the address to be programmed.
-  *         This parameter can be any address in Program memory zone or in OTP zone.  
+  *         This parameter can be any address in Program memory zone or in OTP zone.
   * @param  Data: specifies the data to be programmed.
   * @retval FLASH Status: The returned value can be: FLASH_BUSY, FLASH_ERROR_PROGRAM,
   *                       FLASH_ERROR_WRP, FLASH_ERROR_OPERATION or FLASH_COMPLETE.
@@ -476,7 +476,7 @@ static inline FLASH_Status flash_program_byte(uint32_t Address, uint8_t Data)
   /* Return the Program Status */
   return status;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Unlocks the FLASH Option Control Registers access.
   * @param  None
@@ -491,7 +491,7 @@ static inline void flash_ob_unlock(void)
     FLASH->OPTKEYR = FLASH_OPT_KEY2;
   }  
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Locks the FLASH Option Control Registers access.
   * @param  None
@@ -502,7 +502,7 @@ static inline void flash_ob_lock(void)
   /* Set the OPTLOCK Bit to lock the FLASH Option Byte Registers access */
   FLASH->OPTCR |= FLASH_OPTCR_OPTLOCK;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Enables or disables the write protection of the desired sectors
   * @param  OB_WRP: specifies the sector(s) to be write protected or unprotected.
@@ -531,7 +531,7 @@ static inline void flash_ob_wrp_config(uint32_t OB_WRP, bool en )
     }
   }
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Sets the read protection level.
   * @param  OB_RDP: specifies the read protection level.
@@ -556,7 +556,7 @@ static inline void flash_ob_rdp_config(uint8_t OB_RDP)
 
   }
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Programs the FLASH User Option Byte: IWDG_SW / RST_STOP / RST_STDBY.    
   * @param  OB_IWDG: Selects the IWDG mode
@@ -590,7 +590,7 @@ static inline void flash_ob_user_config(uint8_t OB_IWDG, uint8_t OB_STOP, uint8_
     *(__IO uint8_t *)OPTCR_BYTE0_ADDRESS = OB_IWDG | (uint8_t)(OB_STDBY | (uint8_t)(OB_STOP | ((uint8_t)optiontmp))); 
   }  
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Sets the BOR Level. 
   * @param  OB_BOR: specifies the Option Bytes BOR Reset Level.
@@ -608,7 +608,7 @@ static inline void flash_ob_bor_config(uint8_t OB_BOR)
   *(__IO uint8_t *)OPTCR_BYTE0_ADDRESS |= OB_BOR;
 
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Launch the option byte loading.
   * @param  None
@@ -627,7 +627,7 @@ static inline FLASH_Status flash_ob_launch(void)
 
   return status;
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Returns the FLASH User Option Bytes values.
   * @param  None
@@ -639,7 +639,7 @@ static inline uint8_t flash_ob_get_user(void)
   /* Return the User Option Byte */
   return (uint8_t)(FLASH->OPTCR >> 5);
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Returns the FLASH Write Protection Option Bytes value.
   * @param  None
@@ -650,7 +650,7 @@ static inline uint16_t flash_ob_get_wrp(void)
   /* Return the FLASH write protection Register value */
   return (*(__IO uint16_t *)(OPTCR_BYTE2_ADDRESS));
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Returns the FLASH Read Protection level.
   * @param  None
@@ -662,7 +662,7 @@ static inline bool flash_ob_get_rdp(void)
 {
   return ((*(__IO uint8_t*)(OPTCR_BYTE1_ADDRESS) != (uint8_t)OB_RDP_Level_0));
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Returns the FLASH BOR level.
   * @param  None
@@ -677,7 +677,7 @@ static inline uint8_t flash_ob_get_bor(void)
   /* Return the FLASH BOR level */
   return (uint8_t)(*(__IO uint8_t *)(OPTCR_BYTE0_ADDRESS) & (uint8_t)0x0C);
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Enables or disables the specified FLASH interrupts.
   * @param  FLASH_IT: specifies the FLASH interrupt sources to be enabled or disabled.
@@ -700,7 +700,7 @@ static inline void flash_it_config(uint32_t FLASH_IT, bool en )
     FLASH->CR &= ~(uint32_t)FLASH_IT;
   }
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Checks whether the specified FLASH flag is set or not.
   * @param  FLASH_FLAG: specifies the FLASH flag to check.
@@ -719,7 +719,7 @@ static inline bool flash_get_flag_status(uint32_t FLASH_FLAG)
 
   return((FLASH->SR & FLASH_FLAG) != (uint32_t)0);
 }
-/* ------------------------------------------------------------------ */
+
 /**
   * @brief  Clears the FLASH's pending flags.
   * @param  FLASH_FLAG: specifies the FLASH flags to clear.
@@ -737,10 +737,10 @@ static inline void flash_clear_flag(uint32_t FLASH_FLAG)
   /* Clear the flags */
   FLASH->SR = FLASH_FLAG;
 }
-/* ------------------------------------------------------------------ */
+
 #ifdef __cplusplus
 }
 #endif
-/* ------------------------------------------------------------------ */ 
+
 //Undef macros
 #undef SECTOR_MASK

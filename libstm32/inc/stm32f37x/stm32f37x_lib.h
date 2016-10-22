@@ -25,6 +25,7 @@
 #include "stm32f3xx_usart.h"
 #include "stm32f37x_comp.h"
 #include "stm32f37x_exti.h"
+#include "stm32f37x_flash.h"
 #include "../stm32f1xx/stm32dma.h"
 #include "misc.h"
 
