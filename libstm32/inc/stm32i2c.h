@@ -23,4 +23,3 @@
 #else
 #include "stm32i2c_v1.h"
 #endif
-
