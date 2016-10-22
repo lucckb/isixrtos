@@ -19,77 +19,31 @@
   * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
   ******************************************************************************
   */
+#pragma once
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F10x_EXTI_H
-#define __STM32F10x_EXTI_H
+#define _STM32_EXTI_IMR_DEFVAL 0x00000000
+#define _STM32_EXTI_PR_DEFVAL  0x000FFFFF
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f10x.h"
-
-typedef enum
-{
-  EXTI_Mode_Interrupt = 0x00,
-  EXTI_Mode_Event = 0x04
-}EXTIMode_TypeDef;
-
-
-/** 
-  * @brief  EXTI Trigger enumeration  
-  */
-
-typedef enum
-{
-  EXTI_Trigger_Rising = 0x08,
-  EXTI_Trigger_Falling = 0x0C,  
-  EXTI_Trigger_Rising_Falling = 0x10
-}EXTITrigger_TypeDef;
+#define EXTI_Line0       ((uint32_t)0)  /*!< External interrupt line 0 */
+#define EXTI_Line1       ((uint32_t)1)  /*!< External interrupt line 1 */
+#define EXTI_Line2       ((uint32_t)2)  /*!< External interrupt line 2 */
+#define EXTI_Line3       ((uint32_t)3)  /*!< External interrupt line 3 */
+#define EXTI_Line4       ((uint32_t)4)  /*!< External interrupt line 4 */
+#define EXTI_Line5       ((uint32_t)5)  /*!< External interrupt line 5 */
+#define EXTI_Line6       ((uint32_t)6)  /*!< External interrupt line 6 */
+#define EXTI_Line7       ((uint32_t)7)  /*!< External interrupt line 7 */
+#define EXTI_Line8       ((uint32_t)8)  /*!< External interrupt line 8 */
+#define EXTI_Line9       ((uint32_t)9)  /*!< External interrupt line 9 */
+#define EXTI_Line10      ((uint32_t)10)  /*!< External interrupt line 10 */
+#define EXTI_Line11      ((uint32_t)11)  /*!< External interrupt line 11 */
+#define EXTI_Line12      ((uint32_t)12)  /*!< External interrupt line 12 */
+#define EXTI_Line13      ((uint32_t)13)  /*!< External interrupt line 13 */
+#define EXTI_Line14      ((uint32_t)14)  /*!< External interrupt line 14 */
+#define EXTI_Line15      ((uint32_t)15)  /*!< External interrupt line 15 */
+#define EXTI_Line16      ((uint32_t)16)  /*!< External interrupt line 16 Connected to the PVD Output */
+#define EXTI_Line17      ((uint32_t)17)  /*!< External interrupt line 17 Connected to the RTC Alarm event */
+#define EXTI_Line18      ((uint32_t)18)  /*!< External interrupt line 18 Connected to the USB Device/USB OTG FS
+                                                   Wakeup from suspend event */
+#define EXTI_Line19      ((uint32_t)19)  /*!< External interrupt line 19 Connected to the Ethernet Wakeup event */
 
 
-
-#define EXTI_Line0       ((uint32_t)0x00001)  /*!< External interrupt line 0 */
-#define EXTI_Line1       ((uint32_t)0x00002)  /*!< External interrupt line 1 */
-#define EXTI_Line2       ((uint32_t)0x00004)  /*!< External interrupt line 2 */
-#define EXTI_Line3       ((uint32_t)0x00008)  /*!< External interrupt line 3 */
-#define EXTI_Line4       ((uint32_t)0x00010)  /*!< External interrupt line 4 */
-#define EXTI_Line5       ((uint32_t)0x00020)  /*!< External interrupt line 5 */
-#define EXTI_Line6       ((uint32_t)0x00040)  /*!< External interrupt line 6 */
-#define EXTI_Line7       ((uint32_t)0x00080)  /*!< External interrupt line 7 */
-#define EXTI_Line8       ((uint32_t)0x00100)  /*!< External interrupt line 8 */
-#define EXTI_Line9       ((uint32_t)0x00200)  /*!< External interrupt line 9 */
-#define EXTI_Line10      ((uint32_t)0x00400)  /*!< External interrupt line 10 */
-#define EXTI_Line11      ((uint32_t)0x00800)  /*!< External interrupt line 11 */
-#define EXTI_Line12      ((uint32_t)0x01000)  /*!< External interrupt line 12 */
-#define EXTI_Line13      ((uint32_t)0x02000)  /*!< External interrupt line 13 */
-#define EXTI_Line14      ((uint32_t)0x04000)  /*!< External interrupt line 14 */
-#define EXTI_Line15      ((uint32_t)0x08000)  /*!< External interrupt line 15 */
-#define EXTI_Line16      ((uint32_t)0x10000)  /*!< External interrupt line 16 Connected to the PVD Output */
-#define EXTI_Line17      ((uint32_t)0x20000)  /*!< External interrupt line 17 Connected to the RTC Alarm event */
-#define EXTI_Line18      ((uint32_t)0x40000)  /*!< External interrupt line 18 Connected to the USB Device/USB OTG FS
-                                                   Wakeup from suspend event */                                    
-#define EXTI_Line19      ((uint32_t)0x80000)  /*!< External interrupt line 19 Connected to the Ethernet Wakeup event */
-                                          
-
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __STM32F10x_EXTI_H */
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
