@@ -4,18 +4,16 @@
  *  Created on: 23-07-2012
  *      Author: lucck
  */
-/* ---------------------------------------------------------------------------- */
-#ifndef STM32F4RTC_H_
-#define STM32F4RTC_H_
-/* ---------------------------------------------------------------------------- */
+
+#pragma once
+
 #include <stm32lib.h>
-#include "stm32f4x/stm32f4xx_rtc.h"
-/* ---------------------------------------------------------------------------- */
+
 #ifdef __cplusplus
 namespace stm32 {
 #endif
 
-/* ---------------------------------------------------------------------------- */
+
 /* Masks Definition */
 #define RTC_TR_RESERVED_MASK    ((uint32_t)0x007F7F7F)
 #define RTC_DR_RESERVED_MASK    ((uint32_t)0x00FFFF3F)
@@ -23,7 +21,7 @@ namespace stm32 {
 #define RTC_RSF_MASK            ((uint32_t)0xFFFFFF5F)
 #define INITMODE_TIMEOUT         ((uint32_t) 0x00010000)
 #define SYNCHRO_TIMEOUT          ((uint32_t) 0x00020000)
-#ifdef STM32MCU_MAJOR_TYPE_F4
+#if defined(STM32MCU_MAJOR_TYPE_F4)||defined(STM32MCU_MAJOR_TYPE_F37)
 #define RECALPF_TIMEOUT          ((uint32_t) 0x00020000)
 #define SHPF_TIMEOUT             ((uint32_t) 0x00001000)
 #else
@@ -37,7 +35,7 @@ namespace stm32 {
                                             RTC_FLAG_ALRBWF | RTC_FLAG_ALRAWF | RTC_FLAG_TAMP1F | \
                                             RTC_FLAG_RECALPF | RTC_FLAG_SHPF))
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enters the RTC Initialization mode.
   * @note   The RTC Initialization mode is write protected, use the
@@ -76,7 +74,7 @@ static inline bool rtc_enter_init_mode(void)
   }
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Exits the RTC Initialization mode.
   * @note   When the initialization sequence is complete, the calendar restarts
@@ -93,7 +91,7 @@ static inline void rtc_exit_init_mode(void)
   RTC->ISR &= (uint32_t)~RTC_ISR_INIT;
 }
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Initializes the RTC registers according to the specified parameters
   *         in RTC_InitStruct.
@@ -138,7 +136,7 @@ static inline bool rtc_init(uint32_t hour_format, uint32_t synch_prediv, uint32_
 
   return true;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the RTC registers write protection.
   * @note   All the RTC registers are write protected except for RTC_ISR[13:8],
@@ -164,7 +162,7 @@ static inline void rtc_write_protection_cmd(bool enable)
     RTC->WPR = 0x53;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Waits until the RTC Time and Date registers (RTC_TR and RTC_DR) are
   *         synchronized with RTC APB clock.
@@ -210,7 +208,7 @@ static inline bool rtc_wait_for_synchro(void)
   RTC->WPR = 0xFF;
   return true;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the RTC reference clock detection.
   * @param  NewState: new state of the RTC reference clock.
@@ -254,8 +252,8 @@ static inline bool rtc_ref_clock_cmd( bool enable )
 
   return true;
 }
-/* ---------------------------------------------------------------------------- */
-#ifdef STM32MCU_MAJOR_TYPE_F4
+
+#ifdef RTC_CR_BYPSHAD
 /**
   * @brief  Enables or Disables the Bypass Shadow feature.
   * @note   When the Bypass Shadow is enabled the calendar value are taken
@@ -286,7 +284,7 @@ static inline void rtc_bypass_shadow_cmd(bool enable)
   RTC->WPR = 0xFF;
 }
 #endif
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Converts a 2 digit decimal to BCD format.
   * @param  Value: Byte to be converted.
@@ -318,7 +316,7 @@ static inline uint8_t _private_RTC_Bcd2ToByte(uint8_t Value)
 }
 
 
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Set the RTC current time.
   * @param  RTC_Format: specifies the format of the entered parameters.
@@ -391,7 +389,7 @@ static inline bool rtc_set_time(uint32_t RTC_Format, uint8_t hours, uint8_t minu
 
     /* Exit Initialization mode */
     rtc_exit_init_mode();
-#ifdef STM32MCU_MAJOR_TYPE_F4
+#ifdef RTC_CR_BYPSHAD
     /* If  RTC_CR_BYPSHAD bit = 0, wait for synchro else this check is not needed */
     if ((RTC->CR & RTC_CR_BYPSHAD) == RESET)
     {
@@ -404,7 +402,7 @@ static inline bool rtc_set_time(uint32_t RTC_Format, uint8_t hours, uint8_t minu
       {
         return false;
       }
-#ifdef STM32MCU_MAJOR_TYPE_F4
+#ifdef RTC_CR_BYPSHAD
     }
     else
     {
@@ -417,7 +415,7 @@ static inline bool rtc_set_time(uint32_t RTC_Format, uint8_t hours, uint8_t minu
 
   return true;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Get the RTC current Time.
   * @param  RTC_Format: specifies the format of the returned parameters.
@@ -450,8 +448,8 @@ static inline void rtc_get_time(uint32_t RTC_Format, uint8_t *hours, uint8_t *mi
     if(seconds) *seconds = (uint8_t)_private_RTC_Bcd2ToByte(*seconds);
   }
 }
-/* ---------------------------------------------------------------------------- */
-#ifdef STM32MCU_MAJOR_TYPE_F4
+
+#if defined(STM32MCU_MAJOR_TYPE_F4)|| defined(STM32MCU_MAJOR_TYPE_F37)
 /**
   * @brief  Gets the RTC current Calendar Subseconds value.
   * @note   This function freeze the Time and Date registers after reading the
@@ -471,9 +469,8 @@ static inline uint32_t rtc_get_sub_second(void)
 
   return (tmpreg);
 }
-
 #endif
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Set the RTC current date.
   * @param  RTC_Format: specifies the format of the entered parameters.
@@ -530,7 +527,7 @@ static inline bool rtc_set_date(uint32_t RTC_Format,  uint8_t year,
 
     /* Exit Initialization mode */
     rtc_exit_init_mode();
-#ifdef STM32MCU_MAJOR_TYPE_F4
+#ifdef RTC_CR_BYPSHAD
     /* If  RTC_CR_BYPSHAD bit = 0, wait for synchro else this check is not needed */
     if ((RTC->CR & RTC_CR_BYPSHAD) == RESET)
     {
@@ -543,7 +540,7 @@ static inline bool rtc_set_date(uint32_t RTC_Format,  uint8_t year,
       {
         return false;
       }
-#ifdef STM32MCU_MAJOR_TYPE_F4
+#ifdef RTC_CR_BYPSHAD
     }
     else
     {
@@ -555,7 +552,7 @@ static inline bool rtc_set_date(uint32_t RTC_Format,  uint8_t year,
   RTC->WPR = 0xFF;
   return true;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Get the RTC current date.
   * @param  RTC_Format: specifies the format of the returned parameters.
@@ -590,7 +587,7 @@ static inline void rtc_get_date(uint32_t RTC_Format, uint8_t *year,
     if(date)    *date = (uint8_t)_private_RTC_Bcd2ToByte( *date );
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Set the specified RTC Alarm.
   * @note   The Alarm register can only be written when the corresponding Alarm
@@ -684,7 +681,7 @@ static inline void rtc_set_alarm(uint32_t RTC_Format, uint32_t RTC_Alarm,
   /* Enable the write protection for RTC registers */
   RTC->WPR = 0xFF;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Get the RTC Alarm value and masks.
   * @param  RTC_Format: specifies the format of the output parameters.
@@ -731,7 +728,7 @@ static inline void rtc_get_alarm(uint32_t RTC_Format, uint32_t RTC_Alarm,
     if(rtc_alarm_date_weekday) *rtc_alarm_date_weekday = _private_RTC_Bcd2ToByte(*rtc_alarm_date_weekday);
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the specified RTC Alarm.
   * @param  RTC_Alarm: specifies the alarm to be configured.
@@ -786,7 +783,7 @@ static inline bool rtc_alarm_cmd(uint32_t RTC_Alarm, bool enable)
 
   return true;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configure the RTC AlarmA/B Subseconds value and mask.*
   * @note   This function is performed only when the Alarm is disabled.
@@ -832,7 +829,7 @@ static inline bool rtc_alarm_cmd(uint32_t RTC_Alarm, bool enable)
   *                                          to activate alarm
   * @retval None
   */
-#ifdef STM32MCU_MAJOR_TYPE_F4
+#ifdef RTC_AlarmSubSecondMask_All
 static inline void rtc_alarm_sub_second_config(uint32_t RTC_Alarm, uint32_t RTC_AlarmSubSecondValue, uint32_t RTC_AlarmSubSecondMask)
 {
   uint32_t tmpreg = 0;
@@ -862,7 +859,7 @@ static inline void rtc_alarm_sub_second_config(uint32_t RTC_Alarm, uint32_t RTC_
 }
 
 #endif
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Gets the RTC Alarm Subseconds value.
   * @param  RTC_Alarm: specifies the alarm to be read.
@@ -872,7 +869,7 @@ static inline void rtc_alarm_sub_second_config(uint32_t RTC_Alarm, uint32_t RTC_
   * @param  None
   * @retval RTC Alarm Subseconds value.
   */
-#ifdef STM32MCU_MAJOR_TYPE_F4
+#ifdef RTC_ALRMASSR_SS
 static inline uint32_t rtc_get_alarm_sub_second(uint32_t RTC_Alarm)
 {
   uint32_t tmpreg = 0;
@@ -890,7 +887,7 @@ static inline uint32_t rtc_get_alarm_sub_second(uint32_t RTC_Alarm)
   return (tmpreg);
 }
 #endif
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the RTC Wakeup clock source.
   * @note   The WakeUp Clock source can only be changed when the RTC WakeUp
@@ -921,7 +918,7 @@ static inline void rtc_wake_up_clock_config(uint32_t RTC_WakeUpClock)
   /* Enable the write protection for RTC registers */
   RTC->WPR = 0xFF;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the RTC Wakeup counter.
   * @note   The RTC WakeUp counter can only be written when the RTC WakeUp
@@ -943,7 +940,7 @@ static inline void rtc_set_wake_up_counter(uint32_t RTC_WakeUpCounter)
   /* Enable the write protection for RTC registers */
   RTC->WPR = 0xFF;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Returns the RTC WakeUp timer counter value.
   * @param  None
@@ -954,7 +951,7 @@ static inline uint32_t rtc_get_wake_up_counter(void)
   /* Get the counter value */
   return ((uint32_t)(RTC->WUTR & RTC_WUTR_WUT));
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or Disables the RTC WakeUp timer.
   * @param  NewState: new state of the WakeUp timer.
@@ -1003,7 +1000,7 @@ static inline bool rtc_wake_up_cmd(bool enable)
 
   return true;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Adds or substract one hour from the current time.
   * @param  RTC_DayLightSaveOperation: the value of hour adjustment.
@@ -1033,7 +1030,7 @@ static inline void rtc_day_light_saving_config(uint32_t RTC_DayLightSaving, uint
   /* Enable the write protection for RTC registers */
   RTC->WPR = 0xFF;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Returns the RTC Day Light Saving stored operation.
   * @param  None
@@ -1045,7 +1042,7 @@ static inline uint32_t rtc_get_store_operation(void)
 {
   return (RTC->CR & RTC_CR_BCK);
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the RTC output source (AFO_ALARM).
   * @param  RTC_Output: Specifies which signal will be routed to the RTC output.
@@ -1078,7 +1075,7 @@ static inline void rtc_output_config(uint32_t RTC_Output, uint32_t RTC_OutputPol
   /* Enable the write protection for RTC registers */
   RTC->WPR = 0xFF;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the Coarse calibration parameters.
   * @param  RTC_CalibSign: specifies the sign of the coarse calibration value.
@@ -1097,6 +1094,7 @@ static inline void rtc_output_config(uint32_t RTC_Output, uint32_t RTC_OutputPol
   *          - SUCCESS: RTC Coarse calibration are initialized
   *          - ERROR: RTC Coarse calibration are not initialized
   */
+#ifdef RTC_CalibSign_Positive
 static inline bool rtc_coarse_calib_config(uint32_t RTC_CalibSign, uint32_t Value)
 {
 
@@ -1124,7 +1122,8 @@ static inline bool rtc_coarse_calib_config(uint32_t RTC_CalibSign, uint32_t Valu
 
   return true;
 }
-/* ---------------------------------------------------------------------------- */
+#endif
+
 /**
   * @brief  Enables or disables the Coarse calibration process.
   * @param  NewState: new state of the Coarse calibration.
@@ -1133,6 +1132,7 @@ static inline bool rtc_coarse_calib_config(uint32_t RTC_CalibSign, uint32_t Valu
   *          - SUCCESS: RTC Coarse calibration are enabled/disabled
   *          - ERROR: RTC Coarse calibration are not enabled/disabled
   */
+#ifdef RTC_CR_DCE
 static inline bool rtc_coarse_calib_cmd(bool enable)
 {
 
@@ -1168,7 +1168,8 @@ static inline bool rtc_coarse_calib_cmd(bool enable)
 
   return true;
 }
-/* ---------------------------------------------------------------------------- */
+#endif
+
 /**
   * @brief  Enables or disables the RTC clock to be output through the relative pin.
   * @param  NewState: new state of the digital calibration Output.
@@ -1195,8 +1196,8 @@ static inline void rtc_calib_output_cmd(bool enable)
   /* Enable the write protection for RTC registers */
   RTC->WPR = 0xFF;
 }
-/* ---------------------------------------------------------------------------- */
-#ifdef STM32MCU_MAJOR_TYPE_F4
+
+#ifdef RTC_CR_COSEL
 /**
   * @brief  Configure the Calibration Pinout (RTC_CALIB) Selection (1Hz or 512Hz).
   * @param  RTC_CalibOutput : Select the Calibration output Selection .
@@ -1223,8 +1224,8 @@ static inline void rtc_calib_output_config(uint32_t RTC_CalibOutput)
 }
 
 #endif
-/* ---------------------------------------------------------------------------- */
-#ifdef STM32MCU_MAJOR_TYPE_F4
+
+#ifdef RTC_ISR_RECALPF
 /**
   * @brief  Configures the Smooth Calibration Settings.
   * @param  RTC_SmoothCalibPeriod : Select the Smooth Calibration Period.
@@ -1281,7 +1282,7 @@ static inline bool rtc_smooth_calib_config(uint32_t RTC_SmoothCalibPeriod,
   return true;
 }
 #endif
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or Disables the RTC TimeStamp functionality with the
   *         specified time stamp pin stimulating edge.
@@ -1323,7 +1324,7 @@ static inline void rtc_time_stamp_cmd(uint32_t RTC_TimeStampEdge, bool enable)
   /* Enable the write protection for RTC registers */
   RTC->WPR = 0xFF;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Get the RTC TimeStamp value and masks.
   * @param  RTC_Format: specifies the format of the output parameters.
@@ -1372,8 +1373,8 @@ static inline void rtc_get_time_stamp(uint32_t RTC_Format, uint8_t *hours,
     if(weekday) *weekday = (uint8_t)_private_RTC_Bcd2ToByte(*weekday);
   }
 }
-/* ---------------------------------------------------------------------------- */
-#ifdef STM32MCU_MAJOR_TYPE_F4
+
+#if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F37)
 
 /**
   * @brief  Get the RTC timestamp Subseconds value.
@@ -1387,7 +1388,7 @@ static inline uint32_t rtc_get_time_stamp_sub_second(void)
 }
 
 #endif
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the select Tamper pin edge.
   * @param  RTC_Tamper: Selected tamper pin.
@@ -1415,7 +1416,7 @@ static inline void rtc_tamper_trigger_config(uint32_t RTC_Tamper, uint32_t RTC_T
     RTC->TAFCR |= (uint32_t)(RTC_Tamper << 1);
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or Disables the Tamper detection.
   * @param  RTC_Tamper: Selected tamper pin.
@@ -1438,8 +1439,8 @@ static inline void rtc_tamper_cmd(uint32_t RTC_Tamper, bool enable)
     RTC->TAFCR &= (uint32_t)~RTC_Tamper;
   }
 }
-/* ---------------------------------------------------------------------------- */
-#ifdef STM32MCU_MAJOR_TYPE_F4
+
+#ifdef RTC_TAFCR_TAMPFLT
 /**
   * @brief  Configures the Tampers Filter.
   * @param  RTC_TamperFilter: Specifies the tampers filter.
@@ -1462,7 +1463,7 @@ static inline void rtc_tamper_filter_config(uint32_t RTC_TamperFilter)
   /* Configure the RTC_TAFCR register */
   RTC->TAFCR |= (uint32_t)RTC_TamperFilter;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the Tampers Sampling Frequency.
   * @param  RTC_TamperSamplingFreq: Specifies the tampers Sampling Frequency.
@@ -1494,7 +1495,7 @@ static inline void rtc_tamper_sampling_freq_config(uint32_t RTC_TamperSamplingFr
   /* Configure the RTC_TAFCR register */
   RTC->TAFCR |= (uint32_t)RTC_TamperSamplingFreq;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Configures the Tampers Pins input Precharge Duration.
   * @param  RTC_TamperPrechargeDuration: Specifies the Tampers Pins input
@@ -1525,7 +1526,7 @@ static inline void rtc_tamper_pins_precharge_duration(uint32_t RTC_TamperPrechar
   /* Configure the RTC_TAFCR register */
   RTC->TAFCR |= (uint32_t)RTC_TamperPrechargeDuration;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or Disables the TimeStamp on Tamper Detection Event.
   * @note   The timestamp is valid even the TSE bit in tamper control register
@@ -1548,7 +1549,7 @@ static inline void rtc_time_stamp_on_tamper_detection_cmd(bool enable)
     RTC->TAFCR &= (uint32_t)~RTC_TAFCR_TAMPTS;
   }
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or Disables the Precharge of Tamper pin.
   * @param  NewState: new state of tamper pull up.
@@ -1570,7 +1571,7 @@ static inline void rtc_tamper_pull_up_cmd(bool enable)
   }
 }
 #endif
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Writes a data in a specified RTC Backup data register.
   * @param  RTC_BKP_DR: RTC Backup data Register number.
@@ -1589,7 +1590,7 @@ static inline void rtc_write_backup_register(uint32_t RTC_BKP_DR, uint32_t Data)
   /* Write the specified register */
   *(__IO uint32_t *)tmp = (uint32_t)Data;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Reads data from the specified RTC Backup data Register.
   * @param  RTC_BKP_DR: RTC Backup data Register number.
@@ -1607,7 +1608,7 @@ static inline uint32_t rtc_read_backup_register(uint32_t RTC_BKP_DR)
   /* Read the specified register */
   return (*(__IO uint32_t *)tmp);
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Selects the RTC Tamper Pin.
   * @param  RTC_TamperPin: specifies the RTC Tamper Pin.
@@ -1616,13 +1617,15 @@ static inline uint32_t rtc_read_backup_register(uint32_t RTC_BKP_DR)
   *            @arg RTC_TamperPin_PI8: PI8 is selected as RTC Tamper Pin.
   * @retval None
   */
+#ifdef RTC_TAFCR_TAMPINSEL
 static inline void rtc_tamper_pin_selection(uint32_t RTC_TamperPin)
 {
 
   RTC->TAFCR &= (uint32_t)~(RTC_TAFCR_TAMPINSEL);
   RTC->TAFCR |= (uint32_t)(RTC_TamperPin);
 }
-/* ---------------------------------------------------------------------------- */
+#endif
+
 /**
   * @brief  Selects the RTC TimeStamp Pin.
   * @param  RTC_TimeStampPin: specifies the RTC TimeStamp Pin.
@@ -1631,13 +1634,15 @@ static inline void rtc_tamper_pin_selection(uint32_t RTC_TamperPin)
   *            @arg RTC_TimeStampPin_PI8: PI8 is selected as RTC TimeStamp Pin.
   * @retval None
   */
+#ifdef RTC_TAFCR_TSINSEL
 static inline void rtc_time_stamp_pin_selection(uint32_t RTC_TimeStampPin)
 {
 
   RTC->TAFCR &= (uint32_t)~(RTC_TAFCR_TSINSEL);
   RTC->TAFCR |= (uint32_t)(RTC_TimeStampPin);
 }
-/* ---------------------------------------------------------------------------- */
+#endif
+
 /**
   * @brief  Configures the RTC Output Pin mode.
   * @param  RTC_OutputType: specifies the RTC Output (PC13) pin mode.
@@ -1654,8 +1659,8 @@ static inline void rtc_output_type_config(uint32_t RTC_OutputType)
   RTC->TAFCR &= (uint32_t)~(RTC_TAFCR_ALARMOUTTYPE);
   RTC->TAFCR |= (uint32_t)(RTC_OutputType);
 }
-/* ---------------------------------------------------------------------------- */
-#ifdef STM32MCU_MAJOR_TYPE_F4
+
+#ifdef RTC_ISR_SHPF
 /**
   * @brief  Configures the Synchronization Shift Control Settings.
   * @note   When REFCKON is set, firmware must not write to Shift control register
@@ -1722,7 +1727,7 @@ static inline bool rtc_synchro_shift_config(uint32_t RTC_ShiftAdd1S, uint32_t RT
 }
 
 #endif
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Enables or disables the specified RTC interrupts.
   * @param  RTC_IT: specifies the RTC interrupt sources to be enabled or disabled.
@@ -1760,7 +1765,7 @@ static inline void rtc_it_config(uint32_t RTC_IT, bool enable)
   /* Enable the write protection for RTC registers */
   RTC->WPR = 0xFF;
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Checks whether the specified RTC flag is set or not.
   * @param  RTC_FLAG: specifies the flag to check.
@@ -1792,7 +1797,7 @@ static inline bool rtc_get_flag_status(uint32_t RTC_FLAG)
   return ((tmpreg & RTC_FLAG) != 0 );
 
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Clears the RTC's pending flags.
   * @param  RTC_FLAG: specifies the RTC flag to clear.
@@ -1811,7 +1816,7 @@ static inline void rtc_clear_flag(uint32_t RTC_FLAG)
   /* Clear the Flags in the RTC_ISR register */
   RTC->ISR = (uint32_t)((uint32_t)(~((RTC_FLAG | RTC_ISR_INIT)& 0x0000FFFF) | (uint32_t)(RTC->ISR & RTC_ISR_INIT)));
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Checks whether the specified RTC interrupt has occurred or not.
   * @param  RTC_IT: specifies the RTC interrupt source to check.
@@ -1840,7 +1845,7 @@ static inline bool rtc_get_it_status(uint32_t RTC_IT)
   /* Get the status of the Interrupt */
   return ((enablestatus != (uint32_t)0) && ((tmpreg & 0x0000FFFF) != (uint32_t)0));
 }
-/* ---------------------------------------------------------------------------- */
+
 /**
   * @brief  Clears the RTC's interrupt pending bits.
   * @param  RTC_IT: specifies the RTC interrupt pending bit to clear.
@@ -1863,7 +1868,7 @@ static inline void rtc_clear_it_pending_bit(uint32_t RTC_IT)
   RTC->ISR = (uint32_t)((uint32_t)(~((tmpreg | RTC_ISR_INIT)& 0x0000FFFF) | (uint32_t)(RTC->ISR & RTC_ISR_INIT)));
 }
 
-/* ---------------------------------------------------------------------------- */
+
 #undef RTC_TR_RESERVED_MASK
 #undef RTC_DR_RESERVED_MASK
 #undef RTC_INIT_MASK
@@ -1873,9 +1878,8 @@ static inline void rtc_clear_it_pending_bit(uint32_t RTC_IT)
 #undef INITMODE_TIMEOUT
 #undef SYNCHRO_TIMEOUT
 
-/* ---------------------------------------------------------------------------- */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-/* ---------------------------------------------------------------------------- */
-#endif /* STM32RTC_H_ */
+
