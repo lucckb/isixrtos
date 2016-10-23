@@ -7,12 +7,10 @@
  *      Author: lucck
  */
 
-#ifndef STM32_SPI_H_
-#define STM32_SPI_H_
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "stm32lib.h"
 #include "stm32fxxx_spi.h"
 #include <stm32lib.h>
 #include <stm32rcc.h>
@@ -569,7 +567,37 @@ static inline void spi_ss_output_cmd(SPI_TypeDef* SPIx, bool enable)
   }
 }
 
-#if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4)
+/**
+  * @brief  Enables or disables the NSS pulse management mode.
+  * @note   This function can be called only after the SPI_Init() function has 
+  *         been called. 
+  * @note   When TI mode is selected, the control bits NSSP is not taken into 
+  *         consideration and are configured by hardware respectively to the 
+  *         TI mode requirements. 
+  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  NewState: new state of the NSS pulse management mode.
+  *          This parameter can be: ENABLE or DISABLE.
+  * @retval None
+  */
+#ifdef SPI_CR2_NSSP
+static inline void spi_nss_pulse_mode_cmd(SPI_TypeDef* SPIx, bool en )
+{
+  if ( en )
+  {
+    /* Enable the NSS pulse management mode */
+    SPIx->CR2 |= SPI_CR2_NSSP;
+  }
+  else
+  {
+    /* Disable the NSS pulse management mode */
+    SPIx->CR2 &= (uint16_t)~((uint16_t)SPI_CR2_NSSP);
+  }
+}
+#endif
+
+
+
+#ifdef SPI_CR2_FRF
 /**
   * @brief  Enables or disables the SPIx/I2Sx DMA interface.
   *
@@ -662,6 +690,25 @@ static inline uint16_t spi_i2s_receive_data(SPI_TypeDef* SPIx)
   /* Return the data in the DR register */
   return SPIx->DR;
 }
+static inline uint16_t spi_i2s_receive_data16(SPI_TypeDef* SPIx)
+{
+  /* Return the data in the DR register */
+  return SPIx->DR;
+}
+
+/**
+  * @brief  Returns the most recent received data by the SPIx/I2Sx peripheral. 
+  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @retval The value of the received data.
+  */
+static inline uint8_t spi_receive_data8(SPI_TypeDef* SPIx)
+{
+  uint32_t spixbase;
+  spixbase = (uint32_t)SPIx; 
+  spixbase += 0x0C;
+  return *(__IO uint8_t *) spixbase;
+}
+
 
 /**
   * @brief  Transmits a Data through the SPIx/I2Sx peripheral.
@@ -675,6 +722,27 @@ static inline void spi_i2s_send_data(SPI_TypeDef* SPIx, uint16_t Data)
   /* Write in the DR register the data to be sent */
   SPIx->DR = Data;
 }
+
+static inline void spi_i2s_send_data16(SPI_TypeDef* SPIx, uint16_t Data) 
+{
+  /* Write in the DR register the data to be sent */
+  SPIx->DR = Data;
+}
+
+/**
+  * @brief  Transmits a Data through the SPIx/I2Sx peripheral.
+  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  Data: Data to be transmitted.
+  * @retval None
+  */
+static inline void spi_send_data8(SPI_TypeDef* SPIx, uint8_t Data)
+{
+  uint32_t spixbase = 0x00;
+  spixbase = (uint32_t)SPIx; 
+  spixbase += 0x0C;
+  *(__IO uint8_t *) spixbase = Data;
+}
+
 
 /**
   * @brief  Enables or disables the CRC value calculation of the transferred bytes.
@@ -1002,6 +1070,38 @@ static inline void spi_last_dma_transfer_cmd(SPI_TypeDef* SPIx, uint16_t SPI_Las
 }
 
 
+
+/**
+  * @brief  Returns the current SPIx Transmission FIFO filled level.
+  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @retval The Transmission FIFO filling state.
+  *          - SPI_TransmissionFIFOStatus_Empty: when FIFO is empty
+  *          - SPI_TransmissionFIFOStatus_1QuarterFull: if more than 1 quarter-full.
+  *          - SPI_TransmissionFIFOStatus_HalfFull: if more than 1 half-full.
+  *          - SPI_TransmissionFIFOStatus_Full: when FIFO is full.
+  */
+static inline uint16_t spi_get_transmission_fifo_status(SPI_TypeDef* SPIx)
+{
+  /* Get the SPIx Transmission FIFO level bits */
+  return (uint16_t)((SPIx->SR & SPI_SR_FTLVL));
+}
+
+/**
+  * @brief  Returns the current SPIx Reception FIFO filled level.
+  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @retval The Reception FIFO filling state.
+  *          - SPI_ReceptionFIFOStatus_Empty: when FIFO is empty
+  *          - SPI_ReceptionFIFOStatus_1QuarterFull: if more than 1 quarter-full.
+  *          - SPI_ReceptionFIFOStatus_HalfFull: if more than 1 half-full.
+  *          - SPI_ReceptionFIFOStatus_Full: when FIFO is full.
+  */
+static inline uint16_t spi_get_reception_fifo_status(SPI_TypeDef* SPIx)
+{
+  /* Get the SPIx Reception FIFO level bits */
+  return (uint16_t)((SPIx->SR & SPI_SR_FRLVL));
+}
+
+
 #endif
 
 
@@ -1018,5 +1118,4 @@ static inline void spi_last_dma_transfer_cmd(SPI_TypeDef* SPIx, uint16_t SPI_Las
 #undef SPI_CR2_FRF
 #undef CR2_LDMA_MASK
 #undef STM32_SPI_V2
-#endif /* STM32SPI_H_ */
 
