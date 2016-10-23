@@ -18,7 +18,7 @@
 #include "event_tests.hpp"
 #include "event_groups_demo.h"
 #include "timer_interrupt.hpp"
-#include <stm32rtc.h>
+#include <stm32sdadc.h>
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {

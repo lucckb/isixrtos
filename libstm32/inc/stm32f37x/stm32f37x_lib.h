@@ -28,6 +28,7 @@
 #include "stm32f37x_flash.h"
 #include "stm32f37x_pwr.h"
 #include "stm32f37x_rtc.h"
+#include "stm32f37x_sdadc.h"
 #include "../stm32f1xx/stm32dma.h"
 #include "misc.h"
 
