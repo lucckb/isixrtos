@@ -110,7 +110,7 @@ endif
 endif
 CXXFLAGS += -std=gnu++14
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb $(COMMON_FLAGS)
-LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -Wl,-Map=$(TARGET).map,--cref -mthumb
+LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -mthumb
 CPFLAGS =  -S
 ARFLAGS = rcs
 
@@ -132,6 +132,7 @@ ASLST = -Wa,-adhlns=$(<:%.S=%.lst)
 CLST = -Wa,-adhlns=$(<:%.c=%.lst)
 CPPLST = -Wa,-adhlns=$(<:%.cpp=%.lst)
 LSSTARGET = $(TARGET).lss
+LDFLAGS += -Wl,-Map=$(TARGET).map,--cref 
 endif
 
 ifeq ($(DEBUG),y)
@@ -222,7 +223,7 @@ endif
 ifeq ($(LIBRARY),y)
 target:	lib$(TARGET).a
 else
-target: $(TARGET).elf $(TARGET).$(FORMAT) $(TARGET).lss
+target: $(TARGET).elf $(TARGET).$(FORMAT) $(LSSTARGET)
 endif
 
 #Calculate size
