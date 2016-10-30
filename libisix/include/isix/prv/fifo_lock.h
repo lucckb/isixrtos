@@ -15,31 +15,32 @@
  *
  * =====================================================================================
  */
-#pragma once 
+#pragma once
 #include <isix/prv/scheduler.h>
+#include <isix/scheduler.h>
 #include <isix/prv/fifo.h>
 #include <isix/fifo.h>
 
 
 //! Private function for lock
-static inline __attribute__((always_inline)) 
+static inline __attribute__((always_inline))
 void _fifo_lock( const osfifo_t fifo )
 {
 	if( fifo->flags & isix_fifo_f_noirq ) {
 		_isixp_lock_scheduler();
 	} else {
-		_isixp_enter_critical();
+		isix_enter_critical();
 	}
 }
 
 //! Private function for unlock
-static inline __attribute__((always_inline)) 
+static inline __attribute__((always_inline))
 void _fifo_unlock( const osfifo_t fifo )
 {
 	if( fifo->flags & isix_fifo_f_noirq ) {
 		_isixp_unlock_scheduler();
 	} else {
-		_isixp_exit_critical();
+		isix_exit_critical();
 	}
 }
 

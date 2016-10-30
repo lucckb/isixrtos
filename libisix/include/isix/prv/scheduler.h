@@ -90,10 +90,6 @@ static inline __attribute__((always_inline))
 void _isixp_schedule(void);
 //Sched timer cyclic call
 void _isixp_schedule_time(void);
-//Lock scheduler and disable selected interrupt
-void _isixp_enter_critical(void);
-//Lock scheduler and reenable selected interrupt;
-void _isixp_exit_critical(void);
 //Process base stack initialization
 unsigned long* _isixp_task_init_stack( unsigned long *sp, task_func_ptr_t pfun, void *param );
 //Lock the scheduler

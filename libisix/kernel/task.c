@@ -85,7 +85,7 @@ ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
     task->top_stack = _isixp_task_init_stack(task->top_stack,task_func,func_param);
     //Lock scheduler
 	if( !(flags&isix_task_flag_suspended) ) {
-		_isixp_enter_critical();
+		isix_enter_critical();
 		_isixp_wakeup_task( task, ISIX_EOK );
 	}
     return task;
@@ -103,19 +103,19 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
 	if(isix_get_min_priority()<new_prio ) {
 	   return ISIX_ENOPRIO;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
     ostask_t taskc = task?task:currp;
 	pr_debug("Change prio curr task ptr %p %i", taskc, taskc->state );
     //Save task prio
     const osprio_t old_prio = taskc->prio;
     if(old_prio==new_prio)
     {
-        _isixp_exit_critical();
+        isix_exit_critical();
         return ISIX_EOK;
     }
 	_isixp_reallocate_priority( taskc, new_prio );
 	port_yield();	//Unconditional port yield due to force reschedule all tasks
-	_isixp_exit_critical();
+	isix_exit_critical();
     return old_prio;
 }
 
@@ -125,9 +125,9 @@ void* isix_get_task_private_data( ostask_t task )
 	if( !task ) {
 		return NULL;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	void* d = task->prv;
-	_isixp_exit_critical();
+	isix_exit_critical();
 	return d;
 }
 
@@ -137,29 +137,29 @@ int isix_set_task_private_data( ostask_t task, void *data )
 	if( !task ) {
 		return ISIX_EINVARG;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	if( task->prv )
 	{
-		_isixp_exit_critical();
+		isix_exit_critical();
 		return ISIX_EINVARG;
 	}
 	task->prv = data;
-	_isixp_exit_critical();
+	isix_exit_critical();
 	return ISIX_EOK;
 }
 
 //Delete task pointed by struct task
 void isix_task_kill( ostask_t task )
 {
-	_isixp_enter_critical();
+	isix_enter_critical();
     ostask_t taskd = task?task:currp;
 	_isixp_add_kill_or_set_suspend( taskd, false );
 	if( !task ) {
-		_isixp_exit_critical();
+		isix_exit_critical();
 		isix_yield();
 	} 
 	else {
-		_isixp_exit_critical();
+		isix_exit_critical();
 	}
 }
 
@@ -215,15 +215,15 @@ enum osthr_state isix_get_task_state( const ostask_t task )
 //! Set task to suspend state
 void isix_task_suspend( ostask_t task )
 {
-	_isixp_enter_critical();
+	isix_enter_critical();
     ostask_t taskd = task?task:currp;
 	_isixp_add_kill_or_set_suspend( taskd, true );
 	if( !task ) {
-		_isixp_exit_critical();
+		isix_exit_critical();
 		isix_yield();
 	} 
 	else {
-		_isixp_exit_critical();
+		isix_exit_critical();
 	}
 }
 
@@ -236,12 +236,12 @@ int isix_task_resume( ostask_t task )
 	if( task == currp || !task ) {
 		return ISIX_EINVARG;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	if( task->state == OSTHR_STATE_SUSPEND ) {
 		//Wakeup suspended task
 		_isixp_wakeup_task( task, ISIX_EOK );
 	} else {
-		_isixp_exit_critical();
+		isix_exit_critical();
 		return ISIX_ESTATE;
 	}
 	return ISIX_EOK;

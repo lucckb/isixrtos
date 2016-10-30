@@ -70,6 +70,13 @@ static inline bool isix_is_scheduler_active(void)
 	return _isix_scheduler_running;
 }
 
+
+//! Lock scheduler and disable selected interrupt
+void isix_enter_critical(void);
+
+//! Lock scheduler and reenable selected interrupt
+void isix_exit_critical(void);
+
 #ifdef __cplusplus
 }	//end extern-C
 #endif /* __cplusplus */
@@ -93,7 +100,7 @@ namespace {
 	}
 #endif
 	inline void init( osprio_t num_priorities ) {
-		::isix_init( num_priorities );	
+		::isix_init( num_priorities );
 	}
 	inline osprio_t get_min_priority() {
 		return ::isix_get_min_priority();
@@ -101,5 +108,12 @@ namespace {
 	inline bool is_scheduler_active() {
 		return ::isix_is_scheduler_active();
 	}
+	inline void enter_critical(void) {
+		return ::isix_enter_critical();
+	}
+	inline void exit_critical(void) {
+		return ::isix_exit_critical();
+	}
+
 }}
 #endif /* __cplusplus */

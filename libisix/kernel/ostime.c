@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 #include <isix/ostime.h>
+#include <isix/scheduler.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
@@ -48,9 +49,9 @@ int isix_wait(ostick_t timeout)
 	if(schrun)
 	{
 		//If scheduler is running delay on semaphore
-		_isixp_enter_critical();
+		isix_enter_critical();
 		_isixp_set_sleep_timeout( OSTHR_STATE_SLEEPING, timeout );
-		_isixp_exit_critical();
+		isix_exit_critical();
 		port_yield();
 		return ISIX_EOK;
 	}

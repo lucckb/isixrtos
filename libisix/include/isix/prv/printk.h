@@ -18,11 +18,11 @@
 
 
 #define printk(level,...) do { if(ISIX_CONFIG_LOGLEVEL>=level) { \
-						 _isixp_enter_critical(); \
+						 isix_enter_critical(); \
 						 tiny_printf("%s:%d|%s|",__FILE__,__LINE__,__FUNCTION__); \
 						 tiny_printf(__VA_ARGS__); \
 						 tiny_printf("\r\n"); \
-						 _isixp_exit_critical(); } \
+						 isix_exit_critical(); } \
 					   } while(0)
 
 #endif

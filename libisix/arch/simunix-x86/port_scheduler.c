@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <isix/scheduler.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 /*-----------------------------------------------------------------------*/
@@ -57,12 +58,12 @@ void isix_systime_handler(void) __attribute__ ((weak, alias("unused_func")));
 static void schedule_time(void)
 {
        //Increment system ticks
-	   _isixp_enter_critical();
+	   isix_enter_critical();
        //Call isix system time handler if used
        isix_systime_handler();
        _isixp_schedule_time();
        //Clear interrupt mask
-	   _isixp_exit_critical();
+	   isix_exit_critical();
        //Yeld
        port_yield();
 }

@@ -67,7 +67,7 @@ int isix_event_destroy( osevent_t evh )
 	if( !evh ) {
 		return ISIX_EINVARG;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	ostask_t wkup_task = currp;
 	ostask_t t;
 	while( (t=_isixp_remove_from_prio_queue(&evh->wait_list) ) )
@@ -92,7 +92,7 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 	if( !bits_to_wait || (bits_to_wait&ISIX_EVENT_CTRL_BITS) ) {
 		return ISIX_EINVARG;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	if( check_cond(evth->bitset, bits_to_wait, wait_for_all) )
 	{
 		retval = evth->bitset;
@@ -114,9 +114,9 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 		currp->obj.evbits = bits_to_wait |
 			( wait_for_all?ISIX_EVENT_CTRL_ALL_MATCH_FLAG:0U ) |
 			( clear_on_exit?ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG:0U ) ;
-		_isixp_exit_critical();
+		isix_exit_critical();
 		port_yield();
-		_isixp_enter_critical();
+		isix_enter_critical();
 		if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS)==0 ) 
 		{	//! Wakeup all bits should be set
 			retval = currp->obj.evbits;
@@ -130,7 +130,7 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 			retval = currp->obj.dmsg;
 		}
 	}
-	_isixp_exit_critical();
+	isix_exit_critical();
 	return retval;
 }
 
@@ -145,10 +145,10 @@ osbitset_ret_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear )
 	if( bits_to_clear&ISIX_EVENT_CTRL_BITS ) {
 		return ISIX_EINVARG;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	retval = evth->bitset;
 	evth->bitset &= ~bits_to_clear;
-	_isixp_exit_critical();
+	isix_exit_critical();
 	return retval;
 }
 
@@ -162,7 +162,7 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	if( bits_to_set&ISIX_EVENT_CTRL_BITS ) {
 		return ISIX_EINVARG;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	evth->bitset |= bits_to_set;
 	ostask_t wkup_task = currp;
 	osbitset_t clr_bits = 0U;
@@ -182,7 +182,7 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	}
 	evth->bitset &= ~clr_bits;
 	if( !isr ) _isixp_do_reschedule( wkup_task );
-	else  	   _isixp_exit_critical(); 
+	else  	   isix_exit_critical(); 
 	return evth->bitset;
 }
 
@@ -192,9 +192,9 @@ osbitset_ret_t isix_event_get_isr( osevent_t evth )
 	if( !evth ) {
 		return ISIX_EINVARG;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	osbitset_t retval = evth->bitset;
-	_isixp_exit_critical();
+	isix_exit_critical();
 	return retval;
 }
 
@@ -212,7 +212,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 	if( !bits_to_wait||(bits_to_wait&ISIX_EVENT_CTRL_BITS) ) {
 		return ISIX_EINVARG;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	{	
 		osbitset_t orgbits = evth->bitset;
 		_isixp_event_set( evth, bits_to_set, false );
@@ -232,9 +232,9 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 				list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
 				currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG 
 									| ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG;
-				_isixp_exit_critical();
+				isix_exit_critical();
 				isix_yield();
-				_isixp_enter_critical();
+				isix_enter_critical();
 				if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS) == 0 ) {
 					retval = currp->obj.evbits;
 				} else {
@@ -251,6 +251,6 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 			}
 		}
 	}
-	_isixp_exit_critical();
+	isix_exit_critical();
 	return retval;
 }

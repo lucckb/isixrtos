@@ -51,7 +51,7 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 		pr_err("No sem");
 		return ISIX_EINVARG;
 	}
-	_isixp_enter_critical();
+	isix_enter_critical();
 	//Consistency check
 	if( port_atomic_sem_dec(&sem->value) < 0 )
     {
@@ -59,13 +59,13 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 		_isixp_set_sleep_timeout( OSTHR_STATE_WTSEM, timeout ); 
 		_isixp_add_to_prio_queue( &sem->wait_list, currp );
 		currp->obj.sem = sem;
-		_isixp_exit_critical();
+		isix_exit_critical();
 		isix_yield();
 		return currp->obj.dmsg;
     }
 	else
 	{
-		_isixp_exit_critical();
+		isix_exit_critical();
 		return ISIX_EOK;
 	}
 }
@@ -78,7 +78,7 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
         pr_err("No sem");
         return ISIX_EINVARG;
     }
-	_isixp_enter_critical();
+	isix_enter_critical();
 	if( port_atomic_sem_inc( &sem->value ) <= 0 )
     {
 		ostask_t task = _isixp_remove_from_prio_queue( &sem->wait_list );
@@ -88,17 +88,17 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 				if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
 				else _isixp_wakeup_task_i( task, ISIX_EOK );
 			} else {
-				_isixp_exit_critical();
+				isix_exit_critical();
 			}
 		} else {
-			_isixp_exit_critical();
+			isix_exit_critical();
 		}
 		return ISIX_EOK;
     }	
 	else
 	{
 		pr_debug("Waiting list is empty incval to %i",(int)sem->value.value );
-		_isixp_exit_critical();
+		isix_exit_critical();
 		return ISIX_EOK;
 	}
 }
@@ -124,7 +124,7 @@ static void sem_wakeup_all( ossem_t sem, osmsg_t msg, bool isr )
 	if( wkup_task && !isr) {
 		_isixp_do_reschedule( wkup_task );
 	} else {
-		_isixp_exit_critical();
+		isix_exit_critical();
 	}
 }
 
@@ -136,7 +136,7 @@ int _isixp_sem_reset( ossem_t sem, int val, bool isr )
 		return ISIX_EINVARG; 
 	}
     //Semaphore is used
-    _isixp_enter_critical();
+    isix_enter_critical();
     port_atomic_sem_write_val( &sem->value, val );
 	sem_wakeup_all( sem, ISIX_ERESET, isr );
     return ISIX_EOK;
@@ -160,7 +160,7 @@ int isix_sem_destroy(ossem_t sem)
 		return ISIX_EINVARG;
 	}
 	//! Semaphore is used
-	_isixp_enter_critical();
+	isix_enter_critical();
 	sem_wakeup_all( sem, ISIX_EDESTROY, false );
 	if(!sem->static_mem) isix_free(sem);
 	return ISIX_EOK;

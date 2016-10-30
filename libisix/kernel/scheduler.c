@@ -63,7 +63,7 @@ void _isixp_lock_scheduler()
 void _isixp_unlock_scheduler() 
 {
 	if( port_atomic_sem_dec( &csys.sched_lock ) == 1 ) {
-		_isixp_enter_critical();
+		isix_enter_critical();
 		while( csys.jiffies_skipped.counter > 0 ) {
 			internal_schedule_time();
 			--csys.jiffies_skipped.counter;
@@ -72,7 +72,7 @@ void _isixp_unlock_scheduler()
 			port_yield();
 			csys.yield_pending = false;
 		}
-		_isixp_exit_critical();
+		isix_exit_critical();
 	}
 }
 
@@ -101,7 +101,7 @@ void _isixp_finalize()
 #endif /* ISIX_CONFIG_SHUTDOWN_API  */
 
 //Lock scheduler
-void _isixp_enter_critical(void)
+void isix_enter_critical(void)
 {
 	if( port_atomic_inc( &csys.critical_count ) == 1 ) 
 	{
@@ -110,7 +110,7 @@ void _isixp_enter_critical(void)
 }
 
 //Unlock scheduler
-void _isixp_exit_critical(void)
+void isix_exit_critical(void)
 {
 	if( port_atomic_dec( &csys.critical_count ) <= 0 )
     {
@@ -165,7 +165,7 @@ void isix_init(osprio_t num_priorities)
 void isix_kernel_panic( const char *file, int line, const char *msg )
 {
     //Go to critical sections forever
-	_isixp_enter_critical();
+	isix_enter_critical();
 #if ISIX_CONFIG_LOGLEVEL!=ISIXLOG_OFF
 	pr_crit("OOPS-PANIC: Please reset board %s:%i [%s]", file, line, msg );
     task_ready_t *i;
@@ -194,7 +194,7 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
 /** Temporary debug */
 void print_task_list()
 {
-	_isixp_enter_critical();
+	isix_enter_critical();
     task_ready_t *i;
     ostask_t j;
 	tiny_printf("curr %p:%i jiff %u Ready tasks\n", currp, currp->prio, csys.jiffies );
@@ -212,13 +212,13 @@ void print_task_list()
         tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\n",
 				j, j->prio, j->state, j->jiffies );
     }
-	_isixp_exit_critical();
+	isix_exit_critical();
 }
 #endif
 
 //Scheduler is called in switch context
 /**
- * NOTE: The process not require _isixp_enter_critical because
+ * NOTE: The process not require isix_enter_critical because
  * it is protected itself by pend svc vector lock 
  */
 void _isixp_schedule(void)
@@ -321,11 +321,11 @@ void _isixp_schedule_time()
 		port_atomic_inc( &csys.jiffies_skipped );
 	} else {
 		//Increment system ticks
-		_isixp_enter_critical();
+		isix_enter_critical();
 		//Internal schedule time
 		internal_schedule_time();
 		//Clear interrupt mask
-		_isixp_exit_critical();
+		isix_exit_critical();
 	}
 }
 
@@ -473,7 +473,7 @@ static void cleanup_tasks(void)
 {
     if( csys.number_of_task_deleted > 0 )
     {
-        _isixp_enter_critical();
+        isix_enter_critical();
         if(!list_isempty(&csys.zombie_list))
         {
         	ostask_t task_del = list_first_entry(&csys.zombie_list,inode,struct isix_task);
@@ -487,7 +487,7 @@ static void cleanup_tasks(void)
         	isix_free(task_del);
         	csys.number_of_task_deleted--;
         }
-        _isixp_exit_critical();
+        isix_exit_critical();
     }
 }
 
@@ -549,7 +549,7 @@ void _isixp_do_reschedule( ostask_t task )
 			port_yield();
 		}
 	}
-	_isixp_exit_critical();
+	isix_exit_critical();
 }
 
 static void wakeup_task( ostask_t task, osmsg_t msg )
@@ -574,7 +574,7 @@ void _isixp_wakeup_task( ostask_t task, osmsg_t msg )
 void _isixp_wakeup_task_i( ostask_t task, osmsg_t msg )
 {
 	wakeup_task( task, msg );
-	_isixp_exit_critical();
+	isix_exit_critical();
 }
 
 //Wakeup but don't reschedule but not unlock
