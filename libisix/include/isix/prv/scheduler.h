@@ -10,6 +10,7 @@
 #include <isix/port_atomic.h>
 #include <isix/port_memprot.h>
 #include <isix/osthr_state.h>
+#include <stdatomic.h>
 
 #ifndef _ISIX_KERNEL_CORE_
 #	error This is private header isix kernel headers cannot be used by app
@@ -30,42 +31,42 @@ typedef uint8_t thr_state_t;
 struct isix_task
 {
     unsigned long *top_stack;		//!Task stack ptr
-    void *init_stack;      			//!Initial value of stack for isix_free
+    void *init_stack; 				//!Initial value of stack for isix_free
 #if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
 	uintptr_t fence_estack;			//! Electric fence stack protector base
 #endif
-    osprio_t prio;			    	//!Priority of task
-    thr_state_t state;        		//!Thread state
-    ostick_t jiffies;            	//!Ticks when task wake up
-    task_ready_t *prio_elem;    	//!Pointer to own prio list
-	union 
+    osprio_t prio;					//!Priority of task
+    thr_state_t state;				//!Thread state
+    ostick_t jiffies;				//!Ticks when task wake up
+    task_ready_t *prio_elem;		//!Pointer to own prio list
+	union
 	{
-		ossem_t sem;               	//! Pointer to waiting sem
+		ossem_t sem;				//! Pointer to waiting sem
 		osbitset_t evbits;			//! Current event bit for waiting
 		osmsg_t	dmsg;				//! Returning message
 	} obj;
     void    *prv;					//!Private data pointer for extra data
 	struct _reent *impure_data;		//!Newlib per thread private data
-    list_t inode;               	//!Inode task for operation
+    list_t inode;					//!Inode task for operation
 	list_t inode_time;				//!Waiting inode
 };
 
 //!Structure related to isix system
 struct isix_system 
 {
-	_port_atomic_sem_t sched_lock;			//! Schedule lock 
-	_port_atomic_int_t critical_count; 	//! Sched lock counter
-	list_entry_t ready_list; 			//! Binary tree of task ready to execute
-	list_entry_t wait_lists[2]; 		//!Task waiting for event
+	_port_atomic_sem_t sched_lock;			//! Schedule lock
+	atomic_int critical_count;	//! Sched lock counter
+	list_entry_t ready_list;			//! Binary tree of task ready to execute
+	list_entry_t wait_lists[2];			//!Task waiting for event
 	list_entry_t* p_wait_list;			//! Normal waiting task
 	list_entry_t* pov_wait_list;		//! Overflow waiting tasks
-	list_entry_t zombie_list; 			//Task waiting for event
+	list_entry_t zombie_list;			//Task waiting for event
 	list_entry_t free_prio_elem;        //Free priority innodes
-	ostick_t jiffies; 					//Global jiffies var
+	ostick_t jiffies;					//Global jiffies var
 	_port_atomic_int_t jiffies_skipped; //Skiped jiffies when scheduler is locked
-	unsigned number_of_task_deleted;  	//Number of deleted task
-	osprio_t number_of_priorities; 		//Number of priorities
-	volatile bool yield_pending; 		//!Yield during lock
+	unsigned number_of_task_deleted;	//Number of deleted task
+	osprio_t number_of_priorities;		//Number of priorities
+	volatile bool yield_pending;		//!Yield during lock
 };
 
 //Current executed task

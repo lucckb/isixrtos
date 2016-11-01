@@ -9,6 +9,7 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 #include <isix/port_memprot.h>
+#include <stdatomic.h>
 
 #ifdef ISIX_LOGLEVEL_SCHEDULER
 #undef ISIX_CONFIG_LOGLEVEL 
@@ -103,7 +104,7 @@ void _isixp_finalize()
 //Lock scheduler
 void isix_enter_critical(void)
 {
-	if( port_atomic_inc( &csys.critical_count ) == 1 ) 
+	if( atomic_fetch_add( &csys.critical_count, 1 ) == 0 )
 	{
 		port_set_interrupt_mask();
 	}
@@ -112,13 +113,12 @@ void isix_enter_critical(void)
 //Unlock scheduler
 void isix_exit_critical(void)
 {
-	if( port_atomic_dec( &csys.critical_count ) <= 0 )
-    {
+	int res = atomic_fetch_sub( &csys.critical_count, 1 );
+	if( res <= 1 ) {
 		port_clear_interrupt_mask();
-		if( port_atomic_read( &csys.critical_count ) < 0 ) {
-			isix_bug("Invalid lock count");
-		}
-    }
+    } else if( res <= 0 ) {
+		isix_bug("Invalid lock count");
+	}
 	port_flush_memory();
 }
 
@@ -129,7 +129,7 @@ void isix_init(osprio_t num_priorities)
 	//Schedule lock count
 	port_memory_protection_set_default_map();
 	port_atomic_sem_init( &csys.sched_lock, 0, 1 );
-	port_atomic_init( &csys.critical_count, 0 );
+	atomic_init( &csys.critical_count, 0 );
 	//Copy priority
 	csys.number_of_priorities = num_priorities;
 	//Init heap
@@ -359,16 +359,16 @@ static inline void free_task_ready_t(task_ready_t *prio)
 static void add_ready_list( ostask_t task )
 {
     if(task->prio > csys.number_of_priorities) {
-		isix_bug("Invalid task priority");	
+		isix_bug("Invalid task priority");
 	}
 	pr_debug("add: trying to add %p prio %i", task, task->prio );
-	if( task->state == OSTHR_STATE_READY || 
+	if( task->state == OSTHR_STATE_READY ||
 		task->state == OSTHR_STATE_ZOMBIE )
 	{
 		pr_debug(" task_id %p state %i", task, task->state );
 		isix_bug( "add: in READY or ZOMBIE state" );
 	}
-	task->state = OSTHR_STATE_READY; 		//Set task to ready state
+	task->state = OSTHR_STATE_READY;		//Set task to ready state
     //Find task equal entry
     task_ready_t *prio_i;
     list_for_each_entry(&csys.ready_list,prio_i,inode)
@@ -515,7 +515,7 @@ void isix_start_scheduler(void)
 {
 	csys.jiffies = 0;		//Zero jiffies if it was previously run
 	schrun = true;
-	port_atomic_init( &csys.critical_count, 0 );
+	atomic_init( &csys.critical_count, 0 );
 	//Restore context and run OS
 	currp->state = OSTHR_STATE_RUNNING;
 	port_start_first_task();
