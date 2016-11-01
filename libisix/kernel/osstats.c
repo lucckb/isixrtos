@@ -19,7 +19,7 @@
 
 #include <isix/osstats.h>
 #include <isix/prv/osstats.h>
-#include <isix/port_atomic.h>
+#include <stdatomic.h>
 
 #ifdef ISIX_LOGLEVEL_OSSTATS
 #undef ISIX_CONFIG_OSSTATS 
@@ -51,7 +51,7 @@ struct cpu_stats {
 	ostick_t idle_sum;
 	ostick_t norm_t;
 	ostick_t norm_sum;
-	_port_atomic_int_t rload;		// Final cpuload
+	atomic_int rload;		// Final cpuload
 	bool old_state;
 };
 
@@ -59,12 +59,12 @@ struct cpu_stats {
 struct cpu_stats cstats;
 
 
-/** Return the current CPU load of the system 
+/** Return the current CPU load of the system
  * @return CPUload in profiles for ex 1000
  */
 int isix_cpuload( void )
 {
-	return port_unsigned_atomic_read( &cstats.rload );
+	return atomic_load( &cstats.rload );
 }
 
 
@@ -74,24 +74,24 @@ int isix_cpuload( void )
  */
 void _isixp_schedule_update_statistics( ostick_t t, bool idle_scheduled )
 {
-	if( cstats.old_state != idle_scheduled ) 
+	if( cstats.old_state != idle_scheduled )
 	{
-		if( idle_scheduled ) 
+		if( idle_scheduled )
 		{
 			cstats.norm_t = t;
 			cstats.idle_sum += t>cstats.idle_t?t-cstats.idle_t:cstats.idle_t-t;
 		}
-		else 
+		else
 		{
 			cstats.idle_t = t;
 			cstats.norm_sum += t>cstats.norm_t?t-cstats.norm_t:cstats.norm_t-t;
 		}
 	}
-	if( (t%CYCLES_RST_COUNT) == 0 ) 
+	if( (t%CYCLES_RST_COUNT) == 0 )
 	{
 		ostick_t den = cstats.idle_sum + cstats.norm_sum;
 		if( den ) {
-			port_unsigned_atomic_write( &cstats.rload, (CPULOAD_MAX*cstats.idle_sum)/den );
+			atomic_store( &cstats.rload, (CPULOAD_MAX*cstats.idle_sum)/den );
 		}
 		cstats.idle_sum = cstats.norm_sum = 0;
 	}
