@@ -51,7 +51,7 @@ int isix_fifo_event_connect( osfifo_t fifo, osevent_t evt, int inbit )
 	return ISIX_EOK;
 }
 
-/** Disconnect selected event from the FIFO 
+/** Disconnect selected event from the FIFO
  * @param[in] fifo handle to the fifo which is interested in read/write
  * @param[in] evt  handle to the osevent notifier
  */

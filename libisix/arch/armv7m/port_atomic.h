@@ -20,7 +20,7 @@
 #pragma once
 
 
-#include <asm/atomic.h>
+#include <stdint.h>
 
 //! Atomic type definition
 typedef struct 
@@ -33,10 +33,6 @@ typedef struct
 enum _port_atomic_const_e {
 	sys_atomic_unlimited_value = 0
 };
-
-
-//! Atomic counter type
-typedef sys_atomic_t _port_atomic_int_t;
 
 
 /** Initialize sem locking primitive 

@@ -230,11 +230,11 @@ namespace {
 void task_tests::cpuload_test()
 {
 	int iload = 10;
-	isix::wait_ms( 2000 );
+	isix::wait_ms( 5000 );
 	for( iload=10; iload<=99; iload+=10 ) {
 		auto tcb = isix::task_create( cpuload_task, &iload, 512, 1 );
 		QUNIT_IS_NOT_EQUAL( tcb, nullptr );
-		isix::wait_ms( 3000 );
+		isix::wait_ms( 4000 );
 		QUNIT_IS_TRUE(  cpuload_ok( isix::cpuload(), iload*10 ) );
 		isix::task_kill( tcb );
 	}
