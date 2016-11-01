@@ -11,6 +11,7 @@
 #include <isix/prv/list.h>
 #include <isix/task.h>
 #include <isix/fifo.h>
+#include <stdatomic.h>
 
 #ifdef ISIX_CONFIG_USE_TIMERS
 
@@ -27,7 +28,7 @@ struct isix_vtimer {
 	void *arg;					  		/* Function pointer */
 	list_t inode;				  		/* Inode list */
 	bool cyclic;						/* If timer is cyclic */
-	uint8_t is_active;					/* Is timer currently active */
+	atomic_bool is_active;				/* Is timer currently active */
 };
 
 struct vtimer_context {

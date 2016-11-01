@@ -139,9 +139,22 @@ void port_atomic_clear_locks(void)
  * @param[in] lock Semaphore lock object
  * @return readed value*/
 static inline __attribute__((always_inline))
-long port_atomic_sem_read_val( _port_atomic_sem_t* lock ) 
+long port_atomic_sem_read_val( _port_atomic_sem_t* semcnt )
 {
-	return sys_atomic_read_int32_t( &lock->value );
+	long ret;
+	unsigned long lock;
+	asm volatile
+	(
+	"1:	ldrex %[ret],[%[addr]]\n"
+	   "strex %[lock],%[ret],[%[addr]]\n"
+	   "teq %[lock],#0\n"
+	   "bne 1b\n"
+	   "dmb\n"
+		: [ret]"=&r"(ret), [lock]"=&r"(lock)
+		: [addr]"r"(&semcnt->value)
+		: "cc", "memory"
+	);
+	return ret;
 }
 
 /**
@@ -151,135 +164,29 @@ long port_atomic_sem_read_val( _port_atomic_sem_t* lock )
  * @return Previous value
  */
 static inline __attribute__((always_inline))
-int port_atomic_sem_write_val( _port_atomic_sem_t* lock, int val )
+int port_atomic_sem_write_val( _port_atomic_sem_t* semcnt, int val )
 {
-	if( lock->limit > 0 ) {
-		if( val > lock->limit ) {
-			val = lock->limit;
+	long ret;
+	unsigned long lock;
+	if( semcnt->limit > 0 ) {
+		if( val > semcnt->limit ) {
+			val = semcnt->limit;
 		}
 	}
 	if( val < 0 ) {
 		val = 0;
 	}
-	return sys_atomic_write_int32_t( &lock->value, val );
-}
-
-/** Sys atomic initialize 
- * @param[in] val Atomic value type
- * @param[in] value Initial value
- */
-static inline __attribute__((always_inline))
-void port_atomic_init( _port_atomic_int_t* val, int value )
-{
-	sys_atomic_init( val , value );
-}
-
-/** 
- *	Port atomic increment
- *	@param[in] val Atomic type
- *	@return returned value
- */
-static inline __attribute__((always_inline))
-int port_atomic_inc( _port_atomic_int_t* val ) 
-{
-	return sys_atomic_add_return( 1, val );
-}
-
-/** 
- *	Port atomic decrement
- *	@param[in] val Atomic type
- *	@return returned value
- */
-static inline __attribute__((always_inline))
-int port_atomic_dec( _port_atomic_int_t* val ) 
-{
-	return sys_atomic_sub_return( 1, val );
-}
-
-/**
- * Sys atomic read value
- * @param[in] val Atomic type
- * @return counter value
- */
-static inline __attribute__((always_inline))
-int port_atomic_read( _port_atomic_int_t* val )
-{
-	return sys_atomic_read( val );
-}
-
-/** 
- *	Port atomic increment
- *	@param[in] val Atomic type
- *	@return returned value
- */
-static inline __attribute__((always_inline))
-unsigned port_unsigned_atomic_inc( _port_atomic_int_t* val ) 
-{
-	return (unsigned)sys_atomic_add_return( 1, val );
-}
-
-/** 
- *	Port atomic decrement
- *	@param[in] val Atomic type
- *	@return returned value
- */
-static inline __attribute__((always_inline))
-unsigned port_unsigned_atomic_dec( _port_atomic_int_t* val ) 
-{
-	return (unsigned)sys_atomic_sub_return( 1, val );
-}
-
-/**
- * Sys atomic read value
- * @param[in] val Atomic type
- * @return counter value
- */
-static inline __attribute__((always_inline))
-unsigned port_unsigned_atomic_read( _port_atomic_int_t* val )
-{
-	return sys_atomic_read_unsigned( val );
-}
-
-/**
- * Sys atomic read value
- * @param[in] val Atomic type
- * @return counter value
- */
-static inline __attribute__((always_inline))
-void port_unsigned_atomic_write( _port_atomic_int_t* v,  unsigned value )
-{
-	sys_atomic_write_unsigned( v, value );
-}
-
-/** Atomic compare and exchange  */
-static inline __attribute__((always_inline))
-uintptr_t port_cmpxchg( uintptr_t *ptr, uintptr_t old, uintptr_t newv )
-{
-	return sys_cmpxchg( ptr, old, newv );
-}
-static inline __attribute__((always_inline))
-uintptr_t port_atomic_read_uintptr_t( const uintptr_t* ptr )
-{	
-	return sys_atomic_read_uintptr_t( ptr );
-}
-
-static inline __attribute__((always_inline))
-uintptr_t port_atomic_write_uintptr_t( const uintptr_t* ptr, uintptr_t val )
-{
-	return sys_atomic_write_uintptr_t( ptr, val );
-}
-
-//! Atomic unsigned char
-static inline __attribute__((always_inline))
-uint8_t port_atomic_write_uint8_t( volatile uint8_t *addr, uint8_t val ) {
-	return sys_atomic_write_uint8_t( addr, val );
-}
-static inline __attribute__((always_inline))
-long port_atomic_try_write_uint8_t( volatile uint8_t *addr, uint8_t val ) {
-	return sys_atomic_try_write_uint8_t( addr, val );
-}
-static inline __attribute__((always_inline))
-uint8_t port_atomic_read_uint8_t( const volatile uint8_t *addr ) {
-	return sys_atomic_read_uint8_t( addr );
+	asm volatile
+	(
+	"1:	ldrex %[ret],[%[addr]]\n"
+	   "strex %[lock],%[val],[%[addr]]\n"
+	   "teq %[lock],#0\n"
+	   "bne 1b\n"
+	   "dmb\n"
+		: [ret]"=&r"(ret), [lock]"=&r"(lock)
+		: [addr]"r"(&semcnt->value), [val]"r"(val)
+		: "cc", "memory"
+	);
+	return ret;
 }
 

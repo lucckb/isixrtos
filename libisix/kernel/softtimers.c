@@ -67,7 +67,7 @@ static inline void exec_timer_callback( osvtimer_t timer )
 {
 	if( timer->callback ) timer->callback( timer->arg );
 	if( !timer->cyclic ) {
-		port_atomic_write_uint8_t( &timer->is_active, false );
+		atomic_store( &timer->is_active, false );
 	}
 }
 
@@ -113,7 +113,7 @@ static void handle_add( ostick_t tnow, const struct start_param* param )
 	tmr->callback = param->callback;
 	tmr->arg = param->args;
 	tmr->cyclic = param->cyclic;
-	port_atomic_write_uint8_t( &tmr->is_active, true );
+	atomic_store( &tmr->is_active, true );
 	//Check for delayed task 
 	bool handled = false;
 	ostick_t tdiff = tnow>=tmr->jiffies?tnow-tmr->jiffies:tmr->jiffies-tnow;
@@ -195,7 +195,7 @@ static void handle_cancel( osvtimer_t tmr )
 {
 	if( list_is_elem_assigned( &tmr->inode ) ) {
 		list_delete( &tmr->inode );
-		port_atomic_write_uint8_t( &tmr->is_active , false );
+		atomic_store( &tmr->is_active , false );
 	}
 }
 
@@ -362,7 +362,7 @@ int isix_vtimer_is_active( osvtimer_t timer )
 	if( !timer ) {
 		return ISIX_EINVARG;
 	}
-	return port_atomic_read_uint8_t(&timer->is_active);
+	return atomic_load(&timer->is_active);
 }
 
 /** Destroy the vtimer on the selected period

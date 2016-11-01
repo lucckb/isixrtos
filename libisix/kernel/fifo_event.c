@@ -20,7 +20,7 @@
 #include <isix/prv/fifo_lock.h>
 
 #ifdef ISIX_LOGLEVEL_FIFO
-#undef ISIX_CONFIG_LOGLEVEL 
+#undef ISIX_CONFIG_LOGLEVEL
 #define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_FIFO
 #endif
 #include <isix/prv/printk.h>
@@ -41,11 +41,13 @@ int isix_fifo_event_connect( osfifo_t fifo, osevent_t evt, int inbit )
 	if( inbit < 0 || inbit > 31 ) {
 		return ISIX_EINVARG;
 	}
-	if( port_cmpxchg((uintptr_t*)&fifo->evt,(uintptr_t)NULL, (uintptr_t)evt) )
-	{	//Already assigned
+	uintptr_t excepted = 0;
+	if( !atomic_compare_exchange_strong((atomic_uintptr_t*)&fifo->evt,
+				&excepted, (uintptr_t)evt) ) {
+		//Already assigned
 		return ISIX_EBUSY;
 	}
-	port_atomic_write_uint8_t( &fifo->bitno, inbit );
+	atomic_store( &fifo->bitno, inbit );
 	return ISIX_EOK;
 }
 
@@ -58,12 +60,13 @@ int isix_fifo_event_disconnect( osfifo_t fifo, osevent_t evt )
 	if( !fifo || !evt ) {
 		return ISIX_EINVARG;
 	}
-	if( port_cmpxchg((uintptr_t*)&fifo->evt,(uintptr_t)evt,(uintptr_t)NULL)
-			!= (uintptr_t)evt )
-	{	//Already free
+	uintptr_t excepted = (uintptr_t)evt;
+	if( !atomic_compare_exchange_strong((atomic_uintptr_t*)&fifo->evt,
+				&excepted, (uintptr_t)NULL) ) {
+		//Already free
 		return ISIX_EBUSY;
 	}
-	port_atomic_write_uint8_t( &fifo->bitno, ISIX_FIFO_EVENT_INVALID_BITS );
+	atomic_store( &fifo->bitno, ISIX_FIFO_EVENT_INVALID_BITS );
 	return ISIX_EOK;
 }
 
@@ -72,8 +75,8 @@ int isix_fifo_event_disconnect( osfifo_t fifo, osevent_t evt )
  */
 void _isixp_fifo_rxavail_event_raise( osfifo_t fifo, bool isr )
 {
-	osevent_t ev = (osevent_t)port_atomic_read_uintptr_t( (uintptr_t*)&fifo->evt );
-	uint8_t bitno = port_atomic_read_uint8_t( &fifo->bitno );
+	osevent_t ev = (osevent_t)atomic_load( (atomic_uintptr_t*)&fifo->evt );
+	uint8_t bitno = atomic_load( &fifo->bitno );
 	if( ev && bitno <= 31 )
 	{
 		if(!isr ) {

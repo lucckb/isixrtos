@@ -9,8 +9,9 @@
 
 #include <isix/config.h>
 #include "semaphore.h"
+#include <stdatomic.h>
 
-#ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY	
+#ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY
 struct isix_event;
 #endif
 
@@ -27,7 +28,7 @@ struct isix_fifo
 	unsigned flags;	//Extra flags
 #ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY	//! Fifo event notify API
 	struct isix_event* evt;
-	unsigned char bitno;
+	atomic_uchar bitno;
 #endif
 };
 
