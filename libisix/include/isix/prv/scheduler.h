@@ -54,8 +54,8 @@ struct isix_task
 //!Structure related to isix system
 struct isix_system 
 {
-	_port_atomic_sem_t sched_lock;			//! Schedule lock
-	atomic_int critical_count;	//! Sched lock counter
+	_port_atomic_sem_t sched_lock;		//! Schedule lock
+	atomic_int critical_count;			//! Sched lock counter
 	list_entry_t ready_list;			//! Binary tree of task ready to execute
 	list_entry_t wait_lists[2];			//!Task waiting for event
 	list_entry_t* p_wait_list;			//! Normal waiting task
@@ -63,7 +63,7 @@ struct isix_system
 	list_entry_t zombie_list;			//Task waiting for event
 	list_entry_t free_prio_elem;        //Free priority innodes
 	ostick_t jiffies;					//Global jiffies var
-	_port_atomic_int_t jiffies_skipped; //Skiped jiffies when scheduler is locked
+	atomic_int jiffies_skipped; //Skiped jiffies when scheduler is locked
 	unsigned number_of_task_deleted;	//Number of deleted task
 	osprio_t number_of_priorities;		//Number of priorities
 	volatile bool yield_pending;		//!Yield during lock

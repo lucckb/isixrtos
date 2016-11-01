@@ -55,19 +55,36 @@ osprio_t isix_get_min_priority(void)
 }
 
 /** Temporary lock task reschedule */
-void _isixp_lock_scheduler() 
+void _isixp_lock_scheduler()
 {
 	port_atomic_sem_inc( &csys.sched_lock );
 }
 
+
+//! Decrement jiffies skipped counter return bool if it is still gt 0
+static bool dec_jiffies_skipped_counter(void)
+{
+	int newval, oldval;
+	do {
+		oldval = atomic_load(&csys.jiffies_skipped);
+		if( oldval > 0 ) {
+			newval = oldval - 1;
+		} else {
+			return false;
+		}
+	} while(!atomic_compare_exchange_weak(
+		&csys.jiffies_skipped, &oldval, newval));
+	return true;
+}
+
+
 /** Temporary unlock task reschedule */
-void _isixp_unlock_scheduler() 
+void _isixp_unlock_scheduler()
 {
 	if( port_atomic_sem_dec( &csys.sched_lock ) == 1 ) {
 		isix_enter_critical();
-		while( csys.jiffies_skipped.counter > 0 ) {
+		while( dec_jiffies_skipped_counter() ) {
 			internal_schedule_time();
-			--csys.jiffies_skipped.counter;
 		}
 		if( csys.yield_pending ) {
 			port_yield();
@@ -313,12 +330,12 @@ static void internal_schedule_time(void)
 
 
 //Schedule time handled from timer context
-void _isixp_schedule_time() 
+void _isixp_schedule_time()
 {
 	//Call isix system time handler if used
     isix_systime_handler();
     if( port_atomic_sem_read_val( &csys.sched_lock ) ) {
-		port_atomic_inc( &csys.jiffies_skipped );
+		atomic_fetch_add( &csys.jiffies_skipped, 1 );
 	} else {
 		//Increment system ticks
 		isix_enter_critical();
