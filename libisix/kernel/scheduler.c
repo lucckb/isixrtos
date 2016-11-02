@@ -5,6 +5,7 @@
 #include <isix/prv/list.h>
 #include <isix/prv/softtimers.h>
 #include <isix/prv/semaphore.h>
+#include <isix/prv/mutex.h>
 #include <isix/prv/osstats.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
@@ -631,6 +632,10 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 		_isixp_remove_from_prio_queue( &task->obj.sem->wait_list );
 		task->prio = newprio;
 		_isixp_add_to_prio_queue( &task->obj.sem->wait_list, task );
+	} else if( task->state == OSTHR_STATE_WTMTX ) {
+		_isixp_remove_from_prio_queue( &task->obj.mtx->wait_list );
+		task->prio = newprio;
+		_isixp_add_to_prio_queue( &task->obj.mtx->wait_list, task );
 	}
 }
 

@@ -22,12 +22,13 @@ enum osthr_state
 {
 	OSTHR_STATE_READY		= 0,			//! Thread is on ready state
 	OSTHR_STATE_RUNNING		= 1,			//! Thread is in running state
-	OSTHR_STATE_CREATED		= 2,			//! Task already created but 
+	OSTHR_STATE_CREATED		= 2,			//! Task already created but
 	OSTHR_STATE_SLEEPING	= 3,			//! Thread on sleeping state
 	OSTHR_STATE_WTSEM		= 4,			//! Wait for semaphore state
 	OSTHR_STATE_ZOMBIE		= 5,			//! In zombie state just before exit
 	OSTHR_STATE_SCHEDULE  	= 6,			//! Schedule only do nothing special
-	OSTHR_STATE_WTEVT	    = 7, 			//! Scheduler on wait event state
-	OSTHR_STATE_SUSPEND		= 8				//! Task is in suspend state
+	OSTHR_STATE_WTEVT	    = 7,			//! Scheduler on wait event state
+	OSTHR_STATE_SUSPEND		= 8,			//! Task is in suspend state
+	OSTHR_STATE_WTMTX		= 9				//! Wait on mutex state
 };
 

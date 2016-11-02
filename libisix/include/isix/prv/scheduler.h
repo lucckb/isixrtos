@@ -5,6 +5,7 @@
 #include <isix/prv/list.h>
 #include <isix/config.h>
 #include <isix/semaphore.h>
+#include <isix/mutex.h>
 #include <isix/events.h>
 #include <isix/scheduler.h>
 #include <isix/port_atomic.h>
@@ -42,6 +43,7 @@ struct isix_task
 	union
 	{
 		ossem_t sem;				//! Pointer to waiting sem
+		osmtx_t mtx;				//! Pointer to waiting mutex
 		osbitset_t evbits;			//! Current event bit for waiting
 		osmsg_t	dmsg;				//! Returning message
 	} obj;

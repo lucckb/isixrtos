@@ -14,6 +14,7 @@ ISIX_SRC += $(ISIX_DIR)/kernel/fifo.c
 ISIX_SRC += $(ISIX_DIR)/kernel/memory.c 
 ISIX_SRC += $(ISIX_DIR)/kernel/scheduler.c 
 ISIX_SRC += $(ISIX_DIR)/kernel/semaphore.c 
+ISIX_SRC += $(ISIX_DIR)/kernel/mutex.c 
 ISIX_SRC += $(ISIX_DIR)/kernel/task.c 
 ISIX_SRC += $(ISIX_DIR)/kernel/softtimers.c
 ISIX_SRC += $(ISIX_DIR)/kernel/mempool.c
