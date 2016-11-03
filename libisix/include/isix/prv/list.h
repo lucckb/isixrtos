@@ -58,6 +58,13 @@ static inline void list_insert_end( list_entry_t *list,list_t *elem )
 }
 
 
+// Add element at end of list
+static inline void list_insert_first( list_entry_t *list,list_t *elem )
+{
+    list_insert_after(list->head.next,elem);
+}
+
+
 // offsetof(TYPE,MEMBER) ?? <stddef.h>
 #define list_entry(list,type,member) \
 	(type*)((ptrdiff_t)(list)-offsetof(type,member))

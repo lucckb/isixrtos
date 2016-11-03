@@ -71,6 +71,7 @@ int isix_mutex_lock( osmtx_t mutex )
 		}
 		++mutex->count;
 		mutex->owner = currp;
+		list_insert_end( &currp->owned_mutexes, &mutex->inode );
 	}
 	isix_exit_critical();
 	return ISIX_EOK;
@@ -105,11 +106,13 @@ int isix_mutex_trylock( osmtx_t mutex )
 		}
 		++mutex->count;
 		mutex->owner = currp;
+		list_insert_end( &currp->owned_mutexes, &mutex->inode );
 		ret = ISIX_EOK;
 	}
 	isix_exit_critical();
 	return ret;
 }
+
 
 //Mutex unlock
 int isix_mutex_unlock( osmtx_t mutex )
@@ -130,10 +133,99 @@ int isix_mutex_unlock( osmtx_t mutex )
 		isix_exit_critical();
 		return ISIX_EPERM;
 	}
-	if( !list_isempty(&mutex->wait_list) )
+	if( --mutex->count == 0 )
 	{
-		
+		//Check and remove fist element from the owning mutexes list
+		//It should be the same mutex list passed by argument
+		{
+			osmtx_t lfirst = list_first_entry( &currp->owned_mutexes,inode,struct isix_mutex);
+			if( lfirst->owner != currp ) {
+				isix_bug("Mutex ownership failure");
+			}
+			list_delete( &lfirst->inode );
+		}
+		if( !list_isempty(&mutex->wait_list) )
+		{
+			osmtx_t mtx;
+			osprio_t newprio = currp->real_prio;
+			list_for_each_entry( &currp->owned_mutexes, mtx, inode )
+			{
+				if( isixp_prio_gt(mtx->owner->prio,newprio) )
+					newprio = mtx->owner->prio;
+			}
+			currp->prio = newprio;
+			mutex->count = 1;
+			ostask_t next_tsk = list_first_entry(&mutex->wait_list,inode,struct isix_task);
+			mutex->owner = next_tsk;
+			list_delete( &next_tsk->inode );
+			list_insert_first(&currp->owned_mutexes, &mutex->inode );
+			_isixp_wakeup_task( next_tsk, ISIX_EOK );
+		}
+		else {
+			mutex->owner = NULL;
+		}
 	}
-
+	isix_exit_critical();
+	return ISIX_EOK;
 }
 
+//! Unlock all waiting threads
+void isix_mutex_unlock_all(void)
+{
+	isix_enter_critical();
+	if( !list_isempty(&currp->owned_mutexes) )
+	{
+		osmtx_t mtx, tmp;
+		list_for_each_entry_safe( &currp->owned_mutexes, mtx, tmp, inode )
+		{
+			if( !list_isempty( &mtx->wait_list ) )
+			{
+				mtx->count = 1;
+				ostask_t mtsk = list_first_entry(&mtx->wait_list,inode,struct isix_task);
+				list_delete( &mtsk->inode );
+				mtx->owner = mtsk;
+				_isixp_wakeup_task( mtsk, ISIX_EOK );
+			}
+			else
+			{
+				mtx->count = 0;
+				mtx->owner = NULL;
+			}
+		}
+	}
+	isix_exit_critical();
+}
+
+
+/** Destroy the recursive mutex
+ * @param[in] mutex Recursive mutex object
+ * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ */
+int isix_mutex_destroy( osmtx_t mutex )
+{
+	if( !mutex ) {
+		pr_err( "Invalid mutex identifier");
+		return ISIX_EINVARG;
+	}
+	ostask_t tsk, tmp;
+	ostask_t wkup_task = NULL;
+	isix_enter_critical();
+	if( mutex->owner )
+		list_delete( &mutex->owner->inode );
+
+	list_for_each_entry_safe( &mutex->wait_list, tsk, tmp, inode )
+	{
+		tsk->prio = tsk->real_prio;
+		list_delete( &tsk->inode );
+		list_delete( &mutex->inode );
+		if( !wkup_task ) wkup_task = tsk;
+		_isixp_wakeup_task_l( tsk, ISIX_EDESTROY );
+	}
+	if( wkup_task ) {
+		_isixp_do_reschedule( wkup_task );
+	} else {
+		isix_exit_critical();
+	}
+	if( !mutex->static_mem ) isix_free( mutex );
+	return ISIX_EOK;
+}

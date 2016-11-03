@@ -80,14 +80,14 @@ extern volatile bool _isix_scheduler_running;
 #define currp _isix_current_task
 #define schrun _isix_scheduler_running
 //Return scheduler highest prio
-static inline __attribute__((always_inline)) 
-	ostask_t isixp_max_prio( ostask_t t1, ostask_t t2 ) 
+static inline __attribute__((always_inline))
+	ostask_t isixp_max_prio( ostask_t t1, ostask_t t2 )
 {
 	return (t1->prio>t2->prio)?(t2):(t1);
 }
 //! Return true if fist prio is greater than second
-static inline __attribute__((always_inline)) 
-	bool isixp_prio_gt( osprio_t p1, osprio_t p2 ) 
+static inline __attribute__((always_inline))
+	bool isixp_prio_gt( osprio_t p1, osprio_t p2 )
 {
 	return p1 < p2;
 }

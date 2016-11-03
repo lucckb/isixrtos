@@ -33,11 +33,10 @@ int isix_mutex_unlock( osmtx_t mutex );
  */
 int isix_mutex_trylock( osmtx_t mutex );
 
-/** Function unlock all objects wating for mutexes
- * @param[in] mutex Mutex object
+/** Function unlock all objects waiting in the current task
  * @return Error code
  */
-int isix_mutex_unlock_all( osmtx_t mutex );
+void isix_mutex_unlock_all(void);
 
 
 /** Destroy the recursive mutex
