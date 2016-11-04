@@ -111,16 +111,19 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
     ostask_t taskc = task?task:currp;
 	pr_debug("Change prio curr task ptr %p %i", taskc, taskc->state );
     //Save task prio
-    const osprio_t old_prio = taskc->prio;
-    if(old_prio==new_prio)
+    const osprio_t real_prio = taskc->real_prio;
+    if(real_prio==new_prio)
     {
         isix_exit_critical();
         return ISIX_EOK;
     }
-	_isixp_reallocate_priority( taskc, new_prio );
-	port_yield();	//Unconditional port yield due to force reschedule all tasks
+	taskc->real_prio = new_prio;
+	if( taskc->prio==real_prio||isixp_prio_gt(new_prio,taskc->prio) ) {
+		_isixp_reallocate_priority( taskc, new_prio );
+		port_yield();	//Unconditional port yield due to force reschedule all tasks
+	}
 	isix_exit_critical();
-    return old_prio;
+    return real_prio;
 }
 
 /* Get isix structure private data */
@@ -203,10 +206,10 @@ size_t isix_free_stack_space(const ostask_t task)
 osprio_t isix_get_task_priority( const ostask_t task )
 {
 	const ostask_t taskd = task?task:currp;
-	return taskd->prio;
+	return taskd->real_prio;
 }
 
-/** Get current task state 
+/** Get current task state
  * @param[in] Task identifier
  * @return Task state
  */
