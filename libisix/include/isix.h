@@ -13,6 +13,7 @@
 #include <isix/events.h>
 #include <isix/fifo_event.h>
 #include <isix/osstats.h>
+#include <isix/mutex.h>
 #include <isix/cpp/fifo.hpp>
 #include <isix/cpp/virtual_timer.hpp>
 #include <isix/cpp/mempool.hpp>
@@ -20,3 +21,4 @@
 #include <isix/cpp/task_base.hpp>
 #include <isix/cpp/events.hpp>
 #include <isix/cpp/thread11.hpp>
+#include <isix/cpp/mutex.hpp>

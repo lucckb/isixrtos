@@ -48,3 +48,30 @@ int isix_mutex_destroy( osmtx_t mutex );
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+namespace isix {
+namespace {
+	using mtx_t = osmtx_t;
+
+	inline osmtx_t mutex_create( osmtx_t mutex = nullptr ) {
+		return ::isix_mutex_create( mutex );
+	}
+	inline int mutex_lock( osmtx_t mutex ) {
+		return ::isix_mutex_lock( mutex );
+	}
+	inline int mutex_unlock( osmtx_t mutex ) {
+		return ::isix_mutex_unlock( mutex );
+	}
+	inline int mutex_trylock( osmtx_t mutex ) {
+		return ::isix_mutex_trylock( mutex );
+	}
+	inline void mutex_unlock_all() {
+		isix::mutex_unlock_all();
+	}
+	inline int mutex_destroy( osmtx_t mutex ) {
+		return isix::mutex_destroy( mutex );
+	}
+
+}}
+#endif

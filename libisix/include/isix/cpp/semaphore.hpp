@@ -34,6 +34,8 @@ namespace isix
 		{
 			sem = isix_sem_create_limited( NULL, val, limit_val );
 		}
+		semaphore(const semaphore&) = delete;
+		semaphore& operator=(const semaphore&) = delete;
 		//! Destruct semaphore object
 		~semaphore()
 		{
@@ -42,36 +44,36 @@ namespace isix
 		/** Check the fifo object is in valid state
 		* @return true if object is in valid state otherwise return false
 		*/
-		bool is_valid() { return sem!=0; }
+		bool is_valid() const noexcept { return sem!=0; }
 		/** Wait for the semaphore for selected time
 		* @param[in] timeout Max waiting time
 		*/
-		int wait(ostick_t timeout)
+		int wait(ostick_t timeout) noexcept
 		{
 			return isix_sem_wait( sem, timeout );
 		}
 		/** Get the semaphore from the ISR context
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
 		*/
-		int trywait() const 
+		int trywait() const noexcept
 		{
 			return isix_sem_trywait( sem );
 		}
-		int __attribute__((deprecated)) get_isr() const
+		int __attribute__((deprecated)) get_isr() const noexcept
 		{
 			return isix_sem_trywait(sem);
 		}
 		/** Signaling the semaphore
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
 		*/
-		int signal()
+		int signal() noexcept
 		{
 			return isix_sem_signal(sem);
 		}
 		/** Signal the semaphore from the ISR context
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
 		*/
-		int signal_isr()
+		int signal_isr() noexcept
 		{
 			return isix_sem_signal_isr(sem);
 		}
@@ -79,7 +81,7 @@ namespace isix
 		* @param[in] val Value of the semaphore
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
 		*/
-		int reset( int val )
+		int reset( int val ) noexcept
 		{
 			return isix_sem_reset( sem, val );
 		}
@@ -87,20 +89,17 @@ namespace isix
 		* @param[in] val Value of the semaphore
 		* @return ISIX_EOK if the operation is completed successfully otherwise return an error code
 		*/
-		int reset_isr( int val ) 
+		int reset_isr( int val ) noexcept
 		{
 			return isix_sem_reset_isr( sem, val );
 		}
 		/** Get the semaphore value
 		* @return the semaphore value otherwise an error
 		*/
-		int getval() const
+		int getval() const noexcept
 		{
 			return isix_sem_getval( sem );
 		}
-	private:
-		semaphore(const semaphore&);
-		semaphore& operator=(const semaphore&);
 	private:
 		ossem_t sem;
 	};
