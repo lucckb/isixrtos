@@ -97,6 +97,13 @@ void* isix_get_task_private_data( ostask_t task );
  */
  osprio_t isix_get_task_priority( const ostask_t task );
 
+/**
+ *	Isix get task inherided priority (incl. prio inheritance )
+ *	@param[in] task Task control object
+ *	@return current task priority
+ */
+ osprio_t isix_get_task_inherited_priority( const ostask_t task );
+
 /** Check of the available stack space
  * @param[in] task Task control block
  * @return Number of bytes in stack space
@@ -158,6 +165,9 @@ namespace {
 	}
 	inline osprio_t get_task_priority( const ostask_t task=nullptr ) {
 		return ::isix_get_task_priority( task );
+	}
+	inline osprio_t get_task_inherited_priority( const ostask_t task=nullptr ) {
+		return ::isix_get_task_inherited_priority( task );
 	}
 #ifdef ISIX_CONFIG_TASK_STACK_CHECK
 	inline size_t free_stack_space( const ostask_t task=nullptr ) {

@@ -209,6 +209,13 @@ osprio_t isix_get_task_priority( const ostask_t task )
 	return taskd->real_prio;
 }
 
+//Get task origin priority
+osprio_t isix_get_task_inherited_priority( const ostask_t task )
+{
+	const ostask_t taskd = task?task:currp;
+	return taskd->prio;
+}
+
 /** Get current task state
  * @param[in] Task identifier
  * @return Task state
