@@ -13,6 +13,32 @@
 #endif
 #include <isix/prv/printk.h>
 
+
+
+
+//! Helper function for transfer mutex ownership
+static inline ostask_t transfer_mtx_ownership_to_next_waiting_task( osmtx_t mutex )
+{
+	mutex->count = 1;
+	ostask_t next_tsk = list_first_entry(&mutex->wait_list,inode,struct isix_task);
+	mutex->owner = next_tsk;
+	list_delete( &next_tsk->inode );
+	list_insert_first( &next_tsk->owned_mutexes, &mutex->inode );
+	return next_tsk;
+}
+
+//! Helper function set ownership
+static inline void set_ownership_to_current( osmtx_t mutex )
+{
+	if( mutex->count != 0 ) {
+		isix_bug( "Mutex counter is not zero" );
+	}
+	++mutex->count;
+	mutex->owner = currp;
+	list_insert_first( &currp->owned_mutexes, &mutex->inode );
+}
+
+
 // Create mutex
 osmtx_t isix_mutex_create( osmtx_t mutex )
 {
@@ -29,6 +55,8 @@ osmtx_t isix_mutex_create( osmtx_t mutex )
 	list_init( &mutex->wait_list );
 	return mutex;
 }
+
+
 
 // Mutex lock
 int isix_mutex_lock( osmtx_t mutex )
@@ -66,16 +94,12 @@ int isix_mutex_lock( osmtx_t mutex )
 	// Mutex is not assigned make the owner
 	else
 	{
-		if( mutex->count != 0 ) {
-			isix_bug( "Mutex counter is not zero" );
-		}
-		++mutex->count;
-		mutex->owner = currp;
-		list_insert_end( &currp->owned_mutexes, &mutex->inode );
+		set_ownership_to_current( mutex );
 	}
 	isix_exit_critical();
 	return ISIX_EOK;
 }
+
 
 
 // Mutex try lock
@@ -101,17 +125,14 @@ int isix_mutex_trylock( osmtx_t mutex )
 	}
 	else
 	{
-		if( mutex->count != 0 ) {
-			isix_bug( "Mutex counter is not zero" );
-		}
-		++mutex->count;
-		mutex->owner = currp;
-		list_insert_end( &currp->owned_mutexes, &mutex->inode );
+		set_ownership_to_current( mutex );
 		ret = ISIX_EOK;
 	}
 	isix_exit_critical();
 	return ret;
 }
+
+
 
 
 //Mutex unlock
@@ -138,14 +159,18 @@ int isix_mutex_unlock( osmtx_t mutex )
 		//Check and remove fist element from the owning mutexes list
 		//It should be the same mutex list passed by argument
 		{
-			osmtx_t lfirst = list_first_entry( &currp->owned_mutexes,inode,struct isix_mutex);
-			if( lfirst->owner != currp ) {
-				isix_bug("Mutex ownership failure");
+			osmtx_t lfirst = NULL;
+			list_for_each_entry( &currp->owned_mutexes, lfirst, inode ) {
+				if( lfirst == mutex ) break;
+			}
+			if( !lfirst ) {
+				isix_bug("Not in mutex ownership list");
 			}
 			list_delete( &lfirst->inode );
 		}
 		if( !list_isempty(&mutex->wait_list) )
 		{
+			//Recalculate the new mutex task priority
 			osmtx_t mtx;
 			osprio_t newprio = currp->real_prio;
 			list_for_each_entry( &currp->owned_mutexes, mtx, inode )
@@ -154,12 +179,7 @@ int isix_mutex_unlock( osmtx_t mutex )
 					newprio = mtx->owner->prio;
 			}
 			currp->prio = newprio;
-			mutex->count = 1;
-			ostask_t next_tsk = list_first_entry(&mutex->wait_list,inode,struct isix_task);
-			mutex->owner = next_tsk;
-			list_delete( &next_tsk->inode );
-			list_insert_first(&currp->owned_mutexes, &mutex->inode );
-			_isixp_wakeup_task( next_tsk, ISIX_EOK );
+			_isixp_wakeup_task( transfer_mtx_ownership_to_next_waiting_task(mutex), ISIX_EOK );
 		}
 		else {
 			mutex->owner = NULL;
@@ -180,11 +200,7 @@ void isix_mutex_unlock_all(void)
 		{
 			if( !list_isempty( &mtx->wait_list ) )
 			{
-				mtx->count = 1;
-				ostask_t mtsk = list_first_entry(&mtx->wait_list,inode,struct isix_task);
-				list_delete( &mtsk->inode );
-				mtx->owner = mtsk;
-				_isixp_wakeup_task( mtsk, ISIX_EOK );
+				_isixp_wakeup_task( transfer_mtx_ownership_to_next_waiting_task(mtx), ISIX_EOK );
 			}
 			else
 			{

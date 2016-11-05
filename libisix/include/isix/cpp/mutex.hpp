@@ -39,13 +39,13 @@ namespace isix {
 		/** Check if mutex can be locked without task block
 		 * @return ISIX_EOK if the operation is completed succesfully */
 		int try_lock() noexcept {
-			return isix_mutex_trylock();
+			return isix_mutex_trylock( m_mtx );
 		}
 
 		/** Unlock all mutexes owned by the current task
 		 * @return ISIX_EOK if the operation is completed succesfully */
 		void unlock_all() noexcept {
-			isix_unlock_all();
+			isix_mutex_unlock_all();
 		}
 
 	private:
