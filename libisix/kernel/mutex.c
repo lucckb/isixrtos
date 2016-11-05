@@ -178,7 +178,7 @@ int isix_mutex_unlock( osmtx_t mutex )
 				if( isixp_prio_gt(mtx->owner->prio,newprio) )
 					newprio = mtx->owner->prio;
 			}
-			currp->prio = newprio;
+			_isixp_reallocate_priority( currp, newprio );
 			_isixp_wakeup_task( transfer_mtx_ownership_to_next_waiting_task(mutex), ISIX_EOK );
 		}
 		else {
@@ -232,7 +232,7 @@ int isix_mutex_destroy( osmtx_t mutex )
 
 	list_for_each_entry_safe( &mutex->wait_list, tsk, tmp, inode )
 	{
-		tsk->prio = tsk->real_prio;
+		_isixp_reallocate_priority( tsk, tsk->real_prio );
 		list_delete( &tsk->inode );
 		list_delete( &mutex->inode );
 		if( !wkup_task ) wkup_task = tsk;

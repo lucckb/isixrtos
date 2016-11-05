@@ -627,7 +627,7 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 		delete_from_ready_list( task );
 		task->prio = newprio;
 		task->state = OSTHR_STATE_SCHEDULE;
-		add_ready_list( task ); 
+		add_ready_list( task );
 	} else if( task->state == OSTHR_STATE_WTSEM ) {
 		_isixp_remove_from_prio_queue( &task->obj.sem->wait_list );
 		task->prio = newprio;
@@ -636,6 +636,8 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 		_isixp_remove_from_prio_queue( &task->obj.mtx->wait_list );
 		task->prio = newprio;
 		_isixp_add_to_prio_queue( &task->obj.mtx->wait_list, task );
+	} else {
+		task->prio = newprio;
 	}
 }
 
@@ -647,22 +649,22 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 	{
 		list_delete( &task->inode_time );
 	}
-	if( task->state==OSTHR_STATE_READY || 
+	if( task->state==OSTHR_STATE_READY ||
 		task->state==OSTHR_STATE_RUNNING )
 	{
 		delete_from_ready_list( task );
-	} 
-	// If if task wait for sem 
+	}
+	// If if task wait for sem
 	if( task->state == OSTHR_STATE_WTEVT )
-	{     
+	{
 		list_delete( &task->inode );
 	}
-	else if( task->state == OSTHR_STATE_WTSEM ) 
+	else if( task->state == OSTHR_STATE_WTSEM )
 	{
 		_isixp_sem_fast_signal( task->obj.sem );
 		list_delete( &task->inode );
 	}
-	if( suspend ) 
+	if( suspend )
 	{
 		task->state = OSTHR_STATE_SUSPEND;
 	}
