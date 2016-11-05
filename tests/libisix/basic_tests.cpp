@@ -18,12 +18,14 @@
 #include "event_tests.hpp"
 #include "event_groups_demo.h"
 #include "timer_interrupt.hpp"
+#include "mutex_test.hpp"
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
 	static constexpr auto STACK_SIZE = 4096;
     static constexpr auto TASKDEF_PRIORITY = 0;
 	QUnit::UnitTest qunit {QUnit::verbose };
+	tests::mutexes mtx_test { qunit };
 	tests::semaphores sem_test { qunit };
 	tests::task_tests task_test { qunit };
 	tests::fifo_test fifo_test { qunit };
@@ -63,8 +65,10 @@ class unit_tests : public isix::task_base
 		heap_test();
 		atomic_test.run();
 		sched_test.run();
+		mtx_test.run();
+		return ;
 		sem_test.run();
-		task_test.run();	
+		task_test.run();
 		fifo_test.run();
 		mempool_test.run();
 		timer_test.run();
