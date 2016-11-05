@@ -30,12 +30,17 @@ namespace tests {
 		}
 		void run() {
 			test01();
+			test02();
+			test03();
+			test04();
 		}
 	private:
 		void test01();
+		void test02();
+		void test03();
+		void test04();
 	private:
 		QUnit::UnitTest& qunit;
-		std::vector<ostask_t> threads;
 	};
 }
 

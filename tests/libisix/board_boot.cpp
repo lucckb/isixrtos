@@ -11,8 +11,7 @@
 #include <stm32system.h>
 /* ------------------------------------------------------------------ */
 namespace {
-
-	constexpr auto ISIX_NUM_PRIORITIES = 4;
+	constexpr auto ISIX_NUM_PRIORITIES = 8;
 }
 /* ------------------------------------------------------------------ */
 namespace {
