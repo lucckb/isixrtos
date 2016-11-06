@@ -175,8 +175,12 @@ int isix_mutex_unlock( osmtx_t mutex )
 			osprio_t newprio = currp->real_prio;
 			list_for_each_entry( &currp->owned_mutexes, mtx, inode )
 			{
-				if( isixp_prio_gt(mtx->owner->prio,newprio) )
-					newprio = mtx->owner->prio;
+				if( !list_isempty(&mtx->wait_list) ) {
+					ostask_t t = list_first_entry(&mtx->wait_list,inode,struct isix_task);
+					if( isixp_prio_gt(t->prio,newprio) ) {
+						newprio = t->prio;
+					}
+				}
 			}
 			_isixp_reallocate_priority( currp, newprio );
 			_isixp_wakeup_task( transfer_mtx_ownership_to_next_waiting_task(mutex), ISIX_EOK );
