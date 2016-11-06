@@ -202,7 +202,6 @@ void isix_mutex_unlock_all(void)
 		osmtx_t mtx, tmp;
 		list_for_each_entry_safe( &currp->owned_mutexes, mtx, tmp, inode )
 		{
-			list_delete( &mtx->inode );
 			if( !list_isempty( &mtx->wait_list ) )
 			{
 				_isixp_wakeup_task( transfer_mtx_ownership_to_next_waiting_task(mtx), ISIX_EOK );

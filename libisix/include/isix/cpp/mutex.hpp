@@ -42,12 +42,6 @@ namespace isix {
 			return isix_mutex_trylock( m_mtx );
 		}
 
-		/** Unlock all mutexes owned by the current task
-		 * @return ISIX_EOK if the operation is completed succesfully */
-		void unlock_all() noexcept {
-			isix_mutex_unlock_all();
-		}
-
 	private:
 		osmtx_t m_mtx;
 	};

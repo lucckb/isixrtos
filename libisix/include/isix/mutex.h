@@ -67,10 +67,10 @@ namespace {
 		return ::isix_mutex_trylock( mutex );
 	}
 	inline void mutex_unlock_all() {
-		isix::mutex_unlock_all();
+		::isix_mutex_unlock_all();
 	}
 	inline int mutex_destroy( osmtx_t mutex ) {
-		return isix::mutex_destroy( mutex );
+		return ::isix_mutex_destroy( mutex );
 	}
 
 }}
