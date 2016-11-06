@@ -2,7 +2,6 @@
 
 #include <isix/prv/list.h>
 #include <isix/prv/types.h>
-#include <stdatomic.h>
 
 struct isix_task;
 
