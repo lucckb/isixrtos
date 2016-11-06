@@ -231,10 +231,10 @@ void mutexes::test04() {
      it. The priority must not change because A has not yet reached 
      mtx1 so the mutex is not locked.*/
 	QUNIT_IS_EQUAL( mtx1.lock(), ISIX_EOK );
-	
+
 	//Real prirority should be p
 	QUNIT_IS_EQUAL( isix::get_task_inherited_priority(), p );
-	
+
 	//Thread A should reach the mtx1 after 100ms
 	isix::wait_ms(100);
 	QUNIT_IS_EQUAL( isix::get_task_inherited_priority(), pa );
