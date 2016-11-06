@@ -18,7 +18,15 @@
 #include "mutex_test.hpp"
 #include "qunit.hpp"
 #include <foundation/dbglog.h>
+#include <isix/prv/list.h>
+#include <isix/prv/mutex.h>
 
+//Temporary private data access mutex stuff
+// Structure of isix mutex
+
+struct mtx_hacker {
+	osmtx_t mtx;
+};
 
 namespace {
 	std::string test_buf;
@@ -261,5 +269,54 @@ void mutexes::test04() {
 	QUNIT_IS_EQUAL( isix::get_task_inherited_priority(), p );
 
 }
+
+/* The behavior of multiple mutex locks from the same thread is tested
+  * Getting current thread priority for later checks.
+ * Locking the mutex first time, it must be possible because it is not owned.
+ * Locking the mutex second time, it must be possible because it is recursive.
+ * Unlocking the mutex then it must be still owned because recursivity.
+ * Unlocking the mutex then it must not be owned anymore and the queue must be empty.
+ * Testing that priority has not changed after operations.
+ * Testing consecutive try_lock calls and a final unlock_all()
+ * Testing consecutive lock/unlock calls and a  final unlock_all().
+ * Testing that priority has not changed after operations.
+ */
+
+void mutexes::test05() {
+	const auto prio = isix::get_task_inherited_priority();
+	QUNIT_IS_EQUAL( mtx1.try_lock(), ISIX_EOK );
+	//! Locking recursive mutex should be possible
+	QUNIT_IS_EQUAL( mtx1.try_lock(), ISIX_EOK );
+
+	QUNIT_IS_EQUAL( mtx1.unlock(), ISIX_EOK );
+	//After single unlock it must be still owned
+	QUNIT_IS_NOT_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
+
+	QUNIT_IS_EQUAL( mtx1.unlock(), ISIX_EOK );
+	//After second unlock it should be owned
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
+
+	// Testing that priority is not changed
+	QUNIT_IS_EQUAL( isix::get_task_inherited_priority(), prio );
+
+	// Test consecutive lock unlock and unlock all
+	QUNIT_IS_EQUAL( mtx1.try_lock(), ISIX_EOK );
+	isix_enter_critical();
+	int ret = mtx1.try_lock();
+	isix_exit_critical();
+	QUNIT_IS_EQUAL( ret, ISIX_EOK );
+	//Check recursion counter
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 2 );
+	isix_enter_critical();
+	isix::mutex_unlock_all();
+	isix_exit_critical();
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 0 );
+	QUNIT_IS_TRUE( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list));
+	// Final priority testing
+	QUNIT_IS_EQUAL( isix::get_task_inherited_priority(), prio );
+}
+
+
 
 }

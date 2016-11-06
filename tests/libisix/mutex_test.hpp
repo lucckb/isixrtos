@@ -33,12 +33,14 @@ namespace tests {
 			test02();
 			test03();
 			test04();
+			test05();
 		}
 	private:
 		void test01();
 		void test02();
 		void test03();
 		void test04();
+		void test05();
 	private:
 		QUnit::UnitTest& qunit;
 	};
