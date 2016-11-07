@@ -86,8 +86,8 @@ int isix_mutex_lock( osmtx_t mutex )
 			_isixp_set_sleep( OSTHR_STATE_WTMTX );
 			_isixp_add_to_prio_queue( &mutex->wait_list, currp );
 			currp->obj.mtx = mutex;
-			isix_yield();
 			isix_exit_critical();
+			isix_yield();
 			return currp->obj.dmsg;
 		}
 	}
@@ -184,6 +184,7 @@ int isix_mutex_unlock( osmtx_t mutex )
 			}
 			_isixp_reallocate_priority( currp, newprio );
 			_isixp_wakeup_task( transfer_mtx_ownership_to_next_waiting_task(mutex), ISIX_EOK );
+			return ISIX_EOK;
 		}
 		else {
 			mutex->owner = NULL;
@@ -196,6 +197,7 @@ int isix_mutex_unlock( osmtx_t mutex )
 //! Unlock all waiting threads
 void isix_mutex_unlock_all(void)
 {
+	ostask_t wkup_task = NULL;
 	isix_enter_critical();
 	if( !list_isempty(&currp->owned_mutexes) )
 	{
@@ -204,7 +206,10 @@ void isix_mutex_unlock_all(void)
 		{
 			if( !list_isempty( &mtx->wait_list ) )
 			{
-				_isixp_wakeup_task( transfer_mtx_ownership_to_next_waiting_task(mtx), ISIX_EOK );
+				ostask_t t = transfer_mtx_ownership_to_next_waiting_task(mtx);
+				_isixp_wakeup_task_l( t , ISIX_EOK );
+				//NOTE: Wait list is prioritized so the first has highest prio
+				if( !wkup_task ) wkup_task = t;
 			}
 			else
 			{
@@ -213,7 +218,11 @@ void isix_mutex_unlock_all(void)
 			}
 		}
 	}
-	isix_exit_critical();
+	if( wkup_task ) {
+		_isixp_do_reschedule( wkup_task );
+	} else {
+		isix_exit_critical();
+	}
 }
 
 
@@ -238,6 +247,7 @@ int isix_mutex_destroy( osmtx_t mutex )
 		_isixp_reallocate_priority( tsk, tsk->real_prio );
 		list_delete( &tsk->inode );
 		list_delete( &mutex->inode );
+		//NOTE: Wait list is prioritized so the first has highest prio
 		if( !wkup_task ) wkup_task = tsk;
 		_isixp_wakeup_task_l( tsk, ISIX_EDESTROY );
 	}
@@ -248,4 +258,17 @@ int isix_mutex_destroy( osmtx_t mutex )
 	}
 	if( !mutex->static_mem ) isix_free( mutex );
 	return ISIX_EOK;
+}
+
+
+//Temporary debug print owned mutexes list
+void print_owned_mutexes_list(void) {
+	osmtx_t mtx;
+	isix_enter_critical();
+	tiny_printf("Owned mtxlist\r\n");
+	list_for_each_entry( &currp->owned_mutexes, mtx, inode ) {
+		tiny_printf( "MUTEXADDR %p\r\n", mtx );
+		tiny_printf( "OWNER %p PRIO %i \r\n", mtx->owner, mtx->owner->prio );
+	}
+	isix_exit_critical();
 }
