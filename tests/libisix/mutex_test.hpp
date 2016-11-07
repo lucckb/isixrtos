@@ -29,12 +29,13 @@ namespace tests {
 		{
 		}
 		void run() {
-			//test01();
-			//test02();
-			//test03();
-			//test04();
+			test01();
+			test02();
+			test03();
+			test04();
 			test05();
 			test06();
+			test07();
 		}
 	private:
 		void test01();
@@ -43,6 +44,7 @@ namespace tests {
 		void test04();
 		void test05();
 		void test06();
+		void test07();
 	private:
 		QUnit::UnitTest& qunit;
 	};

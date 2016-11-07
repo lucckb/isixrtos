@@ -15,14 +15,24 @@
  *
  * =====================================================================================
  */
+/*
+ * No native support for _Atomic(). Place object in structure to prevent
+ * most forms of direct non-atomic access.
+ */
+
+
 #include "mutex_test.hpp"
 #include "qunit.hpp"
 #include <foundation/dbglog.h>
 #include <isix/prv/list.h>
 #include <isix/prv/mutex.h>
 
+
+
+
 //Temporary private data access mutex stuff
 // Structure of isix mutex
+//TODO condvars
 
 struct mtx_hacker {
 	osmtx_t mtx;
@@ -279,6 +289,9 @@ void mutexes::test04() {
 	QUNIT_IS_EQUAL( mtx1.unlock(), ISIX_EOK );
 	QUNIT_IS_EQUAL( isix::get_task_inherited_priority(), p );
 
+	//Restore org prio
+	QUNIT_IS_EQUAL( isix::task_change_prio( nullptr, old_prio ), isix::get_min_priority() );
+
 }
 
 
@@ -324,7 +337,6 @@ void mutexes::test05() {
 	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 2 );
 	//isix_enter_critical();
 	isix::mutex_unlock_all();
-	print_owned_mutexes_list();
 	//isix_exit_critical();
 	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
 	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 0 );
@@ -333,32 +345,31 @@ void mutexes::test05() {
 	QUNIT_IS_EQUAL( isix::get_task_inherited_priority(), prio );
 }
 
-
+/** Main hiph priority tasks lock mutex. Five tasks are created when mutex is released
+ *  other created tasks should get mutex in the order */
 void mutexes::test06() {
+
 	using namespace test06;
 	test_buf.clear();
 	ostask_t t1,t2,t3,t4,t5;
-	t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5, isix_task_flag_suspended );
+	t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5 );
 	if( t1 ==nullptr) std::abort();
-	t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4, isix_task_flag_suspended );
+	t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4 );
 	if( t2 ==nullptr) std::abort();
-	t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3, isix_task_flag_suspended );
+	t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3 );
 	if( t3 ==nullptr) std::abort();
-	t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2, isix_task_flag_suspended );
+	t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2 );
 	if( t4 ==nullptr) std::abort();
-	t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1, isix_task_flag_suspended );
+	t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1 );
 	if( t5 ==nullptr) std::abort();
-	mtx1.lock();
-	isix_enter_critical();
-	isix::task_resume(t1);
-	isix::task_resume(t2);
-	isix::task_resume(t3);
-	isix::task_resume(t4);
-	isix::task_resume(t5);
-	isix::exit_critical();
-	mtx1.unlock();
 	isix::wait_ms(500);
 	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
 }
+
+
+void mutexes::test07()  {
+
+}
+
 
 }
