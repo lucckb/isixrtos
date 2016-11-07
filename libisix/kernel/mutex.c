@@ -125,6 +125,9 @@ int isix_mutex_trylock( osmtx_t mutex )
 	}
 	else
 	{
+		if( mutex->count != 0 ) {
+			isix_bug("MTX count should be 0");
+		}
 		set_ownership_to_current( mutex );
 		ret = ISIX_EOK;
 	}
@@ -213,6 +216,7 @@ void isix_mutex_unlock_all(void)
 			}
 			else
 			{
+				list_delete( &mtx->inode );
 				mtx->count = 0;
 				mtx->owner = NULL;
 			}
@@ -268,7 +272,7 @@ void print_owned_mutexes_list(void) {
 	tiny_printf("Owned mtxlist\r\n");
 	list_for_each_entry( &currp->owned_mutexes, mtx, inode ) {
 		tiny_printf( "MUTEXADDR %p\r\n", mtx );
-		tiny_printf( "OWNER %p PRIO %i \r\n", mtx->owner, mtx->owner->prio );
+		tiny_printf( "OWNER %p PRIO %i \r\n", mtx->owner, mtx->owner?mtx->owner->prio:-1 );
 	}
 	isix_exit_critical();
 }

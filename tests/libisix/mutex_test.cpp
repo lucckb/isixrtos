@@ -32,8 +32,10 @@ namespace {
 	std::string test_buf;
 	isix::mutex mtx1;
 	isix::mutex mtx2;
-	constexpr auto STK_SIZ = 256;
+	constexpr auto STK_SIZ = 512;
 }
+
+#define bug(code) do { if(code) { dbprintf("ABORT FILE %s LINE %i CODE %i",__FILE__,__LINE__,code); std::abort(); } } while(0)
 
 namespace {
 
@@ -140,21 +142,30 @@ namespace {
 
 	void thread4a( void* ptr ) {
 		isix::wait_ms(50);
-		if( mtx1.lock() ) std::abort();
-		if( mtx1.unlock() ) std::abort();
+		bug( mtx1.lock() );
+		bug( mtx1.unlock() );
 		*reinterpret_cast<ostick_t*>(ptr)=isix::get_jiffies();
 	}
 
 	void thread4b( void* ptr ) {
 		isix::wait_ms(150);
-		isix::enter_critical();
-		if( mtx2.lock() ) std::abort();
-		if( mtx2.unlock() ) std::abort();
+		//isix::enter_critical();
+		bug( mtx2.lock() );
+		bug( mtx2.unlock() );
 		isix::yield();
-		isix::exit_critical();
+		//isix::exit_critical();
 		*reinterpret_cast<ostick_t*>(ptr)=isix::get_jiffies();
 	}
 }
+
+namespace test06 {
+namespace {
+	void thread( void* p) {
+		if( mtx1.lock() ) std::abort();
+		test_buf.push_back( *reinterpret_cast<const char*>(p) );
+		if( mtx1.unlock() ) std::abort();
+	}
+}}
 
 namespace tests {
 
@@ -270,6 +281,10 @@ void mutexes::test04() {
 
 }
 
+
+extern "C"
+void print_owned_mutexes_list(void);
+
 /* The behavior of multiple mutex locks from the same thread is tested
   * Getting current thread priority for later checks.
  * Locking the mutex first time, it must be possible because it is not owned.
@@ -301,15 +316,16 @@ void mutexes::test05() {
 
 	// Test consecutive lock unlock and unlock all
 	QUNIT_IS_EQUAL( mtx1.try_lock(), ISIX_EOK );
-	isix_enter_critical();
+	//isix_enter_critical();
 	int ret = mtx1.try_lock();
-	isix_exit_critical();
+	//isix_exit_critical();
 	QUNIT_IS_EQUAL( ret, ISIX_EOK );
 	//Check recursion counter
 	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 2 );
-	isix_enter_critical();
+	//isix_enter_critical();
 	isix::mutex_unlock_all();
-	isix_exit_critical();
+	print_owned_mutexes_list();
+	//isix_exit_critical();
 	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
 	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 0 );
 	QUNIT_IS_TRUE( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list));
@@ -318,5 +334,31 @@ void mutexes::test05() {
 }
 
 
+void mutexes::test06() {
+	using namespace test06;
+	test_buf.clear();
+	ostask_t t1,t2,t3,t4,t5;
+	t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5, isix_task_flag_suspended );
+	if( t1 ==nullptr) std::abort();
+	t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4, isix_task_flag_suspended );
+	if( t2 ==nullptr) std::abort();
+	t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3, isix_task_flag_suspended );
+	if( t3 ==nullptr) std::abort();
+	t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2, isix_task_flag_suspended );
+	if( t4 ==nullptr) std::abort();
+	t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1, isix_task_flag_suspended );
+	if( t5 ==nullptr) std::abort();
+	mtx1.lock();
+	isix_enter_critical();
+	isix::task_resume(t1);
+	isix::task_resume(t2);
+	isix::task_resume(t3);
+	isix::task_resume(t4);
+	isix::task_resume(t5);
+	isix::exit_critical();
+	mtx1.unlock();
+	isix::wait_ms(500);
+	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
+}
 
 }
