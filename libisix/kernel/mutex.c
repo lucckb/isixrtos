@@ -125,9 +125,6 @@ int isix_mutex_trylock( osmtx_t mutex )
 	}
 	else
 	{
-		if( mutex->count != 0 ) {
-			isix_bug("MTX count should be 0");
-		}
 		set_ownership_to_current( mutex );
 		ret = ISIX_EOK;
 	}
