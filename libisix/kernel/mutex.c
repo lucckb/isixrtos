@@ -194,20 +194,21 @@ int isix_mutex_unlock( osmtx_t mutex )
 	return ISIX_EOK;
 }
 
+
 //! Unlock all waiting threads
-void isix_mutex_unlock_all(void)
+void _isixp_mutex_unlock_all_in_task( ostask_t utask, osmsg_t reason )
 {
 	ostask_t wkup_task = NULL;
 	isix_enter_critical();
-	if( !list_isempty(&currp->owned_mutexes) )
+	if( !list_isempty( &utask->owned_mutexes) )
 	{
 		osmtx_t mtx, tmp;
-		list_for_each_entry_safe( &currp->owned_mutexes, mtx, tmp, inode )
+		list_for_each_entry_safe( &utask->owned_mutexes, mtx, tmp, inode )
 		{
 			if( !list_isempty( &mtx->wait_list ) )
 			{
 				ostask_t t = transfer_mtx_ownership_to_next_waiting_task(mtx);
-				_isixp_wakeup_task_l( t , ISIX_EOK );
+				_isixp_wakeup_task_l( t , reason );
 				//NOTE: Wait list is prioritized so the first has highest prio
 				if( !wkup_task ) wkup_task = t;
 			}
@@ -226,6 +227,10 @@ void isix_mutex_unlock_all(void)
 	}
 }
 
+//! Unlock all waiting threads
+void isix_mutex_unlock_all(void) {
+	_isixp_mutex_unlock_all_in_task( currp, ISIX_EOK );
+}
 
 /** Destroy the recursive mutex
  * @param[in] mutex Recursive mutex object
@@ -261,7 +266,8 @@ int isix_mutex_destroy( osmtx_t mutex )
 	return ISIX_EOK;
 }
 
-
+#if 0
+//TODO: Remove after debug
 //Temporary debug print owned mutexes list
 void print_owned_mutexes_list(void) {
 	osmtx_t mtx;
@@ -273,3 +279,4 @@ void print_owned_mutexes_list(void) {
 	}
 	isix_exit_critical();
 }
+#endif

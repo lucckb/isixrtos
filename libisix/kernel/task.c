@@ -3,6 +3,7 @@
 #include <isix/task.h>
 #include <isix/memory.h>
 #include <isix/prv/semaphore.h>
+#include <isix/prv/mutex.h>
 #include <isix/prv/common.h>
 #include <string.h>
 #define _ISIX_KERNEL_CORE_
@@ -158,8 +159,10 @@ int isix_set_task_private_data( ostask_t task, void *data )
 //Delete task pointed by struct task
 void isix_task_kill( ostask_t task )
 {
-	isix_enter_critical();
+	//Release all waiting mutexes owned by task
     ostask_t taskd = task?task:currp;
+	_isixp_mutex_unlock_all_in_task( taskd, ISIX_EABANDONED );
+	isix_enter_critical();
 	_isixp_add_kill_or_set_suspend( taskd, false );
 	if( !task ) {
 		isix_exit_critical();
