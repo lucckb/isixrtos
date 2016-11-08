@@ -7,7 +7,7 @@
 #include <isix/memory.h>
 #include <isix/types.h>
 #include <isix/semaphore.h>
-#include <isix/prv/semaphore.h>
+#include <isix/prv/mutex.h>
 #include <isix/config.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
@@ -41,29 +41,37 @@ static struct
 
 
 //! Semaphore for locking the memory allocator
-static struct isix_semaphore mem_sem;
+static struct isix_mutex mlock;
 
 
 //!Lock the memory
 static void mem_lock_init(void)
 {
 	//Create unlocked semaphore
-	isix_sem_create( &mem_sem, 1 );
+	if( !isix_mutex_create( &mlock ) ) {
+		isix_bug("Memlock create failed");
+	}
 }
 
 //!Lock the memory
 static void mem_lock(void)
 {
-	if(schrun)
-		isix_sem_wait( &mem_sem, ISIX_TIME_INFINITE );
+	if(schrun) {
+		if( isix_mutex_lock( &mlock ) ) {
+			isix_bug("Memlock lock failed");
+		}
+	}
 }
 
 
 //!Unlock the memory
 static void mem_unlock(void)
 {
-	if(schrun)
-		isix_sem_signal( &mem_sem );
+	if(schrun) {
+		if( isix_mutex_unlock( &mlock ) ) {
+			isix_bug("Memlock unlock failed");
+		}
+	}
 }
 
 
