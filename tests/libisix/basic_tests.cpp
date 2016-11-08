@@ -66,7 +66,7 @@ class unit_tests : public isix::task_base
 		atomic_test.run();
 		sched_test.run();
 		mtx_test.run();
-		return ;
+		//return ;
 		sem_test.run();
 		task_test.run();
 		fifo_test.run();

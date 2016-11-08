@@ -187,6 +187,23 @@ namespace {
 
 }}
 
+namespace test08 {
+namespace {
+
+	struct params {
+		osmtx_t mtx;
+		volatile int ret;
+	};
+	void thread( void* ptr ) {
+		params& p = *reinterpret_cast<params*>(ptr);
+		p.ret = isix::mutex_lock( p.mtx );
+		for(;;) {
+			isix_wait_ms(100);
+		}
+	}
+
+}}
+
 namespace tests {
 
 //! Test step1
@@ -305,8 +322,6 @@ void mutexes::test04() {
 }
 
 
-extern "C"
-void print_owned_mutexes_list(void);
 
 /* The behavior of multiple mutex locks from the same thread is tested
   * Getting current thread priority for later checks.
@@ -376,27 +391,63 @@ void mutexes::test06() {
 	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
 }
 
+
 /* Five tasks take a mutex and wait for task abandon when the owner task is destroyed */
 void mutexes::test07()  {
 
 	using namespace test07;
 	int fin[5] { -9999, -9999, -9999, -9999, -9999 };
-	ostask_t t1;
-	if( (t1=isix::task_create( thread,&fin[0],STK_SIZ, 4 ))==nullptr) std::abort();
+	ostask_t t[5];
+	if( (t[0]=isix::task_create( thread,&fin[0],STK_SIZ, 4 ))==nullptr) std::abort();
 	isix::wait_ms(10);
-	if( isix::task_create( thread,&fin[1],STK_SIZ, 5 )==nullptr) std::abort();
-	if( isix::task_create( thread,&fin[2],STK_SIZ, 5 )==nullptr) std::abort();
-	if( isix::task_create( thread,&fin[3],STK_SIZ, 5 )==nullptr) std::abort();
-	if( isix::task_create( thread,&fin[4],STK_SIZ, 5 )==nullptr) std::abort();
+	if( (t[1]=isix::task_create( thread,&fin[1],STK_SIZ, 5 ))==nullptr) std::abort();
+	if( (t[2]=isix::task_create( thread,&fin[2],STK_SIZ, 5 ))==nullptr) std::abort();
+	if( (t[3]=isix::task_create( thread,&fin[3],STK_SIZ, 5 ))==nullptr) std::abort();
+	if( (t[4]=isix::task_create( thread,&fin[4],STK_SIZ, 5 ))==nullptr) std::abort();
 	isix::wait_ms(20);
-	isix::task_kill( t1 );
-	isix::wait_ms(20);
-	QUNIT_IS_EQUAL( fin[0], ISIX_EOK );
-	QUNIT_IS_EQUAL( fin[1], ISIX_EOK );
-	QUNIT_IS_EQUAL( fin[2], ISIX_EOK );
-	QUNIT_IS_EQUAL( fin[3], ISIX_EOK );
-	QUNIT_IS_EQUAL( fin[4], ISIX_EOK );
+	int match[6] { -9999, -9999, -9999, -9999, -9999 };
+	for( int i=0;i<5;i++ ) {
+		dbprintf(">>>>>> Test loop %i <<<<<<< ", i );
+		isix::task_kill( t[i] );
+		isix::wait_ms(20);
+		match[i] = ISIX_EOK;
+		match[i+1] = ISIX_EOK;
+		for( int j=0; j<5; j++ ) {
+			QUNIT_IS_EQUAL( fin[j], match[j] );
+		}
+	}
+	//Final test for the mutex state
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 0 );
+	QUNIT_IS_TRUE( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list));
+	isix::wait_ms(10);
 }
 
+
+/* Mutex create and destroy test
+ * When tasks wait for mutexes which is destroyed it should be awaked with edestroyed state*/
+void mutexes::test08() {
+	using namespace test08;
+	osmtx_t mloc = isix::mutex_create();
+	QUNIT_IS_NOT_EQUAL( mloc, nullptr );
+	params par[4]{ {mloc,-9999},{mloc,-9999}, {mloc,-9999}, {mloc,-9999} };
+	ostask_t t1,t2,t3,t4;
+	if( (t1=isix::task_create( thread ,&par[0],STK_SIZ, 4 ))==nullptr) std::abort();
+	if( (t2=isix::task_create( thread ,&par[1],STK_SIZ, 4 ))==nullptr) std::abort();
+	if( (t3=isix::task_create( thread ,&par[2],STK_SIZ, 4 ))==nullptr) std::abort();
+	if( (t4=isix::task_create( thread ,&par[3],STK_SIZ, 4 ))==nullptr) std::abort();
+	isix::wait_ms(20);
+	QUNIT_IS_EQUAL( isix::mutex_destroy( mloc ), ISIX_EOK );
+	isix::wait_ms(10);
+	QUNIT_IS_EQUAL( par[0].ret, ISIX_EOK );
+	QUNIT_IS_EQUAL( par[1].ret, ISIX_EDESTROY );
+	QUNIT_IS_EQUAL( par[2].ret, ISIX_EDESTROY );
+	QUNIT_IS_EQUAL( par[3].ret, ISIX_EDESTROY );
+	isix::task_kill(t1);
+	isix::task_kill(t2);
+	isix::task_kill(t3);
+	isix::task_kill(t4);
+	isix::wait_ms(10);
+}
 
 }

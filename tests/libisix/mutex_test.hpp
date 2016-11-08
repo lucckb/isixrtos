@@ -36,6 +36,7 @@ namespace tests {
 			test05();
 			test06();
 			test07();
+			test08();
 		}
 	private:
 		void test01();
@@ -45,6 +46,7 @@ namespace tests {
 		void test05();
 		void test06();
 		void test07();
+		void test08();
 	private:
 		QUnit::UnitTest& qunit;
 	};
