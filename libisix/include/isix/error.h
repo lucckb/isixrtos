@@ -16,6 +16,5 @@ enum isix_error
 	ISIX_EDESTROY = -10,	/** Object has been destroyed */
 	ISIX_ESTATE	  = -11,	/** Invalid state  */
 	ISIX_EPERM   =  -12,	/** Not permited */
-	ISIX_ENOTLOCKED = -14,  /** Not locked */
-	ISIX_EABANDONED = -15,  /** Task owning mutexes abandon wait */
+	ISIX_ENOTLOCKED = -14  /** Not locked */
 };

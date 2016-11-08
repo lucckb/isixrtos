@@ -177,6 +177,16 @@ namespace {
 	}
 }}
 
+namespace test07 {
+namespace {
+
+	void thread( void* p ) {
+		*reinterpret_cast<int*>(p) = mtx1.lock();
+		for(;;) isix_wait_ms(100);
+	}
+
+}}
+
 namespace tests {
 
 //! Test step1
@@ -366,9 +376,26 @@ void mutexes::test06() {
 	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
 }
 
-
+/* Five tasks take a mutex and wait for task abandon when the owner task is destroyed */
 void mutexes::test07()  {
 
+	using namespace test07;
+	int fin[5] { -9999, -9999, -9999, -9999, -9999 };
+	ostask_t t1;
+	if( (t1=isix::task_create( thread,&fin[0],STK_SIZ, 4 ))==nullptr) std::abort();
+	isix::wait_ms(10);
+	if( isix::task_create( thread,&fin[1],STK_SIZ, 5 )==nullptr) std::abort();
+	if( isix::task_create( thread,&fin[2],STK_SIZ, 5 )==nullptr) std::abort();
+	if( isix::task_create( thread,&fin[3],STK_SIZ, 5 )==nullptr) std::abort();
+	if( isix::task_create( thread,&fin[4],STK_SIZ, 5 )==nullptr) std::abort();
+	isix::wait_ms(20);
+	isix::task_kill( t1 );
+	isix::wait_ms(20);
+	QUNIT_IS_EQUAL( fin[0], ISIX_EOK );
+	QUNIT_IS_EQUAL( fin[1], ISIX_EOK );
+	QUNIT_IS_EQUAL( fin[2], ISIX_EOK );
+	QUNIT_IS_EQUAL( fin[3], ISIX_EOK );
+	QUNIT_IS_EQUAL( fin[4], ISIX_EOK );
 }
 
 

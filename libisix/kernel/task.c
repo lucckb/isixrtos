@@ -161,7 +161,7 @@ void isix_task_kill( ostask_t task )
 {
 	//Release all waiting mutexes owned by task
     ostask_t taskd = task?task:currp;
-	_isixp_mutex_unlock_all_in_task( taskd, ISIX_EABANDONED );
+	_isixp_mutex_unlock_all_in_task( taskd );
 	isix_enter_critical();
 	_isixp_add_kill_or_set_suspend( taskd, false );
 	if( !task ) {

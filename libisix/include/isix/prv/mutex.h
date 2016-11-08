@@ -22,4 +22,4 @@ struct isix_mutex {
 
 struct isix_task;
 //! Unlock all thread waiting on the selected task
-void _isixp_mutex_unlock_all_in_task( struct isix_task* utask, osmsg_t reason );
+void _isixp_mutex_unlock_all_in_task( struct isix_task* utask );

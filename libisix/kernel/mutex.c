@@ -196,7 +196,7 @@ int isix_mutex_unlock( osmtx_t mutex )
 
 
 //! Unlock all waiting threads
-void _isixp_mutex_unlock_all_in_task( ostask_t utask, osmsg_t reason )
+void _isixp_mutex_unlock_all_in_task( ostask_t utask )
 {
 	ostask_t wkup_task = NULL;
 	isix_enter_critical();
@@ -208,7 +208,7 @@ void _isixp_mutex_unlock_all_in_task( ostask_t utask, osmsg_t reason )
 			if( !list_isempty( &mtx->wait_list ) )
 			{
 				ostask_t t = transfer_mtx_ownership_to_next_waiting_task(mtx);
-				_isixp_wakeup_task_l( t , reason );
+				_isixp_wakeup_task_l( t , ISIX_EOK );
 				//NOTE: Wait list is prioritized so the first has highest prio
 				if( !wkup_task ) wkup_task = t;
 			}
@@ -229,7 +229,7 @@ void _isixp_mutex_unlock_all_in_task( ostask_t utask, osmsg_t reason )
 
 //! Unlock all waiting threads
 void isix_mutex_unlock_all(void) {
-	_isixp_mutex_unlock_all_in_task( currp, ISIX_EOK );
+	_isixp_mutex_unlock_all_in_task( currp  );
 }
 
 /** Destroy the recursive mutex
