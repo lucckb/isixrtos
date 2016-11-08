@@ -246,13 +246,12 @@ int isix_mutex_destroy( osmtx_t mutex )
 	ostask_t wkup_task = NULL;
 	isix_enter_critical();
 	if( mutex->owner )
-		list_delete( &mutex->owner->inode );
+		list_delete( &mutex->inode );
 
 	list_for_each_entry_safe( &mutex->wait_list, tsk, tmp, inode )
 	{
 		_isixp_reallocate_priority( tsk, tsk->real_prio );
 		list_delete( &tsk->inode );
-		list_delete( &mutex->inode );
 		//NOTE: Wait list is prioritized so the first has highest prio
 		if( !wkup_task ) wkup_task = tsk;
 		_isixp_wakeup_task_l( tsk, ISIX_EDESTROY );
@@ -269,11 +268,11 @@ int isix_mutex_destroy( osmtx_t mutex )
 #if 0
 //TODO: Remove after debug
 //Temporary debug print owned mutexes list
-void print_owned_mutexes_list(void) {
+void print_owned_mutexes_list(ostask_t tt) {
 	osmtx_t mtx;
 	isix_enter_critical();
 	tiny_printf("Owned mtxlist\r\n");
-	list_for_each_entry( &currp->owned_mutexes, mtx, inode ) {
+	list_for_each_entry( &tt->owned_mutexes, mtx, inode ) {
 		tiny_printf( "MUTEXADDR %p\r\n", mtx );
 		tiny_printf( "OWNER %p PRIO %i \r\n", mtx->owner, mtx->owner?mtx->owner->prio:-1 );
 	}
