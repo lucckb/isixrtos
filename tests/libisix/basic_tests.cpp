@@ -96,6 +96,7 @@ int main()
 #endif	
 	dblog_init_putc( stm32::usartsimple_putc, nullptr );
 	dbprintf("-------- BEGIN_TESTS ---------");
+	dbprintf("ISIX VERSION %s", isix::get_version() );
 	static unit_tests test;
 	test.start_thread(4096, 0);
 	isix_start_scheduler();

@@ -33,6 +33,11 @@ ifeq ($(DEBUG),y)
 ISIX_INC += -DISIX_DEBUG
 endif
 
+ISIX_VERSION := $(shell git describe --tags 2> /dev/null )
+ifdef ISIX_VERSION
+COMMON_FLAGS += -DISIX_GIT_VERSION=\"$(ISIX_VERSION)\"
+endif
+
 
 ISIX_LIB = $(ISIX_DIR)/libisix.a
 ISIX_OBJS += $(ISIX_SRC:%.c=%.o) 
