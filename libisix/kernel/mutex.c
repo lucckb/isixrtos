@@ -265,17 +265,3 @@ int isix_mutex_destroy( osmtx_t mutex )
 	return ISIX_EOK;
 }
 
-#if 0
-//TODO: Remove after debug
-//Temporary debug print owned mutexes list
-void print_owned_mutexes_list(ostask_t tt) {
-	osmtx_t mtx;
-	isix_enter_critical();
-	tiny_printf("Owned mtxlist\r\n");
-	list_for_each_entry( &tt->owned_mutexes, mtx, inode ) {
-		tiny_printf( "MUTEXADDR %p\r\n", mtx );
-		tiny_printf( "OWNER %p PRIO %i \r\n", mtx->owner, mtx->owner?mtx->owner->prio:-1 );
-	}
-	isix_exit_critical();
-}
-#endif
