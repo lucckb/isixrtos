@@ -36,6 +36,8 @@ endif
 ISIX_VERSION := $(shell git describe --tags 2> /dev/null )
 ifdef ISIX_VERSION
 COMMON_FLAGS += -DISIX_GIT_VERSION=\"$(ISIX_VERSION)\"
+else
+COMMON_FLAGS += -DISIX_GIT_VERSION=\"unknown\"
 endif
 
 
