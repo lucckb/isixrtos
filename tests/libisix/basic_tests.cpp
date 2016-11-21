@@ -52,8 +52,11 @@ class unit_tests : public isix::task_base
 		QUNIT_IS_TRUE( freem > 0 );
 	}
 	//Test basic tasks
-    virtual void main() 
+    virtual void main()
 	{
+		heap_test();
+		mtx_test.run();
+	if(0) {
 #if 0
 		timer_test.run();
 		dbprintf("Timer tests end");
@@ -79,10 +82,13 @@ class unit_tests : public isix::task_base
 		isix_shutdown_scheduler();
 		dbprintf("It never should show it");
 #else
-		vStartEventGroupTasks();
-		isix::wait_ms(500);
-		tests::detail::periodic_timer_setup( vPeriodicEventGroupsProcessing );
+		//vStartEventGroupTasks();
+		//isix::wait_ms(500);
+		//tests::detail::periodic_timer_setup( vPeriodicEventGroupsProcessing );
+		heap_test();
+		mtx_test.run();
 #endif
+	}
 	}
 };
 
@@ -92,7 +98,7 @@ int main()
 #ifdef PDEBUG
 	//static constexpr auto baud_hi = 3000000;
 	static constexpr auto baud_lo = 115200;
-    stm32::usartsimple_init( USART2, baud_lo ,true, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
+    stm32::usartsimple_init( USART1, baud_lo ,false, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
 #endif	
 	dblog_init_putc( stm32::usartsimple_putc, nullptr );
 	dbprintf("-------- BEGIN_TESTS ---------");

@@ -7,6 +7,7 @@
 #include <isix/prv/semaphore.h>
 #include <isix/prv/mutex.h>
 #include <isix/prv/osstats.h>
+#include <isix/prv/condvar.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 #include <isix/port_memprot.h>
@@ -324,6 +325,9 @@ static void internal_schedule_time(void)
 		} else if( task_c->state == OSTHR_STATE_WTEVT ) {
 			list_delete( &task_c->inode );
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
+		} else if( task_c->state == OSTHR_STATE_WTCOND ) {
+			list_delete( &task_c->inode );
+			task_c->obj.dmsg = ISIX_ETIMEOUT;
 		}
 		add_ready_list( task_c );
     }
@@ -636,7 +640,12 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 		_isixp_remove_from_prio_queue( &task->obj.mtx->wait_list );
 		task->prio = newprio;
 		_isixp_add_to_prio_queue( &task->obj.mtx->wait_list, task );
-	} else {
+	} else if( task->state == OSTHR_STATE_WTCOND ) {
+		_isixp_remove_from_prio_queue( &task->obj.cond->wait_list );
+		task->prio = newprio;
+		_isixp_add_to_prio_queue( &task->obj.cond->wait_list, task );
+	}
+	else {
 		task->prio = newprio;
 	}
 }

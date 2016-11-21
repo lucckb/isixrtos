@@ -265,3 +265,12 @@ int isix_mutex_destroy( osmtx_t mutex )
 	return ISIX_EOK;
 }
 
+//! Get first Mutex owner and release it
+osmtx_t _isixp_get_top_currt_mutex( void )
+{
+	if( list_isempty(&currp->owned_mutexes) ) {
+		return NULL;
+	} else {
+		return list_first_entry(&currp->owned_mutexes,inode,struct isix_mutex);
+	}
+}

@@ -42,10 +42,11 @@ namespace {
 	std::string test_buf;
 	isix::mutex mtx1;
 	isix::mutex mtx2;
+	isix::condvar mcv;
 	constexpr auto STK_SIZ = 512;
 }
 
-#define bug(code) do { if(code) { dbprintf("ABORT FILE %s LINE %i CODE %i",__FILE__,__LINE__,code); std::abort(); } } while(0)
+#define bug(code) do { if(code) { dbprintf("ABORT FILE %s LINE %i CODE %i (%x)",__FILE__,__LINE__,code,code); std::abort(); } } while(0)
 
 namespace {
 
@@ -203,6 +204,37 @@ namespace {
 	}
 
 }}
+
+namespace test09 {
+namespace {
+
+	void thread( void* ptr ) {
+		bug( (mtx1.lock()) );
+		bug( mcv.wait() );
+		test_buf.push_back( *reinterpret_cast<const char*>(ptr) );
+		bug( mtx1.unlock() );
+	}
+
+}}
+
+namespace test11 {
+namespace {
+
+	void thread_a( void* ptr ) {
+		bug( mtx2.lock() ) ;
+		bug( mtx1.lock() ) ;
+		bug( mcv.wait() );
+		test_buf.push_back( *reinterpret_cast<const char*>(ptr) );
+		bug( mtx1.unlock() );
+		bug( mtx2.unlock() );
+	}
+	void thread_b( void* ptr ) {
+		bug( mtx2.lock() ) ;
+		test_buf.push_back( *reinterpret_cast<const char*>(ptr) );
+		bug( mtx2.unlock() );
+	}
+}
+}
 
 namespace tests {
 
@@ -448,6 +480,112 @@ void mutexes::test08() {
 	isix::task_kill(t3);
 	isix::task_kill(t4);
 	isix::wait_ms(10);
+}
+
+/** Condvar basic test  */
+void mutexes::test09() {
+	using namespace test09;
+	dbprintf("Test09 begin");
+	test_buf.clear();
+	ostask_t t1,t2,t3,t4,t5;
+	t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5 );
+	if( t1 ==nullptr) std::abort();
+	t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4 );
+	if( t2 ==nullptr) std::abort();
+	t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3 );
+	if( t3 ==nullptr) std::abort();
+	t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2 );
+	if( t4 ==nullptr) std::abort();
+	t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1 );
+	if( t5 ==nullptr) std::abort();
+	isix::wait_ms(200);
+	QUNIT_IS_TRUE( test_buf.empty() );
+	QUNIT_IS_EQUAL( mcv.broadcast(), ISIX_EOK );
+	isix::wait_ms(500);
+	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
+}
+
+
+/** Condvar basic test  */
+void mutexes::test10() {
+	using namespace test09;
+	test_buf.clear();
+	ostask_t t1,t2,t3,t4,t5;
+	t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5 );
+	if( t1 ==nullptr) std::abort();
+	t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4 );
+	if( t2 ==nullptr) std::abort();
+	t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3 );
+	if( t3 ==nullptr) std::abort();
+	t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2 );
+	if( t4 ==nullptr) std::abort();
+	t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1 );
+	if( t5 ==nullptr) std::abort();
+	isix::wait_ms(200);
+	QUNIT_IS_TRUE( test_buf.empty() );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
+	isix::wait_ms(500);
+	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
+}
+
+/** Condition wait priority boost test
+ * TODO: Validate correctness
+ * */
+void mutexes::test11() {
+	using namespace test11;
+	test_buf.clear();
+	const auto prio = isix::get_task_inherited_priority();
+	dbprintf("Test begin prio %i", prio );
+	ostask_t t1,t2,t3;
+	QUNIT_IS_EQUAL(isix::get_task_inherited_priority(), isix::get_task_priority() );
+	t1 = isix::task_create( thread_a, (char*)"A", STK_SIZ, 5  );
+	if( t1 == nullptr) std::abort();
+	t2 = isix::task_create( test09::thread, (char*)"C", STK_SIZ, 4 );
+	if( t2 == nullptr) std::abort();
+	t3 = isix::task_create( thread_b, (char*)"B", STK_SIZ, 3 );
+	if( t3 == nullptr) std::abort();
+	isix::wait_ms(100);
+	mcv.signal();
+	mcv.signal();
+	isix::wait_ms(100);
+	QUNIT_IS_EQUAL( test_buf, "BAC" );
+}
+
+
+/** Test 12 basic mutex condvar wait for timeout and not owning a mutex test
+ */
+void mutexes::test12() {
+
+	//! Mutex 1 shouldnt be aquired
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 0 );
+	QUNIT_IS_TRUE( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list));
+
+	//! Lock the mutex and wait for timeout
+	QUNIT_IS_EQUAL( mtx1.lock(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mcv.wait( 100 ), ISIX_ETIMEOUT );
+
+	//! Mutex should be
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 0 );
+	QUNIT_IS_TRUE( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list));
+
+	//! Locking and unlocking should be possible
+	QUNIT_IS_EQUAL( mtx1.try_lock(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mtx1.unlock(), ISIX_EOK );
+
+	//! Mutex should be empty
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 0 );
+	QUNIT_IS_TRUE( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list));
+
+	// Wait without owning mutexes should casue error
+	QUNIT_IS_EQUAL( mcv.wait(), ISIX_EINVARG );
+
 }
 
 }

@@ -20,7 +20,7 @@
 #ifdef __cplusplus
 #include <cstddef>
 
-namespace isix 
+namespace isix
 {
 
 	//! Semaphore C++ class wrapper
