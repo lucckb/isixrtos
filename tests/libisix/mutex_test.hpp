@@ -28,7 +28,7 @@ namespace tests {
 			: qunit( ut )
 		{
 		}
-#if 0
+#if 1
 		void run() {
 			test01();
 			test02();
@@ -38,6 +38,10 @@ namespace tests {
 			test06();
 			test07();
 			test08();
+			test09();
+			test10();
+			test11();
+			test12();
 		}
 #else
 		void run() {
