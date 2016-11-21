@@ -45,7 +45,7 @@ CXXFLAGS += $(COMMON_FLAGS)
 
 
 #Per file listing
-LISTING = n
+LISTING = y
 
 #Debug version
 DEBUG ?=  y

@@ -150,6 +150,8 @@ void sched_suspend::non_block_wait()
 	isix_wait_us( 500000 );
 	t2 = isix_get_jiffies();
 	QUNIT_IS_TRUE( t2-t1 >=499 && t2-t1<=501 );
+	//Finall give a chance to cleanup resources
+	isix::wait_ms(10);
 }
 
 
