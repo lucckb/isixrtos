@@ -24,9 +24,9 @@ ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
 		unsigned long  stack_depth, osprio_t priority, unsigned long flags )
 {
 	pr_info("tskcreate: Create task with prio %i",priority);
-    if(isix_get_min_priority()< priority )
+    if( isix_get_min_priority() < priority )
     {
-    	return NULL;
+		return NULL;
     }
 	//If stack length is small error
     if(stack_depth<ISIX_PORT_SCHED_MIN_STACK_DEPTH) return NULL;
@@ -84,13 +84,15 @@ ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
 	task->real_prio = priority;
 	//Mutex list init
 	list_init( &task->owned_mutexes );
+	//Waiting tasks list
+	list_init( &task->waiting_tasks );
     //Task is ready
     task->state = (flags&isix_task_flag_suspended)?OSTHR_STATE_SUSPEND:OSTHR_STATE_CREATED;
     //Create initial task stack context
     task->top_stack = _isixp_task_init_stack(task->top_stack,task_func,func_param);
 	//Reference counter initialization
 	//If extra reference flag is passed task is refered twice will not be freed when fin.
-	task->refcnt = (flags&isix_task_flag_ref)?(2):(1);
+	task->refcnt = (flags&isix_task_flag_ref)?(1):(0);
     //Lock scheduler
 	if( !(flags&isix_task_flag_suspended) ) {
 		isix_enter_critical();
@@ -166,7 +168,6 @@ void isix_task_kill( ostask_t task )
     ostask_t taskd = task?task:currp;
 	_isixp_mutex_unlock_all_in_task( taskd );
 	isix_enter_critical();
-	if( taskd->refcnt > 0 ) --taskd->refcnt;
 	_isixp_add_kill_or_set_suspend( taskd, false );
 	if( !task ) {
 		isix_exit_critical();
@@ -208,7 +209,7 @@ size_t isix_free_stack_space(const ostask_t task)
 
 /**
  *	Isix get task priority utility function
- *	@return none 
+ *	@return none
  */
 osprio_t isix_get_task_priority( const ostask_t task )
 {
@@ -273,7 +274,7 @@ int isix_task_ref( ostask_t task )
 	isix_enter_critical();
 	int ret = ISIX_EOK;
 	//! Unable to reference already released task
-	if( taskd->refcnt<1 && taskd->refcnt>=OSREF_T_MAX ) {
+	if( taskd->refcnt>=OSREF_T_MAX ) {
 		ret = ISIX_EINVARG;
 	} else {
 		++taskd->refcnt;
@@ -286,21 +287,43 @@ int isix_task_ref( ostask_t task )
 // Remove task reference
 int isix_task_unref( ostask_t task )
 {
-	int ret = ISIX_EOK;
     ostask_t taskd = task?task:currp;
 	isix_enter_critical();
-	if( taskd->refcnt < 1 && taskd->state !=0 ) {
+	if( taskd->refcnt < 1  ) {
+		isix_exit_critical();
 		return ISIX_EINVARG;
+	} else {
+		--taskd->refcnt;
 	}
-	--taskd->refcnt;
+	bool do_clean = ( taskd->refcnt==0 && taskd->state==OSTHR_STATE_EXITED );
 	isix_exit_critical();
-	return ret;
+	if( do_clean ) isix_free( taskd );
+	return ISIX_EOK;
 }
 
 // Wait for selected task to finish
 int isix_task_wait_for( ostask_t task )
 {
-
+	if( task == currp || !task ) {
+		pr_err("Wait for self");
+		return ISIX_EINVARG;
+	}
+	isix_enter_critical();
+	if( task->refcnt == 0 ) {
+		pr_err("No references");
+		isix_exit_critical();
+		return ISIX_ENOREF;
+	}
+	if( task->state!=OSTHR_STATE_ZOMBIE || task->state!=OSTHR_STATE_EXITED ) {
+		_isixp_set_sleep( OSTHR_STATE_WTEXIT );
+		list_insert_end( &task->waiting_tasks, &currp->inode );
+		isix_exit_critical();
+		isix_yield();
+		return task->obj.dmsg;
+	} else {
+		isix_exit_critical();
+		return ISIX_EOK;
+	}
 }
 
 
@@ -308,6 +331,12 @@ int isix_task_wait_for( ostask_t task )
 //! Terminate the process when task exits
 void __attribute__((noreturn)) _isixp_task_terminator(void)
 {
+	ostask_t tsk, tmp;
+	isix_enter_critical();
+	list_for_each_entry_safe( &currp->waiting_tasks, tsk, tmp, inode ) {
+		_isixp_wakeup_task_l( tsk, ISIX_EOK );
+	}
+	isix_exit_critical();
 	isix_task_kill(NULL);
 	for(;;);
 }

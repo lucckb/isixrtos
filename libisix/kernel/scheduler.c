@@ -495,22 +495,33 @@ static void cleanup_tasks(void)
 {
     if( csys.number_of_task_deleted > 0 )
     {
+		bool do_clean = false;
+		ostask_t task_del = NULL;
         isix_enter_critical();
         if(!list_isempty(&csys.zombie_list))
         {
-        	ostask_t task_del = list_first_entry(&csys.zombie_list,inode,struct isix_task);
-        	list_delete(&task_del->inode);
-        	pr_info( "Task to delete: %p(SP %p) PRIO: %i",
+			task_del = list_first_entry(&csys.zombie_list,inode,struct isix_task);
+            list_delete(&task_del->inode);
+			pr_info( "Task to delete: %p(SP %p) PRIO: %i",
 						task_del,task_del->init_stack,task_del->prio );
-        	port_cleanup_task(task_del->top_stack);
-        	isix_free(task_del->init_stack);
-			if( task_del->impure_data ) isix_free( task_del->impure_data );
-			if( task_del->prv ) isix_free( task_del->prv );
-        	if( task_del->refcnt == 0 ) isix_free(task_del);
-			else task_del->state = OSTHR_STATE_EXITED;
-        	csys.number_of_task_deleted--;
+			port_cleanup_task(task_del->top_stack);
+            if( task_del->refcnt == 0 ) do_clean = true;
+			task_del->state = OSTHR_STATE_EXITED;
+			csys.number_of_task_deleted--;
         }
         isix_exit_critical();
+		if( task_del ) {
+			isix_free(task_del->init_stack);
+			if( task_del->prv ) {
+				isix_free( task_del->prv );
+				task_del->prv = NULL;
+			}
+			if( task_del->impure_data ) {
+				isix_free( task_del->impure_data );
+				task_del->impure_data = NULL;
+			}
+			if( do_clean ) isix_free(task_del);
+		}
     }
 }
 

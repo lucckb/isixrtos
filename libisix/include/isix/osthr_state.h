@@ -31,6 +31,7 @@ enum osthr_state
 	OSTHR_STATE_SUSPEND		= 8,			//! Task is in suspend state
 	OSTHR_STATE_WTMTX		= 9,			//! Wait on mutex state
 	OSTHR_STATE_WTCOND		= 10,			//! Wait on condvar state
-	OSTHR_STATE_EXITED		= 11			//! Task struct is in dead state
+	OSTHR_STATE_WTEXIT		= 11,			//! Wait for another task fin
+	OSTHR_STATE_EXITED		= 12			//! Task struct is in dead state
 };
 
