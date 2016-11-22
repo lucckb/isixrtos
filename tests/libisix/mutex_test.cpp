@@ -213,6 +213,7 @@ namespace {
 		bug( mcv.wait() );
 		test_buf.push_back( *reinterpret_cast<const char*>(ptr) );
 		bug( mtx1.unlock() );
+		isix::wait_ms(100);
 	}
 
 }}
@@ -503,6 +504,7 @@ void mutexes::test09() {
 	QUNIT_IS_EQUAL( mcv.broadcast(), ISIX_EOK );
 	isix::wait_ms(500);
 	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
+
 }
 
 
@@ -512,15 +514,15 @@ void mutexes::test10() {
 	test_buf.clear();
 	ostask_t t1,t2,t3,t4,t5;
 	t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5 );
-	if( t1 ==nullptr) std::abort();
+	if( t1 == nullptr) std::abort();
 	t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4 );
-	if( t2 ==nullptr) std::abort();
+	if( t2 == nullptr) std::abort();
 	t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3 );
-	if( t3 ==nullptr) std::abort();
+	if( t3 == nullptr) std::abort();
 	t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2 );
-	if( t4 ==nullptr) std::abort();
+	if( t4 == nullptr) std::abort();
 	t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1 );
-	if( t5 ==nullptr) std::abort();
+	if( t5 == nullptr) std::abort();
 	isix::wait_ms(200);
 	QUNIT_IS_TRUE( test_buf.empty() );
 	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );

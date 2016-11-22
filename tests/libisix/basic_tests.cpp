@@ -22,8 +22,6 @@
 /* ------------------------------------------------------------------ */
 class unit_tests : public isix::task_base
 {
-	static constexpr auto STACK_SIZE = 4096;
-    static constexpr auto TASKDEF_PRIORITY = 0;
 	QUnit::UnitTest qunit {QUnit::verbose };
 	tests::mutexes mtx_test { qunit };
 	tests::semaphores sem_test { qunit };
@@ -54,8 +52,6 @@ class unit_tests : public isix::task_base
 	//Test basic tasks
     virtual void main()
 	{
-		//heap_test();
-		//mtx_test.run();
 	if(1) {
 #if 0
 		timer_test.run();
@@ -69,7 +65,6 @@ class unit_tests : public isix::task_base
 		atomic_test.run();
 		sched_test.run();
 		mtx_test.run();
-		//return ;
 		sem_test.run();
 		task_test.run();
 		fifo_test.run();
@@ -88,6 +83,9 @@ class unit_tests : public isix::task_base
 		heap_test();
 		mtx_test.run();
 #endif
+	} else {
+		heap_test();
+		mtx_test.run();
 	}
 	}
 };

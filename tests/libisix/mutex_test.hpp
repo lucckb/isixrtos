@@ -45,6 +45,9 @@ namespace tests {
 		}
 #else
 		void run() {
+			//for( ;; ) {
+				test10();
+			//}
 			//test09();
 			//test10();
 			test11();
