@@ -506,7 +506,8 @@ static void cleanup_tasks(void)
         	isix_free(task_del->init_stack);
 			if( task_del->impure_data ) isix_free( task_del->impure_data );
 			if( task_del->prv ) isix_free( task_del->prv );
-        	isix_free(task_del);
+        	if( task_del->refcnt == 0 ) isix_free(task_del);
+			else task_del->state = OSTHR_STATE_EXITED;
         	csys.number_of_task_deleted--;
         }
         isix_exit_critical();
@@ -650,6 +651,7 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 	}
 }
 
+//TODO: Conditional variable / mutex cleanup
 //Add task list to delete
 void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 {
@@ -671,6 +673,10 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 	else if( task->state == OSTHR_STATE_WTSEM )
 	{
 		_isixp_sem_fast_signal( task->obj.sem );
+		list_delete( &task->inode );
+	}
+	else if( task->state == OSTHR_STATE_WTCOND ) {
+		//NOTE: Locked mutex will be released
 		list_delete( &task->inode );
 	}
 	if( suspend )

@@ -39,6 +39,7 @@ struct isix_task
 #endif
     osprio_t prio;					//! Priority of task
 	osprio_t real_prio;				//! Real non inherited priority mtx
+	osref_t  refcnt;				//! Reference counter for task deletion
 	list_entry_t owned_mutexes;		//! Owned mutexes list
     thr_state_t state;				//!Thread state
     ostick_t jiffies;				//!Ticks when task wake up

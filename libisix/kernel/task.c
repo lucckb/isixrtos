@@ -20,7 +20,7 @@
 enum { MAGIC_FILL_VALUE = 0x55 };
 
 /* Create task function */
-ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param, 
+ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
 		unsigned long  stack_depth, osprio_t priority, unsigned long flags )
 {
 	pr_info("tskcreate: Create task with prio %i",priority);
@@ -88,6 +88,9 @@ ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
     task->state = (flags&isix_task_flag_suspended)?OSTHR_STATE_SUSPEND:OSTHR_STATE_CREATED;
     //Create initial task stack context
     task->top_stack = _isixp_task_init_stack(task->top_stack,task_func,func_param);
+	//Reference counter initialization
+	//If extra reference flag is passed task is refered twice will not be freed when fin.
+	task->refcnt = (flags&isix_task_flag_ref)?(2):(1);
     //Lock scheduler
 	if( !(flags&isix_task_flag_suspended) ) {
 		isix_enter_critical();
@@ -163,6 +166,7 @@ void isix_task_kill( ostask_t task )
     ostask_t taskd = task?task:currp;
 	_isixp_mutex_unlock_all_in_task( taskd );
 	isix_enter_critical();
+	if( taskd->refcnt > 0 ) --taskd->refcnt;
 	_isixp_add_kill_or_set_suspend( taskd, false );
 	if( !task ) {
 		isix_exit_critical();
@@ -238,16 +242,13 @@ void isix_task_suspend( ostask_t task )
 	if( !task ) {
 		isix_exit_critical();
 		isix_yield();
-	} 
+	}
 	else {
 		isix_exit_critical();
 	}
 }
 
-/** Resume the current task
- * @param[in] Task identifier 
- * @return Error code
- */
+/** Resume the current task */
 int isix_task_resume( ostask_t task )
 {
 	if( task == currp || !task ) {
@@ -263,6 +264,45 @@ int isix_task_resume( ostask_t task )
 	}
 	return ISIX_EOK;
 }
+
+
+// Add extra reference to the task pointer
+int isix_task_ref( ostask_t task )
+{
+    ostask_t taskd = task?task:currp;
+	isix_enter_critical();
+	int ret = ISIX_EOK;
+	//! Unable to reference already released task
+	if( taskd->refcnt<1 && taskd->refcnt>=OSREF_T_MAX ) {
+		ret = ISIX_EINVARG;
+	} else {
+		++taskd->refcnt;
+	}
+	isix_exit_critical();
+	return ret;
+}
+
+
+// Remove task reference
+int isix_task_unref( ostask_t task )
+{
+	int ret = ISIX_EOK;
+    ostask_t taskd = task?task:currp;
+	isix_enter_critical();
+	if( taskd->refcnt < 1 && taskd->state !=0 ) {
+		return ISIX_EINVARG;
+	}
+	--taskd->refcnt;
+	isix_exit_critical();
+	return ret;
+}
+
+// Wait for selected task to finish
+int isix_task_wait_for( ostask_t task )
+{
+
+}
+
 
 
 //! Terminate the process when task exits

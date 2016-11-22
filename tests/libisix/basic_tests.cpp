@@ -54,9 +54,9 @@ class unit_tests : public isix::task_base
 	//Test basic tasks
     virtual void main()
 	{
-		heap_test();
-		mtx_test.run();
-	if(0) {
+		//heap_test();
+		//mtx_test.run();
+	if(1) {
 #if 0
 		timer_test.run();
 		dbprintf("Timer tests end");

@@ -26,12 +26,22 @@ static constexpr unsigned ISIX_HZ = ISIX_CONFIG_HZ;
 #define ISIX_HZ ISIX_CONFIG_HZ
 #endif
 
+
+//! Reference type
+typedef uint8_t osprio_t;
+#ifdef __cplusplus
+static constexpr auto OSREF_T_MAX = UINT16_MAX;
+#else
+#define OSREF_T_MAX UINT16_MAX
+#endif
+
+
 //! Define tick type
 typedef unsigned int ostick_t;
 //! Define a micro tick
 typedef unsigned long osutick_t;
 //! Priority type
-typedef uint8_t osprio_t;
+typedef uint16_t osref_t;
 // Natural bitset type
 typedef uint32_t osbitset_t;
 typedef int32_t osbitset_ret_t;

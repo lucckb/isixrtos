@@ -538,8 +538,9 @@ void mutexes::test10() {
 void mutexes::test11() {
 	using namespace test11;
 	test_buf.clear();
-	const auto prio = isix::get_task_inherited_priority();
-	dbprintf("Test begin prio %i", prio );
+	//const auto old_prio = isix::task_change_prio( nullptr, isix::get_min_priority() );
+
+	dbprintf("Test begin prio %i", isix::get_task_inherited_priority() );
 	ostask_t t1,t2,t3;
 	QUNIT_IS_EQUAL(isix::get_task_inherited_priority(), isix::get_task_priority() );
 	t1 = isix::task_create( thread_a, (char*)"A", STK_SIZ, 5  );
@@ -551,8 +552,10 @@ void mutexes::test11() {
 	isix::wait_ms(100);
 	mcv.signal();
 	mcv.signal();
-	isix::wait_ms(100);
+	isix::wait_ms(200);
 	QUNIT_IS_EQUAL( test_buf, "BAC" );
+	//Restore org prio
+	//QUNIT_IS_EQUAL( isix::task_change_prio( nullptr, old_prio ), isix::get_min_priority() );
 }
 
 

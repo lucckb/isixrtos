@@ -19,6 +19,7 @@ enum isix_task_flags {
 	isix_task_flag_newlib = 1U,		//! Uses per thread new lib data for ex errno
 	isix_task_flag_suspended = 2U,	//! Create task suspended
 	isix_task_flag_tcpip = 4U,		//! tcpip thread flag
+	isix_task_flag_ref = 8U			//! Extra reference non should be called task_unref();
 };
 
 /** Create the task function (System thread)
@@ -28,29 +29,29 @@ enum isix_task_flags {
  * @param[in] priority The task priority
  * @param[in] flags extra flags for control task parameters
  * @return Task control object, or NULL when task can't be created */
-ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param, 
+ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
 		unsigned long stack_depth, osprio_t priority, unsigned long flags );
 
 #ifndef WITH_ISIX_TCPIP_LIB
-inline __attribute__((always_inline)) 
-ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
+inline __attribute__((always_inline))
+ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 		unsigned long stack_depth, osprio_t priority, unsigned long flags )
 {
 	return _isixp_task_create( task_func, func_param, stack_depth, priority, flags );
 }
 #else /* defined WITH_ISIX_TCPIP_LIB */
-ostask_t sys_thread_new(const char *name, task_func_ptr_t thread,  
+ostask_t sys_thread_new(const char *name, task_func_ptr_t thread,
 		void *arg, int stacksize, int prio );
-inline __attribute__((always_inline)) 
+inline __attribute__((always_inline))
 ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
 		unsigned long stack_depth, osprio_t priority, unsigned long flags )
 {
-	if( flags & isix_task_flag_tcpip ) 
+	if( flags & isix_task_flag_tcpip )
 		return sys_thread_new( NULL, task_func, func_param, stack_depth, priority );
 	else
 		return _isixp_task_create( task_func, func_param, stack_depth, priority, flags );
 }
-#endif /* defined WITH_ISIX_TCPIP_LIB */ 
+#endif /* defined WITH_ISIX_TCPIP_LIB */
 
 
 /** Change the task/thread priority
@@ -113,24 +114,41 @@ size_t isix_free_stack_space( const ostask_t task );
 #endif
 
 /** Suspend the current task
- * @param[in] Task identifier 
+ * @param[in] Task identifier
  * @return Error code
  */
 void isix_task_suspend( ostask_t task );
 
 /** Resume the current task
- * @param[in] Task identifier 
+ * @param[in] Task identifier
  * @return Error code
  */
 int isix_task_resume( ostask_t task );
 
-/** Get current task state 
+/** Get current task state
  * @param[in] Task identifier
  * @return Task state
  */
 enum osthr_state isix_get_task_state( const ostask_t task );
 
 
+/** @brief Add extra reference to the task pointer
+ * @task[in] task Input task to be referenced
+ * @return reference status */
+int isix_task_ref( ostask_t task );
+
+
+/** @brief Remove task reference
+ * @note release the task memory if count is zero
+ * @param[in] Input task reference
+ * @return reference status */
+int isix_task_unref( ostask_t task );
+
+/** @brief Wait for selected task to finish
+ *  @param[in] task Input task to wait for
+ *  @return Task waiting status
+ */
+int isix_task_wait_for( ostask_t task );
 
 
 #ifdef __cplusplus
@@ -182,6 +200,15 @@ namespace {
 	}
 	inline thr_state get_task_state( const ostask_t task=nullptr ) {
 		return ::isix_get_task_state( task );
+	}
+	inline int task_ref( ostask_t task ) {
+		return ::isix_task_ref( task );
+	}
+	inline int task_unref( ostask_t task ) {
+		return ::isix_task_unref( task );
+	}
+	inline int task_wait_for( ostask_t task ) {
+		return ::isix_task_wait_for( task );
 	}
 }}
 #endif /* __cplusplus */
