@@ -46,7 +46,7 @@ namespace {
 	constexpr auto STK_SIZ = 512;
 }
 
-#define bug(code) do { if(code) { dbprintf("ABORT FILE %s LINE %i CODE %i",__FILE__,__LINE__,code); std::abort(); } } while(0)
+#define bug(code) do { if(code) { dbprintf("ABORT FILE %s LINE %i CODE %i (%x)",__FILE__,__LINE__,code,code); std::abort(); } } while(0)
 
 namespace {
 
@@ -209,10 +209,10 @@ namespace test09 {
 namespace {
 
 	void thread( void* ptr ) {
-		if( mtx1.lock() ) std::abort();
-		if( mcv.wait() ) std::abort();
+		bug( (mtx1.lock()) );
+		bug( mcv.wait() );
 		test_buf.push_back( *reinterpret_cast<const char*>(ptr) );
-		if( mtx1.unlock() ) std::abort();
+		bug( mtx1.unlock() );
 	}
 
 }}
@@ -479,6 +479,37 @@ void mutexes::test09() {
 	if( t4 ==nullptr) std::abort();
 	t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1 );
 	if( t5 ==nullptr) std::abort();
+	isix::wait_ms(200);
+	QUNIT_IS_TRUE( test_buf.empty() );
+	QUNIT_IS_EQUAL( mcv.broadcast(), ISIX_EOK );
+	isix::wait_ms(500);
+	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
+}
+
+
+/** Condvar basic test  */
+void mutexes::test10() {
+	using namespace test09;
+	dbprintf("Test begin prio %i", isix::get_task_inherited_priority() );
+	test_buf.clear();
+	ostask_t t1,t2,t3,t4,t5;
+	t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5 );
+	if( t1 ==nullptr) std::abort();
+	t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4 );
+	if( t2 ==nullptr) std::abort();
+	t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3 );
+	if( t3 ==nullptr) std::abort();
+	t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2 );
+	if( t4 ==nullptr) std::abort();
+	t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1 );
+	if( t5 ==nullptr) std::abort();
+	isix::wait_ms(200);
+	QUNIT_IS_TRUE( test_buf.empty() );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
+	QUNIT_IS_EQUAL( mcv.signal(), ISIX_EOK );
 	isix::wait_ms(500);
 	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
 }
