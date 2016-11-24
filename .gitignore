@@ -8,6 +8,7 @@
 .*.un~
 .*.sw*
 *.bin
+*.lst
 libgfx/host-tools/convbdf
 libgfx/host-tools/convflashbmp
 libgfx/host-tools/tags

@@ -7,10 +7,10 @@ extern "C" {
 
 /*-----------------------------------------------------------------------*/
 #ifdef __cplusplus
-static const unsigned ISIX_PORT_SCHED_MIN_STACK_DEPTH = 112;
+static const unsigned ISIX_PORT_SCHED_MIN_STACK_DEPTH = 160;
 #else
 //Minimum stack depth
-#define ISIX_PORT_SCHED_MIN_STACK_DEPTH 112
+#define ISIX_PORT_SCHED_MIN_STACK_DEPTH 160
 #endif /*__cplusplus*/
 /*-----------------------------------------------------------------------*/
 /** Port yield CPU */

@@ -25,7 +25,7 @@ namespace QUnit {
 }
 
 namespace tests {
-		
+
 	class task_tests {
 		static constexpr auto MIN_STACK_FREE = 64;
 	public:
@@ -41,15 +41,18 @@ namespace tests {
 			basic_funcs();
 			thread_test();
 			thread_test2();
+			wait_and_reference_api();
 		}
-		//Basic functionality testing 
+		//Basic functionality testing
 		void basic_funcs();
 		// CPU load test
 		void cpuload_test();
-		// CPP11 thread API 
+		// CPP11 thread API
 		void thread_test();
 		// Thread test2
 		void thread_test2();
+		// Wait and reference API test
+		void wait_and_reference_api();
 	private:
 		QUnit::UnitTest& qunit;
 	};

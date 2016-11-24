@@ -334,6 +334,7 @@ void __attribute__((noreturn)) _isixp_task_terminator(void)
 	ostask_t tsk, tmp;
 	isix_enter_critical();
 	list_for_each_entry_safe( &currp->waiting_tasks, tsk, tmp, inode ) {
+		list_delete( &tsk->inode );
 		_isixp_wakeup_task_l( tsk, ISIX_EOK );
 	}
 	isix_exit_critical();

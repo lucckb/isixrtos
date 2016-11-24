@@ -174,9 +174,9 @@ void isix_init(osprio_t num_priorities)
     	list_insert_end(&csys.free_prio_elem,&prio[i].inode);
     }
     //Lower priority is the idle task
-	if( !isix_task_create( idle_task,NULL,
+	if( !isix_task_create( idle_task, NULL,
 			ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities,0 ) ) {
-		isix_bug("Insufficient memory idle task");	
+		isix_bug("Insufficient memory idle task");
 	}
 }
 
@@ -488,6 +488,7 @@ ostask_t _isixp_remove_from_prio_queue( list_entry_t* list )
 	list_delete( &task->inode );
 	return task;
 }
+
 
 //Dead task are clean by this procedure called from idle task
 //One idle call clean one dead tasks

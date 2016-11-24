@@ -19,6 +19,7 @@
 #include <qunit.hpp>
 #include <isix.h>
 #include <foundation/dbglog.h>
+#include "task_test_helper.h"
 
 
 namespace tests {
@@ -247,7 +248,7 @@ void task_tests::thread_test()
 	bool finished = false;
 	auto thr1 = isix::thread_create_and_run( 1024, 3, 0,
 		[&]( volatile bool &a, int b ) { 
-			QUNIT_IS_EQUAL( b, 15 );	
+			QUNIT_IS_EQUAL( b, 15 );
 			isix::wait_ms( 100 );
 			a = true;
 		},
@@ -261,7 +262,7 @@ void task_tests::thread_test()
 
 namespace {
 	bool fin2 = false;
-	void thread2_func() 
+	void thread2_func()
 	{
 		fin2 = false;
 		for( int i=0;i<5;++i ) {
@@ -272,10 +273,121 @@ namespace {
 }
 
 void task_tests::thread_test2() {
-	auto thr1 = isix::thread_create_and_run( 1024, 3, 0, thread2_func );
-	isix_wait_ms( 900 );
-	QUNIT_IS_TRUE( fin2 );
+	const auto ram_beg = isix::heap_free(nullptr);
+	{
+		auto thr1 = isix::thread_create_and_run( 1024, 3, 0, thread2_func );
+		isix_wait_ms( 900 );
+		QUNIT_IS_TRUE( fin2 );
+	}
+	// Not referenced task must free whole memory in idle task
+	isix_wait_ms( 100 );
+	const auto ram_end = isix::heap_free( nullptr );
+	QUNIT_IS_EQUAL(  ram_beg, ram_end );
 }
+
+namespace {
+	void task_ref(void* ) {
+		for( int i=0;i<5;++i ) {
+			isix::wait_ms( 100 );
+		}
+	}
+
+	void task_ref2(void* arg )  {
+		ostask_t t = reinterpret_cast<ostask_t>(arg);
+		if( isix::task_wait_for( t ) != ISIX_EOK ) std::abort();
+		isix::wait_ms(50);
+	}
+}
+
+void task_tests::wait_and_reference_api() {
+	//! Create referenced
+	auto ram_beg = isix::heap_free(nullptr);
+	auto th1 = isix::task_create( task_ref, nullptr, 256, 3,
+			isix_task_flag_ref|isix_task_flag_newlib );
+	auto t1 = isix::get_jiffies();
+	auto ret = isix::task_wait_for( th1 );
+	auto t2 = isix::get_jiffies() - t1;
+	//! Should return 0
+	QUNIT_IS_EQUAL( ret, ISIX_EOK );
+	// Should match in range
+	QUNIT_IS_TRUE( t2>=500 && t2<=510 );
+	// Task wait list should be empty
+	QUNIT_IS_TRUE( thack_task_wait_list_is_empty(th1) );
+
+	/** Check memory usage before and after because task is referenced
+	 * difference between memory areas should be equal task stack size */
+	isix::wait_ms(100);
+	auto ram_end = isix::heap_free(nullptr);
+	QUNIT_IS_TRUE( ram_end+thack_struct_size() >= ram_beg );
+
+
+	QUNIT_IS_EQUAL(  (ram_beg-ram_end), thack_struct_size() );
+	QUNIT_IS_EQUAL(  thack_getref_cnt( th1 ), 1 );
+	// Check the task state
+	QUNIT_IS_EQUAL( isix::get_task_state(th1), OSTHR_STATE_EXITED );
+
+	//Increment reference
+	QUNIT_IS_EQUAL( isix_task_ref( th1 ), ISIX_EOK );
+	QUNIT_IS_EQUAL(  thack_getref_cnt( th1 ), 2 );
+	QUNIT_IS_EQUAL( isix_task_unref( th1 ), ISIX_EOK );
+	QUNIT_IS_EQUAL(  thack_getref_cnt( th1 ), 1 );
+
+
+	QUNIT_IS_EQUAL( isix_task_unref( th1 ), ISIX_EOK );
+	QUNIT_IS_EQUAL( thack_getref_cnt( th1 ), 0 );
+	ram_end = isix::heap_free(nullptr);
+	QUNIT_IS_TRUE( ram_end>= ram_beg );
+
+	ram_beg = isix::heap_free(nullptr);
+	// Create first for normal task_ref task. Five task_ref2 tasks wait when task 1 fin 
+	// and notice task 1 when ends
+	th1 = isix::task_create( task_ref, nullptr, 256, 3,
+			isix_task_flag_ref|isix_task_flag_newlib );
+	auto tn1 = isix::task_create( task_ref2, th1, 256, 3,
+			isix_task_flag_ref|isix_task_flag_newlib );
+	auto tn2 = isix::task_create( task_ref2, th1, 256, 3,
+			isix_task_flag_ref|isix_task_flag_newlib );
+	auto tn3 = isix::task_create( task_ref2, th1, 256, 3,
+			isix_task_flag_ref|isix_task_flag_newlib );
+	auto tn4 = isix::task_create( task_ref2, th1, 256, 3,
+			isix_task_flag_ref|isix_task_flag_newlib );
+
+	t1 = isix::get_jiffies();
+	QUNIT_IS_EQUAL( isix::task_wait_for(tn1), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix::task_wait_for(tn2), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix::task_wait_for(tn3), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix::task_wait_for(tn4), ISIX_EOK );
+	t2 = isix::get_jiffies() - t1;
+	QUNIT_IS_TRUE( t2>=550 && t2<=600 );
+	//Task th1 also should be in exited state
+	isix_wait_ms(10);
+	QUNIT_IS_EQUAL( isix::get_task_state(th1), OSTHR_STATE_EXITED );
+	QUNIT_IS_EQUAL( isix::get_task_state(tn1), OSTHR_STATE_EXITED );
+	QUNIT_IS_EQUAL( isix::get_task_state(tn2), OSTHR_STATE_EXITED );
+	QUNIT_IS_EQUAL( isix::get_task_state(tn3), OSTHR_STATE_EXITED );
+	QUNIT_IS_EQUAL( isix::get_task_state(tn4), OSTHR_STATE_EXITED );
+	QUNIT_IS_EQUAL(  thack_getref_cnt( th1 ), 1 );
+	QUNIT_IS_EQUAL(  thack_getref_cnt( tn1 ), 1 );
+	QUNIT_IS_EQUAL(  thack_getref_cnt( tn2 ), 1 );
+	QUNIT_IS_EQUAL(  thack_getref_cnt( tn3 ), 1 );
+	QUNIT_IS_EQUAL(  thack_getref_cnt( tn4 ), 1 );
+	QUNIT_IS_TRUE( thack_task_wait_list_is_empty(th1) );
+	QUNIT_IS_TRUE( thack_task_wait_list_is_empty(tn1) );
+	QUNIT_IS_TRUE( thack_task_wait_list_is_empty(tn2) );
+	QUNIT_IS_TRUE( thack_task_wait_list_is_empty(tn3) );
+	QUNIT_IS_TRUE( thack_task_wait_list_is_empty(tn4) );
+	QUNIT_IS_EQUAL( isix_task_unref( th1 ), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_task_unref( tn1 ), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_task_unref( tn2 ), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_task_unref( tn3 ), ISIX_EOK );
+	QUNIT_IS_EQUAL( isix_task_unref( tn4 ), ISIX_EOK );
+	ram_end = isix::heap_free(nullptr);
+	//Check if size match
+	QUNIT_IS_EQUAL( ram_beg, ram_end );
+
+}
+
+
 
 
 }	// Namespace test end
