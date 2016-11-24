@@ -42,6 +42,7 @@ namespace {
 	std::string test_buf;
 	isix::mutex mtx1;
 	isix::mutex mtx2;
+	isix::condvar mcv;
 	constexpr auto STK_SIZ = 512;
 }
 
@@ -200,6 +201,18 @@ namespace {
 		for(;;) {
 			isix_wait_ms(100);
 		}
+	}
+
+}}
+
+namespace test09 {
+namespace {
+
+	void thread( void* ptr ) {
+		if( mtx1.lock() ) std::abort();
+		if( mcv.wait() ) std::abort();
+		test_buf.push_back( *reinterpret_cast<const char*>(ptr) );
+		if( mtx1.unlock() ) std::abort();
 	}
 
 }}
@@ -448,6 +461,26 @@ void mutexes::test08() {
 	isix::task_kill(t3);
 	isix::task_kill(t4);
 	isix::wait_ms(10);
+}
+
+/** Condvar basic test  */
+void mutexes::test09() {
+	using namespace test09;
+	dbprintf("Test09 begin");
+	test_buf.clear();
+	ostask_t t1,t2,t3,t4,t5;
+	t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5 );
+	if( t1 ==nullptr) std::abort();
+	t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4 );
+	if( t2 ==nullptr) std::abort();
+	t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3 );
+	if( t3 ==nullptr) std::abort();
+	t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2 );
+	if( t4 ==nullptr) std::abort();
+	t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1 );
+	if( t5 ==nullptr) std::abort();
+	isix::wait_ms(500);
+	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
 }
 
 }

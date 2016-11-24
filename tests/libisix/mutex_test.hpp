@@ -28,6 +28,7 @@ namespace tests {
 			: qunit( ut )
 		{
 		}
+#if 0
 		void run() {
 			test01();
 			test02();
@@ -38,6 +39,11 @@ namespace tests {
 			test07();
 			test08();
 		}
+#else
+		void run() {
+			test09();
+		}
+#endif
 	private:
 		void test01();
 		void test02();
@@ -47,6 +53,7 @@ namespace tests {
 		void test06();
 		void test07();
 		void test08();
+		void test09();
 	private:
 		QUnit::UnitTest& qunit;
 	};

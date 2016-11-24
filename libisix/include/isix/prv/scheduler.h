@@ -6,6 +6,7 @@
 #include <isix/config.h>
 #include <isix/semaphore.h>
 #include <isix/mutex.h>
+#include <isix/condvar.h>
 #include <isix/events.h>
 #include <isix/scheduler.h>
 #include <isix/port_atomic.h>
@@ -32,7 +33,7 @@ typedef uint8_t thr_state_t;
 struct isix_task
 {
     unsigned long *top_stack;		//!Task stack ptr
-    void *init_stack; 				//!Initial value of stack for isix_free
+    void *init_stack;				//!Initial value of stack for isix_free
 #if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
 	uintptr_t fence_estack;			//! Electric fence stack protector base
 #endif
@@ -47,6 +48,7 @@ struct isix_task
 		ossem_t sem;				//! Pointer to waiting sem
 		osmtx_t mtx;				//! Pointer to waiting mutex
 		osbitset_t evbits;			//! Current event bit for waiting
+		oscondvar_t cond;			//! Conditional variable wait
 		osmsg_t	dmsg;				//! Returning message
 	} obj;
     void    *prv;					//!Private data pointer for extra data
@@ -56,7 +58,7 @@ struct isix_task
 };
 
 //!Structure related to isix system
-struct isix_system 
+struct isix_system
 {
 	_port_atomic_sem_t sched_lock;		//! Schedule lock
 	atomic_int critical_count;			//! Sched lock counter
