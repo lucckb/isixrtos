@@ -32,7 +32,7 @@ int _isixp_condvar_signal( oscondvar_t cv, bool isr )
 		return ISIX_EINVARG;
 	}
 	isix_enter_critical();
-	if( list_isempty( &cv->wait_list ) ) {
+	if( !list_isempty( &cv->wait_list ) ) {
 		ostask_t task = _isixp_remove_from_prio_queue( &cv->wait_list );
 		if( task->state == OSTHR_STATE_WTCOND ) {
 			if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
@@ -94,7 +94,9 @@ int isix_condvar_wait( oscondvar_t cv, ostick_t timeout )
 	_isixp_set_sleep_timeout( OSTHR_STATE_WTCOND, timeout );
 	_isixp_add_to_prio_queue( &cv->wait_list, currp );
 	currp->obj.cond = cv;
+	isix_exit_critical();
 	isix_yield();
+	isix_enter_critical();
 	ret =  currp->obj.dmsg;
 	if( ret != ISIX_ETIMEOUT ) {
 		ret = isix_mutex_lock( mtx );
