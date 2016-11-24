@@ -52,8 +52,11 @@ class unit_tests : public isix::task_base
 		QUNIT_IS_TRUE( freem > 0 );
 	}
 	//Test basic tasks
-    virtual void main() 
+    virtual void main()
 	{
+		heap_test();
+		mtx_test.run();
+	if(0) {
 #if 0
 		timer_test.run();
 		dbprintf("Timer tests end");
@@ -85,6 +88,7 @@ class unit_tests : public isix::task_base
 		heap_test();
 		mtx_test.run();
 #endif
+	}
 	}
 };
 

@@ -54,6 +54,8 @@ inline __attribute__((always_inline))
  *          is performed atomically.
  * @param[in] cv Conditional variable object
  * @param[in] timeout Max wait time
+ * @post Exiting the function because a timeout does not aquire the mutex agin.
+ *  The mutex ownership is lost.
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
 

@@ -42,7 +42,9 @@ namespace tests {
 #else
 		void run() {
 			//test09();
-			test10();
+			//test10();
+			test11();
+			//test12();
 		}
 #endif
 	private:
@@ -56,6 +58,8 @@ namespace tests {
 		void test08();
 		void test09();
 		void test10();
+		void test11();
+		void test12();
 	private:
 		QUnit::UnitTest& qunit;
 	};

@@ -4,7 +4,7 @@
 TARGET	   = unittest
 
 #Output format (elf,hex,bin)
-FORMAT	= elf
+FORMAT	= bin
 
 #Optimalization [0,1,2,3,s]
 # 0 - none optimalization, s - size optimalization 3 - most optimized
