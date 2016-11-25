@@ -97,7 +97,8 @@ int isix_condvar_wait( oscondvar_t cv, ostick_t timeout )
 	isix_yield();
 	isix_enter_critical();
 	ret =  currp->obj.dmsg;
-	if( ret != ISIX_ETIMEOUT ) {
+	if( ret == ISIX_EOK  ) {
+		//NOTE: Lock again only properly unlocked mutex
 		ret = isix_mutex_lock( mtx );
 		if( !ret ) ret = currp->obj.dmsg;
 	}
