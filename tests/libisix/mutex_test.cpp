@@ -218,6 +218,28 @@ namespace {
 
 }}
 
+
+namespace test13 {
+namespace {
+	struct arg {
+		oscondvar_t cv;
+		char ch;
+	};
+	void thread( void* ptr ) {
+		arg& a = *reinterpret_cast<arg*>(ptr);
+		bug( (mtx1.lock()) );
+		auto ret = isix::condvar_wait(a.cv, ISIX_TIME_INFINITE);
+		if( ret == ISIX_EDESTROY ) {
+			test_buf.push_back( a.ch );
+			return;
+		}
+		//NOTE: Don't unlock mtx1 it should be unlocked automaticaly
+		//bug( mtx1.unlock() );
+	}
+
+}}
+
+
 namespace test11 {
 namespace {
 
@@ -504,6 +526,10 @@ void mutexes::test09() {
 	QUNIT_IS_EQUAL( mcv.broadcast(), ISIX_EOK );
 	isix::wait_ms(500);
 	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
+	// Owned mutexes should be in locked state
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 0 );
+	QUNIT_IS_TRUE( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list));
 
 }
 
@@ -591,6 +617,40 @@ void mutexes::test12() {
 	// Wait without owning mutexes should casue error
 	QUNIT_IS_EQUAL( mcv.wait(), ISIX_EINVARG );
 
+}
+
+/** Try to test the destroy API  */
+
+void mutexes::test13() {
+
+	using namespace test13;
+	test_buf.clear();
+	ostask_t t1,t2,t3,t4,t5;
+	oscondvar_t cv = isix::condvar_create();
+	QUNIT_IS_TRUE( cv != nullptr );
+	const arg a1 { cv, 'E' };
+	const arg a2 { cv, 'D' };
+	const arg a3 { cv, 'C' };
+	const arg a4 { cv, 'B' };
+	const arg a5 { cv, 'A' };
+	t1 = isix::task_create( thread, (void*)&a1, STK_SIZ, 5 );
+	if( t1 ==nullptr) std::abort();
+	t2 = isix::task_create( thread, (void*)&a2, STK_SIZ, 4 );
+	if( t2 ==nullptr) std::abort();
+	t3 = isix::task_create( thread, (void*)&a3, STK_SIZ, 3 );
+	if( t3 ==nullptr) std::abort();
+	t4 = isix::task_create( thread, (void*)&a4, STK_SIZ, 2 );
+	if( t4 ==nullptr) std::abort();
+	t5 = isix::task_create( thread, (void*)&a5, STK_SIZ, 1 );
+	if( t5 ==nullptr) std::abort();
+	isix::wait_ms(200);
+	QUNIT_IS_TRUE( test_buf.empty() );
+	QUNIT_IS_EQUAL( isix::condvar_destroy(cv) , ISIX_EOK );
+	isix::wait_ms(500);
+	QUNIT_IS_EQUAL( test_buf, "ABCDE" );
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->owner, nullptr );
+	QUNIT_IS_EQUAL( ((mtx_hacker*)&mtx1)->mtx->count, 0 );
+	QUNIT_IS_TRUE( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list));
 }
 
 }

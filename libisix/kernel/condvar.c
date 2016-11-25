@@ -46,8 +46,9 @@ int _isixp_condvar_signal( oscondvar_t cv, bool isr )
 }
 
 // Condvar broadcast
-static void isix_condvar_broadcast_msg( oscondvar_t cv, osmsg_t msg, bool isr )
+static inline void condvar_broadcast_msg( oscondvar_t cv, osmsg_t msg, bool isr )
 {
+	isix_enter_critical();
 	ostask_t wkup_task = NULL;
 	ostask_t t;
 	while( (t=_isixp_remove_from_prio_queue(&cv->wait_list) ) )
@@ -69,9 +70,7 @@ int _isixp_condvar_broadcast( oscondvar_t cv, bool isr )
 		pr_err( "Invalid condvar " );
 		return ISIX_EINVARG;
 	}
-	isix_enter_critical();
-	isix_condvar_broadcast_msg( cv, ISIX_EOK, isr );
-	isix_exit_critical();
+	condvar_broadcast_msg( cv, ISIX_EOK, isr );
 	return ISIX_EOK;
 }
 
@@ -114,9 +113,8 @@ int isix_condvar_destroy( oscondvar_t cv )
 		pr_err( "Invalid condvar " );
 		return ISIX_EINVARG;
 	}
-	isix_enter_critical();
-	isix_condvar_broadcast_msg( cv, ISIX_EDESTROY, false );
-	isix_exit_critical();
+	condvar_broadcast_msg( cv, ISIX_EDESTROY, false );
+	isix_free( cv );
 	return ISIX_EOK;
 }
 
