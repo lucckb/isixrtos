@@ -38,6 +38,7 @@ int _isixp_condvar_signal( oscondvar_t cv, bool isr )
 			if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
 			else _isixp_wakeup_task_i( task, ISIX_EOK );
 		} else {
+			isix_exit_critical();
 			return ISIX_EOK;
 		}
 	}
