@@ -1,7 +1,7 @@
 # Automatic makefile for GNUARM (C/C++)
 
 #Old MCU variant now is defined as minor major CPU code
-MCU_VARIANT ?= $(MCU_MAJOR_TYPE)$(MCU_MINOR_TYPE)
+MCU_VARIANT = $(MCU_MAJOR_TYPE)$(MCU_MINOR_TYPE)
 
 #Linker scripts config
 ifeq ($(USE_SBL_BOOTLOADER),y)

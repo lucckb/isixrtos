@@ -116,6 +116,7 @@ static inline void flash_data_cache_reset(void)
   FLASH->ACR |= FLASH_ACR_DCRST;
 }
 
+/*
   * @brief  Unlocks the FLASH control register access
   * @param  None
   * @retval None
@@ -140,7 +141,7 @@ static inline void flash_lock(void)
   /* Set the LOCK Bit to lock the FLASH Registers access */
   FLASH->CR |= FLASH_CR_LOCK;
 }
-
+/* 
   * @brief  Returns the FLASH Status.
   * @param  None
   * @retval FLASH Status: The returned value can be: FLASH_BUSY, FLASH_ERROR_PROGRAM,
