@@ -1,4 +1,4 @@
-#4 Automatic makefile for GNUARM (C/C++)
+# Automatic makefile for GNUARM (C/C++)
 
 #Target binary file name
 TARGET	   = unittest
@@ -15,8 +15,10 @@ OPT 	?= g
 #MCU_MINOR_TYPE = 17VGT6
 #MCU_MAJOR_TYPE = f1
 #MCU_MINOR_TYPE = 07VBT6
-MCU_MAJOR_TYPE = f2
-MCU_MINOR_TYPE = 17VG
+#MCU_MAJOR_TYPE = f2
+#MCU_MINOR_TYPE = 17VG
+MCU_MAJOR_TYPE = f37
+MCU_MINOR_TYPE = 3xCT6
 
 #MCU_MAJOR_TYPE = f37
 #MCU_MINOR_TYPE = 3xCT6

@@ -1,0 +1,2 @@
+set path=.,./include,../../../isixrtos/libfoundation/include,../../../isixrtos/libenergymeter/include
+let lb_grep_path="../.."
