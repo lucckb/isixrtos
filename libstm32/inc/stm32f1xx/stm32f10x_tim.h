@@ -596,22 +596,26 @@
 #define TIM_DMABurstLength_17Bytes         TIM_DMABurstLength_17Transfers
 #define TIM_DMABurstLength_18Bytes         TIM_DMABurstLength_18Transfers
 
+#define _TIM_IS_ON_LIST_1( TIMx ) \
+  (TIMx == TIM1) || (TIMx == TIM8)|| (TIMx == TIM2) || (TIMx == TIM3)|| \
+     (TIMx == TIM4) || (TIMx == TIM5)
+
+
+#define _TIM_IS_ON_LIST_2( TIMx ) \
+  (TIMx != TIM6) && (TIMx != TIM7)
+
+
+#define _TIM_IS_ON_LIST_3( TIMx ) \
+  (TIMx == TIM1) || (TIMx == TIM8)|| (TIMx == TIM15)|| (TIMx == TIM16) || (TIMx == TIM17)
+
+#define _TIM_IS_ON_LIST_4( TIMx ) \
+  (TIMx == TIM1) || (TIMx == TIM8) || (TIMx == TIM2) || (TIMx == TIM3) || \
+     (TIMx == TIM4) ||(TIMx == TIM5) 
 
 #ifdef __cplusplus
 }
 #endif
 
+typedef unsigned short stm32tim_oc_t;
+
 #endif /*__STM32F10x_TIM_H */
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */
-
-/******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

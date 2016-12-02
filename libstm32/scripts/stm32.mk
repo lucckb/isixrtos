@@ -1,13 +1,5 @@
 # Automatic makefile for GNUARM (C/C++)
 
-
-#Typ procesora
-ifeq ($(MCU_MAJOR_TYPE),f4)
-MCU	= cortex-m4
-else
-MCU	= cortex-m3
-endif
-
 #Old MCU variant now is defined as minor major CPU code
 MCU_VARIANT ?= $(MCU_MAJOR_TYPE)$(MCU_MINOR_TYPE)
 
@@ -95,24 +87,32 @@ DEP_CXX = $(DEP_CXX_$(V))
 SCRIPTS_DIR := $(LIBSTM32_DIR)/scripts
 LSCRIPT := $(SCRIPTS_DIR)/$(SCRIPTLINK).ld
 
-
-#Pozostale ustawienia kompilatora
-COMMON_FLAGS += -O$(OPT) -mcpu=$(MCU) -mthumb -Wno-variadic-macros -Wno-long-long -pipe
+#FPU GCC settings
+MCU_SFPU_FLAGS := -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffast-math -fsingle-precision-constant
 ifeq ($(MCU_MAJOR_TYPE),f4)
-COMMON_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffast-math -fsingle-precision-constant
-COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F4
-else
+MCU_FLAGS := -mcpu=cortex-m4 $(MCU_SFPU_FLAGS) -DSTM32MCU_MAJOR_TYPE_F4
+endif
+ifeq ($(MCU_MAJOR_TYPE),f37)
+MCU_FLAGS := -mcpu=cortex-m4 $(MCU_SFPU_FLAGS) -DSTM32MCU_MAJOR_TYPE_F37
+endif
 ifeq ($(MCU_MAJOR_TYPE),f2)
-COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F2
-else
-COMMON_FLAGS += -DSTM32MCU_MAJOR_TYPE_F1
+MCU_FLAGS := -mcpu=cortex-m3 -DSTM32MCU_MAJOR_TYPE_F2
 endif
+ifeq ($(MCU_MAJOR_TYPE),f1)
+MCU_FLAGS := -mcpu=cortex-m3 -DSTM32MCU_MAJOR_TYPE_F1
 endif
+ifeq ($(MCU_FLAGS),)
+$(error MCU_MAJOR_TYPE CPU type is invalid)
+endif
+
+
 CXXFLAGS += -std=gnu++14
 ASFLAGS += -Wa,-mapcs-32 -mcpu=$(MCU) -mthumb $(COMMON_FLAGS)
 LDFLAGS +=  -L$(SCRIPTS_DIR) -nostdlib -nostartfiles -T$(LSCRIPT) -mthumb
 CPFLAGS =  -S
 ARFLAGS = rcs
+#Other compiler flags
+COMMON_FLAGS += -O$(OPT) $(MCU_FLAGS) -mthumb -Wno-variadic-macros -Wno-long-long -pipe
 
 LINK_LIBS = -Wl,--start-group -lstdc++ -lc -lm -lg -lgcc -Wl,--end-group
 #If cpp exceptions is suported

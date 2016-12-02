@@ -5,12 +5,11 @@
 
 
 extern unsigned long _etext;
-extern unsigned long _sidata;		
-extern unsigned long _sdata;	
-extern unsigned long _edata;	
-extern unsigned long _sbss;		
-extern unsigned long _ebss;		
-                                
+extern unsigned long _sidata;
+extern unsigned long _sdata;
+extern unsigned long _edata;
+extern unsigned long _sbss;
+extern unsigned long _ebss;
 
 void  __attribute__((weak,alias("empty_func")))_isixp_finalize();
 extern int main(void);
@@ -115,7 +114,7 @@ void _mcu_reset_handler_(void)
 {
 	unsigned long *pul_src, *pul_dest;
 	//Enable FPU if present
-#if defined(STM32MCU_MAJOR_TYPE_F4)	&& (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
 	SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));	// set CP10 and CP11 Full Access
 #endif
 	//! Trap divide by zero

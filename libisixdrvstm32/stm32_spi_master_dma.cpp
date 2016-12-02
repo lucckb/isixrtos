@@ -4,7 +4,7 @@
  *  Created on: 11-12-2012
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
+
 #include "stm32_spi_master_dma.hpp"
 #include <stm32rcc.h>
 #include <stm32system.h>
@@ -13,7 +13,7 @@
 #include <stm32bitbang.h>
 #include <foundation/dbglog.h>
 #include <cstring>
-/*----------------------------------------------------------*/
+
 
 //Temporary check
 #ifndef STM32MCU_MAJOR_TYPE_F1
@@ -21,10 +21,10 @@
 #endif
 
 
-/*----------------------------------------------------------*/
+
 namespace stm32 {
 namespace drv {
-/*----------------------------------------------------------*/
+
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 /* Interrupt handler section */
 namespace {
@@ -40,7 +40,7 @@ namespace {
 }
 #endif
 
-/*----------------------------------------------------------*/
+
 
 extern "C" {
 #if  CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
@@ -61,7 +61,7 @@ extern "C" {
 #endif
 }
 
-/*----------------------------------------------------------*/
+
 namespace
 {
 	//Wait for tx dma complete
@@ -162,7 +162,7 @@ namespace
 	}
 }
 
-/*----------------------------------------------------------*/
+
 spi_master_dma::spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2)
 		: spi_master(spi, pclk1, pclk2)
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
@@ -217,7 +217,7 @@ spi_master_dma::spi_master_dma(SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2)
 #endif /*(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS == ISIX_DRV_SPI_SPI1_ENABLE) || !(CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS) */
 #endif /* STM32MCU_MAJOR_TYPE_F1 */
 }
-/*----------------------------------------------------------*/
+
 /* Destructor */
 spi_master_dma::~spi_master_dma()
 {
@@ -235,7 +235,7 @@ spi_master_dma::~spi_master_dma()
 #endif
 #endif /* CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ */
 }
-/*----------------------------------------------------------*/
+
 /* Write to the device */
 int spi_master_dma::write( const void *buf, size_t len)
 {
@@ -263,7 +263,7 @@ int spi_master_dma::write( const void *buf, size_t len)
 	dma_tx_disable( m_spi );
 	return ret;
 }
-/*----------------------------------------------------------*/
+
 /* Transfer from the device */
 int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 {
@@ -290,7 +290,7 @@ int spi_master_dma::transfer( const void *inbuf, void *outbuf, size_t len )
 	dma_rx_disable(m_spi);
 	return ret;
 }
-/*----------------------------------------------------------*/
+
 #if CONFIG_ISIX_DRV_SPI_ENABLE_DMAIRQ
 //Handle DMA TX IRQ
 void spi_master_dma::handle_isr( spi_master_dma::irqs_no reason )
@@ -306,8 +306,8 @@ void spi_master_dma::handle_isr( spi_master_dma::irqs_no reason )
 	}
 }
 #endif
-/*----------------------------------------------------------*/
+
 } /* namespace drv */
 } /* namespace stm32 */
-/*----------------------------------------------------------*/
+
 

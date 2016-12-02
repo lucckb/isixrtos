@@ -5,8 +5,7 @@
  *      Author: lucck
  */
 
-#ifndef STM32F4XX_LIB_H_
-#define STM32F4XX_LIB_H_
+#pragma once
 
 #include <stdbool.h>
 #include "stm32f4xx.h"
@@ -19,5 +18,8 @@
 #include "stm32f4xx_pwr.h"
 #include "stm32f4xx_rtc.h"
 #include "stm32f4xx_tim.h"
+#include "stm32f1f2f4_usart.h"
 #include "misc.h"
-#endif /* STM32F4XX_LIB_H_ */
+
+
+#define STM32_CRC_HARDWARE_VERSION 1

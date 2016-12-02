@@ -1,5 +1,4 @@
-#ifndef STM32f10x_lib_H_
-#define STM32f10x_lib_H_
+#pragma once
 
 #include <stdbool.h>
 #include "stm32f10x.h"
@@ -12,7 +11,9 @@
 #include "stm32f10x_exti.h"
 #include "stm32f10x_pwr.h"
 #include "stm32f10x_tim.h"
+#include "stm32f1f2f4_usart.h"
 #include "misc.h"
 
-#endif
+#define STM32_CRC_HARDWARE_VERSION 1
+
 

@@ -8,8 +8,7 @@
 #ifndef STM32F1DMA_H_
 #define STM32F1DMA_H_
 /* ---------------------------------------------------------------------------- */
-#include "stm32f10x_lib.h"
-#include <cstddef>
+#include <stddef.h>
 #include <stdbool.h>
 /* ---------------------------------------------------------------------------- */
 #define DMA2_FLAG 0x10000000

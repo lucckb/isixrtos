@@ -17,14 +17,15 @@
  */
 
 
-#ifndef  _stm32flash_INC
-#define  _stm32flash_INC
+#pragma once
 
-
-#if defined(STM32MCU_MAJOR_TYPE_F1) 
+#if defined(STM32MCU_MAJOR_TYPE_F1)
 #error FLASH interface for stm32f1 platform not implemented
-#else
+#elif defined(STM32MCU_MAJOR_TYPE_F37)
+#include "stm32f37x/stm32flash.h"
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 #include "stm32f2f4xx_flash.h"
+#else
+#error selected mcu is invalid
 #endif
 
-#endif   /* ----- #ifndef stm32flash_INC  ----- */

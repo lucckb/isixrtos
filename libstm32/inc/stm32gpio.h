@@ -4,26 +4,18 @@
  *  Created on: 17-07-2012
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
 #ifndef STM32GPIO_H_
 #define STM32GPIO_H_
-/*----------------------------------------------------------*/
 #if defined(STM32MCU_MAJOR_TYPE_F1)
-#include "stm32f1xx/gpio_f1x.h"
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
-#include "stm32f4x/gpio_f4x.h"
-#elif defined(STM32MCU_MAJOR_TYPE_F2)
-#include "stm32f2x/gpio_f2x.h"
+#include "gpio_v1.h"
 #else
-#error Selected MCU type is invalid
+#include "gpio_v2.h"
 #endif
 
 
-/*----------------------------------------------------------*/
 #ifdef __cplusplus
 namespace stm32 {
 #endif
-/*----------------------------------------------------------*/
 /** Set the config mode common for F1 F2 F4 devices */
 enum e_abstract_gpio_config
 {
@@ -38,13 +30,11 @@ enum e_abstract_gpio_config
 	AGPIO_MODE_ALTERNATE_OD_PULLDOWN,
 	AGPIO_MODE_ANALOG
 };
-/*----------------------------------------------------------*/
 /* GPIO pin to bit */
 static inline unsigned short gpioPIN(int no)
 {
 	return 1<<no;
 }
-/*----------------------------------------------------------*/
 /** Set the output speed for F1 F2 F4 devices */
 enum e_abstract_gpio_speed
 {
@@ -53,19 +43,16 @@ enum e_abstract_gpio_speed
 	AGPIO_SPEED_HALF,		/** half gpio speed */
 	AGPIO_SPEED_FULL		/** full gpio speed */
 };
-/*----------------------------------------------------------*/
 /** GPIO abstract result */
 enum e_abstract_gpio_result
 {
 	EA_GPIO_RESULT_SUCCESS = 0,
 	EA_GPIO_RESULT_FAILURE = -1
 };
-/*----------------------------------------------------------*/
 #ifdef __cplusplus
 namespace _internal {
 namespace stm32 {
 #endif
-/*----------------------------------------------------------*/
 /** Internal function speed to value conversion **/
 static inline int _gpio_speed_to_value(enum e_abstract_gpio_speed vspeed )
 {
@@ -78,22 +65,20 @@ static inline int _gpio_speed_to_value(enum e_abstract_gpio_speed vspeed )
 	case AGPIO_SPEED_FULL:  return GPIO_MODE_50MHZ;
 	}
 	return GPIO_MODE_2MHZ;
-#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#else
 	switch( vspeed )
 	{
-	case AGPIO_SPEED_VLOW:  return GPIO_SPEED_2MHZ;
-	case AGPIO_SPEED_LOW:   return GPIO_SPEED_25MHZ;
-	case AGPIO_SPEED_HALF:  return GPIO_SPEED_50MHZ;
-	case AGPIO_SPEED_FULL:  return GPIO_SPEED_100MHZ;
+	case AGPIO_SPEED_VLOW:  return GPIO_SPEED_LOW;
+	case AGPIO_SPEED_LOW:   return GPIO_SPEED_MED;
+	case AGPIO_SPEED_HALF:  return GPIO_SPEED_FAST;
+	case AGPIO_SPEED_FULL:  return GPIO_SPEED_HI;
 	}
-	return GPIO_SPEED_2MHZ;
+	return AGPIO_SPEED_VLOW;
 #endif
 }
-/*----------------------------------------------------------*/
 #ifdef __cplusplus
 }}
 #endif
-/*----------------------------------------------------------*/
 /**  Configure selected GPIO using abstract mode
  * @param[in] Port GPIO port
  * @param[in] bit Number of gpio bit
@@ -139,7 +124,7 @@ static inline int gpio_abstract_config(GPIO_TypeDef* port, uint8_t bit, enum e_a
 		gpio_config( port, bit, GPIO_MODE_INPUT, GPIO_CNF_IN_ANALOG );
 		break;
 	}
-#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
+#else
 	switch( conf )
 	{
 	case AGPIO_MODE_INPUT_PULLUP:
@@ -176,7 +161,6 @@ static inline int gpio_abstract_config(GPIO_TypeDef* port, uint8_t bit, enum e_a
 #endif
 	return EA_GPIO_RESULT_SUCCESS;
 }
-/*----------------------------------------------------------*/
 /**  Configure selected GPIO using abstract mode
  * @param[in] Port GPIO port
  * @param[in] bit Bitmask
@@ -196,11 +180,8 @@ static inline int gpio_abstract_config_ext(GPIO_TypeDef* port, uint16_t bit, enu
 	}
 	return EA_GPIO_RESULT_SUCCESS;
 }
-/*----------------------------------------------------------*/
 
 #ifdef __cplusplus
 }
 #endif
-/*----------------------------------------------------------*/
 #endif /* STM32GPIO_H_ */
-/*----------------------------------------------------------*/

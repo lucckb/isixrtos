@@ -5,18 +5,14 @@
  *      Author: lucck
  */
 
-#ifndef STM32ADC_H_
-#define STM32ADC_H_
+#pragma once
 
-#if defined(STM32MCU_MAJOR_TYPE_F1)
+#if defined(STM32MCU_MAJOR_TYPE_F1) || defined(STM32MCU_MAJOR_TYPE_F37)
 #include "stm32f1xx/stm32adc.h"
-#elif defined(STM32MCU_MAJOR_TYPE_F4)
+#elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 #include "stm32f4x/stm32adc.h"
-#elif defined(STM32MCU_MAJOR_TYPE_F2)
-#include "stm32f2x/stm32adc.h"
 #else
 #error "Unknown device type"
 #endif
 
 
-#endif /* STM32ADC_H_ */

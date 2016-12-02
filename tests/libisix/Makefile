@@ -18,6 +18,9 @@ OPT 	?= g
 MCU_MAJOR_TYPE = f2
 MCU_MINOR_TYPE = 17VG
 
+#MCU_MAJOR_TYPE = f37
+#MCU_MINOR_TYPE = 3xCT6
+
 #System stack size interrupts etc
 MCU_SYSTEM_STACK_SIZE = 1024
 
