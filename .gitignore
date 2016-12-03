@@ -19,3 +19,6 @@ CMakeCache.txt
 *.cmake
 tags
 .session.vim
+.project
+.cproject
+.settings
