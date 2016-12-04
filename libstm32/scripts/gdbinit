@@ -2,7 +2,7 @@ target remote localhost:3333
 monitor reset
 monitor sleep 500
 monitor poll
-monitor soft_reset_halt
+monitor reset halt
 monitor mww 0xE0042004 0x02
 monitor gdb_breakpoint_override hard
 #define display RCC registers
