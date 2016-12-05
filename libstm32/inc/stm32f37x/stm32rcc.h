@@ -608,6 +608,85 @@ static inline void rcc_adc_clk_config(uint32_t RCC_PLLCLK)
   /* Set ADCPRE bits according to RCC_PLLCLK value */
   RCC->CFGR2 |= RCC_PLLCLK;
 }
+#elif defined(STM32MCU_MAJOR_TYPE_F37)
+/**
+  * @brief  Configures the ADC clock (ADCCLK).
+  * @param  RCC_PCLK2: defines the ADC clock divider. This clock is derived from
+  *         the APB2 clock (PCLK2).
+  *          This parameter can be one of the following values:
+  *             @arg RCC_PCLK2_Div2: ADC clock = PCLK2/2
+  *             @arg RCC_PCLK2_Div4: ADC clock = PCLK2/4
+  *             @arg RCC_PCLK2_Div6: ADC clock = PCLK2/6
+  *             @arg RCC_PCLK2_Div8: ADC clock = PCLK2/8
+  * @retval None
+  */
+static inline void rcc_adc_clk_config(uint32_t RCC_PCLK2)
+{
+
+  /* Clear ADCPRE[1:0] bits */
+  RCC->CFGR &= ~RCC_CFGR_ADCPRE;
+
+  /* Set ADCPRE[1:0] bits according to RCC_PCLK2 value */
+  RCC->CFGR |= RCC_PCLK2;
+}
+#endif
+
+
+#if defined(STM32MCU_MAJOR_TYPE_F37)
+/**
+  * @brief  Configures the SDADC clock (SDADCCLK).
+  * @param  RCC_PCLK2: defines the ADC clock divider. This clock is derived from
+  *         the system clock (SYSCLK).
+  *          This parameter can be one of the following values:
+  *             @arg RCC_SDADCCLK_SYSCLK_Div2: SDADC clock = SYSCLK/2
+  *             @arg RCC_SDADCCLK_SYSCLK_Div4: SDADC clock = SYSCLK/4
+  *             @arg RCC_SDADCCLK_SYSCLK_Div6: SDADC clock = SYSCLK/6
+  *             @arg RCC_SDADCCLK_SYSCLK_Div8: SDADC clock = SYSCLK/8
+  *             @arg RCC_SDADCCLK_SYSCLK_Div10: SDADC clock = SYSCLK/10
+  *             @arg RCC_SDADCCLK_SYSCLK_Div12: SDADC clock = SYSCLK/12
+  *             @arg RCC_SDADCCLK_SYSCLK_Div14: SDADC clock = SYSCLK/14
+  *             @arg RCC_SDADCCLK_SYSCLK_Div16: SDADC clock = SYSCLK/16
+  *             @arg RCC_SDADCCLK_SYSCLK_Div20: SDADC clock = SYSCLK/20
+  *             @arg RCC_SDADCCLK_SYSCLK_Div24: SDADC clock = SYSCLK/24
+  *             @arg RCC_SDADCCLK_SYSCLK_Div28: SDADC clock = SYSCLK/28
+  *             @arg RCC_SDADCCLK_SYSCLK_Div32: SDADC clock = SYSCLK/32
+  *             @arg RCC_SDADCCLK_SYSCLK_Div36: SDADC clock = SYSCLK/36
+  *             @arg RCC_SDADCCLK_SYSCLK_Div40: SDADC clock = SYSCLK/40
+  *             @arg RCC_SDADCCLK_SYSCLK_Div44: SDADC clock = SYSCLK/44
+  *             @arg RCC_SDADCCLK_SYSCLK_Div48: SDADC clock = SYSCLK/48
+  * @retval None
+  */
+static inline void rcc_sdadc_clk_config(uint32_t RCC_SDADCCLK)
+{
+  /* Clear ADCPRE[1:0] bits */
+  RCC->CFGR &= ~RCC_CFGR_SDADCPRE;
+
+  /* Set SDADCPRE[4:0] bits according to RCC_PCLK2 value */
+  RCC->CFGR |= RCC_SDADCCLK;
+}
+
+/**
+  * @brief  Configures the CEC clock (CECCLK).
+  * @param  RCC_CECCLK: defines the CEC clock source. This clock is derived
+  *         from the HSI or LSE clock.
+  *          This parameter can be one of the following values:
+  *             @arg RCC_CECCLK_HSI_Div244: CEC clock = HSI/244 (32768Hz)
+  *             @arg RCC_CECCLK_LSE: CEC clock = LSE
+  * @retval None
+  */
+static inline void rcc_cec_clk_config(uint32_t RCC_CECCLK)
+{
+
+ /* Clear CECSW bit */
+  RCC->CFGR3 &= ~RCC_CFGR3_CECSW;
+  /* Set CECSW bits according to RCC_CECCLK value */
+  RCC->CFGR3 |= RCC_CECCLK;
+}
+
+#endif
+
+
+
 
 /**
   * @brief  Configures the I2C clock (I2CCLK).
@@ -631,9 +710,11 @@ static inline void rcc_i2c_clk_config(uint32_t RCC_I2CCLK)
     case 0x01:
       RCC->CFGR3 &= ~RCC_CFGR3_I2C2SW;
       break;
+#ifdef RCC_CFGR3_I2C3SW
     case 0x02:
       RCC->CFGR3 &= ~RCC_CFGR3_I2C3SW;
       break;
+#endif
     default:
       break;
   }
@@ -641,6 +722,8 @@ static inline void rcc_i2c_clk_config(uint32_t RCC_I2CCLK)
   RCC->CFGR3 |= RCC_I2CCLK;
 }
 
+
+#ifdef RCC_CFGR3_TIM1SW
 /**
   * @brief  Configures the TIMx clock sources(TIMCLK).
   * @note   For STM32F303xC devices, TIMx can be clocked from the PLL running at 144 MHz 
@@ -694,6 +777,7 @@ static inline void rcc_timclk_config(uint32_t RCC_TIMCLK)
   /* Set I2CSW bits according to RCC_TIMCLK value */
   RCC->CFGR3 |= RCC_TIMCLK;
 }
+#endif
 
 /**
   * @brief  Configures the HRTIM1 clock sources(HRTIM1CLK).
@@ -709,6 +793,7 @@ static inline void rcc_timclk_config(uint32_t RCC_TIMCLK)
   *          (x can be 1 or 8).
   * @retval None
   */
+#ifdef RCC_CFGR3_HRTIM1SW
 static inline void rcc_hrtim1_clk_config(uint32_t RCC_HRTIMCLK)
 { 
   /* Clear HRTIMSW bit */
@@ -716,6 +801,46 @@ static inline void rcc_hrtim1_clk_config(uint32_t RCC_HRTIMCLK)
   /* Set HRTIMSW bits according to RCC_HRTIMCLK value */
   RCC->CFGR3 |= RCC_HRTIMCLK;
 }
+#endif
+
+
+
+/**
+  * @brief  Configures the I2S clock source (I2SCLK).
+  * @note   This function must be called before enabling the SPI2 and SPI3 clocks.
+  * @param  RCC_I2SCLKSource: specifies the I2S clock source.
+  *          This parameter can be one of the following values:
+  *            @arg RCC_I2S2CLKSource_SYSCLK: SYSCLK clock used as I2S clock source
+  *            @arg RCC_I2S2CLKSource_Ext: External clock mapped on the I2S_CKIN pin
+  *                                        used as I2S clock source
+  * @retval None
+  */
+static inline void rcc_i2s_clk_config(uint32_t RCC_I2SCLKSource)
+{
+
+  *(__IO uint32_t *) CFGR_I2SSRC_BB = RCC_I2SCLKSource;
+}
+
+
+
+/**
+  * @brief  Configures the USB clock (USBCLK).
+  * @param  RCC_USBCLKSource: specifies the USB clock source. This clock is
+  *   derived from the PLL output.
+  *   This parameter can be one of the following values:
+  *     @arg RCC_USBCLKSource_PLLCLK_1Div5: PLL clock divided by 1,5 selected as USB
+  *                                     clock source
+  *     @arg RCC_USBCLKSource_PLLCLK_Div1: PLL clock selected as USB clock source
+  * @retval None
+  */
+static inline void rcc_usb_clk_config(uint32_t RCC_USBCLKSource)
+{
+
+  *(__IO uint32_t *) CFGR_USBPRE_BB = RCC_USBCLKSource;
+}
+
+
+
 /**
   * @brief  Configures the USART clock (USARTCLK).
   * @param  RCC_USARTCLK: defines the USART clock source. This clock is derived 
@@ -743,12 +868,16 @@ static inline void rcc_usart_clk_config(uint32_t RCC_USARTCLK)
     case 0x03:  /* clear USART3SW */
       RCC->CFGR3 &= ~RCC_CFGR3_USART3SW;
       break;
+#ifdef RCC_CFGR3_UART4SW
     case 0x04:  /* clear UART4SW */
       RCC->CFGR3 &= ~RCC_CFGR3_UART4SW;
       break;
+#endif
+#ifdef RCC_CFGR3_UART5SW
     case 0x05:  /* clear UART5SW */
       RCC->CFGR3 &= ~RCC_CFGR3_UART5SW;
       break;
+#endif
     default:
       break;
   }
@@ -756,42 +885,7 @@ static inline void rcc_usart_clk_config(uint32_t RCC_USARTCLK)
   RCC->CFGR3 |= RCC_USARTCLK;
 }
 
-/**
-  * @brief  Configures the USB clock (USBCLK).
-  * @param  RCC_USBCLKSource: specifies the USB clock source. This clock is 
-  *   derived from the PLL output.
-  *   This parameter can be one of the following values:
-  *     @arg RCC_USBCLKSource_PLLCLK_1Div5: PLL clock divided by 1,5 selected as USB 
-  *                                     clock source
-  *     @arg RCC_USBCLKSource_PLLCLK_Div1: PLL clock selected as USB clock source
-  * @retval None
-  */
-static inline void rcc_usb_clk_config(uint32_t RCC_USBCLKSource)
-{
-  /* Check the parameters */
-  assert_param(IS_RCC_USBCLK_SOURCE(RCC_USBCLKSource));
 
-  *(__IO uint32_t *) CFGR_USBPRE_BB = RCC_USBCLKSource;
-}
-
-/**
-  * @brief  Configures the I2S clock source (I2SCLK).
-  * @note   This function must be called before enabling the SPI2 and SPI3 clocks.
-  * @param  RCC_I2SCLKSource: specifies the I2S clock source.
-  *          This parameter can be one of the following values:
-  *            @arg RCC_I2S2CLKSource_SYSCLK: SYSCLK clock used as I2S clock source
-  *            @arg RCC_I2S2CLKSource_Ext: External clock mapped on the I2S_CKIN pin
-  *                                        used as I2S clock source
-  * @retval None
-  */
-static inline void rcc_i2s_clk_config(uint32_t RCC_I2SCLKSource)
-{
-  /* Check the parameters */
-  assert_param(IS_RCC_I2SCLK_SOURCE(RCC_I2SCLKSource));
-
-  *(__IO uint32_t *) CFGR_I2SSRC_BB = RCC_I2SCLKSource;
-}
-#endif /*STM32MCU_MAJOR_TYPE_F3*/
 
 /**
   * @brief  Configures the RTC clock (RTCCLK).
@@ -823,6 +917,22 @@ static inline void rcc_rtc_clk_config(uint32_t RCC_RTCCLKSource)
 }
 
 /**
+  * @brief  Enables or disables the RTC clock.
+  * @note   This function must be used only after the RTC clock source was selected
+  *         using the RCC_RTCCLKConfig function.
+  * @param  NewState: new state of the RTC clock.
+  *          This parameter can be: ENABLE or DISABLE.
+  * @retval None
+  */
+static inline void rcc_rtc_clk_cmd(FunctionalState NewState)
+{
+
+  *(__IO uint32_t *) BDCR_RTCEN_BB = (uint32_t)NewState;
+}
+
+
+
+/**
   * @brief  Forces or releases the Backup domain reset.
   * @note   This function resets the RTC peripheral (including the backup registers)
   *         and the RTC clock source selection in RCC_CSR register.
@@ -835,6 +945,9 @@ static inline void rcc_backup_reset_cmd( bool enable )
 {
   *(__IO uint32_t *) BDCR_BDRST_BB = (uint32_t)enable;
 }
+
+
+
 
 /** @brief  Enables or disables the AHB peripheral clock */
 static inline void rcc_ahb_periph_clock_cmd(uint32_t RCC_AHBPeriph, bool enable)

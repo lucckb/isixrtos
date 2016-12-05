@@ -37,7 +37,7 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 	if(usart_==USART1)
 	{
 		RCC->APB2ENR |= RCC_APB2Periph_USART1;
-		if(!(flags & USARTSIMPLE_FL_ALTERNATE))
+		if(!(flags & USARTSIMPLE_FL_ALTERNATE) )
 		{
 			gpio_clock_enable( GPIOA, true );
 			//Configure GPIO port TxD and RxD
@@ -72,30 +72,39 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 	}
 	else if(usart_==USART2)
 	{
+		RCC->APB1ENR |= RCC_APB1Periph_USART2;
 		if(!(flags & USARTSIMPLE_FL_ALTERNATE))
 		{
 			gpio_clock_enable( GPIOA, true );
-			RCC->APB1ENR |= RCC_APB1Periph_USART2;
 			//Configure GPIO port TxD and RxD
 			gpio_abstract_config( GPIOA,USART2_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
 			gpio_abstract_config( GPIOA,USART2_RX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
 		}
+#ifdef IS_NEW_GPIO
+		else if( flags & USARTSIMPLE_FL_ALTERNATE_PB ) {
+			gpio_abstract_config( GPIOB, 3, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+			gpio_pin_AF_config( GPIOB, 3, GPIO_AF_7 );
+			if(!(flags & USARTSIMPLE_FL_NORX ) ) {
+				gpio_abstract_config( GPIOB, 4, AGPIO_MODE_INPUT_FLOATING, 0 );
+				gpio_pin_AF_config( GPIOB, 4, GPIO_AF_7 );
+			}
+		}
+#endif
 		else
 		{
 			gpio_clock_enable( GPIOD, true );
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 #endif
-			RCC->APB1ENR |= RCC_APB1Periph_USART2;
-			gpio_abstract_config(GPIOD,USART2_ALT_TX_BIT,AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+			gpio_abstract_config( GPIOD, USART2_ALT_TX_BIT,AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
 			if(!(flags & USARTSIMPLE_FL_NORX ) )
-			gpio_abstract_config(GPIOD,USART2_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0);
+			gpio_abstract_config( GPIOD, USART2_ALT_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			AFIO->MAPR |= AFIO_MAPR_USART2_REMAP;
 #elif IS_NEW_GPIO
-			gpio_pin_AF_config( GPIOD, USART2_ALT_TX_BIT, 7 );
+			gpio_pin_AF_config( GPIOD, USART2_ALT_TX_BIT, GPIO_AF_7 );
 			if(!(flags & USARTSIMPLE_FL_NORX ) )
-			gpio_pin_AF_config( GPIOD, USART2_ALT_RX_BIT, 7 );
+			gpio_pin_AF_config( GPIOD, USART2_ALT_RX_BIT, GPIO_AF_7 );
 #endif
 		}
 	}
