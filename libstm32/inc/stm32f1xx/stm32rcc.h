@@ -384,7 +384,7 @@ static inline bool rcc_get_flag_status(uint8_t RCC_FLAG)
   * - SUCCESS: HSE oscillator is stable and ready to use
   * - ERROR: HSE oscillator not yet ready
   */
-static inline bool rcc_wait_for_hse_start_up(void)
+static inline bool rcc_wait_for_hse_startup(void)
 {
 #ifdef __cplusplus
 	using namespace _internal::rcc;

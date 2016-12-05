@@ -94,6 +94,8 @@ static inline void usart_set_baudrate( USART_TypeDef* USARTx,
     /* update the divider value */
     divider = (divider & (uint16_t)0xFFF0) | tmpreg;
   }
+  /* Write to USART BRR */
+  USARTx->BRR = (uint16_t)divider;
 #else
   /* Determine the integer part */
   if ((USARTx->CR1 & USART_CR1_OVER8) != 0)
@@ -120,9 +122,10 @@ static inline void usart_set_baudrate( USART_TypeDef* USARTx,
   {
     tmpreg |= ((((fractionaldivider * 16) + 50) / 100)) & ((uint8_t)0x0F);
   }
-#endif
   /* Write to USART BRR register */
   USARTx->BRR = (uint16_t)tmpreg;
+#endif
+
 }
 
 /**
