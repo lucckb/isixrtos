@@ -861,7 +861,7 @@ static inline void sdadc_dma_config(SDADC_TypeDef* SDADCx, uint32_t SDADC_DMATra
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None
   */
-static inline void SDADC_ITConfig(SDADC_TypeDef* SDADCx, uint32_t SDADC_IT, bool en )
+static inline void sdadc_it_config(SDADC_TypeDef* SDADCx, uint32_t SDADC_IT, bool en )
 {
   if ( en )
   {
