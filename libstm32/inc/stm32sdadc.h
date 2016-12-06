@@ -183,7 +183,7 @@ static inline void sdadc_cmd(SDADC_TypeDef* SDADCx, bool enabled )
   *         configurations are allowed (regular channel selection, software trigger)
   * @retval None
   */
-static inline void SDADC_InitModeCmd(SDADC_TypeDef* SDADCx, bool enabled )
+static inline void sdadc_init_mode_cmd(SDADC_TypeDef* SDADCx, bool enabled )
 {
   if ( enabled )
   {
@@ -241,7 +241,7 @@ static inline void sdadc_fast_conversion_cmd(SDADC_TypeDef* SDADCx, bool enabled
   *            @arg SDADC_VREF_VDDA: The reference voltage is forced internally to VDDA
   * @retval None
   */
-static inline void SDADC_VREFSelect(uint32_t SDADC_VREF)
+static inline void sdadc_vref_select(uint32_t SDADC_VREF)
 {
   uint32_t tmpcr1;
   /* Get SDADC1_CR1 register value */
