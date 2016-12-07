@@ -45,5 +45,21 @@ namespace isix {
 	private:
 		osmtx_t m_mtx;
 	};
+
+	//! Semaphore locker class
+	class mutex_lock {
+	public:
+		mutex_lock( mutex& _mtx )
+			: m_mtx( _mtx ) {
+			_mtx.lock();
+		}
+		~mutex_lock() {
+			m_mtx.unlock();
+		}
+	private:
+		mutex_lock(const mutex_lock&);
+		mutex_lock& operator=(const mutex_lock&);
+		mutex& m_mtx;
+	};
 }
 #endif
