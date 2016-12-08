@@ -272,6 +272,11 @@ static inline void tim_cmd(TIM_TypeDef* TIMx, int enable )
 	  }
 }
 
+//If timer is enabled
+static inline bool tim_is_enabled( TIM_TypeDef* TIMx )
+{
+	return TIMx->CR1 & TIM_CR1_CEN;
+}
 
 #if defined(STM32MCU_MAJOR_TYPE_F3)
 static inline void tim_break1_config(TIM_TypeDef* TIMx, 
