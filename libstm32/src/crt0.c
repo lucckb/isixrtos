@@ -1,7 +1,4 @@
-#if defined(STM32MCU_MAJOR_TYPE_F4)
-#include <stm32f4x/stm32f4xx.h>
-#include <core_cm4.h>
-#endif
+
 
 
 extern unsigned long _etext;
@@ -114,8 +111,10 @@ void _mcu_reset_handler_(void)
 {
 	unsigned long *pul_src, *pul_dest;
 	//Enable FPU if present
-#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
-	SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));	// set CP10 and CP11 Full Access
+#if defined(__ARM_FP) &&  (__ARM_FP>0)
+#define SCB_CPACR  *((volatile unsigned long*)0xE000ED88)
+	SCB_CPACR |= ((3UL << 10*2)|(3UL << 11*2));	// set CP10 and CP11 Full Access
+#undef SCB_CPACR
 #endif
 	//! Trap divide by zero
 #	define SCB_CCR *((volatile unsigned long*)0xE000ED14)
