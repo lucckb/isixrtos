@@ -20,7 +20,7 @@
 namespace emeter {
 
 
-//Adjust input energy cuttof when energy is less than 0.5W
+//! Adjust input energy cuttof when energy is less than 0.5W
 int energy_meter::scale_energy_mul( measure_t e ) {
 	if( e > 0 && e<config::energy_cnt_tresh  ) {
 		return 0;
@@ -50,7 +50,7 @@ void energy_meter::calculate_energies( pwr_cnt& ecnt, const energy_phase_n& ephn
 }
 
 
-// Wh consumed
+//! Wh consumed
 typename tags::detail::watt_h_pos::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::watt_h_pos p ) const noexcept
 {
@@ -58,7 +58,7 @@ typename tags::detail::watt_h_pos::value_type energy_meter::operator()
 	return scale_energy_div( val, p );
 }
 
-// Wh produced
+//! Wh produced
 typename tags::detail::watt_h_neg::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::watt_h_neg p) const noexcept
 {
@@ -67,7 +67,7 @@ typename tags::detail::watt_h_neg::value_type energy_meter::operator()
 }
 
 
-// varh consumed
+//! varh consumed
 typename tags::detail::var_h_pos::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::var_h_pos p) const noexcept
 {
@@ -76,13 +76,74 @@ typename tags::detail::var_h_pos::value_type energy_meter::operator()
 }
 
 
-// varh produced
+//! varh produced
 typename tags::detail::var_h_neg::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::var_h_neg p) const noexcept
 {
 	auto val = read_atomic_accum_t( m_ecnt[phase].q_minus );
 	return scale_energy_div( val, p );
 }
+
+// Wh consumed
+void energy_meter::operator()
+	( const std::size_t phase, tags::detail::raw_watt_h_pos,
+	  typename tags::detail::raw_watt_h_pos::value_type val ) noexcept
+{
+	m_ecnt[phase].p_plus = val;
+}
+
+// Wh produced
+void energy_meter::operator()
+	( const std::size_t phase, tags::detail::raw_watt_h_neg,
+	  typename tags::detail::raw_watt_h_neg::value_type val ) noexcept
+{
+	m_ecnt[phase].p_minus = val;
+}
+
+// varh consumed
+void energy_meter::operator()
+	( const std::size_t phase, tags::detail::raw_var_h_pos,
+	  typename tags::detail::raw_var_h_pos::value_type val ) noexcept
+{
+	m_ecnt[phase].q_plus = val;
+}
+
+// varh produced
+void energy_meter::operator()
+	( const std::size_t phase, tags::detail::raw_var_h_neg,
+	  typename tags::detail::raw_var_h_neg::value_type val ) noexcept
+{
+	m_ecnt[phase].q_minus = val;
+}
+
+//raw Wh consumed
+typename tags::detail::raw_watt_h_pos::value_type energy_meter::operator()
+	( const std::size_t phase, tags::detail::raw_watt_h_pos ) const noexcept
+{
+	return read_atomic_accum_t( m_ecnt[phase].p_plus );
+}
+
+// raw Wh produced
+typename tags::detail::raw_watt_h_neg::value_type energy_meter::operator()
+	( const std::size_t phase, tags::detail::raw_watt_h_neg ) const noexcept
+{
+	return read_atomic_accum_t( m_ecnt[phase].p_minus );
+}
+
+// raw vear consumed
+typename tags::detail::raw_var_h_pos::value_type energy_meter::operator()
+	( const std::size_t phase, tags::detail::raw_var_h_pos ) const noexcept
+{
+	return read_atomic_accum_t( m_ecnt[phase].q_plus );
+}
+
+// raw varh produced
+typename tags::detail::raw_var_h_neg::value_type energy_meter::operator()
+	( const std::size_t phase, tags::detail::raw_var_h_neg ) const noexcept
+{
+	return read_atomic_accum_t( m_ecnt[phase].q_minus );
+}
+
 
 }
 

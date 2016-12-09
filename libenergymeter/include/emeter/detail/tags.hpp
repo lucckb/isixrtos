@@ -40,6 +40,12 @@ namespace detail {
 	struct watt_h_pos { using value_type = energymeas_t; };
 	struct var_h_neg { using value_type = energymeas_t; };
 	struct watt_h_neg { using value_type = energymeas_t; };
+
+	//! Non billing pure raw data for storage
+	struct raw_var_h_pos { using value_type = accum_t; };
+	struct raw_watt_h_pos { using value_type = accum_t; };
+	struct raw_var_h_neg { using value_type = accum_t; };
+	struct raw_watt_h_neg { using value_type = accum_t; };
 }
 	namespace {
 		constexpr detail::var_h_pos  var_h_pos{};

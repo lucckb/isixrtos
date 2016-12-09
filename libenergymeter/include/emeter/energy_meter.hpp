@@ -27,6 +27,13 @@
 #include "energy_phase_n.hpp"
 
 namespace emeter {
+	//! Hold all energies
+	struct pwr_cnt {
+		accum_t p_plus;		//! Real power (pos)
+		accum_t p_minus;	//! Real power (neg)
+		accum_t q_plus;		//! Apparent power (pos)
+		accum_t q_minus;	//! Apparent power (neg)
+	};
 	//! Energy counting tresh
 	static constexpr auto ethresh = config::energy_cnt_tresh;
 	static constexpr auto ecnt_scale  = 128;
@@ -38,13 +45,6 @@ namespace emeter {
 	//! Main energy meter class library
 	class energy_meter
 	{
-		// Hold all energies
-		struct pwr_cnt {
-			accum_t p_plus;
-			accum_t p_minus;
-			accum_t q_plus;
-			accum_t q_minus;
-		};
 		using energy_storage = typename std::aligned_storage_t<
 			sizeof(energy_phase_n), alignof(energy_phase_n)>::type;
 		//Get energy phase helper
@@ -76,6 +76,7 @@ namespace emeter {
 			val /= hr; if( half ) ++val;
 			return val;
 		}
+
 	public:
 		energy_meter( energy_meter& ) = delete;
 		energy_meter& operator=( energy_meter& ) = delete;
@@ -162,6 +163,43 @@ namespace emeter {
 		// varh produced
 		typename tags::detail::var_h_neg::value_type operator()
 			( const std::size_t phase, tags::detail::var_h_neg p) const noexcept;
+
+		//raw Wh consumed
+		typename tags::detail::raw_watt_h_pos::value_type operator()
+			( const std::size_t phase, tags::detail::raw_watt_h_pos p ) const noexcept;
+
+		// raw Wh produced
+		typename tags::detail::raw_watt_h_neg::value_type operator()
+			( const std::size_t phase, tags::detail::raw_watt_h_neg p) const noexcept;
+
+		// raw varh consumed
+		typename tags::detail::raw_var_h_pos::value_type operator()
+			( const std::size_t phase, tags::detail::raw_var_h_pos p) const noexcept;
+
+		// raw varh produced
+		typename tags::detail::raw_var_h_neg::value_type operator()
+			( const std::size_t phase, tags::detail::raw_var_h_neg p) const noexcept;
+
+
+		// Wh consumed
+		void operator()
+			( const std::size_t phase, tags::detail::raw_watt_h_pos p,
+					typename tags::detail::raw_watt_h_pos::value_type ) noexcept;
+
+		// Wh produced
+		void operator()
+			( const std::size_t phase, tags::detail::raw_watt_h_neg p,
+			  typename tags::detail::raw_watt_h_neg::value_type) noexcept;
+
+		// varh consumed
+		void operator()
+			( const std::size_t phase, tags::detail::raw_var_h_pos p,
+			  typename tags::detail::raw_var_h_pos::value_type ) noexcept;
+
+		// varh produced
+		void operator()
+			( const std::size_t phase, tags::detail::raw_var_h_neg p,
+			  typename tags::detail::raw_var_h_neg::value_type ) noexcept;
 
 		// All phases together.
 		template<typename TAG>
