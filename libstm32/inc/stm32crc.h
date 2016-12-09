@@ -217,7 +217,7 @@ static inline uint32_t crc_calc_crc_8bits(uint8_t CRC_Data)
   * @param  BufferLength: length of the buffer to be computed
   * @retval 32-bit CRC
   */
-static inline uint32_t crc_calc_block_crc(uint32_t pBuffer[], uint32_t BufferLength)
+static inline uint32_t crc_calc_block_crc(const uint32_t pBuffer[], uint32_t BufferLength)
 {
   uint32_t index = 0;
   

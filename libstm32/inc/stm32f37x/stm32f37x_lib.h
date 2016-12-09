@@ -30,6 +30,7 @@
 #include "stm32f37x_rtc.h"
 #include "stm32f37x_sdadc.h"
 #include "stm32f37x_dma.h"
+#include "stm32f37x_crc.h"
 #include "misc.h"
 
 #define STM32_CRC_HARDWARE_VERSION 2
