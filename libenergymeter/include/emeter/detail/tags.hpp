@@ -61,6 +61,10 @@ namespace detail {
 		constexpr detail::thd_i thd_i{};
 		constexpr detail::pwr_fact pwr_fact{};
 		constexpr detail::freq freq{};
+		constexpr detail::raw_var_h_pos raw_var_h_pos{};
+		constexpr detail::raw_var_h_neg raw_var_h_neg{};
+		constexpr detail::raw_watt_h_pos raw_watt_h_pos{};
+		constexpr detail::raw_watt_h_neg raw_watt_h_neg{};
 	}
 }
 }
