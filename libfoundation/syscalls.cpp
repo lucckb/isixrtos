@@ -11,7 +11,7 @@
 
 #else /*COMPILED_UNDER_ISIX*/
 #include <isix.h>
-#include <isix/prv/mutex.h>
+#include <isix/prv/semaphore.h>
 #endif
 
 #include <cstring>
@@ -117,10 +117,10 @@ static void setNotInUse(__guard *);
 
 
 #ifdef COMPILED_UNDER_ISIX
-static struct isix_mutex ctors_mtx;
+static struct isix_semaphore ctors_sem;
 __attribute__((constructor))
 	static void mutex_initializer(void) {
-		isix_mutex_create(&ctors_mtx);
+		isix_sem_create(&ctors_sem, 1);
 	}
 
 #endif
@@ -136,7 +136,7 @@ int __cxa_guard_acquire(__guard *guard_object)
 	if (initializerHasRun(guard_object))
 		return 0;
 
-	if( isix_mutex_lock( &ctors_mtx ) ) {
+	if( isix_sem_wait(&ctors_sem,ISIX_TIME_INFINITE) ) {
 		terminate_process();
 		return 0;
 	}
@@ -157,7 +157,7 @@ void __cxa_guard_release(__guard *guard_object)
     setInitializerHasRun(guard_object);
 
 #ifdef COMPILED_UNDER_ISIX
-	if( isix_mutex_unlock( &ctors_mtx ) ) {
+	if( isix_sem_signal(&ctors_sem )) {
 		terminate_process();
 	}
 #endif
@@ -180,7 +180,7 @@ void __cxa_guard_abort(__guard *guard_object)
 	setNotInUse(guard_object);
 
 #ifdef COMPILED_UNDER_ISIX
-	if( isix_mutex_unlock(&ctors_mtx) ) {
+	if( isix_sem_signal(&ctors_sem) ) {
 		terminate_process();
 	}
 #endif
