@@ -1,5 +1,5 @@
-/* ------------------------------------------------------------ */
-/*
+
+/* ------------------------------------------------------------
  *    tiny_alloc.cpp
  *
  *     Created on: 2009-08-08
@@ -11,13 +11,14 @@
 
 #else /*COMPILED_UNDER_ISIX*/
 #include <isix.h>
+#include <isix/prv/mutex.h>
 #endif
-/* -------------------------------------------------------------- */
+
 #include <cstring>
 #include <cstdarg>
 #include <cstdint>
 #include "foundation/tiny_vaprintf.h"
-/* -------------------------------------------------------------- */
+
 
 #ifndef COMPILED_UNDER_ISIX
 
@@ -39,7 +40,7 @@
 #define terminate_process() isix_bug(__PRETTY_FUNCTION__)
 #endif /*COMPILED_UNDER_ISIX*/
 
-/* -------------------------------------------------------------- */
+
 #ifndef  __EXCEPTIONS
 void* operator new( size_t n ) throw()
 {
@@ -51,15 +52,17 @@ void* operator new( size_t n ) throw()
 
 void operator delete( void* p ) throw()
 {
-    if(p)
-    	foundation_free(p);
+	if(p) {
+		foundation_free(p);
+	}
 }
 
 
 void operator delete( void* p, size_t ) throw()
 {
-    if(p)
-    	foundation_free(p);
+    if(p) {
+		foundation_free(p);
+	}
 }
 
 void* operator new[]( size_t n) throw()
@@ -72,20 +75,22 @@ void* operator new[]( size_t n) throw()
 
 void operator delete[]( void* p) throw()
 {
-    if(p)
-    	foundation_free(p);
+    if(p) {
+		foundation_free(p);
+	}
 }
 
 void operator delete[]( void* p, size_t) throw()
 {
-    if(p)
-    	foundation_free(p);
+    if(p) {
+		foundation_free(p);
+	}
 }
 #endif /* CONFIG_ENABLE_EXCEPTIONS  */
 
 typedef unsigned long __guard;
 
-/* -------------------------------------------------------------- */
+
 // Syscalls definitions
 extern "C"
 {
@@ -103,18 +108,23 @@ extern "C"
 	void __cxa_guard_release (__guard *);
 	void __cxa_guard_abort(__guard *);
 }
-/* -------------------------------------------------------------- */
+
 
 static bool initializerHasRun(__guard *);
 static void setInitializerHasRun(__guard *);
 static void setInUse(__guard *);
 static void setNotInUse(__guard *);
 
-/* -------------------------------------------------------------- */
+
 #ifdef COMPILED_UNDER_ISIX
-static ossem_t ctors_sem;
+static struct isix_mutex ctors_mtx;
+__attribute__((constructor))
+	static void mutex_initializer(void) {
+		isix_mutex_create(&ctors_mtx);
+	}
+
 #endif
-/* -------------------------------------------------------------- */
+
 #ifdef CPP_STARTUP_CODE
 
 /* thread safe constructed objects  */
@@ -126,21 +136,10 @@ int __cxa_guard_acquire(__guard *guard_object)
 	if (initializerHasRun(guard_object))
 		return 0;
 
-	//  create semaphore if not existing
-	if(ctors_sem == NULL)
-	{
-		ctors_sem = isix_sem_create(NULL, 1);
-
-		if(ctors_sem == NULL)
-		{
-			//Remove task if can't create semaphore
-			terminate_process();
-			return 0;
-		}
+	if( isix_mutex_lock( &ctors_mtx ) ) {
+		terminate_process();
+		return 0;
 	}
-
-	if(ctors_sem)
-		isix_sem_wait(ctors_sem, ISIX_TIME_INFINITE);
 
 	setInUse(guard_object);
 	return 1;
@@ -158,8 +157,9 @@ void __cxa_guard_release(__guard *guard_object)
     setInitializerHasRun(guard_object);
 
 #ifdef COMPILED_UNDER_ISIX
-	if(ctors_sem)
-		isix_sem_signal(ctors_sem);
+	if( isix_mutex_unlock( &ctors_mtx ) ) {
+		terminate_process();
+	}
 #endif
 }
 
@@ -170,7 +170,7 @@ void __cxa_pure_virtual()
 }
 
 //Deleted virtual
-void __cxa_deleted_virtual (void) 
+void __cxa_deleted_virtual (void)
 {
 	terminate_process();
 }
@@ -180,8 +180,9 @@ void __cxa_guard_abort(__guard *guard_object)
 	setNotInUse(guard_object);
 
 #ifdef COMPILED_UNDER_ISIX
-	if(ctors_sem)
-		isix_sem_signal(ctors_sem);
+	if( isix_mutex_unlock(&ctors_mtx) ) {
+		terminate_process();
+	}
 #endif
 }
 
@@ -207,7 +208,7 @@ static void setNotInUse(__guard *guard_object)
 
 #endif /*CPP_STARTUP_CODE*/
 
-/* ------------------------------------------------------------------ */
+
 
 __attribute__ ((used))
 void abort(void)
@@ -252,7 +253,7 @@ void _free_r(struct _reent */*r*/, void *ptr)
 {
 	foundation_free(ptr);
 }
-/* -------------------------------------------------------------- */
+
 //Cpp internals
 namespace __gnu_cxx
 {
@@ -274,7 +275,7 @@ int __snprintf_lite(char *__buf, size_t __bufsize, const char *__fmt, va_list __
 }//namespace __gnu_cxx
 
 
-/* -------------------------------------------------------------- */
+
 //Bad function call handler if no exception
 #if (__cplusplus > 199711L) && !defined(__EXCEPTIONS) 
 namespace std
@@ -356,4 +357,4 @@ namespace std
 	  { terminate_process(); for(;;); }
 }
 #endif
-/* -------------------------------------------------------------- */
+
