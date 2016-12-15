@@ -25,6 +25,13 @@ namespace {
 		const uint16_t SD_SPI_CS_PIN 	= 4;
 		GPIO_TypeDef* const SPI_PORT = GPIOA;
 	}
+	namespace spi1_alt {
+		const uint16_t SD_SPI_MISO_PIN	= 8;
+		const uint16_t SD_SPI_MOSI_PIN	= 9;
+		const uint16_t SD_SPI_SCK_PIN   = 7;
+		const uint16_t SD_SPI_CS_PIN 	= 6;
+		GPIO_TypeDef* const SPI_PORT = GPIOC;
+	}
 	namespace spi2 {
 		const uint16_t SD_SPI_MISO_PIN	= 14;
 		const uint16_t SD_SPI_MOSI_PIN	= 15;
@@ -41,10 +48,10 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 	using namespace stm32;
 	if( m_spi == SPI1 )
 	{
-		using namespace spi1;
 		rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SPI1, true );
 		/* Configure SPI1 to use it as SPI dev */
 		if( !alternate ) {
+			using namespace spi1;
 			gpio_clock_enable( SPI_PORT, true );
 			gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
 					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
@@ -56,7 +63,17 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 					AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_FULL );
 			gpio_set( SPI_PORT, SD_SPI_CS_PIN );
 		} else {
-			//TODO: Add alternate support 
+			using namespace spi1_alt;
+			gpio_clock_enable( SPI_PORT, true );
+			gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,
+					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN,
+					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN,
+					AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,
+					AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_FULL );
+			gpio_set( SPI_PORT, SD_SPI_CS_PIN );
 		}
 	}
 #ifdef SPI2
