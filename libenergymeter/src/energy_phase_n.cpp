@@ -54,7 +54,7 @@ const cplxmeas_t* energy_phase_n::fft_calc( void* result, const sample_t* raw )
 measure_t energy_phase_n::rms( const cplxmeas_t input[] ) {
 	measure_t sum { };
 	//from 1 to N/2-1 - Remove DC offset
-	for( size_t i=1; i<fftsiz/2; ++i ) {
+	for( size_t i=2; i<fftsiz/2; ++i ) {
 		const auto r = input[i];
 		sum += r.real()*r.real()+r.imag()*r.imag();
 	}
@@ -67,7 +67,7 @@ std::pair<measure_t,measure_t>
 	measure_t sum_p {};
 	measure_t sum_q {};
 	//from 1 to N/2-1 - Remove DC offset
-	for( size_t i=1; i<fftsiz/2; ++i ) {
+	for( size_t i=2; i<fftsiz/2; ++i ) {
 		const auto P = ub[i] * std::conj(ib[i]);
 		sum_p += P.real();
 		sum_q += P.imag();
