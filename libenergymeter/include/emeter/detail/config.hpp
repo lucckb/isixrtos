@@ -29,7 +29,7 @@ namespace {
 	//! Number of phases to measure
 	constexpr auto n_phases = 3U;
 	//! Sample rate
-	constexpr auto sample_rate = 4000;
+	constexpr auto sample_rate = 3200;
 	//! Energy measure treshold
 	constexpr measure_t energy_cnt_tresh = 0.5;
 }}}

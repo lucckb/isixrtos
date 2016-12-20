@@ -96,18 +96,18 @@ static inline void sdadc_ain_init(SDADC_TypeDef* SDADCx, uint32_t SDADC_Conf,
 }
 
 /** Get the AIN offset for selected channel */
-static inline uint16_t sdadc_ain_offset( SDADC_TypeDef* SDADCx, uint32_t SDADC_Conf ) 
+static inline int16_t sdadc_ain_offset( SDADC_TypeDef* SDADCx, uint32_t SDADC_Conf ) 
 {
-
   /* Get the ASDACx address */
   uint32_t tmp = (uint32_t)((uint32_t)SDADCx + 0x00000020);
   /* Get the ASDACx CONFxR value: depending SDADC_Conf, analog input configuration
      is set to CONF0R, CONF1R or CONF2R register */
   tmp = (uint32_t)(SDADC_Conf << 2) + tmp;
 
-  /* Set the analog input configuration to the selected CONFxR register */
-  int16_t offs =  *(__IO uint32_t *)(tmp) & 0x7ff;
-  return (offs << (16 - 12)) >> (16 - 12);
+  /* Set the analog input configuration to the selected CONFxR register 
+   * the offset is 12 bit signed integer so the sign is extended*/
+  int16_t offs =  *(__IO uint32_t *)(tmp) & 0xfff;
+  return ((offs) | (((offs) & (1 << (11))) ? ~((1 << (11))-1) : 0));
 }
 
 /**
