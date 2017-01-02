@@ -36,27 +36,35 @@ public:
 	/* Destructor */
 	virtual ~spi_master();
 	/* Write to the device */
-	virtual int write( const void *buf, size_t len);
-	virtual int write( const void* buf1, size_t len1,
-					   const void* buf2, size_t len2);
+	int write( const void *buf, size_t len) override;
+	int write( const void* buf1, size_t len1,
+					   const void* buf2, size_t len2) override;
 	/* Read from the device */
-	virtual int read ( void *buf, size_t len);
+	int read ( void *buf, size_t len) override;
 	/* Transfer (BIDIR) */
-	virtual int transfer( const void *inbuf, void *outbuf, size_t len );
+	int transfer( const void *inbuf, void *outbuf, size_t len ) override;
 	/* Set work mode */
-	virtual int set_mode( unsigned mode, unsigned khz );
+	int set_mode( unsigned mode, unsigned khz ) override;
 	/* Setup CRC */
-	virtual int crc_setup( unsigned short /*polynominal*/, bool /*enable*/ );
+	int crc_setup( unsigned short /*polynominal*/, bool /*enable*/ ) override;
 	/* Control CS manually*/
-	virtual void CS( bool val, int cs_no );
+	void CS( bool val, int cs_no ) override;
 	/* Transfer data (nodma) */
-	virtual uint16_t transfer( uint16_t val );
+	uint16_t transfer( uint16_t val ) override {
+		if( m_8bit ) return transfer8( val );
+		else return transfer16( val );
+	}
 	/* Disable enable the device */
-	virtual void enable( bool en );
+	void enable( bool en ) override;
+private:
+	uint16_t transfer16( uint16_t val );
+	uint8_t transfer8( uint8_t val );
 protected:
 	SPI_TypeDef* const m_spi;
 private:
 	uint32_t m_pclk;
+	const bool m_alt;
+	bool m_8bit { true };
 };
 
 /*----------------------------------------------------------*/

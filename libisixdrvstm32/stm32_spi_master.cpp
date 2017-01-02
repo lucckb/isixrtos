@@ -43,7 +43,7 @@ namespace {
 
 /* Constructor */
 spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool alternate )
-	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1)
+	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(alternate)
 {
 	using namespace stm32;
 	if( m_spi == SPI1 )
@@ -69,11 +69,22 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
 			gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN,
 					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
-			gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN,
-					AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+
+			///TODO FIX
+			//gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN,
+				//	AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+
+			gpio_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_MODE_ALTERNATE,
+					GPIO_PUPD_NONE,  GPIO_SPEED_HI, 0 );
+
 			gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,
 					AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_FULL );
 			gpio_set( SPI_PORT, SD_SPI_CS_PIN );
+#if defined(_CONFIG_STM32_GPIO_V2_)
+			gpio_pin_AF_config( SPI_PORT, SD_SPI_SCK_PIN, GPIO_AF_5 );
+			gpio_pin_AF_config( SPI_PORT, SD_SPI_MOSI_PIN, GPIO_AF_5 );
+			gpio_pin_AF_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_AF_5 );
+#endif
 		}
 	}
 #ifdef SPI2
@@ -84,18 +95,18 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 		if( !alternate ) 
 		{
 			gpio_clock_enable( SPI_PORT, true );
-#if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4) 
+#if defined(_CONFIG_STM32_GPIO_V2_)
 			gpio_config( SPI_PORT, SD_SPI_SCK_PIN, GPIO_MODE_ALTERNATE, 
-					GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, 0 );
+					GPIO_PUPD_NONE, GPIO_SPEED_HI, 0 );
 			gpio_config( SPI_PORT, SD_SPI_MOSI_PIN, GPIO_MODE_ALTERNATE, 
-					GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, 0 );
+					GPIO_PUPD_NONE,  GPIO_SPEED_HI, 0 );
 			gpio_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_MODE_ALTERNATE, 
-					GPIO_PUPD_NONE, GPIO_SPEED_100MHZ, 0 );
+					GPIO_PUPD_NONE,  GPIO_SPEED_HI, 0 );
 			gpio_config( SPI_PORT, SD_SPI_CS_PIN, GPIO_MODE_OUTPUT,
-					GPIO_PUPD_NONE, GPIO_SPEED_50MHZ );
-			gpio_pin_AF_config( SPI_PORT, SD_SPI_SCK_PIN, GPIO_AF_SPI2 );
-			gpio_pin_AF_config( SPI_PORT, SD_SPI_MOSI_PIN, GPIO_AF_SPI2 );
-			gpio_pin_AF_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_AF_SPI2 );
+					GPIO_PUPD_NONE,  GPIO_SPEED_HI);
+			gpio_pin_AF_config( SPI_PORT, SD_SPI_SCK_PIN, GPIO_AF_5 );
+			gpio_pin_AF_config( SPI_PORT, SD_SPI_MOSI_PIN, GPIO_AF_5 );
+			gpio_pin_AF_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_AF_5 );
 #else
 			gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
 					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
@@ -115,6 +126,9 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 	{
 		stm32::rcc_apb1_periph_clock_cmd( RCC_APB1Periph_SPI3, true );
 	}
+#endif
+#ifdef STM32_SPI_V2
+	spi_rx_fifo_threshold_config(m_spi, SPI_RxFIFOThreshold_QF );
 #endif
 }
 
@@ -164,7 +178,7 @@ int spi_master::write( const void *buf, size_t len )
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
-	if ( m_spi->CR1 & SPI_DataSize_16b )
+	if ( !m_8bit )
 	{
 		const uint16_t *b = static_cast<const uint16_t*>(buf);
 		len /= 2;
@@ -204,7 +218,7 @@ int spi_master::read ( void *buf, size_t len)
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
-	if ( m_spi->CR1 & SPI_DataSize_16b )
+	if ( !m_8bit )
 	{
 		uint16_t *b = static_cast<uint16_t*>(buf);
 		len /= 2;
@@ -229,7 +243,7 @@ int spi_master::transfer( const void *inbuf, void *outbuf, size_t len )
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
-	if ( m_spi->CR1 & SPI_DataSize_16b )
+	if ( !m_8bit )
 	{
 		const uint16_t *ib = static_cast<const uint16_t*>(inbuf);
 		uint16_t *ob = static_cast<uint16_t*>(outbuf);
@@ -299,7 +313,9 @@ int spi_master::set_mode( unsigned mode, unsigned khz )
 			divide,
 		(mode&spi_device::lsb_first)?(SPI_FirstBit_LSB):(SPI_FirstBit_MSB), -1
 	);
+	m_8bit = !(mode&spi_device::data_16b);
 	spi_cmd( m_spi, true );
+	dbg_info("SPI_CR2 %04x", SPI1->CR2 );
 	return 0;
 }
 
@@ -318,8 +334,13 @@ void spi_master::CS( bool val, int /*cs_no*/ )
 	using namespace stm32;
 	if( m_spi == SPI1 )
 	{
-		if( val ) gpio_set( spi1::SPI_PORT, spi1::SD_SPI_CS_PIN );
-		else gpio_clr( spi1::SPI_PORT, spi1::SD_SPI_CS_PIN );
+		if( !m_alt ) {
+			if( val ) gpio_set( spi1::SPI_PORT, spi1::SD_SPI_CS_PIN );
+			else gpio_clr( spi1::SPI_PORT, spi1::SD_SPI_CS_PIN );
+		} else {
+			if( val ) gpio_set( spi1_alt::SPI_PORT, spi1_alt::SD_SPI_CS_PIN );
+			else gpio_clr( spi1_alt::SPI_PORT, spi1_alt::SD_SPI_CS_PIN );
+		}
 	}
 	else if( m_spi == SPI2 )
 	{
@@ -334,26 +355,53 @@ void spi_master::CS( bool val, int /*cs_no*/ )
 }
 
 /* Transfer data (nodma) */
-uint16_t spi_master::transfer( uint16_t val )
+uint16_t spi_master::transfer16( uint16_t val )
 {
 	 using namespace stm32;
 	if( !stm32::spi_is_enabled(m_spi) )
-		return spi_device::err_noinit;
+		return 0;
 	 /*!< Wait until the transmit buffer is empty */
 	 while(!spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_TXE) )
 	 {
 		 //TODO: Slow down speed
 		 // isix::isix_yield();
 	 }
-	 spi_i2s_send_data(m_spi, val );
+	 spi_i2s_send_data( m_spi, val );
 	 while(!spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
 	 {
 		//TODO: Slow down speed
 		 // isix::isix_yield();
 	 }
-	 /*!< Return the byte read from the SPI bus */
+
 	 return spi_i2s_receive_data(m_spi);
+
 }
+
+/* Transfer data (nodma) */
+uint8_t spi_master::transfer8( uint8_t val )
+{
+	 using namespace stm32;
+	if( !stm32::spi_is_enabled(m_spi) )
+		return 0;
+	 /*!< Wait until the transmit buffer is empty */
+	 while(!spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_TXE) )
+	 {
+		 //TODO: Slow down speed
+		 // isix::isix_yield();
+	 }
+	 spi_send_data8( m_spi, val );
+
+	 while(!spi_i2s_get_flag_status(m_spi, SPI_I2S_FLAG_RXNE))
+	 {
+		//TODO: Slow down speed
+		 // isix::isix_yield();
+	 }
+
+	 /*!< Return the byte read from the SPI bus */
+	 return spi_receive_data8(m_spi);
+
+}
+
 
 /* Disable enable the device */
 void spi_master::enable( bool en )

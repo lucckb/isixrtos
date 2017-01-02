@@ -1117,5 +1117,5 @@ static inline uint16_t spi_get_reception_fifo_status(SPI_TypeDef* SPIx)
 #undef I2S_DIV_MASK
 #undef SPI_CR2_FRF
 #undef CR2_LDMA_MASK
-#undef STM32_SPI_V2
+
 

@@ -10,6 +10,7 @@
 #include "gpio_v1.h"
 #else
 #include "gpio_v2.h"
+#define _CONFIG_STM32_GPIO_V2_
 #endif
 
 

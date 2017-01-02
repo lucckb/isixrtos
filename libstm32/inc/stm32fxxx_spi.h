@@ -326,6 +326,8 @@
 #define SPI_ReceptionFIFOStatus_1QuarterFull    ((uint16_t)0x0200)
 #define SPI_ReceptionFIFOStatus_HalfFull        ((uint16_t)0x0400)
 #define SPI_ReceptionFIFOStatus_Full            ((uint16_t)0x0600)
+#define SPI_RxFIFOThreshold_HF          ((uint16_t)0x0000)
+#define SPI_RxFIFOThreshold_QF          ((uint16_t)0x1000)
 #endif
 
 
