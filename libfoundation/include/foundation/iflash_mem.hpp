@@ -7,14 +7,23 @@
 
 #pragma once
 
-#include "noncopyable.hpp"
 #include <cstddef>
-/* ------------------------------------------------------------------ */
+
 namespace fnd {
-/* ------------------------------------------------------------------ */
-class iflash_mem : private noncopyable
+
+class iflash_mem
 {
 public:
+	//! Noncopyable
+	iflash_mem( iflash_mem& ) = delete;
+	iflash_mem& operator=( iflash_mem& ) = delete;
+	iflash_mem() {
+
+	}
+	//! Virtual destructor
+	virtual ~iflash_mem() {
+
+	}
 	static constexpr auto err_not_supported = -256;
 	//! Capability bits
 	enum cap_bits {
@@ -26,46 +35,43 @@ public:
 	typedef unsigned int paddr_t;
 	//Page len
 	typedef unsigned int pglen_t;
-	//! Wirtual destructor
-	virtual ~iflash_mem() {
-	}
 	//Read one element from flash return bytes written or error
-	virtual int read_halfword(paddr_t /* pg */, poffs_t /* pa */, unsigned short &/* val */) const
+	virtual int read_halfword(paddr_t /*pg*/, poffs_t /*pa*/, unsigned short &/*val*/) const
 	{
 		return err_not_supported;
 	}
 	//Write one lement to flash return bytes written or error
-	virtual int write_halfword(paddr_t /*pg*/, poffs_t /* pa */, unsigned short /* val */)
+	virtual int write_halfword(paddr_t /*pg*/, poffs_t /*pa*/, unsigned short /*val*/)
 	{
 		return err_not_supported;
 	}
 	//Read one element from flash return bytes written or error
-	virtual int read_word(paddr_t /* pg */, poffs_t /* pa */, unsigned &/* val */) const
+	virtual int read_word(paddr_t /*pg*/, poffs_t /*pa*/, unsigned &/*val*/) const
 	{
 		return err_not_supported;
 	}
 	//Write one lement to flash return bytes written or error
-	virtual int write_word(paddr_t /* pg */, poffs_t /* pa */, unsigned /* val */)
+	virtual int write_word(paddr_t /*pg*/, poffs_t /*pa*/, unsigned /*val*/)
 	{
 		return err_not_supported;
 	}
-	/** Read data from selected address 
+	/** Read data from selected address
 	 * @param[in] pg Page address
 	 * @param[in] pa Page offset
 	 * @param[in] ptr Pointer to write
 	 * @param[in] len Size of buffer
 	 * @return error code or 0 if success */
-	virtual int write( paddr_t /* pg */, poffs_t /* pa */,const void* /* ptr */, size_t /* len */ ) {
+	virtual int write( paddr_t /*pg*/, poffs_t /*pa*/,const void* /*ptr*/, size_t /*len*/ ) {
 		return err_not_supported;
 	}
-	/** Read data from selected address 
+	/** Read data from selected address
 	 * @param[in] pg Page address
 	 * @param[in] pa Page offset
 	 * @param[out] ptr Pointer to read
 	 * @param[in] len Size of buffer
 	 * @return error code or 0 if success
 	 * */
-	virtual int read( paddr_t /* pg */, poffs_t /* pa */,void* /* ptr  */ , size_t /* len */) const {
+	virtual int read( paddr_t /*pg*/, poffs_t /*pa*/,void* /*ptr*/ , size_t /*len*/) const {
 		return err_not_supported;
 	}
 	//Erase page return status
@@ -82,6 +88,6 @@ public:
 	virtual paddr_t num_pages() const = 0;
 };
 
-/* ------------------------------------------------------------------ */
+
 }
-/* ------------------------------------------------------------------ */
+
