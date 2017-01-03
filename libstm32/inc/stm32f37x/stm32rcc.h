@@ -924,10 +924,10 @@ static inline void rcc_rtc_clk_config(uint32_t RCC_RTCCLKSource)
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None
   */
-static inline void rcc_rtc_clk_cmd(FunctionalState NewState)
+static inline void rcc_rtc_clk_cmd( bool enable )
 {
 
-  *(__IO uint32_t *) BDCR_RTCEN_BB = (uint32_t)NewState;
+  *(__IO uint32_t *) BDCR_RTCEN_BB = (uint32_t)enable;
 }
 
 
