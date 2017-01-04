@@ -35,6 +35,8 @@ public:
 	typedef unsigned int paddr_t;
 	//Page len
 	typedef unsigned int pglen_t;
+	// Sector size
+	typedef unsigned int sectoffs_t;
 	//Read one element from flash return bytes written or error
 	virtual int read_halfword(paddr_t /*pg*/, poffs_t /*pa*/, unsigned short &/*val*/) const
 	{
@@ -86,6 +88,8 @@ public:
 	virtual poffs_t page_size() const = 0;
 	//Get numpages
 	virtual paddr_t num_pages() const = 0;
+	//Get sector size
+	virtual sectoffs_t sector_size() const = 0;
 };
 
 
