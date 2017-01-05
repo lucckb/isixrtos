@@ -76,7 +76,15 @@ namespace emeter {
 			val /= hr; if( half ) ++val;
 			return val;
 		}
-
+	public:
+		//! Convert current energy to RAW value
+		static accum_t energy_to_raw( energymeas_t val ) {
+			val *= hr;
+			const bool half = ( val % wnd_smp_time_s > wnd_smp_time_s / 2 );
+			val /= wnd_smp_time_s; if(half) ++val;
+			val *= ecnt_scale;
+			return val;
+		}
 	public:
 		energy_meter( energy_meter& ) = delete;
 		energy_meter& operator=( energy_meter& ) = delete;
