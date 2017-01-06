@@ -1,22 +1,21 @@
-/*----------------------------------------------------------*/
+
 /*
  * usart_buffered.hpp
  *
  *  Created on: 2009-12-09
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
-#ifndef USART_BUFFERED_HPP_
-#define USART_BUFFERED_HPP_
-/*----------------------------------------------------------*/
+
+#pragma once
+
 #include <isix.h>
 #include <stm32system.h>
 #include <foundation/serial_port.hpp>
 #include <atomic>
-/*----------------------------------------------------------*/
+
 namespace stm32 {
 namespace dev {
-/*----------------------------------------------------------*/
+
 extern "C"
 {
 	void usart1_isr_vector(void) __attribute__ ((interrupt));
@@ -32,7 +31,7 @@ extern "C"
 #endif
 }
 
-/*----------------------------------------------------------*/
+
 //! Usart control lines config
 struct usart_cfgctl_lines {
 	static constexpr char NC=-1;
@@ -42,7 +41,7 @@ struct usart_cfgctl_lines {
 	char dtr_pin ;	// Output
 	char dcd_pin ;   // Input
 };
-/*----------------------------------------------------------*/
+
 class usart_buffered : public fnd::serial_port 
 {
 	friend void usart1_isr_vector(void);
@@ -73,7 +72,7 @@ public:
 	//Constructor
 	usart_buffered(
 		USART_TypeDef *_usart, unsigned _pclk1_hz, unsigned _pclk2_hz,
-		unsigned cbaudrate = 115200, std::size_t queue_size=192, parity cpar=parity_none,
+		unsigned cbaudrate = 115200, std::size_t queue_size=192, unsigned config=parity_none,
 		unsigned _irq_prio=1, unsigned _irq_sub=7, altgpio_mode alternate_gpio_mode=altgpio_mode_0
 	);
 
@@ -82,22 +81,25 @@ public:
 
 	}
 	//! Set baudrate
-	virtual int set_baudrate(unsigned new_baudrate);
+	int set_baudrate(unsigned new_baudrate) override;
 
 	//! Set parity
-	virtual int set_parity(parity new_parity);
+	int set_parity(parity new_parity) override;
 
 	//! Set flow control
-	virtual int set_flow( flow_control flow );
+	int set_flow( flow_control flow ) override;
+
+	//! Set data bits
+	int set_databits( data_bits db ) override;
 
 	//! Map control lines
 	void map_control_lines( const usart_cfgctl_lines& cfg );
 
 	//! Put char
-	virtual int putchar(value_type c, int timeout=tinf);
-	
+	int putchar(value_type c, int timeout=tinf) override;
+
 	//! Get char
-	int getchar(value_type &c, int timeout=tinf);
+	int getchar(value_type &c, int timeout=tinf) override;
 
 	template <typename T> 
 	int getchar(T &c, int timeout=tinf) {
@@ -108,50 +110,50 @@ public:
 	}
 
 	//! Put string
-	virtual int puts(const value_type *str);
-	
+	int puts(const value_type *str) override;
+
 	//! Put some data
-	virtual int put(const void *buf, size_t buf_len);
-	
+	int put(const void *buf, size_t buf_len) override;
+
 	//! Read string
-	virtual int gets(value_type *str, size_t max_len, int timeout=tinf);
-	
+	int gets(value_type *str, size_t max_len, int timeout=tinf) override;
+
 	//! Read some data
-	virtual
-	int get(void *buf, size_t max_len, int timeout, size_t min_len=0 );
+	int get(void *buf, size_t max_len, int timeout, size_t min_len=0 )
+		override;
 
 	//! Set IO reporting flags
-	virtual int set_ioreport( unsigned tio_report );
-	
+	int set_ioreport( unsigned tio_report ) override;
+
 	//! Get tiomcm statate
-	virtual int tiocm_get() const;
-	
+	int tiocm_get() const override;
+
 	//! Set event interrupt
-	virtual int tiocm_flags( unsigned flags ) const;
-	
+	int tiocm_flags( unsigned flags ) const override;
+
 	//!Set event
-	virtual int tiocm_set( unsigned tiosigs );
+	int tiocm_set( unsigned tiosigs ) override;
 
 	//! Set amount of time
-	virtual void sleep( unsigned ms ) {
+	void sleep( unsigned ms ) override {
 		isix_wait_ms( ms );
 	}
-	
+
 	//! Inject character into rx queue
-	virtual int push_rx_char( value_type ch )  {
+	int push_rx_char( value_type ch ) override {
 		auto res = rx_queue.push( ch );
 		return res==ISIX_EOK?1:res;
 	}
 
 	//! Number of bytes avail
-	virtual int rx_avail() const { 
-		return rx_queue.size(); 
+	int rx_avail() const override {
+		return rx_queue.size();
 	}
 
 	//! Get internal RX fifo
 	const isix::fifo_base& get_rxfifo() const {
-		return rx_queue; 
-	} 
+		return rx_queue;
+	}
 
 private:
 	void start_tx();
@@ -180,14 +182,12 @@ private:
 	const unsigned char irq_sub;
 	std::atomic<bool> tx_restart {true};
 	usart_cfgctl_lines m_ctl_map;
-private: 	//Noncopyable
+	unsigned m_line_config;
+private:	//Noncopyable
 	usart_buffered(usart_buffered &);
 	usart_buffered& operator=(const usart_buffered&);
 };
 
-/*----------------------------------------------------------*/
 }
 }
-/*----------------------------------------------------------*/
 
-#endif /* USART_BUFFERED_HPP_ */

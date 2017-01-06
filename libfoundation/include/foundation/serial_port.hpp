@@ -16,14 +16,14 @@
  * =====================================================================================
  */
 #pragma once
-/* ------------------------------------------------------------------ */
+
 #include <cstddef>
 #ifdef COMPILED_UNDER_ISIX
 #include <isix.h>
 #endif
-/* ------------------------------------------------------------------ */
+
 namespace fnd {
-/* ------------------------------------------------------------------ */ 
+
 class serial_port {
 public:
 #ifndef COMPILED_UNDER_ISIX
@@ -38,6 +38,11 @@ public:
 		parity_none,
 		parity_odd,
 		parity_even
+	};
+	enum data_bits {
+		data_8b = 0U<<4U,
+		data_7b = 1U<<4U,
+		data_9b = 2U<<4U
 	};
 	enum flow_control {
 		flow_none,
@@ -59,7 +64,9 @@ public:
 	virtual int set_baudrate(unsigned new_baudrate) = 0;
 	//!Set parity
 	virtual int set_parity(parity new_parity) = 0;
-	/** Set special control 
+	//! Set data bits
+	virtual int set_databits( data_bits db ) = 0;
+	/** Set special control
 	 * @param[in] flow Hardware flow control settings
 	 */
 	virtual int set_flow( flow_control flow ) = 0;
@@ -92,7 +99,21 @@ public:
 	virtual int push_rx_char( value_type )  {
 		return ISIX_ENOTSUP;
 	}
+protected:
+	static constexpr parity parity_mask( unsigned arg ) {
+		return static_cast<parity>(arg & 0xf);
+	}
+	static constexpr data_bits databits_mask( unsigned arg ) {
+		return static_cast<data_bits>(arg & 0xf0);
+	}
+	static constexpr void parity_mask( unsigned& arg, parity par  ) {
+		arg = (arg & ~0xf) | (par & 0xf );
+	}
+	static constexpr void databits_mask( unsigned& arg, data_bits dbits ) {
+		arg = (arg & ~0xf0 ) | (dbits & 0xf0 );
+	}
+
 };
-/* ------------------------------------------------------------------ */
+
 }
 

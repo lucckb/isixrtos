@@ -270,11 +270,11 @@ void usart_buffered::periphcfg_usart2(altgpio_mode mode)
 //! Constructor called for usart buffered
 usart_buffered::usart_buffered(USART_TypeDef *_usart,
 		unsigned _pclk1_hz, unsigned _pclk2_hz, unsigned cbaudrate,
-		std::size_t queue_size ,parity cpar, unsigned _irq_prio, unsigned _irq_sub,
+		std::size_t queue_size ,unsigned config, unsigned _irq_prio, unsigned _irq_sub,
 		altgpio_mode alternate_gpio_mode
 ) : usart(_usart), pclk1_hz(_pclk1_hz), pclk2_hz(_pclk2_hz),
 	tx_queue(queue_size), rx_queue(queue_size),
-	irq_prio(_irq_prio), irq_sub(_irq_sub) 
+	irq_prio(_irq_prio), irq_sub(_irq_sub), m_line_config( config )
 {
 	using namespace stm32;
 	if(_usart == USART1) periphcfg_usart1(alternate_gpio_mode);
@@ -292,7 +292,7 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 	usart->CR1 = USART_CR1_UE;
 	//Setup default baudrate
 	set_baudrate( cbaudrate );
-	set_parity( cpar );
+	set_parity( parity_mask(config) );
 
 	//One stop bit
 	usart->CR2 = USART_StopBits_1;
@@ -352,9 +352,21 @@ int usart_buffered::set_baudrate(unsigned new_baudrate)
 	return 0;
 }
 
+//! Set data bits
+int usart_buffered::set_databits( data_bits db )
+{
+	databits_mask( m_line_config, db );
+	return 0;
+}
 
 int usart_buffered::set_parity(parity new_parity)
 {
+	parity_mask( m_line_config, new_parity );
+
+	//! Software parity 
+	if( databits_mask(m_line_config) == data_7b ) {
+		return 0;
+	}
 	//TODO: Sem wait not busy waiting
 	while(!usart_get_flag_status(usart, USART_FLAG_TC)) isix_wait(10);
 
@@ -415,6 +427,7 @@ void usart_buffered::isr()
 int usart_buffered::getchar(value_type &c, int timeout)
 {
 	auto ret = rx_queue.pop( c, timeout );
+	if( databits_mask(m_line_config)==data_7b) c &= 0x7f;
 	return ret==ISIX_EOK?(1):(ret==ISIX_ETIMEOUT?0:ret);
 }
 
@@ -433,6 +446,14 @@ int usart_buffered::puts(const value_type *str)
 
 int usart_buffered::putchar(value_type c, int timeout)
 {
+	if( databits_mask(m_line_config)==data_7b) {
+		c &= 0x7f;
+		switch( parity_mask(m_line_config) ) {
+		case parity_odd: c|= __builtin_parity(c)<<7U; break;
+		case parity_even: c|= !__builtin_parity(c)<<7U; break;
+		default: break;
+		}
+	}
 	start_tx();
 	int result = tx_queue.push( c, timeout );
 	return result==ISIX_EOK?(1):(result);
