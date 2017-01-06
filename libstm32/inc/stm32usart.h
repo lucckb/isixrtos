@@ -63,6 +63,31 @@ static inline void usart_set_baudrate( USART_TypeDef* USARTx,
   {
     apbclock = pclk1;
   }
+  //TODO: Fix with system clock engine list
+#if defined( RCC_CFGR3_USART1SW )
+ if( USARTx == USART1 ) {
+	switch( RCC->CFGR3 & 3 ) {
+		case 2: apbclock = 32768LU; break;
+		case 3: apbclock = 8000000LU; break;
+	}
+ }
+#endif
+#if defined( RCC_CFGR3_USART2SW )
+ if( USARTx == USART2 ) {
+	switch( (RCC->CFGR3>>16) & 3 ) {
+		case 2: apbclock = 32768LU; break;
+		case 3: apbclock = 8000000LU; break;
+	}
+ }
+#endif
+#if defined( RCC_CFGR3_USART3SW )
+ if( USARTx == USART3 ) {
+	switch( (RCC->CFGR3>>18) & 3 ) {
+		case 2: apbclock = 32768LU; break;
+		case 3: apbclock = 8000000LU; break;
+	}
+ }
+#endif
 
 #if USART_HARDWARE_VERSION == 2
  /* Determine the integer part */
