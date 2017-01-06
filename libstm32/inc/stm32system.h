@@ -29,9 +29,12 @@ static const uint32_t AICR_SYSRESET_REQ = 4;
 //! Reset the system
 #define  AICR_SYSRESET_REQ  4
 #endif
-#ifdef STM32MCU_MAJOR_TYPE_F1
+#if defined(STM32MCU_MAJOR_TYPE_F1)
 #define STM32LIB_CPUID_ADDR 0x1FFF7A10
 #define STM32LIB_FLSIZ_ADDR 0x1FFFF7E0
+#elif defined(STM32MCU_MAJOR_TYPE_F37)
+#define STM32LIB_CPUID_ADDR 0x1FFFF7AC
+#define STM32LIB_FLSIZ_ADDR 0x1FFFF7CC
 #else
 #define STM32LIB_CPUID_ADDR 0x1FFF7A10
 #define STM32LIB_FLSIZ_ADDR 0x1FFF7A22
@@ -317,9 +320,9 @@ static inline unsigned get_cpuid(unsigned pos)
  * @param[in] word pos number
  * @return value
  */
-static inline const volatile void* get_cpuid_raw(void)
+static inline const void* get_cpuid_raw(void)
 {
-	return ((const volatile void *)(STM32LIB_CPUID_ADDR));
+	return ((const void *)(STM32LIB_CPUID_ADDR));
 }
 /*----------------------------------------------------------*/
 /**
