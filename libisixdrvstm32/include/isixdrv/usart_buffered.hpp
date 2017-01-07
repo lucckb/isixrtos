@@ -150,12 +150,18 @@ public:
 		return rx_queue.size();
 	}
 
+	//! Number of bytes avail in tx fifo
+	int tx_remain() const {
+		return tx_queue.size();
+	}
+
 	//! Get internal RX fifo
 	const isix::fifo_base& get_rxfifo() const {
 		return rx_queue;
 	}
 
 private:
+	void wait_for_eot();
 	void start_tx();
 	void isr();
 	void irq_mask() { stm32::irq_mask( irq_prio, irq_sub ); }

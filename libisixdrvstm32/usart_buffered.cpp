@@ -8,7 +8,6 @@
 #include "isixdrv/usart_buffered.hpp"
 #include <stm32system.h>
 #include <stm32usart.h>
-//!TODO: Usart status codes
 
 namespace stm32 {
 namespace dev {
@@ -346,8 +345,7 @@ usart_buffered::usart_buffered(USART_TypeDef *_usart,
 
 int usart_buffered::set_baudrate(unsigned new_baudrate)
 {
-	//TODO: Sem wait not busy waiting
-	while(!usart_get_flag_status(usart,USART_FLAG_TC)) isix_wait(10);
+	wait_for_eot();
 	stm32::usart_set_baudrate( usart, new_baudrate, pclk1_hz, pclk2_hz );
 	return 0;
 }
@@ -367,9 +365,7 @@ int usart_buffered::set_parity(parity new_parity)
 	if( databits_mask(m_line_config) == data_7b ) {
 		return 0;
 	}
-	//TODO: Sem wait not busy waiting
-	while(!usart_get_flag_status(usart, USART_FLAG_TC)) isix_wait(10);
-
+	wait_for_eot();
 	//if usart parity has bit check
 	if(new_parity == parity_none)
 	{
@@ -397,6 +393,16 @@ void usart_buffered::start_tx()
 	if(tx_restart.exchange(false) ) {
 		usart_it_config( usart, USART_IT_TXE, true );
 	}
+}
+
+//! Wait for end of transmission
+void usart_buffered::wait_for_eot()
+{
+	//TODO: better impl
+	while( tx_queue.size() ) {
+		isix::wait_ms(10);
+	}
+	isix::wait_ms(10);
 }
 
 
@@ -520,8 +526,7 @@ int usart_buffered::get(void *buf, std::size_t max_len,
 //! Set flow control
 int usart_buffered::set_flow( flow_control flow )
 {
-	//TODO: Sem wait not busy waiting
-	while(!usart_get_flag_status(usart,USART_FLAG_TC)) isix_wait(10);
+	wait_for_eot();
 	if( usart==USART1 || usart==USART2 || usart==USART3 )
 	{
 		if( flow == flow_control::flow_rtscts ) {
