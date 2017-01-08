@@ -1,4 +1,4 @@
-/* ------------------------------------------------------------ */
+
 /*
  * utils.c
  *
@@ -6,11 +6,11 @@
  *      Author: lucck
  */
 
-/* ------------------------------------------------------------ */
+
 #include "foundation/utils.h"
 #include <string.h>
 
-/* ------------------------------------------------------------ */
+
 //Convert ascii to unsigned int
 unsigned fnd_atoui(const char *str)
 {
@@ -29,7 +29,7 @@ unsigned fnd_atoui(const char *str)
 }
 
 
-/* ------------------------------------------------------------ */
+
 //Strev without allocate extra memory using xor
 static inline void strrev(char *str, int len)
 {
@@ -44,7 +44,7 @@ static inline void strrev(char *str, int len)
 		*p1 ^= *p2;
 	}
 }
-/* ------------------------------------------------------------ */
+
 //Convert value to digit
 static inline char base_to_digit( int digit )
 {
@@ -56,7 +56,7 @@ static inline char base_to_digit( int digit )
 		return '.';
 }
 
-/* ------------------------------------------------------------ */
+
 //Convert unsigned int to ascii
 void fnd_uitoa(char *str, unsigned val ,int fmt, char fmtch, int base)
 {
@@ -73,7 +73,22 @@ void fnd_uitoa(char *str, unsigned val ,int fmt, char fmtch, int base)
 		str[digits-1] = '0';
 }
 
-/* ------------------------------------------------------------ */
+//Convert unsigned int to ascii
+void fnd_ulltoa(char *str, unsigned long long val ,int fmt, char fmtch, int base)
+{
+    int digits;
+	char z = val==0;
+    if(fmt>16) return;
+    for(digits=0; val>0; val/=base,digits++)
+        str[digits] = base_to_digit(val % base);
+    for(int i=fmt-digits; i>0; i--,digits++)
+        str[digits] = fmtch;
+    str[digits] = '\0';
+    strrev(str,digits);
+	if( z && str[digits-1]!='0' )
+		str[digits-1] = '0';
+}
+
 static int hex2num(char c)
 {
 	if (c >= '0' && c <= '9')
@@ -84,7 +99,7 @@ static int hex2num(char c)
 		return c - 'A' + 10;
 	return -1;
 }
-/* ------------------------------------------------------------ */
+
 static int hex2byte(const char *hex)
 {
         int a, b;
@@ -96,7 +111,7 @@ static int hex2byte(const char *hex)
 			return -1;
         return (a << 4) | b;
 }
-/* ------------------------------------------------------------------ */ 
+
 int fnd_hexstr2bin(const char *hex, unsigned char *buf, size_t len)
 {
 	size_t i;
@@ -114,7 +129,7 @@ int fnd_hexstr2bin(const char *hex, unsigned char *buf, size_t len)
 	return 0;
 }
 
-/* ------------------------------------------------------------------ */ 
+
 char* fnd_bin2hexstr( const unsigned char* bin, char *buf, size_t bytes)
 {
 	const char* const hex = "0123456789abcdef";
