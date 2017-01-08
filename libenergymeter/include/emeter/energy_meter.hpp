@@ -65,27 +65,20 @@ namespace emeter {
 			} while( v1 != v2 );
 			return v1;
 		}
-
+	public:
 		//! Auto scale energy calculation
 		template< typename TAG >
-		static typename TAG::value_type scale_energy_div( accum_t val, const TAG& ) {
+		static typename TAG::value_type acc_to_energy( accum_t val, const TAG& ) {
 			bool half = ( val % ecnt_scale > ecnt_scale / 2 );
+			constexpr auto mili = 1000;
 			val /= ecnt_scale; if( half ) ++val;
 			val *= wnd_smp_time_s;
 			half = ( val % hr > hr / 2 );
 			val /= hr; if( half ) ++val;
+			half = ( val % mili > mili / 2 );
+			val /= mili; if( half ) ++val;
 			return val;
 		}
-	public:
-		//! Convert current energy to RAW value
-		static accum_t energy_to_raw( energymeas_t val ) {
-			val *= hr;
-			const bool half = ( val % wnd_smp_time_s > wnd_smp_time_s / 2 );
-			val /= wnd_smp_time_s; if(half) ++val;
-			val *= ecnt_scale;
-			return val;
-		}
-	public:
 		energy_meter( energy_meter& ) = delete;
 		energy_meter& operator=( energy_meter& ) = delete;
 		//! Constructor

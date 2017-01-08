@@ -55,7 +55,7 @@ typename tags::detail::watt_h_pos::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::watt_h_pos p ) const noexcept
 {
 	auto val = read_atomic_accum_t( m_ecnt[phase].p_plus );
-	return scale_energy_div( val, p );
+	return acc_to_energy( val, p );
 }
 
 //! Wh produced
@@ -63,7 +63,7 @@ typename tags::detail::watt_h_neg::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::watt_h_neg p) const noexcept
 {
 	auto val = read_atomic_accum_t( m_ecnt[phase].p_minus );
-	return scale_energy_div( val, p );
+	return acc_to_energy( val, p );
 }
 
 
@@ -72,7 +72,7 @@ typename tags::detail::var_h_pos::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::var_h_pos p) const noexcept
 {
 	auto val = read_atomic_accum_t( m_ecnt[phase].q_plus );
-	return scale_energy_div( val, p );
+	return acc_to_energy( val, p );
 }
 
 
@@ -81,7 +81,7 @@ typename tags::detail::var_h_neg::value_type energy_meter::operator()
 	( const std::size_t phase, tags::detail::var_h_neg p) const noexcept
 {
 	auto val = read_atomic_accum_t( m_ecnt[phase].q_minus );
-	return scale_energy_div( val, p );
+	return acc_to_energy( val, p );
 }
 
 // Wh consumed
