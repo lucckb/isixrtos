@@ -460,8 +460,8 @@ int usart_buffered::putchar(value_type c, int timeout)
 		default: break;
 		}
 	}
-	start_tx();
 	int result = tx_queue.push( c, timeout );
+	start_tx();
 	return result==ISIX_EOK?(1):(result);
 }
 
@@ -483,7 +483,7 @@ int usart_buffered::gets(value_type *str, std::size_t max_len, int timeout)
 {
 	int res;
 	std::size_t l;
-	
+
 	for(l=0; l<max_len-1; l++)
 	{
 		res = getchar( str[l], timeout );
