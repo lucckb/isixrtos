@@ -456,7 +456,7 @@ int usart_buffered::putchar(value_type c, int timeout)
 		c &= 0x7f;
 		switch( parity_mask(m_line_config) ) {
 		case parity_odd: c|= __builtin_parity(c)<<7U; break;
-		case parity_even: c|= !__builtin_parity(c)<<7U; break;
+		case parity_even: c|= (__builtin_parity(c)<<7U)^0x80; break;
 		default: break;
 		}
 	}
