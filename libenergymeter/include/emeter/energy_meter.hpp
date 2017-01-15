@@ -117,10 +117,20 @@ namespace emeter {
 		}
 
 		// Set voltage scale
-		void set_scale_u( measure_t scale ) {
+		void set_scale_u( measure_t scale ) noexcept {
 			for( std::size_t ph=0; ph<config::n_phases; ++ph ) {
 				energy(ph)->set_scale_u( scale );
 			}
+		}
+
+		// Set voltage scale
+		void set_scale_u( std::size_t ph, measure_t scale ) noexcept {
+			energy(ph)->set_scale_u( scale );
+		}
+
+		// Set current scale
+		void set_scale_i( std::size_t ph, measure_t scale ) {
+			energy(ph)->set_scale_i( scale );
 		}
 
 		// Set current scale
