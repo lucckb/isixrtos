@@ -366,10 +366,11 @@ static inline void flash_ob_lock(void)
   * @param  None
   * @retval None
   */
-static inline void flash_ob_launch(void)
+static inline int flash_ob_launch(void)
 {
   /* Set the OBL_Launch bit to launch the option byte loading */
   FLASH->CR |= FLASH_CR_OBL_LAUNCH;
+  return FLASH_COMPLETE;
 }
 
 
