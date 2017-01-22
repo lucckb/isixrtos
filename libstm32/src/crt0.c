@@ -100,10 +100,10 @@ void _init(void) {  }
 void _fini(void) {}
 #endif /* __ARM_EABI__ */
 
+#endif /* CPP_STARTUP_CODE */
 static void empty_func(void) {}
 void _external_startup(void) __attribute__ ((weak, alias("empty_func")));
 void _external_exit(void) __attribute__ ((weak, alias("empty_func")));
-#endif /* CPP_STARTUP_CODE */
 
 
 //Default reset handler
