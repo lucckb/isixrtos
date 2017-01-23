@@ -70,11 +70,11 @@ struct isix_system
 	list_entry_t* pov_wait_list;		//! Overflow waiting tasks
 	list_entry_t zombie_list;			//! Task waiting for event
 	list_entry_t free_prio_elem;        //! Free priority innodes
-	ostick_t jiffies;					//! Global jiffies var
-	atomic_int jiffies_skipped; //! Skiped jiffies when scheduler is locked
+	atomic_uint jiffies;				//! Global jiffies var
+	atomic_int jiffies_skipped;			//! Skiped jiffies when scheduler is locked
 	unsigned number_of_task_deleted;	//! Number of deleted task
 	osprio_t number_of_priorities;		//! Number of priorities
-	volatile bool yield_pending;		//! Yield during lock
+	atomic_bool yield_pending;			//! Yield during lock
 };
 
 //Current executed task

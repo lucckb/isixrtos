@@ -47,7 +47,7 @@ isix_kernel_panic_callback( const char* file, int line, const char *msg )
 //Get currrent jiffies
 ostick_t isix_get_jiffies(void)
 {
-    return csys.jiffies;
+    return atomic_load(&csys.jiffies);
 }
 
 //Get maxium available priority
@@ -88,9 +88,9 @@ void _isixp_unlock_scheduler()
 		while( dec_jiffies_skipped_counter() ) {
 			internal_schedule_time();
 		}
-		if( csys.yield_pending ) {
+		if( atomic_load(&csys.yield_pending) ) {
 			port_yield();
-			csys.yield_pending = false;
+			atomic_store(&csys.yield_pending, false );
 		}
 		isix_exit_critical();
 	}
@@ -104,7 +104,7 @@ void _isixp_unlock_scheduler()
  */
 void isix_shutdown_scheduler(void)
 {
-	//Dropout the task prot region 
+	//Dropout the task prot region
 	schrun = false;
 	port_memory_protection_reset_efence();
 	port_yield();
@@ -243,7 +243,7 @@ void print_task_list()
 void _isixp_schedule(void)
 {
 	if( port_atomic_sem_read_val(&csys.sched_lock) ) {
-		csys.yield_pending = true;
+		atomic_store( &csys.yield_pending, true );
 		return;
 	}
     //Remove executed task and add at end
@@ -269,7 +269,7 @@ void _isixp_schedule(void)
 	port_memory_protection_set_efence( currp->fence_estack );
 #	endif
 	//Update statistics
-	_isixp_schedule_update_statistics( csys.jiffies, 
+	_isixp_schedule_update_statistics( atomic_load(&csys.jiffies),
 			currp->prio==csys.number_of_priorities );
 	//Handle local thread errno
 	if(currp->impure_data ) 
@@ -292,12 +292,13 @@ void _isixp_schedule(void)
 static void internal_schedule_time(void)
 {
 	//Increment sys tick
-	csys.jiffies++;
+	atomic_fetch_add(&csys.jiffies, 1);
 	if(!schrun)
 	{
 		return;
 	}
-	if(csys.jiffies == 0)
+	const ostick_t jiffies = atomic_load(&csys.jiffies);
+	if(jiffies == 0)
 	{
 	   list_entry_t *tmp = csys.p_wait_list;
 	   csys.p_wait_list = csys.pov_wait_list;
@@ -307,11 +308,11 @@ static void internal_schedule_time(void)
     ostask_t task_c;
 
     while( !list_isempty(csys.p_wait_list) &&
-		csys.jiffies >=
+		jiffies >=
 		(task_c=list_first_entry(csys.p_wait_list,inode_time,struct isix_task))->jiffies
 	)
     {
-    	pr_debug("schedtime: task %p jiffies %i task_time %i", task_c,csys.jiffies,task_c->jiffies);
+		pr_debug("schedtime: task %p jiffies %i task_time %i", task_c,jiffies,task_c->jiffies);
         list_delete(&task_c->inode_time);
 		if( task_c->state == OSTHR_STATE_WTSEM ) {
 			/*
@@ -440,8 +441,9 @@ static void delete_from_ready_list( ostask_t task )
 static void add_task_to_waiting_list(ostask_t task, ostick_t timeout)
 {
     //Scheduler lock
-    task->jiffies = csys.jiffies + timeout;
-    if(task->jiffies < csys.jiffies)
+	const ostick_t jiffies=atomic_load(&csys.jiffies);
+    task->jiffies = jiffies + timeout;
+    if(task->jiffies < jiffies)
     {
     	//Insert on overflow waiting list in time order
     	ostask_t waitl;
@@ -548,7 +550,7 @@ void isix_start_scheduler(void) __attribute__((noreturn));
 #endif
 void isix_start_scheduler(void)
 {
-	csys.jiffies = 0;		//Zero jiffies if it was previously run
+	atomic_store(&csys.jiffies, 0 );			//Zero jiffies if it was previously run
 	schrun = true;
 	atomic_init( &csys.critical_count, 0 );
 	//Restore context and run OS
@@ -566,17 +568,17 @@ void _isixp_do_reschedule( ostask_t task )
 	if( !task ) {
 		isix_bug("Unable to resched itself");
 	}
-    if( !schrun ) 
+    if( !schrun )
 	{
         //Scheduler not running assign task
-        if( !currp ) { 
+        if( !currp ) {
 			currp = task;
 		}
         else if(isixp_prio_gt(task->prio,currp->prio)) {
 			currp = task;
 		}
-    } 
-	else 
+    }
+	else
 	{
 		if( isixp_prio_gt(task->prio,currp->prio) ) {
 			//New task have higer priority then current task
