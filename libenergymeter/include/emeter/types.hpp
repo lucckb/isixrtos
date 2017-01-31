@@ -28,7 +28,7 @@ namespace emeter {
 	//! Simple measure type
 	using measure_t = float;
 	//! Energy measure type
-	using energymeas_t = uint64_t;
+	using energymeas_t = double;
 	//! Complex type
 	using cplxmeas_t = std::complex<measure_t>;
 }

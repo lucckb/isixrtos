@@ -76,31 +76,31 @@ TEST( energy_meter, long_r_only ) {
 	auto v_vect = sim::generate_sinus( voltage, freq, angle, sim_duration );
 	auto i_vect = sim::generate_sinus( current, freq, 0, sim_duration, 1 );
 	process_time( em, v_vect, i_vect );
-	for( size_t ph=0; ph<3; ++ph ) {
+	for( std::size_t ph=0; ph<3; ++ph ) {
 		SCOPED_TRACE( "PHASE("+ boost::lexical_cast<std::string>(ph)+ ")" );
 		EXPECT_NEAR( em(ph,tg::p_avg), 23000 , 0.4 );
-		EXPECT_NEAR( em(ph,tg::q_avg), 0 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::q_avg), 0 , 0.15 );
 		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
 		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
-		EXPECT_NEAR( em(ph,tg::watt_h_pos), 230000000 , 7000 );
+		EXPECT_NEAR( em(ph,tg::watt_h_pos), 230000 , 0.8 );
 		EXPECT_EQ( em(ph,tg::watt_h_neg), 0 );
 		EXPECT_EQ( em(ph,tg::var_h_pos), 0 );
 		EXPECT_EQ( em(ph,tg::var_h_neg), 0 );
 	}
-	EXPECT_NEAR( em(tg::watt_h_pos), 230000000*3 , 7000*3);
+	EXPECT_NEAR( em(tg::watt_h_pos), 230000*3 , 0.8*3 );
 	EXPECT_EQ( em(tg::watt_h_neg), 0 );
 	EXPECT_EQ( em(tg::var_h_pos), 0 );
 	EXPECT_EQ( em(tg::var_h_neg), 0 );
 
 	PRINTF("P %f Q %f\n", em(1,tg::p_avg), em(1,tg::q_avg) );
 	PRINTF("U %f I %f\n", em(1,tg::u_rms), em(1, tg::i_rms) );
-	PRINTF("1:E+ %lu Q+ %lu E- %lu Q- %lu\n", em(0,tg::watt_h_pos), em(0,tg::var_h_pos),
+	PRINTF("1:E+ %f Q+ %f E- %f Q- %f\n", em(0,tg::watt_h_pos), em(0,tg::var_h_pos),
 			em(0,tg::watt_h_neg), em(0,tg::var_h_neg ) );
-	PRINTF("2:E+ %lu Q+ %lu E- %lu Q- %lu\n", em(1,tg::watt_h_pos), em(1,tg::var_h_pos),
+	PRINTF("2:E+ %f Q+ %f E- %f Q- %f\n", em(1,tg::watt_h_pos), em(1,tg::var_h_pos),
 			em(1,tg::watt_h_neg), em(1,tg::var_h_neg ) );
-	PRINTF("3:E+ %lu Q+ %lu E- %lu Q- %lu\n", em(2,tg::watt_h_pos), em(2,tg::var_h_pos),
+	PRINTF("3:E+ %f Q+ %f E- %f Q- %f\n", em(2,tg::watt_h_pos), em(2,tg::var_h_pos),
 			em(2,tg::watt_h_neg), em(2,tg::var_h_neg ) );
-	PRINTF("3f: E+ %lu Q+ %lu E- %lu Q- %lu\n", em(tg::watt_h_pos), em(tg::var_h_pos),
+	PRINTF("3f: E+ %f Q+ %f E- %f Q- %f\n", em(tg::watt_h_pos), em(tg::var_h_pos),
 			em(tg::watt_h_neg), em(tg::var_h_neg ) );
 }
 
@@ -121,15 +121,15 @@ TEST( energy_meter, short_r_only ) {
 	for( size_t ph=0; ph<3; ++ph ) {
 		SCOPED_TRACE( "PHASE("+ boost::lexical_cast<std::string>(ph)+ ")" );
 		EXPECT_NEAR( em(ph,tg::p_avg), 23000 , 0.4 );
-		EXPECT_NEAR( em(ph,tg::q_avg), 0 , 0.1 );
+		EXPECT_NEAR( em(ph,tg::q_avg), 0 , 0.12 );
 		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
 		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
-		EXPECT_NEAR( em(ph,tg::watt_h_pos), 11500000 , 400);
+		EXPECT_NEAR( em(ph,tg::watt_h_pos), 11500 , 0.1);
 		EXPECT_EQ( em(ph,tg::watt_h_neg), 0 );
 		EXPECT_EQ( em(ph,tg::var_h_pos), 0 );
 		EXPECT_EQ( em(ph,tg::var_h_neg), 0 );
 	}
-	EXPECT_NEAR( em(tg::watt_h_pos), 11500000*3 , 400*3);
+	EXPECT_NEAR( em(tg::watt_h_pos), 11500*3 , 0.1);
 	EXPECT_EQ( em(tg::watt_h_neg), 0 );
 	EXPECT_EQ( em(tg::var_h_pos), 0 );
 	EXPECT_EQ( em(tg::var_h_neg), 0 );
@@ -160,14 +160,14 @@ TEST( energy_meter, short_rl_motor_only ) {
 		EXPECT_NEAR( em(ph,tg::q_avg), Qexc , 2 );
 		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
 		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
-		EXPECT_NEAR( em(ph,tg::watt_h_pos), (Pexc/2)*1000.0 , p2err((Pexc/2)*1000.0, 0.006) );
+		EXPECT_NEAR( em(ph,tg::watt_h_pos), (Pexc/2) , p2err((Pexc/2), 0.006) );
 		EXPECT_EQ( em(ph,tg::watt_h_neg), 0 );
-		EXPECT_NEAR( em(ph,tg::var_h_pos), (Qexc/2)*1000.0 , p2err((Qexc/2)*1000.0, 0.006) );
+		EXPECT_NEAR( em(ph,tg::var_h_pos), (Qexc/2) , p2err((Qexc/2), 0.006) );
 		EXPECT_EQ( em(ph,tg::var_h_neg), 0 );
 	}
-	EXPECT_NEAR( em(tg::watt_h_pos), (Pexc/2)*3000.0 , p2err((Pexc/2)*3000.0, 0.006 ) );
+	EXPECT_NEAR( em(tg::watt_h_pos), (Pexc/2)*3.0 , p2err((Pexc/2)*3.0, 0.006 ) );
 	EXPECT_EQ( em(tg::watt_h_neg), 0 );
-	EXPECT_NEAR( em(tg::var_h_pos), (Qexc/2)*3000.0, p2err((Qexc/2)*3000.0, 0.006 )  );
+	EXPECT_NEAR( em(tg::var_h_pos), (Qexc/2)*3.0, p2err((Qexc/2)*3.0, 0.006 )  );
 	EXPECT_EQ( em(tg::var_h_neg), 0 );
 
 }
@@ -194,14 +194,14 @@ TEST( energy_meter, short_rl_gen_qm ) {
 		EXPECT_NEAR( em(ph,tg::q_avg), Qexc , 2 );
 		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
 		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
-		EXPECT_NEAR( em(ph,tg::watt_h_pos), (Pexc/2)*1000.0 , p2err((Pexc/2)*1000.0, 0.006) );
+		EXPECT_NEAR( em(ph,tg::watt_h_pos), (Pexc/2), p2err((Pexc/2), 0.006) );
 		EXPECT_EQ( em(ph,tg::watt_h_neg), 0 );
-		EXPECT_NEAR( em(ph,tg::var_h_neg), -(Qexc/2)*1000.0 , p2err((Qexc/2)*1000.0, 0.006) );
+		EXPECT_NEAR( em(ph,tg::var_h_neg), -(Qexc/2), p2err((Qexc/2), 0.006) );
 		EXPECT_EQ( em(ph,tg::var_h_pos), 0 );
 	}
-	EXPECT_NEAR( em(tg::watt_h_pos), (Pexc/2)*3000.0 , p2err((Pexc/2)*3000.0, 0.006 ) );
+	EXPECT_NEAR( em(tg::watt_h_pos), (Pexc/2)*3.0 , p2err((Pexc/2)*3.0, 0.006 ) );
 	EXPECT_EQ( em(tg::watt_h_neg), 0 );
-	EXPECT_NEAR( em(tg::var_h_neg), -(Qexc/2)*3000.0, p2err((Qexc/2)*3000.0, 0.006 )  );
+	EXPECT_NEAR( em(tg::var_h_neg), -(Qexc/2)*3.0, p2err((Qexc/2)*3.0, 0.006 )  );
 	EXPECT_EQ( em(tg::var_h_pos), 0 );
 
 }
@@ -228,14 +228,14 @@ TEST( energy_meter, short_rl_gen_qm_pm ) {
 		EXPECT_NEAR( em(ph,tg::q_avg), Qexc , 2 );
 		EXPECT_NEAR( em(ph,tg::u_rms), 230 , 0.1 );
 		EXPECT_NEAR( em(ph,tg::i_rms), 100 , 0.1 );
-		EXPECT_NEAR( em(ph,tg::watt_h_neg), -(Pexc/2)*1000.0 , p2err((Pexc/2)*1000.0, 0.006) );
+		EXPECT_NEAR( em(ph,tg::watt_h_neg), -(Pexc/2), p2err((Pexc/2), 0.006) );
 		EXPECT_EQ( em(ph,tg::watt_h_pos), 0 );
-		EXPECT_NEAR( em(ph,tg::var_h_neg), -(Qexc/2)*1000.0 , p2err((Qexc/2)*1000.0, 0.006) );
+		EXPECT_NEAR( em(ph,tg::var_h_neg), -(Qexc/2), p2err((Qexc/2), 0.006) );
 		EXPECT_EQ( em(ph,tg::var_h_pos), 0 );
 	}
-	EXPECT_NEAR( em(tg::watt_h_neg), -(Pexc/2)*3000.0 , p2err((Pexc/2)*3000.0, 0.006 ) );
+	EXPECT_NEAR( em(tg::watt_h_neg), -(Pexc/2)*3.0 , p2err((Pexc/2)*3.0, 0.006 ) );
 	EXPECT_EQ( em(tg::watt_h_pos), 0 );
-	EXPECT_NEAR( em(tg::var_h_neg), -(Qexc/2)*3000.0, p2err((Qexc/2)*3000.0, 0.006 )  );
+	EXPECT_NEAR( em(tg::var_h_neg), -(Qexc/2)*3.0, p2err((Qexc/2)*3.0, 0.006 )  );
 	EXPECT_EQ( em(tg::var_h_pos), 0 );
 
 }
