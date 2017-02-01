@@ -29,14 +29,15 @@ namespace {
 	constexpr auto bufsiz = emeter::config::fftbuf_size;
 	namespace tg = emeter::tags;
 	constexpr auto u_scale =  333.333 * 1.65;
-	constexpr auto i_scale = 1.65 * 100;
+	constexpr auto i_scale = 1.65 * 5.0;
+	constexpr auto ctr_val = 20.0;
 
 	// Apply energy meter on time
 	void process_time( emeter::energy_meter& em, const sim::phases_buf_t& U,
 			const sim::phases_buf_t& I )
 	{
-		for( size_t s=0; s<I[0].size(); s+= bufsiz ) {
-			for( size_t ph=0; ph<I.size(); ++ph ) {
+		for( std::size_t s=0; s<I[0].size(); s+= bufsiz ) {
+			for( std::size_t ph=0; ph<I.size(); ++ph ) {
 				//Current processing
 				auto oh = em.sample_current_begin(ph);
 				if(!oh) {
@@ -68,6 +69,7 @@ TEST( energy_meter, long_r_only ) {
 	emeter::energy_meter em;
 	em.set_scale_u( u_scale );
 	em.set_scale_i( i_scale );
+	em.set_ctr_ratio( ctr_val );
 	constexpr auto sim_duration = 3600*10;
 	constexpr auto voltage = 230.0;
 	constexpr auto current = 1.0;
@@ -110,6 +112,7 @@ TEST( energy_meter, short_r_only ) {
 	emeter::energy_meter em;
 	em.set_scale_u( u_scale );
 	em.set_scale_i( i_scale );
+	em.set_ctr_ratio( ctr_val );
 	constexpr auto sim_duration = 3600*0.5;
 	constexpr auto voltage = 230.0;
 	constexpr auto current = 1.0;
@@ -144,6 +147,7 @@ TEST( energy_meter, short_rl_motor_only ) {
 	emeter::energy_meter em;
 	em.set_scale_u( u_scale );
 	em.set_scale_i( i_scale );
+	em.set_ctr_ratio( ctr_val );
 	constexpr auto sim_duration = 3600*0.5;
 	constexpr auto voltage = 230.0;
 	constexpr auto current = 1.0;
@@ -178,6 +182,7 @@ TEST( energy_meter, short_rl_gen_qm ) {
 	emeter::energy_meter em;
 	em.set_scale_u( u_scale );
 	em.set_scale_i( i_scale );
+	em.set_ctr_ratio( ctr_val );
 	constexpr auto sim_duration = 3600*0.5;
 	constexpr auto voltage = 230.0;
 	constexpr auto current = 1.0;
@@ -212,6 +217,7 @@ TEST( energy_meter, short_rl_gen_qm_pm ) {
 	emeter::energy_meter em;
 	em.set_scale_u( u_scale );
 	em.set_scale_i( i_scale );
+	em.set_ctr_ratio( ctr_val );
 	constexpr auto sim_duration = 3600*0.5;
 	constexpr auto voltage = 230.0;
 	constexpr auto current = 1.0;

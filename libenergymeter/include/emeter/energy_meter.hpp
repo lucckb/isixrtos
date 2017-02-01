@@ -137,7 +137,6 @@ namespace emeter {
 		void set_ctr_ratio( measure_t ctr ) noexcept {
 			for( std::size_t ph=0; ph<config::n_phases; ++ph ) {
 				auto em = energy(ph);
-				em->set_scale_u( em->get_scale_u()*ctr );
 				em->set_scale_i( em->get_scale_i()*ctr );
 			}
 			m_current_tresh = config::min_current * ctr;
