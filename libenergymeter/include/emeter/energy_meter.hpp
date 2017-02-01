@@ -35,7 +35,6 @@ namespace emeter {
 		accum_t q_minus;	//! Apparent power (neg)
 	};
 	//! Energy counting tresh
-	static constexpr auto ethresh = config::energy_cnt_tresh;
 	static constexpr auto ecnt_scale  = 128;
 	//! How long takes a single sampling time
 	static constexpr double wnd_smp_time_s = double(1.0) /
@@ -48,12 +47,12 @@ namespace emeter {
 		using energy_storage = typename std::aligned_storage_t<
 			sizeof(energy_phase_n), alignof(energy_phase_n)>::type;
 		//Get energy phase helper
-			auto energy( size_t phase ) {
-				return reinterpret_cast<energy_phase_n*>(&m_energies[phase]);
-			}
-			auto energy( size_t phase ) const {
-				return reinterpret_cast<const energy_phase_n*>(&m_energies[phase]);
-			}
+		auto energy( std::size_t phase ) {
+			return reinterpret_cast<energy_phase_n*>(&m_energies[phase]);
+		}
+		auto energy( std::size_t phase ) const {
+			return reinterpret_cast<const energy_phase_n*>(&m_energies[phase]);
+		}
 		// Get 64 bit value with interrupt nolock
 		//NOTE: ARM32 bit doesn't support 64 bit atomic ops
 		static inline accum_t read_atomic_accum_t( const accum_t& input )
@@ -94,19 +93,19 @@ namespace emeter {
 		 * @param[in] input Input buffer pointer with resampled data
 		 * @return Buffer to fill by sampling procedure
 		 */
-		sample_t* sample_voltage_begin(size_t ph) noexcept {
+		sample_t* sample_voltage_begin(std::size_t ph) noexcept {
 			return energy(ph)->sample_voltage_begin();
 		}
 
-		int sample_voltage_end(size_t ph) noexcept {
+		int sample_voltage_end(std::size_t ph) noexcept {
 			return energy(ph)->sample_voltage_end();
 		}
 
-		sample_t* sample_current_begin(size_t ph) noexcept {
+		sample_t* sample_current_begin(std::size_t ph) noexcept {
 			return energy(ph)->sample_current_begin();
 		}
 
-		int sample_current_end(size_t ph) noexcept {
+		int sample_current_end(std::size_t ph) noexcept {
 			return energy(ph)->sample_current_end();
 		}
 
@@ -123,7 +122,7 @@ namespace emeter {
 		}
 
 		// Set current scale
-		void set_scale_i( std::size_t ph, measure_t scale ) {
+		void set_scale_i( std::size_t ph, measure_t scale ) noexcept {
 			energy(ph)->set_scale_i( scale );
 		}
 
@@ -134,6 +133,16 @@ namespace emeter {
 			}
 		}
 
+		// Configure CT ratio should be set after scale configuration
+		void set_ctr_ratio( measure_t ctr ) noexcept {
+			for( std::size_t ph=0; ph<config::n_phases; ++ph ) {
+				auto em = energy(ph);
+				em->set_scale_u( em->get_scale_u()*ctr );
+				em->set_scale_i( em->get_scale_i()*ctr );
+			}
+			m_current_tresh = config::min_current * ctr;
+			m_power_tresh = config::min_power * ctr;
+		}
 		//! Process thread should be called after calculation
 		int calculate() noexcept {
 			int err {};
@@ -210,20 +219,21 @@ namespace emeter {
 		template<typename TAG>
 		typename TAG::value_type operator() ( const TAG& p ) const noexcept {
 			typename TAG::value_type acc = 0;
-			for( size_t ph=0; ph<config::n_phases; ++ph ) {
+			for( std::size_t ph=0; ph<config::n_phases; ++ph ) {
 				acc += operator()( ph, p );
 			}
 			return acc;
 		}
-
 	private:
 		//! Calculate energies based on the phase
 		void calculate_energies( pwr_cnt& ecnt, const energy_phase_n& ephn ) noexcept;
-		//Adjust input energy multiply
-		static int scale_energy_mul( measure_t e );
+		//Adjust input energy mult
+		int scale_energy_mul( measure_t e ) const noexcept;
 	private:
 		// Energy counter for 3phases
 		std::array<pwr_cnt,config::n_phases> m_ecnt {{}};
+		measure_t m_current_tresh { config::min_current };	// Starting current class A
+		measure_t m_power_tresh { config::min_power };	// Starting power calc
 	private:
 		static constexpr auto scratch_siz =
 			(config::fft_size+config::fft_size/2+1) * sizeof(cplxmeas_t);

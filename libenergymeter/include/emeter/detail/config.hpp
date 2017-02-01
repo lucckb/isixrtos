@@ -31,6 +31,8 @@ namespace {
 	//! Sample rate
 	constexpr auto sample_rate = 3200;
 	//! Energy measure treshold
-	constexpr measure_t energy_cnt_tresh = 0.5;
+	constexpr measure_t min_power = 0.5;
+	constexpr measure_t min_current = 0.005;
+
 }}}
 

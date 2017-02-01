@@ -58,12 +58,20 @@ namespace emeter {
 			return m_S.load();
 		}
 		// Set voltage scale
-		void set_scale_u( measure_t scale ) {
+		void set_scale_u( measure_t scale ) noexcept {
 			m_scale_u = scale;
 		}
-		// Set voltage scale
-		void set_scale_i( measure_t scale ) {
+		// Set currrent scale
+		void set_scale_i( measure_t scale ) noexcept {
 			m_scale_i = scale;
+		}
+		// Get voltage scale
+		measure_t get_scale_u() const noexcept {
+			return m_scale_u;
+		}
+		// Get voltage scale
+		measure_t get_scale_i() const noexcept {
+			return m_scale_i;
 		}
 	protected:
 		//!Calculate FFT voltage
