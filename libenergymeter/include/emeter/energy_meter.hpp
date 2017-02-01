@@ -60,7 +60,9 @@ namespace emeter {
 			accum_t v1, v2;
 			do {
 				v1 = input;
+				__sync_synchronize();
 				v2 = input;
+				__sync_synchronize();
 			} while( v1 != v2 );
 			return v1;
 		}
