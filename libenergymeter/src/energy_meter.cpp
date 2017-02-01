@@ -23,7 +23,7 @@ namespace emeter {
 //! Adjust input energy cuttof when energy is less than 0.5W
 int energy_meter::scale_energy_mul( measure_t e ) const noexcept
 {
-	if( std::fabs(e) < m_power_tresh ) {
+	if( std::abs(e) < m_power_tresh ) {
 		return 0;
 	} else {
 		return std::lround( e * measure_t(ecnt_scale) );
