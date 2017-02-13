@@ -47,18 +47,18 @@ namespace isix {
 	};
 
 	//! Semaphore locker class
-	class mutex_lock {
+	class mutex_locker {
 	public:
-		mutex_lock( mutex& _mtx )
+		mutex_locker(const mutex_locker&) = delete;
+		mutex_locker& operator=(const mutex_locker&) = delete;
+		mutex_locker( mutex& _mtx )
 			: m_mtx( _mtx ) {
 			_mtx.lock();
 		}
-		~mutex_lock() {
+		~mutex_locker() {
 			m_mtx.unlock();
 		}
 	private:
-		mutex_lock(const mutex_lock&);
-		mutex_lock& operator=(const mutex_lock&);
 		mutex& m_mtx;
 	};
 }
