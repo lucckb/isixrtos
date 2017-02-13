@@ -60,16 +60,20 @@ public:
 	virtual ~i2c_eeprom() {
 	}
 	//Get capabilties bits
-	virtual int get_capabilities() const {
+	int get_capabilities() const override {
 		return cap_pg_no_erase;
 	}
 	//Get pagesize
-	virtual poffs_t page_size() const {
+	poffs_t page_size() const override {
 		return pg_size();
 	}
 	//Get numpages
-	virtual paddr_t num_pages() const {
+	paddr_t num_pages() const override {
 		return pg_count();
+	}
+	//! Get sector size default is 1
+	sectoffs_t sector_size() const override {
+		return 1;
 	}
 private:
 	fnd::bus::ibus& m_bus;			//! Bus controller
