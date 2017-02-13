@@ -59,7 +59,6 @@ ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
 			return NULL;
 		}
 		memset( task->impure_data, 0, sizeof(struct _reent) );
-		task->impure_data->_current_locale = "C";
 	}
 #ifndef ISIX_CONFIG_STACK_ASCENDING
      task->top_stack = (unsigned long*)(((uintptr_t)task->init_stack) 
