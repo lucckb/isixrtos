@@ -8,6 +8,7 @@
 #include "stm32_spi_master.hpp"
 #include <stm32rcc.h>
 #include <stm32spi.h>
+#include <stm32gpio.h>
 #ifdef _HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -71,11 +72,11 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
 
 			///TODO FIX
-			//gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN,
-				//	AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
+			gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN,
+					AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
 
-			gpio_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_MODE_ALTERNATE,
-					GPIO_PUPD_NONE,  GPIO_SPEED_HI, 0 );
+			//gpio_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_MODE_ALTERNATE,
+			//		GPIO_PUPD_NONE,  GPIO_SPEED_HI, 0 );
 
 			gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,
 					AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_FULL );
