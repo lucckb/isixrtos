@@ -110,10 +110,12 @@ extern "C"
 }
 
 
+#ifdef COMPILED_UNDER_ISIX
 static bool initializerHasRun(__guard *);
 static void setInitializerHasRun(__guard *);
 static void setInUse(__guard *);
 static void setNotInUse(__guard *);
+#endif
 
 
 #ifdef COMPILED_UNDER_ISIX
