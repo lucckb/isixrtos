@@ -9,15 +9,17 @@ def set_cross_toolchain(conf):
     conf.env.CC = conf.env.CROSS +  'gcc'
     conf.env.CXX = conf.env.CROSS + 'g++'
     conf.env.CPP = conf.env.CROSS + 'cpp'
-    conf.env.AS = conf.env.CROSS +  'as'
+    conf.env.AS = conf.env.CROSS +  'gcc'
     conf.env.AR = conf.env.CROSS +  'ar'
     conf.env.OBJDUMP = conf.env.CROSS + 'objdump'
     conf.env.OBJCOPY = conf.env.CROSS +  'objcopy'
+    conf.env.OBJSIZE = conf.env.CROSS + 'size'
     conf.load( 'compiler_cxx' )
     conf.load( 'compiler_c' )
+    conf.load( 'gcc gas' )
     conf.load( 'objcopy' )
     conf.load( 'isix_link' )
-
+    conf.load( 'build_summary' )
 
 
 

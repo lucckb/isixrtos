@@ -1,0 +1,18 @@
+{
+	"mcus" : {
+		"stm32f107vbt6" : {
+			"cpu": "arm_cortex_m3",
+			"cflags":  [ "-mcpu=cortex-m3", "-Wall" ],
+			"defs":    "",
+			"flash_size": 256,
+			"ram_size": 32,
+			"link_script": "stm32-f107VBT6",
+			"jtag_args": "qew 23432"
+		},
+		"stm32f207ctk" : {
+			"cflags":  "-mcpu=cortex-m4",
+			"defs":    ""
+		}
+	}
+}
+

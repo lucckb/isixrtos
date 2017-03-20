@@ -1,0 +1,14 @@
+{
+	"cores" : {
+
+		"arm_cortex_m3" : {
+			"cflags" :  ["-mcpu=cortex-m3", "-mthumb"],
+			"defs" :    []
+		},
+		"arm_cortex_m4" : {
+			"cflags":  ["-mcpu=cortex-m4", "-mthumb" ],
+			"defs":    []
+		}
+	}
+}
+
