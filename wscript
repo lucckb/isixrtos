@@ -8,7 +8,7 @@ bld_isixlibs = [
 ]
 
 def options(opt):
-    opt.load( 'isix_cores')
+    opt.load( 'isix_cpudb')
     opt.add_option('--cross', default='arm-none-eabi-',
             help='Cross compiler prefix, e.g. arm-none-eabi-')
     opt.add_option('--debug', help='Configure with debug variant',

@@ -11,6 +11,7 @@ _cpu_db_ = None;
 _mcus_db = None;
 _base_dir = os.path.dirname( os.path.abspath(__file__) )
 
+# Read json database by name
 def _read_json_db(filename):
     try:
         if _cpu_db_ == None:
@@ -21,28 +22,30 @@ def _read_json_db(filename):
         raise WafError( 'Unable to read cpudb %s %r'% (fname,e), e)
     except json.decoder.JSONDecodeError  as e:
         raise WafError( 'Syntax error in the cpudb %s %r'% (fname,e), e)
-
     return _mcus_db
 
+# Get cpu names
 def _cpu_names():
     mcu = _read_json_db('mcus.json')
     return sorted(list(mcu['mcus'].keys()))
 
+# Get selected flag
 def _get_flag(mcu, flag):
     db = _read_json_db('mcus.json');
-    db1 = _read_json_db('cores.json')
-    db.update(db1)
-    #if flag in mcu: return mcu[flag]
-    #else: return []
-    cpu = db['mcu']['cpu']
+    db.update(  _read_json_db('cores.json') )
+    cpu = db['mcus'][mcu]['cpu']
     return db['mcus'][mcu][flag] + db['cores'][cpu][flag]
 
+# Setup options
 def options(opt):
     cpu_names = _cpu_names()
     opt.add_option('--cpu', action='store', choices=cpu_names,
             help='Selected cpu for example stm32f107vbt6' )
 
+# MCU set flag configuration
 @conf
 def mcu_setflags(cfg):
+    if not cfg.options.cpu:
+        raise WafError('Missing option CPU type not provided')
     cfg.env.CFLAGS += _get_flag(cfg.options.cpu, 'cflags');
     cfg.env.CXXFLAGS += _get_flag(cfg.options.cpu, 'cflags');
