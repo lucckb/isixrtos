@@ -2,9 +2,10 @@
 # encoding: utf-8
 
 from waflib.Configure import conf
+from waflib import Logs,Context
 
-@conf
-def set_cross_toolchain(conf):
+# Configure toolchain
+def configure(conf):
     conf.env.CROSS = conf.options.cross
     conf.env.CC = conf.env.CROSS +  'gcc'
     conf.env.CXX = conf.env.CROSS + 'g++'
@@ -20,6 +21,16 @@ def set_cross_toolchain(conf):
     conf.load( 'objcopy' )
     conf.load( 'isix_link' )
     conf.load( 'build_summary' )
+    conf.find_program( 'git', var='GIT', mandatory=True )
+
+
+
+# Get Git repository version
+@conf
+def git_repo_version(conf):
+    cmd = [ 'git', 'describe', '--tags', '--dirty', '--long' ]
+    out = conf.cmd_and_log( cmd, cwd=conf.path, quiet=Context.BOTH )
+    return out.strip()
 
 
 

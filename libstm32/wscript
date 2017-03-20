@@ -1,23 +1,29 @@
 #!/usr/bin/env python
 import platform
+import os
 
 
 def options(opt):
-    pass
+    opt.add_option( '--stack-size', default=512,
+            help='Define system stack size'
+    )
 
 def configure(conf):
-    pass
+    conf.env.append_value( 'LDFLAGS', '-Wl,--defsym=_sys_stack_size=%i' % conf.options.stack_size )
+    conf.env.append_value( 'LIBPATH', conf.path.find_dir('./scripts').abspath() )
 
 def build(bld):
     src = bld.path.ant_glob( 'src/*.c', excl=['src/crt0.c'] )
-    src += bld.path.ant_glob( 'src/*.cpp', excl='src/stm32f1fmc.cpp' )
+    src += bld.path.ant_glob( 'src/*.cpp' )
     inc = ['./inc' ]
-    bld( includes = inc, export_includes= inc, name = 'com_inc3' )
     bld.objects( source='src/crt0.c', target='crt0', name= 'startup' )
-    bld.stlib( source=src, target='stm32', use = ['com_inc3', 'foundation'],
-            cflags= ['-std=gnu11', '-mthumb', '-mcpu=cortex-m3' ],
-            defines=['STM32MCU_MAJOR_TYPE_F4']
-            )
-    bld.env.append_value('LIBPATH', bld.path.find_dir('./scripts').abspath() )
-    bld.env.CRT0_LINKER_SCRIPT = bld.path.find_resource( './scripts/stm32-f107VBT6.ld' )
+    bld.stlib( source=src,
+            target='stm32',
+            includes = inc,
+            export_includes= inc,
+            use = ['foundation'],
+    )
+    bld.env.CRT0_LINKER_SCRIPT = bld.path.find_resource(
+        os.path.join('scripts', bld.isix_get_linker_script_name())
+    )
 

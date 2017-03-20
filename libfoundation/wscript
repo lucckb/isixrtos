@@ -13,10 +13,10 @@ def build(bld):
     src = bld.path.ant_glob( '*.c' )
     src += bld.path.ant_glob( '*.cpp' )
     inc = ['./include' ]
-    bld( includes = inc, export_includes= inc, name = 'com_inc2' )
-    bld.stlib( source=src, target='foundation', use = 'com_inc2',
-            cflags= ['-std=gnu11', '-mthumb' , '-mcpu=cortex-m4', '-mfloat-abi=hard', '-mfpu=fpv4-sp-d16', '-ffast-math', '-fsingle-precision-constant' ],
-            )
+    bld.stlib( source=src, 
+            includes = inc, export_includes=inc,
+            target='foundation'
+    )
 
 
 

@@ -24,7 +24,6 @@ def options(opt):
 
 def configure(conf):
     conf.load('isix_toolchain')
-    conf.set_cross_toolchain()
     conf.mcu_setflags()
     conf.recurse( bld_isixlibs )
 

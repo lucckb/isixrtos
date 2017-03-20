@@ -1,13 +1,15 @@
 {
 	"cores" : {
-
 		"arm_cortex_m3" : {
 			"cflags" :  ["-mcpu=cortex-m3", "-mthumb"],
-			"defs" :    []
+			"defs" :    [],
+			"isix_arch" : "arm-cm3"
 		},
 		"arm_cortex_m4" : {
-			"cflags":  ["-mcpu=cortex-m4", "-mthumb" ],
-			"defs":    []
+			"cflags":  ["-mcpu=cortex-m4", "-mthumb", "-mfloat-abi=hard",
+				"-mfpu=fpv4-sp-d16", "-ffast-math", "-fsingle-precision-constant" ],
+             "defs":    [],
+			"isix_arch" : "arm-cm4f"
 		}
 	}
 }
