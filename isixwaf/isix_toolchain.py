@@ -36,4 +36,6 @@ def git_repo_version(conf):
 
 # On options
 def options(conf):
+    conf.add_option('--cross', default='arm-none-eabi-',
+            help='Cross compiler prefix, e.g. arm-none-eabi-')
     conf.load( 'isix_cpudb' )

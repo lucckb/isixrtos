@@ -53,8 +53,6 @@ def options(opt):
     cpu_names = _cpu_names()
     opt.add_option('--cpu', action='store', choices=cpu_names,
             help='Selected cpu for example stm32f107vbt6' )
-    opt.add_option('--cross', default='arm-none-eabi-',
-            help='Cross compiler prefix, e.g. arm-none-eabi-')
     opt.add_option('--debug', help='Configure with debug variant',
             action='store_true', default=False )
     opt.add_option('--disable-isix',

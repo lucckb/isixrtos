@@ -20,7 +20,7 @@ def process_ldscript(self):
         node = self.env.CRT0_LINKER_SCRIPT
         if node:
             self.link_task.env.append_value('LDFLAGS', ['-Wl,-T%s'% node.abspath()] )
-        self.link_task.dep_nodes.append(node)
+            self.link_task.dep_nodes.append(node)
         self.link_task.env.append_value('LDFLAGS', _stdlib_lflags )
 
 
