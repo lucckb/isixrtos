@@ -6,7 +6,8 @@ You can use, modify and distribute thisfile freely, but without any waranty.
 */
 
 ENTRY(exceptions_vectors)
-
+EXTERN(exceptions_vectors)
+ASSERT(DEFINED(exceptions_vectors), "Error no exceptions vectors entries")
 /* Sections Definitions */
 
 SECTIONS

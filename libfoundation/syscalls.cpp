@@ -86,7 +86,7 @@ void operator delete[]( void* p, size_t) throw()
 		foundation_free(p);
 	}
 }
-#endif /* CONFIG_ENABLE_EXCEPTIONS  */
+#endif
 
 typedef unsigned long __guard;
 
