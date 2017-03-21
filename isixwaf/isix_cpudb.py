@@ -87,7 +87,7 @@ def configure(cfg):
     cfg.env.CXXFLAGS += cflags + [ '-std=gnu++14' ] + optflag
     cfg.env.ASFLAGS += cflags + [ '-Wa,-mapcs-32' ] + optflag
     cfg.env.DEFINES += _get_flag(cfg.options.cpu,'defs')
-    cfg.env.LDFLAGS += [ '-nostdlib', '-nostartfiles' ] + optflag
+    cfg.env.LDFLAGS += [ '-nostdlib', '-nostartfiles' ] + cflags + optflag
     if cfg.options.disable_isix == False:
         cfg.env.DEFINES += [ 'COMPILED_UNDER_ISIX', 'ISIX_CONFIG_USE_PREEMPTION' ]
     if cfg.options.disable_exceptions == True:

@@ -27,17 +27,20 @@ def build(bld):
         _srcs += [ 'stm32_sdio_mmc_host.cpp' ]
     else:
         bld.fatal( 'libisixdrv: Unknown target CPU' )
+    _use =['isix', 'foundation']
     # TCPIP stack
-    if bld.is_defined('ISIX_TCPIPLIB_ENABLED'):
-        _srcs += [ 'ethernetif.c' ]
+    if bld.is_defined('WITH_ISIX_TCPIP_LIB'):
+        _use += [ 'tcpip' ]
+        _srcs += [ 'ethernet/ethernetif.c' ]
+        _srcs += bld.path.ant_glob( 'ethernet/phy_*.c')
         if bld.is_defined('STM32MCU_MAJOR_TYPE_F1'):
-            _srcs += [ 'ethernetif_f1.c' ]
+            _srcs += [ 'ethernet/ethernetif_f1.c' ]
         elif bld.is_defined('STM32MCU_MAJOR_TYPE_F2'):
-            _srcs += [ 'ethernetif_f2.c' ]
+            _srcs += [ 'ethernet/ethernetif_f2.c' ]
         elif bld.is_defined('STM32MCU_MAJOR_TYPE_F37'):
             bld.fatal( 'libisixdrv: This type of mcu lack of ETH support' )
         elif bld.is_defined('STM32MCU_MAJOR_TYPE_F4'):
-            _srcs += [ 'ethernetif_f4.c' ]
+            _srcs += [ 'ethernet/ethernetif_f4.c' ]
     _srcs += [ 'mmc/mmc_card.cpp', 'mmc/mmc_slot.cpp', 'mmc/mmc_command.cpp',
             'mmc/mmc_host_spi.cpp' ]
     _incs = [ 'include', 'mmc/include' ]
@@ -45,7 +48,7 @@ def build(bld):
             target='isixdrvstm32',
             includes = _incs,
             export_includes = _incs,
-            use = ['isix', 'foundation', ],
+            use = _use,
     )
 
 

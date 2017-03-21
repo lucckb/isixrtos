@@ -7,7 +7,8 @@ bld_isixlibs = [
     'libstm32',
     'libisixdrvstm32',
     'libgfx',
-    'libfsfat'
+    'libfsfat',
+    'libtcpip'
 ]
 
 def options(opt):
