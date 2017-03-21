@@ -3,10 +3,19 @@
 		"stm32f107vbt6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
-			"defs":    ["STM32MCU_MAJOR_TYPE_F1","STM32F10X_CL" ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_CL" ],
 			"flash_size": 256,
 			"ram_size": 32,
 			"link_script": "stm32-f107VBT6",
+			"jtag_args": ""
+		},
+		"stm32f407zet6" : {
+			"cpu": "arm_cortex_m4",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1"],
+			"flash_size": 1024,
+			"ram_size": 256,
+			"link_script": "stm32-f407ZET6",
 			"jtag_args": ""
 		}
 	}

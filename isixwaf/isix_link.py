@@ -6,6 +6,8 @@ from waflib.Tools import ccroot
 from waflib import Tools,Errors
 from waflib.TaskGen import after, feature, after_method
 
+_stdlib_lflags = [ '-Wl,--start-group', '-lstdc++', '-lc', '-lm', '-lg', '-lgcc', '-Wl,--end-group' ]
+
 @after('apply_link')
 @feature('cprogram', 'cxxprogram' )
 def process_ldscript(self):
@@ -16,12 +18,10 @@ def process_ldscript(self):
         #if not node:
             #raise Errors.WafError('could not find %r' % self.ldscript)
         node = self.env.CRT0_LINKER_SCRIPT
-        if not node:
-            raise Errors.WafError('could not find %r' % 'x')
-
-        self.link_task.env.append_value('LINKFLAGS', ['-Wl,-T%s'% node.abspath()] )
+        if node:
+            self.link_task.env.append_value('LDFLAGS', ['-Wl,-T%s'% node.abspath()] )
         self.link_task.dep_nodes.append(node)
-        self.link_task.env.append_value('LDFLAGS', [ '-Wl,--start-group', '-lstdc++', '-lc', '-lm', '-lg', '-lgcc', '-Wl,--end-group' ] )
+        self.link_task.env.append_value('LDFLAGS', _stdlib_lflags )
 
 
 

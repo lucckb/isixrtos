@@ -3,7 +3,9 @@
 
 #Common project cflags
 _cflags = ['-Wno-variadic-macros', '-Wno-long-long', '-pipe', '-Wextra', '-Wall' ]
-
+_cflags_ndebug = [ '-fomit-frame-pointer', '-ffunction-sections', '-fdata-sections', '-flto' ]
+_ldflags_ndebug = [ '-Wl,--gc-sections', '-flto' ]
+_cflags_debug = [ '-g' ]
 
 import os
 import json
@@ -51,20 +53,52 @@ def options(opt):
     cpu_names = _cpu_names()
     opt.add_option('--cpu', action='store', choices=cpu_names,
             help='Selected cpu for example stm32f107vbt6' )
+    opt.add_option('--cross', default='arm-none-eabi-',
+            help='Cross compiler prefix, e.g. arm-none-eabi-')
+    opt.add_option('--debug', help='Configure with debug variant',
+            action='store_true', default=False )
+    opt.add_option('--disable-isix',
+            help='Configure standalone application without isix',
+            action='store_true', default=False )
+    opt.add_option('--disable-exceptions',
+            help='Disable exceptions handling in the toolchain',
+            action='store_true', default=False )
+    opt.add_option('--optimize', default='2', action='store',
+            choices=['0','1','2','3','g'],
+            help='Compiler optimization flag. [default: 2]'
+            )
+
+
+
 
 # MCU set flag configuration
-@conf
-def mcu_setflags(cfg):
+def configure(cfg):
     if not cfg.options.cpu:
         raise WafError('Missing option CPU type not provided')
     cfg.env.ISIX_CPU_TYPE = cfg.options.cpu
     cflags = _get_flag(cfg.options.cpu, 'cflags')
-    cflags += _cflags
-    cfg.env.CFLAGS += cflags + ['-std=gnu11' ]
-    cfg.env.CXXFLAGS += cflags + [ '-std=gnu++14' ]
-    cfg.env.ASFLAGS += cflags + [ '-Wa,-mapcs-32' ]
+    if cfg.options.debug == True:
+        cfg.env.ASFLAGS += [ '-gstabs' ]
+        cflags += _cflags_debug
+        cfg.env.DEFINES += [ 'PDEBUG' ]
+    else:
+        cflags += _cflags_ndebug
+        cfg.env.LDFLAGS = _ldflags_ndebug
+    optflag = [ '-O%s' % cfg.options.optimize ]
+    cfg.env.CFLAGS += cflags + ['-std=gnu11' ] + optflag
+    cfg.env.CXXFLAGS += cflags + [ '-std=gnu++14' ] + optflag
+    cfg.env.ASFLAGS += cflags + [ '-Wa,-mapcs-32' ] + optflag
     cfg.env.DEFINES += _get_flag(cfg.options.cpu,'defs')
-    cfg.env.LDFLAGS += [ '-nostdlib', '-nostartfiles' ]
+    cfg.env.LDFLAGS += [ '-nostdlib', '-nostartfiles' ] + optflag
+    if cfg.options.disable_isix == False:
+        cfg.env.DEFINES += [ 'COMPILED_UNDER_ISIX', 'ISIX_CONFIG_USE_PREEMPTION' ]
+    if cfg.options.disable_exceptions == True:
+        cfg.env.CXXFLAGS += [ '-fno-exceptions', '-fno-rtti' ]
+    # Always main function return and always C++ code
+    cfg.env.DEFINES += [ 'CPP_STARTUP_CODE', 'FUNCTION_MAIN_RETURN' ]
+    # Optionaly force DSO handle
+    #cfg.env.prepend_value('LINKFLAGS', '-Wl,--undefined=__dso_handle')
+
 
 # Get linker script name
 @conf

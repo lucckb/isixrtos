@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import platform
-
 
 def options(opt):
     pass
@@ -13,10 +11,13 @@ def build(bld):
     src = bld.path.ant_glob( '*.c' )
     src += bld.path.ant_glob( '*.cpp' )
     inc = ['./include' ]
-    bld.stlib( source=src, 
+    bld.stlib( source=src,
             includes = inc, export_includes=inc,
-            target='foundation'
+            target='foundation', use= ['isix']
     )
+    #bld.objects( source='syscalls.cpp', includes = inc,
+    #        target='crt0', name= 'syscalls', use=['isix']
+    #)
 
 
 

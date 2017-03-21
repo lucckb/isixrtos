@@ -21,6 +21,7 @@ def configure(conf):
     conf.load( 'objcopy' )
     conf.load( 'isix_link' )
     conf.load( 'build_summary' )
+    conf.load( 'isix_cpudb' )
     conf.find_program( 'git', var='GIT', mandatory=True )
 
 
@@ -33,4 +34,6 @@ def git_repo_version(conf):
     return out.strip()
 
 
-
+# On options
+def options(conf):
+    conf.load( 'isix_cpudb' )
