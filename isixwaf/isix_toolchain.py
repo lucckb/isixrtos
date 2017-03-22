@@ -69,7 +69,7 @@ def _set_default_options(conf):
     if conf.options.disable_defconfig:
         return
     cfg = read_default_configuration(conf)
-    if 'configure' in cfg:
+    if cfg and 'configure' in cfg:
         cfg = cfg['configure']
         for key,value in cfg.items():
             if hasattr(conf.options,key):
