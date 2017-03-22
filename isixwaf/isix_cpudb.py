@@ -13,15 +13,31 @@ from waflib.Errors import WafError
 from waflib.Configure import conf
 
 
-_cpu_db_ = None
+_cpu_db = None
 _mcus_db = None
 _base_dir = os.path.dirname( os.path.abspath(__file__) )
 
 # Read json database by name
-def _read_json_db(filename):
+def _read_cpu_db():
+    global _cpu_db
     try:
-        if _cpu_db_ == None:
-            fname = os.path.join( _base_dir, 'cpu_database', filename )
+        if _cpu_db == None:
+            fname = os.path.join( _base_dir, 'cpu_database', 'cpu.json' )
+            with open( fname ) as fh:
+                _cpu_db = json.load( fh )
+    except  IOError as e:
+        raise WafError( 'Unable to read cpudb %s %r'% (fname,e), e)
+    except json.decoder.JSONDecodeError  as e:
+        raise WafError( 'Syntax error in the cpudb %s %r'% (fname,e), e)
+    return _cpu_db
+
+
+# Read json database by name
+def _read_mcu_db():
+    global _mcus_db
+    try:
+        if _mcus_db == None:
+            fname = os.path.join( _base_dir, 'cpu_database', 'mcu.json' )
             with open( fname ) as fh:
                 _mcus_db = json.load( fh )
     except  IOError as e:
@@ -32,14 +48,14 @@ def _read_json_db(filename):
 
 # Get cpu names
 def _cpu_names():
-    mcu = _read_json_db('mcu.json')
+    mcu = _read_mcu_db()
     return sorted(list(mcu['mcus'].keys()))
 
 # Get selected flag mcu,cpu
 def _get_flag(mcu, flag, scope='both' ):
-    db = _read_json_db('mcu.json');
+    db = _read_mcu_db()
     if scope !='mcu':
-        db.update(  _read_json_db('cpu.json') )
+        db.update(  _read_cpu_db() )
         cpu = db['mcus'][mcu]['cpu']
     if scope == 'both':
         return db['mcus'][mcu][flag] + db['cores'][cpu][flag]
@@ -62,8 +78,8 @@ def options(opt):
             help='Disable exceptions handling in the toolchain',
             action='store_true', default=False )
     opt.add_option('--optimize', default='2', action='store',
-            choices=['0','1','2','3','g'],
-            help='Compiler optimization flag. [default: 2]'
+            choices=['0','1','2','3','s'],
+            help='Compiler optimization flag. [default: s]'
             )
 
 
@@ -108,3 +124,8 @@ def isix_get_linker_script_name(bld):
 @conf
 def isix_get_arch(bld):
     return _get_flag( bld.env.ISIX_CPU_TYPE,'isix_arch', 'cpu' );
+
+@conf
+def isix_get_cpu_family(bld):
+    return _get_flag( bld.env.ISIX_CPU_TYPE,'family','mcu' )
+

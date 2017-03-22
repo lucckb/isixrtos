@@ -7,7 +7,7 @@
 			"flash_size": 256,
 			"ram_size": 32,
 			"link_script": "stm32-f107VBT6",
-			"jtag_args": ""
+			"family": "f1"
 		},
 		"stm32f407zet6" : {
 			"cpu": "arm_cortex_m4",
@@ -16,7 +16,7 @@
 			"flash_size": 1024,
 			"ram_size": 256,
 			"link_script": "stm32-f407ZET6",
-			"jtag_args": ""
+			"family": "f4"
 		}
 	}
 }

@@ -29,13 +29,32 @@ def configure(conf):
 # Get Git repository version
 @conf
 def git_repo_version(conf):
-    cmd = [ 'git', 'describe', '--tags', '--dirty', '--long' ]
+    cmd = conf.env.GIT + [ 'describe', '--tags', '--dirty', '--long' ]
     out = conf.cmd_and_log( cmd, cwd=conf.path, quiet=Context.BOTH )
     return out.strip()
-
 
 # On options
 def options(conf):
     conf.add_option('--cross', default='arm-none-eabi-',
             help='Cross compiler prefix, e.g. arm-none-eabi-')
+    conf.load( 'compiler_cxx' )
+    conf.load( 'compiler_c' )
     conf.load( 'isix_cpudb' )
+
+# Read default configuration
+@conf
+def read_default_configuration(conf):
+    import os
+    import json
+    from waflib.Errors import WafError
+    fname = os.path.join( conf.top_dir, 'config.json' )
+    try:
+        with open(fname) as fh:
+            cfg = json.load(fh)
+    except json.decoder.JSONDecodeError as err:
+        raise WafError('Syntax error in app config %s %r'%(fname,err), e )
+    except FileNotFoundError:
+        cfg = None
+    return cfg;
+
+
