@@ -31,7 +31,7 @@ def program( ctx ):
         ini_cmd += "set ISIX_INTERFACE_SPEED_KHZ %s; " % cfg['jtag']['speed']
     except KeyError as err:
         raise WafError('Error invalid jtag config %r'%err, err )
-    cmd = ctx.env.OPENOCD + [ '-c '+ini_cmd, '-f '+ctx.env.OPENOCD_SCRIPT_FILE,
+    cmd = ctx.env.OPENOCD + [ '-c '+ini_cmd, '-f'+ctx.env.OPENOCD_SCRIPT_FILE,
             '-c program %s verify reset'%tgt,'-c shutdown' ]
     ctx.exec_command( cmd )
 

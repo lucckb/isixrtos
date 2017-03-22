@@ -3,9 +3,12 @@
 
 from waflib.Configure import conf
 from waflib import Logs,Context
+import os
+import json
 
 # Configure toolchain
 def configure(conf):
+    _set_default_options(conf)
     conf.env.CROSS = conf.options.cross
     conf.env.CC = conf.env.CROSS +  'gcc'
     conf.env.CXX = conf.env.CROSS + 'g++'
@@ -37,24 +40,40 @@ def git_repo_version(conf):
 def options(conf):
     conf.add_option('--cross', default='arm-none-eabi-',
             help='Cross compiler prefix, e.g. arm-none-eabi-')
+    conf.add_option('--disable-defconfig',
+            help='Disable reading configuration from config.json',
+            action='store_true', default=False )
     conf.load( 'compiler_cxx' )
     conf.load( 'compiler_c' )
     conf.load( 'isix_cpudb' )
 
+
 # Read default configuration
 @conf
 def read_default_configuration(conf):
-    import os
-    import json
-    from waflib.Errors import WafError
-    fname = os.path.join( conf.top_dir, 'config.json' )
+    if conf.top_dir: fname = conf.top_dir
+    else: fname = os.getcwd()
+    fname = os.path.join( fname, 'config.json' )
     try:
         with open(fname) as fh:
             cfg = json.load(fh)
     except json.decoder.JSONDecodeError as err:
-        raise WafError('Syntax error in app config %s %r'%(fname,err), e )
+        raise WafError('Syntax error in app config %s %r'%(fname,err), err )
     except FileNotFoundError:
         cfg = None
-    return cfg;
+    return cfg
+
+
+# Setup default configuration
+def _set_default_options(conf):
+    if conf.options.disable_defconfig:
+        return
+    cfg = read_default_configuration(conf)
+    if 'configure' in cfg:
+        cfg = cfg['configure']
+        for key,value in cfg.items():
+            if hasattr(conf.options,key):
+                conf.msg('Configuration','%s=%s'%(key,value))
+                setattr(conf.options,key,value)
 
 

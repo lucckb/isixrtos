@@ -77,11 +77,10 @@ def options(opt):
     opt.add_option('--disable-exceptions',
             help='Disable exceptions handling in the toolchain',
             action='store_true', default=False )
-    opt.add_option('--optimize', default='2', action='store',
+    opt.add_option('--optimize', default='s', action='store',
             choices=['0','1','2','3','s'],
             help='Compiler optimization flag. [default: s]'
             )
-
 
 
 
