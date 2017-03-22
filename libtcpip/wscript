@@ -7,8 +7,8 @@ def options(opt):
 
 def configure(conf):
     conf.define('ISIX_CONFIG_USE_TIMERS',1)
-    conf.define('ISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE',1)
-    conf.define('ISIX_TCPIPLIB_ETHERNET',1)
+    #conf.define('ISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE',1)
+    #conf.define('ISIX_TCPIPLIB_ETHERNET',1)
 
 def build(bld):
     _lwip = 'lwip-%s/src' % _lwip_ver
