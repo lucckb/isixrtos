@@ -6,27 +6,23 @@ from waflib import Logs,Context
 import os
 import json
 
+
+
+
 # Configure toolchain
 def configure(conf):
     _set_default_options(conf)
-    conf.env.CROSS = conf.options.cross
-    conf.env.CC = conf.env.CROSS +  'gcc'
-    conf.env.CXX = conf.env.CROSS + 'g++'
-    conf.env.CPP = conf.env.CROSS + 'cpp'
-    conf.env.AS = conf.env.CROSS +  'gcc'
-    conf.env.AR = conf.env.CROSS +  'ar'
-    conf.env.OBJDUMP = conf.env.CROSS + 'objdump'
-    conf.env.OBJCOPY = conf.env.CROSS +  'objcopy'
-    conf.env.OBJSIZE = conf.env.CROSS + 'size'
-    conf.load( 'compiler_cxx' )
-    conf.load( 'compiler_c' )
-    conf.load( 'gcc gas' )
-    conf.load( 'objcopy' )
+    conf.find_program( 'git', var='GIT', mandatory=True )
+    conf.load( 'cross_none_gnu' )
+    conf.load( 'cross_none_objcopy' )
     conf.load( 'isix_link' )
     conf.load( 'build_summary' )
     conf.load( 'isix_cpudb' )
-    conf.find_program( 'git', var='GIT', mandatory=True )
 
+
+#Define options
+def options():
+     conf.load( 'cross_none_gnu' )
 
 
 # Get Git repository version
@@ -43,8 +39,6 @@ def options(conf):
     conf.add_option('--disable-defconfig',
             help='Disable reading configuration from config.json',
             action='store_true', default=False )
-    conf.load( 'compiler_cxx' )
-    conf.load( 'compiler_c' )
     conf.load( 'isix_cpudb' )
 
 
@@ -75,5 +69,3 @@ def _set_default_options(conf):
             if hasattr(conf.options,key):
                 conf.msg('Configuration','%s=%s'%(key,value))
                 setattr(conf.options,key,value)
-
-

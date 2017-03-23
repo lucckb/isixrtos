@@ -23,8 +23,7 @@ def process_ldscript(self):
             self.link_task.dep_nodes.append(node)
         self.link_task.env.append_value('LDFLAGS', _stdlib_lflags )
 
-
-
+#Only static libraries toolchain
 @feature('cprogram', 'cxxprogram' )
 @after_method('apply_link')
 def force_static_linking(self):
@@ -33,5 +32,3 @@ def force_static_linking(self):
 	env.LIB = []
 	env.SHLIB_MARKER = ''
 	env.STLIB_MARKER = ''
-
-

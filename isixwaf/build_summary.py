@@ -47,4 +47,4 @@ def set_build_summary(bld):
 
 
 def configure(conf):
-    conf.find_program( 'size', var='OBJSIZE', mandatory=True )
+    conf.find_program( '%ssize'% conf.options.cross, var='OBJSIZE', mandatory=True )

@@ -46,5 +46,5 @@ def map_objcopy(self):
 		self.add_install_files(install_to=self.objcopy_install_path, install_from=task.outputs[0])
 
 def configure(ctx):
-	ctx.find_program('objcopy', var='OBJCOPY', mandatory=True)
+	ctx.find_program('%sobjcopy'% ctx.options.cross, var='OBJCOPY', mandatory=True)
 
