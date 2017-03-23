@@ -89,7 +89,7 @@ def configure(cfg):
     if not cfg.options.cpu:
         raise WafError('Missing option CPU type not provided')
     cfg.env.ISIX_CPU_TYPE = cfg.options.cpu
-    cflags = _get_flag(cfg.options.cpu, 'cflags')
+    cflags = _get_flag(cfg.options.cpu, 'cflags') + _cflags
     if cfg.options.debug == True:
         cfg.env.ASFLAGS += [ '-gstabs' ]
         cflags += _cflags_debug
