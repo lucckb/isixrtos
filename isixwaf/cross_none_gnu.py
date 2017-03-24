@@ -130,6 +130,19 @@ def find_ar(conf):
 		conf.env.ARFLAGS = ['rcs']
 
 
+@conf
+def find_gas(conf):
+        """
+        Find the programs gas/as/gcc and set the variable *AS*
+        """
+        cross_gcc = '%sgcc' % conf.options.cross
+        cross_gas = '%sgas' % conf.options.cross
+        conf.find_program([cross_gcc, cross_gas], var='AS')
+        conf.env.AS_TGT_F = ['-c', '-o']
+        conf.env.ASLNK_TGT_F = ['-o']
+        conf.find_ar()
+        conf.load('asm')
+
 
 def options(conf):
 	"""
@@ -156,4 +169,5 @@ def configure(conf):
 	conf.cxx_load_tools()
 	conf.cxx_add_flags()
 	conf.link_add_flags()
+	conf.find_gas()
 
