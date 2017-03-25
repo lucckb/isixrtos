@@ -19,7 +19,7 @@ MEMORY
   EXTMEMB1 (rx) : ORIGIN = 0x00000000, LENGTH = 0
   EXTMEMB2 (rx) : ORIGIN = 0x00000000, LENGTH = 0
   EXTMEMB3 (rx) : ORIGIN = 0x00000000, LENGTH = 0
-  BKP_RAM (rwx)	: org = 0x40024000, LENGTH = 4k
+  BKP_RAM (rwx)	: ORIGIN = 0x40024000, LENGTH = 4k
 }
 
 /* highest address of the user mode stack */
