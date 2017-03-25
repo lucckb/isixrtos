@@ -18,6 +18,7 @@
 
 #pragma once
 #include <cstring>
+#include <cctype>
 #include <algorithm>
 
 namespace gsm_modem {
@@ -30,7 +31,7 @@ namespace gsm_modem {
 	};
 
 	// Sim requirement codes
-	struct sim_req { 
+	struct sim_req {
 	enum sim_req_ {
 		ready=1,	//Sim slot is ready
 		pin,		//Waiting for pin1
@@ -109,7 +110,7 @@ namespace gsm_modem {
 		 * @return true if number has in international format*/
 		inline bool is_international_number(const char phoneno[] )
 		{
-			const auto len = std::strlen(phoneno);	
+			const auto len = std::strlen(phoneno);
 			return len>1 && phoneno[0]=='+' && std::all_of(phoneno+1,phoneno+len,::isdigit);
 		}
 	}
