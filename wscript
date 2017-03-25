@@ -28,7 +28,18 @@ def build(bld):
 def program(ctx):
     ctx.load( 'isix_jtagprg' )
 
+#Special rule for debugging
+def ocddebug(ctx):
+    ctx.load( 'isix_jtagprg' )
+
+
 from waflib.Build import BuildContext
 class jtgprog( BuildContext ):
     cmd = 'program'
     fun = 'program'
+
+
+from waflib.Build import BuildContext
+class jtgdebug( BuildContext ):
+    cmd = 'ocddebug'
+    fun = 'ocddebug'

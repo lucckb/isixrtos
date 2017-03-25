@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+import os
 
 # Configure target
 def configure(conf):
@@ -13,7 +14,34 @@ def options(ctx):
 
 #program target
 def program( ctx ):
-    import os
+    (ini_cmd,tgt) = _read_openocd_initial_string( ctx )
+    cmd = ctx.env.OPENOCD + [ '-c '+ini_cmd, '-f'+ctx.env.OPENOCD_SCRIPT_FILE,
+            '-c program %s verify reset'%tgt,'-c shutdown' ]
+    ctx.exec_command( cmd )
+
+
+#launch openocd debuger
+def ocddebug( ctx ):
+    print('Openocd started in background check for pid and results')
+    (ini_cmd,tgt) = _read_openocd_initial_string( ctx )
+    cmd = ctx.env.OPENOCD[0]+' -c "'+ini_cmd+'" -f '+ctx.env.OPENOCD_SCRIPT_FILE
+    from multiprocessing import Process
+    p = Process( target=_openocd_proc, args=( cmd, ),daemon=True )
+    p.start()
+
+
+# OCD spawned process
+def _openocd_proc( args ):
+    import subprocess
+    DEVNULL = open(os.devnull, 'w')
+    ret = subprocess.call( args, shell=True,
+            stdout=DEVNULL,
+            stderr=subprocess.STDOUT
+    )
+
+
+# Read inicmd file
+def _read_openocd_initial_string( ctx ):
     from waflib.Errors import WafError
     if not ctx.env.OPENOCD:
         ctx.fatal('Error openocd tool is required for the program target mcu')
@@ -31,10 +59,7 @@ def program( ctx ):
         ini_cmd += "set ISIX_INTERFACE_SPEED_KHZ %s; " % cfg['jtag']['speed']
     except KeyError as err:
         raise WafError('Error invalid jtag config %r'%err, err )
-    cmd = ctx.env.OPENOCD + [ '-c '+ini_cmd, '-f'+ctx.env.OPENOCD_SCRIPT_FILE,
-            '-c program %s verify reset'%tgt,'-c shutdown' ]
-    ctx.exec_command( cmd )
-
+    return ini_cmd,tgt
 
 
 
