@@ -1,12 +1,57 @@
 {
 	"mcus" : {
+		"stm32f100r6t6" : {
+			"cpu": "arm_cortex_m3",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_LD_VL" ],
+			"flash_size": 32,
+			"ram_size": 4,
+			"link_script": "stm32-f100R6T6",
+			"family": "f1"
+		},
+		"stm32f101ctc6" : {
+			"cpu": "arm_cortex_m3",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_LD" ],
+			"flash_size": 32,
+			"ram_size": 6,
+			"link_script": "stm32-f101CTC6",
+			"family": "f1"
+		},
+		"stm32f103ctc6" : {
+			"cpu": "arm_cortex_m3",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_LD" ],
+			"flash_size": 32,
+			"ram_size": 10,
+			"link_script": "stm32-f103CTC6",
+			"family": "f1"
+		},
+		"stm32f103r8t6" : {
+			"cpu": "arm_cortex_m3",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_MD" ],
+			"flash_size": 64,
+			"ram_size": 20,
+			"link_script": "stm32-f103R8T6",
+			"family": "f1"
+		},
 		"stm32f107vbt6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_CL" ],
-			"flash_size": 256,
-			"ram_size": 32,
+			"flash_size": 128,
+			"ram_size": 48,
 			"link_script": "stm32-f107VBT6",
+			"family": "f1"
+		},
+		"stm32f107vct6" : {
+			"cpu": "arm_cortex_m3",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_CL" ],
+			"flash_size": 256,
+			"ram_size": 64,
+			"link_script": "stm32-f107VCT6",
 			"family": "f1"
 		},
 		"stm32f407zet6" : {
