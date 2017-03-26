@@ -80,6 +80,15 @@
 			"ram_size": 256,
 			"link_script": "stm32-f407ZET6",
 			"family": "f4"
+		},
+		"stm32f417vgt6" : {
+			"cpu": "arm_cortex_m4",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1"],
+			"flash_size": 1024,
+			"ram_size": 128,
+			"link_script": "stm32-f417VGT6",
+			"family": "f4"
 		}
 	}
 }
