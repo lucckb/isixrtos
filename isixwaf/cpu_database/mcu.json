@@ -72,6 +72,15 @@
 			"link_script": "stm32-f205VCT6",
 			"family": "f2"
 		},
+		"stm32f217vgt6" : {
+			"cpu": "arm_cortex_m3",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F2=1"],
+			"flash_size": 1024,
+			"ram_size": 128,
+			"link_script": "stm32-f217VG",
+			"family": "f2"
+		},
 		"stm32f407zet6" : {
 			"cpu": "arm_cortex_m4",
 			"cflags":  [ ],
