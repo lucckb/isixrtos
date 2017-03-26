@@ -45,8 +45,9 @@ def options(conf):
 # Read default configuration
 @conf
 def read_default_configuration(conf):
-    fname = os.getcwd()
-    fname = os.path.join( fname, 'config.json' )
+    fname = os.path.join( os.getcwd(), 'config.json' )
+    if not os.path.isfile(fname) and conf.top_dir:
+        fname = os.path.join( conf.top_dir, 'config.json' )
     try:
         with open(fname) as fh:
             cfg = json.load(fh)
