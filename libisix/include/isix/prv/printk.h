@@ -14,8 +14,7 @@
 #if (ISIX_CONFIG_LOGLEVEL == ISIXLOG_OFF )
 #define printk(...)
 #else
-#include <foundation/tiny_printf.h>
-
+int tiny_printf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 
 #define printk(level,...) do { if(ISIX_CONFIG_LOGLEVEL>=level) { \
 						 isix_enter_critical(); \
