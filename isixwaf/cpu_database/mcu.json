@@ -54,6 +54,24 @@
 			"link_script": "stm32-f107VCT6",
 			"family": "f1"
 		},
+		"stm32f205rct6" : {
+			"cpu": "arm_cortex_m3",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F2=1"],
+			"flash_size": 256,
+			"ram_size": 80,
+			"link_script": "stm32-f205RCT6",
+			"family": "f2"
+		},
+		"stm32f205vct6" : {
+			"cpu": "arm_cortex_m3",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F2=1"],
+			"flash_size": 256,
+			"ram_size": 80,
+			"link_script": "stm32-f205VCT6",
+			"family": "f2"
+		},
 		"stm32f407zet6" : {
 			"cpu": "arm_cortex_m4",
 			"cflags":  [ ],
