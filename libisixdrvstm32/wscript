@@ -29,7 +29,7 @@ def build(bld):
         bld.fatal( 'libisixdrv: Unknown target CPU' )
     _use =['isix', 'foundation']
     # TCPIP stack
-    if bld.is_defined('WITH_ISIX_TCPIP_LIB'):
+    if bld.env.ISIX_COMPILE_TCPIP_DRIVERS:
         _use += [ 'tcpip' ]
         _srcs += [ 'ethernet/ethernetif.c' ]
         _srcs += bld.path.ant_glob( 'ethernet/phy_*.c')
