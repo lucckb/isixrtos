@@ -138,12 +138,10 @@ void __attribute__((__interrupt__)) systick_isr_vector(void)
 {
 	_isixp_schedule_time();
 
-#ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
     if(schrun) {
 		*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
 	}
-#endif
 
 }
 
