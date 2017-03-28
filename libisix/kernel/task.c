@@ -19,8 +19,10 @@
 //Magic value for stack checking
 enum { MAGIC_FILL_VALUE = 0x55 };
 
+
+
 /* Create task function */
-ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
+ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 		unsigned long  stack_depth, osprio_t priority, unsigned long flags )
 {
 	pr_info("tskcreate: Create task with prio %i",priority);
@@ -61,7 +63,7 @@ ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
 		memset( task->impure_data, 0, sizeof(struct _reent) );
 	}
 #ifndef ISIX_CONFIG_STACK_ASCENDING
-     task->top_stack = (unsigned long*)(((uintptr_t)task->init_stack) 
+     task->top_stack = (unsigned long*)(((uintptr_t)task->init_stack)
 			 + stack_depth + ISIX_MEMORY_PROTECTION_EFENCE_SIZE );
 #	if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
 	 task->fence_estack = (uintptr_t)task->init_stack;
@@ -131,34 +133,7 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
     return real_prio;
 }
 
-/* Get isix structure private data */
-void* isix_get_task_private_data( ostask_t task )
-{
-	if( !task ) {
-		return NULL;
-	}
-	isix_enter_critical();
-	void* d = task->prv;
-	isix_exit_critical();
-	return d;
-}
 
-/* Isix set private data task */
-int isix_set_task_private_data( ostask_t task, void *data )
-{
-	if( !task ) {
-		return ISIX_EINVARG;
-	}
-	isix_enter_critical();
-	if( task->prv )
-	{
-		isix_exit_critical();
-		return ISIX_EINVARG;
-	}
-	task->prv = data;
-	isix_exit_critical();
-	return ISIX_EOK;
-}
 
 //Delete task pointed by struct task
 void isix_task_kill( ostask_t task )

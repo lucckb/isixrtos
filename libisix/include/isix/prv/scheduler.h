@@ -53,7 +53,6 @@ struct isix_task
 		oscondvar_t cond;			//! Conditional variable wait
 		osmsg_t	dmsg;				//! Returning message
 	} obj;
-    void    *prv;					//! Private data pointer for extra data
 	struct _reent *impure_data;		//! Newlib per thread private data
     list_t inode;					//! Inode task for operation
 	list_t inode_time;				//! Waiting inode

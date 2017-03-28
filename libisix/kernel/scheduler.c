@@ -515,10 +515,6 @@ static void cleanup_tasks(void)
         isix_exit_critical();
 		if( task_del ) {
 			isix_free(task_del->init_stack);
-			if( task_del->prv ) {
-				isix_free( task_del->prv );
-				task_del->prv = NULL;
-			}
 			if( task_del->impure_data ) {
 				isix_free( task_del->impure_data );
 				task_del->impure_data = NULL;
