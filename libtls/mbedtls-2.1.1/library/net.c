@@ -57,7 +57,7 @@
 #define close(fd)               closesocket(fd)
 
 static int wsa_init_done = 0;
-#elif defined( WITH_ISIX_TCPIP_LIB)
+#elif defined(__arm__)
 #include <lwip/sockets.h>
 #include <lwip/netdb.h>
 #define read(fd,buf,len)        lwip_recv(fd,(char*)buf,(int) len,0)
@@ -121,7 +121,7 @@ static int net_prepare( void )
 
         wsa_init_done = 1;
     }
-#elif defined( WITH_ISIX_TCPIP_LIB)
+#elif defined(__arm__)
 #else
 #if !defined(EFIX64) && !defined(EFI32)
     signal( SIGPIPE, SIG_IGN );
