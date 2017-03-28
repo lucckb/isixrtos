@@ -67,16 +67,6 @@ SECTIONS
 	    . = ALIGN(4);
         *(.vfp11_veneer)
        	.  = ALIGN(4);
-        PROVIDE(__ctors_start__ = .);
-	    KEEP(*(SORT(.ctors.*)))
-	    KEEP(*(.ctors))
-	    PROVIDE(__ctors_end__ = .);
-	    .  = ALIGN(4);
-	    PROVIDE(__dtors_start__ = .); 
-	    KEEP(*(SORT(.dtors.*)))
-	    KEEP(*(.dtors))
-	    PROVIDE(__dtors_end__ = .);
-	    . = ALIGN(4);
 		KEEP(*(.init));
 		. = ALIGN(4);
 		__preinit_array_start = .;
