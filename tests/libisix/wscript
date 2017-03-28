@@ -37,7 +37,7 @@ def configure(cfg):
     cfg.env.append_value('INCLUDES', stdinc )
     cfg.check_cxx( header_name='config.h', features='cxx',
             define_name='_HAVE_CONFIG_H' )
-    cfg.define( 'ISIX_CONFIG_USE_TIMERS' , 1 )
+    cfg.define( 'CONFIG_ISIX_USE_TIMERS' , 1 )
     cfg.recurse(_libs)
 
 # On build targets

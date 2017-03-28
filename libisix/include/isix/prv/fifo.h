@@ -11,7 +11,7 @@
 #include "semaphore.h"
 #include <stdatomic.h>
 
-#ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY
+#ifdef CONFIG_ISIX_FIFO_EVENT_NOTIFY
 struct isix_event;
 #endif
 
@@ -26,7 +26,7 @@ struct isix_fifo
     struct isix_semaphore rx_sem;  //Semaphore rx
     struct isix_semaphore tx_sem;  //Semaphore for tx
 	unsigned flags;	//Extra flags
-#ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY	//! Fifo event notify API
+#ifdef CONFIG_ISIX_FIFO_EVENT_NOTIFY	//! Fifo event notify API
 	struct isix_event* evt;
 	atomic_uchar bitno;
 #endif

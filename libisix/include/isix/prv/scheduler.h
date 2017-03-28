@@ -34,7 +34,7 @@ struct isix_task
 {
     unsigned long *top_stack;		//! Task stack ptr
     void *init_stack;				//! Initial value of stack for isix_free
-#if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
+#if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0
 	uintptr_t fence_estack;			//! Electric fence stack protector base
 #endif
     osprio_t prio;					//! Priority of task

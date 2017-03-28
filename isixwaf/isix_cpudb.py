@@ -103,8 +103,8 @@ def configure(cfg):
     cfg.env.ASFLAGS += cflags + [ '-Wa,-mapcs-32' ] + optflag
     cfg.env.DEFINES += _get_flag(cfg.options.cpu,'defs')
     cfg.env.LDFLAGS += [ '-nostdlib', '-nostartfiles' ] + cflags + optflag
-    if cfg.options.disable_isix == False:
-        cfg.env.DEFINES += [ 'COMPILED_UNDER_ISIX', 'ISIX_CONFIG_USE_PREEMPTION' ]
+    if cfg.options.disable_isix == True:
+        cfg.env.DEFINES += [ 'CONFIG_ISIX_WITHOUT_KERNEL=1' ]
     if cfg.options.disable_exceptions == True:
         cfg.env.CXXFLAGS += [ '-fno-exceptions', '-fno-rtti' ]
     # Always main function return and always C++ code

@@ -35,7 +35,7 @@ namespace tests {
 		{}
 		//Run all tests
 		void run() {
-#ifdef ISIX_CONFIG_CPU_USAGE_API
+#ifdef CONFIG_ISIX_CPU_USAGE_API
 			cpuload_test();
 #endif
 			basic_funcs();

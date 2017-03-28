@@ -10,8 +10,8 @@
 
 #include <isix_config.h>
 
-#if defined(ISIX_CONFIG_SHUTDOWN_API) && !defined(FUNCTION_MAIN_RETURN)
-#error Shutdown API ISIX_CONFIG_SHUTDOWN_API require main crt exit code FUNCTION_MAIN_RETURN
+#if defined(CONFIG_ISIX_SHUTDOWN_API) && !defined(FUNCTION_MAIN_RETURN)
+#error Shutdown API CONFIG_ISIX_SHUTDOWN_API require main crt exit code FUNCTION_MAIN_RETURN
 #endif
 
 

@@ -10,9 +10,9 @@
 #include <isix/prv/scheduler.h>
 
 
-#ifdef ISIX_LOGLEVEL_TASK
-#undef ISIX_CONFIG_LOGLEVEL 
-#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_TASK
+#ifdef CONFIG_ISIX_LOGLEVEL_TASK
+#undef CONFIG_ISIX_LOGLEVEL 
+#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_TASK
 #endif
 #include <isix/prv/printk.h>
 
@@ -62,22 +62,22 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 		}
 		memset( task->impure_data, 0, sizeof(struct _reent) );
 	}
-#ifndef ISIX_CONFIG_STACK_ASCENDING
+#ifndef CONFIG_ISIX_STACK_ASCENDING
      task->top_stack = (unsigned long*)(((uintptr_t)task->init_stack)
 			 + stack_depth + ISIX_MEMORY_PROTECTION_EFENCE_SIZE );
-#	if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
+#	if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0
 	 task->fence_estack = (uintptr_t)task->init_stack;
-#	endif /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL  */
-#else /*  ISIX_CONFIG_STACK_ASCENDING */
+#	endif /* CONFIG_ISIX_MEMORY_PROTECTION_MODEL  */
+#else /*  CONFIG_ISIX_STACK_ASCENDING */
      task->top_stack = task->init_stack;
-#	if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
+#	if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0
 	task->fence_estack = (uintptr_t)task->init_stack+stack_depth+
 		ISIX_MEMORY_PROTECTION_EFENCE_SIZE;
 #	endif
-#endif /*  ISIX_CONFIG_STACK_ASCENDING */
-#ifdef ISIX_CONFIG_TASK_STACK_CHECK
+#endif /*  CONFIG_ISIX_STACK_ASCENDING */
+#ifdef CONFIG_ISIX_TASK_STACK_CHECK
     memset( task->init_stack, MAGIC_FILL_VALUE, stack_depth );
-#endif	/*  ISIX_CONFIG_TASK_STACK_CHECK */
+#endif	/*  CONFIG_ISIX_TASK_STACK_CHECK */
     pr_debug("Top stack SP=%p",task->top_stack);
     //Assign task priority
     task->prio = priority;
@@ -159,9 +159,9 @@ ostask_t isix_task_self(void)
 }
 
 //Stack check for fill value
-#ifdef ISIX_CONFIG_TASK_STACK_CHECK
+#ifdef CONFIG_ISIX_TASK_STACK_CHECK
 
-#ifdef ISIX_CONFIG_STACK_ASCENDING
+#ifdef CONFIG_ISIX_STACK_ASCENDING
 #error isix_free_stack_space() for ascending stack not implemented yet
 #endif
 

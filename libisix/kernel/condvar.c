@@ -8,9 +8,9 @@
 #include <isix/prv/scheduler.h>
 #include <isix/prv/mutex.h>
 
-#ifdef ISIX_LOGLEVEL_CONDVAR
-#undef ISIX_CONFIG_CONDVAR
-#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_CONDVAR
+#ifdef CONFIG_ISIX_LOGLEVEL_CONDVAR
+#undef CONFIG_ISIX_CONDVAR
+#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_CONDVAR
 #endif
 #include <isix/prv/printk.h>
 

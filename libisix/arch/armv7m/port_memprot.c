@@ -24,11 +24,11 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
-#ifndef ISIX_CONFIG_MEMORY_PROTECTION_MODEL 
-#error ISIX_CONFIG_MEMORY_PROTECTION_MODEL not defined
+#ifndef CONFIG_ISIX_MEMORY_PROTECTION_MODEL 
+#error CONFIG_ISIX_MEMORY_PROTECTION_MODEL not defined
 #endif
 
-#if ISIX_CONFIG_MEMORY_PROTECTION_MODEL == ISIX_MPROT_LITE
+#if CONFIG_ISIX_MEMORY_PROTECTION_MODEL == ISIX_MPROT_LITE
 static void setup_regions()
 {
 	mpu_set_region( 0, 0x20000000, 
@@ -46,14 +46,14 @@ static void setup_regions()
 	mpu_enable_region(1);
 }
 
-#elif ISIX_CONFIG_MEMORY_PROTECTION_MODEL == ISIX_MPROT_FULL
+#elif CONFIG_ISIX_MEMORY_PROTECTION_MODEL == ISIX_MPROT_FULL
 #error ISIX_MPROT_FULL not supported yet
 static void setup_regions()
 {
 }
-#endif /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL */
+#endif /* CONFIG_ISIX_MEMORY_PROTECTION_MODEL */
 
-#if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
+#if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0
 
 /** Function initialize default memory protection layout just before run */
 void port_memory_protection_set_default_map(void)
@@ -127,7 +127,7 @@ void port_memory_protection_reset_efence(void)
 	);
 }
 
-#endif /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL  */
+#endif /* CONFIG_ISIX_MEMORY_PROTECTION_MODEL  */
 
 
 

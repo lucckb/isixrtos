@@ -12,15 +12,15 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
-#ifdef ISIX_LOGLEVEL_MEMORY
-#undef ISIX_CONFIG_LOGLEVEL 
-#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_MEMORY
+#ifdef CONFIG_ISIX_LOGLEVEL_MEMORY
+#undef CONFIG_ISIX_LOGLEVEL 
+#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_MEMORY
 #endif
 #include <isix/prv/printk.h>
 
 
 #define MAGIC 0x19790822
-#define ALIGN_MASK      (ISIX_CONFIG_BYTE_ALIGNMENT_SIZE - 1)
+#define ALIGN_MASK      (CONFIG_ISIX_BYTE_ALIGNMENT_SIZE - 1)
 #define ALIGN_SIZE(p)   (((size_t)(p) + ALIGN_MASK) & ~ALIGN_MASK)
 
 struct header

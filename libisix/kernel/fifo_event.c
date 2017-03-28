@@ -19,13 +19,13 @@
 #include <isix/fifo_event.h>
 #include <isix/prv/fifo_lock.h>
 
-#ifdef ISIX_LOGLEVEL_FIFO
-#undef ISIX_CONFIG_LOGLEVEL
-#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_FIFO
+#ifdef CONFIG_ISIX_LOGLEVEL_FIFO
+#undef CONFIG_ISIX_LOGLEVEL
+#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_FIFO
 #endif
 #include <isix/prv/printk.h>
 
-#ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY
+#ifdef CONFIG_ISIX_FIFO_EVENT_NOTIFY
 
 /** Connect event API to the FIFO queue for notify selected
  * if the fifo is readeable or fifo is writable
@@ -87,5 +87,5 @@ void _isixp_fifo_rxavail_event_raise( osfifo_t fifo, bool isr )
 	}
 }
 
-#endif /* ISIX_CONFIG_FIFO_EVENT_NOTIFY */
+#endif /* CONFIG_ISIX_FIFO_EVENT_NOTIFY */
 

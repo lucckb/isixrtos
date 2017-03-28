@@ -17,7 +17,7 @@
  */
 
 #pragma once
-#ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY
+#ifdef CONFIG_ISIX_FIFO_EVENT_NOTIFY
 #include <isix/config.h>
 #include "fifo.h"
 #include "events.h"
@@ -59,4 +59,4 @@ namespace {
 #endif
 
 
-#endif /* ISIX_CONFIG_FIFO_EVENT_NOTIFY */
+#endif /* CONFIG_ISIX_FIFO_EVENT_NOTIFY */

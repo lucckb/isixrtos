@@ -66,7 +66,7 @@
 //Pend SV interrupt (context switch)
 void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 {
-#ifdef ISIX_CONFIG_SHUTDOWN_API
+#ifdef CONFIG_ISIX_SHUTDOWN_API
 	if( schrun ) {
 		  cpu_save_context();
 		  _isixp_schedule();
@@ -173,7 +173,7 @@ void port_yield(void)
 //Start first task by svc call
 void  __attribute__((naked)) port_start_first_task( void )
 {
-#ifdef ISIX_CONFIG_SHUTDOWN_API
+#ifdef CONFIG_ISIX_SHUTDOWN_API
 	__asm volatile(
 		"push {r4-r11}\t\n"
 		"svc 0\t\n"

@@ -18,7 +18,7 @@
 #pragma once
 #include <isix/types.h>
 
-#ifdef ISIX_CONFIG_CPU_USAGE_API
+#ifdef CONFIG_ISIX_CPU_USAGE_API
 struct isix_task;
 
 /** Reschedule API information for task 

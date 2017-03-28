@@ -38,7 +38,7 @@ void isix_wait_us( unsigned timeout )
 //! Convert ms to ticks
 ostick_t isix_ms2tick(unsigned long ms)
 {
-	ostick_t ticks = (ISIX_CONFIG_HZ * ms)/1000UL;
+	ostick_t ticks = (CONFIG_ISIX_HZ * ms)/1000UL;
 	if(ticks==0) ticks++;
 	return ticks;
 }
