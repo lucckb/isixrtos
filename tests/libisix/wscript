@@ -35,8 +35,8 @@ def configure(cfg):
     cfg.recurse(_isix)
     stdinc = os.path.join(cfg.path.abspath(),'include')
     cfg.env.append_value('INCLUDES', stdinc )
-    cfg.check_cxx( header_name='config.h', features='cxx',
-            define_name='_HAVE_CONFIG_H' )
+    cfg.check_cxx( header_name='isix_config.h', features='cxx',
+            define_name='HAVE_ISIX_CONFIG_H' )
     cfg.define( 'CONFIG_ISIX_USE_TIMERS' , 1 )
     cfg.recurse(_libs)
 

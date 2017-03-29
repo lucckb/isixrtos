@@ -624,8 +624,7 @@ void i2c_bus::mdelay( unsigned timeout )
 }
 
 extern "C" {
-#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
-	|| (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==0)
+#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	/* Irq ev handler */
 	void __attribute__ ((interrupt)) i2c1_ev_isr_vector()
 	{
@@ -667,8 +666,7 @@ extern "C" {
 	}
 #endif
 #else
-#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
-	|| (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==0)
+#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	//I2C1 RX
 	__attribute__((interrupt)) void dma1_channel7_isr_vector()
 	{
@@ -676,8 +674,7 @@ extern "C" {
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
 	}
 #endif
-#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
-	|| (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==0)
+#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2 RX
 	__attribute__((interrupt)) void dma1_channel5_isr_vector()
 	{

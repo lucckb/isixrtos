@@ -18,7 +18,7 @@
  */
 
 #pragma once
-#include <config.h>
+#include <config/conf.h>
 
 namespace QUnit {
 	class UnitTest;

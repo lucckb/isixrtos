@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ */
-#include <config.h>
+#include <config/conf.h>
 #include <isix.h>
 #include <usart_simple.h>
 #include <foundation/dbglog.h>
