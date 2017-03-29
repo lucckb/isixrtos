@@ -19,8 +19,8 @@
 #define ISIX_DRV_SPI_SPI2_ENABLE (1<<1)
 #define ISIX_DRV_SPI_SPI3_ENABLE (1<<2)
 /*----------------------------------------------------------*/
-#ifndef CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS
-#define CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS  ISIX_DRV_SPI_SPI1_ENABLE
+#ifndef CONFIG_ISIXDRV_SPI_SUPPORTED_DEVS
+#define CONFIG_ISIXDRV_SPI_SUPPORTED_DEVS  ISIX_DRV_SPI_SPI1_ENABLE
 #endif
 
 /*----------------------------------------------------------*/
