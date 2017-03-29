@@ -9,7 +9,7 @@
 #define APP_CONFIG_H_
 
 /* Enable shoutdown API */
-#define CONFIG_ISIX_SHUTDOWN_API
+#define CONFIG_ISIX_SHUTDOWN_API 1
 /* Enable task stack checking */
 #define CONFIG_ISIX_TASK_STACK_CHECK
 #define CONFIG_ISIX_FIFO_EVENT_NOTIFY

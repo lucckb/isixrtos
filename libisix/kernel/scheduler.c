@@ -96,7 +96,7 @@ void _isixp_unlock_scheduler()
 	}
 }
 
-#ifdef CONFIG_ISIX_SHUTDOWN_API
+#if CONFIG_ISIX_SHUTDOWN_API
 /**
  * Shutdown scheduler and return to main
  * @note It can be called only  a once just before
@@ -538,7 +538,7 @@ ISIX_TASK_FUNC(idle_task,p)
 }
 
 /* This function start scheduler after main function */
-#ifndef CONFIG_ISIX_SHUTDOWN_API
+#if !(CONFIG_ISIX_SHUTDOWN_API)
 void isix_start_scheduler(void) __attribute__((noreturn));
 #endif
 void isix_start_scheduler(void)
@@ -549,7 +549,7 @@ void isix_start_scheduler(void)
 	//Restore context and run OS
 	currp->state = OSTHR_STATE_RUNNING;
 	port_start_first_task();
-#ifndef CONFIG_ISIX_SHUTDOWN_API
+#if !(CONFIG_ISIX_SHUTDOWN_API)
 	while(1);    //Prevent compiler warning
 #endif
 }
