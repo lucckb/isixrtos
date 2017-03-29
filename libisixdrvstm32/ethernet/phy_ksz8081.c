@@ -48,10 +48,10 @@ static int ksz8081_probe( uint8_t addr, int link_type )
 	   pomarańczowa - speed: on = 100 Mb/s, off = 10 Mb/s
 	   */
 
-	enum { ksz8081_ID = 0x00221561 };
+	enum { ksz8081_ID = 0x00221560 };
 	uint32_t phy_idcode = (((uint32_t)_ethernetif_read_phy_register_( addr, PHYIDR1)<<16) |
 			_ethernetif_read_phy_register_( addr, PHYIDR2));
-	if( phy_idcode != ksz8081_ID ) {
+	if( (phy_idcode&~1U) != ksz8081_ID  ) {
 		dbg_err("Not a KSZ8081 PHYs: %08x", phy_idcode );
 		return phyerr_invid;
 	}
