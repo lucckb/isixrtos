@@ -19,11 +19,11 @@
 #define FOUNDATION_DBGLOG_DEBUG 5
 
 /* Default log level */
-#ifndef FOUNDATION_CONFIG_LOGLEVEL
+#ifndef CONFIG_FOUNDATION_LOGLEVEL
 #	ifdef PDEBUG
-#		define FOUNDATION_CONFIG_LOGLEVEL FOUNDATION_DBGLOG_ERR
+#		define CONFIG_FOUNDATION_LOGLEVEL FOUNDATION_DBGLOG_ERR
 #	else
-#		define FOUNDATION_CONFIG_LOGLEVEL FOUNDATION_DBGLOG_OFF
+#		define CONFIG_FOUNDATION_LOGLEVEL FOUNDATION_DBGLOG_OFF
 #	endif
 #endif
 
@@ -72,7 +72,7 @@
 #endif /* PDEBUG */
 
 
-#if (FOUNDATION_CONFIG_LOGLEVEL==ISIXLOG_OFF) || !defined(PDEBUG)
+#if (CONFIG_FOUNDATION_LOGLEVEL==ISIXLOG_OFF) || !defined(PDEBUG)
 
 #define dbg_crit(...) do {} while(0)
 #define dbg_err(...) do {} while(0)
@@ -83,19 +83,19 @@
 #else
 
 #define dbg_crit(...) do { \
-	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_CRIT ) \
+	if( CONFIG_FOUNDATION_LOGLEVEL>=FOUNDATION_DBGLOG_CRIT ) \
 		dbprintf(__VA_ARGS__); } while(0)
 #define dbg_err(...) do { \
-	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_ERR ) \
+	if( CONFIG_FOUNDATION_LOGLEVEL>=FOUNDATION_DBGLOG_ERR ) \
 		dbprintf(__VA_ARGS__); } while(0)
 #define dbg_warn(...) do { \
-	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_WARN ) \
+	if( CONFIG_FOUNDATION_LOGLEVEL>=FOUNDATION_DBGLOG_WARN ) \
 		dbprintf(__VA_ARGS__); } while(0)
 #define dbg_info(...) do { \
-	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_INFO ) \
+	if( CONFIG_FOUNDATION_LOGLEVEL>=FOUNDATION_DBGLOG_INFO ) \
 		dbprintf(__VA_ARGS__); } while(0)
 #define dbg_debug(...) do { \
-	if( FOUNDATION_CONFIG_LOGLEVEL>=FOUNDATION_DBGLOG_DEBUG ) \
+	if( CONFIG_FOUNDATION_LOGLEVEL>=FOUNDATION_DBGLOG_DEBUG ) \
 		dbprintf(__VA_ARGS__); } while(0)
 
 #endif
