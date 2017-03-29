@@ -44,4 +44,4 @@
 #endif
 
 //! CPU load API
-//#define CONFIG_ISIX_CPU_USAGE_API
+//#define CONFIG_ISIX_CPU_USAGE_API 1

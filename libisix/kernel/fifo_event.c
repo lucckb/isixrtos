@@ -25,7 +25,7 @@
 #endif
 #include <isix/prv/printk.h>
 
-#ifdef CONFIG_ISIX_FIFO_EVENT_NOTIFY
+#if CONFIG_ISIX_FIFO_EVENT_NOTIFY
 
 /** Connect event API to the FIFO queue for notify selected
  * if the fifo is readeable or fifo is writable

@@ -21,7 +21,7 @@
 #include <isix/types.h>
 
 
-#ifdef CONFIG_ISIX_CPU_USAGE_API
+#if CONFIG_ISIX_CPU_USAGE_API
 
 
 #ifdef __cplusplus

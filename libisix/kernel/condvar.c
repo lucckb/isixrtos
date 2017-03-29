@@ -9,7 +9,6 @@
 #include <isix/prv/mutex.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_CONDVAR
-#undef CONFIG_ISIX_CONDVAR
 #define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_CONDVAR
 #endif
 #include <isix/prv/printk.h>

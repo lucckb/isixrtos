@@ -1,7 +1,7 @@
 #include "foundation/tiny_alloc.h"
 
 
-#if defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0
+#if CONFIG_ISIX_WITHOUT_KERNEL
 
 #define MAGIC 0x19790822
 #define ALIGN_TYPE      void *
@@ -43,7 +43,7 @@ static void mem_unlock(void)
 }
 
 
-#if !defined(CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION) || CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION==0
+#if !CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION
 //! Initialize global heap
 __attribute__((constructor))
 static void tiny_alloc_init(void)
@@ -150,6 +150,6 @@ void tiny_free(void *p)
 static inline void tiny_alloc_dummy_func() {}
 
 
-#endif /*defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0 */
+#endif /*CONFIG_ISIX_WITHOUT_KERNEL!=0 */
 
 

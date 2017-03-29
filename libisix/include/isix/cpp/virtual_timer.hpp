@@ -18,7 +18,7 @@
 
 #pragma once
 
-#ifdef CONFIG_ISIX_USE_TIMERS
+#if CONFIG_ISIX_USE_TIMERS
 #ifdef __cplusplus
 
 

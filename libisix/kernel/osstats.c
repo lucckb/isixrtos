@@ -27,7 +27,7 @@
 #endif
 #include <isix/prv/printk.h>
 
-#ifdef CONFIG_ISIX_CPU_USAGE_API
+#if CONFIG_ISIX_CPU_USAGE_API
 
 
 //! Calculate nearst power of two 

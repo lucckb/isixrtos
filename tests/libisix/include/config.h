@@ -11,8 +11,8 @@
 /* Enable shoutdown API */
 #define CONFIG_ISIX_SHUTDOWN_API 1
 /* Enable task stack checking */
-#define CONFIG_ISIX_TASK_STACK_CHECK
-#define CONFIG_ISIX_FIFO_EVENT_NOTIFY
+#define CONFIG_ISIX_TASK_STACK_CHECK 1
+#define CONFIG_ISIX_FIFO_EVENT_NOTIFY 1
 
 #if defined(STM32MCU_MAJOR_TYPE_F1)
 			#define CONFIG_XTAL_HZ  25000000U
@@ -41,7 +41,7 @@
 #endif
 
 //! Enable CPU usage API
-#define CONFIG_ISIX_CPU_USAGE_API
+#define CONFIG_ISIX_CPU_USAGE_API 1
 //! Define memory protection model
 #define CONFIG_ISIX_LOGLEVEL ISIXLOG_CRIT
 #define CONFIG_ISIX_MEMORY_PROTECTION_MODEL ISIX_MPROT_LITE

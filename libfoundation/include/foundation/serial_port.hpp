@@ -19,7 +19,7 @@
 
 #include <cstddef>
 
-#if !defined(CONFIG_ISIX_WITHOUT_KERNEL) || CONFIG_ISIX_WITHOUT_KERNEL==0
+#if !CONFIG_ISIX_WITHOUT_KERNEL
 #include <isix.h>
 #endif
 
@@ -27,7 +27,7 @@ namespace fnd {
 
 class serial_port {
 public:
-#if defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0
+#if CONFIG_ISIX_WITHOUT_KERNEL
 	static constexpr auto time_infinite=0;
 #else
 	static constexpr auto time_infinite=ISIX_TIME_INFINITE;

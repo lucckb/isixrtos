@@ -7,9 +7,9 @@
  *
  * ------------------------------------------------------------ */
 
-#if defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0
+#if CONFIG_ISIX_WITHOUT_KERNEL
 #	include "foundation/tiny_alloc.h"
-#else /* defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0 */
+#else /* CONFIG_ISIX_WITHOUT_KERNEL */
 #	include <isix.h>
 #	include <isix/prv/semaphore.h>
 #endif
@@ -20,9 +20,9 @@
 #include "foundation/tiny_vaprintf.h"
 
 
-#if defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0
+#if CONFIG_ISIX_WITHOUT_KERNEL
 
-#	if !defined(CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION) || CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION==0
+#	if !CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION
 //It can be redefined
 #		define foundation_alloc fnd::tiny_alloc
 #		define foundation_free fnd::tiny_free
@@ -32,12 +32,12 @@
 #	endif /*CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION */
 #	define terminate_process() while(1)
 
-#else  /* defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0 */
+#else  /* CONFIG_ISIX_WITHOUT_KERNEL */
 
 #	define foundation_alloc isix_alloc
 #	define foundation_free isix_free
 #	define terminate_process() isix_bug(__PRETTY_FUNCTION__)
-#endif /* defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0 */
+#endif /* CONFIG_ISIX_WITHOUT_KERNEL */
 
 
 #ifndef  __EXCEPTIONS
@@ -109,7 +109,7 @@ extern "C"
 }
 
 
-#if !defined(CONFIG_ISIX_WITHOUT_KERNEL) || CONFIG_ISIX_WITHOUT_KERNEL==0
+#if !CONFIG_ISIX_WITHOUT_KERNEL
 static bool initializerHasRun(__guard *);
 static void setInitializerHasRun(__guard *);
 static void setInUse(__guard *);
@@ -117,7 +117,7 @@ static void setNotInUse(__guard *);
 #endif
 
 
-#if !defined(CONFIG_ISIX_WITHOUT_KERNEL) || CONFIG_ISIX_WITHOUT_KERNEL==0
+#if !CONFIG_ISIX_WITHOUT_KERNEL
 static struct isix_semaphore ctors_sem;
 __attribute__((constructor))
 	static void mutex_initializer(void) {
@@ -130,7 +130,7 @@ __attribute__((constructor))
 /* thread safe constructed objects  */
 int __cxa_guard_acquire(__guard *guard_object)
 {
-#if !defined(CONFIG_ISIX_WITHOUT_KERNEL) || CONFIG_ISIX_WITHOUT_KERNEL==0
+#if !CONFIG_ISIX_WITHOUT_KERNEL
 	// check that the initializer has not already been run
 	if (initializerHasRun(guard_object))
 		return 0;
@@ -155,7 +155,7 @@ void __cxa_guard_release(__guard *guard_object)
 {
     setInitializerHasRun(guard_object);
 
-#if !defined(CONFIG_ISIX_WITHOUT_KERNEL) || CONFIG_ISIX_WITHOUT_KERNEL==0
+#if !CONFIG_ISIX_WITHOUT_KERNEL
 	if( isix_sem_signal(&ctors_sem )) {
 		terminate_process();
 	}
@@ -178,7 +178,7 @@ void __cxa_guard_abort(__guard *guard_object)
 {
 	setNotInUse(guard_object);
 
-#if !defined(CONFIG_ISIX_WITHOUT_KERNEL) || CONFIG_ISIX_WITHOUT_KERNEL==0
+#if !CONFIG_ISIX_WITHOUT_KERNEL
 	if( isix_sem_signal(&ctors_sem) ) {
 		terminate_process();
 	}

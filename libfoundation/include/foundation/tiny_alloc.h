@@ -8,7 +8,7 @@
 
 #pragma once
 
-#if defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0
+#if CONFIG_ISIX_WITHOUT_KERNEL
 
 #include <stddef.h>
 
@@ -26,6 +26,6 @@ extern "C" {
  } }
 #endif
 
-#endif /* defined(CONFIG_ISIX_WITHOUT_KERNEL) && CONFIG_ISIX_WITHOUT_KERNEL!=0 */
+#endif /* CONFIG_ISIX_WITHOUT_KERNEL */
 
 

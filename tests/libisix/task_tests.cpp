@@ -203,7 +203,7 @@ void task_tests::basic_funcs()
 	}
 }
 
-#ifdef CONFIG_ISIX_CPU_USAGE_API
+#if CONFIG_ISIX_CPU_USAGE_API
 namespace {
 	void cpuload_task(void *param) 
 	{

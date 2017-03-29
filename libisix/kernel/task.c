@@ -75,7 +75,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 		ISIX_MEMORY_PROTECTION_EFENCE_SIZE;
 #	endif
 #endif /*  CONFIG_ISIX_STACK_ASCENDING */
-#ifdef CONFIG_ISIX_TASK_STACK_CHECK
+#if CONFIG_ISIX_TASK_STACK_CHECK
     memset( task->init_stack, MAGIC_FILL_VALUE, stack_depth );
 #endif	/*  CONFIG_ISIX_TASK_STACK_CHECK */
     pr_debug("Top stack SP=%p",task->top_stack);
@@ -159,7 +159,7 @@ ostask_t isix_task_self(void)
 }
 
 //Stack check for fill value
-#ifdef CONFIG_ISIX_TASK_STACK_CHECK
+#if CONFIG_ISIX_TASK_STACK_CHECK
 
 #ifdef CONFIG_ISIX_STACK_ASCENDING
 #error isix_free_stack_space() for ascending stack not implemented yet

@@ -13,7 +13,7 @@
 #include <isix/fifo.h>
 #include <stdatomic.h>
 
-#ifdef CONFIG_ISIX_USE_TIMERS
+#if CONFIG_ISIX_USE_TIMERS
 
 //! Default queue size
 #ifndef CONFIG_ISIX_TIMERS_CMD_QUEUE_SIZE 

@@ -70,7 +70,7 @@ ostask_t isix_task_self(void);
  * @param[in] task Task control block
  * @return Number of bytes in stack space
  */
-#ifdef CONFIG_ISIX_TASK_STACK_CHECK
+#if CONFIG_ISIX_TASK_STACK_CHECK
 size_t isix_free_stack_space( const ostask_t task );
 #endif
 
@@ -142,7 +142,7 @@ namespace {
 	inline osprio_t get_task_inherited_priority( const ostask_t task=nullptr ) {
 		return ::isix_get_task_inherited_priority( task );
 	}
-#ifdef CONFIG_ISIX_TASK_STACK_CHECK
+#if CONFIG_ISIX_TASK_STACK_CHECK
 	inline size_t free_stack_space( const ostask_t task=nullptr ) {
 		return ::isix_free_stack_space( task );
 	}

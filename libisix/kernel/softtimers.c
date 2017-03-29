@@ -19,7 +19,7 @@
 #endif
 #include <isix/prv/printk.h>
 
-#ifdef CONFIG_ISIX_USE_TIMERS 
+#if CONFIG_ISIX_USE_TIMERS 
 
 //! Global timer CTX structure
 static struct vtimer_context tctx;
