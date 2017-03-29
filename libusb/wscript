@@ -31,7 +31,7 @@ def build(bld):
         bld.fatal("Host not suported for this type of cpu")
     bld.stlib( source=src,
             includes = inc, export_includes=inc, defines=defs,
-            target='usb', use=['isix', 'foundation'] )
+            target='usb', use=['isix', 'foundation','common_conf'] )
 
 
 

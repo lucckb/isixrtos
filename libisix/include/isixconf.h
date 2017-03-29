@@ -1,8 +1,6 @@
 #pragma once
-#ifdef _HAVE_CONFIG_H
-#include "config.h"
-#endif
 
+#include <config/conf.h>
 
 /** Ticks per seconds */
 #ifndef CONFIG_ISIX_HZ

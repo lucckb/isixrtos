@@ -13,5 +13,6 @@ def build(bld):
     inc = ['include' ]
     bld.stlib( source=src,
             includes = inc, export_includes=inc,
-            target='fatfs', use=['isix', 'isixdrvstm32' ]
+            target='fatfs',
+            use=['isix', 'isixdrvstm32', 'common_conf' ]
     )

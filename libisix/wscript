@@ -11,8 +11,6 @@ def configure(conf):
     conf.env.ISIX_VERSION = conf.git_repo_version()
 
 
-
-
 def build(bld):
     archpath = os.path.join('arch',bld.isix_get_arch())
     src = bld.path.ant_glob( 'kernel/*.c' )
@@ -25,7 +23,7 @@ def build(bld):
     )
     bld.stlib( source=src, target='isix',
                includes=inc, export_includes=inc,
-               use = [ 'isix_version' ]
+               use = [ 'isix_version', 'common_conf' ]
     )
 
 

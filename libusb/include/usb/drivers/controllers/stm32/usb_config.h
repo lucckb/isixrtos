@@ -20,10 +20,7 @@
 #ifndef  ISIX_USB_CONFIG_H_
 #define  ISIX_USB_CONFIG_H_
 
-#ifdef _HAVE_CONFIG_H
-#include <config.h>
-#endif
-
+#include <config/conf.h>
 
 //! This option uses microsec timer for schedule host tasks
 //#define CONFIG_USBLIB_US_TIM_N 4

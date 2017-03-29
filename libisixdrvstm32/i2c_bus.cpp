@@ -27,9 +27,7 @@
 #include <cstdlib>
 #include <new>
 #include <cstring>
-#ifdef _HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <config/conf.h>
 
 
 namespace stm32 {

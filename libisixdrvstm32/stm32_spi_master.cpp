@@ -9,9 +9,7 @@
 #include <stm32rcc.h>
 #include <stm32spi.h>
 #include <stm32gpio.h>
-#ifdef _HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <config/conf.h>
 #include <foundation/dbglog.h>
 
 

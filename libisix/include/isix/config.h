@@ -8,7 +8,7 @@
 #define ISIX_MPROT_LITE 1
 #define ISIX_MPROT_FULL 2
 
-#include <isix_config.h>
+#include <isixconf.h>
 
 
 

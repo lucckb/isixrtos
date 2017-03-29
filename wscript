@@ -22,6 +22,8 @@ def configure(conf):
 
 def build(bld):
     bld.set_build_summary()
+    _inc = 'config/include'
+    bld( includes = _inc, export_includes=_inc, name='common_conf' )
     bld.recurse( bld_isixlibs )
 
 #Special target program waflib

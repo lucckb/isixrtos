@@ -13,7 +13,7 @@ def build(bld):
     inc = ['./include' ]
     bld.stlib( source=src,
             includes = inc, export_includes=inc,
-            target='foundation', use= ['isix']
+            target='foundation', use= ['isix', 'common_conf']
     )
     #bld.objects( source='syscalls.cpp', includes = inc,
     #        target='crt0', name= 'syscalls', use=['isix']

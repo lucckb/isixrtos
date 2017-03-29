@@ -11,9 +11,7 @@
 /*----------------------------------------------------------*/
 #include "spi_device.hpp"
 #include <stm32lib.h>
-#ifdef _HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <config/conf.h>
 /*----------------------------------------------------------*/
 #define ISIX_DRV_SPI_SPI1_ENABLE (1<<0)
 #define ISIX_DRV_SPI_SPI2_ENABLE (1<<1)

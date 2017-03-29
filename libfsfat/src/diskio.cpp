@@ -1,30 +1,28 @@
-/*-----------------------------------------------------------------------*/
+
 /* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2012        */
-/*-----------------------------------------------------------------------*/
+
 /* If a working storage control module is available, it should be        */
 /* attached to the FatFs via a glue function rather than modifying it.   */
 /* This is an example of glue functions to attach various exsisting      */
 /* storage control module to the FatFs module with a defined API.        */
-/*-----------------------------------------------------------------------*/
+
 
 #include "diskio.h"		/* FatFs lower layer API */
-#ifdef _HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <config/conf.h>
 #include "mmc/mmc_slot.hpp"
 #include "mmc/mmc_card.hpp"
-/*-----------------------------------------------------------------------*/
+
 #define MAX_DISK_NUMB 2
 static drv::mmc::mmc_slot* g_slots[MAX_DISK_NUMB];
 static drv::mmc::mmc_card* g_cards[MAX_DISK_NUMB];
-/*-----------------------------------------------------------------------*/
+
 DRESULT disk_add( BYTE disk_id, drv::mmc::mmc_slot *slot )
 {
 	if( disk_id >= MAX_DISK_NUMB ) return RES_PARERR;
 	g_slots[disk_id] = slot;
 	return RES_OK;
 }
-/*-----------------------------------------------------------------------*/
+
 extern "C"
 {
 	DWORD __attribute__ ((weak)) get_fattime(void)
@@ -32,10 +30,10 @@ extern "C"
 		return 0;
 	}
 }
-/*-----------------------------------------------------------------------*/
+
 /* Initialize a Drive                                                    */
 
-/*-----------------------------------------------------------------------*/
+
 DSTATUS disk_initialize (
 		BYTE drv				/* Physical drive nmuber (0..) */
 )
@@ -54,9 +52,9 @@ DSTATUS disk_initialize (
 	}
 	return 0;
 }
-/*-----------------------------------------------------------------------*/
+
 /* Get Disk Status                                                       */
-/*-----------------------------------------------------------------------*/
+
 
 DSTATUS disk_status (
 	BYTE drv		/* Physical drive nmuber (0..) */
@@ -71,9 +69,9 @@ DSTATUS disk_status (
 	return 0;
 }
 
-/*-----------------------------------------------------------------------*/
+
 /* Read Sector(s)                                                        */
-/*-----------------------------------------------------------------------*/
+
 
 DRESULT disk_read (
 	BYTE drv,		/* Physical drive nmuber (0..) */
@@ -97,9 +95,9 @@ DRESULT disk_read (
 	}
 }
 
-/*-----------------------------------------------------------------------*/
+
 /* Write Sector(s)                                                       */
-/*-----------------------------------------------------------------------*/
+
 
 #if _USE_WRITE
 DRESULT disk_write (
@@ -126,9 +124,9 @@ DRESULT disk_write (
 #endif
 
 
-/*-----------------------------------------------------------------------*/
+
 /* Miscellaneous Functions                                               */
-/*-----------------------------------------------------------------------*/
+
 
 #if _USE_IOCTL
 DRESULT disk_ioctl (

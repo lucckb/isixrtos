@@ -15,25 +15,23 @@
  *
  * =====================================================================================
  */
-#ifdef _HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <config/conf.h>
 #include <foundation/fs_env.hpp>
 #include <cstdint>
 #include <limits>
 #include <cstring>
-/* ------------------------------------------------------------------ */
+
 #if CONFIG_LIBFOUNDATION_ENV_FS_DEBUG
 #include <foundation/dbglog.h>
 #else
 #define dbprintf(...) do {} while(0)
 #endif
-/* ------------------------------------------------------------------ */ 
+
 namespace fnd {
 namespace filesystem {
-/* ------------------------------------------------------------------ */
+
 namespace detail {
-/* ------------------------------------------------------------------ */ 
+
 //! Page header
 struct pg_hdr {
 	static constexpr uint32_t id_empty = 0xffff;
@@ -44,7 +42,7 @@ struct pg_hdr {
 	uint32_t id;			//! Partition ID
 	uint16_t clust_len;		//! Cluster size
 } __attribute__((packed));
-/* ------------------------------------------------------------------ */
+
 //! Node defs
 static constexpr uint16_t node_unused = 0x7FFF;
 static constexpr uint16_t node_dirty = 0;
@@ -70,7 +68,7 @@ struct fnode_1 {
 	uint16_t next: 15;
 	uint8_t data[];
 } __attribute__((packed));
-/* ------------------------------------------------------------------ */ 
+
 //! Short CRC8 implementation
 class crc16 {
 	static constexpr uint16_t lo_tbl[] = {
@@ -119,9 +117,9 @@ private:
 	//Declare constexpr table
 	constexpr uint16_t crc16::lo_tbl[];
 	constexpr uint16_t crc16::hi_tbl[];
-/* ------------------------------------------------------------------ */
+
 } // ns
-/* ------------------------------------------------------------------ */
+
 //! Set chain without wear leveling
 int fs_env::write_existing( unsigned env_id, const void* buf, size_t buf_len )
 {
@@ -229,7 +227,7 @@ int fs_env::write_existing( unsigned env_id, const void* buf, size_t buf_len )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Set chain without wear leveling
 int fs_env::write_non_existing( unsigned env_id, const void* buf, size_t buf_len,
 		unsigned short& lru_cache_elem )
@@ -329,7 +327,7 @@ int fs_env::write_non_existing( unsigned env_id, const void* buf, size_t buf_len
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 /**  Store data in non volatile memory
 	*   @param[in] env_id Environment identifier
 	*   @param[in] buf Pointer to buffer for store data
@@ -368,7 +366,7 @@ int fs_env::set( unsigned env_id, const void* buf, size_t buf_len )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 /**  Get data from non volatile memory
 	*   @param[in] env_id Environment identifier
 	*   @param[in] buf Pointer to buffer for store data
@@ -443,7 +441,7 @@ int fs_env::get( unsigned env_id, void* buf, size_t buf_len )
 	}
 	return (ret)?(ret):(real_read);
 }
-/* ------------------------------------------------------------------ */
+
 /** Unset environment variable
 	*   @param[in] env_id Environment identifier
 	*   @return Error code on failed
@@ -469,7 +467,7 @@ int fs_env::unset( unsigned env_id )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */ 
+
 //! Calculate required cluster for buffer usage
 size_t fs_env::buf_len_to_n_clust( size_t buf_len )
 {
@@ -483,7 +481,7 @@ size_t fs_env::buf_len_to_n_clust( size_t buf_len )
 		return unsigned(ret)/csize + (unsigned(ret)%csize?(1U):(0U)) + 1U;
 	}
 }
-/* ------------------------------------------------------------------ */ 
+
 //!Unset internal witohout mod
 int fs_env::delete_chain( unsigned cclu )
 {
@@ -508,7 +506,7 @@ int fs_env::delete_chain( unsigned cclu )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Check fre chain
 int fs_env::check_chains( unsigned rclu )
 {
@@ -531,7 +529,7 @@ int fs_env::check_chains( unsigned rclu )
 	} 
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Find free node
 int fs_env::find_free_cluster( unsigned sclust )
 {	
@@ -559,7 +557,7 @@ int fs_env::find_free_cluster( unsigned sclust )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //Init fs  cal on every set and get env
 int fs_env::init_fs()
 {
@@ -597,7 +595,7 @@ int fs_env::init_fs()
 			m_pg_base, m_pg_alt, m_npages, m_wear_leveling, m_clust_size );
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Find first entry by ID
 int fs_env::find_first( unsigned id, detail::fnode_0* node )
 {
@@ -630,7 +628,7 @@ int fs_env::find_first( unsigned id, detail::fnode_0* node )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Find next cluster and alloc if eof
 int fs_env::find_next_cluster( unsigned cluster )
 {
@@ -651,7 +649,7 @@ int fs_env::find_next_cluster( unsigned cluster )
 	dbprintf("find_next_cluster(%i) -> %i",cluster, ret );
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Erase all pages beginning from startup pg
 int fs_env::erase_all_random( unsigned pg )
 {
@@ -666,7 +664,7 @@ int fs_env::erase_all_random( unsigned pg )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 int fs_env::erase_all_nonrandom( unsigned pg )
 {
 	dbprintf("Erase all nonrandom %u", pg);
@@ -680,7 +678,7 @@ int fs_env::erase_all_nonrandom( unsigned pg )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Format memory headers
 int fs_env::format() 
 {
@@ -701,7 +699,7 @@ int fs_env::format()
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Get first page address
 iflash_mem::paddr_t fs_env::calc_page( int n_pg ) const
 {
@@ -713,7 +711,7 @@ iflash_mem::paddr_t fs_env::calc_page( int n_pg ) const
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Get pages avail
 iflash_mem::paddr_t fs_env::calc_npages( int n_pg ) const
 {
@@ -728,7 +726,7 @@ iflash_mem::paddr_t fs_env::calc_npages( int n_pg ) const
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Flash read cluster 
 int fs_env::flash_read( unsigned fpg, unsigned clust, unsigned csize,  void *buf, size_t len )
 {
@@ -754,7 +752,7 @@ int fs_env::flash_read( unsigned fpg, unsigned clust, unsigned csize,  void *buf
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */ 
+
 //! Flash read cluster 
 int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const void *buf, size_t len )
 {
@@ -780,7 +778,7 @@ int fs_env::flash_write( unsigned fpg, unsigned clust, unsigned csize, const voi
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Reclaim the filesystem
 int fs_env::reclaim_random()
 {
@@ -808,7 +806,7 @@ int fs_env::reclaim_random()
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+
 //! Reclaim the filesystem
 int fs_env::reclaim_nonrandom()
 {
@@ -843,7 +841,7 @@ int fs_env::reclaim_nonrandom()
 	m_alt_page_in_use = !m_alt_page_in_use;
 	return ret;
 }
-/* ------------------------------------------------------------------ */ 
+
 //! Check sturcture header and if it is invalid format it
 int fs_env::find_valid_page( unsigned& clust_size )
 {
@@ -876,7 +874,7 @@ int fs_env::find_valid_page( unsigned& clust_size )
 	} while(0);
 	return ret;
 }
-/* ------------------------------------------------------------------ */ 
+
 }
 }
 

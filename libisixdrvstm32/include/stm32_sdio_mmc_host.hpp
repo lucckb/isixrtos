@@ -4,29 +4,26 @@
  *  Created on: 01-12-2012
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
-#ifndef STM32_SDIO_MMC_HOST_HPP_
-#define STM32_SDIO_MMC_HOST_HPP_
-/*----------------------------------------------------------*/
+
+#pragma once
+
 #include "mmc/mmc_host.hpp"
 #include "spi_device.hpp"
 #include <stdint.h>
 #include <isix.h>
-#ifdef _HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <config/conf.h>
 
-/*----------------------------------------------------------*/
+
 #define ISIX_SDDRV_TRANSFER_USE_IRQ (1<<0)
 #define ISIX_SDDRV_WAIT_USE_IRQ (1<<1)
-/*----------------------------------------------------------*/
+
 #ifndef ISIX_SDDRV_TRANSFER_MODE
 #define ISIX_SDDRV_TRANSFER_MODE (ISIX_SDDRV_TRANSFER_USE_IRQ|ISIX_SDDRV_WAIT_USE_IRQ)
 #endif
-/*----------------------------------------------------------*/
+
 namespace stm32 {
 namespace drv {
-/*----------------------------------------------------------*/
+
 
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 extern "C" {
@@ -38,7 +35,7 @@ extern "C" {
 void __attribute__((__interrupt__)) exti8_isr_vector(void);
 }
 #endif
-/*----------------------------------------------------------*/
+
 class mmc_host_sdio : public ::drv::mmc::mmc_host
 {
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
@@ -86,9 +83,8 @@ private:
 	void process_irq_exti();
 #endif
 };
-/*----------------------------------------------------------*/
+
 } /* namespace drv */
 }
-/*----------------------------------------------------------*/
-#endif /* MMC_HOST_SDIO_STM32_HPP_ */
-/*----------------------------------------------------------*/
+
+
