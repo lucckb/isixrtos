@@ -56,7 +56,7 @@ mmc_card::mmc_card( mmc_host &host, card_type type )
         m_error = read_scr_card_info();
         dbprintf("read_scr_card_info %i", m_error );
     }
-    uint32_t tran_speed {}; {};
+    uint32_t tran_speed {};
     if( !m_error )
     {
 		//Update card parameters
@@ -306,7 +306,7 @@ int mmc_card::sd_mode_initialize()
 //Update card parameters
 uint32_t mmc_card::read_csd_card_info()
 {
-	uint32_t tran_speed;
+	uint32_t tran_speed {};
 	mmc_command cmd;
 	do
 	{
