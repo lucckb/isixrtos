@@ -1,0 +1,12 @@
+{
+	"jtag": {
+		"target": 	"tests/libisix/isixunittests",
+		"type": 	"BF30",
+		"speed": 	2000,
+		"swd":     0
+	},
+	"configure" : {
+		"disable_isix": false,
+		"debug": true
+	}
+}

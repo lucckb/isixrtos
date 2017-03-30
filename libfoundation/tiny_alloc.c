@@ -1,17 +1,8 @@
-/*------------------------------------------------------*/
-/*
- * memory.c
- *  New heap allocator for the ISIX
- *  Created on: 2009-11-11
- *      Author: lucck
- */
-/*------------------------------------------------------*/
 #include "foundation/tiny_alloc.h"
 
-/*------------------------------------------------------*/
-#ifndef COMPILED_UNDER_ISIX
 
-/*------------------------------------------------------*/
+#if CONFIG_ISIX_WITHOUT_KERNEL
+
 #define MAGIC 0x19790822
 #define ALIGN_TYPE      void *
 #define ALIGN_MASK      (sizeof(ALIGN_TYPE) - 1)
@@ -26,7 +17,7 @@ struct header
   } h;
   size_t                h_size;
 };
-/*------------------------------------------------------*/
+
 static struct
 {
   struct header         free;   /* Guaranteed to be not adjacent to the heap */
@@ -34,26 +25,28 @@ static struct
 } heap;
 
 
-/*------------------------------------------------------*/
+
 //!Lock the memory
 static void mem_lock_init(void)
 {
 }
-/*------------------------------------------------------*/
+
 //!Lock the memory
 static void mem_lock(void)
 {
 }
 
-/*------------------------------------------------------*/
+
 //!Unlock the memory
 static void mem_unlock(void)
 {
 }
 
-/*------------------------------------------------------*/
+
+#if !CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION
 //! Initialize global heap
-void tiny_alloc_init(void)
+__attribute__((constructor))
+static void tiny_alloc_init(void)
 {
   struct header *hp;
 
@@ -70,8 +63,9 @@ void tiny_alloc_init(void)
   heap.free.h_size = 0;
 
 }
+#endif
 
-/*------------------------------------------------------*/
+
 void *tiny_alloc(size_t size)
 {
   struct header *qp, *hp, *fp;
@@ -109,29 +103,22 @@ void *tiny_alloc(size_t size)
   return NULL;
 }
 
-/*------------------------------------------------------*/
+
 #define LIMIT(p) (struct header *)((char *)(p) + \
                                    sizeof(struct header) + \
                                    (p)->h_size)
 
-/*------------------------------------------------------*/
+
 void tiny_free(void *p)
 {
   struct header *qp, *hp;
 
   hp = (struct header *)p - 1;
 
-  /*chDbgAssert(hp->h_magic == MAGIC,
-              "chHeapFree(), #1",
-              "it is not magic"); */
   qp = &heap.free;
   mem_lock();
 
   while (1) {
-
-/*    chDbgAssert((hp < qp) || (hp >= LIMIT(qp)),
-                "chHeapFree(), #2",
-                "within tiny_free block"); */
 
     if (((qp == &heap.free) || (hp > qp)) &&
         ((qp->h.h_next == NULL) || (hp < qp->h.h_next))) {
@@ -158,10 +145,11 @@ void tiny_free(void *p)
   mem_unlock();
 }
 #else
-/*------------------------------------------------------*/
+
 //NOTE: Prevent empty translation unit
 static inline void tiny_alloc_dummy_func() {}
 
-/*------------------------------------------------------*/
-#endif /*COMPILED_UNDER_ISIX*/
+
+#endif /*CONFIG_ISIX_WITHOUT_KERNEL!=0 */
+
 

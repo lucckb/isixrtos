@@ -11,16 +11,14 @@
 /*----------------------------------------------------------*/
 #include "spi_device.hpp"
 #include <stm32lib.h>
-#ifdef _HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <config/conf.h>
 /*----------------------------------------------------------*/
 #define ISIX_DRV_SPI_SPI1_ENABLE (1<<0)
 #define ISIX_DRV_SPI_SPI2_ENABLE (1<<1)
 #define ISIX_DRV_SPI_SPI3_ENABLE (1<<2)
 /*----------------------------------------------------------*/
-#ifndef CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS
-#define CONFIG_ISIX_DRV_SPI_SUPPORTED_DEVS  ISIX_DRV_SPI_SPI1_ENABLE
+#ifndef CONFIG_ISIXDRV_SPI_SUPPORTED_DEVS
+#define CONFIG_ISIXDRV_SPI_SUPPORTED_DEVS  ISIX_DRV_SPI_SPI1_ENABLE
 #endif
 
 /*----------------------------------------------------------*/

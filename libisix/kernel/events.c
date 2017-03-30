@@ -24,9 +24,9 @@
 #include <isix/task.h>
 #include <string.h>
 
-#ifdef ISIX_LOGLEVEL_EVENTS
-#undef ISIX_CONFIG_LOGLEVEL 
-#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_EVENTS
+#ifdef CONFIG_ISIX_LOGLEVEL_EVENTS
+#undef CONFIG_ISIX_LOGLEVEL 
+#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_EVENTS
 #endif
 #include <isix/prv/printk.h>
 

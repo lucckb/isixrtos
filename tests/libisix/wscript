@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+
+import sys
+import os
+sys.path.insert(0, '../../isixwaf')
+
+
+# Current top directory
+top = '../..'
+
+# Current ouptut directory
+out = 'build'
+
+
+
+# List of libraries required for core testing
+_libs = [
+        os.path.join( top,'libisix'),
+        os.path.join( top,'libfoundation'),
+        os.path.join( top, 'libstm32')
+]
+
+#Isix root
+_isix = top
+
+
+# On select options 
+def options(opt):
+    opt.recurse(_isix)
+    opt.recurse(_libs)
+
+
+# On configuration
+def configure(cfg):
+    cfg.recurse(_isix)
+    stdinc = os.path.join(cfg.path.abspath(),'include')
+    cfg.env.append_value('INCLUDES', stdinc )
+    cfg.check_cxx( header_name='isix_config.h', features='cxx',
+            define_name='HAVE_ISIX_CONFIG_H' )
+    cfg.define( 'CONFIG_ISIX_USE_TIMERS' , 1 )
+    cfg.recurse(_libs)
+
+# On build targets
+def build(bld):
+    bld.recurse(_libs)
+    bld.recurse(_isix)
+    src = bld.path.ant_glob( '*.cpp' )
+    src += bld.path.ant_glob( '*.c' )
+    bld.program(
+            features='objcopy',
+            target='isixunittests',
+            source=src,
+            install_path=False,
+            includes=[ '.', 'include' ],
+            use=[ 'foundation', 'isix', 'stm32' ]
+            )
+
+
+
+#Program
+def program(ctx):
+    ctx.recurse( _isix )
+
+#OCD debug
+def ocddebug(ctx):
+    ctx.recurse( _isix )
+

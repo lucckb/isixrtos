@@ -40,7 +40,7 @@ static inline __attribute__((always_inline))
 static inline __attribute__((always_inline)) 
 void port_idle_cpu( void )
 {
-#ifndef ISIX_DEBUG
+#ifndef PDEBUG
 	asm volatile("wfi\t\n");
 #else
 	asm volatile("nop\t\n");

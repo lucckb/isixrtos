@@ -39,9 +39,6 @@ ISIX_SRC += $(ISIX_DIR)/arch/$(ISIX_ARCH)/port_memprot.c
 #Isix includes
 ISIX_INC += -I$(ISIX_DIR)/include -I$(ISIX_DIR)/arch/$(ISIX_ARCH)/include
 
-ifeq ($(DEBUG),y)
-ISIX_INC += -DISIX_DEBUG
-endif
 
 ISIX_VERSION := $(shell cd $(ISIX_DIR) && git describe --tags 2> /dev/null )
 ifdef ISIX_VERSION
@@ -62,4 +59,4 @@ $(ISIX_LIB): $(ISIX_OBJS)
 LIBS += $(ISIX_LIB)
 LIBS_OBJS += $(ISIX_OBJS)
 #Default isix configuration
-COMMON_FLAGS += $(ISIX_INC) -DCOMPILED_UNDER_ISIX -DISIX_CONFIG_USE_PREEMPTION 
+COMMON_FLAGS += $(ISIX_INC) -DCOMPILED_UNDER_ISIX -DCONFIG_ISIX_USE_PREEMPTION 

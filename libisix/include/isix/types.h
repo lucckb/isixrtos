@@ -20,10 +20,10 @@ namespace {
 #endif
 
 #ifdef __cplusplus
-static constexpr unsigned ISIX_HZ = ISIX_CONFIG_HZ;
+static constexpr unsigned ISIX_HZ = CONFIG_ISIX_HZ;
 #else
 //! HZ value used as system ticks
-#define ISIX_HZ ISIX_CONFIG_HZ
+#define ISIX_HZ CONFIG_ISIX_HZ
 #endif
 
 

@@ -18,7 +18,6 @@ extern "C" {
 enum isix_task_flags {
 	isix_task_flag_newlib = 1U,		//! Uses per thread new lib data for ex errno
 	isix_task_flag_suspended = 2U,	//! Create task suspended
-	isix_task_flag_tcpip = 4U,		//! tcpip thread flag
 	isix_task_flag_ref = 8U			//! Extra reference non should be called task_unref();
 };
 
@@ -29,29 +28,8 @@ enum isix_task_flags {
  * @param[in] priority The task priority
  * @param[in] flags extra flags for control task parameters
  * @return Task control object, or NULL when task can't be created */
-ostask_t _isixp_task_create(task_func_ptr_t task_func, void *func_param,
-		unsigned long stack_depth, osprio_t priority, unsigned long flags );
-
-#ifndef WITH_ISIX_TCPIP_LIB
-inline __attribute__((always_inline))
 ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
-		unsigned long stack_depth, osprio_t priority, unsigned long flags )
-{
-	return _isixp_task_create( task_func, func_param, stack_depth, priority, flags );
-}
-#else /* defined WITH_ISIX_TCPIP_LIB */
-ostask_t sys_thread_new(const char *name, task_func_ptr_t thread,
-		void *arg, int stacksize, int prio );
-inline __attribute__((always_inline))
-ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param, 
-		unsigned long stack_depth, osprio_t priority, unsigned long flags )
-{
-	if( flags & isix_task_flag_tcpip )
-		return sys_thread_new( NULL, task_func, func_param, stack_depth, priority );
-	else
-		return _isixp_task_create( task_func, func_param, stack_depth, priority, flags );
-}
-#endif /* defined WITH_ISIX_TCPIP_LIB */
+		unsigned long stack_depth, osprio_t priority, unsigned long flags );
 
 
 /** Change the task/thread priority
@@ -74,23 +52,6 @@ void isix_task_kill( ostask_t task );
 ostask_t isix_task_self(void);
 
 
-/* Isix set private data task
- * This function assign private data to the current task control block
- * The data can be assigned only once. The memory pointer should be
- * allocated on the heap using @see isix_alloc. Memory will be freed 
- * when task will be deleted.
- * @param [in] task Task control object
- * @param [in] data Private data pointer assigned to the task
- * @return ISIX_EOK if success, ISIX_EINVAL when pointer is already assigned */
-int isix_set_task_private_data( ostask_t task, void *data );
-
-/* Get isix structure private data
- * Get the isix private data pointer asigned to the task
- * @param [in] task Task control object
- * @return private data pointer
- * */
-void* isix_get_task_private_data( ostask_t task );
-
 /**
  *	Isix get task priority utility function
  *	@param[in] task Task control object
@@ -109,7 +70,7 @@ void* isix_get_task_private_data( ostask_t task );
  * @param[in] task Task control block
  * @return Number of bytes in stack space
  */
-#ifdef ISIX_CONFIG_TASK_STACK_CHECK
+#if CONFIG_ISIX_TASK_STACK_CHECK
 size_t isix_free_stack_space( const ostask_t task );
 #endif
 
@@ -175,19 +136,13 @@ namespace {
 	inline ostask_t task_self() {
 		return ::isix_task_self();
 	}
-	inline int set_task_private_data( ostask_t task, void *data ) {
-		return ::isix_set_task_private_data( task, data );
-	}
-	inline void* get_task_private_data( ostask_t task ) {
-		return ::isix_get_task_private_data( task );
-	}
 	inline osprio_t get_task_priority( const ostask_t task=nullptr ) {
 		return ::isix_get_task_priority( task );
 	}
 	inline osprio_t get_task_inherited_priority( const ostask_t task=nullptr ) {
 		return ::isix_get_task_inherited_priority( task );
 	}
-#ifdef ISIX_CONFIG_TASK_STACK_CHECK
+#if CONFIG_ISIX_TASK_STACK_CHECK
 	inline size_t free_stack_space( const ostask_t task=nullptr ) {
 		return ::isix_free_stack_space( task );
 	}

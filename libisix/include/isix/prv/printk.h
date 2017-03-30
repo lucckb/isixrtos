@@ -11,13 +11,12 @@
 #include <isix/config.h>
 
 
-#if (ISIX_CONFIG_LOGLEVEL == ISIXLOG_OFF )
+#if (CONFIG_ISIX_LOGLEVEL == ISIXLOG_OFF )
 #define printk(...)
 #else
-#include <foundation/tiny_printf.h>
+int tiny_printf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 
-
-#define printk(level,...) do { if(ISIX_CONFIG_LOGLEVEL>=level) { \
+#define printk(level,...) do { if(CONFIG_ISIX_LOGLEVEL>=level) { \
 						 isix_enter_critical(); \
 						 tiny_printf("%s:%d|%s|",__FILE__,__LINE__,__FUNCTION__); \
 						 tiny_printf(__VA_ARGS__); \

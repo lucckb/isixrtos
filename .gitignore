@@ -1,3 +1,4 @@
+.*
 *.dep
 *.o
 *.a
@@ -9,6 +10,7 @@
 .*.sw*
 *.bin
 *.lst
+*.pyc
 libgfx/host-tools/convbdf
 libgfx/host-tools/convflashbmp
 libgfx/host-tools/tags
@@ -22,3 +24,5 @@ tags
 .project
 .cproject
 .settings
+libisix/include/isix/version.h
+tests/libisix/build

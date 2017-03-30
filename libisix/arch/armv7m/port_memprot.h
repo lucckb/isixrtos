@@ -26,7 +26,7 @@
 
 /** Function initialize default memory protection layout just before run
  */
-#if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0 
+#if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0 
 //! Define memory protection electric fence length
 #define ISIX_MEMORY_PROTECTION_EFENCE_SIZE 32
 
@@ -49,7 +49,7 @@ uintptr_t port_memory_efence_aligna( uintptr_t addr )
 {
 	// Fence region must be inside of alloated space
 	if( addr & (ISIX_MEMORY_PROTECTION_EFENCE_SIZE-1) ) {
-#ifndef ISIX_CONFIG_STACK_ASCENDING
+#ifndef CONFIG_ISIX_STACK_ASCENDING
 		addr += ISIX_MEMORY_PROTECTION_EFENCE_SIZE;
 #else
 		addr -= ISIX_MEMORY_PROTECTION_EFENCE_SIZE;
@@ -59,7 +59,7 @@ uintptr_t port_memory_efence_aligna( uintptr_t addr )
 	return addr;
 }
 
-#else /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL */
+#else /* CONFIG_ISIX_MEMORY_PROTECTION_MODEL */
 
 //! Define memory protection electric fence length
 #define ISIX_MEMORY_PROTECTION_EFENCE_SIZE 0
@@ -71,6 +71,6 @@ uintptr_t  port_memory_efence_aligna( uintptr_t addr )
 {
 	return addr;
 }
-#endif /* ISIX_CONFIG_MEMORY_PROTECTION_MODEL  */
+#endif /* CONFIG_ISIX_MEMORY_PROTECTION_MODEL  */
 
 

@@ -115,14 +115,12 @@ static void timer_interrupt(int j, siginfo_t *si, void *old_context)
         sigemptyset(&signal_context.uc_sigmask);
         makecontext(&signal_context, schedule_time, 0);
 
-#ifdef ISIX_CONFIG_USE_PREEMPTION
     /* Set a PendSV to request a context switch. */
      if(schrun)
      {
         /* save running thread, jump to scheduler */
         swapcontext((ucontext_t*)currp->top_stack ,&signal_context);
      }
-#endif
 }
 /*-----------------------------------------------------------------------*/
 

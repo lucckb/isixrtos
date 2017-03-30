@@ -1,9 +1,9 @@
-/* ------------------------------------------------------------------ */
+
 /* System architecture lwip for isix operating system
  * Copyright (c) Lucjan Bryndza 2012
  * All Rights reserverd
  */
-/* ------------------------------------------------------------------ */
+
 #include "lwip/debug.h"
 #include "arch/sys_arch.h"
 #include "lwip/debug.h"
@@ -12,29 +12,13 @@
 #include "lwip/mem.h"
 #include "lwip/timers.h"
 
-/* ------------------------------------------------------------------ */
+
 //Semaphore for locking the mempool
-static ossem_t arch_protect_sem;
+static osmtx_t arch_protect_mutex;
 
 
-/* ------------------------------------------------------------------ */
-//Create basic thread structure for LWIP
-static ostask_t introduce_thread(struct isix_task *task)
-{
-	struct sys_timeo *sto = isix_alloc(sizeof(struct sys_timeo));
-    if(sto)
-    {
-        memset(sto, 0, sizeof(struct sys_timeo));
-    }
-    if( isix_set_task_private_data( task, sto ) != ISIX_EOK )
-    {
-    	isix_free( sto );
-    	return NULL;
-    }
-    return task;
-}
 
-/* ------------------------------------------------------------------ */
+
 /** The only thread function:
  * Creates a new thread
  * @param name human-readable name for the thread (used for debugging purposes)
@@ -45,17 +29,14 @@ static ostask_t introduce_thread(struct isix_task *task)
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize, int prio)
 {
     (void)name;
-    struct isix_task* task = isix_task_create
-		( thread, arg, stacksize, prio, isix_task_flag_newlib );
-    if(task != NULL )
-    {
-        task = introduce_thread(task);
-    }
+    struct isix_task* task = isix_task_create (
+			thread, arg, stacksize, prio, isix_task_flag_newlib
+	);
     return task;
 }
 
 
-/* ------------------------------------------------------------------ */
+
 /** Create a new semaphore
  * @param sem pointer to the semaphore to create
  * @param count initial count of the semaphore
@@ -67,7 +48,7 @@ err_t sys_sem_new(sys_sem_t *sem, u8_t count)
 }
 
 
-/* ------------------------------------------------------------------ */
+
 /** Delete a semaphore
  * @param sem semaphore to delete */
 void sys_sem_free(sys_sem_t *sem)
@@ -75,7 +56,7 @@ void sys_sem_free(sys_sem_t *sem)
     isix_sem_destroy(*sem);
 }
 
-/* ------------------------------------------------------------------ */
+
 /** Signals a semaphore
  * @param sem the semaphore to signal */
 void sys_sem_signal(sys_sem_t *sem)
@@ -83,7 +64,7 @@ void sys_sem_signal(sys_sem_t *sem)
     isix_sem_signal(*sem);
 }
 
-/* ------------------------------------------------------------------ */
+
 /** Wait for a semaphore for the specified timeout
  * @param sem the semaphore to wait for
  * @param timeout timeout in milliseconds to wait (0 = wait forever)
@@ -101,24 +82,7 @@ u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 }
 
 
-/* ------------------------------------------------------------------ */
-/*
-  Returns a pointer to the per-thread sys_timeouts structure. In lwIP,
-  each thread has a list of timeouts which is represented as a linked
-  list of sys_timeout structures. The sys_timeouts structure holds a
-  pointer to a linked list of timeouts. This function is called by
-  the lwIP timeout scheduler and must not return a NULL value.
 
-  In a single threaded sys_arch implementation, this function will
-  simply return a pointer to a global sys_timeouts variable stored in
-  the sys_arch module.
-*/
-struct sys_timeo* sys_arch_timeouts(void)
-{
-    return (struct sys_timeo*)isix_get_task_private_data( isix_task_self() );
-}
-
-/* ------------------------------------------------------------------ */
 /*
 Blocks the thread until a message arrives in the mailbox, but does
 not block the thread longer than "timeout" milliseconds (similar to
@@ -153,7 +117,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, message_t *msg, u32_t timeout)
     }
 }
 
-/* ------------------------------------------------------------------ */
+
 /*
   Deallocates a mailbox. If there are messages still present in the
   mailbox when the mailbox is deallocated, it is an indication of a
@@ -164,7 +128,7 @@ void sys_mbox_free(sys_mbox_t *mbox)
     isix_fifo_destroy(*mbox);
 }
 
-/* ------------------------------------------------------------------ */
+
 /** Create a new mbox of specified size
  * @param mbox pointer to the mbox to create
  * @param size (miminum) number of messages in this mbox
@@ -174,13 +138,13 @@ err_t sys_mbox_new(sys_mbox_t *mbox, int size)
    *mbox = isix_fifo_create(size,sizeof(void*));
    return (*mbox)?(ERR_OK):(ERR_MEM);
 }
-/* ------------------------------------------------------------------ */
+
 /* Post the message to the mailbox */
 void sys_mbox_post(sys_mbox_t *mbox,  message_t msg)
 {
 	isix_fifo_write( *mbox, &msg, ISIX_TIME_INFINITE );
 }
-/* ------------------------------------------------------------------ */
+
 /** Wait for a new message to arrive in the mbox
  * @param mbox mbox to get a message from
  * @param msg pointer where the message is stored
@@ -195,7 +159,7 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, message_t *msg)
 	return ( reason==ISIX_EOK )?( 0 ):( SYS_MBOX_EMPTY );
 }
 
-/* ------------------------------------------------------------------ */
+
 /** Try to post a message to an mbox - may fail if full or ISR
  * @param mbox mbox to posts the message
  * @param msg message to post (ATTENTION: can be NULL) */
@@ -205,7 +169,7 @@ err_t sys_mbox_trypost(sys_mbox_t *mbox, message_t msg)
 	return ( reason==ISIX_EOK )?( 0 ):( SYS_MBOX_EMPTY );
 }
 
-/* ------------------------------------------------------------------ */
+
 /*
  * Perform a "fast" protect. This could be implemented by
  * disabling interrupts for an embedded system or by using a semaphore or
@@ -215,14 +179,14 @@ err_t sys_mbox_trypost(sys_mbox_t *mbox, message_t msg)
  * which should be implemented in sys_arch.c. If a particular port needs a
  * different implementation, then this macro may be defined in sys_arch.h
 */
-/* ------------------------------------------------------------------ */
+
 sys_prot_t sys_arch_protect(void)
 {
-	LWIP_ASSERT("Invalid TCPIP lock semaphore", arch_protect_sem );
-	isix_sem_wait( arch_protect_sem, ISIX_TIME_INFINITE );
+	LWIP_ASSERT("Invalid TCPIP lock semaphore", arch_protect_mutex );
+	isix_mutex_lock( arch_protect_mutex );
 	return 1;
 }
-/*-----------------------------------------------------------------------------------*/
+
 /** void sys_arch_unprotect(sys_prot_t pval)
 
 This optional function does a "fast" set of critical region protection to the
@@ -233,17 +197,17 @@ an operating system.
 void sys_arch_unprotect(sys_prot_t pval)
 {
 	(void)pval;
-	LWIP_ASSERT("Invalid TCPIP lock semaphore", arch_protect_sem );
-	isix_sem_signal( arch_protect_sem );
+	LWIP_ASSERT("Invalid TCPIP lock semaphore", arch_protect_mutex );
+	isix_mutex_unlock( arch_protect_mutex );
 }
-/* ------------------------------------------------------------------ */
+
 /* Add system initialize stuff before tcpip init */
 void sys_init(void)
 {
-	arch_protect_sem = isix_sem_create( NULL, 1 );
-	LWIP_ASSERT("Unable to create lock semaphore", arch_protect_sem );
+	arch_protect_mutex = isix_mutex_create( NULL );
+	LWIP_ASSERT("Unable to create lock mtx", arch_protect_mutex );
 }
 
-/* ------------------------------------------------------------------ */
+
 
 

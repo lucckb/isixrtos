@@ -45,12 +45,12 @@ void _fifo_unlock( const osfifo_t fifo )
 }
 
 
-#ifdef ISIX_CONFIG_FIFO_EVENT_NOTIFY
+#if CONFIG_ISIX_FIFO_EVENT_NOTIFY
 #define ISIX_FIFO_EVENT_INVALID_BITS 0xff
 /** Private function called when event API notification should be made
  * @param[in] fifo Input fifo handle
  */
 void _isixp_fifo_rxavail_event_raise( osfifo_t fifo, bool isr );
-#else /*ISIX_CONFIG_FIFO_EVENT_NOTIFY*/
+#else /*CONFIG_ISIX_FIFO_EVENT_NOTIFY*/
 #define _isixp_fifo_rxavail_event_raise(x,y) do {} while(0)
-#endif /*ISIX_CONFIG_FIFO_EVENT_NOTIFY*/
+#endif /*CONFIG_ISIX_FIFO_EVENT_NOTIFY*/

@@ -118,7 +118,7 @@ static void print_bits( const struct reg_desc *table, unsigned long bits )
 	}
 }
 
-#ifdef COMPILED_UNDER_ISIX
+#if !CONFIG_ISIX_WITHOUT_KERNEL
 void* isix_task_self(void);
 #endif
 
@@ -130,13 +130,13 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 	//Disable interrupt
 	irq_disable();
 	//Initialize usart simple no interrupt
-	tiny_printf("\r\n\r\nISIX panic! Exception in [%s] mode.\r\n", 
+	tiny_printf("\r\n\r\nISIX panic! Exception in [%s] mode.\r\n",
 			crash_type==CRASH_TYPE_USER?"USER":"SYSTEM" );
-#ifdef COMPILED_UNDER_ISIX
+#if !CONFIG_ISIX_WITHOUT_KERNEL
 	tiny_printf("Last executed task TCB is %p\r\n", isix_task_self() );
 #endif
 	tiny_printf("CPU core regs: \r\n");
-	tiny_printf("\t[R0=%08lx]\t[R1=%08lx]\t[R2=%08lx]\t[R3=%08lx]\r\n", 
+	tiny_printf("\t[R0=%08lx]\t[R1=%08lx]\t[R2=%08lx]\t[R3=%08lx]\r\n",
 			SP[stk_r0],SP[stk_r1],SP[stk_r2],SP[stk_r3]);
 	tiny_printf("\t[R12=%08lx]\t[LR=%08lx]\t[PC=%08lx]\r\n",
 			SP[stk_r12],SP[stk_lr],SP[stk_pc]);
@@ -146,10 +146,10 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 	tiny_printf("HFSR Hard Fault Status Register bits:\r\n");
 	print_bits( hsfr_bits, reg32(HFSR) );
 	bool stk_err = false;
-	if( reg32(HFSR) & HSFR_BFORCED ) 
+	if( reg32(HFSR) & HSFR_BFORCED )
 	{
 		//Try to print BUS fault ADDRESS register
-		if( reg8(BFSR) ) 
+		if( reg8(BFSR) )
 		{
 			unsigned long ar = reg32(BFAR);
 			tiny_printf("Bus Fault exception occured. BFSR status:\r\n");
@@ -161,7 +161,7 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 			reg8(BFSR) = BFSR_CLEAR;
 		}
 		//Memory management fault handling
-		if( reg8(MMSR) ) 
+		if( reg8(MMSR) )
 		{
 			unsigned long ar = reg32(MMAR);
 			tiny_printf("Memory Management Fault exception occured. MMAR status:\r\n" );
@@ -172,7 +172,7 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 			stk_err = reg8(MMSR)&MMSR_BFSR_STACK_ERR_MASK;
 			reg8(MMSR) = MMSR_CLEAR;
 		}
-		// Usage fault handling 
+		// Usage fault handling
 		if( reg16(UFSR) )
 		{
 			tiny_printf("Usage Fault exception occured. UFSR status:\r\n" );
@@ -182,10 +182,10 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 		reg32(HFSR) = HFSR_CLEAR;
 	}
 	//! Print stack frame only when no stacking error
-	if( !stk_err ) 
+	if( !stk_err )
 	{
 		tiny_printf("Stack dump:\r\n\t" );
-		for( int i=0; i<32; ++i ) 
+		for( int i=0; i<32; ++i )
 		{
 			if( i%4==0 )  {
 				tiny_printf( "%08lx: ", (unsigned long)&SP[stk_data+i] );

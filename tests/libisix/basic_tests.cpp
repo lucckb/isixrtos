@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ */
-#include <config.h>
+#include <config/conf.h>
 #include <isix.h>
 #include <usart_simple.h>
 #include <foundation/dbglog.h>
@@ -39,9 +39,9 @@ class unit_tests : public isix::task_base
 		auto ptr1 = isix_alloc( 1 );
 		auto ptr2 = isix_alloc( 1 );
 		QUNIT_IS_NOT_EQUAL( ptr1, nullptr );
-		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr1)%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE , 0 );
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr1)%CONFIG_ISIX_BYTE_ALIGNMENT_SIZE , 0 );
 		QUNIT_IS_NOT_EQUAL( ptr2, nullptr );
-		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr2)%ISIX_CONFIG_BYTE_ALIGNMENT_SIZE , 0 );
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr2)%CONFIG_ISIX_BYTE_ALIGNMENT_SIZE , 0 );
 		isix_free( ptr1 );
 		isix_free( ptr2 );
 		int fragments {};

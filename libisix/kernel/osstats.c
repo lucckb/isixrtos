@@ -21,13 +21,13 @@
 #include <isix/prv/osstats.h>
 #include <stdatomic.h>
 
-#ifdef ISIX_LOGLEVEL_OSSTATS
-#undef ISIX_CONFIG_OSSTATS 
-#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_OSSTATS
+#ifdef CONFIG_ISIX_LOGLEVEL_OSSTATS
+#undef CONFIG_ISIX_OSSTATS 
+#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_OSSTATS
 #endif
 #include <isix/prv/printk.h>
 
-#ifdef ISIX_CONFIG_CPU_USAGE_API
+#if CONFIG_ISIX_CPU_USAGE_API
 
 
 //! Calculate nearst power of two 
@@ -42,7 +42,7 @@
 #define LOG2_UINT32 _LOG2B
 #define LOG2_UINT16 _LOG2C
 #define LOG2_UINT8  _LOG2D
-#define CYCLES_RST_COUNT  (1UL<<((LOG2_UINT64(ISIX_CONFIG_HZ-1)+1)))
+#define CYCLES_RST_COUNT  (1UL<<((LOG2_UINT64(CONFIG_ISIX_HZ-1)+1)))
 #define CPULOAD_MAX 1000LU
 
 
@@ -98,5 +98,5 @@ void _isixp_schedule_update_statistics( ostick_t t, bool idle_scheduled )
 	cstats.old_state = idle_scheduled;
 }
 
-#endif /* ISIX_CONFIG_CPU_USAGE_API */
+#endif /* CONFIG_ISIX_CPU_USAGE_API */
 

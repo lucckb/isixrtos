@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import platform
+import os
+
+
+def options(opt):
+    pass
+
+def configure(conf):
+    conf.env.ISIX_VERSION = conf.git_repo_version()
+
+
+def build(bld):
+    archpath = os.path.join('arch',bld.isix_get_arch())
+    src = bld.path.ant_glob( 'kernel/*.c' )
+    src += bld.path.ant_glob( os.path.join(archpath,'*.c' ) )
+    inc = ['./include', os.path.join(archpath,'include'), '../libstm32/inc' ]
+    bld( features='subst', source='include/isix/version.h.in',
+            target='include/isix/version.h',
+            ISIX_VERSION = bld.env.ISIX_VERSION,
+            name='isix_version'
+    )
+    bld.stlib( source=src, target='isix',
+               includes=inc, export_includes=inc,
+               use = [ 'isix_version', 'common_conf' ]
+    )
+
+

@@ -19,9 +19,7 @@
 #include <foundation/ibus.hpp>
 #include <cstdint>
 #include <isix.h>
-#ifdef _HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <config/conf.h>
 #define CONFIG_ISIXDRV_I2C_1 1
 #define CONFIG_ISIXDRV_I2C_2 2
 /**

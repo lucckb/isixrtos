@@ -25,8 +25,8 @@
 static inline __attribute__((always_inline)) 
 size_t _isixp_align_size( size_t len )
 {
-	if( len & (ISIX_CONFIG_BYTE_ALIGNMENT_SIZE-1) )
-		return len + ISIX_CONFIG_BYTE_ALIGNMENT_SIZE - (len&(ISIX_CONFIG_BYTE_ALIGNMENT_SIZE-1) );
+	if( len & (CONFIG_ISIX_BYTE_ALIGNMENT_SIZE-1) )
+		return len + CONFIG_ISIX_BYTE_ALIGNMENT_SIZE - (len&(CONFIG_ISIX_BYTE_ALIGNMENT_SIZE-1) );
 	else
 		return len;
 }

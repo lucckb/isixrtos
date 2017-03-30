@@ -13,9 +13,9 @@
 #include <isix/port_memprot.h>
 #include <stdatomic.h>
 
-#ifdef ISIX_LOGLEVEL_SCHEDULER
-#undef ISIX_CONFIG_LOGLEVEL 
-#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_SCHEDULER
+#ifdef CONFIG_ISIX_LOGLEVEL_SCHEDULER
+#undef CONFIG_ISIX_LOGLEVEL 
+#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_SCHEDULER
 #endif
 #include <isix/prv/printk.h>
 
@@ -96,7 +96,7 @@ void _isixp_unlock_scheduler()
 	}
 }
 
-#ifdef ISIX_CONFIG_SHUTDOWN_API
+#if CONFIG_ISIX_SHUTDOWN_API
 /**
  * Shutdown scheduler and return to main
  * @note It can be called only  a once just before
@@ -118,7 +118,7 @@ void _isixp_finalize()
 	_isixp_vtimers_finalize();
 	cleanup_tasks();
 }
-#endif /* ISIX_CONFIG_SHUTDOWN_API  */
+#endif /* CONFIG_ISIX_SHUTDOWN_API  */
 
 //Lock scheduler
 void isix_enter_critical(void)
@@ -185,7 +185,7 @@ void isix_kernel_panic( const char *file, int line, const char *msg )
 {
     //Go to critical sections forever
 	isix_enter_critical();
-#if ISIX_CONFIG_LOGLEVEL!=ISIXLOG_OFF
+#if CONFIG_ISIX_LOGLEVEL!=ISIXLOG_OFF
 	pr_crit("OOPS-PANIC: Please reset board %s:%i [%s]", file, line, msg );
     task_ready_t *i;
     ostask_t j;
@@ -264,7 +264,7 @@ void _isixp_schedule(void)
 	}
 	currp->state = OSTHR_STATE_RUNNING;
 	//Handle fence stuff
-#	if ISIX_CONFIG_MEMORY_PROTECTION_MODEL > 0
+#	if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0
 	port_memory_protection_reset_efence( );
 	port_memory_protection_set_efence( currp->fence_estack );
 #	endif
@@ -515,10 +515,6 @@ static void cleanup_tasks(void)
         isix_exit_critical();
 		if( task_del ) {
 			isix_free(task_del->init_stack);
-			if( task_del->prv ) {
-				isix_free( task_del->prv );
-				task_del->prv = NULL;
-			}
 			if( task_del->impure_data ) {
 				isix_free( task_del->impure_data );
 				task_del->impure_data = NULL;
@@ -538,14 +534,11 @@ ISIX_TASK_FUNC(idle_task,p)
         cleanup_tasks();
         //Call port specific idle
         port_idle_cpu();
-#ifndef  ISIX_CONFIG_USE_PREEMPTION
-        isix_yield();
-#endif
     }
 }
 
 /* This function start scheduler after main function */
-#ifndef ISIX_CONFIG_SHUTDOWN_API
+#if !(CONFIG_ISIX_SHUTDOWN_API)
 void isix_start_scheduler(void) __attribute__((noreturn));
 #endif
 void isix_start_scheduler(void)
@@ -556,7 +549,7 @@ void isix_start_scheduler(void)
 	//Restore context and run OS
 	currp->state = OSTHR_STATE_RUNNING;
 	port_start_first_task();
-#ifndef ISIX_CONFIG_SHUTDOWN_API
+#if !(CONFIG_ISIX_SHUTDOWN_API)
 	while(1);    //Prevent compiler warning
 #endif
 }

@@ -7,9 +7,9 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
-#ifdef ISIX_LOGLEVEL_MUTEX
-#undef ISIX_CONFIG_LOGLEVEL
-#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_MUTEX
+#ifdef CONFIG_ISIX_LOGLEVEL_MUTEX
+#undef CONFIG_ISIX_LOGLEVEL
+#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_MUTEX
 #endif
 #include <isix/prv/printk.h>
 

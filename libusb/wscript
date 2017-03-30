@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+
+_base = 'drivers/controllers/stm32/'
+_src = [
+    _base + 'timer.c',
+    _base + 'usb_otg_fifo.c',
+    _base + 'usb_otg_interrupt.c',
+    _base + 'usbh_interrupt.c',
+    _base + 'usbh_api.c',
+]
+
+def options(opt):
+    pass
+
+def configure(conf):
+    pass
+
+def build(bld):
+    src = bld.path.ant_glob( 'core/*.c' ) + _src
+    src += bld.path.ant_glob( 'host/*.c' )
+    src += bld.path.ant_glob( 'drivers/hostdev/*.c' )
+    inc = [ 'include' ]
+    cputype = bld.isix_get_cpu_family()
+    if cputype=="f2" or cputype=="f4":
+        src += [ _base +  'usbh_configure_207.c' ]
+        defs = [ 'STM32F2XX' ]
+    elif cputype=="f1":
+        src += [ _base +  'usbh_configure_107.c' ]
+        defs = [ ]
+    else:
+        bld.fatal("Host not suported for this type of cpu")
+    bld.stlib( source=src,
+            includes = inc, export_includes=inc, defines=defs,
+            target='usb', use=['isix', 'foundation','common_conf'] )
+
+
+

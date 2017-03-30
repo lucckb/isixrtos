@@ -13,13 +13,13 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
-#ifdef ISIX_LOGLEVEL_VTIMERS
-#undef ISIX_CONFIG_LOGLEVEL 
-#define ISIX_CONFIG_LOGLEVEL ISIX_LOGLEVEL_VTIMERS
+#ifdef CONFIG_ISIX_LOGLEVEL_VTIMERS
+#undef CONFIG_ISIX_LOGLEVEL 
+#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_VTIMERS
 #endif
 #include <isix/prv/printk.h>
 
-#ifdef ISIX_CONFIG_USE_TIMERS 
+#if CONFIG_ISIX_USE_TIMERS 
 
 //! Global timer CTX structure
 static struct vtimer_context tctx;
@@ -259,7 +259,7 @@ int isix_vtimer_initialize( void )
 		tctx.pov_vtimer_list = &tctx._vtimer_list_[1];
 		//Create worker queue and task
 		tctx.worker_queue = 
-			isix_fifo_create( ISIX_CONFIG_TIMERS_CMD_QUEUE_SIZE, sizeof(command_t) );
+			isix_fifo_create( CONFIG_ISIX_TIMERS_CMD_QUEUE_SIZE, sizeof(command_t) );
 		if( !tctx.worker_queue ) return !tctx.worker_queue;
 		tctx.worker_thread_id = isix_task_create( worker_thread, NULL, 
 			ISIX_PORT_SCHED_MIN_STACK_DEPTH*4, isix_get_min_priority()/2, 0 );
@@ -416,5 +416,5 @@ int isix_vtimer_mod( osvtimer_t timer, ostick_t new_timeout )
 	return ISIX_EOK;
 }
 
-#endif /* ISIX_CONFIG_USE_TIMERS */
+#endif /* CONFIG_ISIX_USE_TIMERS */
 

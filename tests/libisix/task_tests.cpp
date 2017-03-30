@@ -79,16 +79,7 @@ void task_tests::basic_funcs()
 	auto t2 = new base_task_tests;
 	auto t3 = new base_task_tests;
 	auto t4 = new base_task_tests; 
-	auto p1 = isix_alloc(16);
-	auto p2 = isix_alloc(16);
-	auto p3 = isix_alloc(16);
-	auto p4 = isix_alloc(16);
 	t1->start(); t2->start(); t3->start(); t4->start();
-	//Try set private data
-	QUNIT_IS_EQUAL( isix_set_task_private_data(t1->get_taskid(), p1), ISIX_EOK );
-	QUNIT_IS_EQUAL( isix_set_task_private_data(t2->get_taskid(), p2), ISIX_EOK );
-	QUNIT_IS_EQUAL( isix_set_task_private_data(t3->get_taskid(), p3), ISIX_EOK );
-	QUNIT_IS_EQUAL( isix_set_task_private_data(t4->get_taskid(), p4), ISIX_EOK );
 	//Active wait tasks shouldnt run
 	for(auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+5000; ) {
 		asm volatile("nop\n");
@@ -127,11 +118,6 @@ void task_tests::basic_funcs()
 	QUNIT_IS_TRUE( t1->exec_count()>0 );
 	QUNIT_IS_TRUE( t4->exec_count()>0 );
 	
-	//After finish all tasks check private data
-	QUNIT_IS_EQUAL( isix_get_task_private_data(t1->get_taskid()), p1 );
-	QUNIT_IS_EQUAL( isix_get_task_private_data(t2->get_taskid()), p2 );
-	QUNIT_IS_EQUAL( isix_get_task_private_data(t3->get_taskid()), p3 );
-	QUNIT_IS_EQUAL( isix_get_task_private_data(t4->get_taskid()), p4 );
 
 	
 	//Validate stack space functionality
@@ -203,7 +189,7 @@ void task_tests::basic_funcs()
 	}
 }
 
-#ifdef ISIX_CONFIG_CPU_USAGE_API
+#if CONFIG_ISIX_CPU_USAGE_API
 namespace {
 	void cpuload_task(void *param) 
 	{
@@ -316,12 +302,11 @@ void task_tests::wait_and_reference_api() {
 
 	/** Check memory usage before and after because task is referenced
 	 * difference between memory areas should be equal task stack size */
-	isix::wait_ms(100);
+	isix::wait_ms(300);
 	auto ram_end = isix::heap_free(nullptr);
 	QUNIT_IS_TRUE( ram_end+thack_struct_size() >= ram_beg );
-
-
 	QUNIT_IS_EQUAL(  (ram_beg-ram_end), thack_struct_size() );
+
 	QUNIT_IS_EQUAL(  thack_getref_cnt( th1 ), 1 );
 	// Check the task state
 	QUNIT_IS_EQUAL( isix::get_task_state(th1), OSTHR_STATE_EXITED );

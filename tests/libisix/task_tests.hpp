@@ -18,7 +18,7 @@
  */
 
 #pragma once
-#include <config.h>
+#include <config/conf.h>
 
 namespace QUnit {
 	class UnitTest;
@@ -35,7 +35,7 @@ namespace tests {
 		{}
 		//Run all tests
 		void run() {
-#ifdef ISIX_CONFIG_CPU_USAGE_API
+#if CONFIG_ISIX_CPU_USAGE_API
 			cpuload_test();
 #endif
 			basic_funcs();

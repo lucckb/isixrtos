@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+import platform
+import os
+
+#Add options
+def options(opt):
+    opt.add_option( '--stack-size', default=512,
+            help='Define system stack size. [default: 512]'
+    )
+
+# Extra configuration arguments
+def configure(conf):
+    conf.env.append_value( 'LDFLAGS', '-Wl,--defsym=_sys_stack_size=%i' % conf.options.stack_size )
+    scripts_dir = conf.path.find_dir('./scripts').abspath()
+    conf.env.append_value( 'LIBPATH', scripts_dir )
+    conf.env.OPENOCD_SCRIPT_FILE = os.path.join( scripts_dir, 'stm32.cfg' )
+
+#Build script
+def build(bld):
+    if not bld.is_defined('STM32MCU_MAJOR_TYPE_F1'):
+        exclude = 'src/stm32f1fmc.cpp'
+    else:
+        exclude =''
+    src = bld.path.ant_glob( 'src/*.c' )
+    src += bld.path.ant_glob( 'src/*.cpp', excl=exclude )
+    inc = ['./inc' ]
+    bld.stlib( source=src,
+            target='stm32',
+            includes = inc,
+            export_includes= inc,
+            use = ['foundation'],
+    )
+    bld.env.CRT0_LINKER_SCRIPT = bld.path.find_resource(
+        os.path.join('scripts', bld.isix_get_linker_script_name())
+    )
+

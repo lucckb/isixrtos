@@ -8,10 +8,7 @@
 #define ISIX_MPROT_LITE 1
 #define ISIX_MPROT_FULL 2
 
-#include <isix_config.h>
+#include <isixconf.h>
 
-#if defined(ISIX_CONFIG_SHUTDOWN_API) && !defined(FUNCTION_MAIN_RETURN)
-#error Shutdown API ISIX_CONFIG_SHUTDOWN_API require main crt exit code FUNCTION_MAIN_RETURN
-#endif
 
 
