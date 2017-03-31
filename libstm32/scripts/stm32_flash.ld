@@ -1,9 +1,3 @@
-/*
-Common part of the linker scripts for STR71x devices in FLASH mode
-(that is, the FLASH is seen at 0)
-Copyright RAISONANCE 2005
-You can use, modify and distribute thisfile freely, but without any waranty.
-*/
 
 ENTRY(exceptions_vectors)
 EXTERN(exceptions_vectors)
@@ -133,22 +127,6 @@ SECTIONS
     PROVIDE ( end = _ebss );
     PROVIDE ( _end = _ebss );
     
-    /* This is the user stack section 
-    This is just to check that there is enough RAM left for the User mode stack
-    It should generate an error if it's full.
-     */
-    /*
-    ._usrstack :
-    {
-	    . = ALIGN(4);
-        _susrstack = . ;
-        
-        . = . + _Minimum_Stack_Size ;
-        
-	    . = ALIGN(4);
-        _eusrstack = . ;
-    } >RAM
-    */
     ._heap :
     {
         . = ALIGN(8);
