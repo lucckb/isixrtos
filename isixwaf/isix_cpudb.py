@@ -107,8 +107,6 @@ def configure(cfg):
         cfg.env.DEFINES += [ 'CONFIG_ISIX_WITHOUT_KERNEL=1' ]
     if cfg.options.disable_exceptions == True:
         cfg.env.CXXFLAGS += [ '-fno-exceptions', '-fno-rtti' ]
-    # Always main function return and always C++ code
-    cfg.env.DEFINES += [ 'CPP_STARTUP_CODE', 'FUNCTION_MAIN_RETURN' ]
     # Optionaly force DSO handle
     #cfg.env.prepend_value('LINKFLAGS', '-Wl,--undefined=__dso_handle')
 
