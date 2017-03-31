@@ -33,7 +33,7 @@ def _build_summary_(bld):
     for tg in taskgens:
         if hasattr( tg, 'link_task' ) and tg.typ=='program':
             sects = _parse_size( bld, tg.link_task.outputs[0].relpath() )
-            flash = sects['.isr_vector'] + sects['.flashtext'] + sects['.text'];
+            flash = sects['.isr_vector'] + sects['.text'];
             ram = sects['.data'] + sects['.bss']
             eram = sects['.auxram'];
             name = tg.link_task.outputs[0].bldpath()
