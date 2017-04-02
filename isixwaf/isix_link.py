@@ -39,11 +39,12 @@ def generate_ldcript(self):
     linker_memmap = self.bld.isix_get_link_memmap()
     if self.env.BOOTLOADER_REMAP_SHIFT_KB:
         _bootloader_update_linker_map( linker_memmap, self.env.BOOTLOADER_REMAP_SHIFT_KB )
-    self.create_task('generate_link_for_cpu',
+    tsk = self.create_task('generate_link_for_cpu',
             self.env.CRT0_LINKER_SCRIPT,
             self.path.find_or_declare( _tmplink_file ),
             memmap=linker_memmap
     )
+    self.source.extend( tsk.outputs )
 
 # Linker script task generator
 class generate_link_for_cpu(Task.Task):
