@@ -1,7 +1,0 @@
-reset halt
-sleep 200
-wait_halt
-soft_reset_halt
-gdb_breakpoint_override hard
-soft_reset_halt
-
