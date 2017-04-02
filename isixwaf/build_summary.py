@@ -33,12 +33,19 @@ def _build_summary_(bld):
     for tg in taskgens:
         if hasattr( tg, 'link_task' ) and tg.typ=='program':
             sects = _parse_size( bld, tg.link_task.outputs[0].relpath() )
-            flash = sects['.isr_vector'] + sects['.text'];
-            ram = sects['.data'] + sects['.bss']
-            eram = sects['.auxram'];
+            flash = (sects['.isr_vector'] + sects['.text']
+            + (sects['.ARM.exidx'] if '.ARM.exidx' in sects else 0 )
+            + sects['.data'])/1024.0
+            ram = (sects['.data'] + sects['.bss'] + sects['.stack'])/1024.0
+            if '.auxram' in sects:
+                eram = sects['.auxram'] / 1024.0
+                eram_str = 'AUXRAM: %1.fkB' % eram
+            else:
+                eram_str = ''
+            heap = sects['.heap'] / 1024.0
             name = tg.link_task.outputs[0].bldpath()
-            Logs.info('%sAppsize %s%s FLASH: %i RAM: %i EXTRAM: %i'
-                    %( Logs.colors.NORMAL,Logs.colors.BLUE,name,flash,ram,eram ) )
+            Logs.info('%sAppsize %s%s FLASH: %.1fkB RAM: %.1fkB HEAP: %.1fkB %s'
+                    %( Logs.colors.NORMAL,Logs.colors.BLUE,name,flash,ram,heap,eram_str ) )
 
 
 @conf

@@ -111,11 +111,10 @@ def configure(cfg):
     #cfg.env.prepend_value('LINKFLAGS', '-Wl,--undefined=__dso_handle')
 
 
-# Get linker script name
+# Return linker memory map
 @conf
-def isix_get_linker_script_name(bld):
-    return _get_flag( bld.env.ISIX_CPU_TYPE,'link_script','mcu' ) + ".ld"
-
+def isix_get_link_memmap(bld):
+    return _get_flag( bld.env.ISIX_CPU_TYPE, 'memmap', 'mcu' )
 
 # Get isix architecture
 @conf

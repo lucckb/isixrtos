@@ -1,37 +1,37 @@
-
 ENTRY(exceptions_vectors)
 EXTERN(exceptions_vectors)
 ASSERT(DEFINED(exceptions_vectors), "Error no exceptions vectors entries")
-/* Sections Definitions */
 
+/* Sections Definitions */
 SECTIONS
 {
-    /* for Cortex devices, the beginning of the startup code is stored in the .isr_vector section, which goes to FLASH */
+    /* for Cortex devices, the beginning of the startup 
+	 * code is stored in the .isr_vector section, which goes to FLASH */
     .isr_vector :
     {
-	. = ALIGN(4);
+		. = ALIGN(4);
         KEEP(*(.isr_vector))            /* Startup code */
-	. = ALIGN(4);
+		. = ALIGN(4);
     } >FLASH
  
      /* .ARM.exidx is sorted, so has to go in its own output section.  */
 	__exidx_start = .;
-	.ARM.exidx :
+	.ARM.exidx : ALIGN(4)
 	{
 		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
 	} >FLASH
     __exidx_end = .;
 	
- 	.eh_frame_hdr : ALIGN (4)
+ 	.eh_frame_hdr : ALIGN(4)
 	{
 		KEEP (*(.eh_frame_hdr))
 	} >FLASH
-	.eh_frame : ALIGN (4)
+	.eh_frame : ALIGN(4)
 	{
 		KEEP (*(.eh_frame))
 	} >FLASH
 	
-    /* the program code is stored in the .text section, which goes to Flash */
+    /* the program code is stored in the .text section, which goes to Flash  */
     .text :
     {
 	    . = ALIGN(4);
@@ -78,21 +78,26 @@ SECTIONS
    	 _sidata = _etext;
     } >FLASH
     
- 	
+	/** System stack size on ram start on stm32 CCM is mapped fist */
+	.stack (NOLOAD):
+	{
+		. += _sys_stack_size;
+		. = ALIGN(8);
+		_estack = .;
+	} > RAM
     /* This is the initialized data section
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
     It is one task of the startup to copy the initial values from FLASH to RAM. */
-    .data  : AT ( _sidata )
+    .data : AT ( _sidata )
     {
-	    . = ALIGN(4);
+	    . = ALIGN(8);
         /* This is used by the startup in order to initialize the .data secion */
         _sdata = . ;
-        
         *(.data)
         *(.data.*)
 		*(.gnu.linkonce.d.*)
-	    . = ALIGN(4);
+	    . = ALIGN(8);
 	    /* This is used by the startup in order to initialize the .data secion */
    	 _edata = . ;
     } >RAM
@@ -100,9 +105,9 @@ SECTIONS
     
 
     /* This is the uninitialized data section */
-    .bss :
+    .bss (NOLOAD):
     {
-	    . = ALIGN(4);
+	    . = ALIGN(8);
         /* This is used by the startup in order to initialize the .bss secion */
         _sbss = .;
         
@@ -111,76 +116,23 @@ SECTIONS
         *(.gnu.linkonce.b.*)
         *(COMMON)
         
-	    . = ALIGN(4);
+	    . = ALIGN(8);
 	    /* This is used by the startup in order to initialize the .bss secion */
    	 _ebss = . ;
     } >RAM
     
-    PROVIDE ( end = _ebss );
-    PROVIDE ( _end = _ebss );
-    
-    ._heap :
+    .heap (NOLOAD):
     {
         . = ALIGN(8);
         _heap_start = .;
-        . = . + 8;
+        . = ORIGIN(RAM) + LENGTH(RAM);
+        _heap_end = .;
     } > RAM
     
     PROVIDE( __heap_start = _heap_start );
-    PROVIDE( __heap_end = _estack - _sys_stack_size );
+    PROVIDE( __heap_end = _heap_end );
    
-	.auxram (NOLOAD):
-	{
-		. =  ALIGN(4);
-		*(.auxram)
-	} > AUX_RAM
-
-    /* this is the FLASH Bank1 */
-    /* the C or assembly source must explicitly place the code or data there
-    using the "section" attribute */
-    .b1text :
-    {
-        *(.b1text)                   /* remaining code */
-        *(.b1rodata)                 /* read-only data (constants) */
-        *(.b1rodata*)
-    } >FLASHB1
-    
-    /* this is the EXTMEM */
-    /* the C or assembly source must explicitly place the code or data there
-    using the "section" attribute */
-    
-    /* EXTMEM Bank0 */
-    .eb0text :
-    {
-        *(.eb0text)                   /* remaining code */
-        *(.eb0rodata)                 /* read-only data (constants) */
-        *(.eb0rodata*)
-    } >EXTMEMB0
-    
-    /* EXTMEM Bank1 */
-    .eb1text :
-    {
-        *(.eb1text)                   /* remaining code */
-        *(.eb1rodata)                 /* read-only data (constants) */
-        *(.eb1rodata*)
-    } >EXTMEMB1
-    
-    /* EXTMEM Bank2 */
-    .eb2text :
-    {
-        *(.eb2text)                   /* remaining code */
-        *(.eb2rodata)                 /* read-only data (constants) */
-        *(.eb2rodata*)
-    } >EXTMEMB2
-    
-    /* EXTMEM Bank0 */
-    .eb3text :
-    {
-        *(.eb3text)                   /* remaining code */
-        *(.eb3rodata)                 /* read-only data (constants) */
-        *(.eb3rodata*)
-    } >EXTMEMB3
-    
+	/* <WAFINSERT> Additional extra sections **/
     
     /* after that it's only debugging information. */
     

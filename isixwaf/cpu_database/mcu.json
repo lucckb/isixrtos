@@ -4,75 +4,198 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_LD_VL" ],
-			"link_script": "stm32-f100R6T6",
-			"family": "f1"
+			"family": "f1",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "4K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "32K", 
+					"attrib": "xr"
+				}
+			}
 		},
 		"stm32f101ctc6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_LD" ],
-			"link_script": "stm32-f101CTC6",
-			"family": "f1"
+			"family": "f1",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "6K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "32K", 
+					"attrib": "xr"
+				}
+			}
 		},
 		"stm32f103ctc6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_LD" ],
-			"link_script": "stm32-f103CTC6",
-			"family": "f1"
+			"family": "f1",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "10K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "32K", 
+					"attrib": "xr"
+				}
+			}
 		},
 		"stm32f103r8t6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_MD" ],
-			"link_script": "stm32-f103R8T6",
-			"family": "f1"
+			"family": "f1",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "20K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "64K", 
+					"attrib": "xr"
+				}
+			}
 		},
 		"stm32f107vbt6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_CL" ],
-			"link_script": "stm32-f107VBT6",
-			"family": "f1"
+			"family": "f1",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "48K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "128K", 
+					"attrib": "xr"
+				}
+			}
 		},
 		"stm32f107vct6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_CL" ],
-			"link_script": "stm32-f107VCT6",
-			"family": "f1"
+			"family": "f1",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "64K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "256K", 
+					"attrib": "xr"
+				}
+			}
 		},
 		"stm32f205rct6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F2=1"],
-			"link_script": "stm32-f205RCT6",
-			"family": "f2"
+			"family": "f2",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "80K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "256K", 
+					"attrib": "xr"
+				},
+				"auxram" : {
+					"origin": "0x2001C000", 
+					"length": "16K", 
+					"attrib": "xrw"
+				},
+				"bkpram" : {
+					"origin": "0x40024000", 
+					"length": "4K", 
+					"attrib": "rw"
+				}
+			}
 		},
 		"stm32f205vct6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F2=1"],
-			"link_script": "stm32-f205VCT6",
-			"family": "f2"
+			"family": "f2",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "80K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "256K", 
+					"attrib": "xr"
+				},
+				"auxram" : {
+					"origin": "0x2001C000", 
+					"length": "16K", 
+					"attrib": "xrw"
+				},
+				"bkpram" : {
+					"origin": "0x40024000", 
+					"length": "4K", 
+					"attrib": "rw"
+				}
+			}
 		},
 		"stm32f217vgt6" : {
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F2=1"],
-			"link_script": "stm32-f217VG",
-			"family": "f2"
+			"family": "f2",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "112K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "1M", 
+					"attrib": "xr"
+				},
+				"auxram" : {
+					"origin": "0x2001C000", 
+					"length": "16K", 
+					"attrib": "xrw"
+				}
+			}
 		},
 		"stm32f407zet6" : {
 			"cpu": "arm_cortex_m4",
 			"family": "f4",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1"],
-			"link_script": "stm32-f407ZET6",
 			"memmap" : {
 				"ram" : {
 					"origin": "0x20000000", 
-					"length": "128K", 
+					"length": "112K", 
 					"attrib": "xrw"
 				},
 				"flash" : {
@@ -80,9 +203,9 @@
 					"length": "512K", 
 					"attrib": "xr"
 				},
-				"aux_ram" : {
+				"auxram" : {
 					"origin": "0x2001C000", 
-					"length": "16k", 
+					"length": "16K", 
 					"attrib": "xrw"
 				}
 			}
@@ -91,8 +214,42 @@
 			"cpu": "arm_cortex_m4",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1"],
-			"link_script": "stm32-f417VGT6",
-			"family": "f4"
+			"family": "f4",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "112K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "512K", 
+					"attrib": "xr"
+				},
+				"auxram" : {
+					"origin": "0x2001C000", 
+					"length": "16K",
+					"attrib": "xrw"
+				}
+			}
+		},
+		"stm32f373xct6" : {
+			"cpu": "arm_cortex_m4",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F37=1"],
+			"family": "f37",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "32K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "256K", 
+					"attrib": "xr"
+				}
+			}
 		}
 	}
 }

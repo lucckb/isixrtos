@@ -12,7 +12,6 @@ def options(opt):
 def configure(conf):
     conf.env.append_value( 'LDFLAGS', '-Wl,--defsym=_sys_stack_size=%i' % conf.options.stack_size )
     scripts_dir = conf.path.find_dir('./scripts').abspath()
-    conf.env.append_value( 'LIBPATH', scripts_dir )
     conf.env.OPENOCD_SCRIPT_FILE = os.path.join( scripts_dir, 'stm32.cfg' )
 
 #Build script
@@ -30,7 +29,5 @@ def build(bld):
             export_includes= inc,
             use = ['foundation'],
     )
-    bld.env.CRT0_LINKER_SCRIPT = bld.path.find_resource(
-        os.path.join('scripts', bld.isix_get_linker_script_name())
-    )
+    bld.env.CRT0_LINKER_SCRIPT = bld.path.find_resource( 'scripts/stm32_flash.ld')
 
