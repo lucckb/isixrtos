@@ -36,15 +36,16 @@ def force_static_linking(self):
 @feature('cprogram', 'cxxprogram' )
 @before('apply_link')
 def generate_ldcript(self):
+    linker_map = self.bld.isix_get_link_memmap()
+    if self.bld.env.BOOTLOADER_FLASH_REMAP_KB:
+        _modify_file_mmap( linker_map, self.bld.env.BOOTLOADER_FLASH_REMAP_KB )
     self.create_task('generate_link_for_cpu',
             self.env.CRT0_LINKER_SCRIPT,
             self.path.find_or_declare( _tmplink_file ),
-            memmap=self.bld.isix_get_link_memmap()
+            memmap=linker_map
     )
-    #from pprint import pprint
-    #pprint(vars(self))
 
-
+# Linker script task generator
 class generate_link_for_cpu(Task.Task):
     color = 'GREEN'
 
@@ -100,4 +101,34 @@ class generate_link_for_cpu(Task.Task):
 
 
 
+# Modify default flash memory map when remap is needed
+def _modify_file_mmap( linker_map, remap_kb ):
+    fladdr = int(linker_map['flash']['origin'],16)
+    fllen = _si_size_to_int(linker_map['flash']['length'])
+    offs = remap_kb * 1024
+    linker_map['flash']['origin'] = '0x%X' % (fladdr+offs)
+    linker_map['flash']['length'] = _int_to_si_size(fllen-offs)
+
+# convert SI to int
+def _si_size_to_int( instr ):
+    instr = instr.strip().upper()
+    mul = 1
+    if instr.endswith('K'):
+        instr = instr[:-1]
+        mul = 1024
+    elif instr.endswith('M'):
+        instr = instr[:-1]
+        mul = 1024*1024
+    return int(instr) * mul
+
+# convert int to SI
+def _int_to_si_size( siz ):
+    suffix =''
+    if siz % (1024*1024) == 0:
+        siz = siz / (1024/1024)
+        suffix = 'M'
+    elif siz % 1024 == 0:
+        siz = siz / 1024
+        suffix = 'K'
+    return "%i%s" % ( siz, suffix )
 
