@@ -44,8 +44,6 @@ def generate_ldcript(self):
             self.path.find_or_declare( _tmplink_file ),
             memmap=linker_memmap
     )
-    #from pprint import pprint
-    #pprint(vars(self))
 
 
 class generate_link_for_cpu(Task.Task):
