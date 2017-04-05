@@ -15,6 +15,7 @@ def options(ctx):
 #program target
 def program( ctx ):
     (ini_cmd,tgt) = _read_openocd_initial_string( ctx )
+    tgt = tgt.replace( '\\','/')
     cmd = ctx.env.OPENOCD + [ '-c '+ini_cmd, '-f'+ctx.env.OPENOCD_SCRIPT_FILE,
             '-c program %s verify reset'%tgt,'-c shutdown' ]
     ctx.exec_command( cmd )
@@ -26,7 +27,9 @@ def ocddebug( ctx ):
     (ini_cmd,tgt) = _read_openocd_initial_string( ctx )
     cmd = ctx.env.OPENOCD[0]+' -c "'+ini_cmd+'" -f '+ctx.env.OPENOCD_SCRIPT_FILE
     from multiprocessing import Process
-    p = Process( target=_openocd_proc, args=( cmd, ),daemon=True )
+    import platform
+    is_windows = any(platform.win32_ver())
+    p = Process( target=_openocd_proc, args=( cmd, ),daemon=not is_windows )
     p.start()
 
 
@@ -51,7 +54,9 @@ def _read_openocd_initial_string( ctx ):
     if not cfg:
         ctx.fatal('Error default configuration does not exist')
     try:
-        tgt = os.path.join( ctx.out_dir, cfg['jtag']['target'] )
+        tgt = os.path.join( ctx.out_dir,
+            os.path.normpath(cfg['jtag']['target'])
+        )
         family = ctx.isix_get_cpu_family()
         ini_cmd = "set ISIX_INTERFACE %s; " % cfg['jtag']['type']
         ini_cmd += "set ISIX_INTERFACE_TARGET stm32%sx; " % family

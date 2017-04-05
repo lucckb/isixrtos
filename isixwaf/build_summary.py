@@ -45,7 +45,7 @@ def _build_summary_(bld):
             heap = sects['.heap'] / 1024.0
             name = tg.link_task.outputs[0].bldpath()
             Logs.info('%sAppsize %s%s FLASH: %.1fkB RAM: %.1fkB HEAP: %.1fkB %s'
-                    %( Logs.colors.NORMAL,Logs.colors.BLUE,name,flash,ram,heap,eram_str ) )
+                    %( Logs.colors.NORMAL,Logs.colors.YELLOW,name,flash,ram,heap,eram_str ) )
 
 
 @conf
