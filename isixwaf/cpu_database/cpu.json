@@ -10,6 +10,18 @@
 				"-mfpu=fpv4-sp-d16", "-ffast-math", "-fsingle-precision-constant" ],
              "defs":    [],
 			"isix_arch" : "arm-cm4f"
+		},
+		"arm_cortex_m7_vfpdp" : {
+			"cflags":  ["-mcpu=cortex-m7", "-mthumb", "-mfloat-abi=hard",
+				"-mfpu=fpv5-d16", "-ffast-math" ],
+             "defs":    [],
+			"isix_arch" : "arm-cm4f"
+		},
+		"arm_cortex_m7_vfpsp" : {
+			"cflags":  ["-mcpu=cortex-m7", "-mthumb", "-mfloat-abi=hard",
+				"-mfpu=fpv5-sp-d16", "-ffast-math", "-fsingle-precision-constant" ],
+             "defs":    [],
+			"isix_arch" : "arm-cm4f"
 		}
 	}
 }

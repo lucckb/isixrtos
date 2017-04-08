@@ -250,6 +250,29 @@
 					"attrib": "xr"
 				}
 			}
+		},
+		"stm32f767zit6" : {
+			"cpu": "arm_cortex_m7_vfpdp",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F7=1"],
+			"family": "f7",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "496K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "2M", 
+					"attrib": "xr"
+				},
+				"auxram" : {
+					"origin": "0x2007C000", 
+					"length": "16K",
+					"attrib": "xrw"
+				}
+			}
 		}
 	}
 }
