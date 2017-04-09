@@ -46,7 +46,7 @@
  */
 #define cpu_restore_main_context()								\
 	asm volatile (												\
-	"bic lr,lr,#0x04\t\n"											\
+	"bic lr,lr,#0x04\t\n"										\
 	"bx lr\t\n"													\
 	)
 
@@ -88,11 +88,11 @@ void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
 {
      asm volatile(
-     "ldr r3, 0f\t\n" 			 	/* Restore the context. */
-     "ldr r1, [r3]\t\n"			 	/* Use pxCurrentTCBConst to get the pxCurrentTCB address. */
-     "ldr r0, [r1]\t\n" 		 	/* The first item in pxCurrentTCB is the task top of stack. */
+     "ldr r3, 0f\t\n"				/* Restore the context. */
+     "ldr r1, [r3]\t\n"				/* Use _isix_current_task */
+     "ldr r0, [r1]\t\n"			    /* The first item in the _isix_current_task is the task top of stack. */
      "ldmia r0!, {r4-r11, r14}\t\n"	 /* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
-     "msr psp, r0\t\n" 			 	 /* Restore the task stack pointer. */
+     "msr psp, r0\t\n"				/* Restore the task stack pointer. */
      "mov r0, #0\t\n"
      "msr basepri, r0\t\n"
      "bx r14\t\n"
@@ -101,7 +101,7 @@ void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
       );
 }
 
-//Create of stack context 
+//Create of stack context
 unsigned long* _isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, void *param)
 {
 	/* Simulate the stack frame as it would be created by a context switch
