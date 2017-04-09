@@ -8,15 +8,15 @@
 #define cpu_save_context()										\
     asm volatile (												\
 	"clrex\t\n"													\
-    "mrs r0, psp\t\n"					        				\
+    "mrs r0, psp\t\n"											\
     "stmdb r0!, {r4-r11}\t\n"                                   \
-    "ldr r3,0f\t\n"                                   			\
+    "ldr r3,0f\t\n"												\
     "ldr r2,[r3]\t\n"                                           \
     "str r0, [r2]\t\n"                                          \
     "stmdb sp!, {r3,r14}\t\n"                                   \
     "mov r0,%0\t\n"                                             \
     "msr basepri,r0\t\n"                                        \
-    ::"i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)                 \
+    ::"i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)                  \
 	)
 
 //Restore context
@@ -39,7 +39,7 @@
  */
 #define cpu_restore_main_context()								\
 	asm volatile (												\
-	"bic lr,lr,#0x04\t\n"											\
+	"bic lr,lr,#0x04\t\n"										\
 	"bx lr\t\n"													\
 	)
 

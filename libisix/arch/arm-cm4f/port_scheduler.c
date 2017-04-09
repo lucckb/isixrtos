@@ -9,8 +9,8 @@
 #define cpu_save_context()										\
     asm volatile (												\
 	"clrex\t\n"													\
-    "mrs r0, psp\t\n"					        				\
-    "ldr r3,0f\t\n"                                   			\
+    "mrs r0, psp\t\n"											\
+    "ldr r3,0f\t\n"												\
     "ldr r2,[r3]\t\n"                                           \
     "tst r14, #0x10\t\n"										\
     "it eq\t\n"													\
@@ -32,7 +32,7 @@
     "ldr r1,[r3]\t\n"                                           \
     "ldr r0, [r1]\t\n"                                          \
     "ldmia r0!, {r4-r11, r14}\t\n"                              \
-    "tst r14, #0x10\r\n"                              			\
+    "tst r14, #0x10\r\n"										\
     "it eq\t\n"													\
     "vldmiaeq r0!, {s16-s31}\t\n"								\
 	"msr psp, r0\t\n"                                           \
@@ -182,10 +182,10 @@ void  __attribute__((naked)) port_start_first_task( void )
 	 );
 #else
   __asm volatile(
-      " ldr r0, =0xE000ED08 \t\n" /* Use the NVIC offset register to locate the stack. */	
+      "ldr r0, =0xE000ED08 \t\n" /* Use the NVIC offset register to locate the stack. */
       "ldr r0, [r0]\t\n"
       "ldr r0, [r0]\t\n"
-      "msr msp, r0\t\n" 	/* Set the msp back to the start of the stack. */
+      "msr msp, r0\t\n"		/* Set the msp back to the start of the stack. */
       "svc 0\t\n"
 	  "nop\r\n"
       );
