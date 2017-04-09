@@ -26,7 +26,7 @@
 
 /** Function initialize default memory protection layout just before run
  */
-#if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0 
+#if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0
 //! Define memory protection electric fence length
 #define ISIX_MEMORY_PROTECTION_EFENCE_SIZE 32
 
@@ -35,8 +35,8 @@ void port_memory_protection_set_default_map(void);
 
 /**  Set electric fence on the selected address
  *   this function is used by rtos to protect general heap
- *   memory region  it must be 32 byte aligned 
- *   @param[in] endstack Set address 
+ *   memory region  it must be 32 byte aligned
+ *   @param[in] endstack Set address
  */
 void port_memory_protection_set_efence( uintptr_t endstack );
 
@@ -44,8 +44,8 @@ void port_memory_protection_set_efence( uintptr_t endstack );
 void port_memory_protection_reset_efence(void);
 
 //! Return the MPU properly alligned region
-static inline 
-uintptr_t port_memory_efence_aligna( uintptr_t addr ) 
+static inline
+uintptr_t port_memory_efence_aligna( uintptr_t addr )
 {
 	// Fence region must be inside of alloated space
 	if( addr & (ISIX_MEMORY_PROTECTION_EFENCE_SIZE-1) ) {
@@ -67,7 +67,7 @@ uintptr_t port_memory_efence_aligna( uintptr_t addr )
 #define port_memory_set_efence(a) do {} while(0)
 #define port_memory_protection_reset_efence() do {} while(0)
 static inline __attribute__((always_inline))
-uintptr_t  port_memory_efence_aligna( uintptr_t addr ) 
+uintptr_t  port_memory_efence_aligna( uintptr_t addr )
 {
 	return addr;
 }
