@@ -35,7 +35,7 @@ static inline __attribute__((always_inline))
 #endif
 /*-----------------------------------------------------------------------*/
 //Idle task additional
-static inline  __attribute__((always_inline)) 
+static inline  __attribute__((always_inline))
 	void port_idle_cpu( void )
 {
 #ifndef PDEBUG
@@ -46,7 +46,7 @@ static inline  __attribute__((always_inline))
 }
 /*-----------------------------------------------------------------------*/
 //!Flush the memory
-static inline  __attribute__((always_inline)) 
+static inline  __attribute__((always_inline))
 	void port_flush_memory( void )
 {
 	asm volatile("dsb\t\n");
@@ -64,7 +64,7 @@ static inline  __attribute__((always_inline))
 }
 /*-----------------------------------------------------------------------*/
 //Get hres timer max value
-static inline __attribute__((always_inline)) 
+static inline __attribute__((always_inline))
 	unsigned long port_get_hres_jiffies_timer_max_value(void)
 {
 	return SYST_RVR;
