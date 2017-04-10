@@ -16,6 +16,9 @@
  * =====================================================================================
  */
 
+
+#include <isix/arch/io.h>
+
 #pragma once
 
 #ifdef __cplusplus
@@ -23,25 +26,25 @@ extern "C" {
 #endif
 
 
-#define SYST_CVR (*((volatile unsigned long*)0xE000E018))
-#define SYST_RVR (*((volatile unsigned long*)0xE000E014))
+#define _ISIX_PORT_SYST_CVR 0xE000E018
+#define _ISIX_PORT_SYST_RVR 0xE000E014
 
 //Get HI resolution timer (must be inline)
 static inline __attribute__((always_inline))
 	unsigned long _isix_port_get_hres_jiffies_timer_value(void)
 {
-	return SYST_RVR - SYST_CVR;
+	return ioread32(_ISIX_PORT_SYST_RVR) - ioread32(_ISIX_PORT_SYST_CVR);
 }
 
 //Get hres timer max value
 static inline __attribute__((always_inline))
 	unsigned long _isix_port_get_hres_jiffies_timer_max_value(void)
 {
-	return SYST_RVR;
+	return ioread32(_ISIX_PORT_SYST_RVR);
 }
 
-#undef SYST_CVR
-#undef SYST_RVR
+#undef _ISIX_PORT_SYST_CVR
+#undef _ISIX_PORT_SYST_RVR
 
 
 #ifdef __cplusplus
