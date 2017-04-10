@@ -19,8 +19,7 @@ def build(bld):
     src = bld.path.ant_glob( 'kernel/*.c' )
     src += bld.path.ant_glob( os.path.join(arch,'kernel','*.c' ) )
     src += bld.path.ant_glob( os.path.join(mach,'*.c' ) )
-    inc = ['./include', arch_inc, mach_inc,
-           '../libstm32/inc' , 'arch/include' ]
+    inc = ['./include', arch_inc, mach_inc, 'arch/include' ]
     bld( features='subst', source='include/isix/version.h.in',
             target='include/isix/version.h',
             ISIX_VERSION = bld.env.ISIX_VERSION,

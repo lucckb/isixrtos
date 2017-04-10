@@ -27,7 +27,7 @@ def build(bld):
         _srcs += [ 'stm32_sdio_mmc_host.cpp' ]
     else:
         bld.fatal( 'libisixdrv: Unknown target CPU' )
-    _use =['isix', 'foundation', 'common_conf' ]
+    _use =['isix', 'foundation', 'stm32','common_conf' ]
     # TCPIP stack
     if bld.env.ISIX_COMPILE_TCPIP_DRIVERS:
         _use += [ 'tcpip' ]
