@@ -14,7 +14,6 @@ def configure(conf):
 def build(bld):
     arch = os.path.join( 'arch',bld.isix_get_arch() )
     mach = os.path.join( arch, bld.isix_get_mach_type() )
-    print(arch, mach )
     arch_inc = os.path.join( arch, 'include' )
     mach_inc = os.path.join( mach, 'include' )
     src = bld.path.ant_glob( 'kernel/*.c' )
