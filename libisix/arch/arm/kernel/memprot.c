@@ -19,25 +19,25 @@
 
 #include <isix/config.h>
 #include <isix/arch/memprot.h>
-#include <arm-v7m/mpu.h>
+#include "mpu.h"
 #include <isix/prv/printk.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
-#ifndef CONFIG_ISIX_MEMORY_PROTECTION_MODEL 
+#ifndef CONFIG_ISIX_MEMORY_PROTECTION_MODEL
 #error CONFIG_ISIX_MEMORY_PROTECTION_MODEL not defined
 #endif
 
 #if CONFIG_ISIX_MEMORY_PROTECTION_MODEL == ISIX_MPROT_LITE
 static void setup_regions()
 {
-	mpu_set_region( 0, 0x20000000, 
+	mpu_set_region( 0, 0x20000000,
 			MPU_RGN_PERM_PRV_RW_USR_RW|
 			MPU_RGN_PERM_NX|
 			MPU_RGN_MEMORY|
 			MPU_RGN_SIZE_64M );
 	//!Protect region of the code
-	mpu_set_region( 1, 0, 
+	mpu_set_region( 1, 0,
 			MPU_RGN_PERM_PRV_NO_USR_NO|
 			MPU_RGN_PERM_NX|
 			MPU_RGN_SIZE_2M );
@@ -72,10 +72,10 @@ void port_memory_protection_set_default_map(void)
 
 /**  Set electric fence on the selected address
  *   this function is used by rtos to protect general heap
- *   memory region  it must be 32 byte aligned 
- *   @param[in] addr Set address 
+ *   memory region  it must be 32 byte aligned
+ *   @param[in] addr Set address
  */
-void port_memory_protection_set_efence( uintptr_t estack ) 
+void port_memory_protection_set_efence( uintptr_t estack )
 {
 	estack = port_memory_efence_aligna( estack );
 	int efregion = mpu_get_region_count();
@@ -88,19 +88,19 @@ void port_memory_protection_set_efence( uintptr_t estack )
 	//Disable the region first
 	mpu_disable_region( efregion );
 	//Make sure that was applied
-	asm volatile( 
+	asm volatile(
 		"dsb\n"
-		"isb\n" 
+		"isb\n"
 	);
 	//Setup the region again
-	mpu_set_region( efregion, estack, 
+	mpu_set_region( efregion, estack,
 		MPU_RGN_PERM_PRV_NO_USR_NO |
 		MPU_RGN_PERM_NX |
 		MPU_RGN_SIZE_32B |
 		MPU_RGN_ENABLE
 	);
 	//Make sure that was applied
-	asm volatile( 
+	asm volatile(
 		"dsb\n"
 		"isb\n"
 		"cpsie i\n"
@@ -120,9 +120,9 @@ void port_memory_protection_reset_efence(void)
 	//Disable the region first
 	mpu_disable_region( efregion );
 	//Make sure that was applied
-	asm volatile( 
+	asm volatile(
 		"dsb\n"
-		"isb\n" 
+		"isb\n"
 		"cpsie i\n"
 	);
 }
