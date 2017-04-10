@@ -3,7 +3,7 @@
  *
  *       Filename:  port_atomic.h
  *
- *    Description:  
+ *    Description:  Port atomic semaphore implementation
  *
  *        Version:  1.0
  *        Created:  12/17/2013 10:00:07 PM
@@ -19,11 +19,10 @@
 
 #pragma once
 
-
 #include <stdint.h>
 
 //! Atomic type definition
-typedef struct 
+typedef struct
 {
 	int32_t value;
 	int32_t limit;
@@ -35,9 +34,9 @@ enum _port_atomic_const_e {
 };
 
 
-/** Initialize sem locking primitive 
+/** Initialize sem locking primitive
  * @param [out] lock Lock object
- * @param [in] value Initial semaphore value 
+ * @param [in] value Initial semaphore value
  */
 static inline __attribute__((always_inline))
 	void port_atomic_sem_init( _port_atomic_sem_t* lock, int value , int limit ) {
@@ -46,7 +45,7 @@ static inline __attribute__((always_inline))
 	}
 
 
-/** Function try wait on the spinlock semaphore 
+/** Function try wait on the spinlock semaphore
  * @param sem[out] Semaphore primitive object
  * @return false if lock failed or positive sem value
  * if semafore is successfuly obtained
@@ -69,7 +68,7 @@ static inline __attribute__((always_inline))
 		return val;
 	}
 
-/** Function try wait on the spinlock semaphore 
+/** Function try wait on the spinlock semaphore
  * @param sem[out] Semaphore primitive object
  * @return false if lock failed or positive sem value
  * if semafore is successfuly obtained
@@ -113,7 +112,7 @@ static inline __attribute__((always_inline))
 			 "cmp %[exlck],#0\n"
 			 "bne 1b\n"
 			 "dmb\n"
-			 : [val]"=&r"(val), [exlck] "=&r"(exlck) 
+			 : [val]"=&r"(val), [exlck] "=&r"(exlck)
 			 : [lock_addr] "r"(&lock->value), [maxval]"r"(lock->limit)
 			 : "cc", "memory"
 			);
@@ -126,12 +125,12 @@ static inline __attribute__((always_inline))
  * @note It should be called during context switching
  */
 static inline __attribute__((always_inline))
-void port_atomic_clear_locks(void) 
+void port_atomic_clear_locks(void)
 {
 	asm volatile("clrex\n");
 }
 
-/** Sys atomic read value 
+/** Sys atomic read value
  * @param[in] lock Semaphore lock object
  * @return readed value*/
 static inline __attribute__((always_inline))

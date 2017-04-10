@@ -119,9 +119,17 @@ def isix_get_link_memmap(bld):
 # Get isix architecture
 @conf
 def isix_get_arch(bld):
-    return _get_flag( bld.env.ISIX_CPU_TYPE,'isix_arch', 'cpu' );
+    return _get_flag( bld.env.ISIX_CPU_TYPE,'arch', 'cpu' );
 
+
+# Get mach type
+@conf
+def isix_get_mach_type(bld):
+    return _get_flag( bld.env.ISIX_CPU_TYPE,'mach_type', 'cpu' );
+
+# Isix get CPU family
 @conf
 def isix_get_cpu_family(bld):
     return _get_flag( bld.env.ISIX_CPU_TYPE,'family','mcu' )
+
 

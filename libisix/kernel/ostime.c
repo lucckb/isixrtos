@@ -19,6 +19,7 @@
 #include <isix/scheduler.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
+#include <isix/arch/cpu.h>
 
 /** Busy waiting for selecred amount of time
  * @param[in] timeout Number of microseconds for busy wait

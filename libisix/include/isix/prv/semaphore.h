@@ -2,7 +2,7 @@
 
 #include <isix/prv/list.h>
 #include <isix/prv/types.h>
-#include <isix/port_atomic.h>
+#include <isix/arch/sem_atomic.h>
 
 //Structure of semaphore
 struct isix_semaphore

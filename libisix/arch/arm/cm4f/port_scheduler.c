@@ -3,6 +3,7 @@
 #include <isix/task.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
+#include <isix/arch/cpu.h>
 
 
 //Save context

@@ -1,7 +1,7 @@
 #pragma once
 #include <isix/config.h>
 #include <isix/types.h>
-#include <isix/port_scheduler.h>
+#include <isix/arch/scheduler.h>
 
 #ifdef __cplusplus
 extern "C" {

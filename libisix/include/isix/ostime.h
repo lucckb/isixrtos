@@ -19,6 +19,7 @@
 #pragma once
 #include <isix/types.h>
 #include <isix/scheduler.h>
+#include <isix/arch/hrtimer.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,15 +44,15 @@ void isix_wait_us( unsigned timeout );
 
 /** Check if isix timer elapsed or not
  *   @param[in] t1 Variable with the initial timer value
-     @param[in] timeout Excepted timeout 
+     @param[in] timeout Excepted timeout
 	 @return true if timer elapsed otherwise false
 */
 static inline bool isix_timer_elapsed( ostick_t t1, ostick_t timeout )
 {
 	ostick_t t2 = isix_get_jiffies();
-	if( t2 >= t1 ) 	//Not overflow
+	if( t2 >= t1 )	//Not overflow
 		return t2 - t1 > timeout;
-	else   	       //Overflow
+	else       //Overflow
 		return t1 - t2 > timeout;
 }
 

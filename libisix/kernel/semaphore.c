@@ -4,7 +4,7 @@
 #include <isix/semaphore.h>
 #include <isix/prv/semaphore.h>
 #include <string.h>
-#include <isix/port_atomic.h>
+#include <isix/arch/sem_atomic.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 

@@ -9,8 +9,8 @@
 #include <isix/condvar.h>
 #include <isix/events.h>
 #include <isix/scheduler.h>
-#include <isix/port_atomic.h>
-#include <isix/port_memprot.h>
+#include <isix/arch/sem_atomic.h>
+#include <isix/arch/memprot.h>
 #include <isix/osthr_state.h>
 #include <stdatomic.h>
 

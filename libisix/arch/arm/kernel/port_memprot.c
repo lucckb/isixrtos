@@ -18,7 +18,7 @@
 
 
 #include <isix/config.h>
-#include "port_memprot.h"
+#include <isix/arch/memprot.h>
 #include <arm-v7m/mpu.h>
 #include <isix/prv/printk.h>
 #define _ISIX_KERNEL_CORE_

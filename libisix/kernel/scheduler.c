@@ -10,11 +10,13 @@
 #include <isix/prv/condvar.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
-#include <isix/port_memprot.h>
+#include <isix/arch/memprot.h>
+#include <isix/arch/cpu.h>
+#include <isix/arch/core.h>
 #include <stdatomic.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_SCHEDULER
-#undef CONFIG_ISIX_LOGLEVEL 
+#undef CONFIG_ISIX_LOGLEVEL
 #define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_SCHEDULER
 #endif
 #include <isix/prv/printk.h>
@@ -38,7 +40,7 @@ static void unused_func(void ) {}
 void isix_systime_handler(void) __attribute__ ((weak, alias("unused_func")));
 
 //! Kernel panic callback function definition
-void __attribute__((weak)) 
+void __attribute__((weak))
 isix_kernel_panic_callback( const char* file, int line, const char *msg )
 {
 	(void)file; (void)line; (void)msg;
@@ -507,7 +509,6 @@ static void cleanup_tasks(void)
             list_delete(&task_del->inode);
 			pr_info( "Task to delete: %p(SP %p) PRIO: %i",
 						task_del,task_del->init_stack,task_del->prio );
-			port_cleanup_task(task_del->top_stack);
             if( task_del->refcnt == 0 ) do_clean = true;
 			task_del->state = OSTHR_STATE_EXITED;
 			csys.number_of_task_deleted--;

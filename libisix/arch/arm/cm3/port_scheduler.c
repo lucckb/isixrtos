@@ -1,6 +1,7 @@
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/task.h>
+#include <kerne
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 

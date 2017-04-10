@@ -12,10 +12,16 @@ def configure(conf):
 
 
 def build(bld):
-    archpath = os.path.join('arch',bld.isix_get_arch())
+    arch = os.path.join( 'arch',bld.isix_get_arch() )
+    mach = os.path.join( arch, bld.isix_get_mach_type() )
+    print(arch, mach )
+    arch_inc = os.path.join( arch, 'include' )
+    mach_inc = os.path.join( mach, 'include' )
     src = bld.path.ant_glob( 'kernel/*.c' )
-    src += bld.path.ant_glob( os.path.join(archpath,'*.c' ) )
-    inc = ['./include', os.path.join(archpath,'include'), '../libstm32/inc' ]
+    src += bld.path.ant_glob( os.path.join(arch,'kernel','*.c' ) )
+    src += bld.path.ant_glob( os.path.join(mach,'*.c' ) )
+    inc = ['./include', arch_inc, mach_inc,
+           '../libstm32/inc' , 'arch/include' ]
     bld( features='subst', source='include/isix/version.h.in',
             target='include/isix/version.h',
             ISIX_VERSION = bld.env.ISIX_VERSION,

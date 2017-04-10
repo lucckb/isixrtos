@@ -12,6 +12,7 @@
 #include <string.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
+#include <isix/arch/core.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_VTIMERS
 #undef CONFIG_ISIX_LOGLEVEL 
