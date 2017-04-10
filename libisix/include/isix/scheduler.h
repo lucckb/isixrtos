@@ -20,7 +20,7 @@ static inline void isix_yield()
 {
 	extern volatile bool _isix_scheduler_running;
 	if(_isix_scheduler_running)
-		port_yield();
+		_isix_port_yield();
 }
 
 //! Halt system when critical error is found

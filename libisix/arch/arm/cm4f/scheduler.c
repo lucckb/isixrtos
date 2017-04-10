@@ -148,7 +148,7 @@ void __attribute__((__interrupt__)) systick_isr_vector(void)
 
 
 //Set interrupt mask
-void port_set_interrupt_mask(void)
+void _isix_port_set_interrupt_mask(void)
 {
  asm volatile(  "msr BASEPRI,%0\t\n"
                 ::"r"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)
@@ -157,22 +157,22 @@ void port_set_interrupt_mask(void)
 
 
 //Clear interrupt mask
-void port_clear_interrupt_mask(void)
+void _isix_port_clear_interrupt_mask(void)
 {
     asm volatile("msr BASEPRI,%0\t\n"::"r"(0));
 }
 
 
 //Yield to another task
-void port_yield(void)
+void _isix_port_yield(void)
 {
 	/* Set a PendSV to request a context switch. */
 	*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
-	port_flush_memory();
+	_isix_port_flush_memory();
 }
 
 //Start first task by svc call
-void  __attribute__((naked)) port_start_first_task( void )
+void  __attribute__((naked)) _isix_port_start_first_task( void )
 {
 #if CONFIG_ISIX_SHUTDOWN_API
 	__asm volatile(

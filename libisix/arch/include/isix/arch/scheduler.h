@@ -5,16 +5,16 @@ extern "C" {
 #endif /*__cplusplus*/
 
 /* Port yield function for the RTOS */
-void port_yield( void );
+void _isix_port_yield( void );
 
 /* Port start first task */
-void port_start_first_task( void );
+void _isix_port_start_first_task( void );
 
 /* Port set interrupt mask */
-void port_set_interrupt_mask( void );
+void _isix_port_set_interrupt_mask( void );
 
 /* Port clear interrupt mask */
-void port_clear_interrupt_mask( void );
+void _isix_port_clear_interrupt_mask( void );
 
 
 #ifdef __cplusplus

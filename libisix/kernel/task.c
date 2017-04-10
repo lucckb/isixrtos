@@ -128,7 +128,7 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
 	taskc->real_prio = new_prio;
 	if( taskc->prio==real_prio||isixp_prio_gt(new_prio,taskc->prio) ) {
 		_isixp_reallocate_priority( taskc, new_prio );
-		port_yield();	//Unconditional port yield due to force reschedule all tasks
+		_isix_port_yield();	//Unconditional port yield due to force reschedule all tasks
 	}
 	isix_exit_critical();
     return real_prio;
@@ -171,7 +171,7 @@ size_t isix_free_stack_space(const ostask_t task)
 	size_t freespc=0;
 	const ostask_t taskd = task?task:currp;
 	volatile unsigned char *b_stack = (volatile unsigned char*)
-		(port_memory_efence_aligna((uintptr_t)taskd->init_stack) + 
+		(_isix_port_memory_efence_aligna((uintptr_t)taskd->init_stack) + 
 		 ISIX_MEMORY_PROTECTION_EFENCE_SIZE );
 
 	while(*b_stack==MAGIC_FILL_VALUE) {

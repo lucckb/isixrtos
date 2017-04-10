@@ -27,7 +27,7 @@ extern "C" {
 
 //Idle task additional
 static inline __attribute__((always_inline))
-void port_idle_cpu( void )
+void _isix_port_idle_cpu( void )
 {
 #ifndef PDEBUG
 	asm volatile("wfi\t\n");
@@ -38,7 +38,7 @@ void port_idle_cpu( void )
 
 //!Flush the memory
 static inline __attribute__((always_inline))
-	void port_flush_memory( void )
+	void _isix_port_flush_memory( void )
 {
 	asm volatile(
 		"dsb\t\n"

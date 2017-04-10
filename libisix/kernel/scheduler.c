@@ -61,7 +61,7 @@ osprio_t isix_get_min_priority(void)
 /** Temporary lock task reschedule */
 void _isixp_lock_scheduler()
 {
-	port_atomic_sem_inc( &csys.sched_lock );
+	_isix_port_atomic_sem_inc( &csys.sched_lock );
 }
 
 
@@ -85,13 +85,13 @@ static bool dec_jiffies_skipped_counter(void)
 /** Temporary unlock task reschedule */
 void _isixp_unlock_scheduler()
 {
-	if( port_atomic_sem_dec( &csys.sched_lock ) == 1 ) {
+	if( _isix_port_atomic_sem_dec( &csys.sched_lock ) == 1 ) {
 		isix_enter_critical();
 		while( dec_jiffies_skipped_counter() ) {
 			internal_schedule_time();
 		}
 		if( atomic_load(&csys.yield_pending) ) {
-			port_yield();
+			_isix_port_yield();
 			atomic_store(&csys.yield_pending, false );
 		}
 		isix_exit_critical();
@@ -108,8 +108,8 @@ void isix_shutdown_scheduler(void)
 {
 	//Dropout the task prot region
 	schrun = false;
-	port_memory_protection_reset_efence();
-	port_yield();
+	_isix_port_memory_protection_reset_efence();
+	_isix_port_yield();
 }
 
 /** Function called at end of isix execution only
@@ -127,7 +127,7 @@ void isix_enter_critical(void)
 {
 	if( atomic_fetch_add( &csys.critical_count, 1 ) == 0 )
 	{
-		port_set_interrupt_mask();
+		_isix_port_set_interrupt_mask();
 	}
 }
 
@@ -136,11 +136,11 @@ void isix_exit_critical(void)
 {
 	int res = atomic_fetch_sub( &csys.critical_count, 1 );
 	if( res <= 1 ) {
-		port_clear_interrupt_mask();
+		_isix_port_clear_interrupt_mask();
     } else if( res <= 0 ) {
 		isix_bug("Invalid lock count");
 	}
-	port_flush_memory();
+	_isix_port_flush_memory();
 }
 
 
@@ -148,8 +148,8 @@ void isix_exit_critical(void)
 void isix_init(osprio_t num_priorities)
 {
 	//Schedule lock count
-	port_memory_protection_set_default_map();
-	port_atomic_sem_init( &csys.sched_lock, 0, 1 );
+	_isix_port_memory_protection_set_default_map();
+	_isix_port_atomic_sem_init( &csys.sched_lock, 0, 1 );
 	atomic_init( &csys.critical_count, 0 );
 	//Copy priority
 	csys.number_of_priorities = num_priorities;
@@ -244,7 +244,7 @@ void print_task_list()
  */
 void _isixp_schedule(void)
 {
-	if( port_atomic_sem_read_val(&csys.sched_lock) ) {
+	if( _isix_port_atomic_sem_read_val(&csys.sched_lock) ) {
 		atomic_store( &csys.yield_pending, true );
 		return;
 	}
@@ -267,8 +267,8 @@ void _isixp_schedule(void)
 	currp->state = OSTHR_STATE_RUNNING;
 	//Handle fence stuff
 #	if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0
-	port_memory_protection_reset_efence( );
-	port_memory_protection_set_efence( currp->fence_estack );
+	_isix_port_memory_protection_reset_efence( );
+	_isix_port_memory_protection_set_efence( currp->fence_estack );
 #	endif
 	//Update statistics
 	_isixp_schedule_update_statistics( atomic_load(&csys.jiffies),
@@ -342,7 +342,7 @@ void _isixp_schedule_time()
 {
 	//Call isix system time handler if used
     isix_systime_handler();
-    if( port_atomic_sem_read_val( &csys.sched_lock ) ) {
+    if( _isix_port_atomic_sem_read_val( &csys.sched_lock ) ) {
 		atomic_fetch_add( &csys.jiffies_skipped, 1 );
 	} else {
 		//Increment system ticks
@@ -534,7 +534,7 @@ ISIX_TASK_FUNC(idle_task,p)
         //Cleanup free tasks
         cleanup_tasks();
         //Call port specific idle
-        port_idle_cpu();
+        _isix_port_idle_cpu();
     }
 }
 
@@ -549,7 +549,7 @@ void isix_start_scheduler(void)
 	atomic_init( &csys.critical_count, 0 );
 	//Restore context and run OS
 	currp->state = OSTHR_STATE_RUNNING;
-	port_start_first_task();
+	_isix_port_start_first_task();
 #if !(CONFIG_ISIX_SHUTDOWN_API)
 	while(1);    //Prevent compiler warning
 #endif
@@ -577,7 +577,7 @@ void _isixp_do_reschedule( ostask_t task )
 		if( isixp_prio_gt(task->prio,currp->prio) ) {
 			//New task have higer priority then current task
 			pr_debug("resched: prio %i>old prio %i",task->prio,currp->prio);
-			port_yield();
+			_isix_port_yield();
 		}
 	}
 	isix_exit_critical();

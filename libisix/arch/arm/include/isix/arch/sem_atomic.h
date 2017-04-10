@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  port_atomic.h
+ *       Filename:  _isix_port_atomic.h
  *
  *    Description:  Port atomic semaphore implementation
  *
@@ -26,10 +26,10 @@ typedef struct
 {
 	int32_t value;
 	int32_t limit;
-}	_port_atomic_sem_t;
+}	_isix_port_atomic_sem_t;
 
 //! Unlimited value for semaphoe implementation
-enum _port_atomic_const_e {
+enum __isix_port_atomic_const_e {
 	sys_atomic_unlimited_value = 0
 };
 
@@ -39,7 +39,7 @@ enum _port_atomic_const_e {
  * @param [in] value Initial semaphore value
  */
 static inline __attribute__((always_inline))
-	void port_atomic_sem_init( _port_atomic_sem_t* lock, int value , int limit ) {
+	void _isix_port_atomic_sem_init( _isix_port_atomic_sem_t* lock, int value , int limit ) {
 		lock->value = value;
 		lock->limit = limit;
 	}
@@ -51,7 +51,7 @@ static inline __attribute__((always_inline))
  * if semafore is successfuly obtained
  */
 static inline __attribute__((always_inline))
-	int port_atomic_sem_dec( _port_atomic_sem_t* lock ) {
+	int _isix_port_atomic_sem_dec( _isix_port_atomic_sem_t* lock ) {
 		int32_t exlck, val;
 		asm volatile
 			(
@@ -74,7 +74,7 @@ static inline __attribute__((always_inline))
  * if semafore is successfuly obtained
  */
 static inline __attribute__((always_inline))
-	int port_atomic_sem_trydec( _port_atomic_sem_t* lock ) {
+	int _isix_port_atomic_sem_trydec( _isix_port_atomic_sem_t* lock ) {
 		int32_t exlck, val, ret;
 		asm volatile
 			(
@@ -98,7 +98,7 @@ static inline __attribute__((always_inline))
  * @param [out] sem Semaphore primitive object
  */
 static inline __attribute__((always_inline))
-	int port_atomic_sem_inc( _port_atomic_sem_t* lock ) {
+	int _isix_port_atomic_sem_inc( _isix_port_atomic_sem_t* lock ) {
 		int32_t exlck, val;
 		asm volatile
 			(
@@ -125,7 +125,7 @@ static inline __attribute__((always_inline))
  * @note It should be called during context switching
  */
 static inline __attribute__((always_inline))
-void port_atomic_clear_locks(void)
+void _isix_port_atomic_clear_locks(void)
 {
 	asm volatile("clrex\n");
 }
@@ -134,7 +134,7 @@ void port_atomic_clear_locks(void)
  * @param[in] lock Semaphore lock object
  * @return readed value*/
 static inline __attribute__((always_inline))
-long port_atomic_sem_read_val( _port_atomic_sem_t* semcnt )
+long _isix_port_atomic_sem_read_val( _isix_port_atomic_sem_t* semcnt )
 {
 	long ret;
 	unsigned long lock;
@@ -159,7 +159,7 @@ long port_atomic_sem_read_val( _port_atomic_sem_t* semcnt )
  * @return Previous value
  */
 static inline __attribute__((always_inline))
-int port_atomic_sem_write_val( _port_atomic_sem_t* semcnt, int val )
+int _isix_port_atomic_sem_write_val( _isix_port_atomic_sem_t* semcnt, int val )
 {
 	long ret;
 	unsigned long lock;

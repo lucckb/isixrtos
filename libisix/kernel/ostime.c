@@ -53,7 +53,7 @@ int isix_wait(ostick_t timeout)
 		isix_enter_critical();
 		_isixp_set_sleep_timeout( OSTHR_STATE_SLEEPING, timeout );
 		isix_exit_critical();
-		port_yield();
+		_isix_port_yield();
 		return ISIX_EOK;
 	}
 	else
@@ -63,12 +63,12 @@ int isix_wait(ostick_t timeout)
 		if(t1+timeout>t1)
 		{
 			t1+= timeout;
-			while(t1>isix_get_jiffies()) port_idle_cpu();
+			while(t1>isix_get_jiffies()) _isix_port_idle_cpu();
 		}
 		else
 		{
 			t1+= timeout;
-			while(t1<isix_get_jiffies()) port_idle_cpu();
+			while(t1<isix_get_jiffies()) _isix_port_idle_cpu();
 		}
 		return ISIX_EOK;
 	}

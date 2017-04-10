@@ -36,7 +36,7 @@ ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
     }
 	memset( sem, 0, sizeof(*sem) );
 	sem->static_mem = static_mem;
-	port_atomic_sem_init( &sem->value, val, limit_val );
+	_isix_port_atomic_sem_init( &sem->value, val, limit_val );
 	list_init( &sem->wait_list );
 	pr_info("Create sem %p val %i",sem,(int)sem->value.value);
 	return sem;
@@ -53,7 +53,7 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 	}
 	isix_enter_critical();
 	//Consistency check
-	if( port_atomic_sem_dec(&sem->value) < 0 )
+	if( _isix_port_atomic_sem_dec(&sem->value) < 0 )
     {
 		pr_debug("Add to list %p", currp );
 		_isixp_set_sleep_timeout( OSTHR_STATE_WTSEM, timeout );
@@ -79,7 +79,7 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
         return ISIX_EINVARG;
     }
 	isix_enter_critical();
-	if( port_atomic_sem_inc( &sem->value ) <= 0 )
+	if( _isix_port_atomic_sem_inc( &sem->value ) <= 0 )
     {
 		ostask_t task = _isixp_remove_from_prio_queue( &sem->wait_list );
 		pr_debug("Task to wakeup %p", task );
@@ -107,7 +107,7 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 int isix_sem_trywait(ossem_t sem)
 {
     if(!sem) return ISIX_EINVARG;
-    return port_atomic_sem_trydec(&sem->value)>0?ISIX_EOK:ISIX_EBUSY;
+    return _isix_port_atomic_sem_trydec(&sem->value)>0?ISIX_EOK:ISIX_EBUSY;
 }
 
 //! Wakeup semaphore tasks with selected messages
@@ -137,7 +137,7 @@ int _isixp_sem_reset( ossem_t sem, int val, bool isr )
 	}
     //Semaphore is used
     isix_enter_critical();
-    port_atomic_sem_write_val( &sem->value, val );
+    _isix_port_atomic_sem_write_val( &sem->value, val );
 	sem_wakeup_all( sem, ISIX_ERESET, isr );
     return ISIX_EOK;
 }
@@ -149,7 +149,7 @@ int isix_sem_getval(ossem_t sem)
 		pr_err("No sem");
 		return ISIX_EINVARG;
 	}
-    return port_atomic_sem_read_val( &sem->value );
+    return _isix_port_atomic_sem_read_val( &sem->value );
 }
 
 //Sem destroy

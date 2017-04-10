@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  port_memprot.c
+ *       Filename:  _isix_port_memprot.c
  *
  *    Description:  Port memory protection implementation
  *
@@ -56,7 +56,7 @@ static void setup_regions()
 #if CONFIG_ISIX_MEMORY_PROTECTION_MODEL > 0
 
 /** Function initialize default memory protection layout just before run */
-void port_memory_protection_set_default_map(void)
+void _isix_port_memory_protection_set_default_map(void)
 {
 	//If mpu not present don't touch memory map
 	if( mpu_get_region_count() == 0 ) {
@@ -75,9 +75,9 @@ void port_memory_protection_set_default_map(void)
  *   memory region  it must be 32 byte aligned
  *   @param[in] addr Set address
  */
-void port_memory_protection_set_efence( uintptr_t estack )
+void _isix_port_memory_protection_set_efence( uintptr_t estack )
 {
-	estack = port_memory_efence_aligna( estack );
+	estack = _isix_port_memory_efence_aligna( estack );
 	int efregion = mpu_get_region_count();
 	if( efregion == 0 ) {
 		return;
@@ -108,7 +108,7 @@ void port_memory_protection_set_efence( uintptr_t estack )
 }
 
 //! Clear the memory protection efence
-void port_memory_protection_reset_efence(void)
+void _isix_port_memory_protection_reset_efence(void)
 {
 	int efregion = mpu_get_region_count();
 	if( efregion == 0 ) {

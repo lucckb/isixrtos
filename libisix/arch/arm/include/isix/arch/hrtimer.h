@@ -28,14 +28,14 @@ extern "C" {
 
 //Get HI resolution timer (must be inline)
 static inline __attribute__((always_inline))
-	unsigned long port_get_hres_jiffies_timer_value(void)
+	unsigned long _isix_port_get_hres_jiffies_timer_value(void)
 {
 	return SYST_RVR - SYST_CVR;
 }
 
 //Get hres timer max value
 static inline __attribute__((always_inline))
-	unsigned long port_get_hres_jiffies_timer_max_value(void)
+	unsigned long _isix_port_get_hres_jiffies_timer_max_value(void)
 {
 	return SYST_RVR;
 }

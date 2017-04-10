@@ -8,7 +8,7 @@
 struct isix_semaphore
 {
 	//Semaphore val
-	_port_atomic_sem_t value;
+	_isix_port_atomic_sem_t value;
     //Task val waiting for semaphore
     list_entry_t wait_list;
     //Resource type
@@ -20,5 +20,5 @@ struct isix_semaphore
 static inline __attribute__((always_inline))
 void _isixp_sem_fast_signal( struct isix_semaphore* sem ) 
 {
-	port_atomic_sem_inc( &sem->value );
+	_isix_port_atomic_sem_inc( &sem->value );
 }

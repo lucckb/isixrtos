@@ -31,8 +31,8 @@ extern "C" {
 static inline osutick_t isix_get_ujiffies(void)
 {
 	osutick_t t = (osutick_t)isix_get_jiffies() * ((osutick_t)1000000/((osutick_t)ISIX_HZ));
-    t += (((osutick_t)port_get_hres_jiffies_timer_value()) * ((osutick_t)1000000/((osutick_t)ISIX_HZ)))
-    	/  (osutick_t)port_get_hres_jiffies_timer_max_value();
+    t += (((osutick_t)_isix_port_get_hres_jiffies_timer_value()) * ((osutick_t)1000000/((osutick_t)ISIX_HZ)))
+    	/  (osutick_t)_isix_port_get_hres_jiffies_timer_max_value();
     return t;
 }
 
