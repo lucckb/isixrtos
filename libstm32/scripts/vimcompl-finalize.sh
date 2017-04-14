@@ -7,10 +7,10 @@ if [ ! -f "$COMPL_FILE" ]; then
 	echo "Unable to find compl file"
 	exit
 fi
-
 #Add extra system paths
 $CXX -Wp,-v -x c++ - -fsyntax-only 2>&1 </dev/null | \
 	awk -v cfile=${COMPL_FILE} ' /^ / { 
+					gsub(/ /, "", $$1)
 					print "-isystem\n"$$1 >> cfile; 
 			} 
 			END { 
@@ -26,4 +26,4 @@ $CXX -Wp,-v -x c++ - -fsyntax-only 2>&1 </dev/null | \
 		END { 
 			print "set path="v  > ".vim.custom"; 
 		}' "$COMPL_FILE"
-cp -i "$COMPL_FILE" .
+	cp -i "$COMPL_FILE" .
