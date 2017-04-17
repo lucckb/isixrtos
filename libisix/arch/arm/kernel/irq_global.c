@@ -141,3 +141,4 @@ void isix_irq_restore( unsigned flags )
 		: "r" (flags)
 		: "memory", "cc");
 }
+

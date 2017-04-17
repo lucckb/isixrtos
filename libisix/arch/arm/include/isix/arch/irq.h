@@ -18,15 +18,19 @@
 
 #pragma once
 
-#ifndef __cplusplus
+#include <isix/arch/irq_platform.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
+
 /** Request selected interrupt handler
  * @param[in] irqno IRQ specific to the hardware
- * @param[in] attr  Attribute specific to the hardware
  */
-void isix_request_irq( int irqno, unsigned attr );
+void isix_request_irq( int irqno );
 
 
 /** Unblock and disable selected irq number */
@@ -34,6 +38,34 @@ void isix_free_irq( int irqno );
 
 
 
-#ifndef __cplusplus
+/** Check if IRQ is active
+ * @param[in] irqno IRQ input number
+ * @return boolean yes or not
+ */
+bool isix_get_irq_enabled( int irqno );
+
+
+/** Check if IRQ is pending
+ * @param[in] irqno IRQ input numer
+ * @return boolean yes or not
+ */
+bool isix_get_irq_pending( int irqno );
+
+
+/** SET pending IRQ state
+ * @param[in] irqno IRQ input number
+ */
+void isix_set_irq_pending( int irqno );
+
+
+/** CLEAR pending IRQ state
+ * @param[in] irqno IRQ input number
+ */
+void isix_clear_irq_pending( int irqno );
+
+
+
+
+#ifdef __cplusplus
 }
 #endif

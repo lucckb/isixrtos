@@ -62,7 +62,7 @@ static inline uint32_t _system_calc_priority(uint32_t preempt_prio, uint32_t sub
 /**  Setup NVIC priority group
  * @param[in] group Priority group to set
  */
-static inline void nvic_priority_group(uint32_t group )
+static inline void nvic_priority_group( uint32_t group )
 {
 #ifdef __cplusplus
 	using namespace _internal::system;

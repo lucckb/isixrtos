@@ -33,14 +33,14 @@ extern "C" {
 static inline __attribute__((always_inline))
 	unsigned long _isix_port_get_hres_jiffies_timer_value(void)
 {
-	return ioread32(_ISIX_PORT_SYST_RVR) - ioread32(_ISIX_PORT_SYST_CVR);
+	return MMIO32(_ISIX_PORT_SYST_RVR) - MMIO32(_ISIX_PORT_SYST_CVR);
 }
 
 //Get hres timer max value
 static inline __attribute__((always_inline))
 	unsigned long _isix_port_get_hres_jiffies_timer_max_value(void)
 {
-	return ioread32(_ISIX_PORT_SYST_RVR);
+	return MMIO32(_ISIX_PORT_SYST_RVR);
 }
 
 #undef _ISIX_PORT_SYST_CVR
