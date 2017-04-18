@@ -72,7 +72,6 @@ struct isix_system
 	atomic_uint jiffies;				//! Global jiffies var
 	atomic_int jiffies_skipped;			//! Skiped jiffies when scheduler is locked
 	unsigned number_of_task_deleted;	//! Number of deleted task
-	osprio_t number_of_priorities;		//! Number of priorities
 	atomic_bool yield_pending;			//! Yield during lock
 };
 
@@ -84,16 +83,24 @@ extern volatile bool _isix_scheduler_running;
 #define schrun _isix_scheduler_running
 //Return scheduler highest prio
 static inline __attribute__((always_inline))
-	ostask_t isixp_max_prio( ostask_t t1, ostask_t t2 )
+	ostask_t _isixp_max_prio( ostask_t t1, ostask_t t2 )
 {
 	return (t1->prio>t2->prio)?(t2):(t1);
 }
 //! Return true if fist prio is greater than second
 static inline __attribute__((always_inline))
-	bool isixp_prio_gt( osprio_t p1, osprio_t p2 )
+	bool _isixp_prio_gt( osprio_t p1, osprio_t p2 )
 {
 	return p1 < p2;
 }
+
+//! Return true if it is idle task
+static inline __attribute__((always_inline))
+bool _isixp_is_idle_prio( osprio_t p ) {
+	return p==CONFIG_ISIX_NUMBER_OF_PRIORITIES;
+}
+
+
 //Scheduler function called on context switch in IRQ and Yield
 void _isixp_schedule(void);
 //Sched timer cyclic call

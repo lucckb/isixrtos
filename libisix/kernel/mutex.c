@@ -80,7 +80,7 @@ int isix_mutex_lock( osmtx_t mutex )
 		else
 		{
 			/* Priority inheritance protocol gain thread prio waiting on mtx */
-			if( isixp_prio_gt(currp->prio, mutex->owner->prio) ) {
+			if( _isixp_prio_gt(currp->prio, mutex->owner->prio) ) {
 				_isixp_reallocate_priority( mutex->owner, currp->prio );
 			}
 			_isixp_set_sleep( OSTHR_STATE_WTMTX );
@@ -177,7 +177,7 @@ int isix_mutex_unlock( osmtx_t mutex )
 			{
 				if( !list_isempty(&mtx->wait_list) ) {
 					ostask_t t = list_first_entry(&mtx->wait_list,inode,struct isix_task);
-					if( isixp_prio_gt(t->prio,newprio) ) {
+					if( _isixp_prio_gt(t->prio,newprio) ) {
 						newprio = t->prio;
 					}
 				}

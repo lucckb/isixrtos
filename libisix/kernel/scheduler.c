@@ -56,7 +56,7 @@ ostick_t isix_get_jiffies(void)
 //Get maxium available priority
 osprio_t isix_get_min_priority(void)
 {
-	return csys.number_of_priorities;
+	return CONFIG_ISIX_NUMBER_OF_PRIORITIES-1;
 }
 
 /** Temporary lock task reschedule */
@@ -153,9 +153,6 @@ void isix_init(unsigned long core_freq)
 	_isix_port_atomic_sem_init( &csys.sched_lock, 0, 1 );
 	atomic_init( &csys.critical_count, 0 );
 	//Copy priority
-	//TEMPORARY
-	const int num_priorities = 4;
-	csys.number_of_priorities = num_priorities;
 	//Init heap
 	_isixp_alloc_init();
 	//Initialize ready task list
@@ -171,16 +168,21 @@ void isix_init(unsigned long core_freq)
     //Initialize free prio elem list
     list_init(&csys.free_prio_elem);
     //This memory never will be freed
-    task_ready_t *prio = isix_alloc(sizeof(task_ready_t)*(num_priorities+1));
+    task_ready_t *prio = isix_alloc(
+		sizeof(task_ready_t)*(CONFIG_ISIX_NUMBER_OF_PRIORITIES+1)
+	);
 	if( !prio ) {
 		isix_bug("Insufficient memory alloc priority list");
 	}
-    for(int i=0; i<num_priorities+1; ++i) {
+    for(int i=0; i<=CONFIG_ISIX_NUMBER_OF_PRIORITIES; ++i) {
     	list_insert_end(&csys.free_prio_elem,&prio[i].inode);
     }
     //Lower priority is the idle task
 	if( !isix_task_create( idle_task, NULL,
-			ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities,0 ) ) {
+			ISIX_PORT_SCHED_MIN_STACK_DEPTH,
+			CONFIG_ISIX_NUMBER_OF_PRIORITIES,0 )
+	  )
+	{
 		isix_bug("Insufficient memory idle task");
 	}
 	_isix_port_conf_hardware( core_freq );
@@ -275,10 +277,11 @@ void _isixp_schedule(void)
 	_isix_port_memory_protection_set_efence( currp->fence_estack );
 #	endif
 	//Update statistics
-	_isixp_schedule_update_statistics( atomic_load(&csys.jiffies),
-			currp->prio==csys.number_of_priorities );
+	_isixp_schedule_update_statistics(
+		atomic_load(&csys.jiffies), _isixp_is_idle_prio(currp->prio)
+	);
 	//Handle local thread errno
-	if(currp->impure_data ) 
+	if(currp->impure_data )
 	{
 		_REENT = currp->impure_data;
 	}
@@ -290,7 +293,7 @@ void _isixp_schedule(void)
     if(currp->prio != curr_prio->prio)
     {
 		pr_crit("tsk: %p %i != %i ", currp, currp->prio , curr_prio->prio );
-    	isix_bug("Task priority doesn't match to element priority");
+		isix_bug("Task priority doesn't match to element priority");
     }
 }
 
@@ -387,7 +390,7 @@ static inline void free_task_ready_t(task_ready_t *prio)
 //Add assigned task to ready list
 static void add_ready_list( ostask_t task )
 {
-    if(task->prio > csys.number_of_priorities) {
+    if( task->prio > CONFIG_ISIX_NUMBER_OF_PRIORITIES ) {
 		isix_bug("Invalid task priority");
 	}
 	pr_debug("add: trying to add %p prio %i", task, task->prio );
@@ -412,7 +415,7 @@ static void add_ready_list( ostask_t task )
             list_insert_end(&prio_i->task_list,&task->inode);
             return ;
         }
-        else if( isixp_prio_gt(task->prio,prio_i->prio) )
+        else if( _isixp_prio_gt(task->prio,prio_i->prio) )
         {
            pr_debug("wkup: Insert prio %i node %p",prio_i->prio,prio_i);
            break;
@@ -420,9 +423,9 @@ static void add_ready_list( ostask_t task )
     }
     //Priority not found allocate priority node
     task_ready_t *prio_n = alloc_task_ready_t();
-    prio_n->prio = task->prio; 			//Assign priority
-    task->prio_elem = prio_n; 			//Set pointer to priority struct
-    list_init(&prio_n->task_list); 		//Initialize and add at end of list
+    prio_n->prio = task->prio;			//Assign priority
+    task->prio_elem = prio_n;			//Set pointer to priority struct
+    list_init(&prio_n->task_list);		//Initialize and add at end of list
     list_insert_end( &prio_n->task_list, &task->inode );
     list_insert_before( &prio_i->inode, &prio_n->inode );
 	pr_debug("ardy: task state %i", task->state );
@@ -480,7 +483,7 @@ void _isixp_add_to_prio_queue( list_entry_t *list, ostask_t task )
     ostask_t item;
     list_for_each_entry( list, item, inode )
     {
-    	if ( isixp_prio_gt(task->prio,item->prio) ) break;
+    	if ( _isixp_prio_gt(task->prio,item->prio) ) break;
     }
     pr_debug("prioqueue: insert in time list at %p", task );
     list_insert_before( &item->inode, &task->inode );
@@ -572,13 +575,13 @@ void _isixp_do_reschedule( ostask_t task )
         if( !currp ) {
 			currp = task;
 		}
-        else if(isixp_prio_gt(task->prio,currp->prio)) {
+        else if(_isixp_prio_gt(task->prio,currp->prio)) {
 			currp = task;
 		}
     }
 	else
 	{
-		if( isixp_prio_gt(task->prio,currp->prio) ) {
+		if( _isixp_prio_gt(task->prio,currp->prio) ) {
 			//New task have higer priority then current task
 			pr_debug("resched: prio %i>old prio %i",task->prio,currp->prio);
 			_isix_port_yield();

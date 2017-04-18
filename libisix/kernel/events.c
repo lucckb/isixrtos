@@ -73,7 +73,7 @@ int isix_event_destroy( osevent_t evh )
 	while( (t=_isixp_remove_from_prio_queue(&evh->wait_list) ) )
 	{	
 		_isixp_wakeup_task_l( t, ISIX_EDESTROY );
-		 wkup_task = isixp_max_prio( wkup_task, t );
+		 wkup_task = _isixp_max_prio( wkup_task, t );
 	}
 	_isixp_do_reschedule( wkup_task );
 	isix_free( evh );
@@ -168,7 +168,7 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	osbitset_t clr_bits = 0U;
 	ostask_t t, tmp;
 	list_for_each_entry_safe( &evth->wait_list, t, tmp, inode )
-	{	
+	{
 		if( check_cond2(evth->bitset,t->obj.evbits) )
 		{
 			if( t->obj.evbits & ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG ) {
@@ -177,12 +177,12 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 			//! Post only normal bits negative value means error
 			list_delete( &t->inode );
 			_isixp_wakeup_task_l( t, evth->bitset );
-			wkup_task = isixp_max_prio( wkup_task, t );
+			wkup_task = _isixp_max_prio( wkup_task, t );
 		}
 	}
 	evth->bitset &= ~clr_bits;
 	if( !isr ) _isixp_do_reschedule( wkup_task );
-	else  	   isix_exit_critical(); 
+	else	   isix_exit_critical();
 	return evth->bitset;
 }
 
@@ -199,7 +199,7 @@ osbitset_ret_t isix_event_get_isr( osevent_t evth )
 }
 
 //Atomically sets bits than wait
-osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set, 
+osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 	osbitset_t bits_to_wait, ostick_t timeout )
 {
 	osbitset_t retval;
@@ -213,7 +213,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 		return ISIX_EINVARG;
 	}
 	isix_enter_critical();
-	{	
+	{
 		osbitset_t orgbits = evth->bitset;
 		_isixp_event_set( evth, bits_to_set, false );
 		if( ((orgbits|bits_to_set) & bits_to_wait ) == bits_to_wait )
@@ -223,14 +223,14 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 			evth->bitset &= ~ bits_to_wait;
 			timeout = ISIX_TIME_DONTWAIT;
 		}
-		else 
+		else
 		{
 			//Bit condition not meet
-			if( timeout != ISIX_TIME_DONTWAIT ) 
+			if( timeout != ISIX_TIME_DONTWAIT )
 			{
 				_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
 				list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
-				currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG 
+				currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG
 									| ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG;
 				isix_exit_critical();
 				isix_yield();
@@ -245,7 +245,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 					retval = currp->obj.dmsg;
 				}
 			}
-			else 
+			else
 			{
 				retval = evth->bitset;
 			}

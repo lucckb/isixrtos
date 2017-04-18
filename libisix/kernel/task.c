@@ -5,6 +5,7 @@
 #include <isix/prv/semaphore.h>
 #include <isix/prv/mutex.h>
 #include <isix/prv/common.h>
+#include <isix/prv/bitops.h>
 #include <string.h>
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
@@ -12,7 +13,7 @@
 
 
 #ifdef CONFIG_ISIX_LOGLEVEL_TASK
-#undef CONFIG_ISIX_LOGLEVEL 
+#undef CONFIG_ISIX_LOGLEVEL
 #define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_TASK
 #endif
 #include <isix/prv/printk.h>
@@ -27,7 +28,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 		unsigned long  stack_depth, osprio_t priority, unsigned long flags )
 {
 	pr_info("tskcreate: Create task with prio %i",priority);
-    if( isix_get_min_priority() < priority )
+    if( (isix_get_min_priority()<priority) && !_isixp_is_idle_prio(priority) )
     {
 		return NULL;
     }
@@ -126,7 +127,7 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
         return ISIX_EOK;
     }
 	taskc->real_prio = new_prio;
-	if( taskc->prio==real_prio||isixp_prio_gt(new_prio,taskc->prio) ) {
+	if( taskc->prio==real_prio||_isixp_prio_gt(new_prio,taskc->prio) ) {
 		_isixp_reallocate_priority( taskc, new_prio );
 		_isix_port_yield();	//Unconditional port yield due to force reschedule all tasks
 	}

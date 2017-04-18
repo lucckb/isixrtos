@@ -18,6 +18,11 @@
 #endif
 
 
+/** Isix numer of config priorities */
+#ifndef CONFIG_ISIX_NUMBER_OF_PRIORITIES
+#define CONFIG_ISIX_NUMBER_OF_PRIORITIES 16
+#endif
+
 /** Enable disable global debug */
 #ifndef CONFIG_ISIX_LOGLEVEL
 #define CONFIG_ISIX_LOGLEVEL ISIXLOG_OFF
@@ -35,7 +40,7 @@
 //
 //
 /** Define memory protection layout */
-//#define CONFIG_ISIX_MEMORY_PROTECTION_MODEL 
+//#define CONFIG_ISIX_MEMORY_PROTECTION_MODEL
 // ISIX_MPROT_NONE ISIX_MPROT_LITE ISIX_MPROT_FULL
 #ifndef CONFIG_ISIX_MEMORY_PROTECTION_MODEL
 #define CONFIG_ISIX_MEMORY_PROTECTION_MODEL ISIX_MPROT_NONE
