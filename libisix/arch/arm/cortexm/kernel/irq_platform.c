@@ -17,10 +17,11 @@
  */
 #include <isix/arch/irq.h>
 #include <isix/arch/io.h>
+#include <isix/arch/scheduler.h>
 #include <isix/config.h>
-#include "nvic_regs.h"
-#include "scb_regs.h"
-#include "scs_regs.h"
+#include <isix/cortexm/nvic_regs.h>
+#include <isix/cortexm/scb_regs.h>
+#include <isix/cortexm/scs_regs.h>
 
 
 #ifndef CONFIG_ISIX_NVIC_PRIO_BITS
@@ -137,7 +138,7 @@ void isix_mask_irq_priority( isix_irq_prio_t priority )
  * @param[in] new_prio New masked priority
  * @return old priority
  */
-isix_irq_saved_prio_t isix_mask_irq_save_priority( isix_irq_prio_t new_prio )
+isix_irq_raw_prio_t isix_mask_irq_save_priority( isix_irq_prio_t new_prio )
 {
 	uint32_t prio = nvic_encode_prio( new_prio );
 	uint32_t ret;
@@ -153,6 +154,21 @@ isix_irq_saved_prio_t isix_mask_irq_save_priority( isix_irq_prio_t new_prio )
 }
 
 
+/** Set the raw priority
+ * @param[in] irqno IRQ input number
+ * @param[in] new interrupt raw priority
+ */
+void isix_set_raw_priority( int irqno, isix_irq_raw_prio_t prio )
+{
+	if (irqno < 0 ) {
+		/* Cortex-M  system interrupts */
+		SCS_SHPR((irqno & 0xF) - 4) = prio;
+	} else {
+		/* Device specific interrupts */
+		//WARNING: 8bit IO
+		NVIC_IPR(irqno) = prio;
+	}
+}
 
 /** Set irqnumber to the requested priority level
  * @param[in] irqno IRQ input number
@@ -161,14 +177,7 @@ isix_irq_saved_prio_t isix_mask_irq_save_priority( isix_irq_prio_t new_prio )
 void isix_set_irq_priority( int irqno, isix_irq_prio_t priority )
 {
 	uint8_t rawprio = nvic_encode_prio( priority );
-	if (irqno < 0 ) {
-		/* Cortex-M  system interrupts */
-		SCS_SHPR((irqno & 0xF) - 4) = rawprio;
-	} else {
-		/* Device specific interrupts */
-		//WARNING: 8bit IO
-		NVIC_IPR(irqno) = rawprio;
-	}
+	isix_set_raw_priority( irqno, rawprio );
 }
 
 
@@ -200,5 +209,23 @@ void isix_event_irq_pending(void)
 	SCB_SCR |= SCB_SCR_SEVEONPEND;
 }
 
+
+
+/** Set interrupt priority groupin
+ * @param[in] priority group
+ */
+void isix_set_irq_priority_group( enum isix_cortexm_prigroup prigroup )
+{
+	SCB_AIRCR = SCB_AIRCR_VECTKEY | prigroup;
+}
+
+
 #endif
 
+
+/* This is a part of porting layer */
+void _isix_port_system_reset( void )
+{
+	SCB_AIRCR = SCB_AIRCR_VECTKEY | SCB_AIRCR_SYSRESETREQ;
+	for(;;);
+}

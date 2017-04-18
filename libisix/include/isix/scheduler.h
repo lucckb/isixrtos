@@ -51,6 +51,14 @@ void isix_shutdown_scheduler(void);
 #endif
 
 
+/** Reboot the target system */
+static inline __attribute__((noreturn,always_inline))
+void isix_reboot(void)
+{
+	_isix_port_system_reset();
+}
+
+
 /** Initialize base OS structure before call main
  * @param[in] num_priorities Number of available tasks priorities
  */
@@ -61,10 +69,10 @@ void isix_init( osprio_t num_priorities );
  */
 osprio_t isix_get_min_priority(void);
 
-/** Functtion return scheduling state 
+/** Functtion return scheduling state
  @return True if scheduler is running
  */
-static inline bool isix_is_scheduler_active(void) 
+static inline bool isix_is_scheduler_active(void)
 {
 	extern volatile bool _isix_scheduler_running;
 	return _isix_scheduler_running;

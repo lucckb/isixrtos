@@ -130,7 +130,7 @@ def isix_get_mach_type(bld):
 # Isix get CPU family
 @conf
 def isix_get_cpu_family(bld):
-    return _get_flag( bld.env.ISIX_CPU_TYPE,'family','cpu' )
+    return _get_flag( bld.env.ISIX_CPU_TYPE,'family','mcu' )
 
 
 #Isix get subarchitecture

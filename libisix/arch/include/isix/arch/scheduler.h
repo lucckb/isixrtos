@@ -16,6 +16,9 @@ void _isix_port_set_interrupt_mask( void );
 /* Port clear interrupt mask */
 void _isix_port_clear_interrupt_mask( void );
 
+/* Reset the CPU */
+__attribute__((noreturn)) void _isix_port_system_reset( void );
+
 
 #ifdef __cplusplus
 }	//end extern-C

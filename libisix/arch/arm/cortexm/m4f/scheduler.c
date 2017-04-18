@@ -4,6 +4,8 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 #include <isix/arch/cpu.h>
+#include <isix/cortexm/scb_regs.h>
+
 
 
 //Save context
@@ -52,16 +54,10 @@
 	)
 
 
-#define portNVIC_INT_CTRL           ( ( volatile unsigned long *) 0xe000ed04 )
-#define portNVIC_PENDSVSET          0x10000000
-
 
 //System Mode enable IRQ and FIQ
 #define INITIAL_XPSR 0x01000000
 #define INITIAL_EXEC_RETURN    0xfffffffd
-#ifndef DEBUG_SCHEDULER
-#define DEBUG_SCHEDULER DBG_OFF
-#endif
 
 
 //Pend SV interrupt (context switch)
@@ -77,9 +73,7 @@ void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 	}
 #else
 	cpu_save_context();
-
     _isixp_schedule();
-
     cpu_restore_context();
 #endif
 }
@@ -91,9 +85,12 @@ void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
      asm volatile(
      "ldr r3, 0f\t\n"				/* Restore the context. */
      "ldr r1, [r3]\t\n"				/* Use _isix_current_task */
-     "ldr r0, [r1]\t\n"			    /* The first item in the _isix_current_task is the task top of stack. */
-     "ldmia r0!, {r4-r11, r14}\t\n"	 /* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
-     "msr psp, r0\t\n"				/* Restore the task stack pointer. */
+     "ldr r0, [r1]\t\n"			    /* The first item in the _isix_current_task
+									   is the task top of stack. */
+     "ldmia r0!, {r4-r11, r14}\t\n"	 /* Pop the registers that are not automatically
+										saved on exception entry and the critical
+										nesting count. */
+     "msr psp, r0\t\n"				 /* Restore the task stack pointer. */
      "mov r0, #0\t\n"
      "msr basepri, r0\t\n"
      "bx r14\t\n"
@@ -141,7 +138,7 @@ void __attribute__((__interrupt__)) systick_isr_vector(void)
 
     /* Set a PendSV to request a context switch. */
     if(schrun) {
-		*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
+		SCB_ICSR = SCB_ICSR_PENDSVSET;
 	}
 
 }
@@ -150,9 +147,9 @@ void __attribute__((__interrupt__)) systick_isr_vector(void)
 //Set interrupt mask
 void _isix_port_set_interrupt_mask(void)
 {
- asm volatile(  "msr BASEPRI,%0\t\n"
-                ::"r"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)
-             );
+	asm volatile(  "msr BASEPRI,%0\t\n"
+		::"r"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)
+	);
 }
 
 
@@ -167,7 +164,7 @@ void _isix_port_clear_interrupt_mask(void)
 void _isix_port_yield(void)
 {
 	/* Set a PendSV to request a context switch. */
-	*(portNVIC_INT_CTRL) = portNVIC_PENDSVSET;
+	SCB_ICSR = SCB_ICSR_PENDSVSET;
 	_isix_port_flush_memory();
 }
 
