@@ -13,6 +13,7 @@
 #include <isix/arch/memprot.h>
 #include <isix/arch/cpu.h>
 #include <isix/arch/core.h>
+#include <isix/arch/ostimer.h>
 #include <stdatomic.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_SCHEDULER
@@ -115,7 +116,7 @@ void isix_shutdown_scheduler(void)
 /** Function called at end of isix execution only
  * when shutdown API is enabled
  */
-void _isixp_finalize() 
+void _isixp_finalize()
 {
 	_isixp_vtimers_finalize();
 	cleanup_tasks();
@@ -145,13 +146,15 @@ void isix_exit_critical(void)
 
 
 /* Number of priorites assigned when OS start */
-void isix_init(osprio_t num_priorities)
+void isix_init(unsigned long core_freq)
 {
 	//Schedule lock count
 	_isix_port_memory_protection_set_default_map();
 	_isix_port_atomic_sem_init( &csys.sched_lock, 0, 1 );
 	atomic_init( &csys.critical_count, 0 );
 	//Copy priority
+	//TEMPORARY
+	const int num_priorities = 4;
 	csys.number_of_priorities = num_priorities;
 	//Init heap
 	_isixp_alloc_init();
@@ -180,6 +183,7 @@ void isix_init(osprio_t num_priorities)
 			ISIX_PORT_SCHED_MIN_STACK_DEPTH,num_priorities,0 ) ) {
 		isix_bug("Insufficient memory idle task");
 	}
+	_isix_port_conf_hardware( core_freq );
 }
 
 //Isix bug report when printk is defined

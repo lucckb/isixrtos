@@ -60,9 +60,9 @@ void isix_reboot(void)
 
 
 /** Initialize base OS structure before call main
- * @param[in] num_priorities Number of available tasks priorities
+ * @param[in] core_freq  AHB core frequency
  */
-void isix_init( osprio_t num_priorities );
+void isix_init( unsigned long core_freq );
 
 /** Function return the minimal available priority
  * @return Number of minimal available priority
@@ -107,8 +107,8 @@ namespace {
 		::isix_shutdown_scheduler();
 	}
 #endif
-	inline void init( osprio_t num_priorities ) {
-		::isix_init( num_priorities );
+	inline void init( unsigned long core_freq ) {
+		::isix_init( core_freq );
 	}
 	inline osprio_t get_min_priority() {
 		return ::isix_get_min_priority();

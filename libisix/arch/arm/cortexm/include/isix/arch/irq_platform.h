@@ -96,7 +96,7 @@ void isix_set_irq_priority( int irqno, isix_irq_prio_t priority );
  * @param[in] irqno IRQ input number
  * @param[in] new interrupt raw priority
  */
-void isix_set_raw_priority( int irqno, isix_irq_raw_prio_t prio );
+void isix_set_raw_irq_priority( int irqno, isix_irq_raw_prio_t prio );
 
 
 #if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)

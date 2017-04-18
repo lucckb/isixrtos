@@ -26,25 +26,13 @@ extern "C" {
 #endif
 
 
-#define _ISIX_PORT_SYST_CVR 0xE000E018
-#define _ISIX_PORT_SYST_RVR 0xE000E014
 
 //Get HI resolution timer (must be inline)
-static inline __attribute__((always_inline))
-	unsigned long _isix_port_get_hres_jiffies_timer_value(void)
-{
-	return MMIO32(_ISIX_PORT_SYST_RVR) - MMIO32(_ISIX_PORT_SYST_CVR);
-}
+unsigned long _isix_port_get_hres_jiffies_timer_value(void);
 
 //Get hres timer max value
-static inline __attribute__((always_inline))
-	unsigned long _isix_port_get_hres_jiffies_timer_max_value(void)
-{
-	return MMIO32(_ISIX_PORT_SYST_RVR);
-}
+unsigned long _isix_port_get_hres_jiffies_timer_max_value(void);
 
-#undef _ISIX_PORT_SYST_CVR
-#undef _ISIX_PORT_SYST_RVR
 
 
 #ifdef __cplusplus

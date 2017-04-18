@@ -19,7 +19,7 @@
 #pragma once
 #include <isix/types.h>
 #include <isix/scheduler.h>
-#include <isix/arch/hrtimer.h>
+#include <isix/arch/ostimer.h>
 
 #ifdef __cplusplus
 extern "C" {

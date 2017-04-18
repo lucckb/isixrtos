@@ -20,6 +20,12 @@ void _isix_port_clear_interrupt_mask( void );
 __attribute__((noreturn)) void _isix_port_system_reset( void );
 
 
+/** Configure OS specific hardware
+ * @param[in] Input core freqncy
+ */
+void _isix_port_conf_hardware( unsigned long core_freq );
+
+
 #ifdef __cplusplus
 }	//end extern-C
 #endif /* __cplusplus */

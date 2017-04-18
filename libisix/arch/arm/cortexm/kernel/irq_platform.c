@@ -158,7 +158,7 @@ isix_irq_raw_prio_t isix_mask_irq_save_priority( isix_irq_prio_t new_prio )
  * @param[in] irqno IRQ input number
  * @param[in] new interrupt raw priority
  */
-void isix_set_raw_priority( int irqno, isix_irq_raw_prio_t prio )
+void isix_set_raw_irq_priority( int irqno, isix_irq_raw_prio_t prio )
 {
 	if (irqno < 0 ) {
 		/* Cortex-M  system interrupts */
@@ -177,7 +177,7 @@ void isix_set_raw_priority( int irqno, isix_irq_raw_prio_t prio )
 void isix_set_irq_priority( int irqno, isix_irq_prio_t priority )
 {
 	uint8_t rawprio = nvic_encode_prio( priority );
-	isix_set_raw_priority( irqno, rawprio );
+	isix_set_raw_irq_priority( irqno, rawprio );
 }
 
 
