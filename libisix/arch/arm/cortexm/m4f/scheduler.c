@@ -1,11 +1,19 @@
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/task.h>
+
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
-#include <isix/arch/cpu.h>
-#include <isix/cortexm/scb_regs.h>
 
+
+/** Restore the context to the place when scheduler was started to run
+ *  Use Main stack pointer negate bit 2 of LR
+ */
+#define cpu_restore_main_context()								\
+	asm volatile (												\
+	"bic lr,lr,#0x04\t\n"										\
+	"bx lr\t\n"													\
+	)
 
 
 //Save context
@@ -44,14 +52,6 @@
     "0: .word _isix_current_task\t\n"							\
    )
 
-/** Restore the context to the place when scheduler was started to run
- *  Use Main stack pointer negate bit 2 of LR
- */
-#define cpu_restore_main_context()								\
-	asm volatile (												\
-	"bic lr,lr,#0x04\t\n"										\
-	"bx lr\t\n"													\
-	)
 
 
 
@@ -128,65 +128,5 @@ unsigned long* _isixp_task_init_stack(unsigned long *sp, task_func_ptr_t pfun, v
 
 	return sp;
 
-}
-
-
-//Cyclic schedule time interrupt
-void __attribute__((__interrupt__)) systick_isr_vector(void)
-{
-	_isixp_schedule_time();
-
-    /* Set a PendSV to request a context switch. */
-    if(schrun) {
-		SCB_ICSR = SCB_ICSR_PENDSVSET;
-	}
-
-}
-
-
-//Set interrupt mask
-void _isix_port_set_interrupt_mask(void)
-{
-	asm volatile(  "msr BASEPRI,%0\t\n"
-		::"r"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)
-	);
-}
-
-
-//Clear interrupt mask
-void _isix_port_clear_interrupt_mask(void)
-{
-    asm volatile("msr BASEPRI,%0\t\n"::"r"(0));
-}
-
-
-//Yield to another task
-void _isix_port_yield(void)
-{
-	/* Set a PendSV to request a context switch. */
-	SCB_ICSR = SCB_ICSR_PENDSVSET;
-	_isix_port_flush_memory();
-}
-
-//Start first task by svc call
-void  __attribute__((naked)) _isix_port_start_first_task( void )
-{
-#if CONFIG_ISIX_SHUTDOWN_API
-	__asm volatile(
-		"push {r4-r11}\t\n"
-		"svc 0\t\n"
-		"pop {r4-r11}\t\n"
-		"bx lr\t\n"
-	 );
-#else
-  __asm volatile(
-      "ldr r0, =0xE000ED08 \t\n" /* Use the NVIC offset register to locate the stack. */
-      "ldr r0, [r0]\t\n"
-      "ldr r0, [r0]\t\n"
-      "msr msp, r0\t\n"		/* Set the msp back to the start of the stack. */
-      "svc 0\t\n"
-	  "nop\r\n"
-      );
-#endif
 }
 
