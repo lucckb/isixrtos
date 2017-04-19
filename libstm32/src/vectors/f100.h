@@ -81,7 +81,7 @@ ISR_VECTOR(dma2_channel4_5_isr_vector);
 ISR_VECTOR(dma2_channel5_isr_vector);				
 
 __attribute__ ((section(".isr_vector")))
-const vect_fun_t const exceptions_vectors[] =
+const vect_fun_t const _exceptions_vectors[] =
 {
   (vect_fun_t)(long)&_estack,            
   _mcu_reset_handler_,             

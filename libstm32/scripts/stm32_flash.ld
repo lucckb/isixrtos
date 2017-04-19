@@ -1,6 +1,6 @@
-ENTRY(exceptions_vectors)
-EXTERN(exceptions_vectors)
-ASSERT(DEFINED(exceptions_vectors), "Error no exceptions vectors entries")
+ENTRY(_exceptions_vectors)
+EXTERN(_exceptions_vectors)
+ASSERT(DEFINED(_exceptions_vectors), "Error no exceptions vectors entries")
 
 /* Sections Definitions */
 SECTIONS
