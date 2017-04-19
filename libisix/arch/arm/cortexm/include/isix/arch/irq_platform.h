@@ -142,6 +142,12 @@ void isix_set_irq_priority_group( enum isix_cortexm_prigroup prigroup );
 
 
 
+/** Set the vector base address
+ * @param[in] addr memory base starting address
+ */
+void isix_set_irq_vectors_base( uintptr_t addr );
+
+
 
 #endif
 

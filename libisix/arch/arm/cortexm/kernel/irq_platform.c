@@ -229,3 +229,14 @@ void _isix_port_system_reset( void )
 	SCB_AIRCR = SCB_AIRCR_VECTKEY | SCB_AIRCR_SYSRESETREQ;
 	for(;;);
 }
+
+
+/** Set the vector base address
+ * @param[in] addr memory base starting address
+ */
+void isix_set_irq_vectors_base( uintptr_t addr )
+{
+	SCB_VTOR = addr & ~0x7fU;
+}
+
+
