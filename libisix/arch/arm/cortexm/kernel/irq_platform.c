@@ -234,9 +234,9 @@ void _isix_port_system_reset( void )
 /** Set the vector base address
  * @param[in] addr memory base starting address
  */
-void isix_set_irq_vectors_base( uintptr_t addr )
+void isix_set_irq_vectors_base( const void* vecptr )
 {
-	SCB_VTOR = addr & ~0x7fU;
+	SCB_VTOR = (uintptr_t)vecptr & ~0x7fU;
 }
 
 
