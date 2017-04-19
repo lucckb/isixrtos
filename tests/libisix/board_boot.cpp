@@ -6,14 +6,10 @@
  */
 
 #include <isix.h>
+#include <isix/arch/irq.h>
 #include <stm32lib.h>
 #include <stm32rcc.h>
-#include <stm32system.h>
-/* ------------------------------------------------------------------ */
-namespace {
-	constexpr auto ISIX_NUM_PRIORITIES = 8;
-}
-/* ------------------------------------------------------------------ */
+
 namespace {
 	/** Cortex stm32 System setup
 	 * Clock and flash configuration for selected rate
@@ -33,20 +29,12 @@ extern "C" {
 		//Initialize system perhipheral
 		uc_periph_setup();
 		//1 bit for preemtion priority
-		stm32::nvic_priority_group(NVIC_PriorityGroup_1);
-		//System priorities
-		stm32::nvic_set_priority(PendSV_IRQn,1,0x7);
-		//System priorities
-		stm32::nvic_set_priority(SVCall_IRQn,1,0x7);
-		//Set timer priority
-		stm32::nvic_set_priority(SysTick_IRQn,1,0x7);
+		isix_set_irq_priority_group( isix_cortexm_group_pri7 );
 		//Initialize isix
-		isix_init(ISIX_NUM_PRIORITIES);
-		stm32::systick_config( ((CONFIG_HCLK_HZ/(8U))/ISIX_HZ)-1 );
+		isix_init(CONFIG_HCLK_HZ);
 	}
 }
-/* ------------------------------------------------------------------ */
+
 }
 
 
-/* ------------------------------------------------------------------ */
