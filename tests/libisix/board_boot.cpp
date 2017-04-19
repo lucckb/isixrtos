@@ -7,8 +7,9 @@
 
 #include <isix.h>
 #include <isix/arch/irq.h>
-#include <stm32lib.h>
 #include <stm32rcc.h>
+#include <isix/arch/irq.h>
+#include <irq_vectors_symbol.h>
 
 namespace {
 	/** Cortex stm32 System setup
@@ -21,7 +22,7 @@ namespace {
 		stm32::rcc_pclk2_config( RCC_HCLK_Div2 );
 		stm32::rcc_pclk1_config( RCC_HCLK_Div4 );
 		//Setup NVIC vector at begin of flash
-		SCB->VTOR = NVIC_VectTab_FLASH;
+		isix_set_irq_vectors_base( &_exceptions_vectors );
 	}
 extern "C" {
 	void _external_startup(void)
