@@ -19,7 +19,6 @@ def configure(conf):
     conf.env.OPENOCD_SCRIPT_FILE = os.path.join( scripts_dir, 'stm32.cfg' )
     if conf.options.bootloader_remap>0:
         conf.env.BOOTLOADER_REMAP_SHIFT_KB = conf.options.bootloader_remap
-        conf.define( 'CONFIG_ISIX_SBL_BOOTLOADER_REMAP', conf.options.bootloader_remap )
 
 #Build script
 def build(bld):
