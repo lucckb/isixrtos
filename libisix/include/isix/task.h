@@ -7,6 +7,7 @@ extern "C" {
 #include <isix/scheduler.h>
 #include <isix/memory.h>
 #include <isix/osthr_state.h>
+#include <isix/arch/core.h>
 
 #ifndef __cplusplus
 //!Definition of task function in C mode
