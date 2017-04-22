@@ -13,35 +13,36 @@
  namespace stm32 {
 #endif
 
- /* Alias word address of DBP bit */
-#define PWR_OFFSET               (PWR_BASE - PERIPH_BASE)
-#define CR_OFFSET                (PWR_OFFSET + 0x00)
-#define DBP_BitNumber            0x08
-#define CR_DBP_BB                (PERIPH_BB_BASE + (CR_OFFSET * 32) + (DBP_BitNumber * 4))
 
+#ifdef _PWR_TYPEDEF_HAS_CR2_
+#define PWR_CR_REG PWR->CR1
+#define PWR_CSR_REG PWR->CSR1
+#else
+#define PWR_CR_REG PWR->CR
+#define PWR_CSR_REG PWR->CSR
+#endif
+
+ /* Alias word address of DBP bit */
+#define DBP_BitNumber            0x08
 /* Alias word address of PVDE bit */
 #define PVDE_BitNumber           0x04
-#define CR_PVDE_BB               (PERIPH_BB_BASE + (CR_OFFSET * 32) + (PVDE_BitNumber * 4))
-
 /* Alias word address of FPDS bit */
 #define FPDS_BitNumber           0x09
-#define CR_FPDS_BB               (PERIPH_BB_BASE + (CR_OFFSET * 32) + (FPDS_BitNumber * 4))
 
 #ifdef STM32MCU_MAJOR_TYPE_F4
  /* Alias word address of PMODE bit */
 #define PMODE_BitNumber           0x0E
-#define CR_PMODE_BB               (PERIPH_BB_BASE + (CR_OFFSET * 32) + (PMODE_BitNumber * 4))
 #endif
+
+
+
  /* CR register bit mask */
 #define CR_DS_MASK               ((uint32_t)0xFFFFFFFC)
 #define CR_PLS_MASK              ((uint32_t)0xFFFFFF1F)
  /* Alias word address of EWUP bit */
-#define CSR_OFFSET               (PWR_OFFSET + 0x04)
 #define EWUP_BitNumber           0x08
-#define CSR_EWUP_BB              (PERIPH_BB_BASE + (CSR_OFFSET * 32) + (EWUP_BitNumber * 4))
 /* Alias word address of BRE bit */
 #define BRE_BitNumber            0x09
-#define CSR_BRE_BB              (PERIPH_BB_BASE + (CSR_OFFSET * 32) + (BRE_BitNumber * 4))
 
 
  /**
@@ -55,8 +56,8 @@
    */
 static inline void pwr_backup_access_cmd(bool enable)
 {
-
-   *(__IO uint32_t *) CR_DBP_BB = (uint32_t)enable;
+	if(enable) PWR_CR_REG |= 1U<<DBP_BitNumber;
+	else PWR_CR_REG &= ~(1U<<DBP_BitNumber);
 }
 
 /**
@@ -80,7 +81,7 @@ static inline void pwr_pvd_level_config(uint32_t PWR_PVDLevel)
 {
   uint32_t tmpreg = 0;
 
-  tmpreg = PWR->CR;
+  tmpreg = PWR_CR_REG;
 
   /* Clear PLS[7:5] bits */
   tmpreg &= CR_PLS_MASK;
@@ -89,7 +90,7 @@ static inline void pwr_pvd_level_config(uint32_t PWR_PVDLevel)
   tmpreg |= PWR_PVDLevel;
 
   /* Store the new value */
-  PWR->CR = tmpreg;
+  PWR_CR_REG = tmpreg;
 }
 
 /**
@@ -101,7 +102,8 @@ static inline void pwr_pvd_level_config(uint32_t PWR_PVDLevel)
 static inline void pwr_pvd_cmd(bool enable)
 {
 
-  *(__IO uint32_t *) CR_PVDE_BB = (uint32_t)enable;
+  if(enable) PWR_CR_REG |= 1U<<PVDE_BitNumber;
+  else PWR_CR_REG &= ~(1U<<PVDE_BitNumber);
 }
 
 /**
@@ -114,7 +116,8 @@ static inline void pwr_pvd_cmd(bool enable)
 static inline void pwr_wake_up_pin_cmd(bool enable)
 {
 
-  *(__IO uint32_t *) CSR_EWUP_BB = (uint32_t)enable;
+	if(enable) PWR_CSR_REG |=  1U<<EWUP_BitNumber;
+	else PWR_CSR_REG &=  ~(1U<<EWUP_BitNumber);
 }
 #else
 
@@ -223,12 +226,19 @@ static inline void pwr_flash_power_down_cmd(bool enable)
 #define SCB_SCR_SLEEPDEEP_Msk SCB_SCR_SLEEPDEEP
 #endif
 
+#ifndef PWR_STOPEntry_WFI
+#	define PWR_STOPEntry_WFI               1
+#endif
+#ifndef PWR_STOPEntry_WFE
+#	define PWR_STOPEntry_WFE               2
+#endif
+
 static inline void pwr_enter_stop_mode(uint32_t PWR_Regulator, uint8_t PWR_STOPEntry)
 {
   uint32_t tmpreg = 0;
 
   /* Select the regulator state in STOP mode ---------------------------------*/
-  tmpreg = PWR->CR;
+  tmpreg = PWR_CR_REG;
   /* Clear PDDS and LPDSR bits */
   tmpreg &= CR_DS_MASK;
 
@@ -236,7 +246,7 @@ static inline void pwr_enter_stop_mode(uint32_t PWR_Regulator, uint8_t PWR_STOPE
   tmpreg |= PWR_Regulator;
 
   /* Store the new value */
-  PWR->CR = tmpreg;
+  PWR_CR_REG = tmpreg;
 
   /* Set SLEEPDEEP bit of Cortex System Control Register */
   SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
@@ -256,6 +266,7 @@ static inline void pwr_enter_stop_mode(uint32_t PWR_Regulator, uint8_t PWR_STOPE
   SCB->SCR &= (uint32_t)~((uint32_t)SCB_SCR_SLEEPDEEP_Msk);
 }
 
+#ifdef PWR_CR_CWUF
 /**
   * @brief  Enters STANDBY mode.
   * @note   In Standby mode, all I/O pins are high impedance except for:
@@ -270,10 +281,10 @@ static inline void pwr_enter_stop_mode(uint32_t PWR_Regulator, uint8_t PWR_STOPE
 static inline void pwr_enter_standby_mode(void)
 {
   /* Clear Wakeup flag */
-  PWR->CR |= PWR_CR_CWUF;
+  PWR_CR_REG |= PWR_CR_CWUF;
 
   /* Select STANDBY mode */
-  PWR->CR |= PWR_CR_PDDS;
+  PWR_CR_REG |= PWR_CR_PDDS;
 
   /* Set SLEEPDEEP bit of Cortex System Control Register */
   SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
@@ -281,6 +292,7 @@ static inline void pwr_enter_standby_mode(void)
   /* Request Wait For Interrupt */
   __WFI();
 }
+#endif
 
 #ifdef PWR_SLEEPEntry_WFI
 /**
@@ -338,7 +350,7 @@ static inline void pwr_enter_sleep_mode(uint8_t PWR_SLEEPEntry)
 static inline bool pwr_get_flag_status(uint32_t PWR_FLAG)
 {
 
-  return ((PWR->CSR & PWR_FLAG) != (uint32_t)0);
+  return ((PWR_CSR_REG & PWR_FLAG) != (uint32_t)0);
 }
 
 /**
@@ -352,7 +364,7 @@ static inline bool pwr_get_flag_status(uint32_t PWR_FLAG)
 static inline void pwr_clear_flag(uint32_t PWR_FLAG)
 {
 
-  PWR->CR |=  PWR_FLAG << 2;
+  PWR_CR_REG |=  PWR_FLAG << 2;
 }
 
 

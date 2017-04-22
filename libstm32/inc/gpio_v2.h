@@ -50,7 +50,10 @@ enum e_lvl_gpio_ospeed {
 };
 
 /** Old GPIO speed enumeration */
-#if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4)
+#if defined(STM32MCU_MAJOR_TYPE_F2) || \
+	defined(STM32MCU_MAJOR_TYPE_F4) || \
+	defined(STM32MCU_MAJOR_TYPE_F7)
+
 enum e_gpio_ospeed {
 	//! GPIO port speed 2MHz
 	GPIO_SPEED_LOW =	GPIO_SPEED_LEVEL_0,
@@ -140,25 +143,25 @@ enum gpio_af
 //! Set GPIO bit macro
 static inline void gpio_set(GPIO_TypeDef* port , unsigned bit)
 {
-#ifdef _GPIO_TYPEDEF_BRR_DEFINED
-	port->BSRR = 1<<bit;
+#if defined( _GPIO_TYPEDEF_BSRR_DEFINED )
+	port->BSRR |= ((1U<<bit)&0xffffU);
 #else
-	port->BSRRL = 1<<bit;
+	port->BSRRL = 1U<<bit;
 #endif
 }
 //! Clear GPIO bit macro
 static inline void gpio_clr(GPIO_TypeDef* port , unsigned bit)
 {
-#ifdef _GPIO_TYPEDEF_BRR_DEFINED
-	port->BRR = 1<<bit;
+#if defined( _GPIO_TYPEDEF_BSRR_DEFINED )
+	port->BSRR |= (1U<<bit)<<16;
 #else
-	port->BSRRH = 1<<bit;
+	port->BSRRH = 1U<<bit;
 #endif
 }
 //! Set by the mask
 static inline void gpio_set_mask(GPIO_TypeDef* port , uint16_t bitmask)
 {
-#ifdef _GPIO_TYPEDEF_BRR_DEFINED
+#ifdef _GPIO_TYPEDEF_BSRR_DEFINED
 	port->BSRR = bitmask;
 #else
 	port->BSRRL = bitmask;
@@ -167,8 +170,8 @@ static inline void gpio_set_mask(GPIO_TypeDef* port , uint16_t bitmask)
 //! Clear GPIO bit mask
 static inline void gpio_clr_mask(GPIO_TypeDef* port , uint16_t bitmask)
 {
-#ifdef _GPIO_TYPEDEF_BRR_DEFINED
-	port->BRR = bitmask;
+#ifdef _GPIO_TYPEDEF_BSRR_DEFINED
+	port->BSRR = ((uint32_t)bitmask)<<16;
 #else
 	port->BSRRH = bitmask;
 #endif
@@ -176,7 +179,7 @@ static inline void gpio_clr_mask(GPIO_TypeDef* port , uint16_t bitmask)
 //! set clr in one op
 static inline void gpio_set_clr_mask(GPIO_TypeDef* port , uint16_t enflags, uint16_t mask)
 {
-#ifdef _GPIO_TYPEDEF_BRR_DEFINED
+#ifdef _GPIO_TYPEDEF_BSRR_DEFINED
 	port->BSRR = (uint32_t)(enflags & mask) | ((uint32_t)( ~enflags & mask)<<16);
 #else
 	__IO uint32_t * const BSRR = (__IO uint32_t*)&port->BSRRL;
@@ -393,11 +396,12 @@ static inline void gpio_clock_enable( GPIO_TypeDef* port, bool enable )
   *            @arg SYSCFG_ETH_MediaInterface_RMII: RMII mode selected
   * @retval None
   */
+
+#if defined(PERIPH_BB_BASE)
 enum gpio_media_interface_enum {
 	GPIO_ETH_MediaInterface_MII = 0,
 	GPIO_ETH_MediaInterface_RMII = 1
 };
-
 static inline void gpio_eth_media_interface_config( uint32_t media_ifc )
 {
 
@@ -411,6 +415,18 @@ static inline void gpio_eth_media_interface_config( uint32_t media_ifc )
 #undef PMC_MII_RMII_SEL_BB
 #undef SYSCFG_OFFSET
 }
+#elif defined(SYSCFG_PMC_MII_RMII_SEL)
+enum gpio_media_interface_enum {
+	GPIO_ETH_MediaInterface_MII = 0,
+	GPIO_ETH_MediaInterface_RMII = SYSCFG_PMC_MII_RMII_SEL
+};
+
+static inline void gpio_eth_media_interface_config( uint32_t media_ifc )
+{
+	SYSCFG->PMC &= ~(SYSCFG_PMC_MII_RMII_SEL);
+	SYSCFG->PMC |= (uint32_t)media_ifc;
+}
+#endif
 
 
 #ifdef __cplusplus

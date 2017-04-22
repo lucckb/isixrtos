@@ -23,8 +23,8 @@
 #define USART2_RX_BIT 3
 
 
-#if defined(STM32MCU_MAJOR_TYPE_F2) || 	defined(STM32MCU_MAJOR_TYPE_F4) \
-|| defined(STM32MCU_MAJOR_TYPE_F37)
+#if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4) \
+|| defined(STM32MCU_MAJOR_TYPE_F37) || defined(STM32MCU_MAJOR_TYPE_F7)
 #define IS_NEW_GPIO 1
 #endif
 
@@ -36,7 +36,11 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 {
 	if(usart_==USART1)
 	{
+#if defined(RCC_APB2Periph_USART1)
 		RCC->APB2ENR |= RCC_APB2Periph_USART1;
+#elif defined(RCC_APB2ENR_USART1EN)
+		RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+#endif
 		if(!(flags & USARTSIMPLE_FL_ALTERNATE) )
 		{
 			gpio_clock_enable( GPIOA, true );
@@ -72,7 +76,11 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 	}
 	else if(usart_==USART2)
 	{
+#if defined(RCC_APB1Periph_USART2)
 		RCC->APB1ENR |= RCC_APB1Periph_USART2;
+#elif defined(RCC_APB1ENR_USART2EN)
+		RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+#endif
 		if( flags & USARTSIMPLE_FL_ALTERNATE )
 		{
 			gpio_clock_enable( GPIOD, true );

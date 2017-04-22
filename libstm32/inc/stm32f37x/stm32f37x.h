@@ -521,7 +521,7 @@ typedef struct
   * @brief General Purpose I/O
   */
 
-#define _GPIO_TYPEDEF_BRR_DEFINED
+#define _GPIO_TYPEDEF_BSRR_DEFINED
 typedef struct
 {
   __IO uint32_t MODER;        /*!< GPIO port mode register,                                  Address offset: 0x00 */

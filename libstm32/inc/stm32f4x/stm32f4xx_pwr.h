@@ -63,8 +63,8 @@
   * @{
   */
 
-#define PWR_STOPEntry_WFI               ((uint8_t)0x01)
-#define PWR_STOPEntry_WFE               ((uint8_t)0x02)
+#define PWR_STOPENTRY_WFI               ((uint8_t)0x01)
+#define PWR_STOPENTRY_WFE               ((uint8_t)0x02)
 
 
 /** @defgroup PWR_Regulator_Voltage_Scale 

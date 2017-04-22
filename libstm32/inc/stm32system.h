@@ -89,7 +89,11 @@ static inline void nvic_set_priority(IRQn_Type irq_num,uint32_t priority,uint32_
 	}
 	else
 	{
+#ifdef STM32MCU_MAJOR_TYPE_F7
+	    SCB->SHPR[((uint32_t)(irq_num) & 0xF)-4] = prio;
+#else
 	    SCB->SHP[((uint32_t)(irq_num) & 0xF)-4] = prio;
+#endif
 	}
 }
 
@@ -103,12 +107,12 @@ static inline void nvic_irq_enable(IRQn_Type irq_num, bool enable )
 	if(enable)
 	{
 		/* Enable the Selected IRQ Channels */
-		NVIC->ISER[(uint32_t)irq_num >> 0x05] = (u32)0x01 << ((uint32_t)irq_num & (u8)0x1F);
+		NVIC->ISER[(uint32_t)irq_num >> 0x05] = 0x01U << ((uint32_t)irq_num & (uint8_t)0x1F);
 	}
 	else
 	{
 		/* Disable the Selected IRQ Channels */
-		NVIC->ICER[(uint32_t)irq_num >> 0x05] = (u32)0x01 << ((uint32_t)irq_num & (u8)0x1F);
+		NVIC->ICER[(uint32_t)irq_num >> 0x05] = 0x01U << ((uint32_t)irq_num & (uint8_t)0x1F);
 	}
 }
 
@@ -207,7 +211,7 @@ static inline void nvic_irq_set_pending(IRQn_Type IRQn)
 static inline void nvic_irq_pend_clear(IRQn_Type irq_num)
 {
 	//Clear pending bit
-	NVIC->ICPR[((uint32_t)irq_num >> 0x05)] = (u32)0x01 << ((uint32_t)irq_num & (u32)0x1F);
+	NVIC->ICPR[((uint32_t)irq_num >> 0x05)] = 0x01U << ((uint32_t)irq_num & (uint32_t)0x1F);
 }
 
 /*----------------------------------------------------------*/
@@ -258,7 +262,7 @@ static inline void iwdt_setup(uint8_t prescaler,uint16_t reload)
 	using namespace _internal::system;
 #endif
 	//Enable write access to wdt
-	IWDG->KR = IWDG_WriteAccess_Enable;
+	IWDG->KR = 0x5555U;
 	//Program prescaler
 	IWDG->PR = prescaler;
 	//Set reload value
@@ -298,7 +302,7 @@ static inline void nvic_system_reset(void)
  */
 static inline int flash_mem_size(void)
 {
-	return (*(vu16 *)(STM32LIB_FLSIZ_ADDR));
+	return (*(volatile uint16_t*)(STM32LIB_FLSIZ_ADDR));
 }
 /*----------------------------------------------------------*/
 //! Cpuid size
@@ -311,7 +315,7 @@ static inline int flash_mem_size(void)
 static inline unsigned get_cpuid(unsigned pos)
 {
 	if(pos<3)
-		return ((vu32 *)(STM32LIB_CPUID_ADDR))[pos];
+		return ((volatile uint32_t *)(STM32LIB_CPUID_ADDR))[pos];
 	else
 		return 0;
 }

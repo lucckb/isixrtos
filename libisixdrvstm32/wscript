@@ -25,6 +25,9 @@ def build(bld):
     elif bld.is_defined('STM32MCU_MAJOR_TYPE_F4'):
         _srcs += [ 'adc_converter.cpp', 'i2c_bus.cpp' ]
         _srcs += [ 'stm32_sdio_mmc_host.cpp' ]
+    elif bld.is_defined('STM32MCU_MAJOR_TYPE_F7'):
+        #TODO: Add support in lib
+        pass
     else:
         bld.fatal( 'libisixdrv: Unknown target CPU' )
     _use =['isix', 'foundation', 'stm32','common_conf' ]

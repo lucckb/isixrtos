@@ -518,6 +518,7 @@ static inline void usart_set_receiver_timeout(USART_TypeDef* USARTx, uint32_t US
   * @note   This function has to be called when USART clock is set to HSI or LSE.
   * @retval None
   */
+#ifdef USART_CR1_UESM
 static inline void usart_stop_mode_cmd(USART_TypeDef* USARTx, bool enabled )
 {
   if ( enabled )
@@ -533,7 +534,9 @@ static inline void usart_stop_mode_cmd(USART_TypeDef* USARTx, bool enabled )
     USARTx->CR1 &= (uint32_t)~((uint32_t)USART_CR1_UESM);
   }
 }
+#endif
 
+#ifdef USART_CR3_WUS
 /**
   * @brief  Selects the USART WakeUp method form stop mode.
   * @param  USARTx: where x can be 1 or 2 or 3 to select the USART peripheral.
@@ -550,6 +553,7 @@ static inline void usart_stop_mode_wakeup_source_config(USART_TypeDef* USARTx, u
   USARTx->CR3 &= (uint32_t)~((uint32_t)USART_CR3_WUS);
   USARTx->CR3 |= USART_WakeUpSource;
 }
+#endif
 
 #endif /* USART_HARDWARE_VERSION==2 */
 

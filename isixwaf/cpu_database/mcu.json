@@ -254,7 +254,7 @@
 		"stm32f767zit6" : {
 			"cpu": "arm_cortex_m7_vfpdp",
 			"cflags":  [ ],
-			"defs":    ["STM32MCU_MAJOR_TYPE_F7=1"],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F7=1", "STM32F767xx"],
 			"family": "f7",
 			"memmap" : {
 				"ram" : {
