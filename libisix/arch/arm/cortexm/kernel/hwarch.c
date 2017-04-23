@@ -21,6 +21,7 @@
 #include <isix/arch/irq.h>
 #include <isix/scheduler.h>
 #include <isix/arch/scheduler.h>
+#include <isix/arch/cache.h>
 
 
 
@@ -29,6 +30,9 @@
  */
 void _isix_port_conf_hardware( unsigned long core_freq )
 {
+	//Enable dcache and icache
+	isix_icache_enable( true );
+	isix_dcache_enable( true );
 	if( core_freq < 1000000UL ) {
 		isix_bug(" Invalid core frequency. Should be  > 1M" );
 	}
