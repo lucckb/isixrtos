@@ -135,7 +135,7 @@
 #define SCB_CPUID_IMPLEMENTER_LSB	24
 #define SCB_CPUID_IMPLEMENTER		(0xFF << SCB_CPUID_IMPLEMENTER_LSB)
 /* Variant[23:20]: Variant number */
-#define SCB_CPUID_VARIANT_LSB		20
+#define SCB_CPUID_VARIANT_LSB		2
 #define SCB_CPUID_VARIANT		(0xF << SCB_CPUID_VARIANT_LSB)
 /* Constant[19:16]: Reads as 0xF (ARMv7-M) M3, M4  */
 /* Constant[19:16]: Reads as 0xC (ARMv6-M) M0, M0+ */

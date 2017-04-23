@@ -196,7 +196,8 @@ static inline void pwr_sdadc_analog_cmd(uint32_t PWR_SDADCAnalog, bool en )
   */
 static inline void pwr_flash_power_down_cmd(bool enable)
 {
-  *(__IO uint32_t *) CR_FPDS_BB = (uint32_t)enable;
+	if(enable) PWR->CR = 1U<<FPDS_BitNumber;
+	else PWR->CR = ~(1U<<FPDS_BitNumber);
 }
 #endif
 
@@ -368,23 +369,14 @@ static inline void pwr_clear_flag(uint32_t PWR_FLAG)
 }
 
 
-#undef CR_OFFSET
 #undef DBP_BitNumber
-#undef CR_DBP_BB
 #undef PVDE_BitNumber
-#undef CR_PVDE_BB
 #undef FPDS_BitNumber
-#undef CR_FPDS_BB
 #undef PMODE_BitNumber
-#undef CR_PMODE_BB
-#undef PWR_OFFSET
 #undef CR_DS_MASK
 #undef CR_PLS_MASK
-#undef CSR_OFFSET
 #undef EWUP_BitNumber
-#undef CSR_EWUP_BB
 #undef BRE_BitNumber
-#undef CSR_BRE_BB
 
 
  #ifdef __cplusplus

@@ -23,6 +23,10 @@
 #define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
+
+#define CPUID_CORTEX_M7_r0p1  0x410FC271UL
+#define CPUID_CORTEX_M7_r0p0  0x410FC270UL
+
 //Cyclic schedule time interrupt
 void __attribute__((__interrupt__)) systick_isr_vector(void)
 {
@@ -69,6 +73,12 @@ void _isix_port_yield(void)
 
 void  __attribute__((naked)) _isix_port_start_first_task( void )
 {
+	if( SCB_CPUID == CPUID_CORTEX_M7_r0p1 ) {
+		isix_bug( "Buggy CPU core M7 rev. r0p1 unsupported." );
+	}
+	if( SCB_CPUID == CPUID_CORTEX_M7_r0p0 ) {
+		isix_bug( "Buggy CPU core M7 rev. r0p0 unsupported." );
+	}
 #if CONFIG_ISIX_SHUTDOWN_API
 	__asm volatile(
 		"push {r4-r11}\t\n"

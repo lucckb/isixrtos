@@ -1,9 +1,8 @@
 /*
  * =====================================================================================
  *
- *       Filename:  f2_4v.c
  *
- *    Description:  Vectors for stm32F2 and F4
+ *    Description:  Vectors for stm32F7 platform
  *
  *        Version:  1.0
  *        Created:  24.02.2016 23:19:12
@@ -133,6 +132,8 @@ ISR_VECTOR(can3_rx1_isr_vector);
 ISR_VECTOR(can3_sce_isr_vector);
 ISR_VECTOR(jpeg_isr_vector);
 ISR_VECTOR(mdios_isr_vector);
+
+
 
 __attribute__ ((section(".isr_vector")))
 const vect_fun_t const _exceptions_vectors[] =
