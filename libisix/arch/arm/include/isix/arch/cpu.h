@@ -41,11 +41,11 @@ static inline __attribute__((always_inline))
 	void _isix_port_flush_memory( void )
 {
 	asm volatile(
-		"dsb\t\n"
-		"isb\t\n"
+		"dsb 0xF\t\n"
+		"isb 0xF\t\n"
+		:::"memory"
 	);
 }
-
 
 
 #ifdef __cplusplus

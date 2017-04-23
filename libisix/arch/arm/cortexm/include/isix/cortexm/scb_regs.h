@@ -52,6 +52,8 @@
 /* DFSR: Debug Fault Status Register */
 #define SCB_DFSR				MMIO32(SCB_BASE + 0x30)
 
+
+
 /* Those defined only on ARMv7 and above */
 #if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
 /* CFSR: Configurable Fault Status Registers */
@@ -108,6 +110,20 @@
 /* ID_ISAR4: Instruction Set Attributes Register 4 */
 #define SCB_ID_ISAR4				MMIO32(SCB_BASE + 0x70)
 
+/*!< Offset: 0x078 (R/ )  Cache Level ID register */
+#define SCB_CLIDR				MMIO32(SCB_BASE + 0x78)
+
+/*!< Offset: 0x07C (R/ )  Cache Type register */
+#define SCB_CTR				MMIO32(SCB_BASE + 0x7C)
+
+/*!< Offset: 0x080 (R/ )  Cache Size ID Register */
+#define SCB_CCSIDR				MMIO32(SCB_BASE + 0x80)
+
+/*!< Offset: 0x084 (R/W)  Cache Size Selection Register */
+#define SCB_CSSELR				MMIO32(SCB_BASE + 0x84)
+
+
+
 /* CPACR: Coprocessor Access Control Register */
 #define SCB_CPACR				MMIO32(SCB_BASE + 0x88)
 
@@ -125,6 +141,56 @@
 
 /* MVFR1: Media and Floating-Point Feature Register 1 */
 #define SCB_MVFR1				MMIO32(SCB_BASE + 0x244)
+
+/*!< Offset: 0x248 (R/ )  Media and VFP Feature Register 2 */
+#define SCB_MVFR2				MMIO32(SCB_BASE + 0x248)
+
+/*!< Offset: 0x250 ( /W)  I-Cache Invalidate All to PoU */
+#define SCB_ICIALLU				MMIO32(SCB_BASE + 0x250)
+
+/*!< Offset: 0x258 ( /W)  I-Cache Invalidate by MVA to PoU */
+#define SCB_ICIMVAU				MMIO32(SCB_BASE + 0x258)
+
+/*!< Offset: 0x25C ( /W)  D-Cache Invalidate by MVA to PoC */
+#define SCB_DCIMVAC				MMIO32(SCB_BASE + 0x25C)
+
+/*!< Offset: 0x260 ( /W)  D-Cache Invalidate by Set-way */
+#define SCB_DCISW				MMIO32(SCB_BASE + 0x260)
+
+/*!< Offset: 0x264 ( /W)  D-Cache Clean by MVA to PoU */
+#define SCB_DCCMVAU				MMIO32(SCB_BASE + 0x264)
+
+/*!< Offset: 0x268 ( /W)  D-Cache Clean by MVA to PoC */
+#define SCB_DCCMVAC				MMIO32(SCB_BASE + 0x268)
+
+/*!< Offset: 0x26C ( /W)  D-Cache Clean by Set-way */
+#define SCB_DCCSW				MMIO32(SCB_BASE + 0x26C)
+
+/*!< Offset: 0x270 ( /W)  D-Cache Clean and Invalidate by MVA to PoC */
+#define SCB_DCCIMVAC				MMIO32(SCB_BASE + 0x270)
+
+/*!< Offset: 0x274 ( /W)  D-Cache Clean and Invalidate by Set-way */
+#define SCB_DCCISW				MMIO32(SCB_BASE + 0x274)
+
+/*!< Offset: 0x290 (R/W)  Instruction Tightly-Coupled Memory Control Register */
+#define SCB_ITCMCR				MMIO32(SCB_BASE + 0x290)
+
+/*!< Offset: 0x294 (R/W)  Data Tightly-Coupled Memory Control Registers */
+#define SCB_DTCMCR				MMIO32(SCB_BASE + 0x294)
+
+/*!< Offset: 0x298 (R/W)  AHBP Control Register */
+#define SCB_AHBPCR				MMIO32(SCB_BASE + 0x298)
+
+/*!< Offset: 0x29C (R/W)  L1 Cache Control Register */
+#define SCB_CACR				MMIO32(SCB_BASE + 0x29C)
+
+/*!< Offset: 0x2A0 (R/W)  AHB Slave Control Register */
+#define SCB_AHBSCR				MMIO32(SCB_BASE + 0x2A0)
+
+/*!< Offset: 0x2A8 (R/W)  Auxiliary Bus Fault Status Register */
+#define SCB_ABFSR				MMIO32(SCB_BASE + 0x2A8)
+
+
 #endif
 
 /* --- SCB values ---------------------------------------------------------- */
@@ -277,6 +343,15 @@
 #define SCB_CCR_NONBASETHRDENA			(1 << 0)
 #endif
 
+#if defined(__ARM_ARCH_7EM__)
+// Data cache enable
+#define SCB_CCR_DCACHE				(1U<16U)
+// Instruction cache enable
+#define SCB_CCR_ICACHE				(1U<17U)
+// Branch predictor enable
+#define SCB_CCR_BRANCH_PREDICTOR	(1U<18U)
+#endif
+
 /* These numbers are designed to be used with the SCB_SHPR() macro */
 /* SCB_SHPR1 */
 #define SCB_SHPR_PRI_4_MEMMANAGE	0
@@ -410,5 +485,65 @@
 /* CPACR [22:23]: Access privileges for coprocessor 11 */
 #define SCB_CPACR_CP11			(1 << 22)
 #endif
+
+
+/** SCB Cache Size ID register */
+
+/* SCB Cache Size ID Register Definitions */
+ /*!< SCB CCSIDR: WT Position */
+#define SCB_CCSIDR_WT_BIT                  31U
+#define SCB_CCSIDR_WT                  (1UL << SCB_CCSIDR_WT_BIT)
+
+/*!< SCB CCSIDR: WB Position */
+#define SCB_CCSIDR_WB_BIT                  30U
+#define SCB_CCSIDR_WB                  (1UL << SCB_CCSIDR_WB_BIT)
+
+/*!< SCB CCSIDR: RA Position */
+#define SCB_CCSIDR_RA_BIT                  29U
+#define SCB_CCSIDR_RA                  (1UL << SCB_CCSIDR_RA_BIT)
+
+/*!< SCB CCSIDR: WA Position */
+#define SCB_CCSIDR_WA_BIT                  28U
+#define SCB_CCSIDR_WA                  (1UL << SCB_CCSIDR_WA_BIT)
+
+/*!< SCB CCSIDR: NumSets Position */
+#define SCB_CCSIDR_NUMSETS_BIT             13U
+#define SCB_CCSIDR_NUMSETS             (0x7FFFUL << SCB_CCSIDR_NUMSETS_BIT)
+
+/*!< SCB CCSIDR: Associativity Position */
+#define SCB_CCSIDR_ASSOCIATIVITY_BIT        3U
+#define SCB_CCSIDR_ASSOCIATIVITY       (0x3FFUL << SCB_CCSIDR_ASSOCIATIVITY_BIT)
+
+/*!< SCB CCSIDR: LineSize Position */
+#define SCB_CCSIDR_LINESIZE_BIT             0U
+#define SCB_CCSIDR_LINESIZE            (7UL /*<< SCB_CCSIDR_LINESIZE_BIT*/)
+
+
+/* SCB D-Cache Invalidate by Set-way Register Definitions */
+/*!< SCB DCISW: Way Position */
+#define SCB_DCISW_WAY_BIT                  30U
+#define SCB_DCISW_WAY                  (3UL << SCB_DCISW_WAY_BIT)
+
+/*!< SCB DCISW: Set Position */
+#define SCB_DCISW_SET_BIT                   5U
+#define SCB_DCISW_SET                  (0x1FFUL << SCB_DCISW_SET_BIT)
+
+/* SCB D-Cache Clean by Set-way Register Definitions */
+
+/*!< SCB DCCSW: Way Position */
+#define SCB_DCCSW_WAY_BIT                  30U
+#define SCB_DCCSW_WAY                  (3UL << SCB_DCCSW_WAY_BIT)
+
+/*!< SCB DCCSW: Set Position */
+#define SCB_DCCSW_SET_BIT                   5U
+#define SCB_DCCSW_SET                  (0x1FFUL << SCB_DCCSW_SET_BIT)
+
+/* SCB D-Cache Clean and Invalidate by Set-way Register Definitions */
+/*!< SCB DCCISW: Way Position */
+#define SCB_DCCISW_WAY_BIT                 30U
+#define SCB_DCCISW_WAY                 (3UL << SCB_DCCISW_WAY_BIT)
+/*!< SCB DCCISW: Set Position */
+#define SCB_DCCISW_SET_BIT                  5U
+#define SCB_DCCISW_SET                 (0x1FFUL << SCB_DCCISW_SET_BIT)
 
 
