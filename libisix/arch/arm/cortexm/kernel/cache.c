@@ -259,6 +259,9 @@ void isix_inval_dcache_by_addr( void *addr, size_t dsize )
 
 	dsb();
 	isb();
+#else
+	(void)addr;
+	(void)dsize;
 #endif
 }
 
@@ -284,6 +287,9 @@ void isix_clean_dcache_by_addr( void *addr, size_t dsize )
 
 	dsb();
 	isb();
+#else
+	(void)addr;
+	(void)dsize;
 #endif
 }
 
@@ -308,5 +314,8 @@ void isix_clean_inval_dcache_by_addr( void *addr, size_t dsize )
 	}
 	dsb();
 	dsb();
+#else
+	(void)addr;
+	(void)dsize;
 #endif
 }
