@@ -77,14 +77,14 @@ namespace detail {
 	/** Keyboard tag event */
     struct keyboard_tag {
 		typedef unsigned char control_key_type;         //! Control keys
-		typedef unsigned char key_type;		        //! Key defs
+		typedef unsigned char key_type;					//! Key defs
 		enum class status : unsigned char               //! Key status
 		{
 			DOWN,                                       //! Key is down
-			UP,                                          //! Key is up
+			UP,                                         //! Key is up
 			RPT,										//! Rpt key event
 			LNG,										//! Long press event
-		} stat;         
+		} stat;
 		key_type key;                                   //! Current key
 		key_type scan;									//! Scan code
 		union {
@@ -101,10 +101,16 @@ namespace detail {
 			} ctrlbits;
 		};
 	};
+
+	/** Knob tag event */
+	struct knob_tag {
+		int value;
+		int maxval;
+	};
 	//! User message arguments
 	union argument {
 		unsigned uint;	//! Unsigned type
-		int 	 sint;	//! Signed type
+		int		 sint;	//! Signed type
 		void *   ptr;	//! Pointer type
 		const void* cptr;	//! Const pointer to void
 	};
@@ -114,7 +120,7 @@ namespace detail {
 			return htype == type::plug;
 		}
 		bool is_keyboard() const {
-			return devtype == device::keyboard; 
+			return devtype == device::keyboard;
 		}
 		bool is_joystick() const {
 			return devtype == device::joystick;
@@ -135,7 +141,7 @@ namespace detail {
 	};
 	//! Structure for the GUI timer
 	struct timer {
-		int id;	
+		int id;
 		gfx::gui::timer* owner;
 	};
 } // ns detail
@@ -147,8 +153,9 @@ struct event_info {
 		EV_WINDOW,	/** User window event */
 		EV_KEY,		/** Keyboard event  */
 		EV_MOUSE,	/** Relative event  */
+		EV_KNOB,	/** Knob UI event */
 		EV_HOTPLUG, /** Hotplug event for ex Insert remove kbd/mouse etc */
-		/** Events raised by the component callbacks 
+		/** Events raised by the component callbacks
 		 * on emit widget level*/
 		EV_CLICK,	/** Click event  */
 		EV_CHANGE,	/** Component changed */
@@ -158,10 +165,11 @@ struct event_info {
 	};
 	unsigned time;  //! Timestamp
 	evtype type;    //! Event type
-	gui::window *window; 		    	//! Optional window address EV_PAINT, EV_WINDOW, EV_TIMER
+	gui::window *window;				//! Optional window address EV_PAINT, EV_WINDOW, EV_TIMER
 	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
-		struct {						//! For EV_WINDOW , EV_WIDGET 
+		detail::knob_tag knob;			//! Knob change value tag
+		struct {						//! For EV_WINDOW , EV_WIDGET
 			detail::argument param1;			//! User message 1
 			detail::argument param2;			//! User message 2
 			detail::argument param3;			//! User message 3

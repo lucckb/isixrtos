@@ -72,7 +72,7 @@ void editbox::report_event( const input::event_info& ev )
 			dbprintf("Unknown kbd mode %i", m_kbdmode );
 		}
 		//! Limit handler callback
-		if( m_limit_hwnd ) { 
+		if( m_limit_hwnd ) {
 			m_limit_hwnd( m_value );
 		}
 	} else {
