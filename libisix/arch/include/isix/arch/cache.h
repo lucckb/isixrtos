@@ -21,6 +21,10 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Enable or disable icache
  * @parm[in] yes Enable or disable
  */
@@ -62,6 +66,9 @@ void isix_clean_dcache_by_addr( void *addr, size_t dsize );
 void isix_clean_inval_dcache_by_addr( void *addr, size_t dsize );
 
 
+#ifdef __cplusplus
+}
+#endif
 
 
 
