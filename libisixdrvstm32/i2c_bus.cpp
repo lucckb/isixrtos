@@ -286,7 +286,7 @@ namespace {
 #endif
 //! Objects for interrupt handlers
 namespace {
-#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==0)
+#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 	i2c_bus* obj_i2c1;
 	i2c_bus* obj_i2c2;
 #else
@@ -305,11 +305,11 @@ namespace {
 	* @param[in] clk_speed CLK speed in HZ
 	*/
 i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
-#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==0)
+#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 	: m_i2c( to_i2c(_i2c) )
 #endif
 {
-#if defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C) && (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C!=0)
+#if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 	static_cast<void>(_i2c);
 #endif
 	using namespace stm32;

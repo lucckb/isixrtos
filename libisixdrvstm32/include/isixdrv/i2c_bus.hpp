@@ -50,26 +50,24 @@ namespace drv {
 
 extern "C" {
 #ifdef STM32MCU_MAJOR_TYPE_F1
-	__attribute__((interrupt)) void dma1_channel7_isr_vector();
-	__attribute__((interrupt)) void dma1_channel5_isr_vector();
+	void dma1_channel7_isr_vector();
+	void dma1_channel5_isr_vector();
 #endif
-#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C)
-	void i2c1_ev_isr_vector() __attribute__ ((interrupt));
-	void i2c1_er_isr_vector() __attribute__ ((interrupt));
-	void i2c2_ev_isr_vector() __attribute__ ((interrupt));
-	void i2c2_er_isr_vector() __attribute__ ((interrupt));
-	void dma1_stream0_isr_vector() __attribute__((interrupt));
-	void dma1_stream2_isr_vector() __attribute__((interrupt));
-#elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
-	void i2c1_ev_isr_vector() __attribute__ ((interrupt));
-	void i2c1_er_isr_vector() __attribute__ ((interrupt));
-	void dma1_stream0_isr_vector() __attribute__((interrupt));
+#if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
+	void i2c1_ev_isr_vector() ;
+	void i2c1_er_isr_vector() ;
+	void dma1_stream0_isr_vector();
 #elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2
-	void i2c2_ev_isr_vector() __attribute__ ((interrupt));
-	void i2c2_er_isr_vector() __attribute__ ((interrupt));
-	void dma1_stream2_isr_vector() __attribute__((interrupt));
+	void i2c2_ev_isr_vector() ;
+	void i2c2_er_isr_vector() ;
+	void dma1_stream2_isr_vector();
 #else
-#error Unknown I2C
+	void i2c1_ev_isr_vector();
+	void i2c1_er_isr_vector();
+	void i2c2_ev_isr_vector();
+	void i2c2_er_isr_vector();
+	void dma1_stream0_isr_vector();
+	void dma1_stream2_isr_vector();
 #endif
 }
 
@@ -78,20 +76,20 @@ class i2c_bus : public fnd::bus::ibus {
 	static constexpr auto IRQ_SUB = 7;
 	static constexpr auto TRANSACTION_TIMEOUT = 5000;
 
-#if !defined(CONFIG_ISIXDRV_I2C_USE_FIXED_I2C)
-	friend void i2c1_ev_isr_vector();
-	friend void i2c1_er_isr_vector();
-	friend void i2c2_ev_isr_vector();
-	friend void i2c2_er_isr_vector();
-	friend void dma1_stream0_isr_vector();
-	friend void dma1_stream2_isr_vector();
-#elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
+#if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
 	friend void i2c1_ev_isr_vector();
 	friend void i2c1_er_isr_vector();
 	friend void dma1_stream0_isr_vector();
 #elif CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2
 	friend void i2c2_ev_isr_vector();
 	friend void i2c2_er_isr_vector();
+	friend void dma1_stream2_isr_vector();
+#else
+	friend void i2c1_ev_isr_vector();
+	friend void i2c1_er_isr_vector();
+	friend void i2c2_ev_isr_vector();
+	friend void i2c2_er_isr_vector();
+	friend void dma1_stream0_isr_vector();
 	friend void dma1_stream2_isr_vector();
 #endif
 	friend void dma1_channel7_isr_vector();
@@ -176,7 +174,7 @@ private:
 	int transfer_impl(unsigned addr, const void* wbuffer, 
 			size_t wsize, void* rbuffer, size_t rsize);
 private:
-#ifndef CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
+#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
 	void* const m_i2c;					//! I2C
 #endif
 	volatile uint8_t m_err_flag {};		//! Error code
