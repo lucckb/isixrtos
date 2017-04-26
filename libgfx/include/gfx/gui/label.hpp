@@ -22,7 +22,7 @@ public:
 	//Destructor
 	virtual ~label(){ }
 	//Constructor
-	label( rectangle const& rect,layout const& layout, 
+	label( rectangle const& rect,layout const& layout,
 			window &win, unsigned flags = 0 );
 	//Label no reports any events
 	template< typename T>

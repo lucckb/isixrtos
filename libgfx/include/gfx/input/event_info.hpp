@@ -105,6 +105,7 @@ namespace detail {
 	/** Knob tag event */
 	struct knob_tag {
 		int value;
+		int diff;
 		int maxval;
 	};
 	//! User message arguments
