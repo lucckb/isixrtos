@@ -29,6 +29,14 @@ namespace stm32 {
 #define SHPF_TIMEOUT             ((uint32_t)0)
 #endif
 
+#ifndef RTC_FLAG_RECALPF 
+#define RTC_FLAG_RECALPF 0
+#endif
+
+#ifndef RTC_FLAG_SHPF
+#define RTC_FLAG_SHPF 0
+#endif
+
 #define RTC_FLAGS_MASK          ((uint32_t)(RTC_FLAG_TSOVF | RTC_FLAG_TSF | RTC_FLAG_WUTF | \
                                             RTC_FLAG_ALRBF | RTC_FLAG_ALRAF | RTC_FLAG_INITF | \
                                             RTC_FLAG_RSF | RTC_FLAG_INITS | RTC_FLAG_WUTWF | \
