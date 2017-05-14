@@ -14,7 +14,7 @@ namespace gui {
 //Constructor
 label::label( rectangle const& rect,layout const& layout ,
 		window &win, unsigned flags )
-	: widget( rect, layout, win, false ), 
+	: widget( rect, layout, win, flags & flags::select ),
 	  m_flags(flags)
 {
 }

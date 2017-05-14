@@ -16,7 +16,8 @@ class label: public widget {
 public:
 	struct flags {
 		enum : unsigned {
-			center 		= 0x01		//Center text
+			center = 0x01,		//Center text
+			select = 0x02,		// Can select
 		};
 	};
 	//Destructor
