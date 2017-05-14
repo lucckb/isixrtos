@@ -109,12 +109,10 @@ extern "C"
 }
 
 
-#if !CONFIG_ISIX_WITHOUT_KERNEL
 static bool initializerHasRun(__guard *);
 static void setInitializerHasRun(__guard *);
 static void setInUse(__guard *);
 static void setNotInUse(__guard *);
-#endif
 
 
 #if !CONFIG_ISIX_WITHOUT_KERNEL
