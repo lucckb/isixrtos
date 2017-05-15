@@ -136,6 +136,24 @@ static inline void pwr_wake_up_pin_cmd(uint32_t PWR_WakeUpPin, bool en )
 }
 #endif
 
+
+
+
+
+/**
+  * @brief  Enables or disables the WakeUp Pin functionality.
+  * @param  NewState: new state of the WakeUp Pin functionality.
+  *         This parameter can be: ENABLE or DISABLE.
+  * @retval None
+  */
+static inline void pwr_backup_regulator_cmd( bool en )
+{
+	if( en )
+		PWR->CSR |=  1U<<9U;
+	else
+		PWR->CSR &= ~(1U<<9U);
+}
+
 #ifdef STM32MCU_MAJOR_TYPE_F4
 /**
   * @brief  Configures the main internal regulator output voltage.

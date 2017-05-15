@@ -207,6 +207,11 @@
 					"origin": "0x2001C000", 
 					"length": "16K", 
 					"attrib": "xrw"
+				},
+				"bkpram" : {
+					"origin": "0x40024000", 
+					"length": "16K", 
+					"attrib": "xrw"
 				}
 			}
 		},
