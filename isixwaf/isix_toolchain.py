@@ -28,7 +28,7 @@ def options():
 # Get Git repository version
 @conf
 def git_repo_version(conf):
-    cmd = conf.env.GIT + [ 'describe', '--tags', '--dirty', '--long' ]
+    cmd = conf.env.GIT + [ 'describe', '--tags', '--dirty', '--long', '--always' ]
     out = conf.cmd_and_log( cmd, cwd=conf.path, quiet=Context.BOTH )
     return out.strip()
 
