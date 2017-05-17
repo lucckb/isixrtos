@@ -204,11 +204,13 @@ void isix_generate_software_interrupt( int irqno )
 
 /** Generate event when IRQ pending
  */
-void isix_event_irq_pending(void)
+void isix_event_irq_pending(bool en)
 {
-	SCB_SCR |= SCB_SCR_SEVEONPEND;
+	if(en)
+		SCB_SCR |= SCB_SCR_SEVEONPEND;
+	else
+		SCB_SCR &= ~SCB_SCR_SEVEONPEND;
 }
-
 
 
 /** Set interrupt priority groupin

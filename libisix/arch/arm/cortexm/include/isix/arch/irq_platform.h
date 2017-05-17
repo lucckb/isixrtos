@@ -117,7 +117,7 @@ void isix_generate_software_interrupt( int irqno );
 
 /** Generate event when IRQ pending
  */
-void isix_event_irq_pending( void );
+void isix_event_irq_pending( bool en );
 
 
 #if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
@@ -152,5 +152,87 @@ void isix_set_irq_vectors_base( const void *vectptr );
 #endif
 
 #ifdef __cplusplus
+}
+#endif
+
+
+
+#ifdef __cplusplus
+namespace isix {
+	using irq_prio_t = ::isix_irq_prio_t;
+	using irq_raw_prio_t = ::isix_irq_raw_prio_t;
+	using cortexm_irqnums = ::isix_cortexm_irqnums;
+
+	static inline void __attribute__((always_inline))
+	mask_irq_priority( irq_prio_t priority ) {
+		::isix_mask_irq_priority(priority);
+	}
+
+	static inline irq_raw_prio_t __attribute__((always_inline))
+	mask_irq_save_priority( irq_prio_t new_prio )
+	{
+		return ::isix_mask_irq_save_priority(new_prio);
+	}
+
+	static inline void __attribute__((always_inline))
+	mask_irq_restore_priority( irq_raw_prio_t prio )
+	{
+		return ::isix_mask_irq_restore_priority(prio);
+	}
+
+	static inline void __attribute__((always_inline))
+	umask_irq_priority(void)
+	{
+		::isix_umask_irq_priority();
+	}
+
+	static inline void __attribute__((always_inline))
+	set_irq_priority( int irqno, irq_prio_t priority )
+	{
+		::isix_set_irq_priority(irqno,priority);
+	}
+
+	static inline void __attribute__((always_inline))
+	set_raw_irq_priority( int irqno, irq_raw_prio_t prio )
+	{
+		::isix_set_raw_irq_priority(irqno,prio);
+	}
+
+	static inline void __attribute__((always_inline))
+	event_irq_pending( bool en )
+	{
+		::isix_event_irq_pending(en);
+	}
+
+#	if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
+	using cortexm_prigroup = ::isix_cortexm_prigroup;
+
+	static inline void __attribute__((always_inline))
+	set_irq_priority_group( cortexm_prigroup prigroup )
+	{
+		::isix_set_irq_priority_group(prigroup);
+	}
+
+
+	static inline void __attribute__((always_inline))
+	set_irq_vectors_base( const void *vectptr )
+	{
+		::isix_set_irq_vectors_base(vectptr);
+	}
+
+	static inline void __attribute__((always_inline))
+	generate_software_interrupt( int irqno )
+	{
+		::isix_generate_software_interrupt(irqno);
+	}
+
+	static inline bool __attribute__((always_inline))
+	get_active_irq( int irqno )
+	{
+		return ::isix_get_active_irq(irqno);
+	}
+
+
+#	endif
 }
 #endif

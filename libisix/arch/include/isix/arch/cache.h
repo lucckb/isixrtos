@@ -66,11 +66,72 @@ void isix_clean_dcache_by_addr( void *addr, size_t dsize );
 void isix_clean_inval_dcache_by_addr( void *addr, size_t dsize );
 
 
+
+
 #ifdef __cplusplus
 }
 #endif
 
 
+
+#ifdef __cplusplus
+namespace isix {
+
+static inline __attribute__((always_inline))
+void icache_enable( bool yes ) {
+	::isix_icache_enable( yes );
+}
+
+static inline __attribute__((always_inline))
+void dcache_enable( bool yes ) {
+	::isix_dcache_enable(yes);
+}
+
+
+static inline __attribute__((always_inline))
+void inval_dcache( void )
+{
+	::isix_inval_dcache();
+}
+
+static inline __attribute__((always_inline))
+void inval_icache( void )
+{
+	::isix_inval_icache();
+}
+
+static inline __attribute__((always_inline))
+void clean_dcache( void )
+{
+	::isix_clean_dcache();
+}
+
+static inline __attribute__((always_inline))
+void clean_inval_dcache( void )
+{
+	::isix_clean_inval_dcache();
+}
+
+static inline __attribute__((always_inline))
+void inval_dcache_by_addr( void *addr, size_t dsize )
+{
+	::isix_inval_dcache_by_addr(addr,dsize);
+}
+
+static inline __attribute__((always_inline))
+void clean_dcache_by_addr( void *addr, size_t dsize )
+{
+	::isix_clean_dcache_by_addr(addr,dsize);
+}
+
+static inline __attribute__((always_inline))
+void clean_inval_dcache_by_addr( void *addr, size_t dsize )
+{
+	::isix_clean_inval_dcache_by_addr(addr,dsize);
+}
+
+}
+#endif
 
 
 
