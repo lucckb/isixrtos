@@ -47,11 +47,15 @@ using event_signal = std::function<bool(const event&)>;
 using event_handle = std::weak_ptr<std::pair<event::evtype,event_signal>>;
 
 /* ------------------------------------------------------------------ */
-class object  : private fnd::noncopyable
+class object
 {
 public:
+	object() {
+	}
 	virtual ~object() {
 	}
+	object& operator=(object&) = delete;
+	object(object&) = delete;
 	event_handle connect( event_signal evt_h, event::evtype evt_t  )
 	{
 		auto ret = std::make_shared<std::pair<event::evtype,event_signal>>( std::make_pair(evt_t, evt_h) );
