@@ -22,13 +22,15 @@
 #include <stm32system.h>
 #include <stm32i2c.h>
 #include <stm32rcc.h>
-#include <stm32dma.h>
 #include <stm32gpio.h>
 #include <cstdlib>
 #include <new>
 #include <cstring>
 #include <config/conf.h>
-
+#if !CONFIG_ISIXDRV_I2C_NODMA
+#include "i2c_dma_helper.hpp"
+#endif
+#include "i2c_gpio_helper.hpp"
 
 namespace stm32 {
 namespace drv {
@@ -72,218 +74,7 @@ namespace {
 		std::abort();
 #endif
 	}
-	static const auto I2C1_PORT = GPIOB;
-	static constexpr auto I2C1_SDA_PIN_ = 7;
-	static constexpr auto I2C1_SCL_PIN_ = 6;
-	static constexpr auto I2C1_SDA_PIN = 1U<<I2C1_SDA_PIN_;
-	static constexpr auto I2C1_SCL_PIN = 1U<<I2C1_SCL_PIN_;
-
-	static constexpr auto I2C1ALT_SDA_PIN_ = 9;
-	static constexpr auto I2C1ALT_SCL_PIN_ = 8;
-	static constexpr auto I2C1ALT_SDA_PIN = 1U<<I2C1ALT_SDA_PIN_;
-	static constexpr auto I2C1ALT_SCL_PIN = 1U<<I2C1ALT_SCL_PIN_;
-
-
-	static const auto I2C2_PORT = GPIOB;
-	static constexpr auto I2C2_SDA_PIN_ = 11;
-	static constexpr auto I2C2_SCL_PIN_ = 10;
-	static constexpr auto I2C2_SDA_PIN = 1U<<I2C2_SDA_PIN_;
-	static constexpr auto I2C2_SCL_PIN = 1U<<I2C2_SCL_PIN_;
-
-
-	static const auto I2C2ALT_PORT = GPIOF;
-	static constexpr auto I2C2ALT_SDA_PIN_ = 0;
-	static constexpr auto I2C2ALT_SCL_PIN_ = 1;
-	static constexpr auto I2C2ALT_SDA_PIN = 1U<<I2C2ALT_SDA_PIN_;
-	static constexpr auto I2C2ALT_SCL_PIN = 1U<<I2C2ALT_SCL_PIN_;
-
-
-	static constexpr auto I2C1_PINS = I2C1_SDA_PIN|I2C1_SCL_PIN;
-	static constexpr auto I2C1ALT_PINS = I2C1ALT_SDA_PIN|I2C1ALT_SCL_PIN;
-	static constexpr auto I2C2_PINS = I2C2_SDA_PIN|I2C2_SCL_PIN;
-	static constexpr auto I2C2ALT_PINS = I2C2ALT_SDA_PIN|I2C2ALT_SCL_PIN;
-
-
 }
-/** DMA Function depends on device STM32F1 and F2/F4 have incompatibile DMA controller */
-#ifdef STM32MCU_MAJOR_TYPE_F1
-namespace {
-	//! RXDMA channel config
-	constexpr DMA_Channel_TypeDef* i2c2rxdma( I2C_TypeDef * const i2c )
-	{
-		return i2c==I2C1?(DMA1_Channel7):(DMA1_Channel5);
-	}
-	//! TXDMA coannel config
-	constexpr DMA_Channel_TypeDef* i2c2txdma( I2C_TypeDef * const i2c )
-	{
-		return i2c==I2C1?(DMA1_Channel6):(DMA1_Channel4);
-	}
-	//i2c TX DMA config
-	inline void i2c_dma_tx_config( I2C_TypeDef * const i2c, const void *buf, unsigned short len )
-	{
-		using namespace stm32;
-		dma_channel_config( i2c2txdma(i2c), DMA_DIR_PeripheralDST|DMA_PeripheralInc_Disable|
-			DMA_MemoryInc_Enable|DMA_PeripheralDataSize_Byte|DMA_MemoryDataSize_Byte|DMA_Mode_Normal|
-			DMA_Priority_Medium|DMA_M2M_Disable, const_cast<void*>(buf), &i2c->DR, len );
-	}
-	//i2c RX DMA config
-	inline void i2c_dma_rx_config( I2C_TypeDef * const i2c, void *buf, unsigned short len )
-	{
-		using namespace stm32;
-		dma_channel_config( i2c2rxdma(i2c), DMA_DIR_PeripheralSRC|DMA_PeripheralInc_Disable|
-			DMA_MemoryInc_Enable|DMA_PeripheralDataSize_Byte|DMA_MemoryDataSize_Byte|DMA_Mode_Normal|
-			DMA_Priority_Medium|DMA_M2M_Disable, const_cast<void*>(buf), &i2c->DR, len );
-	}
-	//DMA TX enable
-	inline void i2c_dma_tx_enable( I2C_TypeDef * const i2c )
-	{
-		stm32::dma_channel_enable( i2c2txdma(i2c) );
-	}
-	//DMA RX enable
-	inline void i2c_dma_rx_enable( I2C_TypeDef * const i2c )
-	{
-		stm32::dma_irq_enable( i2c2rxdma(i2c), DMA_IT_TC );
-		stm32::dma_channel_enable( i2c2rxdma(i2c) );
-	}
-	//DMA TX enable
-	inline void i2c_dma_tx_disable( I2C_TypeDef * const i2c )
-	{
-		stm32::dma_channel_disable( i2c2txdma(i2c) );
-	}
-	//DMA RX enable
-	inline void i2c_dma_rx_disable( I2C_TypeDef * const i2c )
-	{
-		stm32::dma_irq_disable( i2c2rxdma(i2c), DMA_IT_TC );
-		stm32::dma_channel_disable( i2c2rxdma(i2c) );
-	}
-	//AFIO optional config
-	inline void afio_config( I2C_TypeDef * const, bool  ) {}
-
-	//I2C dma NVIC On
-	inline void i2c_dma_irq_on( I2C_TypeDef * const i2c , int prio, int sub )
-	{
-		if( i2c == I2C1 ) {
-			stm32::nvic_set_priority( DMA1_Channel7_IRQn, prio, sub );
-			stm32::nvic_irq_enable( DMA1_Channel7_IRQn, true );
-		} else if( i2c == I2C2 ) {
-			stm32::nvic_set_priority( DMA1_Channel5_IRQn, prio, sub );
-			stm32::nvic_irq_enable( DMA1_Channel5_IRQn, true );
-		}
-	}
-}
-#else /* !STM32MCU_MAJOR_TYPE_F1 */
-
-namespace {
-	enum class dma_dir : bool {
-		rx,
-		tx
-	};
-	inline DMA_Stream_TypeDef* _i2c_stream( I2C_TypeDef* i2c, dma_dir d ) {
-		if( i2c == I2C1 ) {
-			if( d == dma_dir::rx ) {
-				return DMA1_Stream0;
-			} else {
-				return DMA1_Stream6;
-			}
-		} else if( i2c == I2C2 ) {
-			if( d == dma_dir::rx ) {
-				return DMA1_Stream2;
-			} else {
-				return  DMA1_Stream7;
-			}
-		}
-		return nullptr;
-	}
-	inline unsigned _i2c_chn( I2C_TypeDef* i2c ) {
-		if( i2c == I2C1 ) {
-			return (DMA_Channel_1);
-		} else if( i2c == I2C2 ) {
-			return (DMA_Channel_7);
-		}
-		return 0;
-	}
-	// DMA tx config
-	inline void i2c_dma_tx_config( I2C_TypeDef * const i2c, const void *buf, unsigned short len )
-	{
-		using namespace stm32;
-		dma_deinit( _i2c_stream(i2c,dma_dir::tx) );
-		dma_init( _i2c_stream(i2c,dma_dir::tx), _i2c_chn(i2c)| DMA_DIR_MemoryToPeripheral |
-				  DMA_PeripheralInc_Disable | DMA_MemoryInc_Enable |
-				  DMA_PeripheralDataSize_Byte | DMA_Mode_Normal | DMA_Priority_High |
-				  DMA_MemoryBurst_Single | DMA_PeripheralBurst_Single | DMA_MemoryDataSize_Byte,
-				  DMA_FIFOMode_Disable | DMA_FIFOThreshold_HalfFull,
-				  len, &i2c->DR, const_cast<volatile void*>(buf) );
-	}
-	//DMA rx config
-	inline void i2c_dma_rx_config( I2C_TypeDef * const i2c, void *buf, unsigned short len )
-	{
-		using namespace stm32;
-		dma_deinit( _i2c_stream(i2c,dma_dir::rx) );
-		dma_init( _i2c_stream(i2c,dma_dir::rx), _i2c_chn(i2c)| DMA_DIR_PeripheralToMemory |
-				  DMA_PeripheralInc_Disable | DMA_MemoryInc_Enable |
-				  DMA_PeripheralDataSize_Byte | DMA_Mode_Normal | DMA_Priority_High |
-				  DMA_MemoryBurst_Single | DMA_PeripheralBurst_Single | DMA_MemoryDataSize_Byte,
-				  DMA_FIFOMode_Disable | DMA_FIFOThreshold_HalfFull,
-				  len, &i2c->DR, const_cast<volatile void*>(buf) );
-	}
-	//DMA tx enable
-	inline void i2c_dma_tx_enable( I2C_TypeDef * const i2c )
-	{
-		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::tx), true );
-	}
-	//DMA rx enable
-	inline void i2c_dma_rx_enable( I2C_TypeDef * const i2c )
-	{
-		dma_it_config( _i2c_stream(i2c,dma_dir::rx), DMA_IT_TC, true );
-		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::rx), true );
-	}
-	//DMA tx disable
-	inline void i2c_dma_tx_disable( I2C_TypeDef * const i2c )
-	{
-		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::tx), false );
-	}
-	//DMA rx disable
-	inline void i2c_dma_rx_disable( I2C_TypeDef * const i2c )
-	{
-		dma_it_config( _i2c_stream(i2c,dma_dir::rx), DMA_IT_TC, false );
-		stm32::dma_cmd( _i2c_stream(i2c,dma_dir::rx), false );
-	}
-	//AFIO optional config
-	inline void afio_config( I2C_TypeDef * const i2c, bool alt )
-	{
-
-		if( i2c == I2C1 ) {
-			if( !alt ) {
-				gpio_pin_AF_config( I2C1_PORT, I2C1_SDA_PIN_, GPIO_AF_I2C1 );
-				gpio_pin_AF_config( I2C1_PORT, I2C1_SCL_PIN_, GPIO_AF_I2C1 );
-			}
-			else {
-				gpio_pin_AF_config( I2C1_PORT, I2C1ALT_SDA_PIN_, GPIO_AF_I2C1 );
-				gpio_pin_AF_config( I2C1_PORT, I2C1ALT_SCL_PIN_, GPIO_AF_I2C1 );
-			}
-		} else if( i2c == I2C2 ) {
-			if( !alt ) {
-				gpio_pin_AF_config( I2C2_PORT, I2C2_SDA_PIN_, GPIO_AF_I2C2 );
-				gpio_pin_AF_config( I2C2_PORT, I2C2_SCL_PIN_, GPIO_AF_I2C2 );
-			} else {
-				gpio_pin_AF_config( I2C2ALT_PORT, I2C2ALT_SDA_PIN_, GPIO_AF_I2C2 );
-				gpio_pin_AF_config( I2C2ALT_PORT, I2C2ALT_SCL_PIN_, GPIO_AF_I2C2 );
-			}
-
-		}
-	}
-	//DMA nvic on
-	inline void i2c_dma_irq_on( I2C_TypeDef * const i2c, int prio, int sub ) {
-		if( i2c == I2C1 ) {
-			nvic_set_priority( DMA1_Stream0_IRQn, prio, sub );
-			nvic_irq_enable( DMA1_Stream0_IRQn, true );
-		} else if( i2c == I2C2 ) {
-			nvic_set_priority( DMA1_Stream2_IRQn, prio, sub );
-			nvic_irq_enable( DMA1_Stream2_IRQn, true );
-		}
-	}
-}
-#endif
 //! Objects for interrupt handlers
 namespace {
 #if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
@@ -648,39 +439,41 @@ extern "C" {
 		if( obj_i2c2 ) obj_i2c2->err_irq();
 	}
 #endif
+#if !CONFIG_ISIXDRV_I2C_NODMA
 #ifndef STM32MCU_MAJOR_TYPE_F1
 	//I2C1 RX
-#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
+#	if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	__attribute__((interrupt)) void dma1_stream0_isr_vector()
 	{
 		dma_clear_flag( DMA1_Stream0, DMA_FLAG_TCIF0|DMA_FLAG_TEIF0 );
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
 	}
-#endif
-#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
+#	endif
+#	if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2DMARX
 	__attribute__((interrupt)) void dma1_stream2_isr_vector()
 	{
 		dma_clear_flag( DMA1_Stream2, DMA_FLAG_TCIF2|DMA_FLAG_TEIF2 );
 		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
 	}
-#endif
+#	endif
 #else
-#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
+#	if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	//I2C1 RX
 	__attribute__((interrupt)) void dma1_channel7_isr_vector()
 	{
 		stm32::dma_clear_flag( DMA1_FLAG_TC7 );
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
 	}
-#endif
-#if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
+#	endif
+#	if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2 RX
 	__attribute__((interrupt)) void dma1_channel5_isr_vector()
 	{
 		stm32::dma_clear_flag( DMA1_FLAG_TC5 );
 		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
 	}
+#	endif
 #endif
 #endif
 }
