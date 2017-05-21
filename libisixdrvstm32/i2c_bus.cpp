@@ -143,8 +143,10 @@ i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
 		nvic_set_priority( I2C2_EV_IRQn, IRQ_PRIO, IRQ_SUB );
 		nvic_irq_enable( I2C2_EV_IRQn, true );
 	}
+#if !CONFIG_ISIXDRV_I2C_NODMA
 	i2c_dma_irq_on( dcast(m_i2c), IRQ_PRIO, IRQ_SUB );
 	i2c_dma_cmd( dcast(m_i2c), true );
+#endif
 	i2c_cmd( dcast(m_i2c), true );
 #ifdef STM32MCU_MAJOR_TYPE_F1
 	//! STM32F1 errata PAGE 21
@@ -225,7 +227,7 @@ int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer,
 		size_t wsize, void* rbuffer, size_t rsize)
 {
 	using namespace stm32;
-	//dbprintf("i2c_bus::transfer( addr=%u wsize=%u rsize=%u", addr, wsize, rsize );
+	//dbprintf("i2c_bus::transfer(addr=%u wsize=%lu rsize=%lu)", addr, wsize, rsize );
 	if( (addr>0xFF) || (addr&1) ) {
 		return err_invaddr;
 	}
@@ -235,10 +237,21 @@ int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer,
 	}
 	//Disable I2C irq
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
+#if !CONFIG_ISIXDRV_I2C_NODMA
 	if( wbuffer )
 		i2c_dma_tx_config( dcast(m_i2c), wbuffer, wsize );
 	if( rsize > 1)
 		i2c_dma_rx_config( dcast(m_i2c), rbuffer, rsize );
+#else
+		if( wbuffer ) {
+			m_tx_buf = reinterpret_cast<const uint8_t*>(wbuffer);
+			m_tx_len = wsize;
+		} else {
+			m_tx_buf = nullptr;
+			m_tx_len = 0;
+		}
+		m_rx_cnt = m_tx_cnt = m_tx2_cnt = 0;
+#endif
 	if(wbuffer)
 		m_addr = addr & ~(I2C_OAR1_ADD0);
 	else if(rbuffer)
@@ -249,8 +262,10 @@ int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer,
 	i2c_get_last_event( dcast(m_i2c) );
 	//Enable I2C irq
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR, true );
+#if !CONFIG_ISIXDRV_I2C_NODMA
 	//DMA last transfer
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
+#endif
 	i2c_acknowledge_config( dcast(m_i2c), true );
 	i2c_generate_start(dcast(m_i2c), true );
 	ret = m_notify.wait( TRANSACTION_TIMEOUT );
@@ -289,6 +304,7 @@ int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void*
 	return transfer( addr, wbuf1, wsize1, nullptr, 0 );
 }
 
+//! IRQ event handler
 void i2c_bus::ev_irq()
 {
 	using namespace stm32;
@@ -297,18 +313,25 @@ void i2c_bus::ev_irq()
 	{
 	//Send address
 	case I2C_EVENT_MASTER_MODE_SELECT:		//EV5
+	{
 		i2c_send_f7bit_address(dcast(m_i2c), m_addr );
-		//dbprintf("I2C_EVENT_MASTER_MODE_SELECT");
+	}
 	break;
-
 	//Send bytes in tx mode
 	case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:	//EV6
+	{
+#if !CONFIG_ISIXDRV_I2C_NODMA
 		i2c_dma_tx_enable( dcast(m_i2c) );
+#else
+		i2c_send_data( dcast(m_i2c), m_tx_buf[m_tx_cnt++] );
+#endif
 		//dbprintf("I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED");
+	}
 	break;
 
 	case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	//EV8
 	{
+#if !CONFIG_ISIXDRV_I2C_NODMA
 		i2c_dma_tx_disable( dcast(m_i2c) );
 		if( m_rx_len )
 		{
@@ -330,6 +353,25 @@ void i2c_bus::ev_irq()
 				m_tx2_buf = nullptr;
 			}
 		}
+#else
+		if( m_tx_cnt < m_tx_len ) {
+			i2c_send_data( dcast(m_i2c), m_tx_buf[m_tx_cnt++] );
+		}
+		if( m_tx_cnt >= m_tx_len ) {
+			if( m_tx2_cnt < m_tx2_len ) {
+				i2c_send_data( dcast(m_i2c), m_tx2_buf[m_tx2_cnt++] );
+			}
+			if( m_tx2_cnt >= m_tx2_len ) {
+				if( m_rx_cnt < m_rx_len ) {
+					m_addr |= I2C_OAR1_ADD0;
+					i2c_acknowledge_config( dcast(m_i2c), true );
+					i2c_generate_start( dcast(m_i2c), true );
+				} else {
+					ev_finalize();
+				}
+			}
+		}
+#endif
 		//dbprintf("I2C_EVENT_MASTER_BYTE_TRANSMITTEDAfterTX");
 		dsb(); isb(); nop(); nop();
 	}
@@ -337,40 +379,62 @@ void i2c_bus::ev_irq()
 
 	//Master mode selected
 	case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	//EV7
-			if( m_rx_len > 1 ) {
-				i2c_dma_last_transfer_cmd( dcast(m_i2c), true );
-				i2c_dma_rx_enable( dcast(m_i2c) );
-			} else {
-				i2c_acknowledge_config( dcast(m_i2c), false );
-				i2c_it_config(dcast(m_i2c), I2C_IT_BUF, true );
-			}
-		//dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i]", m_rx_len );
+#if !CONFIG_ISIXDRV_I2C_NODMA
+		if( m_rx_len > 1 ) {
+			i2c_dma_last_transfer_cmd( dcast(m_i2c), true );
+			i2c_dma_rx_enable( dcast(m_i2c) );
+		} else {
+			i2c_acknowledge_config( dcast(m_i2c), false );
+			i2c_it_config(dcast(m_i2c), I2C_IT_BUF, true );
+		}
+#else
+		if( m_rx_len == 1 ) {
+			i2c_acknowledge_config( dcast(m_i2c), false );
+		}
+		i2c_it_config(dcast(m_i2c), I2C_IT_BUF, true );
+#endif
+		//dbprintf("I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED [%i] ", m_rx_len );
 	break;
 
-	case I2C_EVENT_MASTER_BYTE_RECEIVED:
 	case (I2C_EVENT_MASTER_BYTE_RECEIVED|0x04):		//+BTF Byte transfer finished
+	case I2C_EVENT_MASTER_BYTE_RECEIVED:
+#if !CONFIG_ISIXDRV_I2C_NODMA
 		m_rx_buf[0] = i2c_receive_data( dcast(m_i2c) );
 		ev_finalize();
+#else
+	if( m_rx_cnt < m_rx_len )
+	{
+		m_rx_buf[m_rx_cnt++] = i2c_receive_data( dcast(m_i2c) );
+		if( m_rx_cnt==m_rx_len-1 ) {
+			i2c_acknowledge_config( dcast(m_i2c), false );
+		}
+		if( m_rx_cnt >= m_rx_len ) {
+			ev_finalize();
+		}
+	}
+#endif
 	break;
 	case 0x00030084:	//Handle extra states during DMA transfer
 	case 0x00030000:
-		break;
+	break;
 	default:
-		//dbprintf("Unknown event %08x", event );
+		dbprintf("Unknown event %08x", event );
 		ev_finalize( true );
-		break;
+	break;
 	}
 }
 
 //! Finalize transaction
 void i2c_bus::ev_finalize( bool inv_state )
 {
-	i2c_generate_stop(dcast(m_i2c),true);
+	i2c_generate_stop(dcast(m_i2c), true );
 	i2c_it_config(dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
+#if !CONFIG_ISIXDRV_I2C_NODMA
 	i2c_dma_rx_disable( dcast(m_i2c) );
 	i2c_dma_tx_disable( dcast(m_i2c) );
 	i2c_dma_last_transfer_cmd( dcast(m_i2c), false );
 	i2c_acknowledge_config( dcast(m_i2c), true );
+#endif
 	if( inv_state ) {
 		static constexpr auto inv_state_bit = 0x80;
 		m_err_flag |= inv_state_bit;
@@ -378,6 +442,7 @@ void i2c_bus::ev_finalize( bool inv_state )
 	//ACK config
 	m_notify.signal_isr();
 }
+
 
 //Error event handler
 void i2c_bus::err_irq()
@@ -392,12 +457,15 @@ void i2c_bus::err_irq()
 		m_err_flag = event >> 8;
 		i2c_it_config( dcast(m_i2c), I2C_IT_EVT|I2C_IT_ERR|I2C_IT_BUF, false );
 		i2c_generate_stop( dcast(m_i2c),true );
+#if !CONFIG_ISIXDRV_I2C_NODMA
 		i2c_dma_rx_disable( dcast(m_i2c) );
 		i2c_dma_tx_disable( dcast(m_i2c) );
+#endif
 	}
 	m_notify.signal_isr();
 }
 
+#if !CONFIG_ISIXDRV_I2C_NODMA
 //Dma trasfer complete
 void i2c_bus::ev_dma_tc()
 {
@@ -408,6 +476,7 @@ void i2c_bus::ev_dma_tc()
 	//ACK config
 	m_notify.signal_isr();
 }
+#endif
 
 void i2c_bus::mdelay( unsigned timeout )
 {

@@ -80,7 +80,7 @@ extern "C" {
 
 class i2c_bus : public fnd::bus::ibus {
 	static constexpr auto IRQ_PRIO = 1;
-	static constexpr auto IRQ_SUB = 7;
+	static constexpr auto IRQ_SUB = 2;
 	static constexpr auto TRANSACTION_TIMEOUT = 5000;
 
 #if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1
@@ -198,7 +198,10 @@ private:
 	uint8_t* volatile m_rx_buf {};		//! RX buffer
 #if CONFIG_ISIXDRV_I2C_NODMA
 	volatile uint16_t m_tx_len {};		//! TX trans
-	uint8_t* volatile m_tx_buf {};		//! TX buffer
+	const uint8_t* volatile m_tx_buf {};//! TX buffer
+	volatile uint16_t m_rx_cnt {};
+	volatile uint16_t m_tx_cnt {};
+	volatile uint16_t m_tx2_cnt {};
 #endif
 	volatile uint16_t m_tx2_len {};		//! RX trans
 	const uint8_t* volatile m_tx2_buf {};		//! RX buffer
