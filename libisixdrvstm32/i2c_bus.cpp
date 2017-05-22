@@ -250,7 +250,7 @@ int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer,
 			m_tx_buf = nullptr;
 			m_tx_len = 0;
 		}
-		m_rx_cnt = m_tx_cnt = m_tx2_cnt = 0;
+		m_rx_cnt = m_tx_cnt = 0;
 #endif
 	if(wbuffer)
 		m_addr = addr & ~(I2C_OAR1_ADD0);
@@ -301,6 +301,9 @@ int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void*
 {
 	m_tx2_len = (wbuf2!=nullptr)?(wsize2):(0);
 	m_tx2_buf = const_cast<const uint8_t * volatile>(reinterpret_cast<const uint8_t*>(wbuf2));
+#if CONFIG_ISIXDRV_I2C_NODMA
+	m_tx2_cnt = 0;
+#endif
 	return transfer( addr, wbuf1, wsize1, nullptr, 0 );
 }
 
@@ -418,7 +421,7 @@ void i2c_bus::ev_irq()
 	case 0x00030000:
 	break;
 	default:
-		dbprintf("Unknown event %08x", event );
+		//dbprintf("Unknown event %08x", event );
 		ev_finalize( true );
 	break;
 	}
