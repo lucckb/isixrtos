@@ -26,6 +26,19 @@ namespace bus {
 	class ii2s
 	{
 	public:
+		struct error {
+		enum _error {
+			none		= 0,
+			busy		= -32767,	//! Busy
+			smprate		= -32768,	//! Invalid sample rate
+			smpmode		= -32769,	//! Invalid sample mode
+			nosupp		= -32770,	//! Unsupported mode
+			nullbuf		= -32771,	//! Null buffer
+			dma_play	= -32772,	//! Dma transfer fail
+			dma_rec		= -32773,	//! Dma transfer fail
+			underrun_play    = -32774,	//! Underrun error
+			underrun_rec    = -32775,	//! Underrun error
+		};};
 		//! Async calback definition
 		using async_callback_t = std::function<void*(void*)>;
 
@@ -37,12 +50,12 @@ namespace bus {
 			d32_b
 		};
 		//! Bus mode master or slave
-		enum class mode {
+		enum class mode : bool {
 			master,
 			slave
 		};
 		//! Transmission standard
-		enum standard {
+		enum standard : unsigned char {
 			phillips,
 			msb,
 			lsb,
@@ -50,7 +63,7 @@ namespace bus {
 			pcm_long
 		};
 		//! Polarity
-		enum polarity {
+		enum polarity : bool {
 			low,
 			high
 		};
@@ -61,15 +74,18 @@ namespace bus {
 		 * @param[in] freq Sampling frequency
 		 * @return error code
 		 */
-		virtual int bus_params( datafmt fmt, int freq ) = 0;
+		virtual int bus_params( datafmt fmt, unsigned freq ) noexcept = 0;
 		/** Start bus processing
+		 * @param[in] play Start playback
+		 * @param[in] record Start record
+		 * @param[in] Buflen input buffer len
 		 * @return error code
 		 */
-		virtual int start() = 0;
+		virtual int start( bool play, bool record, std::size_t buflen ) noexcept = 0;
 		/** Stop bus processing
 		 * @return error code
 		*/
-		virtual int stop() = 0;
+		virtual int stop() noexcept = 0;
 		/* Register playback callback called from interrupt context
 		 * @param[in] fn Playback callback
 		 * @return false if success otherwise true
@@ -89,12 +105,13 @@ namespace bus {
 			return false;
 		}
 	protected:
-		void* swap_playback(void* newbuf) const noexcept {
-			return m_play_cb?m_play_cb( newbuf ):nullptr;
+		void* swap_playback(void* freebuf) const noexcept {
+			return m_play_cb?m_play_cb( freebuf ):nullptr;
 		}
-		void* swap_record(void* newbuf) const noexcept {
-			return m_record_cb?m_record_cb( newbuf ):nullptr;
+		void* swap_record(void* freebuf) const noexcept {
+			return m_record_cb?m_record_cb( freebuf ):nullptr;
 		}
+		virtual void report_error( int err, void* b1, void* b2 ) noexcept = 0;
 	private:
 		async_callback_t m_play_cb;
 		async_callback_t m_record_cb;
