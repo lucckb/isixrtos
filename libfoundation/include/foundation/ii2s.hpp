@@ -85,11 +85,6 @@ namespace bus {
 		/** Stop bus processing
 		 * @return error code
 		*/
-		virtual int stop() noexcept = 0;
-		/* Register playback callback called from interrupt context
-		 * @param[in] fn Playback callback
-		 * @return false if success otherwise true
-		 */
 		bool register_playback( async_callback_t fn ) noexcept {
 			if(m_play_cb) return true;
 			m_play_cb = fn;
