@@ -41,6 +41,7 @@ namespace bus {
 		};};
 		//! Async calback definition
 		using async_callback_t = std::function<void*(void*)>;
+		using error_callback_t = std::function<void(int,void*,void*)>;
 
 		//! Audio bus data format
 		enum class datafmt {
@@ -99,6 +100,15 @@ namespace bus {
 			m_record_cb = fn;
 			return false;
 		}
+		/* Register error callback called from interrupt context
+		 * @param[in] fn Playback callback
+		 * @return false if success otherwise true
+		 */
+		bool register_error( error_callback_t fn ) noexcept {
+			if(m_err_cb) return true;
+			m_err_cb = fn;
+			return false;
+		}
 	protected:
 		void* swap_playback(void* freebuf) const noexcept {
 			return m_play_cb?m_play_cb( freebuf ):nullptr;
@@ -106,10 +116,13 @@ namespace bus {
 		void* swap_record(void* freebuf) const noexcept {
 			return m_record_cb?m_record_cb( freebuf ):nullptr;
 		}
-		virtual void report_error( int err, void* b1, void* b2 ) noexcept = 0;
+		void report_error( int err, void* b1, void* b2 ) noexcept {
+			if(m_err_cb) m_err_cb( err, b1, b2 );
+		}
 	private:
 		async_callback_t m_play_cb;
 		async_callback_t m_record_cb;
+		error_callback_t m_err_cb;
 	};
 
 }}
