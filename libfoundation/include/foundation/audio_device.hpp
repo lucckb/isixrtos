@@ -18,9 +18,12 @@
 
 #pragma once
 
+#include <foundation/audio_stream.hpp>
+
 namespace fnd {
 namespace drv {
 
+	//! Audio device class interface
 	class audio_device
 	{
 	public:
@@ -85,27 +88,35 @@ namespace drv {
 		 *  @param[in] timeout Wait time for buffer fill
 		 *  @return Buffer with audio data or nullptr if fail
 		 */
-		template<typename T> T* get_record_streambuf( int timeout ) noexcept {
-			return static_cast<T*>(get_record_stream(timeout) );
+		template<typename T>
+			audio_stream<T> get_record_streambuf( int timeout ) noexcept {
+			return audio_stream<T>(get_record_stream(timeout),pbuf_size());
 		}
 		/** Frees record streambufer with audio data
 		 * @param buf Buffer allocated by get_record_streambuf
 		 * @return Error code
 		 */
-		virtual int release_record_streambuf(void* buf) noexcept = 0;
-		/** Get record stream buffer with audio data.
+		template<typename T>
+		int release_record_streambuf( audio_stream<T>& stream ) noexcept {
+			return release_record_stream( std::move(stream).data() );
+		}
+		/** Get playback stream buffer with audio data.
 		 *  Wait some time for buffer fill
 		 *  @param[in] timeout Wait time for buffer fill
 		 *  @return Buffer with audio data or nullptr if fail
 		 */
-		template<typename T> T* get_playback_streambuf( int timeout ) noexcept {
-			return static_cast<T*>(get_record_stream(timeout) );
+		template<typename T>
+			audio_stream<T> get_playback_streambuf( int timeout ) noexcept {
+			return audio_stream<T>(get_record_stream(timeout),pbuf_size());
 		}
 		/** Frees record streambufer with audio data
 		 * @param buf Buffer allocated by get_record_streambuf
 		 * @return Error code
 		 */
-		virtual int release_playback_streambuf(void* buf) noexcept = 0;
+		template<typename T>
+		int release_playback_streambuf( audio_stream<T>& stream ) noexcept {
+			return release_playback_stream( std::move(stream.data()) );
+		}
 		/** Start audio processing need playback and need record
 		 * @param[in] record Start recording
 		 * @param[in] playback Start playback
@@ -134,8 +145,11 @@ namespace drv {
 		virtual int switch_ctl( unsigned swbits_on, unsigned swbits_off ) noexcept = 0;
 
 	protected:
+		virtual std::size_t pbuf_size() const noexcept = 0;
 		virtual void* get_record_stream( int timeout ) noexcept = 0;
 		virtual void* get_playback_stream( int timeout ) noexcept = 0;
+		virtual int release_playback_stream(void* buf) noexcept = 0;
+		virtual int release_record_stream(void* buf) noexcept = 0;
 		void error( int err ) noexcept {
 			m_error = err;
 		}
