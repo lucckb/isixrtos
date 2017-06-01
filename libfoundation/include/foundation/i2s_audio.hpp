@@ -44,6 +44,9 @@ namespace drv {
 		int release_playback_stream(void* buf, int timeout) noexcept override;
 		void* get_record_stream( int timeout ) noexcept override;
 		void* get_playback_stream() noexcept override;
+		std::size_t pbuf_size() const noexcept override {
+			return c_mempool_siz;
+		}
 	private:
 		//! Record callback swap errors called from isr ctx
 		void* record_callback( void* ptr ) noexcept;
