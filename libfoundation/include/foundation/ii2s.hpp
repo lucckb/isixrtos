@@ -41,6 +41,7 @@ namespace bus {
 		};};
 		//! Async calback definition
 		using async_callback_t = std::function<void*(void*)>;
+		//! Error callback int code, void* buf2free1, void* buf2free2
 		using error_callback_t = std::function<void(int,void*,void*)>;
 
 		//! Audio bus data format

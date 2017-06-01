@@ -20,6 +20,8 @@
 
 #include <foundation/audio_stream.hpp>
 
+//TODO: version with exceptions
+
 namespace fnd {
 namespace drv {
 
@@ -70,9 +72,14 @@ namespace drv {
 		};};
 
 		//! Error code
-		struct err {
-		enum _err {
-			success	= 0,
+		struct error {
+		enum _error {
+			success		= 0,
+			busy		= -16384,
+			chnsupp		= -16385,
+			fmtsupp		= -16386,
+			notrunning	= -16387,
+			nomem		= -16388,
 		}; };
 		virtual ~audio_device() {}
 		/** Configure DAC and stream parameter
@@ -102,27 +109,27 @@ namespace drv {
 		}
 		/** Get playback stream buffer with audio data.
 		 *  Wait some time for buffer fill
-		 *  @param[in] timeout Wait time for buffer fill
 		 *  @return Buffer with audio data or nullptr if fail
 		 */
 		template<typename T>
-			audio_stream<T> get_playback_streambuf( int timeout ) noexcept {
-			return audio_stream<T>(get_record_stream(timeout),pbuf_size());
+			audio_stream<T> get_playback_streambuf() noexcept {
+			return audio_stream<T>(get_playback_stream(),pbuf_size());
 		}
 		/** Frees record streambufer with audio data
 		 * @param buf Buffer allocated by get_record_streambuf
+		 * @param[in] timeout Wait time for buffer fill
 		 * @return Error code
 		 */
 		template<typename T>
-		int release_playback_streambuf( audio_stream<T>& stream ) noexcept {
-			return release_playback_stream( std::move(stream.data()) );
+		int release_playback_streambuf( audio_stream<T>& stream, int timeout ) noexcept {
+			return release_playback_stream( std::move(stream.data(), timeout) );
 		}
 		/** Start audio processing need playback and need record
-		 * @param[in] record Start recording
 		 * @param[in] playback Start playback
+		 * @param[in] record Start recording
 		 * @return Error code
 		 */
-		virtual int start( bool record, bool playback ) noexcept = 0;
+		virtual int start( bool play, bool record ) noexcept = 0;
 		/** Stop audio processing
 		 * @return Error code
 		 */
@@ -147,11 +154,12 @@ namespace drv {
 	protected:
 		virtual std::size_t pbuf_size() const noexcept = 0;
 		virtual void* get_record_stream( int timeout ) noexcept = 0;
-		virtual void* get_playback_stream( int timeout ) noexcept = 0;
-		virtual int release_playback_stream(void* buf) noexcept = 0;
+		virtual void* get_playback_stream() noexcept = 0;
+		virtual int release_playback_stream(void* buf, int timeout) noexcept = 0;
 		virtual int release_record_stream(void* buf) noexcept = 0;
-		void error( int err ) noexcept {
+		int error( int err ) noexcept {
 			m_error = err;
+			return err;
 		}
 	private:
 		int m_error {};

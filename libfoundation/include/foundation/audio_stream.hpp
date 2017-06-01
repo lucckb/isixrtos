@@ -111,7 +111,7 @@ namespace drv {
         T* data() { return reinterpret_cast<T*>(m_raw); }
         T* c_array() { return reinterpret_cast<T*>(m_raw); }
         size_type size() { return m_size; }
-        static bool empty() { return false; }
+        bool empty() { return !m_raw; }
         size_type max_size() { return m_size; }
 		// assign one value to all elements
         void assign (const T& value) { fill ( value ); }

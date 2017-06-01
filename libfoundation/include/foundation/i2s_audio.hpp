@@ -15,34 +15,57 @@
  *
  * =====================================================================================
  */
+#pragma once
+
 #include <foundation/audio_device.hpp>
 #include <foundation/ii2s.hpp>
+#include <isix.h>
+
 
 namespace fnd {
 namespace drv {
 
-	//! I2S audio clas implementation
+	//! I2S audio class implementation
 	class i2s_audio : public audio_device
 	{
+		static constexpr auto c_mempool_siz = 1024;
+		static constexpr auto c_mempool_cnt = 16;
 	public:
-		i2s_audio( bus::ii2s& i2s_bus )
-			: m_bus(i2s_bus)
-		{}
-		virtual ~i2s_audio() {}
+		i2s_audio( bus::ii2s& i2s_bus );
+		virtual ~i2s_audio();
 		i2s_audio(i2s_audio&) = delete;
 		i2s_audio& operator=(i2s_audio&) = delete;
-	public:
 		int stream_conf( unsigned samplerate, format fmt=format::def, chn ch=chn::def )
-			noexcept override;
-		int start( bool record, bool playback ) noexcept override;
+			noexcept override = 0;
+		int start( bool play, bool record ) noexcept override;
 		int stop() noexcept override;
 	protected:
 		int release_record_stream( void* buf ) noexcept override;
-		int release_playback_stream(void* buf) noexcept override;
+		int release_playback_stream(void* buf, int timeout) noexcept override;
 		void* get_record_stream( int timeout ) noexcept override;
-		void* get_playback_stream( int timeout ) noexcept override;
+		void* get_playback_stream() noexcept override;
+	private:
+		//! Record callback swap errors called from isr ctx
+		void* record_callback( void* ptr ) noexcept;
+		void* play_callback( void* ptr ) noexcept;
+		void error_callback(int error, void* buf1, void* buf2 ) noexcept;
+		//! Discard all buffers waiting in queue
+		void discard_streams() noexcept;
 	private:
 		/* data */
 		bus::ii2s& m_bus;
+		isix::mempool_t m_mempool;
+		isix::fifo<void*> m_play_fifo { c_mempool_cnt*2+1 };
+		isix::fifo<void*> m_rec_fifo { c_mempool_cnt*2+1 };
+		isix::semaphore   m_fin_sem { 1, 1 };
+		enum class state : short {
+			wait_conf,	//! Wait for configuration
+			idle,		//! Ready for processing
+			sampling,	//! Sampling
+			stop_wait,	//! Wait for terminate transfer
+			stop_wait2	//! Wait for terminate transfer second notify
+		} m_state {};
+		bool m_record {};	//! If recording
 	};
 }}
+
