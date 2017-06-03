@@ -30,6 +30,7 @@ namespace drv {
 	{
 		static constexpr auto c_mempool_siz = 1024;
 		static constexpr auto c_mempool_cnt = 16;
+		static constexpr auto c_timeout_ms = 3000;
 	public:
 		i2s_audio( bus::ii2s& i2s_bus );
 		virtual ~i2s_audio();
@@ -41,8 +42,8 @@ namespace drv {
 		int stop() noexcept override;
 	protected:
 		int release_record_stream( void* buf ) noexcept override;
-		int release_playback_stream(void* buf, int timeout) noexcept override;
-		void* get_record_stream( int timeout ) noexcept override;
+		int release_playback_stream( void* buf ) noexcept override;
+		void* get_record_stream() noexcept override;
 		void* get_playback_stream() noexcept override;
 		std::size_t pbuf_size() const noexcept override {
 			return c_mempool_siz;

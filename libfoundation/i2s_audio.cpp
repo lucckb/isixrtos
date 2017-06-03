@@ -104,14 +104,14 @@ int i2s_audio::release_record_stream( void* buf ) noexcept
 	return error();
 }
 //! Release playback stream
-int i2s_audio::release_playback_stream(void* buf, int timeout ) noexcept
+int i2s_audio::release_playback_stream( void* buf ) noexcept
 {
 	if( m_state != state::sampling ) {
 		isix::mempool_free(m_mempool,buf);
 		return error( error::notrunning );
 	}
 	isix::clean_dcache_by_addr( buf, c_mempool_siz );
-	const auto err = m_rec_fifo.push( buf, timeout );
+	const auto err = m_rec_fifo.push( buf, c_timeout_ms );
 	if( err ) {
 		return error(err);
 	}
@@ -119,11 +119,11 @@ int i2s_audio::release_playback_stream(void* buf, int timeout ) noexcept
 }
 
 //! Get record stream
-void* i2s_audio::get_record_stream( int timeout ) noexcept
+void* i2s_audio::get_record_stream() noexcept
 {
 	void* ret {};
 	if( m_state == state::sampling ) {
-		const auto err = m_rec_fifo.pop(ret,timeout);
+		const auto err = m_rec_fifo.pop(ret,c_timeout_ms);
 		if( err ) {
 			error(err);
 		} else {
