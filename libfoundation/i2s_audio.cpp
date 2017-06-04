@@ -18,6 +18,8 @@
 
 #include <foundation/i2s_audio.hpp>
 #include <isix/arch/cache.h>
+#include <cstring>
+#include <foundation/dbglog.h>
 
 namespace fnd {
 namespace drv {
@@ -49,7 +51,7 @@ i2s_audio::~i2s_audio()
 //! Stream configuration
 int i2s_audio::stream_conf( unsigned samplerate, format fmt, chn ch ) noexcept
 {
-	if( m_state!=state::idle || m_state!=state::wait_conf ) {
+	if( m_state!=state::idle && m_state!=state::wait_conf ) {
 		return error( error::busy );
 	}
 	if( ch == chn::mono ) {
@@ -67,7 +69,7 @@ int i2s_audio::stream_conf( unsigned samplerate, format fmt, chn ch ) noexcept
 			return error( error::fmtsupp );
 	}
 	m_state = state::idle;
-	return error( m_bus.bus_params(busfmt,samplerate) );
+	return error(m_bus.bus_params(busfmt,samplerate) );
 }
 
 
@@ -75,12 +77,35 @@ int i2s_audio::stream_conf( unsigned samplerate, format fmt, chn ch ) noexcept
 int i2s_audio::start( bool play, bool record ) noexcept
 {
 	if( m_state!=state::idle ) {
-		return error(error::busy);
+		return error(error::notconf);
 	}
-	const auto err = m_bus.start(play,record,c_mempool_siz );
-	if( !err ) {
-		m_state = state::sampling;
-		m_record = record;
+	//! Get first play buffer
+	if( play )
+	{
+		constexpr auto c_dma_pre_bufs = 2;
+		for( int i=0; i<c_dma_pre_bufs; ++i ) {
+			auto err = m_mem_sem.wait( c_timeout_ms );
+			if( err ) {
+				return error(err==ISIX_TIME_INFINITE?error::nomem:err);
+			}
+			auto buf = isix::mempool_alloc( m_mempool );
+			if( !buf ){
+				return error( error::nomem );
+			}
+			std::memset( buf, 0, c_mempool_siz );
+			isix::clean_dcache_by_addr( buf, c_mempool_siz );
+			err = m_play_fifo.push( buf, c_timeout_ms );
+			if( err ) {
+				return error( err );
+			}
+		}
+	}
+	m_state = state::sampling;
+	m_record = record;
+	const auto err = m_bus.start(play,record,c_mempool_siz);
+	if( err ) {
+		m_record = false;
+		m_state = state::idle;
 	}
 	return error(err);
 }
@@ -100,18 +125,20 @@ int i2s_audio::stop() noexcept
 //! Release record stream
 int i2s_audio::release_record_stream( void* buf ) noexcept
 {
-	isix_mempool_free( m_mempool, buf );
-	return error();
+	isix::mempool_free( m_mempool, buf );
+	const auto err = m_mem_sem.signal();
+	return error(err);
 }
 //! Release playback stream
 int i2s_audio::release_playback_stream( void* buf ) noexcept
 {
 	if( m_state != state::sampling ) {
 		isix::mempool_free(m_mempool,buf);
+		m_mem_sem.signal();
 		return error( error::notrunning );
 	}
 	isix::clean_dcache_by_addr( buf, c_mempool_siz );
-	const auto err = m_rec_fifo.push( buf, c_timeout_ms );
+	const auto err = m_play_fifo.push( buf, c_timeout_ms );
 	if( err ) {
 		return error(err);
 	}
@@ -136,9 +163,15 @@ void* i2s_audio::get_record_stream() noexcept
 //! Get playback stream
 void* i2s_audio::get_playback_stream() noexcept
 {
-	const auto ret = isix::mempool_alloc(m_mempool);
+	void* ret {};
+	auto err = m_mem_sem.wait( c_timeout_ms );
+	if( err ) {
+		error( err==ISIX_ETIMEOUT?error::nomem:err );
+		return ret;
+	}
+	ret = isix::mempool_alloc(m_mempool);
 	if( !ret ) {
-		error( error::nomem );
+		error(error::nomem);
 	}
 	return ret;
 }
@@ -154,6 +187,10 @@ void* i2s_audio::record_callback( void* ptr ) noexcept
 		error(err);
 		return nullptr;
 	} else {
+		if( m_mem_sem.trywait() <=0 ) {
+			error( error::nomem );
+			return nullptr;
+		}
 		const auto ret = isix::mempool_alloc(m_mempool);
 		if( !ret ) {
 			error( error::nomem );
@@ -166,13 +203,18 @@ void* i2s_audio::record_callback( void* ptr ) noexcept
 //! Play callback called from ISR context
 void* i2s_audio::play_callback( void* ptr ) noexcept
 {
-	void* ret {};
 	if( m_state != state::sampling ) {
-		return ret;
+		return nullptr;
 	}
 	if( ptr ) {
 		isix::mempool_free(m_mempool,ptr);
+		auto err = m_mem_sem.signal_isr();
+		if( err ) {
+			error(err);
+			return nullptr;
+		}
 	}
+	void* ret {};
 	auto err = m_play_fifo.pop_isr(ret);
 	if( err ) {
 		error(err);
@@ -183,8 +225,14 @@ void* i2s_audio::play_callback( void* ptr ) noexcept
 //! Error callback called from ISR context
 void i2s_audio::error_callback( int err, void* buf1, void* buf2 ) noexcept
 {
-	if( buf1 ) isix::mempool_free( m_mempool, buf1 );
-	if( buf1 ) isix::mempool_free( m_mempool, buf2 );
+	if( buf1 ) {
+		isix::mempool_free( m_mempool, buf1 );
+		m_mem_sem.signal_isr();
+	}
+	if( buf1 ) {
+		isix::mempool_free( m_mempool, buf2 );
+		m_mem_sem.signal_isr();
+	}
 	if( m_state==state::stop_wait ) {
 		if( m_record ) {
 			m_state=state::stop_wait2;
@@ -205,10 +253,12 @@ void i2s_audio::discard_streams() noexcept
 {
 	void* ret;
 	while( m_play_fifo.pop_isr(ret) == ISIX_EOK ) {
-		isix_mempool_free( m_mempool, ret );
+		isix::mempool_free( m_mempool, ret );
+		m_mem_sem.signal_isr();
 	}
 	while( m_rec_fifo.pop_isr(ret) == ISIX_EOK ) {
-		isix_mempool_free( m_mempool, ret );
+		isix::mempool_free( m_mempool, ret );
+		m_mem_sem.signal_isr();
 	}
 }
 

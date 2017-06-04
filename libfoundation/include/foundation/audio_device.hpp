@@ -80,6 +80,7 @@ namespace drv {
 			fmtsupp		= -16386,
 			notrunning	= -16387,
 			nomem		= -16388,
+			notconf		= -16389,
 		}; };
 		virtual ~audio_device() {}
 		/** Configure DAC and stream parameter
@@ -97,7 +98,7 @@ namespace drv {
 		 */
 		template<typename T>
 			audio_stream<T> get_record_streambuf() noexcept {
-			return audio_stream<T>(get_record_stream(),pbuf_size());
+			return audio_stream<T>(get_record_stream(),pbuf_size()/sizeof(T));
 		}
 		/** Frees record streambufer with audio data
 		 * @param buf Buffer allocated by get_record_streambuf
@@ -113,7 +114,7 @@ namespace drv {
 		 */
 		template<typename T>
 			audio_stream<T> get_playback_streambuf() noexcept {
-			return audio_stream<T>(get_playback_stream(),pbuf_size());
+			return audio_stream<T>(get_playback_stream(),pbuf_size()/sizeof(T));
 		}
 		/** Frees record streambufer with audio data
 		 * @param buf Buffer allocated by get_record_streambuf

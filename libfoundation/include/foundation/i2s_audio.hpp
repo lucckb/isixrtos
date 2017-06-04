@@ -62,6 +62,7 @@ namespace drv {
 		isix::fifo<void*> m_play_fifo { c_mempool_cnt*2+1 };
 		isix::fifo<void*> m_rec_fifo { c_mempool_cnt*2+1 };
 		isix::semaphore   m_fin_sem { 1, 1 };
+		isix::semaphore   m_mem_sem { c_mempool_cnt, c_mempool_cnt };
 		enum class state : short {
 			wait_conf,	//! Wait for configuration
 			idle,		//! Ready for processing

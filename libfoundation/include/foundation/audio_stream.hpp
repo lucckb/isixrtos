@@ -29,7 +29,8 @@ namespace drv {
 	public:
 		explicit audio_stream(void *raw, std::size_t len)
 			:m_raw( raw ), m_size(len)
-		{}
+		{
+		}
 		~audio_stream() {}
 		//! Copy not allowed (no mempool)
 		audio_stream(audio_stream&) = delete;
