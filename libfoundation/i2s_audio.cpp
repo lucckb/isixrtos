@@ -39,6 +39,10 @@ i2s_audio::i2s_audio( bus::ii2s& i2s_bus )
 	m_bus.register_playback(
 		std::bind(&i2s_audio::play_callback,std::ref(*this),std::placeholders::_1)
 	);
+	m_bus.register_error(
+		std::bind(&i2s_audio::error_callback,std::ref(*this),
+			std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+	);
 }
 
 //! Destructor
@@ -82,7 +86,7 @@ int i2s_audio::start( bool play, bool record ) noexcept
 	//! Get first play buffer
 	if( play )
 	{
-		constexpr auto c_dma_pre_bufs = 2;
+		const auto c_dma_pre_bufs = 2;
 		for( int i=0; i<c_dma_pre_bufs; ++i ) {
 			auto err = m_mem_sem.wait( c_timeout_ms );
 			if( err ) {
@@ -95,6 +99,23 @@ int i2s_audio::start( bool play, bool record ) noexcept
 			std::memset( buf, 0, c_mempool_siz );
 			isix::clean_dcache_by_addr( buf, c_mempool_siz );
 			err = m_play_fifo.push( buf, c_timeout_ms );
+			if( err ) {
+				return error( err );
+			}
+		}
+	}
+	if( record ) {
+		constexpr auto c_dma_pre_bufs = 2;
+		for( int i=0; i<c_dma_pre_bufs; ++i ) {
+			auto err = m_mem_sem.wait( c_timeout_ms );
+			if( err ) {
+				return error(err==ISIX_TIME_INFINITE?error::nomem:err);
+			}
+			auto buf = isix::mempool_alloc( m_mempool );
+			if( !buf ){
+				return error( error::nomem );
+			}
+			err = m_rec_fifo.push( buf, c_timeout_ms );
 			if( err ) {
 				return error( err );
 			}
@@ -149,13 +170,18 @@ int i2s_audio::release_playback_stream( void* buf ) noexcept
 void* i2s_audio::get_record_stream() noexcept
 {
 	void* ret {};
-	if( m_state == state::sampling ) {
-		const auto err = m_rec_fifo.pop(ret,c_timeout_ms);
-		if( err ) {
-			error(err);
-		} else {
+	int err;
+	if( m_state == state::sampling )
+	{
+		err = m_rec_fifo.pop( ret ,c_timeout_ms );
+		if(!err) {
 			isix::inval_dcache_by_addr( ret, c_mempool_siz );
 		}
+		error(err);
+	}
+	else
+	{
+		error(error::notrunning);
 	}
 	return ret;
 }
@@ -179,34 +205,40 @@ void* i2s_audio::get_playback_stream() noexcept
 //! Record callback called from ISR context
 void* i2s_audio::record_callback( void* ptr ) noexcept
 {
-	if( m_state!=state::sampling ) {
+	if( m_state!=state::sampling )
 		return nullptr;
-	}
-	const auto err = m_rec_fifo.push_isr(ptr);
-	if( err ) {
-		error(err);
-		return nullptr;
-	} else {
-		if( m_mem_sem.trywait() <=0 ) {
-			error( error::nomem );
+	if( ptr )
+	{
+		auto err = m_rec_fifo.push_isr(ptr);
+		if( err ) {
+			error(err);
 			return nullptr;
 		}
-		const auto ret = isix::mempool_alloc(m_mempool);
-		if( !ret ) {
-			error( error::nomem );
-		}
-		return ret;
 	}
+
+	const auto err = m_mem_sem.trywait();
+	if( err<0 ) {
+		error( error::nomem );
+		return nullptr;
+	}
+	const auto ret = isix::mempool_alloc(m_mempool);
+	if( !ret ) {
+		error( error::nomem );
+		return nullptr;
+	}
+	return ret;
 }
 
 
 //! Play callback called from ISR context
 void* i2s_audio::play_callback( void* ptr ) noexcept
 {
-	if( m_state != state::sampling ) {
+	if( m_state != state::sampling )
+	{
 		return nullptr;
 	}
-	if( ptr ) {
+	if( ptr )
+	{
 		isix::mempool_free(m_mempool,ptr);
 		auto err = m_mem_sem.signal_isr();
 		if( err ) {
@@ -214,9 +246,10 @@ void* i2s_audio::play_callback( void* ptr ) noexcept
 			return nullptr;
 		}
 	}
-	void* ret {};
+	void* ret;
 	auto err = m_play_fifo.pop_isr(ret);
 	if( err ) {
+		ret = nullptr;
 		error(err);
 	}
 	return ret;
@@ -243,7 +276,7 @@ void i2s_audio::error_callback( int err, void* buf1, void* buf2 ) noexcept
 		m_fin_sem.signal_isr();
 	} else {
 		m_fin_sem.signal_isr();
-		error( err );
+		if(!error()) error( err );
 	}
 }
 
