@@ -62,7 +62,6 @@ namespace drv {
 			headphone,
 			headphone_l,
 			headphone_r,
-			mic_in
 		};
 
 		//! Switch bits
@@ -70,9 +69,10 @@ namespace drv {
 		enum _switchs {
 			mic_boost	= 0x01,
 			mic_mute	= 0x02,
-			mic_select	= 0x04,
-			mic_bypass	= 0x08,
-			line_bypass	= 0x10,
+			mic_lineout	= 0x04,
+			lin_lineout	= 0x10,
+			dac_lineout = 0x20,
+			mic_insel	= 0x40,
 		};};
 
 		//! Error code
@@ -85,6 +85,8 @@ namespace drv {
 			notrunning	= -16387,
 			nomem		= -16388,
 			notconf		= -16389,
+			gainsupp	= -16390,
+			apisupp		= -16391
 		}; };
 		virtual ~audio_device() {}
 		/** Configure DAC and stream parameter
@@ -143,19 +145,33 @@ namespace drv {
 		int error() const noexcept {
 			return m_error;
 		}
-		/** Gain control settings in db value
+		/** Gain control set
 		 * @param[in] mixpath Mixer input path
 		 * @param[in] value Gain in the unit value
 		 * @return Error code
 		 */
-		virtual int gain_ctl( mixpath path, int value ) noexcept = 0;
-		/** Setup the switch parameters configuration
+		virtual int gain_set( mixpath path, int value ) noexcept = 0;
+		/** Gain control get
+		 * @param[in] mixpath Mixer input path
+		 * @param[out] value Gain in the unit value
+		 * @return Error code
+		 */
+		virtual int gain_get( mixpath , int& ) noexcept {
+			return error::apisupp;
+		}
+		/** Set the switch parameters configuration
 		 * @param[in] swbits_on Path bits for set
 		 * @param[in] swbits_off Path bits for clear
 		 * @return Error code
 		 * */
-		virtual int switch_ctl( unsigned swbits_on, unsigned swbits_off ) noexcept = 0;
-
+		virtual int switch_set( unsigned swbits_on, unsigned swbits_off ) noexcept = 0;
+		/** Get the switch parameters configuration
+		 * @param[in] bits Bit status
+		 * @return Error code
+		 * */
+		virtual int switch_get( unsigned& ) noexcept {
+			return error::apisupp;
+		}
 	protected:
 		virtual std::size_t pbuf_size() const noexcept = 0;
 		virtual void* get_record_stream() noexcept = 0;

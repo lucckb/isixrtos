@@ -66,6 +66,9 @@ int i2s_audio::stream_conf( unsigned samplerate, format fmt, chn ch ) noexcept
 		case format::le16:
 			busfmt = bus::ii2s::datafmt::d16_b;
 			break;
+		case format::le32:
+			busfmt = bus::ii2s::datafmt::d32_b;
+			break;
 		case format::le24:
 			busfmt = bus::ii2s::datafmt::d24_b;
 			break;
@@ -104,7 +107,8 @@ int i2s_audio::start( bool play, bool record ) noexcept
 			}
 		}
 	}
-	if( record ) {
+	if( record )
+	{
 		constexpr auto c_dma_pre_bufs = 2;
 		for( int i=0; i<c_dma_pre_bufs; ++i ) {
 			auto err = m_mem_sem.wait( c_timeout_ms );
