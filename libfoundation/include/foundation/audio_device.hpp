@@ -29,6 +29,10 @@ namespace drv {
 	class audio_device
 	{
 	public:
+		//! Minimum and maximum value
+		static constexpr auto min_gain = 0;
+		static constexpr auto max_gain = 100000;
+
 		//! Set current audio format
 		enum class format {
 			def,		//!Device default
@@ -141,13 +145,13 @@ namespace drv {
 		}
 		/** Gain control settings in db value
 		 * @param[in] mixpath Mixer input path
-		 * @param[in[ dbgain Gain in DB
+		 * @param[in] value Gain in the unit value
 		 * @return Error code
 		 */
-		virtual int gain_ctl( mixpath path, int dbgain ) noexcept = 0;
+		virtual int gain_ctl( mixpath path, int value ) noexcept = 0;
 		/** Setup the switch parameters configuration
 		 * @param[in] swbits_on Path bits for set
-		 * @param[in[ swbits_off Path bits for clear
+		 * @param[in] swbits_off Path bits for clear
 		 * @return Error code
 		 * */
 		virtual int switch_ctl( unsigned swbits_on, unsigned swbits_off ) noexcept = 0;
