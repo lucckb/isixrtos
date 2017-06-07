@@ -19,6 +19,7 @@
 #pragma once
 
 #include <foundation/audio_stream.hpp>
+#include <limits>
 
 //TODO: version with exceptions
 
@@ -29,9 +30,17 @@ namespace drv {
 	class audio_device
 	{
 	public:
+		using gain_t = unsigned char;
 		//! Minimum and maximum value
-		static constexpr auto min_gain = 0;
-		static constexpr auto max_gain = 100000;
+		static constexpr gain_t min_gain = 0;
+		static constexpr gain_t max_gain = 255;
+		static constexpr auto muted = std::numeric_limits<int>::min();
+
+		//! Unit
+		enum class unit : bool {
+			grid,
+			db
+		};
 
 		//! Set current audio format
 		enum class format {
@@ -86,7 +95,8 @@ namespace drv {
 			nomem		= -16388,
 			notconf		= -16389,
 			gainsupp	= -16390,
-			apisupp		= -16391
+			apisupp		= -16391,
+			invchn		= -16392
 		}; };
 		virtual ~audio_device() {}
 		/** Configure DAC and stream parameter
@@ -153,12 +163,14 @@ namespace drv {
 		virtual int gain_set( mixpath path, int value ) noexcept = 0;
 		/** Gain control get
 		 * @param[in] mixpath Mixer input path
+		 * @param[in] unit db or grid value
 		 * @param[out] value Gain in the unit value
 		 * @return Error code
 		 */
-		virtual int gain_get( mixpath , int& ) noexcept {
+		virtual int gain_get( int&, mixpath, unit=unit::grid ) noexcept {
 			return error::apisupp;
 		}
+
 		/** Set the switch parameters configuration
 		 * @param[in] swbits_on Path bits for set
 		 * @param[in] swbits_off Path bits for clear
