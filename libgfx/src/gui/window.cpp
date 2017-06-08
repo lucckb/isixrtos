@@ -59,7 +59,7 @@ void window::repaint( bool force, bool force_clr )
 	if( (m_flags & flags::selectborder) && has_focus() ) {
 		{
 			const auto s = (*m_current_widget)->get_coord() + get_coord() + 1;
-			
+
 			draw_line_box( s, gdi );
 
 			if (m_border_style == style::double_border)
@@ -75,7 +75,7 @@ void window::repaint( bool force, bool force_clr )
 			const auto s = (*m_redraw_widget)->get_coord() + get_coord() + 1;
 			disp::gdi gdic( get_owner().get_display(), (m_flags&flags::fill)?(lay.bg()):(color_t(color::Black)) );
 			draw_line_box( s, gdic );
-			
+
 			if (m_border_style == style::double_border)
 			{
 				if ((s.x() > 0) && (s.y() > 0))

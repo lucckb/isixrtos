@@ -73,7 +73,7 @@ public:
 	}
 
 protected:
-	//! Set modified flag	
+	//! Set modified flag
 	void modified() {
 		m_modified = true;
 	}
