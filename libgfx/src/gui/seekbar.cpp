@@ -154,6 +154,16 @@ void seekbar::report_event( const input::event_info& ev )
 				ret |= emit( btn_event );
 			}
 		}
+	} else if( ev.type == event_info::EV_KNOB ) {
+		if( ev.knob.diff > 0 ) {
+			m_value += m_step;
+			if( m_value > m_max ) m_value = m_max;
+			else ret = true;
+		} else if( ev.knob.diff < 0 ) {
+			m_value -= m_step;
+			if( m_value < m_min ) m_value = m_min;
+			else ret = true;
+		}
 	}
 	if( ret ) {
 		event btn_event( this, event::evtype::EV_CHANGE );

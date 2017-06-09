@@ -29,6 +29,7 @@ public:
 	template< typename T>
 	void caption( const T caption ) {
 		m_caption = caption;
+		modified();
 	}
 	const detail::string& caption() const {
 		return m_caption;
