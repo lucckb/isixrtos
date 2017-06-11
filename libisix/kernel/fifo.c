@@ -129,8 +129,8 @@ int isix_fifo_read_isr(osfifo_t fifo,void *item)
 	if(fifo->flags & isix_fifo_f_noirq) return ISIX_EINVARG;
     if(isix_sem_trywait(&fifo->rx_sem)<0)
     {
-       pr_err("FifoReadISR: No space in RX queue");
-       return ISIX_EFIFOFULL;
+       pr_err("FifoReadISR: No data waiting");
+       return ISIX_EFIFOEMPTY;
     }
     _fifo_lock(fifo);
     memcpy(item,fifo->rx_p,fifo->elem_size);
