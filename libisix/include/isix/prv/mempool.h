@@ -12,5 +12,6 @@ struct isix_mempool
 {
     list_entry_t free_elems;
     void *mem;
+	size_t mem_size;
 };
 

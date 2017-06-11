@@ -38,7 +38,7 @@ void* isix_mempool_alloc( osmempool_t mp );
  * @param[in] mp Mempool handler
  * @param[in] p memory from mempool
  */
-void isix_mempool_free( osmempool_t mp, void *p );
+int isix_mempool_free( osmempool_t mp, void *p );
 
 
 #ifdef __cplusplus
@@ -60,7 +60,7 @@ namespace {
 	inline void* mempool_alloc( osmempool_t mp ) {
 		return ::isix_mempool_alloc( mp );
 	}
-	inline void mempool_free( osmempool_t mp, void *p ) {
+	inline int mempool_free( osmempool_t mp, void *p ) {
 		return ::isix_mempool_free( mp, p );
 	}
 }}

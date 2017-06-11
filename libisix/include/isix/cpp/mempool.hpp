@@ -61,10 +61,10 @@ public:
 			return obj;
 		}
 #endif
-	void free( T* p )
+	int free( T* p )
 	{
 		p->~T();
-		isix_mempool_free( m_mp, p );
+		return isix_mempool_free( m_mp, p );
 	}
 	/** Check if the fifo object is in valid state
 	 * @return true if object is ok else return false

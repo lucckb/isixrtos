@@ -18,5 +18,6 @@ enum isix_error
 	ISIX_EPERM			= -12,		/** Not permited */
 	ISIX_ENOTLOCKED		= -14,		/** Not locked */
 	ISIX_ENOREF			= -15,		/** Task is not referenced */
-	ISIX_EFIFOEMPTY		= -16		/** Fifo queue is empty */
+	ISIX_EFIFOEMPTY		= -16,		/** Fifo queue is empty */
+	ISIX_EINVADDR		= -17,		/** Invalid address */
 };
