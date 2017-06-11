@@ -60,7 +60,7 @@ namespace {
 			: m_pool( pool )
 		{}
 		//Destructor
-		virtual ~task_test() 
+		virtual ~task_test()
 		{
 			m_pool.free(m_ptr);
 		}
@@ -100,13 +100,13 @@ void mempool::mempool_tests() {
 	QUNIT_IS_EQUAL( memp.alloc('X'), nullptr );
 	//Free memory blocks
 	for(auto p : pptr ) {
-		memp.free(p);
+		QUNIT_IS_EQUAL( memp.free(p), ISIX_EOK );
 	}
 	//Now allocation should be possible
 	{
- 		auto p = memp.alloc('X');
+		auto p = memp.alloc('X');
 		QUNIT_IS_TRUE(p!=nullptr);
-		memp.free(p);
+		QUNIT_IS_EQUAL( memp.free(p), ISIX_EOK );
 	}
 }
 //Mempool task race cond

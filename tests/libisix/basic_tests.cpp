@@ -84,8 +84,7 @@ class unit_tests : public isix::task_base
 		mtx_test.run();
 #endif
 	} else {
-		heap_test();
-		mtx_test.run();
+		mempool_test.run();
 	}
 	}
 };
@@ -96,7 +95,7 @@ int main()
 #ifdef PDEBUG
 	//static constexpr auto baud_hi = 3000000;
 	static constexpr auto baud_lo = 115200;
-    stm32::usartsimple_init( USART2, baud_lo ,true, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
+    stm32::usartsimple_init( USART1, baud_lo ,true, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
 #endif	
 	dblog_init_putc( stm32::usartsimple_putc, nullptr );
 	dbprintf("-------- BEGIN_TESTS ---------");
