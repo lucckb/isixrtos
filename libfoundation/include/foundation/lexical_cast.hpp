@@ -20,6 +20,7 @@
 
 
 #include <string>
+#include <cstdlib>
 #include <foundation/utils.h>
 
 namespace fnd {
@@ -62,6 +63,30 @@ namespace fnd {
 		fnd::fnd_dtoa( arg, buf, 9 );
 		return buf;
 	}
+	template <> long int
+		lexical_cast<long int, const char*>(const char* const& arg ) {
+			return std::strtol(arg, NULL, 10 );
+		}
+	template <> long unsigned int
+		lexical_cast<long unsigned int, const char*>(const char* const& arg ) {
+			return std::strtoul(arg, NULL, 10 );
+		}
+	template <> long long int
+		lexical_cast<long long int, const char*>(const char* const& arg ) {
+			return std::strtoll(arg, NULL, 10 );
+		}
+	template <> long long unsigned int
+		lexical_cast<long long unsigned int, const char*>(const char* const& arg ) {
+			return std::strtoull(arg, NULL, 10 );
+		}
+	template <> float
+		lexical_cast<float, const char*>(const char* const& arg ) {
+			return std::strtof(arg, NULL );
+		}
+	template <> double
+		lexical_cast<double, const char*>(const char* const& arg ) {
+			return std::strtod(arg, NULL );
+		}
 }
 #endif
 
