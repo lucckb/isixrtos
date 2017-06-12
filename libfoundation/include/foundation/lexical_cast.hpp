@@ -26,7 +26,7 @@
 namespace fnd {
 
 	template<typename Target, typename Source>
-		Target lexical_cast( const  Source& arg );
+		Target lexical_cast( const Source& arg );
 
 	template <> std::string
 		lexical_cast<std::string, int>( const int& arg )
@@ -64,28 +64,32 @@ namespace fnd {
 		return buf;
 	}
 	template <> long int
-		lexical_cast<long int, const char*>(const char* const& arg ) {
-			return std::strtol(arg, NULL, 10 );
+		lexical_cast<long int, std::string>( const std::string& arg ) {
+			return std::strtol(arg.c_str(), NULL, 10 );
+		}
+	template <> int
+		lexical_cast<int, std::string>( const std::string& arg ) {
+			return std::strtol(arg.c_str(), NULL, 10 );
 		}
 	template <> long unsigned int
-		lexical_cast<long unsigned int, const char*>(const char* const& arg ) {
-			return std::strtoul(arg, NULL, 10 );
+		lexical_cast<long unsigned int, std::string>(const std::string& arg ) {
+			return std::strtoul(arg.c_str(), NULL, 10 );
 		}
 	template <> long long int
-		lexical_cast<long long int, const char*>(const char* const& arg ) {
-			return std::strtoll(arg, NULL, 10 );
+		lexical_cast<long long int, std::string>(const std::string& arg ) {
+			return std::strtoll(arg.c_str(), NULL, 10 );
 		}
 	template <> long long unsigned int
-		lexical_cast<long long unsigned int, const char*>(const char* const& arg ) {
-			return std::strtoull(arg, NULL, 10 );
+		lexical_cast<long long unsigned int, std::string>(const std::string& arg ) {
+			return std::strtoull(arg.c_str(), NULL, 10 );
 		}
 	template <> float
-		lexical_cast<float, const char*>(const char* const& arg ) {
-			return std::strtof(arg, NULL );
+		lexical_cast<float, std::string>(const std::string& arg ) {
+			return std::strtof(arg.c_str(), NULL );
 		}
 	template <> double
-		lexical_cast<double, const char*>(const char* const& arg ) {
-			return std::strtod(arg, NULL );
+		lexical_cast<double, std::string>(const std::string& arg ) {
+			return std::strtod(arg.c_str(), NULL );
 		}
 }
 #endif
