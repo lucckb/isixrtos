@@ -34,7 +34,7 @@ namespace isix {
 		* @param[in] stack_depth Stack depth of the thread/task
 		* @param[in] priority Thread/task priority
 		*/
-		void start_thread(std::size_t stack_depth, osprio_t priority, unsigned flags=0)
+		void start_thread(std::size_t stack_depth, osprio_t priority, unsigned flags=0) noexcept
 		{
 			task_id = isix_task_create( start_task, this, stack_depth, priority, flags );
 		}
@@ -48,12 +48,12 @@ namespace isix {
 		/** Get thread task id
 		* @return Task control object
 		*/
-		ostask_t get_taskid() { return task_id; }
+		ostask_t get_taskid() noexcept { return task_id; }
 		/** Check the fifo object is in valid state
 		* @return True when the object is in valid state
 		*/
-		bool is_valid() { return task_id!=0; }
-		
+		bool is_valid() noexcept { return task_id!=0; }
+
 
 		task_base(const task_base&) = delete;
 		task_base(task_base&&) = default;
@@ -62,9 +62,9 @@ namespace isix {
 
 	protected:
 		/** Pure virtual method for the object main thread */
-		virtual void main() = 0;
+		virtual void main() noexcept = 0;
 	private:
-		static void start_task(void *ptr)
+		static void start_task(void *ptr) noexcept
 		{
 			static_cast<task_base*>(ptr)->main();
 			static_cast<task_base*>(ptr)->task_id = nullptr;

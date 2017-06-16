@@ -92,7 +92,7 @@ ISR_VECTOR(fpu_isr_vector);
 
 
   __attribute__ ((section(".isr_vector")))
-  const vect_fun_t const _exceptions_vectors[] =
+  const vect_fun_t _exceptions_vectors[] =
   {
     (vect_fun_t)(long)&_estack,            
     _mcu_reset_handler_,             

@@ -323,11 +323,13 @@ char editbox::ch_dec( char ch ) const
 		if(ch>'0' && ch<='9') ch--;
 		else if( ch=='0') ch='-';
 		else if( ch=='-') ch='9';
+		break;
 	case type::float_pos:
 		if(ch>'0' && ch<='9') ch--;
 		else if( ch=='0') ch = 'E';
 		else if( ch=='E') ch = '.';
 		else if( ch=='.') ch = '0';
+		break;
 	case type::float_neg:
 		if(ch>'0' && ch<='9') ch--;
 		else if( ch=='0') ch = 'E';

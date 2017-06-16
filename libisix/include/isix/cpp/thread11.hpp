@@ -25,7 +25,7 @@ namespace isix {
 
 
 /** \brief thread class is a template interface for thread */
-class thread : public task_base 
+class thread final : public task_base
 {
 public:
 	/** \brief thread constructor
@@ -33,15 +33,15 @@ public:
 	 *  \param[in] args Arguments passed to the function
 	 */
 	template <typename FN, typename ... ARGS>
-	thread( FN&& function, ARGS&&... args )
+	thread( FN&& function, ARGS&&... args ) noexcept
 		: m_bound_fn( std::bind(std::forward<FN>(function), std::forward<ARGS>(args)... ) )
 		 {
 		 }
-	/** /brief thread Destructor 
+	/** /brief thread Destructor
 	 */
 	virtual ~thread() {
 	}
-	
+
 	thread( const thread& ) = delete;
 	thread( thread&& ) = default;
 	const thread& operator=(const thread&) = delete;
@@ -49,8 +49,8 @@ public:
 
 
 private:
-	
-	void main() override {
+
+	void main() noexcept override {
 		m_bound_fn();
 	}
 
@@ -59,7 +59,7 @@ private:
 
 /** Helper factory function for thread creation  */
 template <typename FN, typename ... ARGS>
-	thread thread_create( FN&& fn, ARGS&&... args )
+	thread thread_create( FN&& fn, ARGS&&... args ) noexcept
 	{
 		return {  std::forward<FN>(fn), std::forward<ARGS>(args)... };
 	}
@@ -72,8 +72,8 @@ template <typename FN, typename ... ARGS>
 	 *  \param[in] args Arguments passed to the function
 	 */
 template <typename FN, typename ... ARGS>
-	thread thread_create_and_run( const size_t size, const osprio_t priority, 
-			unsigned flags, FN&& fn, ARGS&&... args )
+	thread thread_create_and_run( const size_t size, const osprio_t priority,
+			unsigned flags, FN&& fn, ARGS&&... args ) noexcept
 {
 	auto thr = thread_create( std::forward<FN>(fn), std::forward<ARGS>(args)... );
 	thr.start_thread( size, priority, flags );

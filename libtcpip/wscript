@@ -20,8 +20,8 @@ def build(bld):
     _src += bld.path.ant_glob( _lwip + '/netif/ppp/*.c' )
     _src += bld.path.ant_glob( 'port/*.c' )
     _src += bld.path.ant_glob( 'port/*.cpp' )
-    _inc = [ 'include', _lwip+'/include', _lwip+'/include/ipv4', 'port/include' ]
-    bld.stlib( source=_src, target='tcpip',
+    _inc = [ 'include', _lwip+'/include', _lwip+'/include/ipv4', 'port/include']
+    bld.stlib( source=_src, target='tcpip', cflags=['-Wno-implicit-fallthrough'],
                includes=_inc, export_includes=_inc,
                use = [ 'foundation' ]
     )

@@ -500,9 +500,9 @@ int mmc_command::decode_scr( scr &scr_reg )
     {
     	switch(sd_spec)
     	{
-    	case 0: scr_reg.spec = 0x10;
-    	case 1: scr_reg.spec = 0x11;
-    	case 2: scr_reg.spec = 0x20;
+    	case 0: scr_reg.spec = 0x10; break;
+    	case 1: scr_reg.spec = 0x11; break;
+    	case 2: scr_reg.spec = 0x20; break;
     	}
     }
     const uint32_t bus_width = UNSTUFF_BITS(m_resp, 48, 4 );
