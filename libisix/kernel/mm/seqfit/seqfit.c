@@ -13,7 +13,7 @@
 #include <isix/prv/scheduler.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_MEMORY
-#undef CONFIG_ISIX_LOGLEVEL 
+#undef CONFIG_ISIX_LOGLEVEL
 #define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_MEMORY
 #endif
 #include <isix/prv/printk.h>
@@ -194,11 +194,17 @@ size_t isix_heap_free(int *fragments)
 }
 
 size_t isix_heap_getsize( void* ptr )
-{ 
+{
 	struct header* hp = (struct header *)ptr - 1;
 	if( hp->h.h_magic != MAGIC ) { //Not dyn block
 		return 0;
 	} else {
 		return hp->h_size;
 	}
+}
+
+//Really naive ralloc implementation
+void *isix_heap_realloc(void *ptr, size_t size )
+{
+	return NULL;
 }
