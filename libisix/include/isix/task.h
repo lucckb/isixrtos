@@ -13,13 +13,18 @@ extern "C" {
 //!Definition of task function in C mode
 #define ISIX_TASK_FUNC(FUNC, ARG)							\
 	void FUNC(void *ARG)
-
 #endif
+
 //! Special flags for task create
 enum isix_task_flags {
 	isix_task_flag_newlib = 1U,		//! Uses per thread new lib data for ex errno
 	isix_task_flag_suspended = 2U,	//! Create task suspended
 	isix_task_flag_ref = 8U			//! Extra reference non should be called task_unref();
+};
+
+//! Minimal stack DEPTH
+enum {
+	ISIX_MIN_STACK_SIZE = ISIX_PORT_SCHED_MIN_STACK_DEPTH
 };
 
 /** Create the task function (System thread)
