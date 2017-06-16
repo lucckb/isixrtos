@@ -33,7 +33,7 @@ namespace {
 		volatile unsigned m_exec_count {};
 		volatile bool m_req_selfsusp {};
 		//Main function
-		virtual void main() {
+		void main() noexcept override {
 			for(;;) {
 				++m_exec_count;
 				if( m_req_selfsusp ) {
@@ -288,11 +288,15 @@ namespace {
 void task_tests::wait_and_reference_api() {
 	//! Create referenced
 	auto ram_beg = isix::heap_free(nullptr);
-	auto th1 = isix::task_create( task_ref, nullptr, 256, 3,
+	auto th1 = isix::task_create( task_ref, nullptr, ISIX_MIN_STACK_SIZE, 3,
 			isix_task_flag_ref|isix_task_flag_newlib );
 	auto t1 = isix::get_jiffies();
 	auto ret = isix::task_wait_for( th1 );
 	auto t2 = isix::get_jiffies() - t1;
+	QUNIT_IS_NOT_EQUAL( th1, nullptr );
+	if( th1 == nullptr ) {
+		std::abort();
+	}
 	//! Should return 0
 	QUNIT_IS_EQUAL( ret, ISIX_EOK );
 	// Should match in range
@@ -324,17 +328,17 @@ void task_tests::wait_and_reference_api() {
 	QUNIT_IS_TRUE( ram_end>= ram_beg );
 
 	ram_beg = isix::heap_free(nullptr);
-	// Create first for normal task_ref task. Five task_ref2 tasks wait when task 1 fin 
+	// Create first for normal task_ref task. Five task_ref2 tasks wait when task 1 fin
 	// and notice task 1 when ends
-	th1 = isix::task_create( task_ref, nullptr, 256, 3,
+	th1 = isix::task_create( task_ref, nullptr, ISIX_MIN_STACK_SIZE, 3,
 			isix_task_flag_ref|isix_task_flag_newlib );
-	auto tn1 = isix::task_create( task_ref2, th1, 256, 3,
+	auto tn1 = isix::task_create( task_ref2, th1, ISIX_MIN_STACK_SIZE, 3,
 			isix_task_flag_ref|isix_task_flag_newlib );
-	auto tn2 = isix::task_create( task_ref2, th1, 256, 3,
+	auto tn2 = isix::task_create( task_ref2, th1, ISIX_MIN_STACK_SIZE, 3,
 			isix_task_flag_ref|isix_task_flag_newlib );
-	auto tn3 = isix::task_create( task_ref2, th1, 256, 3,
+	auto tn3 = isix::task_create( task_ref2, th1, ISIX_MIN_STACK_SIZE, 3,
 			isix_task_flag_ref|isix_task_flag_newlib );
-	auto tn4 = isix::task_create( task_ref2, th1, 256, 3,
+	auto tn4 = isix::task_create( task_ref2, th1, ISIX_MIN_STACK_SIZE, 3,
 			isix_task_flag_ref|isix_task_flag_newlib );
 
 	t1 = isix::get_jiffies();

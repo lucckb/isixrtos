@@ -1,4 +1,4 @@
-/* ------------------------------------------------------------------ */
+
 #include <config/conf.h>
 #include <isix.h>
 #include <usart_simple.h>
@@ -19,7 +19,7 @@
 #include "event_groups_demo.h"
 #include "timer_interrupt.hpp"
 #include "mutex_test.hpp"
-/* ------------------------------------------------------------------ */
+
 class unit_tests : public isix::task_base
 {
 	QUnit::UnitTest qunit {QUnit::verbose };
@@ -50,7 +50,7 @@ class unit_tests : public isix::task_base
 		QUNIT_IS_TRUE( freem > 0 );
 	}
 	//Test basic tasks
-    virtual void main()
+    virtual void main() noexcept
 	{
 	if(1) {
 #if 0
@@ -89,14 +89,14 @@ class unit_tests : public isix::task_base
 	}
 };
 
-/* ------------------------------------------------------------------ */
+
 int main()
 {
 #ifdef PDEBUG
 	//static constexpr auto baud_hi = 3000000;
 	static constexpr auto baud_lo = 115200;
-    stm32::usartsimple_init( USART1, baud_lo ,true, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
-#endif	
+    stm32::usartsimple_init( USART1, baud_lo ,false, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
+#endif
 	dblog_init_putc( stm32::usartsimple_putc, nullptr );
 	dbprintf("-------- BEGIN_TESTS ---------");
 	dbprintf("ISIX VERSION %s", isix::get_version() );
@@ -106,7 +106,7 @@ int main()
 	return 0;
 }
 
-/* ------------------------------------------------------------------ */
+
 extern "C" {
 #ifdef PDEBUG
 	//Crash info interrupt handler
@@ -121,5 +121,5 @@ extern "C" {
 	}
 #endif
 }
-/* ------------------------------------------------------------------ */
+
 

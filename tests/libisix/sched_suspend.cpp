@@ -41,7 +41,7 @@ namespace {
 		volatile char m_act_id { ' ' };
 		const char  m_act_pattern;
 		//Main test task
-		virtual void main() {
+		virtual void main() noexcept {
 			for(;;) {
 				m_act_id = m_act_pattern;
 				stm32::nop();

@@ -44,7 +44,7 @@ namespace {
 		virtual ~task_test() {}
 	protected:
 		//Main function from another task
-		virtual void main( ) 
+		void main( )  noexcept override
 		{
 			//isix_wait_ms(100);
 			for( int i = 0; i< N_ITEMS; ++i ) {
@@ -89,7 +89,7 @@ namespace {
 		}
 	protected:
 		//Main function from another task
-		virtual void main() 
+		void main() noexcept override
 		{
 			for( auto i=0U; i < fifo_test::IRQ_QTEST_SIZE; ++i ) {
 				m_error = m_fifo.push(i+1);

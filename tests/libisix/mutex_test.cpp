@@ -27,7 +27,7 @@
 #include <isix/prv/list.h>
 #include <isix/prv/mutex.h>
 
-
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 
 
 //Temporary private data access mutex stuff

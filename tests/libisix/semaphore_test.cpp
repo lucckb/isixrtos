@@ -41,7 +41,7 @@ namespace {
 		
 		static constexpr auto STACK_SIZE = 1024;
 		//Main funcs
-		virtual void main() 
+		virtual void main()  noexcept
 		{
             m_error = m_sem.wait( ISIX_TIME_INFINITE );
             m_items.push_back( m_id );  
@@ -87,7 +87,7 @@ namespace {
 		{	
 		}
 		virtual ~semaphore_time_task(){}
-		virtual void main() {
+		virtual void main() noexcept {
 			for( ;; ) { 
 				m_error = m_sem.wait ( sem_tout );
 				m_notify_sem.signal();

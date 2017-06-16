@@ -42,7 +42,7 @@ namespace {
 			start_thread( STACK_SIZE, prio );
 		}
 	protected:
-		virtual void main()
+		virtual void main() noexcept
 		{
 			isix_wait_ms(20);
 			static constexpr auto nposts = 1;
@@ -66,7 +66,7 @@ namespace {
 			start_thread( STACK_SIZE, prio );
 		}
 	protected:
-		virtual void main()
+		virtual void main() noexcept
 		{
 			while(1) {
 				isix_event_wait( ev, id, true, true, ISIX_TIME_INFINITE );

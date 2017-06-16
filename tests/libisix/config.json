@@ -1,9 +1,9 @@
 {
 	"jtag": {
 		"target": 	"tests/libisix/isixunittests",
-		"type": 	"BF30",
+		"type": 	"stlink-v2-1",
 		"speed": 	2000,
-		"swd":     0
+		"swd":     1
 	},
 	"configure" : {
 		"disable_isix": false,

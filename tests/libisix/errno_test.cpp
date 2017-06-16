@@ -21,14 +21,14 @@
 #include "errno_test.hpp"
 #include <foundation/dbglog.h>
 
-namespace tests 
+namespace tests
 {
-	
-	namespace 
+
+	namespace
 	{
-		constexpr auto stack_size = 256;
+		constexpr auto stack_size = ISIX_MIN_STACK_SIZE;
 		constexpr auto task_prio = 3;
-		void errno_thread( void* thrinfo ) 
+		void errno_thread( void* thrinfo )
 		{
 			int& err = *static_cast<int*>(thrinfo);
 			for( int i=0;i<16;++i )
@@ -46,7 +46,7 @@ namespace tests
 		int err[4] { 5, 10, 15, 20 };
 		static constexpr int except[4] { 5, 10, 15, 20 };
 		errno = 50;
-		for( int i=0; i<4; ++i ) 
+		for( int i=0; i<4; ++i )
 		{
 			auto thr = isix_task_create( errno_thread, &err[i],
 					stack_size, task_prio, isix_task_flag_newlib );

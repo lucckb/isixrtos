@@ -74,7 +74,7 @@ namespace {
 		}
 	protected:
 		//Main thread
-		virtual void main( )
+		virtual void main( ) noexcept override
 		{
 			m_ptr = m_pool.alloc('Z');
 		}
