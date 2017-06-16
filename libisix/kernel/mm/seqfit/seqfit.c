@@ -4,20 +4,11 @@
  *  Created on: 2009-11-11
  *      Author: lucck
  */
-#include <isix/memory.h>
-#include <isix/types.h>
-#include <isix/semaphore.h>
-#include <isix/prv/mutex.h>
+
+#include <stddef.h>
 #include <isix/config.h>
-#define _ISIX_KERNEL_CORE_
-#include <isix/prv/scheduler.h>
-
-#ifdef CONFIG_ISIX_LOGLEVEL_MEMORY
-#undef CONFIG_ISIX_LOGLEVEL
-#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_MEMORY
-#endif
-#include <isix/prv/printk.h>
-
+#include <string.h>
+#include <isix/prv/mm/seqfit.h>
 
 #define MAGIC 0x19790822
 #define ALIGN_MASK      (CONFIG_ISIX_BYTE_ALIGNMENT_SIZE - 1)
@@ -40,50 +31,16 @@ static struct
 } heap;
 
 
-//! Semaphore for locking the memory allocator
-static struct isix_mutex mlock;
-
-
-//!Lock the memory
-static void mem_lock_init(void)
-{
-	//Create unlocked semaphore
-	if( !isix_mutex_create( &mlock ) ) {
-		isix_bug("Memlock create failed");
-	}
-}
-
-//!Lock the memory
-static void mem_lock(void)
-{
-	if(schrun) {
-		if( isix_mutex_lock( &mlock ) ) {
-			isix_bug("Memlock lock failed");
-		}
-	}
-}
-
-
-//!Unlock the memory
-static void mem_unlock(void)
-{
-	if(schrun) {
-		if( isix_mutex_unlock( &mlock ) ) {
-			isix_bug("Memlock unlock failed");
-		}
-	}
-}
 
 
 //! Initialize global heap
-void _isixp_alloc_init(void)
+void _isixp_seqfit_alloc_init(void)
 {
   struct header *hp;
 
   extern char __heap_start;
   extern char __heap_end;
 
-  mem_lock_init();
 
   hp = (void *)&__heap_start;
   hp->h_size = &__heap_end - &__heap_start - sizeof(struct header);
@@ -95,13 +52,12 @@ void _isixp_alloc_init(void)
 }
 
 
-void *isix_alloc(size_t size)
+void* _isixp_seqfit_alloc(size_t size)
 {
   struct header *qp, *hp, *fp;
 
   size = ALIGN_SIZE(size);
   qp = &heap.free;
-  mem_lock();
 
   while (qp->h.h_next != NULL) {
     hp = qp->h.h_next;
@@ -122,13 +78,11 @@ void *isix_alloc(size_t size)
       }
       hp->h.h_magic = MAGIC;
 
-      mem_unlock();
       return (void *)(hp + 1);
     }
     qp = hp;
   }
 
-  mem_unlock();
   return NULL;
 }
 
@@ -138,20 +92,13 @@ void *isix_alloc(size_t size)
                                    (p)->h_size)
 
 
-void isix_free(void *p)
+void _isixp_seqfit_free(void *p)
 {
   struct header *qp, *hp;
 
-
   hp = (struct header *)p - 1;
-  /*chDbgAssert(hp->h_magic == MAGIC,
-              "chHeapFree(), #1",
-              "it is not magic"); */
   qp = &heap.free;
-  mem_lock();
-
   while (1) {
-
 
     if (((qp == &heap.free) || (hp > qp)) &&
         ((qp->h.h_next == NULL) || (hp < qp->h.h_next))) {
@@ -170,30 +117,49 @@ void isix_free(void *p)
         qp->h.h_next = hp->h.h_next;
       }
 
-      mem_unlock();
       return;
     }
     qp = qp->h.h_next;
   }
-  mem_unlock();
 }
 
-size_t isix_heap_free(int *fragments)
+
+//Simple realloc implementation
+void *_isixp_seqfit_realloc(void *ptr, size_t size )
+{
+	if( ptr == NULL ) {
+		return _isixp_seqfit_alloc( size );
+	}
+	if( size == 0 ) {
+		_isixp_seqfit_free( ptr );
+		return NULL;
+	}
+	if( _isixp_seqfit_heap_getsize(ptr) >= size ) {
+		return ptr;
+	}
+	void* mem = _isixp_seqfit_alloc( size );
+	if( mem != NULL ) {
+		memcpy( mem, ptr, size );
+		_isixp_seqfit_free( ptr );
+	}
+	return mem;
+}
+
+
+size_t _isixp_seqfit_heap_free(int *fragments)
 {
 	int frags = 0; size_t mem = 0;
-	mem_lock();
 	for(struct header *qp=&heap.free; qp;  qp=qp->h.h_next)
 	{
 		mem += qp->h_size;
 		frags++;
 	}
-	mem_unlock();
 	if(fragments)
 		*fragments = frags;
 	return mem;
 }
 
-size_t isix_heap_getsize( void* ptr )
+size_t _isixp_seqfit_heap_getsize( void* ptr )
 {
 	struct header* hp = (struct header *)ptr - 1;
 	if( hp->h.h_magic != MAGIC ) { //Not dyn block
@@ -203,8 +169,3 @@ size_t isix_heap_getsize( void* ptr )
 	}
 }
 
-//Really naive ralloc implementation
-void *isix_heap_realloc(void *ptr, size_t size )
-{
-	return NULL;
-}

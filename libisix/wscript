@@ -19,6 +19,7 @@ def build(bld):
     sarch_inc = os.path.join( sarch, 'include' )
     mach_inc = os.path.join( mach, 'include' )
     src = bld.path.ant_glob( 'kernel/*.c' )
+    src += bld.path.ant_glob( 'kernel/mm/*/*.c' )
     src += bld.path.ant_glob( os.path.join(arch,'kernel','*.c' ) )
     src += bld.path.ant_glob( os.path.join(sarch,'kernel','*.c' ) )
     src += bld.path.ant_glob( os.path.join(mach,'*.c' ) )

@@ -26,9 +26,11 @@
 //It can be redefined
 #		define foundation_alloc fnd::tiny_alloc
 #		define foundation_free fnd::tiny_free
+#		define foudation_realloc(ptr,len) ((ptr)?NULL:NULL)
 #	else /*CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION */
 #		define foundation_alloc(x) ((x)?NULL:NULL)
 #		define foundation_free(x) do { (void)(x); } while(0)
+#		define foudation_realloc(ptr,len) ((ptr)?NULL:NULL)
 #	endif /*CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION */
 #	define terminate_process() while(1)
 
@@ -36,6 +38,7 @@
 
 #	define foundation_alloc isix_alloc
 #	define foundation_free isix_free
+#	define foundation_realloc isix_realloc
 #	define terminate_process() isix_bug(__PRETTY_FUNCTION__)
 #endif /* CONFIG_ISIX_WITHOUT_KERNEL */
 
@@ -93,12 +96,18 @@ typedef unsigned long __guard;
 // Syscalls definitions
 extern "C"
 {
-	void *_malloc_r(struct _reent */*r*/, size_t size);
-	void _free_r(struct _reent */*r*/, void *ptr);
 	void* malloc(size_t size) __attribute__((used));
+	void *_malloc_r(struct _reent */*r*/, size_t size);
+
 	void free(void *ptr) __attribute__((used));
+	void _free_r(struct _reent */*r*/, void *ptr);
+
 	void *calloc(size_t nmemb, size_t size) __attribute__((used));
+	void *_calloc_r(struct _reent */*r*/,size_t nmemb, size_t size) __attribute__((used));
+
 	void *realloc(void */*ptr*/, size_t /*size*/);
+	void *_realloc_r(struct _reent */*r*/,void */*ptr*/, size_t /*size*/);
+
 	void abort(void);
 	void __cxa_pure_virtual();
 	void __cxa_deleted_virtual (void);
@@ -204,8 +213,6 @@ static void setNotInUse(__guard *guard_object)
 }
 
 
-
-
 __attribute__ ((used))
 void abort(void)
 {
@@ -217,8 +224,17 @@ void* malloc(size_t size)
 {
 	return foundation_alloc(size);
 }
+void *_malloc_r(struct _reent */*r*/, size_t size)
+{
+	return foundation_alloc(size);
+}
 
 void free(void *ptr)
+{
+	foundation_free(ptr);
+}
+
+void _free_r(struct _reent */*r*/, void *ptr)
 {
 	foundation_free(ptr);
 }
@@ -226,7 +242,7 @@ void free(void *ptr)
 void *calloc(size_t nmemb, size_t size)
 {
 	size_t ns = nmemb * size;
-	void *ptr = malloc(ns);
+	void *ptr = foundation_alloc(ns);
 	if(ptr)
 	{
 		std::memset(ptr,0,ns);
@@ -234,21 +250,27 @@ void *calloc(size_t nmemb, size_t size)
 	return ptr;
 }
 
-void *realloc(void */*ptr*/, size_t /*size*/)
+void *_calloc_r(struct _reent */*r*/,size_t nmemb, size_t size)
 {
-	//TODO: Not implemented
-	return NULL;
+	size_t ns = nmemb * size;
+	void *ptr = foundation_alloc(ns);
+	if(ptr)
+	{
+		std::memset(ptr,0,ns);
+	}
+	return ptr;
 }
 
-void *_malloc_r(struct _reent */*r*/, size_t size)
+void *realloc(void* ptr, size_t size)
 {
-	return foundation_alloc(size);
+	return foundation_realloc( ptr, size );
 }
 
-void _free_r(struct _reent */*r*/, void *ptr)
+void *_realloc_r(struct _reent */*r*/,void* ptr, size_t size)
 {
-	foundation_free(ptr);
+	return foundation_realloc( ptr, size );
 }
+
 
 //Cpp internals
 namespace __gnu_cxx

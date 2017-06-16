@@ -1,2 +1,0 @@
-set path=.,./include,../../libisix/include,../../libisix/arch/arm-cm3/include,../../libisixdrvstm32/include,../../libisixdrvstm32/mmc/include,../../libfoundation/include,../../libstm32/inc
-let lb_grep_path='../..'

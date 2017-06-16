@@ -11,7 +11,6 @@ def configure(conf):
     conf.define('CONFIG_ISIX_USE_TIMERS',1)
 
 
-
 def build(bld):
     _srcs = [ 'usart_buffered.cpp' , 'stm32_spi_master.cpp' ]
     if bld.is_defined('STM32MCU_MAJOR_TYPE_F1'):
