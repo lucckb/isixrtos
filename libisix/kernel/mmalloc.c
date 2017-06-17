@@ -24,26 +24,70 @@
 #include <isix/prv/scheduler.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_MEMORY
-#undef CONFIG_ISIX_LOGLEVEL
-#define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_MEMORY
+#	undef CONFIG_ISIX_LOGLEVEL
+#	define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_MEMORY
 #endif
 #include <isix/prv/printk.h>
 
 
 //! Select memory allocator
 #ifndef CONFIG_ISIX_MEMORY_ALLOCATOR
-#define CONFIG_ISIX_MEMORY_ALLOCATOR ISIX_MEMORY_ALLOCATOR_SEQFIT
+#define CONFIG_ISIX_MEMORY_ALLOCATOR ISIX_MEMORY_ALLOCATOR_TLSF
 #endif
 
 
 #if CONFIG_ISIX_MEMORY_ALLOCATOR==ISIX_MEMORY_ALLOCATOR_SEQFIT
-#include <isix/prv/mm/seqfit.h>
-#define mm_alloc_init() _isixp_seqfit_alloc_init()
-#define mm_alloc(size) _isixp_seqfit_alloc(size)
-#define mm_free(ptr) _isixp_seqfit_free(ptr)
-#define mm_heap_free(frags) _isixp_seqfit_heap_free(frags)
-#define mm_realloc(ptr,size) _isixp_seqfit_realloc(ptr,size)
-#endif
+#	include <isix/prv/mm/malloc/seqfit.h>
+#	define mm_alloc_init() _isixp_seqfit_alloc_init()
+#	define mm_alloc(size) _isixp_seqfit_alloc(size)
+#	define mm_free(ptr) _isixp_seqfit_free(ptr)
+#	define mm_heap_stats(mminfo) _isixp_seqfit_heap_stats(mminfo)
+#	define mm_realloc(ptr,size) _isixp_seqfit_realloc(ptr,size)
+#	define mm_getsize(ptr) _isixp_seqfit_heap_getsize(ptr)
+#elif CONFIG_ISIX_MEMORY_ALLOCATOR==ISIX_MEMORY_ALLOCATOR_TLSF
+#	include <isix/prv/mm/malloc/tlsf.h>
+
+static size_t g_total_memory;
+static inline void mm_alloc_init() {
+	extern char __heap_start;
+	extern char __heap_end;
+	g_total_memory = init_memory_pool(
+			&__heap_end - &__heap_start,
+			&__heap_start
+	);
+	if( g_total_memory == (size_t)-1 ) {
+		isix_bug("Unable to create TSLF memory pool");
+	}
+}
+static inline void* mm_alloc( size_t size ) {
+	return tlsf_malloc( size );
+}
+static inline void mm_free( void* ptr ) {
+	tlsf_free( ptr );
+}
+
+
+static inline void* mm_realloc(void *ptr, size_t size ) {
+	return tlsf_realloc( ptr, size );
+}
+
+static inline size_t mm_getsize(void *ptr)
+{
+	return 0;
+}
+
+
+static inline void mm_heap_stats( isix_memory_stat_t* meminfo )
+{
+	meminfo->used = get_used_size(NULL);
+	meminfo->free =  g_total_memory - get_used_size(NULL);
+	meminfo->fragments = 1U;
+}
+
+#endif /* CONFIG_ISIX_MEMORY_ALLOCATOR==ISIX_MEMORY_ALLOCATOR_ */
+
+
+
 
 //! Semaphore for locking the memory allocator
 static struct isix_mutex mlock;
@@ -108,12 +152,12 @@ void isix_free( void* ptr )
 }
 
 //! Memory allocation stats
-size_t isix_heap_free(int *fragments)
+void isix_heap_stats( isix_memory_stat_t* meminfo )
 {
 	mem_lock();
-	size_t siz = mm_heap_free( fragments );
+	mm_heap_stats( meminfo );
 	mem_unlock();
-	return siz;
+	//return siz;
 }
 
 //! Reallocate memory
@@ -125,4 +169,7 @@ void* isix_realloc(void *ptr, size_t size )
 	return mem;
 }
 
-
+size_t isix_heap_getsize( void* ptr )
+{
+	return mm_getsize( ptr );
+}

@@ -20,6 +20,8 @@
 
 #include <stddef.h>
 
+struct isix_memory_stat;
+
 //! Initialize global heap
 void _isixp_seqfit_alloc_init(void);
 
@@ -30,7 +32,7 @@ void* _isixp_seqfit_alloc(size_t size);
 void _isixp_seqfit_free(void *p);
 
 //! Return heap info
-size_t _isixp_seqfit_heap_free(int *fragments);
+void _isixp_seqfit_heap_stats( struct isix_memory_stat* meminfo );
 
 //! Get real region size
 size_t _isixp_seqfit_heap_getsize( void* ptr );

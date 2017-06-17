@@ -12,12 +12,6 @@
 #define ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY 0x10
 #endif
 
-/** Configure alignment mask */
-#ifndef CONFIG_ISIX_BYTE_ALIGNMENT_SIZE
-#define CONFIG_ISIX_BYTE_ALIGNMENT_SIZE 8
-#endif
-
-
 /** Isix numer of config priorities */
 #ifndef CONFIG_ISIX_NUMBER_OF_PRIORITIES
 #define CONFIG_ISIX_NUMBER_OF_PRIORITIES 16

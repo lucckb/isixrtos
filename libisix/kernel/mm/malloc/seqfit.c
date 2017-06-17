@@ -8,10 +8,11 @@
 #include <stddef.h>
 #include <isix/config.h>
 #include <string.h>
-#include <isix/prv/mm/seqfit.h>
+#include <isix/prv/mm/malloc/seqfit.h>
+#include <isix/memory.h>
 
 #define MAGIC 0x19790822
-#define ALIGN_MASK      (CONFIG_ISIX_BYTE_ALIGNMENT_SIZE - 1)
+#define ALIGN_MASK      (ISIX_BYTE_ALIGNMENT_SIZE - 1)
 #define ALIGN_SIZE(p)   (((size_t)(p) + ALIGN_MASK) & ~ALIGN_MASK)
 
 struct header
@@ -146,7 +147,7 @@ void *_isixp_seqfit_realloc(void *ptr, size_t size )
 }
 
 
-size_t _isixp_seqfit_heap_free(int *fragments)
+void _isixp_seqfit_heap_stats( isix_memory_stat_t* meminfo )
 {
 	int frags = 0; size_t mem = 0;
 	for(struct header *qp=&heap.free; qp;  qp=qp->h.h_next)
@@ -154,9 +155,9 @@ size_t _isixp_seqfit_heap_free(int *fragments)
 		mem += qp->h_size;
 		frags++;
 	}
-	if(fragments)
-		*fragments = frags;
-	return mem;
+	meminfo->fragments = frags;
+	meminfo->free = mem;
+	meminfo->used = 0;
 }
 
 size_t _isixp_seqfit_heap_getsize( void* ptr )

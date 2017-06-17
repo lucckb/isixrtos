@@ -10,11 +10,12 @@
 
 
 /** Default memory allocator */
-#define ISIX_MEMORY_ALLOCATOR_TSLF		1
+#define ISIX_MEMORY_ALLOCATOR_TLSF		1
 #define ISIX_MEMORY_ALLOCATOR_SEQFIT	2
 
+/** Default isix alignemnt size */
+#define ISIX_BYTE_ALIGNMENT_SIZE (2*sizeof(void*))
 
 #include <isixconf.h>
-
 
 

@@ -5,6 +5,13 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+
+typedef struct  isix_memory_stat {
+	size_t free;
+	size_t used;
+	size_t fragments;
+} isix_memory_stat_t;
+
 /** Allocate the memory from the global heap
  * @param[in] size Allocated size
  * @return Pointer to the allocated area otherwise NULL
@@ -16,14 +23,12 @@ void* isix_alloc(size_t size);
  */
 void isix_free(void *mem);
 
-//! Initialize global heap
-void _isixp_alloc_init(void);
 
 /** Function display current memory usage
- * @param[out] fragments - return number of fragments mem
+ * @param[out] meminfo Information about heap memory structure
  * @return free memory space
  */
-size_t isix_heap_free(int *fragments);
+void isix_heap_stats( isix_memory_stat_t* meminfo );
 
 
 /** Function return heap current memory size
@@ -47,18 +52,19 @@ void* isix_realloc(void *ptr, size_t size );
 #endif /* __cplusplus */
 
 
-
+/** Extra C++ interface for memory allocator */
 #ifdef __cplusplus
 namespace isix {
 namespace {
+	using memory_stat = ::isix_memory_stat;
 	inline void* alloc( size_t size ) {
 		return ::isix_alloc( size );
 	}
 	inline void free(void *mem) {
 		::isix_free( mem );
 	}
-	inline size_t heap_free(int *fragments=nullptr) {
-		return ::isix_heap_free( fragments );
+	inline void heap_stats( memory_stat& meminfo ) {
+		::isix_heap_stats( &meminfo );
 	}
 	inline size_t heap_getsize( void* ptr )
 	{

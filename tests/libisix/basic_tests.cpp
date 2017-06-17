@@ -39,15 +39,15 @@ class unit_tests : public isix::task_base
 		auto ptr1 = isix_alloc( 1 );
 		auto ptr2 = isix_alloc( 1 );
 		QUNIT_IS_NOT_EQUAL( ptr1, nullptr );
-		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr1)%CONFIG_ISIX_BYTE_ALIGNMENT_SIZE , 0 );
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr1)%ISIX_BYTE_ALIGNMENT_SIZE , 0U );
 		QUNIT_IS_NOT_EQUAL( ptr2, nullptr );
-		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr2)%CONFIG_ISIX_BYTE_ALIGNMENT_SIZE , 0 );
+		QUNIT_IS_EQUAL( reinterpret_cast<long>(ptr2)%ISIX_BYTE_ALIGNMENT_SIZE , 0U );
 		isix_free( ptr1 );
 		isix_free( ptr2 );
-		int fragments {};
-		const int freem =  isix_heap_free( &fragments );
-		dbprintf("Free %i frags %i", freem, fragments );
-		QUNIT_IS_TRUE( freem > 0 );
+		isix::memory_stat mstat;
+		isix::heap_stats( mstat );
+		dbprintf("Free %i frags %i",  mstat.free, mstat.fragments );
+		QUNIT_IS_TRUE( mstat.free > 0 );
 	}
 	//Test basic tasks
     virtual void main() noexcept
