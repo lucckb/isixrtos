@@ -46,7 +46,7 @@ class unit_tests : public isix::task_base
 		isix_free( ptr2 );
 		isix::memory_stat mstat;
 		isix::heap_stats( mstat );
-		dbprintf("Free %i frags %i",  mstat.free, mstat.fragments );
+		dbprintf("Free %u Used %u frags %u",  mstat.free, mstat.used, mstat.fragments );
 		QUNIT_IS_TRUE( mstat.free > 0 );
 	}
 	//Test basic tasks

@@ -87,12 +87,14 @@
 #if TLSF_STATISTIC
 #define	TLSF_ADD_SIZE(tlsf, b) do {									\
 		tlsf->used_size += (b->size & BLOCK_SIZE) + BHDR_OVERHEAD;	\
+		tlsf->free_size -= (b->size & BLOCK_SIZE) + BHDR_OVERHEAD;	\
 		if (tlsf->used_size > tlsf->max_size) 						\
 			tlsf->max_size = tlsf->used_size;						\
 		} while(0)
 
 #define	TLSF_REMOVE_SIZE(tlsf, b) do {								\
 		tlsf->used_size -= (b->size & BLOCK_SIZE) + BHDR_OVERHEAD;	\
+		tlsf->free_size += (b->size & BLOCK_SIZE) + BHDR_OVERHEAD;	\
 	} while(0)
 #else
 #define	TLSF_ADD_SIZE(tlsf, b)	     do{}while(0)
@@ -224,6 +226,7 @@ typedef struct TLSF_struct {
      * do not know the sizes when freeing/reallocing memory. */
     size_t used_size;
     size_t max_size;
+	size_t free_size;
 #endif
 
     /* A linked list holding all the existing areas */
@@ -454,6 +457,7 @@ size_t init_memory_pool(size_t mem_pool_size, void *mem_pool)
 #if TLSF_STATISTIC
     tlsf->used_size = mem_pool_size - (b->size & BLOCK_SIZE);
     tlsf->max_size = tlsf->used_size;
+	tlsf->free_size = b->size & BLOCK_SIZE;
 #endif
 
     return (b->size & BLOCK_SIZE);
@@ -974,3 +978,23 @@ void print_all_blocks(tlsf_t * tlsf)
 }
 
 #endif
+
+
+/** Extra stuff added by LB */
+
+size_t get_free_size(void *mem_pool)
+{
+#if TLSF_STATISTIC
+	if (mem_pool==NULL) mem_pool = mp;
+    return ((tlsf_t *) mem_pool)->free_size;
+#else
+    return 0;
+#endif
+}
+
+size_t get_block_size(void *ptr)
+{
+    bhdr_t* b;
+	b = (bhdr_t *) ((char *) ptr - BHDR_OVERHEAD);
+	return b->size & BLOCK_SIZE;
+}

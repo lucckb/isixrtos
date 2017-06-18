@@ -37,6 +37,9 @@
 #define tlsf_realloc _isixp_mmtlsf_tlsf_realloc
 #define tlsf_calloc _isixp_mmtlsf_tlsf_calloc
 
+#define get_free_size  _isixp_mmtlsf_get_free_size
+#define get_block_size _isixp_mmtlsf_get_block_size
+
 extern size_t init_memory_pool(size_t, void *);
 extern size_t get_used_size(void *);
 extern size_t get_max_size(void *);
@@ -51,5 +54,9 @@ extern void *tlsf_malloc(size_t size);
 extern void tlsf_free(void *ptr);
 extern void *tlsf_realloc(void *ptr, size_t size);
 extern void *tlsf_calloc(size_t nelem, size_t elem_size);
+
+/** Stuff added by LB */
+size_t get_free_size(void *mem_pool);
+size_t get_block_size(void *ptr);
 
 #endif
