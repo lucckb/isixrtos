@@ -32,9 +32,9 @@
 #define realloc_ex _isixp_mmtlsf_realloc_ex
 #define calloc_ex _isixp_mmtlsf_calloc_ex
 
-#define tlsf_malloc _isixp_mmtlsf_tlsf_malloc
-#define tlsf_free _isixp_mmtlsf_tlsf_free
-#define tlsf_realloc _isixp_mmtlsf_tlsf_realloc
+#define tlsf_malloc isix_alloc
+#define tlsf_free isix_free
+#define tlsf_realloc isix_realloc
 #define tlsf_calloc _isixp_mmtlsf_tlsf_calloc
 
 #define get_free_size  _isixp_mmtlsf_get_free_size

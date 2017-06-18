@@ -25,3 +25,6 @@
 //! Log2 maximum allowed memory block (256KB for embedded fill be sufficient)
 #define MAX_FLI (18)
 
+
+//! Enable locking mechanism
+#define	TLSF_USE_LOCKS	(1)
