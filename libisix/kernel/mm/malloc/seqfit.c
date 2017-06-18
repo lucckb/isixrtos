@@ -4,7 +4,6 @@
  *  Created on: 2009-11-11
  *      Author: lucck
  */
-
 #include <stddef.h>
 #include <isix/config.h>
 #include <string.h>
@@ -14,6 +13,7 @@
 #define MAGIC 0x19790822
 #define ALIGN_MASK      (ISIX_BYTE_ALIGNMENT_SIZE - 1)
 #define ALIGN_SIZE(p)   (((size_t)(p) + ALIGN_MASK) & ~ALIGN_MASK)
+#define abort() *((long*)(NULL)) = 0
 
 struct header
 {
@@ -27,11 +27,10 @@ struct header
 
 static struct
 {
-  struct header         free;   /* Guaranteed to be not adjacent to the heap */
+	struct header         free;   /* Guaranteed to be not adjacent to the heap */
+	size_t 				  used;	  /* Total used memory block */
 
 } heap;
-
-
 
 
 //! Initialize global heap
@@ -41,15 +40,16 @@ void _isixp_seqfit_alloc_init(void)
 
   extern char __heap_start;
   extern char __heap_end;
-
-
+  if( (uintptr_t)&__heap_start % ISIX_BYTE_ALIGNMENT_SIZE ) {
+	  abort();
+  }
   hp = (void *)&__heap_start;
   hp->h_size = &__heap_end - &__heap_start - sizeof(struct header);
 
   hp->h.h_next = NULL;
   heap.free.h.h_next = hp;
   heap.free.h_size = 0;
-
+  heap.used = 0;
 }
 
 
@@ -78,7 +78,7 @@ void* _isixp_seqfit_alloc(size_t size)
         hp->h_size = size;
       }
       hp->h.h_magic = MAGIC;
-
+	  heap.used += size;
       return (void *)(hp + 1);
     }
     qp = hp;
@@ -99,6 +99,7 @@ void _isixp_seqfit_free(void *p)
 
   hp = (struct header *)p - 1;
   qp = &heap.free;
+  const size_t block_siz = hp->h_size;
   while (1) {
 
     if (((qp == &heap.free) || (hp > qp)) &&
@@ -117,7 +118,7 @@ void _isixp_seqfit_free(void *p)
         qp->h_size += hp->h_size + sizeof(struct header);
         qp->h.h_next = hp->h.h_next;
       }
-
+	  heap.used -= block_siz;
       return;
     }
     qp = qp->h.h_next;
@@ -157,7 +158,7 @@ void _isixp_seqfit_heap_stats( isix_memory_stat_t* meminfo )
 	}
 	meminfo->fragments = frags;
 	meminfo->free = mem;
-	meminfo->used = 0;
+	meminfo->used = heap.used;
 }
 
 size_t _isixp_seqfit_heap_getsize( void* ptr )
