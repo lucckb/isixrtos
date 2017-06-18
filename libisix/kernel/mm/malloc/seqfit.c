@@ -9,11 +9,20 @@
 #include <string.h>
 #include <isix/prv/mm/malloc/seqfit.h>
 #include <isix/memory.h>
+#include "seqfit_config.h"
 
 #define MAGIC 0x19790822
 #define ALIGN_MASK      (ISIX_BYTE_ALIGNMENT_SIZE - 1)
 #define ALIGN_SIZE(p)   (((size_t)(p) + ALIGN_MASK) & ~ALIGN_MASK)
 #define abort() *((long*)(NULL)) = 0
+
+
+#if !SEQFIT_LOCK
+#	define TLSF_CREATE_LOCK(_unused_)   do{}while(0)
+#	define TLSF_DESTROY_LOCK(_unused_)  do{}while(0)
+#	define TLSF_ACQUIRE_LOCK(_unused_)  do{}while(0)
+#	define TLSF_RELEASE_LOCK(_unused_)  do{}while(0)
+#endif
 
 struct header
 {
@@ -29,12 +38,14 @@ static struct
 {
 	struct header         free;   /* Guaranteed to be not adjacent to the heap */
 	size_t 				  used;	  /* Total used memory block */
-
+#if SEQFIT_LOCK
+	SEQFIT_MLOCK_T		  lock;	  /* Global memory lock */
+#endif
 } heap;
 
 
 //! Initialize global heap
-void _isixp_seqfit_alloc_init(void)
+void seqfit_alloc_init(void)
 {
   struct header *hp;
 
@@ -50,13 +61,15 @@ void _isixp_seqfit_alloc_init(void)
   heap.free.h.h_next = hp;
   heap.free.h_size = 0;
   heap.used = 0;
+  SEQFIT_CREATE_LOCK( &heap.lock );
 }
 
 
-void* _isixp_seqfit_alloc(size_t size)
+void* seqfit_alloc(size_t size)
 {
   struct header *qp, *hp, *fp;
 
+  SEQFIT_ACQUIRE_LOCK( &heap.lock );
   size = ALIGN_SIZE(size);
   qp = &heap.free;
 
@@ -79,11 +92,12 @@ void* _isixp_seqfit_alloc(size_t size)
       }
       hp->h.h_magic = MAGIC;
 	  heap.used += size;
+	  SEQFIT_RELEASE_LOCK( &heap.lock );
       return (void *)(hp + 1);
     }
     qp = hp;
   }
-
+  SEQFIT_RELEASE_LOCK( &heap.lock );
   return NULL;
 }
 
@@ -93,10 +107,11 @@ void* _isixp_seqfit_alloc(size_t size)
                                    (p)->h_size)
 
 
-void _isixp_seqfit_free(void *p)
+void seqfit_free(void *p)
 {
   struct header *qp, *hp;
 
+  SEQFIT_ACQUIRE_LOCK( &heap.lock );
   hp = (struct header *)p - 1;
   qp = &heap.free;
   const size_t block_siz = hp->h_size;
@@ -119,37 +134,40 @@ void _isixp_seqfit_free(void *p)
         qp->h.h_next = hp->h.h_next;
       }
 	  heap.used -= block_siz;
+	  SEQFIT_RELEASE_LOCK( &heap.lock );
       return;
     }
     qp = qp->h.h_next;
   }
+  SEQFIT_RELEASE_LOCK( &heap.lock );
 }
 
 
 //Simple realloc implementation
-void *_isixp_seqfit_realloc(void *ptr, size_t size )
+void* seqfit_realloc(void *ptr, size_t size )
 {
 	if( ptr == NULL ) {
-		return _isixp_seqfit_alloc( size );
+		return seqfit_alloc( size );
 	}
 	if( size == 0 ) {
-		_isixp_seqfit_free( ptr );
+		seqfit_free( ptr );
 		return NULL;
 	}
-	if( _isixp_seqfit_heap_getsize(ptr) >= size ) {
+	if( seqfit_heap_getsize(ptr) >= size ) {
 		return ptr;
 	}
-	void* mem = _isixp_seqfit_alloc( size );
+	void* mem = seqfit_alloc( size );
 	if( mem != NULL ) {
 		memcpy( mem, ptr, size );
-		_isixp_seqfit_free( ptr );
+		seqfit_free( ptr );
 	}
 	return mem;
 }
 
 
-void _isixp_seqfit_heap_stats( isix_memory_stat_t* meminfo )
+void seqfit_heap_stats( isix_memory_stat_t* meminfo )
 {
+    SEQFIT_ACQUIRE_LOCK( &heap.lock );
 	int frags = 0; size_t mem = 0;
 	for(struct header *qp=&heap.free; qp;  qp=qp->h.h_next)
 	{
@@ -159,9 +177,10 @@ void _isixp_seqfit_heap_stats( isix_memory_stat_t* meminfo )
 	meminfo->fragments = frags;
 	meminfo->free = mem;
 	meminfo->used = heap.used;
+    SEQFIT_RELEASE_LOCK( &heap.lock );
 }
 
-size_t _isixp_seqfit_heap_getsize( void* ptr )
+size_t seqfit_heap_getsize( void* ptr )
 {
 	struct header* hp = (struct header *)ptr - 1;
 	if( hp->h.h_magic != MAGIC ) { //Not dyn block

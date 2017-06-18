@@ -20,24 +20,34 @@
 
 #include <stddef.h>
 
+
+
+#define seqfit_alloc_init _isixp_alloc_init
+#define seqfit_alloc isix_alloc
+#define seqfit_free isix_free
+#define seqfit_heap_stats isix_heap_stats
+#define seqfit_heap_getsize isix_heap_getsize
+#define seqfit_realloc isix_realloc
+
+
 struct isix_memory_stat;
 
 //! Initialize global heap
-void _isixp_seqfit_alloc_init(void);
+void seqfit_alloc_init(void);
 
 //! Allocate memory
-void* _isixp_seqfit_alloc(size_t size);
+void* seqfit_alloc(size_t size);
 
 //! Free memory
-void _isixp_seqfit_free(void *p);
+void seqfit_free(void *p);
 
 //! Return heap info
-void _isixp_seqfit_heap_stats( struct isix_memory_stat* meminfo );
+void seqfit_heap_stats( struct isix_memory_stat* meminfo );
 
 //! Get real region size
-size_t _isixp_seqfit_heap_getsize( void* ptr );
+size_t seqfit_heap_getsize( void* ptr );
 
 //Simple realloc implementation
-void *_isixp_seqfit_realloc(void *ptr, size_t size );
+void* seqfit_realloc(void *ptr, size_t size );
 
 
