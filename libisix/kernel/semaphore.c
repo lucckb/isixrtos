@@ -5,7 +5,6 @@
 #include <isix/prv/semaphore.h>
 #include <string.h>
 #include <isix/arch/sem_atomic.h>
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
 

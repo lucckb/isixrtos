@@ -19,8 +19,6 @@
 #include <isix/config.h>
 #include <isix/arch/cpu.h>
 #include <isix/cortexm/scb_regs.h>
-
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
 

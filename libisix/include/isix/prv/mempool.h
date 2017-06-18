@@ -5,6 +5,10 @@
  *      Author: lucck
  */
 #pragma once
+#ifndef _ISIX_KERNEL_CORE_
+#	error This is private header isix kernel headers cannot be used by app
+#endif
+
 #include <isix/prv/list.h>
 
 /** Private mempool isix structure */

@@ -31,7 +31,6 @@ def build(bld):
     )
     bld.stlib( source=src, target='isix',
                includes=inc, export_includes=inc,
+               defines=[ '_ISIX_KERNEL_CORE_=1' ],
                use = [ 'isix_version', 'common_conf' ]
     )
-
-

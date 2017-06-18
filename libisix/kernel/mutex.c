@@ -4,7 +4,6 @@
 #include <isix/mutex.h>
 #include <string.h>
 #include <isix/prv/mutex.h>
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_MUTEX

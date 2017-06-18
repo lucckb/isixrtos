@@ -1,8 +1,6 @@
 #include <isix/config.h>
 #include <isix/types.h>
 #include <isix/task.h>
-
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
 /** Restore the context to the place when scheduler was started to run

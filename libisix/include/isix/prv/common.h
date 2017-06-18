@@ -22,7 +22,7 @@
 #include <stddef.h>
 
 //! Get aligned memory req
-static inline __attribute__((always_inline)) 
+static inline __attribute__((always_inline))
 size_t _isixp_align_size( size_t len )
 {
 	if( len & (ISIX_BYTE_ALIGNMENT_SIZE-1) )

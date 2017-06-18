@@ -4,7 +4,6 @@
 #include <isix/condvar.h>
 #include <isix/prv/condvar.h>
 #include <isix/scheduler.h>
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 #include <isix/prv/mutex.h>
 

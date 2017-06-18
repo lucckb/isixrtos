@@ -21,7 +21,6 @@
 #include <isix/arch/memprot.h>
 #include "mpu.h"
 #include <isix/prv/printk.h>
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
 #ifndef CONFIG_ISIX_MEMORY_PROTECTION_MODEL

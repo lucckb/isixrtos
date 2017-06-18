@@ -20,7 +20,6 @@
 #include <isix/semaphore.h>
 #include <isix/prv/mutex.h>
 #include <isix/config.h>
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_MEMORY

@@ -16,7 +16,6 @@
  * =====================================================================================
  */
 #include <isix/prv/printk.h>
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 #include <isix/prv/events.h>
 #include <isix/events.h>

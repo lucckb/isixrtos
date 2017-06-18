@@ -15,7 +15,6 @@
  *
  * =====================================================================================
  */
-#define  _ISIX_KERNEL_CORE_
 #include <isix/fifo_event.h>
 #include <isix/prv/fifo_lock.h>
 

@@ -7,7 +7,6 @@
 #include <isix/prv/common.h>
 #include <isix/prv/bitops.h>
 #include <string.h>
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 #include <isix/arch/core.h>
 

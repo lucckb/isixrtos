@@ -1,4 +1,7 @@
 #pragma once
+#ifndef _ISIX_KERNEL_CORE_
+#	error This is private header isix kernel headers cannot be used by app
+#endif
 
 #define ISIXLOG_OFF 0
 #define ISIXLOG_CRIT 1

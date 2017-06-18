@@ -5,7 +5,6 @@
 #include <isix/fifo.h>
 #include <isix/prv/semaphore.h>
 #include <string.h>
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/fifo_lock.h>
 #include <isix/prv/scheduler.h>
 #ifndef ISIX_DEBUG_FIFO

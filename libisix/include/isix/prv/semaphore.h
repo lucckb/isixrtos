@@ -18,7 +18,7 @@ struct isix_semaphore
 
 //! Fast signal semaphore after wakeup
 static inline __attribute__((always_inline))
-void _isixp_sem_fast_signal( struct isix_semaphore* sem ) 
+void _isixp_sem_fast_signal( struct isix_semaphore* sem )
 {
 	_isix_port_atomic_sem_inc( &sem->value );
 }

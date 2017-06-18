@@ -9,7 +9,6 @@
 #include <isix/prv/osstats.h>
 #include <isix/prv/condvar.h>
 #include <isix/prv/mmalloc.h>
-#define _ISIX_KERNEL_CORE_
 #include <isix/prv/scheduler.h>
 #include <isix/arch/memprot.h>
 #include <isix/arch/cpu.h>
