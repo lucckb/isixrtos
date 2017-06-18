@@ -72,10 +72,12 @@ static void early_cpu_setup(void)
 #	endif
 	//! Trap divide by zero
 #	define SCB_CCR *((volatile unsigned long*)0xE000ED14)
-#	define    CCR_DIV0_TRP  (1UL<<4);
-	SCB_CCR |= CCR_DIV0_TRP;
+#	define    CCR_DIV0_TRP  (1UL<<4)
+#	define	  CCR_STKALIGN  (1UL<<9)
+	SCB_CCR |= CCR_DIV0_TRP|CCR_STKALIGN;
 #	undef SCB_CCR
 #	undef CCR_DIV0_TRP
+#	undef CCR_STKALIGN
 }
 
 
