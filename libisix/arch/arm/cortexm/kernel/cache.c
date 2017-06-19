@@ -19,12 +19,6 @@
 #include <isix/arch/cache.h>
 #include <isix/cortexm/scb_regs.h>
 
-#if defined(__ARM_ARCH_7EM__)
-# define _CACHE_PRESENT 1
-#else
-# define _CACHE_PRESENT 0
-#endif
-
 
 static inline __attribute__((always_inline)) void dsb(void)
 {
@@ -48,7 +42,7 @@ static inline __attribute__((always_inline)) void isb(void)
  */
 void isix_icache_enable( bool yes )
 {
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
 	dsb();
 	isb();
     SCB_ICIALLU = 0UL;                     /* invalidate I-Cache */
@@ -65,7 +59,7 @@ void isix_icache_enable( bool yes )
 /** Invalidate instruction cache  */
 void isix_inval_icache( void )
 {
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
 	dsb();
 	isb();
     SCB_ICIALLU = 0UL;
@@ -77,7 +71,7 @@ void isix_inval_icache( void )
 
 
 
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
 
 static inline void dcache_enable(void)
 {
@@ -143,7 +137,7 @@ static inline void dcache_disable(void)
 void isix_dcache_enable( bool yes )
 {
 
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
 	if( yes ) dcache_enable();
 	else dcache_disable();
 #else
@@ -154,7 +148,7 @@ void isix_dcache_enable( bool yes )
 /** Invalidate data cache  */
 void isix_inval_dcache( void )
 {
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
     uint32_t ccsidr;
     uint32_t sets;
     uint32_t ways;
@@ -183,7 +177,7 @@ void isix_inval_dcache( void )
 /** Clean instruction cache  */
 void isix_clean_dcache( void )
 {
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
     uint32_t ccsidr;
     uint32_t sets;
     uint32_t ways;
@@ -212,7 +206,7 @@ void isix_clean_dcache( void )
 void isix_clean_inval_dcache( void )
 {
 
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
     uint32_t ccsidr;
     uint32_t sets;
     uint32_t ways;
@@ -243,7 +237,7 @@ void isix_clean_inval_dcache( void )
  */
 void isix_inval_dcache_by_addr( void *addr, size_t dsize )
 {
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
 	int32_t op_size = dsize;
 	uint32_t op_addr = (uint32_t)addr;
 	/* in Cortex-M7 size of cache line is fixed to 8 words (32 bytes) */
@@ -271,7 +265,7 @@ void isix_inval_dcache_by_addr( void *addr, size_t dsize )
  */
 void isix_clean_dcache_by_addr( void *addr, size_t dsize )
 {
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
 	int32_t op_size = dsize;
 	uint32_t op_addr = (uint32_t) addr;
 	/* in Cortex-M7 size of cache line is fixed to 8 words (32 bytes) */
@@ -299,7 +293,7 @@ void isix_clean_dcache_by_addr( void *addr, size_t dsize )
  */
 void isix_clean_inval_dcache_by_addr( void *addr, size_t dsize )
 {
-#if _CACHE_PRESENT == 1
+#if _ISIX_CACHE_PRESENT_ == 1
 	int32_t op_size = dsize;
 	uint32_t op_addr = (uint32_t) addr;
 	/* in Cortex-M7 size of cache line is fixed to 8 words (32 bytes) */

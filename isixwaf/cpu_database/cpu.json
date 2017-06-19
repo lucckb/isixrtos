@@ -5,7 +5,8 @@
 			"defs" :    [],
 			"mach_type" : "m3",
 			"arch": "arm",
-			"subarch" : "cortexm"
+			"subarch" : "cortexm",
+			"cache" : false
 		},
 		"arm_cortex_m4" : {
 			"cflags":  ["-mcpu=cortex-m4", "-mthumb", "-mfloat-abi=hard",
@@ -13,7 +14,8 @@
              "defs":    [],
 			"mach_type" : "m4f",
 			"arch": "arm",
-			"subarch" : "cortexm"
+			"subarch" : "cortexm",
+			"cache" : false
 		},
 		"arm_cortex_m7_vfpdp" : {
 			"cflags":  ["-mcpu=cortex-m7", "-mthumb", "-mfloat-abi=hard",
@@ -21,7 +23,8 @@
              "defs":    [],
 			"mach_type" : "m4f",
 			"arch": "arm",
-			"subarch" : "cortexm"
+			"subarch" : "cortexm",
+			"cache" : true
 		},
 		"arm_cortex_m7_vfpsp" : {
 			"cflags":  ["-mcpu=cortex-m7", "-mthumb", "-mfloat-abi=hard",
@@ -29,7 +32,8 @@
              "defs":    [],
 			"mach_type" : "m4f",
 			"arch": "arm",
-			"subarch" : "cortexm"
+			"subarch" : "cortexm",
+			"cache" : true
 		}
 	}
 }

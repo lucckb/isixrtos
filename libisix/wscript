@@ -26,6 +26,9 @@ def build(bld):
     else:
         src += [ 'kernel/mm/malloc/tlsf.c',
                  'kernel/mm/malloc/tlsf_isix.c' ]
+    isix_defines = [ '_ISIX_KERNEL_CORE_=1' ]
+    if bld.isix_get_cpu_cache():
+        isix_defines += [ '_ISIX_CACHE_PRESENT_=1' ]
     src += bld.path.ant_glob( os.path.join(arch,'kernel','*.c' ) )
     src += bld.path.ant_glob( os.path.join(sarch,'kernel','*.c' ) )
     src += bld.path.ant_glob( os.path.join(mach,'*.c' ) )
@@ -37,6 +40,6 @@ def build(bld):
     )
     bld.stlib( source=src, target='isix',
                includes=inc, export_includes=inc,
-               defines=[ '_ISIX_KERNEL_CORE_=1' ],
+               defines=isix_defines,
                use = [ 'isix_version', 'common_conf' ]
     )

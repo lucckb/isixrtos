@@ -138,3 +138,7 @@ def isix_get_cpu_family(bld):
 def isix_get_subarch(bld):
     return _get_flag( bld.env.ISIX_CPU_TYPE,'subarch','cpu' )
 
+#If cache is present return code
+@conf
+def isix_get_cpu_cache(bld):
+    return _get_flag( bld.env.ISIX_CPU_TYPE,'cache', 'cpu' );
