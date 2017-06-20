@@ -72,11 +72,12 @@ namespace detail {
 #define QUNIT_IS_NOT_EQUAL(expr1,expr2) QUNIT_COMPARE(true,QUnit::nequal,expr1,expr2)
 #define QUNIT_IS_TRUE(expr)             QUNIT_COMPARE(false,QUnit::equal,expr,true)
 #define QUNIT_IS_FALSE(expr)            QUNIT_COMPARE(false,QUnit::equal,expr,false)
+#define __QUNITFILE__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 
 #define QUNIT_COMPARE(compare,result,expr1,expr2) do {             \
         qunit.evaluate(                                         \
             compare,result,expr1,expr2, #expr1, #expr2,         \
-            __FILE__, __LINE__, __FUNCTION__ );                 \
+            __QUNITFILE__, __LINE__, __FUNCTION__ );                 \
     } while(0)                                                       \
 
 
