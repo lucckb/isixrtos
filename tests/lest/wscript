@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+
+#On options
+def options(opt):
+    pass
+
+#On configure
+def configure(conf):
+    pass
+
+#On build
+def build(bld):
+    _inc = [ 'include' ]
+    bld( includes = _inc,
+        export_includes=_inc,
+        export_defines=['lest_FEATURE_COLOURISE=1',
+                        'lest_FEATURE_WSTRING=0'],
+        name='lest_utest' )

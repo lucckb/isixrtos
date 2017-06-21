@@ -17,14 +17,15 @@ out = 'build'
 _libs = [
         os.path.join( top,'libisix'),
         os.path.join( top,'libfoundation'),
-        os.path.join( top, 'libstm32')
+        os.path.join( top, 'libstm32'),
+        os.path.join( top, 'tests/lest' )
 ]
 
 #Isix root
 _isix = top
 
 
-# On select options 
+# On select options
 def options(opt):
     opt.recurse(_isix)
     opt.recurse(_libs)
@@ -45,14 +46,15 @@ def build(bld):
     bld.recurse(_libs)
     bld.recurse(_isix)
     src = bld.path.ant_glob( '*.cpp' )
-    src += bld.path.ant_glob( '*.c' )
+    src += bld.path.ant_glob( 'utils/*.cpp' )
+    src += bld.path.ant_glob( 'utils/*.c' )
     bld.program(
             features='objcopy',
             target='isixunittests',
             source=src,
             install_path=False,
-            includes=[ '.', 'include' ],
-            use=[ 'foundation', 'isix', 'stm32' ]
+            includes=[ '.', 'include', 'utils' ],
+            use=[ 'foundation', 'isix', 'stm32', 'lest_utest' ]
             )
 
 
@@ -64,4 +66,3 @@ def program(ctx):
 #OCD debug
 def ocddebug(ctx):
     ctx.recurse( _isix )
-
