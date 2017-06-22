@@ -142,6 +142,7 @@ int __cxa_guard_acquire(__guard *guard_object)
 	if (initializerHasRun(guard_object))
 		return 0;
 
+	if( isix_is_scheduler_active() )
 	if( isix_sem_wait(&ctors_sem,ISIX_TIME_INFINITE) ) {
 		terminate_process();
 		return 0;
@@ -163,6 +164,7 @@ void __cxa_guard_release(__guard *guard_object)
     setInitializerHasRun(guard_object);
 
 #if !CONFIG_ISIX_WITHOUT_KERNEL
+	if( isix_is_scheduler_active() )
 	if( isix_sem_signal(&ctors_sem )) {
 		terminate_process();
 	}
