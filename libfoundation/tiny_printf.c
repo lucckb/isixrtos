@@ -38,6 +38,16 @@ int tiny_putchar( int ch )
 	return fn_putc( ch, fn_putc_arg );
 }
 
+int tiny_puts( const char* str )
+{
+	while( *str ) {
+		tiny_putchar( *str++ );
+	}
+	tiny_putchar( '\r' );
+	tiny_putchar( '\n' );
+	return 1;
+}
+
 #define PAD_RIGHT 1
 #define PAD_ZERO 2
 

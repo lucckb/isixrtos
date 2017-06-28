@@ -36,6 +36,8 @@ static inline void register_printf_putc_handler(int (*fputc)(int, void*),void *a
 
 int tiny_putchar( int ch );
 
+int tiny_puts( const char* str );
+
 #ifdef __cplusplus
  }
  }
