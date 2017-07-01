@@ -20,4 +20,5 @@ enum isix_error
 	ISIX_ENOREF			= -15,		/** Task is not referenced */
 	ISIX_EFIFOEMPTY		= -16,		/** Fifo queue is empty */
 	ISIX_EINVADDR		= -17,		/** Invalid address */
+	ISIX_EBADF			= -18,		/** Invalid data state */
 };

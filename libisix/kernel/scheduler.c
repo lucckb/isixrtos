@@ -522,10 +522,15 @@ static void cleanup_tasks(void)
         }
         isix_exit_critical();
 		if( task_del ) {
-			isix_free(task_del->init_stack);
+			void *ptr = task_del->init_stack;
+			task_del->init_stack = NULL;
+			__sync_synchronize();
+			isix_free( ptr );
 			if( task_del->impure_data ) {
-				isix_free( task_del->impure_data );
+				ptr = task_del->impure_data;
 				task_del->impure_data = NULL;
+				__sync_synchronize();
+				isix_free( ptr );
 			}
 			if( do_clean ) isix_free(task_del);
 		}

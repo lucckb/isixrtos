@@ -74,10 +74,10 @@ ostask_t isix_task_self(void);
 
 /** Check of the available stack space
  * @param[in] task Task control block
- * @return Number of bytes in stack space
+ * @return Number of bytes in stack space or errno
  */
 #if CONFIG_ISIX_TASK_STACK_CHECK
-size_t isix_free_stack_space( const ostask_t task );
+_ssize_t isix_free_stack_space( const ostask_t task );
 #endif
 
 /** Suspend the current task
@@ -149,7 +149,7 @@ namespace {
 		return ::isix_get_task_inherited_priority( task );
 	}
 #if CONFIG_ISIX_TASK_STACK_CHECK
-	inline size_t free_stack_space( const ostask_t task=nullptr ) {
+	inline ssize_t free_stack_space( const ostask_t task=nullptr ) {
 		return ::isix_free_stack_space( task );
 	}
 #endif

@@ -166,18 +166,25 @@ ostask_t isix_task_self(void)
 #error isix_free_stack_space() for ascending stack not implemented yet
 #endif
 
-size_t isix_free_stack_space(const ostask_t task)
+ssize_t isix_free_stack_space(ostask_t task)
 {
+	if( task == NULL ) task = currp;
+	isix_enter_critical();
+	if( !task->init_stack ) {
+		isix_exit_critical();
+		return ISIX_EBADF;
+	}
 	size_t freespc=0;
 	const ostask_t taskd = task?task:currp;
 	volatile unsigned char *b_stack = (volatile unsigned char*)
-		(_isix_port_memory_efence_aligna((uintptr_t)taskd->init_stack) + 
+		(_isix_port_memory_efence_aligna((uintptr_t)taskd->init_stack) +
 		 ISIX_MEMORY_PROTECTION_EFENCE_SIZE );
 
 	while(*b_stack==MAGIC_FILL_VALUE) {
 		++b_stack;
 		++freespc;
 	}
+	isix_exit_critical();
 	return freespc;
 }
 #endif
