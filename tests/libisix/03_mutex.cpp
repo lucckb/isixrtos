@@ -138,11 +138,11 @@ static const lest::test module[] =
 		auto tsk3 = isix::thread_create_and_run( STK_SIZ, 3, 0, thr1, 'C' );
 		auto tsk4 = isix::thread_create_and_run( STK_SIZ, 2, 0, thr1, 'D' );
 		auto tsk5 = isix::thread_create_and_run( STK_SIZ, 1, 0, thr1, 'E' );
-		EXPECT( tsk1.is_valid() );
-		EXPECT( tsk2.is_valid() );
-		EXPECT( tsk3.is_valid() );
-		EXPECT( tsk4.is_valid() );
-		EXPECT( tsk5.is_valid() );
+		EXPECT( tsk1 == true );
+		EXPECT( tsk2 == true );
+		EXPECT( tsk3 == true );
+		EXPECT( tsk4 == true );
+		EXPECT( tsk5 == true );
 		isix::wait_ms(100);
 		EXPECT( test_buf.empty()==true );
 		EXPECT( mtx1.unlock()== ISIX_EOK );
@@ -182,9 +182,9 @@ static const lest::test module[] =
 		auto tsk1 = isix::thread_create_and_run( STK_SIZ,1,0,thr2h);
 		auto tsk2 = isix::thread_create_and_run( STK_SIZ,2,0,thr2m);
 		auto tsk3 = isix::thread_create_and_run( STK_SIZ,3,0,thr2l);
-	    EXPECT( tsk1.is_valid() );
-		EXPECT( tsk2.is_valid() );
-		EXPECT( tsk3.is_valid() );
+	    EXPECT( tsk1 == true );
+		EXPECT( tsk2 == true );
+		EXPECT( tsk3 == true );
 		isix::wait_ms(350);
 		EXPECT( test_buf == "ABC" );
 		ostick_t max {};
@@ -259,11 +259,11 @@ static const lest::test module[] =
 		auto tsk3 = isix::thread_create_and_run( STK_SIZ,3,0,thr3m );
 		auto tsk4 = isix::thread_create_and_run( STK_SIZ,2,0,thr3h );
 		auto tsk5 = isix::thread_create_and_run( STK_SIZ,1,0,thr3hh );
-	    EXPECT( tsk1.is_valid() );
-	    EXPECT( tsk2.is_valid() );
-	    EXPECT( tsk3.is_valid() );
-	    EXPECT( tsk4.is_valid() );
-	    EXPECT( tsk5.is_valid() );
+	    EXPECT( tsk1 == true );
+	    EXPECT( tsk2 == true );
+	    EXPECT( tsk3 == true );
+	    EXPECT( tsk4 == true );
+	    EXPECT( tsk5 == true );
 
 		isix::wait_ms(350);
 		EXPECT( test_buf == "ABCDE" );
@@ -319,8 +319,8 @@ static const lest::test module[] =
 		const auto pb =  p - 2;
 		auto tsk1 = isix::thread_create_and_run( STK_SIZ,pa,0,thr4a );
 		auto tsk2 = isix::thread_create_and_run( STK_SIZ,pb,0,thr4b );
-	    EXPECT( tsk1.is_valid() );
-	    EXPECT( tsk2.is_valid() );
+	    EXPECT( tsk1 == true );
+	    EXPECT( tsk2 == true );
 		/*   Locking the mutex M1 before thread A has a chance to lock
 			 it. The priority must not change because A has not yet reached
 			 mtx1 so the mutex is not locked.*/
@@ -409,15 +409,15 @@ static const lest::test module[] =
 		};
 		test_buf.clear();
 		auto thr1 = isix::thread_create_and_run( STK_SIZ,5,0,thread,'E' );
-		EXPECT( thr1.is_valid() );
+		EXPECT( thr1 == true );
 		auto thr2 = isix::thread_create_and_run( STK_SIZ,4,0,thread,'D' );
-		EXPECT( thr2.is_valid() );
+		EXPECT( thr2 == true );
 		auto thr3 = isix::thread_create_and_run( STK_SIZ,3,0,thread,'C' );
-		EXPECT( thr3.is_valid() );
+		EXPECT( thr3 == true );
 		auto thr4 = isix::thread_create_and_run( STK_SIZ,2,0,thread,'B' );
-		EXPECT( thr3.is_valid() );
+		EXPECT( thr4 == true );
 		auto thr5 = isix::thread_create_and_run( STK_SIZ,1,0,thread,'A' );
-		EXPECT( thr3.is_valid() );
+		EXPECT( thr5 == true );
 		isix::wait_ms(500);
 		EXPECT( test_buf=="ABCDE" );
 	},
@@ -433,16 +433,16 @@ static const lest::test module[] =
 			for(;;) isix_wait_ms(100);
 		};
 		auto thr1 = isix::thread_create_and_run( STK_SIZ,4,0,thread,std::ref(fin[0]) );
-		EXPECT( thr1.is_valid() );
+		EXPECT( thr1 == true );
 		isix::wait_ms(10);
 		auto thr2 = isix::thread_create_and_run( STK_SIZ,5,0,thread,std::ref(fin[1]) );
 		auto thr3 = isix::thread_create_and_run( STK_SIZ,5,0,thread,std::ref(fin[2]) );
 		auto thr4 = isix::thread_create_and_run( STK_SIZ,5,0,thread,std::ref(fin[3]) );
 		auto thr5 = isix::thread_create_and_run( STK_SIZ,5,0,thread,std::ref(fin[4]) );
-		EXPECT( thr2.is_valid() );
-		EXPECT( thr3.is_valid() );
-		EXPECT( thr4.is_valid() );
-		EXPECT( thr5.is_valid() );
+		EXPECT( thr2 == true );
+		EXPECT( thr3 == true );
+		EXPECT( thr4 == true );
+		EXPECT( thr5 == true );
 		thr1.kill();
 		isix::wait_ms(20);
 		EXPECT( fin[0] == ISIX_EOK );
@@ -484,10 +484,10 @@ static const lest::test module[] =
 		auto thr2 = isix::thread_create_and_run( STK_SIZ,4,0,thr,std::ref(retp[1]) );
 		auto thr3 = isix::thread_create_and_run( STK_SIZ,4,0,thr,std::ref(retp[2]) );
 		auto thr4 = isix::thread_create_and_run( STK_SIZ,4,0,thr,std::ref(retp[3]) );
-		EXPECT( thr1.is_valid() );
-		EXPECT( thr2.is_valid() );
-		EXPECT( thr3.is_valid() );
-		EXPECT( thr4.is_valid() );
+		EXPECT( thr1 == true );
+		EXPECT( thr2 == true );
+		EXPECT( thr3 == true );
+		EXPECT( thr4 == true );
 		isix::wait_ms(20);
 		EXPECT( isix::mutex_destroy( mloc )==ISIX_EOK );
 		isix::wait_ms(10);

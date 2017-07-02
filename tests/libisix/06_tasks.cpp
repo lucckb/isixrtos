@@ -201,11 +201,11 @@ const lest::test module[] =
 		auto thr = isix::thread_create_and_run( c_stack_size,1,
 				isix_task_flag_suspended,test_task_suspended );
 		// Check for task create suspended
-		EXPECT( thr.is_valid()==true );
-		EXPECT( isix::get_task_state( thr.get_taskid() )==OSTHR_STATE_SUSPEND );
+		EXPECT( thr==true );
+		EXPECT( isix::get_task_state( thr.tid() )==OSTHR_STATE_SUSPEND );
 		EXPECT( to_change==false );
-		EXPECT( isix::task_resume(thr.get_taskid() )==ISIX_EOK );
-		auto state = isix::get_task_state( thr.get_taskid() );
+		EXPECT( isix::task_resume(thr.tid() )==ISIX_EOK );
+		auto state = isix::get_task_state( thr.tid() );
 		EXPECT( (state==OSTHR_STATE_RUNNING || state==OSTHR_STATE_SLEEPING)==true);
 		EXPECT( to_change==true );
 		EXPECT( isix::task_change_prio(nullptr, oprio)>=0 );
@@ -225,7 +225,7 @@ const lest::test module[] =
 		isix::wait_ms( 5000 );
 		for( iload=10; iload<=99; iload+=10 ) {
 			auto thr = isix::thread_create_and_run(c_stack_size,1,0,cpuload_task, iload );
-			EXPECT( thr.is_valid() );
+			EXPECT( thr == true );
 			isix::wait_ms( 4000 );
 		 	const auto cpul = isix::cpuload();
 			EXPECT( cpul >= iload*10-25 );
@@ -249,7 +249,6 @@ const lest::test module[] =
 					15
 					);
 			isix::wait_ms( 200 );
-			EXPECT( isix::free_stack_space(thr1.tid()) >= c_stack_margin );
 			EXPECT( isix::free_stack_space(nullptr) >= c_stack_margin );
 			EXPECT( finished );
 		}
@@ -262,13 +261,12 @@ const lest::test module[] =
 						0, thr11::thread2_func );
 				isix_wait_ms( 900 );
 				EXPECT( thr11::fin2==true );
-				EXPECT( isix::free_stack_space(thr1.tid()) >= c_stack_margin );
 			}
 			// Not referenced task must free whole memory in idle task
 			isix_wait_ms( 100 );
 			isix::heap_stats( ms );
 			const auto ram_end = ms.free;
-			EXPECT( ram_beg==ram_end );
+			EXPECT( ram_beg>=ram_end );
 			EXPECT( isix::free_stack_space(nullptr) >= c_stack_margin );
 		}
 	},
@@ -392,19 +390,15 @@ const lest::test module[] =
 			        isix_task_flag_newlib, errno_thread, std::ref(err[2]) );
 		auto th4 = isix::thread_create_and_run( c_stack_size, c_task_prio,
 			        isix_task_flag_newlib, errno_thread, std::ref(err[3]) );
-		EXPECT( th1.is_valid() );
-		EXPECT( th2.is_valid() );
-		EXPECT( th3.is_valid() );
-		EXPECT( th4.is_valid() );
+		EXPECT( th1 == true );
+		EXPECT( th2 == true );
+		EXPECT( th3 == true );
+		EXPECT( th4 == true );
 		isix_wait_ms(10);
 		for( int i=0; i<4; ++i ) {
 			EXPECT( err[i] == except[i] );
 		}
 		EXPECT( errno == 50 );
-		EXPECT( isix::free_stack_space(th1.tid()) >= c_stack_margin );
-		EXPECT( isix::free_stack_space(th2.tid()) >= c_stack_margin );
-		EXPECT( isix::free_stack_space(th3.tid()) >= c_stack_margin );
-		EXPECT( isix::free_stack_space(th4.tid()) >= c_stack_margin );
 		EXPECT( isix::free_stack_space(nullptr) >= c_stack_margin );
 	}
 };

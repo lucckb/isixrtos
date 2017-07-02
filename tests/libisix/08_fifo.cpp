@@ -170,7 +170,7 @@ namespace {
 			EXPECT( isix::free_stack_space( task->tid() ) > c_stack_margin );
 		}
 		delete task;
-		isix::wait_ms(100);
+		isix::wait_ms(500);
 	}
 }
 
