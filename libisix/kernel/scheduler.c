@@ -710,4 +710,5 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 		list_insert_end( &csys.zombie_list,&task->inode );
 		csys.number_of_task_deleted++;
 	}
+	__sync_synchronize();
 }

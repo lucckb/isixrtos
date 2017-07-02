@@ -141,13 +141,17 @@ void isix_task_kill( ostask_t task )
 {
 	//Release all waiting mutexes owned by task
     ostask_t taskd = task?task:currp;
+	if(    taskd->state == OSTHR_STATE_ZOMBIE
+		|| taskd->state == OSTHR_STATE_EXITED ) {
+		return;
+	}
 	_isixp_mutex_unlock_all_in_task( taskd );
 	isix_enter_critical();
 	_isixp_add_kill_or_set_suspend( taskd, false );
-	if( !task ) {
+	if( taskd == currp ) {
 		isix_exit_critical();
 		isix_yield();
-	} 
+	}
 	else {
 		isix_exit_critical();
 	}
@@ -278,6 +282,7 @@ int isix_task_unref( ostask_t task )
 		--taskd->refcnt;
 	}
 	bool do_clean = ( taskd->refcnt==0 && taskd->state==OSTHR_STATE_EXITED );
+	__sync_synchronize();
 	isix_exit_critical();
 	if( do_clean ) isix_free( taskd );
 	return ISIX_EOK;
