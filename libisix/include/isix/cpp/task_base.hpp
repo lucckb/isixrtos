@@ -19,6 +19,7 @@
 
 #ifdef __cplusplus
 #include <cstddef>
+#include <isix/task.h>
 
 namespace isix {
 
@@ -78,7 +79,6 @@ namespace isix {
 		}
 	private:
 		ostask_t task_id { nullptr };
-	}; 
-
+	};
 }
 #endif /* __cplusplus */
