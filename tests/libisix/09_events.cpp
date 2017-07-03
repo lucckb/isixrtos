@@ -33,18 +33,19 @@ namespace base {
 	const unsigned EV3 = 1U<<3;
 
 	//Task for post events
-	class task_post : public isix::task_base {
-		static constexpr auto STACK_SIZE = 1024;
+	class task_post {
 	public:
 		task_post( osevent_t _ev ) 
 			: ev( _ev )
+			, m_thr( isix::thread_create( std::bind(&task_post::thread,std::ref(*this))))
 		{}
-		virtual ~task_post() {};
 		void start( osprio_t prio ) {
-			start_thread( STACK_SIZE, prio );
+			m_thr.start_thread( c_stack_size, prio );
 		}
-	protected:
-		virtual void main() noexcept
+		task_post& operator=( task_post& ) = delete;
+		task_post( task_post& ) = delete;
+	private:
+		void thread() noexcept
 		{
 			isix_wait_ms(20);
 			static constexpr auto nposts = 1;
@@ -54,21 +55,24 @@ namespace base {
 		}
 	private:
 		osevent_t ev {};
+		isix::thread m_thr;
 	};
 
 	//Task for listen event
-	class task_listen : public isix::task_base {
+	class task_listen {
 		static constexpr auto STACK_SIZE = 1024;
 	public:
 		task_listen( osevent_t _ev, unsigned _id )
 			: ev( _ev ), id( _id )
+			, m_thr( isix::thread_create( std::bind(&task_listen::thread,std::ref(*this))))
 		{}
-		virtual ~task_listen() {}
 		void start( osprio_t prio ) {
-			start_thread( STACK_SIZE, prio );
+			m_thr.start_thread( STACK_SIZE, prio );
 		}
-	protected:
-		virtual void main() noexcept
+		task_listen( task_listen& ) = delete;
+		task_listen& operator=( task_listen& ) = delete;
+	private:
+		void thread() noexcept
 		{
 			while(1) {
 				isix_event_wait( ev, id, true, true, ISIX_TIME_INFINITE );
@@ -77,6 +81,7 @@ namespace base {
 	private:
 		osevent_t ev {};
 		unsigned id {};
+		isix::thread m_thr;
 	};
 }
 }
@@ -155,7 +160,7 @@ const lest::test module[] =
 	{
 		using namespace base;
 		osevent_t ev = isix_event_create();
-		EXPECT_NOT( ev == nullptr );
+		EXPECT( ev );
 		task_listen t1( ev, EV0 );
 		task_listen t2( ev, EV1|EV3 );
 		task_listen t3( ev, EV2 );
@@ -172,7 +177,7 @@ const lest::test module[] =
 	CASE("09_events_02 Events sync test")
 	{
 		osevent_t ev = isix_event_create();
-		EXPECT_NOT( ev == nullptr );
+		EXPECT( ev );
 		auto t1 = isix_task_create( sync::task0, ev, c_stack_size, 3, 0 );
 		auto t2 = isix_task_create( sync::task1, ev, c_stack_size, 3, 0 );
 		auto t3 = isix_task_create( sync::task2, ev, c_stack_size, 3, 0 );
@@ -193,15 +198,15 @@ const lest::test module[] =
 		static constexpr auto EV2 = 1U<<1;
 		evfifo fstr;
 		//Check fifos
-		EXPECT_NOT( fstr.fifo1==nullptr );
-		EXPECT_NOT( fstr.fifo2==nullptr );
-		EXPECT_NOT( fstr.ev==nullptr );
+		EXPECT( fstr.fifo1 );
+		EXPECT( fstr.fifo2 );
+		EXPECT( fstr.ev );
 		EXPECT( isix_fifo_event_connect(fstr.fifo1,fstr.ev,0)==ISIX_EOK );
 		EXPECT( isix_fifo_event_connect(fstr.fifo2,fstr.ev,1)==ISIX_EOK );
 		auto t1 =  isix_task_create( fifo_task1, &fstr, c_stack_size, 3, 0 );
 		auto t2 =  isix_task_create( fifo_task2, &fstr, c_stack_size, 3, 0 );
-		EXPECT_NOT( t1==nullptr );
-		EXPECT_NOT( t2==nullptr );
+		EXPECT( t1 );
+		EXPECT( t2 );
 		osbitset_t abits=0;
 		for(int c=0;c<10;) {
 			auto sbits = isix::event_wait( fstr.ev, EV1|EV2, true, false );

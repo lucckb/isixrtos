@@ -17,8 +17,7 @@
  */
 
 
-#ifndef  timer_interrupt_INC
-#define  timer_interrupt_INC
+#pragma once
 
 #include <cstdint>
 #include <functional>
@@ -27,16 +26,11 @@
 namespace tests {
 namespace detail {
 
-	//Default handler function 
+	//Default handler function
 	using timer_handler_t = std::function<void()>;
 	//Periodic timer setup
-	void periodic_timer_setup( timer_handler_t normal, uint16_t timeval = 65535, 
-			timer_handler_t nested = nullptr 
-	) noexcept ;
-
-	//Stop the periodic timer 
+	void periodic_timer_setup( timer_handler_t normal, uint16_t timeval );
+	//Stop the periodic timer
 	void periodic_timer_stop() noexcept;
-
 }}
 
-#endif   /* ----- #ifndef timer_interrupt_INC  ----- */

@@ -21,17 +21,17 @@
 #include <isix.h>
 #include "task_test_helper.h"
 
-//! TODO: C++11 thread and wait reference API
 namespace
 {
 	static const auto BASE_TASK_PRIO = 1;
 	//Test basic task functionality
-	class base_task_tests : public isix::task_base {
+	class base_task_tests {
 		static constexpr auto STACK_SIZE = 1024;
 		volatile unsigned m_exec_count {};
 		volatile bool m_req_selfsusp {};
 		//Main function
-		void main() noexcept override {
+		void thread() noexcept
+		{
 			for(;;) {
 				++m_exec_count;
 				if( m_req_selfsusp ) {
@@ -41,20 +41,29 @@ namespace
 			}
 		}
 	public:
-		base_task_tests() {}
+		base_task_tests()
+			: m_thr( isix::thread_create( std::bind(&base_task_tests::thread,std::ref(*this))))
+		{
+		}
+		base_task_tests( base_task_tests& ) = delete;
+		base_task_tests& operator=( base_task_tests& ) = delete;
 		void start() {
-			start_thread(STACK_SIZE, BASE_TASK_PRIO);
+			m_thr.start_thread(STACK_SIZE, BASE_TASK_PRIO);
 		}
 		void selfsuspend() {
 			m_req_selfsusp = true;
 		}
-		virtual ~base_task_tests() {}
 		unsigned exec_count() const {
 			return m_exec_count;
 		}
 		void exec_count( unsigned v ) {
 			m_exec_count = v;
 		}
+		auto tid() const noexcept {
+			return m_thr.tid();
+		}
+	private:
+		isix::thread m_thr;
 	};
 
 	namespace thr11 {
@@ -125,10 +134,10 @@ const lest::test module[] =
 		EXPECT( t2->exec_count()==0U);
 		EXPECT( t3->exec_count()==0U );
 		EXPECT( t4->exec_count()==0U );
-		EXPECT( isix_task_change_prio(t1->get_taskid(),0)==BASE_TASK_PRIO );
-		EXPECT( isix_task_change_prio(t2->get_taskid(),0)==BASE_TASK_PRIO );
-		EXPECT( isix_task_change_prio(t3->get_taskid(),0)==BASE_TASK_PRIO );
-		EXPECT( isix_task_change_prio(t4->get_taskid(),0)==BASE_TASK_PRIO );
+		EXPECT( isix_task_change_prio(t1->tid(),0)==BASE_TASK_PRIO );
+		EXPECT( isix_task_change_prio(t2->tid(),0)==BASE_TASK_PRIO );
+		EXPECT( isix_task_change_prio(t3->tid(),0)==BASE_TASK_PRIO );
+		EXPECT( isix_task_change_prio(t4->tid(),0)==BASE_TASK_PRIO );
 		//Active wait tasks should doesn't run
 		for( auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+5000; ) {
 			asm volatile("nop\n");
@@ -137,33 +146,33 @@ const lest::test module[] =
 		EXPECT( t1->exec_count()>0U );
 		EXPECT( t4->exec_count()>0U );
 		//Validate stack space functionality
-		EXPECT( isix_free_stack_space(t1->get_taskid()) > ssize_t(MIN_STACK_FREE)  );
-		EXPECT( isix_free_stack_space(t2->get_taskid()) > ssize_t(MIN_STACK_FREE)  );
-		EXPECT( isix_free_stack_space(t3->get_taskid()) > ssize_t(MIN_STACK_FREE)  );
-		EXPECT( isix_free_stack_space(t4->get_taskid()) > ssize_t(MIN_STACK_FREE)  );
+		EXPECT( isix_free_stack_space(t1->tid()) > ssize_t(MIN_STACK_FREE)  );
+		EXPECT( isix_free_stack_space(t2->tid()) > ssize_t(MIN_STACK_FREE)  );
+		EXPECT( isix_free_stack_space(t3->tid()) > ssize_t(MIN_STACK_FREE)  );
+		EXPECT( isix_free_stack_space(t4->tid()) > ssize_t(MIN_STACK_FREE)  );
 		EXPECT( isix_free_stack_space(nullptr) > ssize_t(MIN_STACK_FREE)  );
 		//! Get task state should be ready or running
-		auto state = isix::get_task_state( t1->get_taskid() );
+		auto state = isix::get_task_state( t1->tid() );
 		EXPECT( (state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING)==true );
-		state = isix::get_task_state( t2->get_taskid() );
+		state = isix::get_task_state( t2->tid() );
 		EXPECT( (state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING)==true);
-		state = isix::get_task_state( t3->get_taskid() );
+		state = isix::get_task_state( t3->tid() );
 		EXPECT( (state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING)==true );
-		state = isix::get_task_state( t4->get_taskid() );
+		state = isix::get_task_state( t4->tid() );
 		EXPECT( (state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING)==true );
 		//! Sleep the task and check it state
-		isix::task_suspend( t4->get_taskid() );
+		isix::task_suspend( t4->tid() );
 		//! Suspend special for delete
-		isix::task_suspend( t1->get_taskid() );
+		isix::task_suspend( t1->tid() );
 		auto old_count = t4->exec_count();
-		state = isix::get_task_state( t4->get_taskid() );
+		state = isix::get_task_state( t4->tid() );
 		EXPECT( state==OSTHR_STATE_SUSPEND );
 		isix::wait_ms( 50 );
 		//! Resume the task now
-		EXPECT( isix::task_resume(t4->get_taskid())==ISIX_EOK );
+		EXPECT( isix::task_resume(t4->tid())==ISIX_EOK );
 		isix::wait_ms( 50 );
 		EXPECT( t4->exec_count() > old_count + 10 );
-		state = isix::get_task_state( t1->get_taskid() );
+		state = isix::get_task_state( t1->tid() );
 		EXPECT( state==OSTHR_STATE_SUSPEND );
 		// Check T3 for self suspend
 		t3->selfsuspend();
@@ -172,8 +181,8 @@ const lest::test module[] =
 		isix::wait_ms(2);
 		EXPECT( old_count==t3->exec_count() );
 		EXPECT( state==OSTHR_STATE_SUSPEND );
-		EXPECT( isix::task_resume( t3->get_taskid() )==ISIX_EOK );
-		state = isix::get_task_state( t3->get_taskid() );
+		EXPECT( isix::task_resume( t3->tid() )==ISIX_EOK );
+		state = isix::get_task_state( t3->tid() );
 		EXPECT( (state==OSTHR_STATE_READY || state==OSTHR_STATE_RUNNING)==true );
 		EXPECT( isix::free_stack_space(t1->tid()) >= c_stack_margin );
 		EXPECT( isix::free_stack_space(t2->tid()) >= c_stack_margin );

@@ -20,70 +20,58 @@
 #include <stm32rcc.h>
 #include <stm32system.h>
 #include <stm32tim.h>
+#include <atomic>
+#include <stdexcept>
 
 namespace tests {
 namespace detail {
 
 //Private namespace handlers
 namespace {
-		
 	timer_handler_t normal_handler;
-	timer_handler_t nested_handler;
-	bool initialized {};
+	std::atomic<bool> initialized {};
 }
 
 
-	//Handle function for periodic interrupt
-	void periodic_timer_setup( timer_handler_t normal, 
-			uint16_t timeval, timer_handler_t nested  ) noexcept 
-	{
-        using namespace stm32;
-		if( initialized || !normal ){
-			return;
-		}
-        rcc_apb1_periph_clock_cmd( RCC_APB1Periph_TIM3, true );
-        nvic_set_priority( TIM3_IRQn , 1, 1 );
-        tim_timebase_init( TIM3, 0, TIM_CounterMode_Up, timeval, 0, 0 );
-        tim_it_config( TIM3, TIM_IT_Update, true );
-        if( nested != nullptr ) 
-		{
-			nvic_irq_enable( TIM2_IRQn, true );
-        	nvic_set_priority( TIM2_IRQn, 0, 7 );
-			nested_handler = nested;
-		}
-		normal_handler = normal;
-		nvic_irq_enable( TIM3_IRQn, true );
-        tim_cmd( TIM3, true );
-		initialized = true;
+//Handle function for periodic interrupt
+void periodic_timer_setup( timer_handler_t normal, uint16_t timeval )
+{
+	using namespace stm32;
+	if( initialized ) {
+		throw std::logic_error("Timer already initialized");
 	}
-	//Stop the priodic timer
-	void periodic_timer_stop() noexcept {
+	rcc_apb1_periph_clock_cmd( RCC_APB1Periph_TIM3, true );
+	rcc_apb1_periph_reset_cmd( RCC_APB1Periph_TIM3, true );
+	__sync_synchronize();
+	rcc_apb1_periph_reset_cmd( RCC_APB1Periph_TIM3, false );
+	__sync_synchronize();
+	nvic_set_priority( TIM3_IRQn , 1, 1 );
+	tim_timebase_init( TIM3, 0, TIM_CounterMode_Up, timeval, 0, 0 );
+	tim_it_config( TIM3, TIM_IT_Update, true );
+	normal_handler = normal;
+	nvic_irq_enable( TIM3_IRQn, true );
+	tim_cmd( TIM3, true );
+	initialized = true;
+}
+//Stop the priodic timer
+void periodic_timer_stop() noexcept {
 
-		if( !initialized ) {
-			return;
-		}
-		using namespace stm32;
-        tim_it_config( TIM3, TIM_IT_Update, false );
-        tim_cmd( TIM3, false );
-		nvic_irq_enable( TIM3_IRQn, false );
-		if( nested_handler ) {
-			nvic_irq_enable( TIM2_IRQn, true );
-		}
-		initialized = false;
+	if( !initialized ) {
+		return;
 	}
+	using namespace stm32;
+	tim_it_config( TIM3, TIM_IT_Update, false );
+	tim_cmd( TIM3, false );
+	nvic_irq_enable( TIM3_IRQn, false );
+	initialized = false;
+}
 
- extern "C" {
-    void __attribute__((interrupt)) tim3_isr_vector() noexcept
+extern "C" {
+	void __attribute__((interrupt)) tim3_isr_vector() noexcept
 	{
-       stm32::tim_clear_it_pending_bit( TIM3, TIM_IT_Update );
-       normal_handler();	
-	   if( nested_handler ) 
-		   stm32::nvic_irq_set_pending(  TIM2_IRQn );
-    }
-    void __attribute__((interrupt)) tim2_isr_vector() noexcept
-	{
-		nested_handler();
-    }
+		stm32::tim_clear_it_pending_bit( TIM3, TIM_IT_Update );
+		normal_handler();
+	}
 }	//ExternC
 
 }}	//Detail

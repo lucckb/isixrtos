@@ -20,12 +20,13 @@
 #include <lest/lest.hpp>
 #include <isix.h>
 #include "timer_interrupt.hpp"
+#include <memory>
 
 
 namespace {
 
 	constexpr auto c_stack_margin = 100;
-	class task_test : public isix::task_base 
+	class task_test
 	{
 	static constexpr auto STACK_SIZE = 1024;
 	public:
@@ -34,15 +35,17 @@ namespace {
 		//Constructor
 		task_test( char ch_id, osprio_t prio, isix::fifo<char> &fifo )
 			: m_fifo( fifo ), m_id( ch_id ), m_prio( prio )
+			, m_thr( isix::thread_create( std::bind(&task_test::thread,std::ref(*this))))
 		{
 		}
+		task_test( task_test& ) = delete;
+		task_test& operator=( task_test& ) = delete;
 		void start() {
-			start_thread(STACK_SIZE, m_prio);
+			m_thr.start_thread(STACK_SIZE, m_prio);
 		}
-		virtual ~task_test() {}
-	protected:
+	private:
 		//Main function from another task
-		void main( )  noexcept override
+		void thread( ) noexcept
 		{
 			//isix_wait_ms(100);
 			for( int i = 0; i< N_ITEMS; ++i ) {
@@ -55,6 +58,7 @@ namespace {
 		const char m_id;
 		int m_error { -32768 };
 		osprio_t m_prio;
+		isix::thread m_thr;
 	};
 
 }	//Unnamed namespace end
@@ -65,7 +69,7 @@ namespace {
 	
 	static constexpr auto IRQ_QTEST_SIZE = 64U;
 	//Overflow task for testing the push
-	class overflow_task : public isix::task_base 
+	class overflow_task
 	{
 	static constexpr auto STACK_SIZE = 2048;
 	public:
@@ -74,21 +78,23 @@ namespace {
 		//Constructor
 		overflow_task( osprio_t prio, isix::fifo<int> &fifo )
 			:  m_fifo( fifo ), m_prio( prio )
+			, m_thr( isix::thread_create( std::bind(&overflow_task::thread,std::ref(*this))))
 		{
 		}
-		//Destructor
-		virtual ~overflow_task() {}
 		//Error code
 		int error() const {
 			return m_error;
 		}
 		//Start function
 		void start() {
-			start_thread( STACK_SIZE, m_prio );
+			m_thr.start_thread( STACK_SIZE, m_prio );
 		}
-	protected:
+		const auto tid() const noexcept {
+			return m_thr.tid();
+		}
+	private:
 		//Main function from another task
-		void main() noexcept override
+		void thread() noexcept
 		{
 			for( auto i=0U; i < IRQ_QTEST_SIZE; ++i ) {
 				m_error = m_fifo.push(i+1);
@@ -101,6 +107,7 @@ namespace {
 		isix::fifo<int> &m_fifo;
 		int m_error { -32768 };
 		osprio_t m_prio;
+		isix::thread m_thr;
 	};
 }
 
@@ -140,19 +147,19 @@ namespace {
 
 	void delivery_test( lest::env& lest_env, uint16_t time_irq, isix::fifo<int>& fifoin )
 	{
-		overflow_task* task {};
+		std::unique_ptr<overflow_task> task;
 		if( time_irq != NOT_FROM_IRQ ) {
 			m_irq_cnt = 0;
 			tests::detail::periodic_timer_setup(
 				std::bind(interrupt_handler,std::ref(m_fifo_n)), time_irq
 			);
 		} else {
-			task = new overflow_task( isix_get_task_priority(nullptr), fifoin);
+			task.reset( new overflow_task( isix_get_task_priority(nullptr), fifoin) );
 			task->start();
 		}
 		int val; int ret;
 		std::vector<int> test_vec;
-		for( int n=0; (ret=fifoin.pop(val, 250)) == ISIX_EOK; ++n ) {
+		for( int n=0; (ret=fifoin.pop(val,1000))==ISIX_EOK; ++n ) {
 			test_vec.push_back( val );
 		}
 		EXPECT( ret==ISIX_ETIMEOUT );
@@ -166,11 +173,6 @@ namespace {
 		if( time_irq != NOT_FROM_IRQ ) {
 			tests::detail::periodic_timer_stop();
 		}
-		if( task ) {
-			EXPECT( isix::free_stack_space( task->tid() ) > c_stack_margin );
-		}
-		delete task;
-		isix::wait_ms(500);
 	}
 }
 
@@ -239,6 +241,7 @@ static const lest::test module[] =
 	CASE( "08_fifo_07 Not from irq exchanged" )
 	{
 		delivery_test(lest_env, NOT_FROM_IRQ, m_fifo_noirq );
+		EXPECT( isix::free_stack_space( nullptr ) > c_stack_margin );
 	},
 };
 

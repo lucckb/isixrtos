@@ -24,34 +24,41 @@ namespace
 {
 	constexpr auto N_TEST_POSTS = 25;
 	//Basic semaphore test
-	class semaphore_task_test : public isix::task_base
+	class semaphore_task_test
 	{
 		static constexpr auto STACK_SIZE = 2048;
-		//Main funcs
-		virtual void main()  noexcept
-		{
-            m_error = m_sem.wait( ISIX_TIME_INFINITE );
-            m_items.push_back( m_id );  
-			m_join_sem.signal();
-			//for(;;) isix::isix_wait_ms(1000);
-		}
+		static constexpr auto JOIN_TIMEOUT = 4000;
 	public:
 		semaphore_task_test( char ch_id, osprio_t prio, isix::semaphore &sem, std::string &items )
             : m_sem( sem ), m_id( ch_id ), m_items( items ), m_prio( prio )
+			, m_thr( isix::thread_create( std::bind(&semaphore_task_test::thread,std::ref(*this))))
 		{
 		}
 		void start() {
-			start_thread(STACK_SIZE, m_prio );
+			m_thr.start_thread(STACK_SIZE, m_prio );
 		}
-		virtual ~semaphore_task_test() {}
         int error() const {
 			return m_error;
         }
-		void join() {
-			m_join_sem.wait( ISIX_TIME_INFINITE );
+		int join() {
+			return m_join_sem.wait( JOIN_TIMEOUT );
 		}
 		int val() const {
 			return m_sem.getval();
+		}
+		bool is_valid() const noexcept {
+			return m_thr;
+		}
+		semaphore_task_test& operator=( semaphore_task_test& ) = delete;
+		semaphore_task_test( semaphore_task_test& ) = delete;
+	private:
+		//Main funcs
+		void thread()  noexcept
+		{
+            m_error = m_sem.wait( ISIX_TIME_INFINITE );
+            m_items.push_back( m_id );
+			m_join_sem.signal();
+			//for(;;) isix::isix_wait_ms(1000);
 		}
     private:
         isix::semaphore& m_sem;
@@ -60,27 +67,22 @@ namespace
         int m_error { -32768 };
 		osprio_t m_prio;
 		isix::semaphore m_join_sem { 0, 1 };
+		isix::thread m_thr;
 	};
 
 	//Semaphore time test
-	class semaphore_time_task : public isix::task_base {
+	class semaphore_time_task {
 		static constexpr auto TASK_PRIO = 3;
 		static constexpr auto STACK_SIZE = 2048;
 		static constexpr auto sem_tout = 500;
 	public:
-		semaphore_time_task( isix::semaphore& sem  )
+		explicit semaphore_time_task( isix::semaphore& sem  )
 			: m_sem(sem)
+			, m_thr( isix::thread_create( std::bind(&semaphore_time_task::thread,std::ref(*this))))
 		{
 		}
-		virtual ~semaphore_time_task(){}
-		virtual void main() noexcept {
-			for( ;; ) { 
-				m_error = m_sem.wait ( sem_tout );
-				m_notify_sem.signal();
-			}
-		}
 		void start() {
-			start_thread(STACK_SIZE, TASK_PRIO);
+			m_thr.start_thread(STACK_SIZE, TASK_PRIO);
 		}
         int error() const {
             m_notify_sem.wait( ISIX_TIME_INFINITE );
@@ -89,10 +91,24 @@ namespace
 		int val() const {
 			return m_sem.getval();
 		}
+		bool is_valid() const noexcept {
+			return m_thr;
+		}
+		semaphore_time_task& operator=( semaphore_time_task& ) = delete;
+		semaphore_time_task( semaphore_time_task& ) = delete;
+	private:
+		void thread() noexcept {
+			for( ;; )
+			{
+				m_error = m_sem.wait ( sem_tout );
+				m_notify_sem.signal();
+			}
+		}
 	private:
 		isix::semaphore &m_sem;
         int m_error { -32768 };
 		mutable isix::semaphore m_notify_sem { 0, 1 };
+		isix::thread m_thr;
 	};
 
 }
@@ -130,14 +146,17 @@ const lest::test module[] =
 		EXPECT( sigs.signal()==ISIX_EOK );
 		EXPECT( sigs.signal()==ISIX_EOK );
 		EXPECT( sigs.signal()==ISIX_EOK );
-		t1.join(); t2.join(); t3.join(); t4.join();
+		EXPECT( t1.join() == ISIX_EOK );
+		EXPECT( t2.join() == ISIX_EOK );
+		EXPECT( t3.join() == ISIX_EOK );
+		EXPECT( t4.join() == ISIX_EOK );
 		EXPECT( tstr=="DCBA" );
 		//Check semaphore status
 		EXPECT( t1.error()==ISIX_EOK );
 		EXPECT( t2.error()==ISIX_EOK );
 		EXPECT( t3.error()==ISIX_EOK );
 		EXPECT( t4.error()==ISIX_EOK );
-		EXPECT( isix_task_change_prio(nullptr,TASKDEF_PRIORITY )==test_prio );
+		EXPECT( isix_task_change_prio(nullptr,TASKDEF_PRIORITY)==test_prio );
 	},
 	CASE( "05_sem_03 Semaphore reset api" )
 	{
@@ -156,7 +175,10 @@ const lest::test module[] =
 		//! Give some time for add to sem
 		isix::wait_ms(25);
 		EXPECT( sigs->reset(5)==ISIX_EOK );
-		t1.join(); t2.join(); t3.join(); t4.join();
+		EXPECT( t1.join() == ISIX_EOK );
+		EXPECT( t2.join() == ISIX_EOK );
+		EXPECT( t3.join() == ISIX_EOK );
+		EXPECT( t4.join() == ISIX_EOK );
 		EXPECT( tstr=="DCBA" );
 		//Check semaphore status
 		EXPECT( t1.error()==ISIX_ERESET );
@@ -174,7 +196,8 @@ const lest::test module[] =
 		semaphore_task_test t6('Y', 2, *sigs, tstr ); t6.start();
 		isix::wait_ms(25);
 		delete sigs;
-		t5.join(); t6.join();
+		EXPECT( t5.join() == ISIX_EOK );
+		EXPECT( t6.join() == ISIX_EOK );
 		EXPECT( t5.error()==ISIX_EDESTROY );
 		EXPECT( t6.error()==ISIX_EDESTROY );
 	},

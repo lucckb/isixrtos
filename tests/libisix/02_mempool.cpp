@@ -43,7 +43,7 @@ namespace
 		char val[17];
 		char m_pattern {};
 	};
-	class task_test : public isix::task_base
+	class task_test
 	{
 	static constexpr auto STACK_SIZE = 1024;
 	static constexpr auto TASK_PRIO = 3;
@@ -51,29 +51,33 @@ namespace
 		//Constructor
 		task_test( isix::mempool<pool>& pool )
 			: m_pool( pool )
+			, m_thr( isix::thread_create( std::bind(&task_test::thread,std::ref(*this))))
 		{}
 		//Destructor
-		virtual ~task_test()
+		~task_test()
 		{
 			m_pool.free(m_ptr);
 		}
 		//Start the task
 		void start() {
-			start_thread(STACK_SIZE, TASK_PRIO );
+			m_thr.start_thread(STACK_SIZE, TASK_PRIO );
 		}
 		//Check valid
 		pool* get() const {
 			return m_ptr;
 		}
+		task_test( task_test& ) = delete;
+		task_test& operator=( task_test& ) = delete;
 	protected:
 		//Main thread
-		virtual void main( ) noexcept override
+		void thread( ) noexcept
 		{
 			m_ptr = m_pool.alloc('Z');
 		}
 	private:
 		isix::mempool<pool>& m_pool;
 		pool* m_ptr {};
+		isix::thread m_thr;
 	};
 }	//Unnamed namespace end
 

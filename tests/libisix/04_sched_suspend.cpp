@@ -30,13 +30,31 @@ extern "C" {
 namespace
 {
 	//Task for testing lock scheduler
-	class task : public isix::task_base {
-		static constexpr auto STACK_SIZE = 2048;
-		static constexpr auto THREAD_PRIO = 0;
-		volatile char m_act_id { ' ' };
-		const char  m_act_pattern;
+	class task
+	{
+	public:
+		task& operator=( task& ) = delete;
+		task( task& ) = delete;
+
+		//Constructor
+		explicit task( char pattern )
+			: m_act_pattern( pattern )
+			, m_thr( isix::thread_create( std::bind(&task::thread,std::ref(*this))))
+		{
+		}
+		//Start task
+		void start() {
+			m_thr.start_thread( STACK_SIZE, THREAD_PRIO );
+		}
+		char get_id() const {
+			return m_act_id;
+		}
+		void reset_id() {
+			m_act_id = ' ';
+		}
+	private:
 		//Main test task
-		void main() noexcept override
+		void thread() noexcept
 		{
 			for(;;) {
 				m_act_id = m_act_pattern;
@@ -48,21 +66,12 @@ namespace
 				stm32::nop();
 			}
 		}
-	public:
-		//Constructor
-		task( char pattern )
-			: m_act_pattern( pattern )
-		{}
-		//Start task
-		void start() {
-			start_thread( STACK_SIZE, THREAD_PRIO );
-		}
-		char get_id() const {
-			return m_act_id;
-		}
-		void reset_id() {
-			m_act_id = ' ';
-		}
+	private:
+		static constexpr auto STACK_SIZE = 2048;
+		static constexpr auto THREAD_PRIO = 0;
+		volatile char m_act_id { ' ' };
+		const char  m_act_pattern;
+		isix::thread m_thr;
 	};
 }
 
