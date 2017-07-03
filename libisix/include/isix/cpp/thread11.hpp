@@ -61,7 +61,7 @@ namespace isix {
 		}
 
 	/** \brief Create thread and run
-	 *  \param[in] size Stack size 
+	 *  \param[in] size Stack size
 	 *  \param[in] priority Thread priority
 	 *  \param[in] flags Thread flags
 	 *  \param[in] fn Function executed in separate thread

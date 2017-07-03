@@ -28,6 +28,7 @@ namespace isix {
 	{
 	public:
 		/** Default constructor (empty) */
+		[[deprecated]]
 		task_base() {
 
 		}
