@@ -19,6 +19,7 @@
 
 #include <lest/lest.hpp>
 #include <isix.h>
+#include <foundation/dbglog.h>
 
 
 
@@ -86,46 +87,10 @@ namespace base {
 }
 }
 
-namespace {
-namespace sync {
-
-	static constexpr auto TASK_0_BIT  = ( 1U << 0 );
-	static constexpr auto TASK_1_BIT  = ( 1U << 1 );
-	static constexpr auto TASK_2_BIT  = ( 1U << 2 );
-	static constexpr auto ALL_SYNC_BITS  = TASK_0_BIT|TASK_1_BIT|TASK_2_BIT;
-
-	void task0( void* param )
-	{
-		auto ev = static_cast<osevent_t>(param);
-		for(;;) {
-			auto ret = isix_event_sync( ev, TASK_0_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
-			if( (ret&ALL_SYNC_BITS)==ALL_SYNC_BITS ) {
-				//dbprintf("Sync from t0 reached %04x", ret );
-			} else {
-				//dbprintf(" Ret_t0 %08x val %08x", ret, isix_event_get_isr(ev));
-			}
-		}
-	}
-
-	void task1( void *param )
-	{
-		auto ev = static_cast<osevent_t>(param);
-		for(;;) {
-			isix_event_sync( ev, TASK_1_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
-		}
-	}
-	void task2( void *param )
-	{
-		auto ev = static_cast<osevent_t>(param);
-		for(;;) {
-			isix_event_sync( ev, TASK_2_BIT, ALL_SYNC_BITS, ISIX_TIME_INFINITE ); 
-		}
-	}
-}}
 //Namespace for fifo conn
 namespace {
 namespace tfifo {
-	struct evfifo 
+	struct evfifo
 	{
 		osfifo_t fifo1 { isix_fifo_create( 16, sizeof(char) ) };
 		osfifo_t fifo2 { isix_fifo_create( 16, sizeof(char) ) };
@@ -133,7 +98,7 @@ namespace tfifo {
 		int err1 {};
 		int err2 {};
 	};
-	void fifo_task1( void *ptr ) 
+	void fifo_task1( void *ptr )
 	{
 		constexpr auto ch = 'A';
 		auto& dt = *static_cast<evfifo*>(ptr);
@@ -176,18 +141,53 @@ const lest::test module[] =
 	},
 	CASE("09_events_02 Events sync test")
 	{
+		static constexpr auto TASK_0_BIT  = ( 1U << 0 );
+		static constexpr auto TASK_1_BIT  = ( 1U << 1 );
+		static constexpr auto TASK_2_BIT  = ( 1U << 2 );
+		static constexpr auto ALL_SYNC_BITS  = TASK_0_BIT|TASK_1_BIT|TASK_2_BIT;
 		osevent_t ev = isix_event_create();
+		struct mystat {
+			unsigned err {};
+			unsigned ok {};
+		} stats[3];
+		const auto evsync_thr = [&]( mystat& stat, unsigned bit )
+		{
+			for(;;) {
+				auto ret = isix_event_sync( ev, bit, ALL_SYNC_BITS, ISIX_TIME_INFINITE );
+				if( (ret&ALL_SYNC_BITS)==ALL_SYNC_BITS ) {
+					++stat.ok;
+				} else {
+					--stat.err;
+					return;
+				}
+			}
+		};
 		EXPECT( ev );
-		auto t1 = isix_task_create( sync::task0, ev, c_stack_size, 3, 0 );
-		auto t2 = isix_task_create( sync::task1, ev, c_stack_size, 3, 0 );
-		auto t3 = isix_task_create( sync::task2, ev, c_stack_size, 3, 0 );
+		constexpr auto test_prio = 3;
+		auto t1 = isix::thread_create_and_run(
+			c_stack_size ,test_prio, 0, evsync_thr, std::ref(stats[0]), TASK_0_BIT
+		);
+		auto t2 = isix::thread_create_and_run(
+			c_stack_size ,test_prio, 0, evsync_thr, std::ref(stats[1]), TASK_1_BIT
+		);
+		auto t3 = isix::thread_create_and_run(
+			c_stack_size ,test_prio, 0, evsync_thr, std::ref(stats[2]), TASK_2_BIT
+		);
 		EXPECT( t1 );
 		EXPECT( t2 );
 		EXPECT( t3 );
 		isix_wait_ms(5000);
-		isix_task_kill( t1 );
-		isix_task_kill( t2 );
-		isix_task_kill( t3 );
+		t1.kill();
+		t2.kill();
+		t3.kill();
+		for( auto& stat : stats ) {
+			EXPECT( stat.ok > 0U );
+			EXPECT( stat.err == 0U );
+			stat.ok &= ~1;
+		}
+		EXPECT( stats[0].ok == stats[1].ok );
+		EXPECT( stats[2].ok == stats[1].ok );
+		dbprintf("%i %i %i", stats[0].ok, stats[1].ok, stats[2].ok );
 		isix_wait_ms(50);
 		isix_event_destroy( ev );
 	},
