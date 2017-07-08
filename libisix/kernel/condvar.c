@@ -30,17 +30,26 @@ int _isixp_condvar_signal( oscondvar_t cv, bool isr )
 		return ISIX_EINVARG;
 	}
 	isix_enter_critical();
-	if( !list_isempty( &cv->wait_list ) ) {
+	if( !list_isempty( &cv->wait_list ) )
+	{
 		ostask_t task = _isixp_remove_from_prio_queue( &cv->wait_list );
-		if( task->state == OSTHR_STATE_WTCOND ) {
-			if( !isr ) _isixp_wakeup_task( task, ISIX_EOK );
-			else _isixp_wakeup_task_i( task, ISIX_EOK );
-		} else {
-			isix_exit_critical();
-			return ISIX_EOK;
+		if( task->state == OSTHR_STATE_WTCOND )
+		{
+			if( !isr ) {
+				_isixp_wakeup_task( task, ISIX_EOK );
+			} else {
+				_isixp_wakeup_task_i( task, ISIX_EOK );
+			}
+		}
+		else
+		{
+			isix_bug("Invalid state task->state != OSTHR_STATE_WTCOND" );
 		}
 	}
-	isix_exit_critical();
+	else
+	{
+		isix_exit_critical();
+	}
 	return ISIX_EOK;
 }
 
