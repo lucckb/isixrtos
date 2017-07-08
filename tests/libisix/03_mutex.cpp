@@ -43,83 +43,14 @@ namespace {
 }
 
 namespace {
-
 	void cpu_busy( unsigned ms_duration ) {
 		const auto t1 = isix::get_jiffies();
 		do {
 			asm volatile("nop\n");
 		} while( !isix::timer_elapsed(t1, ms_duration) );
 	}
-
 }
 
-namespace test09 {
-namespace {
-
-	void thread( void* ptr ) {
-		if( (mtx1.lock()) ) std::abort();
-		if( mcv.wait() ) std::abort();
-		test_buf.push_back( *reinterpret_cast<const char*>(ptr) );
-		if( mtx1.unlock() ) std::abort();
-		isix::wait_ms(100);
-	}
-
-}}
-
-namespace test13 {
-namespace {
-	struct arg {
-		oscondvar_t cv;
-		char ch;
-	};
-	void thread( void* ptr ) {
-		arg& a = *reinterpret_cast<arg*>(ptr);
-		if( (mtx1.lock()) ) {
-			std::abort();
-		}
-		auto ret = isix::condvar_wait(a.cv, ISIX_TIME_INFINITE);
-		if( ret == ISIX_EDESTROY ) {
-			test_buf.push_back( a.ch );
-			return;
-		}
-		//NOTE: Don't unlock mtx1 it should be unlocked automaticaly
-		//bug( mtx1.unlock() );
-	}
-
-}}
-
-namespace test11 {
-namespace {
-
-	void thread_a( void* ptr ) {
-		if( mtx2.lock() ) {
-			std::abort();
-		}
-		if( mtx1.lock() ) {
-			std::abort();
-		}
-		if( mcv.wait() ) {
-			std::abort();
-		}
-		test_buf.push_back( *reinterpret_cast<const char*>(ptr) );
-		if( mtx1.unlock() ) {
-			std::abort();
-		}
-		if( mtx2.unlock() ) {
-			std::abort();
-		}
-	}
-	void thread_b( void* ptr ) {
-		if( mtx2.lock() ) {
-			std::abort();
-		}
-		test_buf.push_back( *reinterpret_cast<const char*>(ptr) );
-		if( mtx2.unlock() ) {
-			std::abort();
-		}
-	}
-}
-}
 
 static const lest::test module[] =
 {
@@ -154,7 +85,7 @@ static const lest::test module[] =
 	CASE( "03_mutex_02 Priority inheritance basic conditions" )
 	{
 		ostick_t fin[3] {};
-		const auto thr2l = [&]() 
+		const auto thr2l = [&]()
 		{
 			if( mtx1.lock() ) { test_buf.push_back('Z'); return; }
 			cpu_busy(40);
@@ -501,19 +432,30 @@ static const lest::test module[] =
 	//T9
 	CASE( "03_mutex_09 Condition variable order tests " )
 	{
-		using namespace test09;
+		constexpr auto thr = []( char ch ) {
+			if( (mtx1.lock()) ) {
+				return;
+			}
+			if( mcv.wait() ) {
+				return;
+			}
+			test_buf.push_back( ch );
+			if( mtx1.unlock() ) {
+				return;
+			}
+			isix::wait_ms(100);
+		};
 		test_buf.clear();
-		ostask_t t1,t2,t3,t4,t5;
-		t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5 );
-		if( t1 ==nullptr) std::abort();
-		t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4 );
-		if( t2 ==nullptr) std::abort();
-		t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3 );
-		if( t3 ==nullptr) std::abort();
-		t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2 );
-		if( t4 ==nullptr) std::abort();
-		t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1 );
-		if( t5 ==nullptr) std::abort();
+		auto t1 = isix::thread_create_and_run( STK_SIZ, 5, 0, thr, 'E' );
+		auto t2 = isix::thread_create_and_run( STK_SIZ, 4, 0, thr, 'D' );
+		auto t3 = isix::thread_create_and_run( STK_SIZ, 3, 0, thr, 'C' );
+		auto t4 = isix::thread_create_and_run( STK_SIZ, 2, 0, thr, 'B' );
+		auto t5 = isix::thread_create_and_run( STK_SIZ, 1, 0, thr, 'A' );
+		EXPECT( t1 == true );
+		EXPECT( t2 == true );
+		EXPECT( t3 == true );
+		EXPECT( t4 == true );
+		EXPECT( t5 == true );
 		isix::wait_ms(200);
 		EXPECT( test_buf.empty()==true );
 		EXPECT( mcv.broadcast()==ISIX_EOK );
@@ -527,19 +469,30 @@ static const lest::test module[] =
 	//T10
 	CASE( "03_mutex_10 Condvar mutex signaling" )
 	{
-		using namespace test09;
+		constexpr auto thr = []( char ch ) {
+			if( (mtx1.lock()) ) {
+				return;
+			}
+			if( mcv.wait() ) {
+				return;
+			}
+			test_buf.push_back( ch );
+			if( mtx1.unlock() ) {
+				return;
+			}
+			isix::wait_ms(100);
+		};
 		test_buf.clear();
-		ostask_t t1,t2,t3,t4,t5;
-		t1 = isix::task_create( thread, (char*)"E", STK_SIZ, 5 );
-		if( t1 == nullptr) std::abort();
-		t2 = isix::task_create( thread, (char*)"D", STK_SIZ, 4 );
-		if( t2 == nullptr) std::abort();
-		t3 = isix::task_create( thread, (char*)"C", STK_SIZ, 3 );
-		if( t3 == nullptr) std::abort();
-		t4 = isix::task_create( thread, (char*)"B", STK_SIZ, 2 );
-		if( t4 == nullptr) std::abort();
-		t5 = isix::task_create( thread, (char*)"A", STK_SIZ, 1 );
-		if( t5 == nullptr) std::abort();
+		auto t1 = isix::thread_create_and_run( STK_SIZ, 5, 0, thr, 'E' );
+		auto t2 = isix::thread_create_and_run( STK_SIZ, 4, 0, thr, 'D' );
+		auto t3 = isix::thread_create_and_run( STK_SIZ, 3, 0, thr, 'C' );
+		auto t4 = isix::thread_create_and_run( STK_SIZ, 2, 0, thr, 'B' );
+		auto t5 = isix::thread_create_and_run( STK_SIZ, 1, 0, thr, 'A' );
+		EXPECT( t1 == true );
+		EXPECT( t2 == true );
+		EXPECT( t3 == true );
+		EXPECT( t4 == true );
+		EXPECT( t5 == true );
 		isix::wait_ms(200);
 		EXPECT( test_buf.empty()==true );
 		EXPECT( mcv.signal()==ISIX_EOK );
@@ -553,24 +506,62 @@ static const lest::test module[] =
 	//T11
 	CASE( "03_mutex_11 Condtion wait priority boost" )
 	{
-		using namespace test11;
+		constexpr auto thr = []( char ch ) {
+			if( (mtx1.lock()) ) {
+				return;
+			}
+			if( mcv.wait() ) {
+				return;
+			}
+			test_buf.push_back( ch );
+			if( mtx1.unlock() ) {
+				return;
+			}
+			isix::wait_ms(100);
+		};
+		constexpr auto thr_a = []( char ch ) {
+			if( mtx2.lock() ) {
+				std::abort();
+			}
+			if( mtx1.lock() ) {
+				std::abort();
+			}
+			if( mcv.wait() ) {
+				std::abort();
+			}
+			test_buf.push_back( ch );
+			if( mtx1.unlock() ) {
+				std::abort();
+			}
+			if( mtx2.unlock() ) {
+				std::abort();
+			}
+		};
+		constexpr auto thr_b = []( char ch ) {
+			if( mtx2.lock() ) {
+				std::abort();
+			}
+			test_buf.push_back( ch );
+			if( mtx2.unlock() ) {
+				std::abort();
+			}
+		};
 		test_buf.clear();
-		//const auto old_prio = isix::task_change_prio( nullptr, isix::get_min_priority() );
-		ostask_t t1,t2,t3;
+		const auto old_prio = isix::task_change_prio( nullptr, isix::get_min_priority() );
 		EXPECT(isix::get_task_inherited_priority()==isix::get_task_priority() );
-		t1 = isix::task_create( thread_a, (char*)"A", STK_SIZ, 5  );
-		if( t1 == nullptr) std::abort();
-		t2 = isix::task_create( test09::thread, (char*)"C", STK_SIZ, 4 );
-		if( t2 == nullptr) std::abort();
-		t3 = isix::task_create( thread_b, (char*)"B", STK_SIZ, 3 );
-		if( t3 == nullptr) std::abort();
+		auto t1 = isix::thread_create_and_run( STK_SIZ, 5, 0, thr_a, 'A' );
+		auto t2 = isix::thread_create_and_run( STK_SIZ, 4, 0, thr, 'C' );
+		auto t3 = isix::thread_create_and_run( STK_SIZ, 3, 0, thr_b, 'B' );
+		EXPECT( t1 == true );
+		EXPECT( t2 == true );
+		EXPECT( t3 == true );
 		isix::wait_ms(100);
 		mcv.signal();
 		mcv.signal();
 		isix::wait_ms(200);
 		EXPECT( test_buf=="BAC" );
 		//Restore org prio
-		//EXPECT( isix::task_change_prio( nullptr, old_prio )==isix::get_min_priority() );
+		EXPECT( isix::task_change_prio( nullptr, old_prio )==isix::get_min_priority() );
 	},
 	//T12
 	CASE( "03_mutex_12 Condvar wait for timeout and not owning mutex" )
@@ -599,26 +590,32 @@ static const lest::test module[] =
 	//T13
 	CASE( "03_mutex_13 Condvar task destroy API" )
 	{
-		using namespace test13;
 		test_buf.clear();
-		ostask_t t1,t2,t3,t4,t5;
 		oscondvar_t cv = isix::condvar_create();
 		EXPECT( cv != nullptr );
-		const arg a1 { cv, 'E' };
-		const arg a2 { cv, 'D' };
-		const arg a3 { cv, 'C' };
-		const arg a4 { cv, 'B' };
-		const arg a5 { cv, 'A' };
-		t1 = isix::task_create( thread, (void*)&a1, STK_SIZ, 5 );
-		if( t1 ==nullptr) std::abort();
-		t2 = isix::task_create( thread, (void*)&a2, STK_SIZ, 4 );
-		if( t2 ==nullptr) std::abort();
-		t3 = isix::task_create( thread, (void*)&a3, STK_SIZ, 3 );
-		if( t3 ==nullptr) std::abort();
-		t4 = isix::task_create( thread, (void*)&a4, STK_SIZ, 2 );
-		if( t4 ==nullptr) std::abort();
-		t5 = isix::task_create( thread, (void*)&a5, STK_SIZ, 1 );
-		if( t5 ==nullptr) std::abort();
+		const auto thr = [&]( char ch )
+		{
+			if( (mtx1.lock()) ) {
+				return;
+			}
+			auto ret = isix::condvar_wait(cv, ISIX_TIME_INFINITE);
+			if( ret == ISIX_EDESTROY ) {
+				test_buf.push_back( ch );
+				return;
+			}
+			//NOTE: Don't unlock mtx1 it should be unlocked automaticaly
+			//bug( mtx1.unlock() );
+		};
+		auto t1 = isix::thread_create_and_run( STK_SIZ, 5, 0, thr, 'E' );
+		auto t2 = isix::thread_create_and_run( STK_SIZ, 4, 0, thr, 'D' );
+		auto t3 = isix::thread_create_and_run( STK_SIZ, 3, 0, thr, 'C' );
+		auto t4 = isix::thread_create_and_run( STK_SIZ, 2, 0, thr, 'B' );
+		auto t5 = isix::thread_create_and_run( STK_SIZ, 1, 0, thr, 'A' );
+		EXPECT( t1 == true );
+		EXPECT( t2 == true );
+		EXPECT( t3 == true );
+		EXPECT( t4 == true );
+		EXPECT( t5 == true );
 		isix::wait_ms(200);
 		EXPECT( test_buf.empty()==true );
 		EXPECT( isix::condvar_destroy(cv)==ISIX_EOK );
