@@ -126,10 +126,13 @@ void _isixp_finalize()
 //Lock scheduler
 void isix_enter_critical(void)
 {
-	if( atomic_fetch_add( &csys.critical_count, 1 ) == 0 )
-	{
+	int res = atomic_fetch_add( &csys.critical_count, 1 );
+	if( res == 0 ) {
 		_isix_port_set_interrupt_mask();
+	} else if( res < 0 ) {
+		isix_bug("Invalid lock count");
 	}
+	_isix_port_flush_memory();
 }
 
 //Unlock scheduler
@@ -224,19 +227,19 @@ void print_task_list()
 	isix_enter_critical();
     task_ready_t *i;
     ostask_t j;
-	tiny_printf("curr %p:%i jiff %u Ready tasks\n", currp, currp->prio, csys.jiffies );
+	tiny_printf("curr %p:%i jiff %u Ready tasks\r\n", currp, currp->prio, csys.jiffies );
     list_for_each_entry(&csys.ready_list,i,inode)
     {
-         tiny_printf("\t* List inode %p prio %i\n",i, i->prio );
+         tiny_printf("\t* List inode %p prio %i\r\n",i, i->prio );
          list_for_each_entry(&i->task_list,j,inode)
          {
-              tiny_printf("\t\t-> task %p prio %i state %i\n",j,j->prio,j->state);
+              tiny_printf("\t\t-> task %p prio %i state %i\r\n",j,j->prio,j->state);
          }
     }
     tiny_printf("Waiting tasks\n");
     list_for_each_entry(csys.p_wait_list,j,inode_time)
     {
-        tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\n",
+        tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\r\n",
 				j, j->prio, j->state, j->jiffies );
     }
 	isix_exit_critical();
@@ -250,6 +253,9 @@ void print_task_list()
  */
 void _isixp_schedule(void)
 {
+	if(  atomic_load( &csys.critical_count ) < 0 ) {
+		isix_bug("Critical count fail" );
+	}
 	if( _isix_port_atomic_sem_read_val(&csys.sched_lock) ) {
 		atomic_store( &csys.yield_pending, true );
 		return;
@@ -571,6 +577,7 @@ void isix_start_scheduler(void)
 //! Reschedule tasks if it can be rescheduled
 void _isixp_do_reschedule( ostask_t task )
 {
+	bool yield = false;
 	if( !task ) {
 		isix_bug("Unable to resched itself");
 	}
@@ -589,10 +596,11 @@ void _isixp_do_reschedule( ostask_t task )
 		if( _isixp_prio_gt(task->prio,currp->prio) ) {
 			//New task have higer priority then current task
 			pr_debug("resched: prio %i>old prio %i",task->prio,currp->prio);
-			_isix_port_yield();
+			yield = true;
 		}
 	}
 	isix_exit_critical();
+	if(yield) _isix_port_yield();
 }
 
 static void wakeup_task( ostask_t task, osmsg_t msg )

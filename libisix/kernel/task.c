@@ -227,7 +227,7 @@ void isix_task_suspend( ostask_t task )
 	isix_enter_critical();
     ostask_t taskd = task?task:currp;
 	_isixp_add_kill_or_set_suspend( taskd, true );
-	if( !task ) {
+	if( taskd==currp ) {
 		isix_exit_critical();
 		isix_yield();
 	}
