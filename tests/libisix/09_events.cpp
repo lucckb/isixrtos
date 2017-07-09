@@ -19,7 +19,6 @@
 
 #include <lest/lest.hpp>
 #include <isix.h>
-#include <foundation/dbglog.h>
 
 
 
@@ -36,7 +35,7 @@ namespace base {
 	//Task for post events
 	class task_post {
 	public:
-		task_post( osevent_t _ev ) 
+		task_post( osevent_t _ev )
 			: ev( _ev )
 			, m_thr( isix::thread_create( std::bind(&task_post::thread,std::ref(*this))))
 		{}
@@ -181,13 +180,12 @@ const lest::test module[] =
 		t2.kill();
 		t3.kill();
 		for( auto& stat : stats ) {
-			EXPECT( stat.ok > 0U );
+			EXPECT( stat.ok > 10000U );
 			EXPECT( stat.err == 0U );
-			stat.ok &= ~1;
+			stat.ok &= ~0b11;
 		}
 		EXPECT( stats[0].ok == stats[1].ok );
 		EXPECT( stats[2].ok == stats[1].ok );
-		dbprintf("%i %i %i", stats[0].ok, stats[1].ok, stats[2].ok );
 		isix_wait_ms(50);
 		isix_event_destroy( ev );
 	},
