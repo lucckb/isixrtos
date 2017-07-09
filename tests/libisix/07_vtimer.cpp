@@ -37,7 +37,7 @@ namespace
 			m_counter = 0;
 		}
 		protected:
-		virtual void handle_timer()
+		virtual void handle_timer() noexcept
 		{
 			++m_counter;
 		}
@@ -232,6 +232,20 @@ static const lest::test module[] =
 		EXPECT( isix_sem_destroy( inf.fin ) == ISIX_EOK );
 		EXPECT( isix_vtimer_destroy( timerh ) == ISIX_EOK );
 		inf.fin = nullptr;
+	},
+	CASE("07_vtimer_05 C++11 vtimer api")
+	{
+		int counter = 0;
+		auto fn = [&]() -> void
+		{
+			++counter;
+		};
+		auto tim = isix::vtimer_create( fn );
+		EXPECT( tim.start_ms(10) == ISIX_EOK );
+		isix::wait_ms(250);
+		EXPECT( tim.stop() == ISIX_EOK );
+		isix::wait_ms(25);
+		EXPECT( counter == 25 );
 	}
 };
 
