@@ -27,9 +27,9 @@ namespace isix {
 	class thread final : public detail::thread_base
 	{
 		public:
-			/** \brief thread constructor
-			 *  \param[in] fn Function executed in separate thread
-			 *  \param[in] args Arguments passed to the function
+			/** @brief thread constructor
+			 *  @param[in] fn Function executed in separate thread
+			 *  @param[in] args Arguments passed to the function
 			 */
 			template <typename FN, typename ... ARGS>
 				thread( FN&& function, ARGS&&... args ) noexcept
@@ -41,9 +41,9 @@ namespace isix {
 			virtual ~thread()
 			{
 			}
-			thread( const thread& ) = delete;
-			thread( thread&& ) = default;
-			const thread& operator=(const thread&) = delete;
+			thread(thread&) = delete;
+			thread(thread&&) = default;
+			thread& operator=(thread&) = delete;
 			thread& operator=(thread&&) = delete;
 		private:
 			void runner() override

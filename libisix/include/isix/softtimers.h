@@ -24,10 +24,10 @@ typedef osvtimer_callback osworkfunc_t;
 
 
 /** Create global isixvtimer worker thread
- *  It must be called only when shedule work API is used 
+ *  It must be called only when shedule work API is used
  *  @return ISIX_EOK if success
  */
-int isix_vtimer_initialize( void ); 
+int isix_vtimer_initialize( void );
 
 /** Create virtual timer  object
  * @return Virtual timer or null ptr if cannot be created
@@ -37,22 +37,22 @@ osvtimer_t isix_vtimer_create( void );
 /**
  * Start one shoot timer execution ISR and non ISR ver
  * @param timer	Pointer to the timer structure
- * @param fun Function to be called 
+ * @param fun Function to be called
  * @param arg Argument passed to the function
  * @param timeout Timeout
  * @param[in] Cyclic is cyclic timer
  * @return success if ISIX_EOK else isix error
  */
-int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
+int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 		void* arg, ostick_t timeout, bool cyclic, bool isr );
 static inline __attribute__((always_inline))
-int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
+int isix_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 		void* arg, ostick_t timeout, bool cyclic )
 {
 	return _isixp_vtimer_start( timer, func, arg, timeout, cyclic, false );
 }
 static inline __attribute__((always_inline))
-int isix_vtimer_start_isr( osvtimer_t timer, osvtimer_callback func, 
+int isix_vtimer_start_isr( osvtimer_t timer, osvtimer_callback func,
 		void* arg, ostick_t timeout, bool cyclic )
 {
 	return _isixp_vtimer_start( timer, func, arg, timeout, cyclic, true );
@@ -90,8 +90,8 @@ int isix_vtimer_is_active( osvtimer_t timer );
 int isix_vtimer_destroy( osvtimer_t timer );
 
 
-/** Only one function schedule task from an interrupt or 
- * other task context for delayed execution 
+/** Only one function schedule task from an interrupt or
+ * other task context for delayed execution
  * @param[in] func Function to call
  * @param[in[ arg Functon argument
  */
