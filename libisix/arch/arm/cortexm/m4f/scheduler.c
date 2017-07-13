@@ -5,11 +5,13 @@
 
 
 /** Restore the context to the place when scheduler was started to run
- *  Use Main stack pointer negate bit 2 of LR
+ *  Use Main stack pointer clear bit 2 in the LR
+ *  Drop flating point stack frame set bit 4 in the LR
  */
 #define cpu_restore_main_context()								\
 	asm volatile (												\
 	"bic lr,lr,#0x04\t\n"										\
+	"orr lr,lr,#0x10\t\n"										\
 	"bx lr\t\n"													\
 	)
 
