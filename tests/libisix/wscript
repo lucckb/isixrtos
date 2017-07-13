@@ -48,6 +48,7 @@ def build(bld):
     src = bld.path.ant_glob( '*.cpp' )
     src += bld.path.ant_glob( 'utils/*.cpp' )
     src += bld.path.ant_glob( 'utils/*.c' )
+    src += bld.path.ant_glob( 'utils/*.S' )
     bld.program(
             features='objcopy',
             target='isixunittests',

@@ -20,6 +20,7 @@
 #include <lest/lest.hpp>
 #include <isix.h>
 #include "task_test_helper.h"
+#include "utils/fpu_test_and_set.h"
 
 namespace
 {
@@ -409,7 +410,39 @@ const lest::test module[] =
 		}
 		EXPECT( errno == 50 );
 		EXPECT( isix::free_stack_space(nullptr) >= c_stack_margin );
-	}
+	},
+	CASE("06_task_08 Simple FPU single precision test without interrupts")
+	{
+		volatile float val = 1.0;
+		const auto thr = [&]()
+		{
+			for( int i=0;i<100000; ++i ) {
+				val += 0.5;
+			}
+		};
+		auto th1 = isix::thread_create_and_run( c_stack_size, c_task_prio,
+					isix_task_flag_newlib, thr
+		);
+		EXPECT( th1 == true );
+		EXPECT( th1.wait_for() == ISIX_EOK );
+		EXPECT( val == 50001 );
+	},
+	CASE("06_task_09 Simple FPU double precision test without interrupts")
+	{
+		volatile double val = 1.0;
+		const auto thr = [&]()
+		{
+			for( int i=0;i<100000; ++i ) {
+				val += 0.5;
+			}
+		};
+		auto th1 = isix::thread_create_and_run( c_stack_size, c_task_prio,
+					isix_task_flag_newlib, thr
+		);
+		EXPECT( th1 == true );
+		EXPECT( th1.wait_for() == ISIX_EOK );
+		EXPECT( val == 50001 );
+	},
 };
 
 
