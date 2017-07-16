@@ -182,10 +182,11 @@ const lest::test module[] =
 		for( auto& stat : stats ) {
 			EXPECT( stat.ok > 10000U );
 			EXPECT( stat.err == 0U );
-			stat.ok &= ~0b11;
 		}
-		EXPECT( stats[0].ok == stats[1].ok );
-		EXPECT( stats[2].ok == stats[1].ok );
+		auto df1 = std::abs( int(stats[0].ok - stats[1].ok) );
+		auto df2 = std::abs( int(stats[2].ok - stats[1].ok) );
+		EXPECT( df1 < 3 );
+		EXPECT( df2 < 3 );
 		isix_wait_ms(50);
 		isix_event_destroy( ev );
 	},

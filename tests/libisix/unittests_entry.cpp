@@ -47,8 +47,8 @@ static void unittests_thread(void*)
 {
 	try {
 		lest::run( specification(), { "-c" } );
-		//int code = lest::run( specification(), {"--", "06_task_08" } );
-		int code = lest::run( specification(), {} );
+		//int code = lest::run( specification(), {"--", "06_task_10" } );
+		const int code = lest::run( specification(), {} );
 		{
 			isix::memory_stat mstat;
 			isix::heap_stats( mstat );

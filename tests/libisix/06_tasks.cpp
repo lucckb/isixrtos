@@ -21,6 +21,8 @@
 #include <isix.h>
 #include "task_test_helper.h"
 #include "utils/fpu_test_and_set.h"
+#include "utils/timer_interrupt.hpp"
+#include <foundation/dbglog.h>
 
 namespace
 {
@@ -426,13 +428,16 @@ const lest::test module[] =
 		EXPECT( th1 == true );
 		EXPECT( th1.wait_for() == ISIX_EOK );
 		EXPECT( val == 50001 );
-	},
+	}
+#if ( __ARM_FP > 0 )
+	,
 	CASE("06_task_09 Simple FPU double precision test without interrupts")
 	{
 		volatile double val = 1.0;
+		static constexpr auto n_loops = 100000U;
 		const auto thr = [&]()
 		{
-			for( int i=0;i<100000; ++i ) {
+			for( unsigned i=0;i<n_loops; ++i ) {
 				val += 0.5;
 			}
 		};
@@ -443,6 +448,65 @@ const lest::test module[] =
 		EXPECT( th1.wait_for() == ISIX_EOK );
 		EXPECT( val == 50001 );
 	},
+	CASE("06_task_10 FPU single precision two tasks and interrupt")
+	{
+		static constexpr auto n_loops = 10000000U;
+		using namespace tests::fpu_sp;
+		constexpr auto thr = []( int begin_val, bool& ok ) -> void
+		{
+			fill_and_add( begin_val );
+			for( unsigned i=0; i<n_loops;++i ) {
+				if( fill_and_add_check(begin_val) ) {
+					ok = false;
+					break;
+				}
+			}
+			ok = true;
+		};
+		constexpr auto thr_c = []( float& val ) -> void
+		{
+			for( unsigned i=0;i<n_loops; ++i ) {
+				val += 0.5;
+			}
+		};
+		volatile bool irq_failed {};
+		bool res1 {}; bool res2 {};
+		float val = 1.0;
+		int irq_nums {};
+		const auto irq_fun = [&]()
+		{
+			using namespace tests::fpu_sp;
+			irq_nums++;
+			if( irq_failed ) {
+				return;
+			}
+			base_regs_fill( 0x44 );
+			if( base_regs_check(0x44) ) {
+				irq_failed = true;
+			}
+		};
+		tests::detail::periodic_timer_setup( irq_fun, 200 );
+		auto th1 = isix::thread_create_and_run( 2048, c_task_prio,
+				isix_task_flag_newlib, thr, 4, std::ref(res1) );
+		auto th2 = isix::thread_create_and_run( 2048, c_task_prio,
+				isix_task_flag_newlib, thr, 2, std::ref(res2) );
+		auto th3 = isix::thread_create_and_run( 2048, c_task_prio,
+				isix_task_flag_newlib, thr_c, std::ref(val) );
+		EXPECT( th1 == true );
+		EXPECT( th2 == true );
+		EXPECT( th3 == true );
+		EXPECT( th1.wait_for() == ISIX_EOK );
+		EXPECT( th2.wait_for() == ISIX_EOK );
+		EXPECT( th3.wait_for() == ISIX_EOK );
+		EXPECT( res1 == true );
+		EXPECT( res2 == true );
+		EXPECT( int(val) == int(n_loops/2+1) );
+		tests::detail::periodic_timer_stop();
+		EXPECT( irq_nums > 10 );
+		EXPECT( irq_failed == false );
+		isix::wait_ms(100);
+	}
+#endif /* __ARM_FP > 0 */
 };
 
 
