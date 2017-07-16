@@ -302,18 +302,17 @@ int isix_task_wait_for( ostask_t task )
 		isix_exit_critical();
 		return ISIX_ENOREF;
 	}
-	if( task->state!=OSTHR_STATE_ZOMBIE || task->state!=OSTHR_STATE_EXITED ) {
+	if( task->state==OSTHR_STATE_ZOMBIE || task->state==OSTHR_STATE_EXITED ) {
+		isix_exit_critical();
+		return ISIX_EOK;
+	} else {
 		_isixp_set_sleep( OSTHR_STATE_WTEXIT );
 		list_insert_end( &task->waiting_tasks, &currp->inode );
 		isix_exit_critical();
 		isix_yield();
 		return task->obj.dmsg;
-	} else {
-		isix_exit_critical();
-		return ISIX_EOK;
 	}
 }
-
 
 
 //! Terminate the process when task exits

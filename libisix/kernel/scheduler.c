@@ -236,12 +236,18 @@ void print_task_list()
               tiny_printf("\t\t-> task %p prio %i state %i\r\n",j,j->prio,j->state);
          }
     }
-    tiny_printf("Waiting tasks\n");
+    tiny_printf("Waiting tasks\r\n");
     list_for_each_entry(csys.p_wait_list,j,inode_time)
     {
         tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\r\n",
-				j, j->prio, j->state, j->jiffies );
+			j, j->prio, j->state, j->jiffies );
     }
+	tiny_printf("Zombie tasks\r\n");
+	list_for_each_entry(&csys.zombie_list,j,inode)
+	{
+        tiny_printf("\t->Task: %p prio: %i state %i jiffies %i\r\n",
+			j, j->prio, j->state, j->jiffies );
+	}
 	isix_exit_critical();
 }
 #endif
