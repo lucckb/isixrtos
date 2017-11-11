@@ -4,11 +4,18 @@
 import waflib
 from waflib.Tools import ccroot
 from waflib import Tools,Errors, Task
-from waflib.TaskGen import after, feature, after_method, before
+from waflib.TaskGen import after, feature, after_method, before, extension
 
 _stdlib_lflags = [ '-Wl,--start-group', '-lstdc++', '-lc', '-lm', '-lg', '-lgcc', '-Wl,--end-group' ]
 
 _tmplink_file = 'ldscript.ld'
+
+
+@extension('.ld')
+def ld_hook(self, node):
+    pass
+
+
 
 @after('apply_link')
 @feature('cprogram', 'cxxprogram' )
@@ -21,13 +28,14 @@ def process_ldscript(self):
             self.link_task.dep_nodes.append(node)
         self.link_task.env.append_value('LDFLAGS', _stdlib_lflags )
 
+
 #Only static libraries toolchain
 @feature('cprogram', 'cxxprogram' )
 @after_method('apply_link')
 def force_static_linking(self):
 	env = self.link_task.env
-	env.STLIB += env.LIB
-	env.LIB = []
+	#env.STLIB += env.LIB
+	#env.LIB = []
 	env.SHLIB_MARKER = ''
 	env.STLIB_MARKER = ''
 
@@ -63,7 +71,7 @@ class generate_link_for_cpu(Task.Task):
                 self.append_origin( dst, src, sect )
         return 0
 
-    #Write application 
+    #Write application
     def write_header( self, hwnd ):
         hwnd.write( 'MEMORY\n' )
         hwnd.write( '{\n' )
