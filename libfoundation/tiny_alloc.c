@@ -50,8 +50,8 @@ static void tiny_alloc_init(void)
 {
   struct header *hp;
 
-  extern unsigned long __heap_start;
-  extern unsigned long __heap_end;
+  extern unsigned char __heap_start;
+  extern unsigned char __heap_end;
 
   mem_lock_init();
 

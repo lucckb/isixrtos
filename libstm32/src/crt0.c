@@ -7,8 +7,8 @@ extern unsigned long _sdata;
 extern unsigned long _edata;
 extern unsigned long _sbss;
 extern unsigned long _ebss;
-extern unsigned long __heap_start;
-extern unsigned long __heap_end;
+extern unsigned char __heap_start;
+extern unsigned char __heap_end;
 
 
 void  __attribute__((weak,alias("empty_func")))_isixp_finalize();
@@ -107,7 +107,7 @@ void _mcu_reset_handler_(void)
         *(pul_dest++) = 0;
     }
 	// Clear the heap
-	for(pul_dest = &__heap_start; pul_dest < &__heap_end; )
+	for(pul_dest = (unsigned long*)&__heap_start; pul_dest < (unsigned long*)&__heap_end; )
 	{
 		*(pul_dest++) = 0;
 	}
