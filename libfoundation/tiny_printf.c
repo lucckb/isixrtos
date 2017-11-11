@@ -1,11 +1,11 @@
-/* ------------------------------------------------------------ */
+
 /*
  * printf.h
  *
  *  Created on: 2009-08-08
  *      Author: lucck
  */
-/* ------------------------------------------------------------ */
+
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -13,13 +13,13 @@
 #include <stddef.h>
 #include "foundation/tiny_printf.h"
 #include "foundation/tiny_vaprintf.h"
-/* ------------------------------------------------------------ */
+
 //Function pointer to putchar
 static int (*fn_putc)(int,void* ) = NULL;
 static void * fn_putc_arg = NULL;
 static void (*fn_lock)(void) = NULL;
 static void (*fn_unlock)(void) = NULL;
-/* ------------------------------------------------------------ */
+
 static void printchar(char **str,int c)
 {
 	if (str)
@@ -33,7 +33,21 @@ static void printchar(char **str,int c)
 	}
 }
 
-/*----------------------------------------------------------*/
+int tiny_putchar( int ch )
+{
+	return fn_putc( ch, fn_putc_arg );
+}
+
+int tiny_puts( const char* str )
+{
+	while( *str ) {
+		tiny_putchar( *str++ );
+	}
+	tiny_putchar( '\r' );
+	tiny_putchar( '\n' );
+	return 1;
+}
+
 #define PAD_RIGHT 1
 #define PAD_ZERO 2
 
@@ -77,7 +91,7 @@ static int prints(char **out, size_t len, const char *string, int width, int pad
 	return pc;
 }
 
-/*----------------------------------------------------------*/
+
 /* the following should be enough for 32 bit int */
 #define PRINT_BUF_LEN 12
 
@@ -131,7 +145,7 @@ static int printi(char **out, size_t len, int i, int b, int sg, int width, int p
 
 	return pc + prints (out, len ,s, width, pad);
 }
-/*----------------------------------------------------------*/
+
 #define unsigned_cast() \
 	int val; \
 	switch( modf ) \
@@ -252,7 +266,7 @@ int tiny_vaprintf(char **out, size_t len, const char *format, va_list args )
 }
 
 
-/* ------------------------------------------------------------ */
+
 int tiny_printf(const char *format, ...)
 {
 	int result;
@@ -265,7 +279,7 @@ int tiny_printf(const char *format, ...)
     return  result;
 }
 
-/*----------------------------------------------------------*/
+
 
 int tiny_snprintf(char *out, unsigned long max_len, const char *format, ...)
 {
@@ -276,7 +290,7 @@ int tiny_snprintf(char *out, unsigned long max_len, const char *format, ...)
 	return ret;
 }
 
-/*----------------------------------------------------------*/
+
 void register_printf_putc_handler_syslock(int (*fputc)(int,void*),void *arg,
 		void (*lock)(void),void (*unlock)(void))
 {
@@ -286,5 +300,5 @@ void register_printf_putc_handler_syslock(int (*fputc)(int,void*),void *arg,
     fn_unlock = unlock;
 }
 
-/*----------------------------------------------------------*/
+
 

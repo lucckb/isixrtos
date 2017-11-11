@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <isix/error.h>
 #include <isix/config.h>
+#include <sys/types.h>
 
 #ifndef __cplusplus
 #define ISIX_TIME_INFINITE 0
@@ -42,6 +43,6 @@ typedef unsigned int ostick_t;
 typedef unsigned long osutick_t;
 //! Priority type
 typedef uint16_t osref_t;
-// Natural bitset type
+//! Natural bitset type
 typedef uint32_t osbitset_t;
 typedef int32_t osbitset_ret_t;

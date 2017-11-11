@@ -19,6 +19,7 @@
 
 #ifdef __cplusplus
 #include <cstddef>
+#include <isix/task.h>
 
 namespace isix {
 
@@ -27,6 +28,7 @@ namespace isix {
 	{
 	public:
 		/** Default constructor (empty) */
+		[[deprecated]]
 		task_base() {
 
 		}
@@ -48,13 +50,20 @@ namespace isix {
 		/** Get thread task id
 		* @return Task control object
 		*/
-		ostask_t get_taskid() noexcept { return task_id; }
+		ostask_t get_taskid() const noexcept { return task_id; }
+		ostask_t tid() const noexcept { return task_id; }
 		/** Check the fifo object is in valid state
 		* @return True when the object is in valid state
 		*/
 		bool is_valid() noexcept { return task_id!=0; }
 
-
+		/** Kill the task */
+		void kill() noexcept {
+			if( task_id ) {
+				isix_task_kill(task_id);
+				task_id = nullptr;
+			}
+		}
 		task_base(const task_base&) = delete;
 		task_base(task_base&&) = default;
 		const task_base& operator=(const task_base&) = delete;
@@ -71,7 +80,6 @@ namespace isix {
 		}
 	private:
 		ostask_t task_id { nullptr };
-	}; 
-
+	};
 }
 #endif /* __cplusplus */

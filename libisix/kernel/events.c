@@ -30,7 +30,7 @@
 #include <isix/prv/printk.h>
 
 //! Check waiting condition
-static inline bool check_cond( osbitset_t curr, osbitset_t wait_for, bool all ) 
+static inline bool check_cond( osbitset_t curr, osbitset_t wait_for, bool all )
 {
 	bool cond;
 	if( !all ) {
@@ -99,7 +99,7 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 		if( clear_on_exit ) {
 			evth->bitset &= ~bits_to_wait;
 		}
-	} 
+	}
 	else if( timeout == ISIX_TIME_DONTWAIT )
 	{
 		//! Don't wait only return current bitmask
@@ -114,9 +114,9 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 			( wait_for_all?ISIX_EVENT_CTRL_ALL_MATCH_FLAG:0U ) |
 			( clear_on_exit?ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG:0U ) ;
 		isix_exit_critical();
-		_isix_port_yield();
+		isix_yield();
 		isix_enter_critical();
-		if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS)==0 ) 
+		if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS)==0 )
 		{	//! Wakeup all bits should be set
 			retval = currp->obj.evbits;
 		} else {
@@ -151,17 +151,9 @@ osbitset_ret_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear )
 	return retval;
 }
 
-//! Events to set bits
-osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool isr )
+
+static ostask_t event_set( osevent_t evth, osbitset_t bits_to_set )
 {
-	//! Check input parameters
-	if( !evth ) {
-		return ISIX_EINVARG;
-	}
-	if( bits_to_set&ISIX_EVENT_CTRL_BITS ) {
-		return ISIX_EINVARG;
-	}
-	isix_enter_critical();
 	evth->bitset |= bits_to_set;
 	ostask_t wkup_task = currp;
 	osbitset_t clr_bits = 0U;
@@ -180,6 +172,22 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 		}
 	}
 	evth->bitset &= ~clr_bits;
+	return wkup_task;
+}
+
+
+//! Events to set bits
+osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool isr )
+{
+	//! Check input parameters
+	if( !evth ) {
+		return ISIX_EINVARG;
+	}
+	if( bits_to_set&ISIX_EVENT_CTRL_BITS ) {
+		return ISIX_EINVARG;
+	}
+	isix_enter_critical();
+	ostask_t wkup_task =  event_set( evth, bits_to_set );
 	if( !isr ) _isixp_do_reschedule( wkup_task );
 	else	   isix_exit_critical();
 	return evth->bitset;
@@ -212,44 +220,42 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 		return ISIX_EINVARG;
 	}
 	isix_enter_critical();
+	osbitset_t orgbits = evth->bitset;
+	ostask_t wkup_task = event_set( evth, bits_to_set );
+	if( ((orgbits|bits_to_set) & bits_to_wait) == bits_to_wait )
 	{
-		osbitset_t orgbits = evth->bitset;
-		_isixp_event_set( evth, bits_to_set, false );
-		if( ((orgbits|bits_to_set) & bits_to_wait ) == bits_to_wait )
+		//! All bits set condition was meet
+		retval = orgbits|bits_to_set;
+		evth->bitset &= ~ bits_to_wait;
+	}
+	else
+	{
+		//Bit condition not meet
+		if( timeout != ISIX_TIME_DONTWAIT )
 		{
-			//! All bits set condition was meet
-			retval = orgbits|bits_to_set;
-			evth->bitset &= ~ bits_to_wait;
-			timeout = ISIX_TIME_DONTWAIT;
+			_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
+			list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
+			currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG
+								| ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG;
+			if( wkup_task!= currp ) _isixp_do_reschedule( wkup_task );
+			else { isix_exit_critical(); isix_yield(); }
+			wkup_task = currp;
+			isix_enter_critical();
+			if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS) == 0 ) {
+				retval = currp->obj.evbits;
+			} else {
+				if( (evth->bitset&bits_to_wait) == bits_to_wait ) {
+					evth->bitset &= ~bits_to_wait;
+				}
+				//!31th bit set it is timeout
+				retval = currp->obj.dmsg;
+			}
 		}
 		else
 		{
-			//Bit condition not meet
-			if( timeout != ISIX_TIME_DONTWAIT )
-			{
-				_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
-				list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
-				currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG
-									| ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG;
-				isix_exit_critical();
-				isix_yield();
-				isix_enter_critical();
-				if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS) == 0 ) {
-					retval = currp->obj.evbits;
-				} else {
-					if( (evth->bitset&bits_to_wait) == bits_to_wait ) {
-						evth->bitset &= ~bits_to_wait;
-					}
-					//!31th bit set it is timeout
-					retval = currp->obj.dmsg;
-				}
-			}
-			else
-			{
-				retval = evth->bitset;
-			}
+			retval = evth->bitset;
 		}
 	}
-	isix_exit_critical();
+	_isixp_do_reschedule( wkup_task );
 	return retval;
 }

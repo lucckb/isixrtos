@@ -57,4 +57,3 @@ static inline void __attribute__((always_inline))
 }
 
 #endif /* CONFIG_ISIX_USE_TIMERS */
-/*-----------------------------------------------------------------------*/

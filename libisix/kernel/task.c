@@ -141,13 +141,18 @@ void isix_task_kill( ostask_t task )
 {
 	//Release all waiting mutexes owned by task
     ostask_t taskd = task?task:currp;
-	_isixp_mutex_unlock_all_in_task( taskd );
 	isix_enter_critical();
+	if(    taskd->state == OSTHR_STATE_ZOMBIE
+		|| taskd->state == OSTHR_STATE_EXITED ) {
+		isix_exit_critical();
+		return;
+	}
+	_isixp_mutex_unlock_all_in_task( taskd );
 	_isixp_add_kill_or_set_suspend( taskd, false );
-	if( !task ) {
+	if( taskd == currp ) {
 		isix_exit_critical();
 		isix_yield();
-	} 
+	}
 	else {
 		isix_exit_critical();
 	}
@@ -166,18 +171,25 @@ ostask_t isix_task_self(void)
 #error isix_free_stack_space() for ascending stack not implemented yet
 #endif
 
-size_t isix_free_stack_space(const ostask_t task)
+ssize_t isix_free_stack_space(ostask_t task)
 {
+	if( task == NULL ) task = currp;
+	isix_enter_critical();
+	if( !task->init_stack ) {
+		isix_exit_critical();
+		return ISIX_EBADF;
+	}
 	size_t freespc=0;
 	const ostask_t taskd = task?task:currp;
 	volatile unsigned char *b_stack = (volatile unsigned char*)
-		(_isix_port_memory_efence_aligna((uintptr_t)taskd->init_stack) + 
+		(_isix_port_memory_efence_aligna((uintptr_t)taskd->init_stack) +
 		 ISIX_MEMORY_PROTECTION_EFENCE_SIZE );
 
 	while(*b_stack==MAGIC_FILL_VALUE) {
 		++b_stack;
 		++freespc;
 	}
+	isix_exit_critical();
 	return freespc;
 }
 #endif
@@ -215,7 +227,7 @@ void isix_task_suspend( ostask_t task )
 	isix_enter_critical();
     ostask_t taskd = task?task:currp;
 	_isixp_add_kill_or_set_suspend( taskd, true );
-	if( !task ) {
+	if( taskd==currp ) {
 		isix_exit_critical();
 		isix_yield();
 	}
@@ -271,6 +283,7 @@ int isix_task_unref( ostask_t task )
 		--taskd->refcnt;
 	}
 	bool do_clean = ( taskd->refcnt==0 && taskd->state==OSTHR_STATE_EXITED );
+	__sync_synchronize();
 	isix_exit_critical();
 	if( do_clean ) isix_free( taskd );
 	return ISIX_EOK;
@@ -289,18 +302,17 @@ int isix_task_wait_for( ostask_t task )
 		isix_exit_critical();
 		return ISIX_ENOREF;
 	}
-	if( task->state!=OSTHR_STATE_ZOMBIE || task->state!=OSTHR_STATE_EXITED ) {
+	if( task->state==OSTHR_STATE_ZOMBIE || task->state==OSTHR_STATE_EXITED ) {
+		isix_exit_critical();
+		return ISIX_EOK;
+	} else {
 		_isixp_set_sleep( OSTHR_STATE_WTEXIT );
 		list_insert_end( &task->waiting_tasks, &currp->inode );
 		isix_exit_critical();
 		isix_yield();
 		return task->obj.dmsg;
-	} else {
-		isix_exit_critical();
-		return ISIX_EOK;
 	}
 }
-
 
 
 //! Terminate the process when task exits
