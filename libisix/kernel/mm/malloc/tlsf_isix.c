@@ -30,8 +30,8 @@
 //! Initialize global heap
 void _isixp_alloc_init(void)
 {
-	extern char __heap_start;
-	extern char __heap_end;
+	extern unsigned long __heap_start;
+	extern unsigned long __heap_end;
 	size_t ret = init_memory_pool(
 			&__heap_end - &__heap_start,
 			&__heap_start
