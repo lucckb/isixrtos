@@ -33,16 +33,16 @@ namespace cpu {
 	namespace {
 	namespace detail {
 		//! Saturated cast signed
-		inline __attribute__((always_inline)) 
-			int32_t ssat( int32_t val, int bits ) 
+		inline __attribute__((always_inline))
+			int32_t ssat( int32_t val, int bits )
 		{
 			int32_t out;
 			asm volatile("ssat %0, %1, %2" : "=r" (out) : "I" (bits), "r" (val) ) ;
 			return out;
 		}
 		//! Saturated cast signed
-		inline __attribute__((always_inline)) 
-			int32_t usat( int32_t val, int bits ) 
+		inline __attribute__((always_inline))
+			int32_t usat( int32_t val, int bits )
 		{
 			int32_t out;
 			asm volatile("usat %0, %1, %2" : "=r" (out) : "I" (bits), "r" (val) ) ;

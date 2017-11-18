@@ -50,6 +50,15 @@ namespace dsp {
 				inc_phz( phz_inc );
 				return ret;
 			}
+			std::complex<R> mix_cos_r_sin_i( std::complex<R> signal, P phz_inc )
+			{
+				const std::complex<R> ret(
+						(signal.real()*icosinus(m_vco_phz)) >> SHIFT ,
+						(signal.imag()*isinus(m_vco_phz))   >> SHIFT
+						);
+				inc_phz( phz_inc );
+				return ret;
+			}
 			R mix_cos( R signal, P phz_inc )
 			{
 				R ret = (signal*icosinus(m_vco_phz)) >> SHIFT;

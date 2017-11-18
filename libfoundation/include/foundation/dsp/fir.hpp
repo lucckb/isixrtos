@@ -26,7 +26,6 @@ namespace dsp {
 			typename std::enable_if<std::is_floating_point<typename std::complex<T>::value_type >::value, R >::type
 			inline scale(std::complex<T> t)
 			{
-
 				return t;
 			}
 		template<typename R, typename T>
@@ -40,18 +39,17 @@ namespace dsp {
 			typename std::enable_if<std::is_integral<typename std::complex<T>::value_type >::value, R >::type
 			inline scale(std::complex<T> t)
 			{
-				return R( cpu::saturated_cast<typename R::value_type>( t.real() >> cbits<typename R::value_type>()),
-						cpu::saturated_cast<typename R::value_type>( t.imag() >> cbits<typename R::value_type>()) 
-						);
+				return R( cpu::saturated_cast<typename R::value_type>(t.real() >> cbits<typename R::value_type>()),
+						cpu::saturated_cast<typename R::value_type>(t.imag() >> cbits<typename R::value_type>())
+				);
 			}
-		/*
+
 		   template<typename R, typename T>
 		   typename std::enable_if<std::is_integral<T>::value, R >::type
 		   inline scale(T t)
 		   {
-		   return cpu::saturated_cast<R>(t);
+				return cpu::saturated_cast<R>( t >> cbits<R>() );
 		   }
-		   */
 	}
 
 	/**
@@ -63,7 +61,6 @@ namespace dsp {
 	template<typename DT, typename CT, std::size_t TAPS, typename ACC = DT>
 		class fir
 		{
-
 			public:
 				explicit constexpr fir( const CT * const coefs )
 					: m_coefs( coefs ), m_state()
@@ -87,7 +84,7 @@ namespace dsp {
 					using namespace cpu;
 					ACC acc {};
 					std::size_t index = m_last_idx;
-					for(std::size_t i = 0; i < TAPS; ++i) 
+					for(std::size_t i = 0; i < TAPS; ++i)
 					{
 						index = index != 0 ? index-1 : TAPS-1;
 						//Multiply and accumulate
