@@ -18,10 +18,10 @@
 
 #include <gfx/gui/waterfall.hpp>
 #include <foundation/dbglog.h>
-/* ------------------------------------------------------------------ */ 
+
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */ 
+
 namespace {
 	//! Convert amplitude to color
 	inline color_t ampl2color( short a ) {
@@ -42,7 +42,7 @@ namespace {
 		return color::White;
 	}
 }
-/* ------------------------------------------------------------------ */ 
+
 //! GUI dram frame
 void waterfall::draw_frame()
 {
@@ -63,7 +63,7 @@ void waterfall::draw_frame()
 	gdi.draw_line(c.x()+1, c.y(), c.x()+c.cx()-1, c.y() );
 	gdi.draw_line(c.x(), c.y(), c.x(), c.y()+c.cy()-2 );
 }
-/* ------------------------------------------------------------------ */ 
+
 //! Draw frequency selection line
 void waterfall::draw_select_line()
 {
@@ -83,7 +83,7 @@ void waterfall::draw_select_line()
 		m_last_line_pos = xpos;
 	}
 }
-/* ------------------------------------------------------------------ */ 
+
 //! Handle waterfall event info
 void waterfall::report_event( const input::event_info& ev )
 {
@@ -95,13 +95,13 @@ void waterfall::report_event( const input::event_info& ev )
 	if( ev.type == evinfo::EV_KEY && !m_readonly ) {
 		bool mflag = false;
 		if( ev.keyb.stat==kstat::DOWN || ev.keyb.stat==kstat::RPT ) {
-			if( ev.keyb.key == input::kbdcodes::os_arrow_left ) {
+			if( ev.keyb.key == input::kbdcodes::os_arrow_down ) {
 				if( m_freq_sel > m_f0 ) {
 					m_freq_sel -= (ev.keyb.ctrlbits.lctrl)?(c_freq_fast_step):(c_freq_step);
 					mflag = true;
 				}
 			}
-			else if( ev.keyb.key == input::kbdcodes::os_arrow_right ) {
+			else if( ev.keyb.key == input::kbdcodes::os_arrow_up ) {
 				if( m_freq_sel < m_f1 ) {
 					m_freq_sel += (ev.keyb.ctrlbits.lctrl)?(c_freq_fast_step):(c_freq_step);
 					mflag = true;
@@ -116,8 +116,8 @@ void waterfall::report_event( const input::event_info& ev )
 		}
 	}
 }
-/* ------------------------------------------------------------------ */ 
-//! Handle repaint 
+
+//! Handle repaint
 void waterfall::repaint( bool focus )
 {
 	if( m_readonly ) {
@@ -146,7 +146,7 @@ void waterfall::repaint( bool focus )
 	const int fftwidth =  fftI1 - fftI0;
 	//! Scroll the first line down
 	gdi.scroll( c.x() + c_margin , c.y()+1, lwidth,
-			c.cy() , -1, get_owner().get_layout().bg() 
+			c.cy() , -1, get_owner().get_layout().bg()
 	);
 	for( gfx::coord_t u = 0; u < lwidth; ++u ) {
 		if( u == 0 ) {
@@ -166,7 +166,6 @@ void waterfall::repaint( bool focus )
 	draw_select_line();
 	m_data_ptr = nullptr;
 }
-/* ------------------------------------------------------------------ */ 
+
 }
 }
-/* ------------------------------------------------------------------ */ 
