@@ -17,12 +17,12 @@
  */
 #pragma once
 
-/* ------------------------------------------------------------------ */
+
 #include <gfx/gui/widget.hpp>
-/* ------------------------------------------------------------------ */ 
+
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */ 
+
 
 /** Watterfall class widget implementation. 
  *  Watterfall is an waterfall update widget for 
@@ -87,6 +87,6 @@ private:
 	gfx::coord_t m_last_line_pos {};		//! Last line position
 	bool m_readonly {};						//! If component is RO
 };
-/* ------------------------------------------------------------------ */ 
+
 }	//gui
 }	//gfx
