@@ -49,8 +49,8 @@ namespace dsp {
 			/** Construct fft object with selected width
 			 * @param[in] fftpow spectrum width
 			 */
-			explicit spectrum_pwr( std::size_t fftpow, smp_type stype=smp_type::even,
-					scale sc=scale::log, pow_t factor = std::numeric_limits<pow_t>::max() )
+			explicit spectrum_pwr( std::size_t fftpow, smp_type stype=smp_type::odd,
+					scale sc=scale::lin, pow_t factor = std::numeric_limits<pow_t>::max() )
 				: m_cplx(new std::complex<pow_t>[1U<<fftpow] )
 				, m_sampletype(stype), m_scale(sc), m_factor(factor), m_fftpow(fftpow)
 			{}
@@ -97,7 +97,7 @@ namespace dsp {
 			//! FFT factor
 			pow_t m_factor;
 			//! Sample buffer counter
-			std::atomic<unsigned short> m_sample_buf_cnt {};
+			mutable std::atomic<unsigned short> m_sample_buf_cnt {};
 			//! FFT power factor
 			const unsigned char m_fftpow;
 		};

@@ -50,10 +50,10 @@ bool spectrum_pwr::operator()( const short in[], std::size_t len ) noexcept
 		case smp_type::all:
 			std::memcpy(&m_real[slen], in, sizeof(in[0])*tocopy);
 			break;
-		case smp_type::even:
+		case smp_type::odd:
 			for(std::size_t i=0; i<tocopy; i++)  m_real[slen+i]=in[i*2];
 			break;
-		case smp_type::odd:
+		case smp_type::even:
 			for(std::size_t i=0; i<tocopy; i++)  m_real[slen+i]=in[i*2+1];
 			break;
 		};
@@ -75,7 +75,8 @@ const spectrum_pwr::pow_t* spectrum_pwr::operator()() const noexcept
 		m_real[i] = dint::sqrt( pow2(m_cplx[i].real()) + pow2(m_cplx[i].imag()) );
 	}
 	//Normalize the graph and do log
-	const int max_sample = *std::max_element( m_real, m_real + bsize()/2 );
+	int max_sample = *std::max_element( m_real, m_real + bsize()/2 );
+	if( max_sample == 0 ) max_sample = 1;
 	const int max_value = (m_scale==scale::log)?(std::numeric_limits<pow_t>::max()):(m_factor);
 	for( unsigned i=0; i<bsize()/2; i++ ) {
 		m_real[i] = (int(m_real[i])* max_value) / max_sample;
@@ -87,6 +88,7 @@ const spectrum_pwr::pow_t* spectrum_pwr::operator()() const noexcept
 				m_real[i] = (lsample*m_factor)/std::numeric_limits<pow_t>::max();
 		}
 	}
+	m_sample_buf_cnt = 0;
 	return m_real;
 }
 
