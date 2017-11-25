@@ -147,7 +147,7 @@ void seekbar::report_event( const input::event_info& ev )
 				if( m_value < m_min ) m_value = m_min;
 				else ret = true;
 			}
-			else if( ev.keyb.key == kbdcodes::enter && 
+			else if( ev.keyb.key == kbdcodes::enter &&
 					 ev.keyb.stat != kstat::RPT )
 			{
 				event btn_event( this, event::evtype::EV_CLICK );

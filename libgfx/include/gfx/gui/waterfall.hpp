@@ -31,8 +31,6 @@ namespace gui {
 
 class waterfall : public widget {
 	static constexpr auto c_margin = 2;
-	static constexpr auto c_freq_step = 8;
-	static constexpr auto c_freq_fast_step = 50;
 public:
 	/** Waterfall constructor 
 	 * @param[in] rect Widget size
@@ -69,6 +67,14 @@ public:
 		m_readonly = ro;
 		modified();
 	}
+	/** Set default frequency stepping
+	 * @param[in] slow Slow frequency step path
+	 * @param[in] fast Fast frequency step path
+	 */
+	void set_step( unsigned short slow, unsigned short fast ) noexcept {
+		m_freq_step = slow;
+		m_freq_fast_step = fast;
+	}
 protected:
 	 //! On repaint the widget return true when changed
 	 virtual void repaint( bool focus );
@@ -86,6 +92,8 @@ private:
 	unsigned short m_freq_sel;				//! Frequency selected
 	gfx::coord_t m_last_line_pos {};		//! Last line position
 	bool m_readonly {};						//! If component is RO
+	unsigned short m_freq_step { 8 };		//! Default frequency step
+	unsigned short m_freq_fast_step { 50 };		//! Default frequency step
 };
 
 }	//gui

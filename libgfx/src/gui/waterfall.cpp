@@ -92,28 +92,38 @@ void waterfall::report_event( const input::event_info& ev )
 	if( m_data_ptr ) {
 		modified();
 	}
+	bool mflag = false;
 	if( ev.type == evinfo::EV_KEY && !m_readonly ) {
-		bool mflag = false;
 		if( ev.keyb.stat==kstat::DOWN || ev.keyb.stat==kstat::RPT ) {
 			if( ev.keyb.key == input::kbdcodes::os_arrow_down ) {
 				if( m_freq_sel > m_f0 ) {
-					m_freq_sel -= (ev.keyb.ctrlbits.lctrl)?(c_freq_fast_step):(c_freq_step);
+					m_freq_sel -= (ev.keyb.ctrlbits.lctrl)?(m_freq_fast_step):(m_freq_step);
 					mflag = true;
 				}
 			}
 			else if( ev.keyb.key == input::kbdcodes::os_arrow_up ) {
 				if( m_freq_sel < m_f1 ) {
-					m_freq_sel += (ev.keyb.ctrlbits.lctrl)?(c_freq_fast_step):(c_freq_step);
+					m_freq_sel += (ev.keyb.ctrlbits.lctrl)?(m_freq_fast_step):(m_freq_step);
 					mflag = true;
 				}
 			}
 		}
-		if( mflag ) {
-			//Report change event
-			modified();
-			event btn_event( this, event::evtype::EV_CHANGE );
-			emit( btn_event );
+	} else if( ev.type == evinfo::EV_KNOB && !m_readonly )
+	{
+		if( ev.knob.diff>0 && m_freq_sel>m_f0 ) {
+			m_freq_sel += (ev.knob.diff>2)?(m_freq_fast_step):(m_freq_step);
+			mflag = true;
 		}
+		if(ev.knob.diff<0 && m_freq_sel<m_f1 ) {
+			m_freq_sel -= (ev.knob.diff<2)?(m_freq_fast_step):(m_freq_step);
+			mflag = true;
+		}
+	}
+	if( mflag ) {
+		//Report change event
+		modified();
+		event btn_event( this, event::evtype::EV_CHANGE );
+		emit( btn_event );
 	}
 }
 
