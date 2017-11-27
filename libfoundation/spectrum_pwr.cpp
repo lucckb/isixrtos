@@ -50,11 +50,11 @@ bool spectrum_pwr::operator()( const short in[], std::size_t len ) noexcept
 		case smp_type::all:
 			std::memcpy(&m_real[slen], in, sizeof(in[0])*tocopy);
 			break;
-		case smp_type::odd:
-			for(std::size_t i=0; i<tocopy; i++)  m_real[slen+i]=in[i*2];
-			break;
-		case smp_type::even:
+		case smp_type::odd: //1,3,5,7,9
 			for(std::size_t i=0; i<tocopy; i++)  m_real[slen+i]=in[i*2+1];
+			break;
+		case smp_type::even: //0,2,4,6
+			for(std::size_t i=0; i<tocopy; i++)  m_real[slen+i]=in[i*2];
 			break;
 		};
 	} while(m_sample_buf_cnt.compare_exchange_weak(slen, slen+tocopy));
