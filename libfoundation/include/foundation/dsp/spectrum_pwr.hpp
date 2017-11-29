@@ -49,7 +49,7 @@ namespace dsp {
 			/** Construct fft object with selected width
 			 * @param[in] fftpow spectrum width
 			 */
-			explicit spectrum_pwr( std::size_t fftpow, smp_type stype=smp_type::odd,
+			explicit spectrum_pwr( std::size_t fftpow, smp_type stype=smp_type::all,
 					scale sc=scale::lin, pow_t factor = std::numeric_limits<pow_t>::max() )
 				: m_cplx(new std::complex<pow_t>[1U<<fftpow] )
 				, m_sampletype(stype), m_scale(sc), m_factor(factor), m_fftpow(fftpow)
