@@ -17,6 +17,8 @@
 #include "stm32f37x/stm32f37x_lib.h"
 #elif defined(STM32MCU_MAJOR_TYPE_F7)
 #include "stm32f7x/stm32f7xx_lib.h"
+#elif defined(STM32MCU_MAJOR_TYPE_F3)
+#include "stm32f30x/stm32f30x_lib.h"
 #else
 #error Selected MCU type is invalid
 #endif

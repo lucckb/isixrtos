@@ -24,7 +24,8 @@
 
 
 #if defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4) \
-|| defined(STM32MCU_MAJOR_TYPE_F37) || defined(STM32MCU_MAJOR_TYPE_F7)
+|| defined(STM32MCU_MAJOR_TYPE_F37) || defined(STM32MCU_MAJOR_TYPE_F7) \
+|| defined(STM32MCU_MAJOR_TYPE_F3)
 #define IS_NEW_GPIO 1
 #endif
 

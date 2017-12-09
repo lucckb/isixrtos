@@ -259,7 +259,7 @@
 		"stm32f334x8" : {
 			"cpu": "arm_cortex_m4",
 			"cflags":  [ ],
-			"defs":    ["STM32MCU_MAJOR_TYPE_F33x=1"],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F3=1","STM32F334x8"],
 			"family": "f33",
 			"memmap" : {
 				"ram" : {
