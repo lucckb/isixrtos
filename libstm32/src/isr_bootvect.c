@@ -41,7 +41,7 @@ typedef void(*vect_fun_t)(void);
 #elif defined(STM32MCU_MAJOR_TYPE_F7)
 #include "vectors/f76x.h"
 #elif defined(STM32MCU_MAJOR_TYPE_F33x)
-#error type33x
+#include "vectors/f33x.h"
 #else /*  !(defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || (defined STM32F10X_HD_VL)) */
 #include "vectors/f101_3.h"
 #endif
