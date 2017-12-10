@@ -87,7 +87,6 @@ namespace {
 			stm32::nvic_irq_enable( DMA1_Channel5_IRQn, true );
 		}
 	}
-}
 #else /* !STM32MCU_MAJOR_TYPE_F1 */
 
 	enum class dma_dir : bool {
