@@ -54,10 +54,17 @@ static inline void usart_set_baudrate( USART_TypeDef* USARTx,
 #ifdef USART6
   if ((USARTx == USART1) || (USARTx == USART6))
 #else
-  if( USARTx == USART1 ) 
+  if( USARTx == USART1 )
 #endif
   {
+	  /* USART1 Clock is PCLK1 instead of PCLK2 (limitation described in the 
+       STM32F302/01/34 x4/x6/x8 respective erratasheets) */
+#if defined(STM32F303x8) || defined(STM32F334x8) || defined(STM32F301x8) || defined(STM32F302x8)
+	apbclock = pclk1;
+	(void)pclk2;
+#else
     apbclock = pclk2;
+#endif
   }
   else
   {

@@ -42,21 +42,7 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 #elif defined(RCC_APB2ENR_USART1EN)
 		RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
 #endif
-		if(!(flags & USARTSIMPLE_FL_ALTERNATE) )
-		{
-			gpio_clock_enable( GPIOA, true );
-			//Configure GPIO port TxD and RxD
-			gpio_abstract_config(GPIOA,USART1_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
-			if(!(flags & USARTSIMPLE_FL_NORX ) )
-				gpio_abstract_config(GPIOA,USART1_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
-#if IS_NEW_GPIO
- 
-			gpio_pin_AF_config(GPIOA, USART1_TX_BIT , GPIO_AF_7 );
-			if(!(flags & USARTSIMPLE_FL_NORX ) )
-				gpio_pin_AF_config(GPIOA, USART1_RX_BIT , GPIO_AF_7 );
-#endif
-		}
-		else
+		if(flags & USARTSIMPLE_FL_ALTERNATE)
 		{
 			gpio_clock_enable( GPIOB, true );
 			//Configure GPIO port TxD and RxD
@@ -72,6 +58,33 @@ int usartsimple_init(USART_TypeDef *usart_, unsigned baudrate, unsigned flags,
 #else
 			RCC->APB2ENR |= RCC_APB2Periph_AFIO;
 			AFIO->MAPR |= AFIO_MAPR_USART1_REMAP;
+#endif
+		}
+		else if( flags & USARTSIMPLE_FL_ALTERNATE_PC )
+		{
+#if IS_NEW_GPIO
+			gpio_clock_enable( GPIOC, true );
+			gpio_abstract_config( GPIOC, 4, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+			gpio_pin_AF_config( GPIOC, 4, GPIO_AF_7 );
+
+			if(!(flags & USARTSIMPLE_FL_NORX ) ) {
+				gpio_abstract_config( GPIOC, 5, AGPIO_MODE_INPUT_FLOATING, 0 );
+				gpio_pin_AF_config( GPIOC, 5, GPIO_AF_7 );
+			}
+#endif
+		}
+		else
+		{
+			gpio_clock_enable( GPIOA, true );
+			//Configure GPIO port TxD and RxD
+			gpio_abstract_config(GPIOA,USART1_TX_BIT, AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_HALF );
+			if(!(flags & USARTSIMPLE_FL_NORX ) )
+				gpio_abstract_config(GPIOA,USART1_RX_BIT, AGPIO_MODE_INPUT_FLOATING, 0 );
+#if IS_NEW_GPIO
+ 
+			gpio_pin_AF_config(GPIOA, USART1_TX_BIT , GPIO_AF_7 );
+			if(!(flags & USARTSIMPLE_FL_NORX ) )
+				gpio_pin_AF_config(GPIOA, USART1_RX_BIT , GPIO_AF_7 );
 #endif
 		}
 	}
