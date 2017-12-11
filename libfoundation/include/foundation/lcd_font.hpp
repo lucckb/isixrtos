@@ -5,13 +5,12 @@
  *      Author: lucck
  */
 
-#ifndef FOUNDATION_UC1601_FONT_HPP_
-#define FOUNDATION_UC1601_FONT_HPP_
+#pragma once
 
-/* ------------------------------------------------------------------ */
+
 namespace fnd {
 namespace lcd {
-/* ------------------------------------------------------------------ */
+
 //Very simple font for lcd
 struct font_t
 {
@@ -27,7 +26,6 @@ struct font_t
 	const unsigned char *bmp;
 };
 
-/* ------------------------------------------------------------------ */
+
 }}
-/* ------------------------------------------------------------------ */
-#endif /* UC1601_FONT_HPP_ */
+

@@ -4,15 +4,14 @@
  *  Created on: 10 lis 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
-#ifndef LIBFOUNDATION_PID_REGULATOR_HPP_
-#define LIBFOUNDATION_PID_REGULATOR_HPP_
-/* ------------------------------------------------------------------ */
+
+#pragma once
+
 #include <foundation/noncopyable.hpp>
-/* ------------------------------------------------------------------ */
+
 namespace fnd {
 
-/* ------------------------------------------------------------------ */
+
 template <typename T>
 class pid_regulator	 : private fnd::noncopyable
 {
@@ -73,9 +72,8 @@ private:
 	bool m_ov {};			//Overflow anti windup
 };
 
-/* ------------------------------------------------------------------ */
+
 } /* namespace fnd */
 
-/* ------------------------------------------------------------------ */
-#endif /* PID_REGULATOR_HPP_ */
-/* ------------------------------------------------------------------ */
+
+

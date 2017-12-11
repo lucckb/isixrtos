@@ -5,14 +5,13 @@
  *      Author: lucck
  */
 
-#ifndef FOUNDATION_DISPLAY_OPERATORS_HPP_
-#define FOUNDATION_DISPLAY_OPERATORS_HPP_
+#pragma once
 
 #include <foundation/utils.h>
 
 namespace fnd {
 namespace lcd {
-/*----------------------------------------------------------*/
+
 	class lfmt
 	{
 	public:
@@ -33,7 +32,7 @@ namespace lcd {
 		const char m_fmtch;
 		const short m_base;
 	};
-	/* ------------------------------------------------------------------ */
+
 	template<typename T>
 	class ffmt
 	{
@@ -44,21 +43,21 @@ namespace lcd {
 		T val() const { return m_val; }
 		int prec() const { return m_prec; }
 	private:
-		T 	m_val;
+		T	m_val;
 		int m_prec;
 	};
-	/* ------------------------------------------------------------------ */
+
 	struct icon
 	{
 	public:
 		virtual const char* get_data() const = 0;
 		virtual char get_char() const = 0;
 	};
-	/* ------------------------------------------------------------------ */
+
 	struct endl
 	{
 	};
-	/* ------------------------------------------------------------------ */
+
 	class pos
 	{
 	public:
@@ -70,7 +69,7 @@ namespace lcd {
 		const unsigned short m_x;
 		const unsigned short m_y;
 	};
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 		D& operator<<( D &o,const char *str)
 	{
@@ -80,7 +79,7 @@ namespace lcd {
 		return o;
 	}
 
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 		D& operator<<(D &o,unsigned value)
 	{
@@ -89,7 +88,7 @@ namespace lcd {
 		o << buf;
 		return o;
 	}
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 		D& operator<<(D &o,int value)
 	{
@@ -98,7 +97,7 @@ namespace lcd {
 		o << buf;
 		return o;
 	}
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 		D& operator<<(D &o,float value)
 	{
@@ -107,7 +106,7 @@ namespace lcd {
 		o << buf;
 		return o;
 	}
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 		D& operator<<(D &o,double value)
 	{
@@ -116,7 +115,7 @@ namespace lcd {
 		o << buf;
 		return o;
 	}
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 			D& operator<<(D &o,const ffmt<float> &fmt)
 	{
@@ -125,7 +124,7 @@ namespace lcd {
 		o << buf;
 		return o;
 	}
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 			D& operator<<(D &o,const ffmt<double> &fmt)
 	{
@@ -134,7 +133,7 @@ namespace lcd {
 		o << buf;
 		return o;
 	}
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 		D& operator<<(D &o,const lfmt &fmt)
 	{
@@ -143,7 +142,7 @@ namespace lcd {
 		o << buf;
 		return o;
 	}
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 		D& operator<<(D &o,const icon &fmt)
 	{
@@ -151,14 +150,14 @@ namespace lcd {
 		return o;
 	}
 
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 		D& operator<<(D &o,const pos &fmt)
 	{
 		o.setpos(fmt.x(),fmt.y());
 		return o;
 	}
-	/* ------------------------------------------------------------------ */
+
 	template <typename D>
 			D& operator<<(D &o,const endl&)
 	{
@@ -166,6 +165,5 @@ namespace lcd {
 		return o;
 	}
 }}
-/*----------------------------------------------------------*/
-#endif /* DISPLAY_OPERATORS_HPP_ */
-/*----------------------------------------------------------*/
+
+

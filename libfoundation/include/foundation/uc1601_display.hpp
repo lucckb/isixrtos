@@ -5,20 +5,19 @@
  *      Author: lucck
  */
 
-#ifndef UC1601_DISPLAY_HPP_
-#define UC1601_DISPLAY_HPP_
-/* ------------------------------------------------------------------ */
+#pragma once
+
 #include <cstdint>
 #include <cstddef>
 #include <foundation/noncopyable.hpp>
 #include <foundation/display_operators.hpp>
-/* ------------------------------------------------------------------ */
+
 namespace fnd {
 namespace lcd {
-/* ------------------------------------------------------------------ */
+
 struct font_t;
 struct icon_t;
-/* ------------------------------------------------------------------ */
+
 //! UC1601 bus interface
 class uc1601_bus
 {
@@ -67,7 +66,7 @@ protected:
 	 */
 	virtual int command_( int cmd1, int cmd2 ) = 0;
 };
-/* ------------------------------------------------------------------ */
+
 //! UC1601 basic command display
 class uc1601_display : private fnd::noncopyable
 {
@@ -196,9 +195,8 @@ private:
 	uint8_t m_pa {}, m_ca {};
 	const uint8_t m_cols, m_rows;
 };
-/* ------------------------------------------------------------------ */
+
 } /* namespace lcd */
 } /* namespace fnd */
-/* ------------------------------------------------------------------ */
-#endif /* UC1601_DISPLAY_HPP_ */
-/* ------------------------------------------------------------------ */
+
+

@@ -4,13 +4,12 @@
  *  Created on: 08-01-2012
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
-#ifndef FOUNDATION_HD44XX_DISPLAY_HPP_
-#define FOUNDATION_HD44XX_DISPLAY_HPP_
-/*----------------------------------------------------------*/
+
+#pragma once
+
 #include <stdint.h>
 #include <foundation/display_operators.hpp>
-/*----------------------------------------------------------*/
+
 namespace fnd {
 namespace lcd {
 
@@ -80,8 +79,7 @@ namespace lcd {
 		hd44xx_display& operator=(const hd44xx_display&);
 	};
 
-/* ------------------------------------------------------------------ */
+
 
 }}
-/*----------------------------------------------------------*/
-#endif /* HD44XX_BUS_HPP_ */
+
