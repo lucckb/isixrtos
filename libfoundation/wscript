@@ -10,8 +10,8 @@ def configure(conf):
     pass
 
 def build(bld):
-    src = bld.path.ant_glob( '*.c' )
-    src += bld.path.ant_glob( '*.cpp' )
+    src = bld.path.ant_glob( '**/*.c' )
+    src += bld.path.ant_glob( '**/*.cpp' )
     inc = ['./include' ]
     bld.stlib( source=src,
             includes = inc, export_includes=inc,

@@ -5,7 +5,7 @@
  *      Author: lucck
  */
 
-#include <foundation/tiny_printf.h>
+#include <foundation/sys/tiny_printf.h>
 #include <stm32system.h>
 #include "stm32crashinfo.h"
 

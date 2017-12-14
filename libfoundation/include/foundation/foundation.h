@@ -1,18 +1,8 @@
-/* ------------------------------------------------------------ */
-/*
- * printf.h
- *
- *  Created on: 2009-08-08
- *      Author: lucck
- */
-/* ------------------------------------------------------------ */
-#ifndef FOUNDATION_H_
-#define FOUNDATION_H_
-/* ------------------------------------------------------------ */
-
-#include "tiny_printf.h"
-#include "tiny_alloc.h"
-
-/* ------------------------------------------------------------ */
-#endif
-
+#pragma once
+/** Autogen
+	find -iname '*.h*'  -printf '#include "%P"\n'
+*/
+#include "sys/sys.h"
+#include "dsp/dsp.h"
+#include "drv/drv.h"
+#include "algo/algo.h"
