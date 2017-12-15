@@ -168,6 +168,29 @@ namespace lcd {
 		{
 			return ERR_NOT_SUPPORTED;
 		}
+		/**
+		 * Draw horizontal line
+		 * @param x Start position X
+		 * @param y Start position Y
+		 * @param h Height
+		 * @param color Input color
+		 * @return Error code
+		 */
+		virtual
+		int draw_hline(int /*x*/, int /*y*/, int /*h*/, int /*color*/) noexcept {
+			return ERR_NOT_SUPPORTED;
+		}
+		/**
+		 * @param x Start position X
+		 * @param y Start position Y
+		 * @param h Height
+		 * @param color Input color
+		 * @return Error code
+		 */
+		virtual
+		int draw_vline(int /*x*/, int /*y*/, int /*h*/, int /*color*/) noexcept {
+			return ERR_NOT_SUPPORTED;
+		}
 	protected:
 		//! Get font
 		auto font() noexcept { return m_font; }
