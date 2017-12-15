@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <foundation/algo/noncopyable.hpp>
-#include <foundation/drv/lcd/display_operators.hpp>
+#include <foundation/drv/lcd/display.hpp>
 
 namespace fnd {
 namespace drv {
@@ -69,27 +69,13 @@ protected:
 };
 
 //! UC1601 basic command display
-class uc1601_display : private fnd::noncopyable
+class uc1601_display : public display
 {
 private:
 	static constexpr auto uc1601_cols = 132;
 public:
-	enum error	: int
-	{
-		ERR_OK = 0,
-		ERR_ALIGN = -1,
-		ERR_MISSING_FONT = -2,
-		ERR_NO_CHAR = -3,		//Missing char
-		ERR_OUT_RANGE = -4,
-		ERR_INVALID_ARG = -5	//Invalid argument
-	};
 
-	enum class box_t
-	{
-		clear,	//Clear only
-		frame,	//Clear + frame
-		fill,	//Fill only
-	};
+	using box_t = display::box_t;
 
 	/**
 	 * Display controler
@@ -107,7 +93,7 @@ public:
 	 * @param c char
 	 * @return error code
 	 */
-	int putc( char ch );
+	int putc( char ch ) noexcept override;
 
 	/**
 	 * Set cursor position
@@ -115,22 +101,14 @@ public:
 	 * @param y cursor position
 	 * @return error code
 	 */
-	int setpos( int x, int y );
+	int setpos(int x, int y) noexcept override;
 
 	/**
 	 * Clear the display
 	 * @return Error code
 	 */
-	int clear();
+	int clear() noexcept override;
 
-	/**
-	 * Get error code
-	 * @return error code
-	 */
-	int error() const
-	{
-		return m_error;
-	}
 
 	/**
 	 *  draw box arround the area
@@ -140,16 +118,10 @@ public:
 	 * @param cy	box height
 	 * @param type display frame type @see box_t
 	 */
-	int box( int x1, int y1, int cx, int cy, box_t type = box_t::clear );
+	int box(int x1, int y1, int cx, int cy, box_t type=box_t::clear)
+	noexcept override;
 
-	/**
-	 * Set font
-	 * @param font new font
-	 */
-	void set_font( const font_t * font )
-	{
-		m_font = font;
-	}
+
 	/**
 	 * Display progress bar
 	 * @param x1	Start position X
@@ -160,7 +132,8 @@ public:
 	 * @param max	Maximum value
 	 * @return Error code
 	 */
-	int progress_bar(int x1, int y1, int cx, int cy, int value, int max = 100 );
+	int progress_bar(int x1, int y1, int cx, int cy, int value, int max=100)
+	noexcept override;
 
 	/**
 	 * Show icon on screen
@@ -169,13 +142,13 @@ public:
 	 * @param icon	Icon Pointer
 	 * @return		Error code
 	 */
-	int show_icon( int x1, int y1, const icon_t *icon );
-
+	int show_icon(int x1, int y1, const icon_t* icon)
+	noexcept override;
 	/**
 	 * Go to to endl using current font
 	 * @return Error code
 	 */
-	int endl();
+	int endl() noexcept override;
 
 private:
 	/**
@@ -188,13 +161,8 @@ private:
 private:
 	//! Bus interface
 	uc1601_bus &bus;
-	//! Error code
-	int m_error;
-	//! Selected font
-	const font_t* m_font {};
 	//Current page address and column address
 	uint8_t m_pa {}, m_ca {};
-	const uint8_t m_cols, m_rows;
 };
 
 } /* namespace lcd */

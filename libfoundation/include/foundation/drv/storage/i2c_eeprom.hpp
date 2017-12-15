@@ -40,7 +40,7 @@ public:
 	 *  @param[in] bus_addr Bus memory address
 	 *  @param[in] dev_type Device type
 	 */
-	i2c_eeprom( fnd::bus::ibus &bus, unsigned bus_addr ,type dev_type );
+	i2c_eeprom( fnd::drv::bus::ibus &bus, unsigned bus_addr ,type dev_type );
 	/** Read data from selected address 
 	 * @param[in] pg Page address
 	 * @param[in] pa Page offset
@@ -76,7 +76,7 @@ public:
 		return 1;
 	}
 private:
-	fnd::bus::ibus& m_bus;			//! Bus controller
+	fnd::drv::bus::ibus& m_bus;			//! Bus controller
 	const unsigned char m_addr;		//! Memory base addres
 	const type m_type;				//! Memory type
 private:

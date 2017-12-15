@@ -115,8 +115,9 @@ int uc1601_display::address_set( uint8_t pa, uint8_t ca )
 }
 
 //Constructor
-uc1601_display::uc1601_display( uc1601_bus &bus_, uint8_t cols, uint8_t rows  )
-	: bus(bus_), m_cols(cols), m_rows(rows)
+uc1601_display::uc1601_display(uc1601_bus &bus_, uint8_t cols, uint8_t rows)
+	: display(cols,rows)
+	, bus(bus_)
 {
 	do
 	{
@@ -156,7 +157,7 @@ uc1601_display::~uc1601_display()
 }
 
 //Clear the display
-int uc1601_display::clear()
+int uc1601_display::clear() noexcept
 {
 	do
 	{
@@ -169,48 +170,48 @@ int uc1601_display::clear()
 }
 
 //Put char
-int uc1601_display::putc( char ch )
+int uc1601_display::putc(char ch) noexcept
 {
 	do {
-		if( m_font == nullptr )
+		if( !font() )
 		{
 			m_error = ERR_MISSING_FONT;
 			break;
 		}
-		if( (ch < m_font->first_char || ch > m_font->last_char) && ch!=' ' )
+		if( (ch < font()->first_char || ch > font()->last_char) && ch!=' ' )
 		{
 			m_error = ERR_NO_CHAR;
 			break;
 		}
-		const auto cho = ch - m_font->first_char;
-		const auto width = (ch!=' ')?(m_font->chr_desc[int(cho)].width):(m_font->spc_width);
-		const auto offs = m_font->chr_desc[int(cho)].offset;
-		auto bmp_ptr = (ch!=' ')?(&m_font->bmp[offs]):(empty_line);
+		const auto cho = ch - font()->first_char;
+		const auto width = (ch!=' ')?(font()->chr_desc[int(cho)].width):(font()->spc_width);
+		const auto offs = font()->chr_desc[int(cho)].offset;
+		auto bmp_ptr = (ch!=' ')?(&font()->bmp[offs]):(empty_line);
 		const auto saved_pa = m_pa;
-		if( m_ca + width + 1 > m_cols )
+		if(m_ca+width+1 > m_cols)
 		{
 			m_error = ERR_OUT_RANGE;
 			break;
 		}
-		for(size_t w=0; w<m_font->height;w+=8)
+		for(size_t w=0; w<font()->height;w+=8)
 		{
-			if( m_error ) break;
-			m_error = bus.data_wr(bmp_ptr, width );
-			if( m_error ) break;
-			m_error = bus.data_wr(empty_line, 1 );
-			if( m_error ) break;
+			if(m_error) break;
+			m_error = bus.data_wr(bmp_ptr, width);
+			if(m_error) break;
+			m_error = bus.data_wr(empty_line, 1);
+			if(m_error) break;
 			bmp_ptr += width;
-			m_error = address_set( m_pa + 1, m_ca );
-			if( m_error ) break;
+			m_error = address_set(m_pa + 1, m_ca);
+			if(m_error) break;
 		}
-		if( m_error ) break;
-		m_error = address_set( saved_pa, m_ca + width + 1 );
+		if(m_error) break;
+		m_error = address_set(saved_pa, m_ca + width + 1);
 	} while(0);
 	return m_error;
 }
 
 // Set cursor position
-int uc1601_display::setpos( int x, int y )
+int uc1601_display::setpos(int x, int y) noexcept
 {
 	do
 	{
@@ -231,7 +232,7 @@ int uc1601_display::setpos( int x, int y )
 }
 
 //draw box arround the area
-int uc1601_display::box( int x1, int y1, int cx, int cy, box_t type )
+int uc1601_display::box(int x1, int y1, int cx, int cy, box_t type) noexcept
 {
 	const auto save_pa = m_pa;
 	const auto save_ca = m_ca;
@@ -296,7 +297,7 @@ int uc1601_display::box( int x1, int y1, int cx, int cy, box_t type )
 }
 
 //Display a progress bar
-int uc1601_display::progress_bar(int x1, int y1, int cx, int cy, int value, int max )
+int uc1601_display::progress_bar(int x1, int y1, int cx, int cy, int value, int max) noexcept
 {
 	do
 	{
@@ -313,7 +314,7 @@ int uc1601_display::progress_bar(int x1, int y1, int cx, int cy, int value, int 
 
 
 //Show the icon on screen
-int uc1601_display::show_icon( int x1, int y1, const icon_t *icon )
+int uc1601_display::show_icon(int x1, int y1, const icon_t* icon) noexcept
 {
 	const auto save_pa = m_pa;
 	const auto save_ca = m_ca;
@@ -349,16 +350,16 @@ int uc1601_display::show_icon( int x1, int y1, const icon_t *icon )
 }
 
 //Clear to end of line
-int uc1601_display::endl()
+int uc1601_display::endl() noexcept
 {
 	do {
 
-		if( m_font == nullptr )
+		if( font() == nullptr )
 		{
 			m_error = ERR_MISSING_FONT;
 			break;
 		}
-		box( m_ca, m_pa*8, m_cols-m_ca, m_font->height+(8-m_font->height%8) );
+		box( m_ca, m_pa*8, m_cols-m_ca, font()->height+(8-font()->height%8) );
 	} while(0);
 	return m_error;
 }

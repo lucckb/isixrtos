@@ -17,12 +17,12 @@
  */
 #include <foundation/drv/storage/i2c_eeprom.hpp>
 #include <cstdint>
-/* ------------------------------------------------------------------ */
+
 namespace fnd {
-/* ------------------------------------------------------------------ */ 
+
 constexpr iflash_mem::poffs_t i2c_eeprom::_page_size_table[];
 constexpr iflash_mem::paddr_t i2c_eeprom::_page_count_table[];
-/* ------------------------------------------------------------------ */
+
 namespace {
 	 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 		inline uint16_t addr_order( uint16_t val ) {
@@ -34,16 +34,16 @@ namespace {
 		}
 	 #endif
 }
-/* ------------------------------------------------------------------ */ 
+
 /** @param[in] bus Input bus owner
 *  @param[in] bus_addr Bus memory address
 *  @param[in] dev_type Device type
 */
-i2c_eeprom::i2c_eeprom( fnd::bus::ibus &bus, unsigned bus_addr ,type dev_type )
+i2c_eeprom::i2c_eeprom( fnd::drv::bus::ibus &bus, unsigned bus_addr ,type dev_type )
 	: m_bus(bus), m_addr( bus_addr ), m_type( dev_type )
 {
 }
-/* ------------------------------------------------------------------ */ 
+
 /** Read data from selected address 
 	* @param[in] pg Page address
 	* @param[in] pa Page offset
@@ -70,7 +70,7 @@ int i2c_eeprom::write( paddr_t pg, poffs_t pa, const void* ptr, size_t len )
 			ret = m_bus.write( m_addr, &addr, sizeof addr, ptr, len );
 		}
 		//!Busy wait for write op
-		if( ret == bus::ibus::err_ack_failure ) {
+		if( ret == drv::bus::ibus::err_ack_failure ) {
 			m_bus.mdelay( 2 );
 		} else {
 			break;
@@ -78,7 +78,7 @@ int i2c_eeprom::write( paddr_t pg, poffs_t pa, const void* ptr, size_t len )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */ 
+
 /** Read data from selected address 
 	* @param[in] pg Page address
 	* @param[in] pa Page offset
@@ -106,7 +106,7 @@ int i2c_eeprom::read( paddr_t pg, poffs_t pa, void* ptr, size_t len ) const
 			ret = m_bus.transfer( m_addr, &addr, sizeof addr, ptr, len );
 		}
 		//!Busy wait for write op
-		if( ret == bus::ibus::err_ack_failure ) {
+		if( ret == drv::bus::ibus::err_ack_failure ) {
 			m_bus.mdelay( 2 );
 		} else {
 			break;
@@ -114,6 +114,6 @@ int i2c_eeprom::read( paddr_t pg, poffs_t pa, void* ptr, size_t len ) const
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */ 
+
 }
 

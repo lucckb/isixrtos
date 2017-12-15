@@ -20,6 +20,7 @@
 #include <cstddef>
 
 namespace fnd {
+namespace drv {
 namespace bus {
 
 //I2C virtual bus
@@ -67,5 +68,5 @@ public:
 };
 
 
-} }
+} } }
 
