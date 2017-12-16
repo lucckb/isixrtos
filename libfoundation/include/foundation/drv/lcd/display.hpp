@@ -63,7 +63,11 @@ namespace lcd {
 			fill,	//!Fill only
 		};
 	public:
-		//! Basic display constructor
+		/**
+		 * Display constructor object
+		 * @param cols Numbers of cols on the screen
+		 * @param rows Numbers of rows on the screen
+		 */
 		display(pos_t cols, pos_t rows)
 			: m_cols(cols), m_rows(rows)
 		{}
@@ -94,7 +98,7 @@ namespace lcd {
 		/**
 		 * Set display brightness
 		 * @param value Brightness
-		 * @return
+		 * @return Error code
 		 */
 		virtual int brightness(bright_t /*value*/) noexcept
 		{
@@ -107,7 +111,7 @@ namespace lcd {
 		void set_font( const font_t * font ) noexcept {
 			m_font = font;
 		}
-		/** Putchar
+		/** Put character at current display position
 		* @param ch char
 		* @return error code
 		*/
