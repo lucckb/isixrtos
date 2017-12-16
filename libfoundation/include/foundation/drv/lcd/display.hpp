@@ -29,11 +29,18 @@ namespace lcd {
 	//! Determine display position
 	using pos_t = std::int16_t;
 	using bright_t = std::uint8_t;
+	using color_t = bool;
 
 	//! Font definitions
 	struct font_t;
 	struct icon_t;
 
+	//! Color class definition
+	enum class color : color_t {
+		white,
+		black
+	};
+	//! Base class for display driver
 	class display
 	{
 	public:
@@ -78,8 +85,18 @@ namespace lcd {
 		operator bool() const noexcept {
 			return m_error==ERR_NOT_SUPPORTED;
 		}
-		/** Set brightness */
-		int brightness(bright_t /*value*/) noexcept
+		/**
+		 * Enable and initialize the display
+		 * @param en Enable or disable
+		 * @return Error code
+		 */
+		virtual int enable( bool en ) noexcept = 0;
+		/**
+		 * Set display brightness
+		 * @param value Brightness
+		 * @return
+		 */
+		virtual int brightness(bright_t /*value*/) noexcept
 		{
 			return ERR_NOT_SUPPORTED;
 		}
@@ -91,7 +108,7 @@ namespace lcd {
 			m_font = font;
 		}
 		/** Putchar
-		* @param c char
+		* @param ch char
 		* @return error code
 		*/
 		virtual int putc(char ch) noexcept = 0;
@@ -99,13 +116,30 @@ namespace lcd {
 		/** Put string at selected position
 		 * @param[in] str Input string to print
 		 */
-		int puts(const char str[])
+		int puts(const char str[]) noexcept
 		{
 			while(*str)
 			{
 				m_error = putc(*str++);
 				if(m_error) break;
 			}
+			return m_error;
+		}
+		/**
+		 * Put character at position
+		 * @param x Coord x
+		 * @param y	Coord y
+		 * @param str string position
+		 * @return error code
+		 */
+		int putxy(int x, int y, const char str[])
+		{
+			do {
+				m_error = setpos(x,y);
+				if(m_error) break;
+				m_error = puts(str);
+				if(m_error) break;
+			} while(0);
 			return m_error;
 		}
 		/**
@@ -177,7 +211,7 @@ namespace lcd {
 		 * @return Error code
 		 */
 		virtual
-		int draw_hline(int /*x*/, int /*y*/, int /*h*/, int /*color*/) noexcept {
+		int draw_hline(int /*x*/, int /*y*/, int /*h*/, color_t /*color*/) noexcept {
 			return ERR_NOT_SUPPORTED;
 		}
 		/**
@@ -188,7 +222,7 @@ namespace lcd {
 		 * @return Error code
 		 */
 		virtual
-		int draw_vline(int /*x*/, int /*y*/, int /*h*/, int /*color*/) noexcept {
+		int draw_vline(int /*x*/, int /*y*/, int /*h*/, color_t /*color*/) noexcept {
 			return ERR_NOT_SUPPORTED;
 		}
 	protected:

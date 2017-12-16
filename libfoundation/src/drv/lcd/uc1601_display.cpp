@@ -119,43 +119,50 @@ uc1601_display::uc1601_display(uc1601_bus &bus_, uint8_t cols, uint8_t rows)
 	: display(cols,rows)
 	, bus(bus_)
 {
-	do
-	{
-		bus.mdelay(30);
-		//Step 1 Set BR
-		m_error = bus.command(UC1601_SET_BR_8);
-		if( m_error ) break;
-		bus.mdelay(10);
-		//Step 2 Set PM
-		m_error = bus.command( UC1601_SET_PM, 0xB0 );
-		if( m_error ) break;
-		bus.mdelay(10);
-		//Step 3 set LCD Mapping Control
-		m_error = bus.command( UC1601_SET_LC21 + 4 );
-		if( m_error ) break;
-		bus.mdelay(10);
-		//Step 4 set com en
-		m_error = bus.command( UC1601_SET_CEN, rows - 1 );
-		if( m_error ) break;
-		bus.mdelay(10);
-		//Step 5 Set Display Enable
-		m_error = bus.command( UC1601_SET_DC2_EN );
-		if( m_error ) break;
-		bus.mdelay(10);
-		//After init clear the display
-		clear();
-		if( m_error ) break;
-	}
-	while(0);
 }
 
-/** Destructor */
+
+/* Destructor */
 uc1601_display::~uc1601_display()
 {
-	//Display reset
-	 bus.command(UC1601_SET_DC2_DEN);
 }
 
+/* Display initialize */
+int uc1601_display::enable(bool en) noexcept
+{
+	if( en ) {
+		do {
+			bus.mdelay(30);
+			//Step 1 Set BR
+			m_error = bus.command(UC1601_SET_BR_8);
+			if( m_error ) break;
+			bus.mdelay(10);
+			//Step 2 Set PM
+			m_error = bus.command( UC1601_SET_PM, 0xB0 );
+			if( m_error ) break;
+			bus.mdelay(10);
+			//Step 3 set LCD Mapping Control
+			m_error = bus.command( UC1601_SET_LC21 + 4 );
+			if( m_error ) break;
+			bus.mdelay(10);
+			//Step 4 set com en
+			m_error = bus.command( UC1601_SET_CEN, m_rows - 1 );
+			if( m_error ) break;
+			bus.mdelay(10);
+			//Step 5 Set Display Enable
+			m_error = bus.command( UC1601_SET_DC2_EN );
+			if( m_error ) break;
+			bus.mdelay(10);
+			//After init clear the display
+			clear();
+			if( m_error ) break;
+		} while(0);
+	} else {
+		//Display reset
+		 m_error = bus.command(UC1601_SET_DC2_DEN);
+	}
+	return m_error;
+}
 //Clear the display
 int uc1601_display::clear() noexcept
 {

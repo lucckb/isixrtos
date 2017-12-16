@@ -18,13 +18,14 @@
 
 #pragma once
 #include <foundation/drv/bus/ibus.hpp>
+#include <foundation/drv/lcd/display.hpp>
 
 namespace fnd {
 namespace drv {
 namespace lcd {
 
 
-class ssd1306
+class ssd1306 : public display
 {
 public:
 	/** Create SSD1306 display
@@ -32,13 +33,12 @@ public:
 	 * @param[in] cols Number of cols
 	 * @param[in] rows Number of rows
 	 */
-	ssd1306( bus::ibus& bus, uint8_t cols, uint8_t rows )
-		: m_bus(bus)
+	ssd1306(bus::ibus& bus, uint8_t cols, uint8_t rows)
+		: display(cols,rows), m_bus(bus)
 	{}
 	~ssd1306() {}
 	ssd1306(ssd1306&) = delete;
 	ssd1306& operator=(ssd1306&) = delete;
-
 private:
 	/* data */
 	bus::ibus& m_bus;

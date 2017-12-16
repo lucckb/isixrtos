@@ -89,6 +89,15 @@ public:
 	/** Destructor */
 	~uc1601_display();
 
+
+	/**
+	 * Enable the display
+	 * @param en Enabled
+	 * @return error code
+	 */
+	 int enable( bool en ) noexcept override;
+
+
 	/** Putchar
 	 * @param c char
 	 * @return error code
