@@ -9,7 +9,7 @@
 #ifndef MMC_HOST_HPP_
 #define MMC_HOST_HPP_
 /*----------------------------------------------------------*/
-#include <foundation/noncopyable.hpp>
+#include <foundation/algo/noncopyable.hpp>
 #include <cstddef>
 #include <isix.h>
 #include "mmc/immc_det_pin.hpp"

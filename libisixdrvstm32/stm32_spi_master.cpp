@@ -10,7 +10,7 @@
 #include <stm32spi.h>
 #include <stm32gpio.h>
 #include <config/conf.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 
 
 namespace stm32 {
@@ -173,10 +173,11 @@ spi_master::~spi_master()
 }
 
 /* Write to the device */
-int spi_master::write( const void *buf, size_t len )
+int spi_master::write( unsigned addr, const void *buf, size_t len )
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
+	if(addr!=CS_) CS(0,addr);
 	if ( !m_8bit )
 	{
 		const uint16_t *b = static_cast<const uint16_t*>(buf);
@@ -196,27 +197,31 @@ int spi_master::write( const void *buf, size_t len )
 			//dbprintf("%02x", b[p]);
 		}
 	}
-	return 0;
+	if(addr!=CS_) CS(1,addr);
+	return err_ok;
 }
 
-int spi_master::write( const void* buf1, size_t len1,
+int spi_master::write( unsigned addr, const void* buf1, size_t len1,
 					const void* buf2, size_t len2 ) 
 {
 	int ret;
+	if(addr!=CS_) CS(0,addr);
 	do {
-		ret = write( buf1, len1 );
+		ret = write( addr, buf1, len1 );
 		if( ret ) break;
-		ret = write( buf2, len2 );
+		ret = write( addr, buf2, len2 );
 		if( ret ) break;
 	} while(0);
+	if(addr!=CS_) CS(1,addr);
 	return ret;
 }
 
 /* Read from the device */
-int spi_master::read ( void *buf, size_t len)
+int spi_master::read ( unsigned addr, void *buf, size_t len)
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
+	if(addr!=CS_) CS(0,addr);
 	if ( !m_8bit )
 	{
 		uint16_t *b = static_cast<uint16_t*>(buf);
@@ -234,14 +239,16 @@ int spi_master::read ( void *buf, size_t len)
 			b[p] = transfer( 0xff );
 		}
 	}
-	return 0;
+	if(addr!=CS_) CS(1,addr);
+	return err_ok;
 }
 
 /* Transfer (BIDIR) */
-int spi_master::transfer( const void *inbuf, void *outbuf, size_t len )
+int spi_master::transfer( unsigned addr, const void *inbuf, void *outbuf, size_t len )
 {
 	if( !stm32::spi_is_enabled(m_spi) )
 		return spi_device::err_noinit;
+	if(addr!=CS_) CS(0,addr);
 	if ( !m_8bit )
 	{
 		const uint16_t *ib = static_cast<const uint16_t*>(inbuf);
@@ -261,7 +268,8 @@ int spi_master::transfer( const void *inbuf, void *outbuf, size_t len )
 			ob[p] = transfer( ib[p] );
 		}
 	}
-	return 0;
+	if(addr!=CS_) CS(1,addr);
+	return err_ok;
 }
 
 /* Set work mode */
@@ -315,7 +323,7 @@ int spi_master::set_mode( unsigned mode, unsigned khz )
 	m_8bit = !(mode&spi_device::data_16b);
 	spi_cmd( m_spi, true );
 	dbg_info("SPI_CR2 %04x", SPI1->CR2 );
-	return 0;
+	return err_ok;
 }
 
 /* Setup CRC */
@@ -324,7 +332,7 @@ int spi_master::crc_setup( unsigned short polynominal, bool enable )
 	using namespace stm32;
 	spi_set_crc_polynomial( m_spi, polynominal );
 	spi_calculate_crc( m_spi, enable );
-	return 0;
+	return err_ok;
 }
 
 /* Control CS manually*/
@@ -398,7 +406,6 @@ uint8_t spi_master::transfer8( uint8_t val )
 
 	 /*!< Return the byte read from the SPI bus */
 	 return spi_receive_data8(m_spi);
-
 }
 
 

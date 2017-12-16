@@ -4,36 +4,33 @@
  *  Created on: 01-12-2012
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
+
 #ifndef ISIXDRV_SPI_DEVICE_HPP_
 #define ISIXDRV_SPI_DEVICE_HPP_
-/*----------------------------------------------------------*/
+
 #include <cstddef>
 #include <stdint.h>
 #include <isix.h>
-#include <foundation/noncopyable.hpp>
-/*----------------------------------------------------------*/
+#include <foundation/drv/bus/ibus.hpp>
+
 namespace drv {
 
-/*----------------------------------------------------------*/
+
 /* This is the low level device probably used in the
  * to the other device driver so it need explicit lock unlock to accuire the device
  */
-class spi_device : private fnd::noncopyable
+class spi_device : public fnd::drv::bus::ibus
 {
 public:
-	enum err {
-		err_ok,
-		err_not_supported = -512,
-		err_hw = -513,
-		err_noinit = -514,
-		err_dma = -515,
-		err_inval = -516
+	//! Bus address as spi
+	enum spi_addr : unsigned {
+		CS_ = 0, //! Don't apply chip select
+		CS0 = 1, //! Use CS0
 	};
 	enum data_with
 	{
-		data_8b  = 0x00,
-		data_16b = 0x01
+		data_8b  = 0x00,//!< data_8b
+		data_16b = 0x01 //!< data_16b
 	};
 	enum polar
 	{
@@ -61,23 +58,10 @@ protected:
 public:
 	virtual ~spi_device() {}
 	/* Flush bytes */
-	void flush(size_t elems)
-	{
+	void flush(size_t elems) {
 		for(size_t e = 0; e<elems; ++e )
 			transfer(0xFFFF);
 	}
-	/* Write to the device */
-	virtual int write( const void *buf, size_t len ) = 0;
-	/* Write using dual transfer */
-	virtual int write( const void* /*buf1*/, size_t /*len1*/,
-					   const void* /*buf2*/, size_t /*len2*/) 
-	{
-		return err_not_supported;
-	}
-	/* Read from the device */
-	virtual int read ( void *buf, size_t len ) = 0;
-	/* Transfer (BIDIR) */
-	virtual int transfer( const void *inbuf, void *outbuf, size_t len ) = 0;
 	/* Disable enable the device */
 	virtual void enable( bool en ) = 0;
 	/* Set work mode */
@@ -87,13 +71,16 @@ public:
 	{
 		return err_not_supported;
 	}
+	virtual void mdelay( unsigned ms ) noexcept override {
+		isix::wait_ms(ms);
+	}
 	/* Control CS manually*/
 	virtual void CS( bool val, int cs_no ) = 0;
 	/* Transfer data (nodma) */
 	virtual uint16_t transfer( uint16_t val ) = 0;
 };
 
-/*----------------------------------------------------------*/
+
 }
-/*----------------------------------------------------------*/
+
 #endif /* SPI_DEVICE_HPP_ */

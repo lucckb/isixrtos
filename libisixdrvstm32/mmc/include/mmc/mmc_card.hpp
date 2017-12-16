@@ -12,7 +12,7 @@
 
 
 /*----------------------------------------------------------*/
-#include <foundation/noncopyable.hpp>
+#include <foundation/algo/noncopyable.hpp>
 #include <cstddef>
 #include <stdint.h>
 #include "mmc/mmc_defs.hpp"

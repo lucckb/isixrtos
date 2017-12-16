@@ -4,28 +4,28 @@
  *  Created on: 02-12-2012
  *      Author: lucck
  */
-/*----------------------------------------------------------*/
+
 #ifndef STM32_SPI_MASTER_HPP_
 #define STM32_SPI_MASTER_HPP_
 
-/*----------------------------------------------------------*/
+
 #include "spi_device.hpp"
 #include <stm32lib.h>
 #include <config/conf.h>
-/*----------------------------------------------------------*/
+
 #define ISIX_DRV_SPI_SPI1_ENABLE (1<<0)
 #define ISIX_DRV_SPI_SPI2_ENABLE (1<<1)
 #define ISIX_DRV_SPI_SPI3_ENABLE (1<<2)
-/*----------------------------------------------------------*/
+
 #ifndef CONFIG_ISIXDRV_SPI_SUPPORTED_DEVS
 #define CONFIG_ISIXDRV_SPI_SUPPORTED_DEVS  ISIX_DRV_SPI_SPI1_ENABLE
 #endif
 
-/*----------------------------------------------------------*/
+
 namespace stm32 {
 namespace drv {
 
-/*----------------------------------------------------------*/
+
 class spi_master : public ::drv::spi_device
 {
 public:
@@ -34,13 +34,13 @@ public:
 	/* Destructor */
 	virtual ~spi_master();
 	/* Write to the device */
-	int write( const void *buf, size_t len) override;
-	int write( const void* buf1, size_t len1,
+	int write( unsigned addr, const void *buf, size_t len) override;
+	int write( unsigned addr, const void* buf1, size_t len1,
 					   const void* buf2, size_t len2) override;
 	/* Read from the device */
-	int read ( void *buf, size_t len) override;
+	int read ( unsigned addr, void *buf, size_t len) override;
 	/* Transfer (BIDIR) */
-	int transfer( const void *inbuf, void *outbuf, size_t len ) override;
+	int transfer( unsigned addr, const void *inbuf, void *outbuf, size_t len ) override;
 	/* Set work mode */
 	int set_mode( unsigned mode, unsigned khz ) override;
 	/* Setup CRC */
@@ -65,9 +65,9 @@ private:
 	bool m_8bit { true };
 };
 
-/*----------------------------------------------------------*/
+
 } /* namespace drv */
 } /* namespace stm32 */
-/*----------------------------------------------------------*/
+
 #endif /* STM32_SPI_MASTER_HPP_ */
-/*----------------------------------------------------------*/
+

@@ -8,7 +8,7 @@
 #include "mmc/mmc_command.hpp"
 #include <cstddef>
 #include "mmc/mmc_defs.hpp"
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 /*----------------------------------------------------------*/
 namespace drv {
 namespace mmc {

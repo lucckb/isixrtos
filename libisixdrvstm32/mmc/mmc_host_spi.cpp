@@ -62,7 +62,7 @@ int mmc_host_spi::execute_command( mmc_command &req, unsigned timeout )
 	qbuf[mpos++] = 0x95;		//CRC for first command only
 	m_proc_cmd = req.get_op();
 	CS(0);
-	if( (ret=m_spi.write(qbuf, mpos)) )
+	if( (ret=m_spi.write(spi_device::CS_, qbuf, mpos)) )
 	{
 		m_proc_cmd = 0;
 		CS(1);
@@ -147,7 +147,7 @@ int mmc_host_spi::send_data( const void *buf, size_t len, unsigned timeout )
 		else
 			m_spi.transfer( MMC_STARTBLOCK_WRITE );
 		// Zapisz dane z bufora
-		m_spi.write( bbuf+packet, len>C_block_len?C_block_len:len );
+		m_spi.write(spi_device::CS_, bbuf+packet, len>C_block_len?C_block_len:len);
 		// zapisz 16-bitowy CRC - nieistotny
 		m_spi.transfer(0xFF);
 		m_spi.transfer(0xFF);
@@ -235,7 +235,7 @@ int mmc_host_spi::receive_data( void *buf, size_t len, unsigned timeout )
 		isix_task_change_prio( NULL, prio );
 	for(size_t packet=0; packet<len; packet+=C_block_len)
 	{
-		m_spi.read( bbuf+packet, len>C_block_len?C_block_len:len );
+		m_spi.read( spi_device::CS_, bbuf+packet, len>C_block_len?C_block_len:len );
 		// Nie sprawdzaj CRC
 		m_spi.flush(2);
 		// Zwolnij CS
