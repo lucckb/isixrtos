@@ -21,6 +21,8 @@ def build(bld):
         _srcs += [ 'stm32_sdio_mmc_host.cpp' ]
     elif bld.is_defined('STM32MCU_MAJOR_TYPE_F37'):
         pass
+    elif bld.is_defined('STM32MCU_MAJOR_TYPE_F3'):
+        pass
     elif bld.is_defined('STM32MCU_MAJOR_TYPE_F4'):
         _srcs += [ 'adc_converter.cpp', 'i2c_bus.cpp' ]
         _srcs += [ 'stm32_sdio_mmc_host.cpp' ]
