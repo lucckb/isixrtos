@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <foundation/noncopyable.hpp>
+#include <foundation/algo/noncopyable.hpp>
 
 namespace fnd {
 

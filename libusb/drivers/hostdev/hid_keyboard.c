@@ -17,7 +17,7 @@
  */
 #include <usb/drivers/hostdev/hid_keyboard.h>
 #include <usb/host/usbh_driver.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <usb/core/usbh_config_descriptors.h>
 #include <usb/core/usb_def.h>
 #include <usb/core/usbh_error.h>

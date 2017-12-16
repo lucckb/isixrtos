@@ -9,7 +9,7 @@
  */
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/editbox.hpp>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <foundation/utils.h>
 #include <cstdlib>
 /* ------------------------------------------------------------------ */

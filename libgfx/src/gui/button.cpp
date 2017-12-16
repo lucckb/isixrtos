@@ -6,7 +6,7 @@
  */
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/button.hpp>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {

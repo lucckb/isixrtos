@@ -17,7 +17,7 @@
  */
 #pragma once
 #include <isix.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 
 typedef int BaseType_t;
 typedef ostask_t TaskHandle_t;

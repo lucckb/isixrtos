@@ -6,7 +6,7 @@
 #include <usb/drivers/controllers/stm32/timer.h>
 #include <usb/core/xcat.h>
 #include <usb/core/usbh_error.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <isix.h>
 #include <usb/drivers/controllers/stm32/usb_config.h>
 

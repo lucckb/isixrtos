@@ -22,7 +22,7 @@
 #include <cstring>
 
 #if CONFIG_LIBFOUNDATION_ENV_FS_DEBUG
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #else
 #define dbprintf(...) do {} while(0)
 #endif

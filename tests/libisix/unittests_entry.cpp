@@ -19,8 +19,8 @@
 #include <config/conf.h>
 #include <isix.h>
 #include <usart_simple.h>
-#include <foundation/dbglog.h>
-#include <foundation/noncopyable.hpp>
+#include <foundation/sys/dbglog.h>
+#include <foundation/algo/noncopyable.hpp>
 #include <stm32crashinfo.h>
 #include <string>
 #include <sys/stat.h>

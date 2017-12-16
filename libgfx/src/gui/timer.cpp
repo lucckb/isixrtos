@@ -19,7 +19,7 @@
 #include <gfx/gui/frame.hpp>
 #include <gfx/input/input.hpp>
 #include <isix.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {

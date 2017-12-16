@@ -19,7 +19,7 @@
 #include <gsm/device.hpp>
 #include <gsm/at_parser.hpp>
 #include <gsm/param_parser.hpp>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <foundation/tiny_printf.h>
 #include <cstring>
 /* ------------------------------------------------------------------ */ 

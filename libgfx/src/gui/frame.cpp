@@ -10,7 +10,7 @@
 #include <gfx/gui/window.hpp>
 #include <gfx/drivers/disp/disp_base.hpp>
 #include <isix.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <algorithm>
 /* ------------------------------------------------------------------ */
 namespace gfx {

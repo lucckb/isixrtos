@@ -8,7 +8,7 @@
 #include <gfx/gui/window.hpp>
 #include <gfx/gui/widget.hpp>
 #include <gfx/input/event_info.hpp>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {

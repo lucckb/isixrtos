@@ -8,7 +8,7 @@
 /* ------------------------------------------------------------------ */
 #pragma once
 /* ------------------------------------------------------------------ */
-#include <foundation/noncopyable.hpp>
+#include <foundation/algo/noncopyable.hpp>
 #include <gfx/input/event_info.hpp>
 #include <functional>
 #include <memory>

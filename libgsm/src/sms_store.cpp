@@ -21,7 +21,7 @@
 #include <gsm/device.hpp>
 #include <gsm/sms_codec.hpp>
 #include <foundation/tiny_printf.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */ 

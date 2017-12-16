@@ -19,7 +19,7 @@
 #include <gsm/event.hpp>
 #include <gsm/device.hpp>
 #include <gsm/param_parser.hpp>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 /* ------------------------------------------------------------------ */ 
 namespace gsm_modem {
 /* ------------------------------------------------------------------ */ 

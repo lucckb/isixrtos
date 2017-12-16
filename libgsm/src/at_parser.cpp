@@ -15,7 +15,7 @@
  *
  * =====================================================================================
  */
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <gsm/at_parser.hpp>
 #include <gsm/event.hpp>
 #include <cstring>

@@ -17,7 +17,7 @@
  */
 #pragma once
 /* ------------------------------------------------------------------ */
-#include <foundation/noncopyable.hpp>
+#include <foundation/algo/noncopyable.hpp>
 #include <isix.h>
 /* ------------------------------------------------------------------ */
 namespace isix {

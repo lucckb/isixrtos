@@ -6,7 +6,7 @@
 #include <usb/core/usbh_interrupt.h>
 #include <usb/core/usbh_io.h>
 #include <usb/core/usbh_lib.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <isix.h>
 /* TrResult table is initialized with TR_UNDEF values. */
 static usbh_transaction_result_t TrResult[CONST_CHNNL_MAX_COUNT];

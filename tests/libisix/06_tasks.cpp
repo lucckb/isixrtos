@@ -22,7 +22,7 @@
 #include "task_test_helper.h"
 #include "utils/fpu_test_and_set.h"
 #include "utils/timer_interrupt.hpp"
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 
 namespace
 {

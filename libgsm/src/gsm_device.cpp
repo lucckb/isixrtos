@@ -17,7 +17,7 @@
  */
 
 #include <gsm/device.hpp>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <gsm/param_parser.hpp>
 #include <foundation/tiny_printf.h>
 #include <cstring>

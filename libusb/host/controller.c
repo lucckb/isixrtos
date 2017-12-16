@@ -20,7 +20,7 @@
 #include <usb/host/internal.h>
 #include <isix.h>
 #include <isix/prv/list.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <stdlib.h>
 #include <usb/host/usb_device_struct.h>
 

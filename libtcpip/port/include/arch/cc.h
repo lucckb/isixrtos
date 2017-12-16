@@ -80,7 +80,7 @@ typedef unsigned long mem_ptr_t;
 
 /* prototypes for printf() and abort() */
 
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <isix.h>
 #include <stdlib.h>
 

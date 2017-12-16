@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <serialport_unix.hpp>
 #include <gsm/device.hpp>
 #include <gsm/sms_message.hpp>

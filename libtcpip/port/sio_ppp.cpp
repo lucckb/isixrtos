@@ -17,7 +17,7 @@
  */
 
 #include "sio_ppp.h"
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <foundation/serial_port.hpp>
 extern "C" {
 #include <netif/ppp/ppp.h>

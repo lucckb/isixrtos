@@ -10,7 +10,7 @@
 
 #include <isix.h>
 #include <stm32system.h>
-#include <foundation/serial_port.hpp>
+#include <foundation/drv/bus/serial_port.hpp>
 #include <atomic>
 
 namespace stm32 {

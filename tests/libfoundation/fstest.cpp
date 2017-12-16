@@ -20,7 +20,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <cstring>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <time.h>
 #include <unistd.h>
 #include <cstdio>

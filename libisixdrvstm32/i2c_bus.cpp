@@ -18,7 +18,7 @@
  * =====================================================================================
  */
 #include <isixdrv/i2c_bus.hpp>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <stm32system.h>
 #include <stm32i2c.h>
 #include <stm32rcc.h>

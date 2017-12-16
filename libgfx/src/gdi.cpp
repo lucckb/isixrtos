@@ -5,7 +5,7 @@
  *      Author: lucck
  */
 #include <gfx/disp/gdi.hpp>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 #include <cstring>
 
 /* ------------------------------------------------------------------ */

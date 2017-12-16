@@ -6,7 +6,7 @@
  */
 /* ------------------------------------------------------------------ */
 #include <gfx/gui/selectable_widget.hpp>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 /* ------------------------------------------------------------------ */
 namespace gfx {
 namespace gui {

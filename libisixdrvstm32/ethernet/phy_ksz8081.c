@@ -19,7 +19,7 @@
 #include "ethernetif_prv.h"
 #include <stm32_eth.h>
 #include <eth/phy.h>
-#include <foundation/dbglog.h>
+#include <foundation/sys/dbglog.h>
 
 
 enum regs {
