@@ -31,7 +31,11 @@ i2s_audio::i2s_audio( bus::ii2s& i2s_bus )
 	, m_mempool(isix::mempool_create(c_mempool_cnt,c_mempool_siz))
 {
 	if( !m_mempool ) {
+#ifdef __EXCEPTIONS
 		throw std::bad_alloc();
+#else
+		std::abort();
+#endif
 	}
 	m_bus.register_record(
 		std::bind(&i2s_audio::record_callback,std::ref(*this),std::placeholders::_1)
