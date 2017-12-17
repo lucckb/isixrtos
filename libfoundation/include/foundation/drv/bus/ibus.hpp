@@ -25,6 +25,7 @@ namespace bus {
 //! Hardware bus interface for all devices
 class ibus
 {
+public:
 	ibus(ibus&) = delete;
 	ibus& operator=(ibus&) = delete;
 public:
@@ -47,11 +48,23 @@ public:
 		err_dma = -1037,				//! DMA error
 		err_inval = -1038				//! Invalid argument
 	};
+	//! Get bus type
+	enum class type : unsigned char {
+		i2c,
+		spi,
+	};
 	//! Constructor
-	ibus() {
+	explicit ibus(type bus_type)
+		: m_bus_type(bus_type)
+	{
 	}
 	//! Destructor
 	virtual ~ibus() {
+	}
+	/** Get bus type without rtti
+	 */
+	type bus_type() const noexcept {
+		return m_bus_type;
 	}
 	/** Transfer data write and read next
 	 * @param[in] addr Hardware address
@@ -85,7 +98,7 @@ public:
 	 * @return Error code
 	 */
 	virtual int write( unsigned addr, const void* wrbuf, size_t size ) = 0;
-	/** Double non continous transaction write 
+	/** Double non continous transaction write
 	 * @param[in] addr I2C address
 	 * @param[in] wbuf1 Write buffer first transaction
 	 * @param[in] wsize1 First transaction buffer size
@@ -107,6 +120,9 @@ public:
 	 * @param delay selected ms
 	 */
 	virtual void mdelay( unsigned ms ) noexcept = 0;
+
+private:
+	type m_bus_type;
 
 };
 

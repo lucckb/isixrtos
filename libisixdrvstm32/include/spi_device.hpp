@@ -56,6 +56,8 @@ protected:
 	//Global timeout for device
 	static const unsigned C_spi_timeout = 5000;
 public:
+	spi_device() : ibus(fnd::drv::bus::ibus::type::spi)
+	{}
 	virtual ~spi_device() {}
 	/* Flush bytes */
 	void flush(size_t elems) {
@@ -64,8 +66,12 @@ public:
 	}
 	/* Disable enable the device */
 	virtual void enable( bool en ) = 0;
-	/* Set work mode */
-	virtual int set_mode( unsigned mode, unsigned khz ) = 0;
+	/** Select mode for the chip select
+	 * @param[in] mode Bus mode
+	 * @param[in] khz Speed in khz
+	 * @return error code
+	 */
+	virtual int set_mode( unsigned mode, unsigned khz, int cs=CS0 ) = 0;
 	/* Setup CRC */
 	virtual int crc_setup( unsigned short /*polynominal*/, bool /*enable*/ )
 	{

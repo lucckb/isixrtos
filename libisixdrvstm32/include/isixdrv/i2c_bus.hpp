@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 #pragma once
-#include <foundation/ibus.hpp>
+#include <foundation/drv/bus/ibus.hpp>
 #include <cstdint>
 #include <isix.h>
 #include <config/conf.h>
@@ -78,7 +78,7 @@ extern "C" {
 #endif
 }
 
-class i2c_bus : public fnd::bus::ibus {
+class i2c_bus : public fnd::drv::bus::ibus {
 	static constexpr auto IRQ_PRIO = 1;
 	static constexpr auto IRQ_SUB = 2;
 	static constexpr auto TRANSACTION_TIMEOUT = 5000;
@@ -170,7 +170,7 @@ public:
 			const void* wbuf2, size_t wsize2 ) override;
 
 	/** Mdelay bus tout impl */
-	void mdelay( unsigned timeout ) override;
+	void mdelay( unsigned timeout ) noexcept override;
 private:
 	//! Hardware init
 	void gpio_initialize( bool alt );

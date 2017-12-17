@@ -131,6 +131,37 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 #endif
 }
 
+
+
+spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, const spi_gpio_config& iocnf )
+	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(false)
+{
+	using namespace stm32;
+	if( m_spi == SPI1 )
+	{
+		rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SPI1, true );
+	}
+#ifdef SPI2
+	else if( m_spi == SPI2 )
+	{
+		using namespace spi2;
+		rcc_apb1_periph_clock_cmd( RCC_APB1Periph_SPI2, true );
+	}
+#endif
+#ifdef SPI3
+	else if( m_spi == SPI3 )
+	{
+		stm32::rcc_apb1_periph_clock_cmd( RCC_APB1Periph_SPI3, true );
+	}
+#endif
+#ifdef STM32_SPI_V2
+	spi_rx_fifo_threshold_config(m_spi, SPI_RxFIFOThreshold_QF );
+#endif
+	using namespace stm32;
+	rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SPI1, true );
+
+}
+
 /* Destructor */
 spi_master::~spi_master()
 {
@@ -139,13 +170,13 @@ spi_master::~spi_master()
 	if( m_spi == SPI1 )
 	{
 		using namespace spi1;
-		gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
+		gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,
 				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
-		gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, 
+		gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN,
 				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
-		gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, 
+		gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN,
 				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
-		gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   
+		gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,
 				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
 		rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SPI1, false );
 	}
@@ -153,13 +184,13 @@ spi_master::~spi_master()
 	else if( m_spi == SPI2 )
 	{
 		using namespace spi2;
-		gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
+		gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,
 				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
-		gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, 
+		gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN,
 				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
-		gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, 
+		gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN,
 				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
-		gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   
+		gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,
 				AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
 		stm32::rcc_apb1_periph_clock_cmd( RCC_APB1Periph_SPI2, false );
 	}
@@ -273,8 +304,8 @@ int spi_master::transfer( unsigned addr, const void *inbuf, void *outbuf, size_t
 }
 
 /* Set work mode */
-int spi_master::set_mode( unsigned mode, unsigned khz )
-{
+int spi_master::hw_set_mode( unsigned mode, unsigned khz ) noexcept
+{ 
 	using namespace stm32;
 	if( !khz )
 		return spi_device::err_inval;

@@ -26,11 +26,22 @@ namespace stm32 {
 namespace drv {
 
 
+//! Gpio port config
+struct spi_gpio_config {
+	unsigned alt;
+	gpio::pin_desc miso;
+	gpio::pin_desc mosi;
+	gpio::pin_desc sck;
+	gpio::pin_desc cs[4];
+};
+
+
 class spi_master : public ::drv::spi_device
 {
 public:
 	/* Constructor */
-	explicit spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool alternate=false );
+	spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool alternate=false );
+	spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, const spi_gpio_config& iocnf );
 	/* Destructor */
 	virtual ~spi_master();
 	/* Write to the device */
@@ -42,7 +53,9 @@ public:
 	/* Transfer (BIDIR) */
 	int transfer( unsigned addr, const void *inbuf, void *outbuf, size_t len ) override;
 	/* Set work mode */
-	int set_mode( unsigned mode, unsigned khz ) override;
+	int set_mode( unsigned mode, unsigned khz, int /*cs*/) override {
+		return hw_set_mode( mode, khz );
+	}
 	/* Setup CRC */
 	int crc_setup( unsigned short /*polynominal*/, bool /*enable*/ ) override;
 	/* Control CS manually*/
@@ -54,6 +67,8 @@ public:
 	}
 	/* Disable enable the device */
 	void enable( bool en ) override;
+	/** SPI internal set mode */
+	int hw_set_mode( unsigned mode, unsigned khz ) noexcept ;
 private:
 	uint16_t transfer16( uint16_t val );
 	uint8_t transfer8( uint8_t val );

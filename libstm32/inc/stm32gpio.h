@@ -14,6 +14,7 @@
 #endif
 
 
+
 #ifdef __cplusplus
 namespace stm32 {
 #endif
@@ -185,4 +186,11 @@ static inline int gpio_abstract_config_ext(GPIO_TypeDef* port, uint16_t bit, enu
 #ifdef __cplusplus
 }
 #endif
+
+
+#ifdef __cplusplus
+#include "stm32gpio_for_cpp.h"
+#endif
+
+
 #endif /* STM32GPIO_H_ */
