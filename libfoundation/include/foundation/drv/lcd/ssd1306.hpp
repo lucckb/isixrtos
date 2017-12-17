@@ -74,7 +74,13 @@ public:
 	* @return Error code
 	*/
 	int endl() noexcept override;
-
+private:
+	/** Write command
+	 * @param[in] cmd Input command
+	 * @return error code
+	 */
+	int command(uint8_t cmd) noexcept;
+	
 private:
 	/* data */
 	bus::ibus& m_bus;
