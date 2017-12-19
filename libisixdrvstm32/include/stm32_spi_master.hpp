@@ -11,6 +11,7 @@
 
 #include "spi_device.hpp"
 #include <stm32lib.h>
+#include <vector>
 #include <config/conf.h>
 
 #define ISIX_DRV_SPI_SPI1_ENABLE (1<<0)
@@ -28,11 +29,11 @@ namespace drv {
 
 //! Gpio port config
 struct spi_gpio_config {
-	unsigned alt;
 	gpio::pin_desc miso;
 	gpio::pin_desc mosi;
 	gpio::pin_desc sck;
-	gpio::pin_desc cs[4];
+	std::vector<gpio::pin_desc> cs;			//null end off
+	unsigned alt { GPIO_AF_5 };			// Alternate function number
 };
 
 
@@ -78,6 +79,7 @@ private:
 	uint32_t m_pclk;
 	const bool m_alt;
 	bool m_8bit { true };
+	const std::vector<gpio::pin_desc> m_cs;
 };
 
 

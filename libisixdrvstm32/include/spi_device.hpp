@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <isix.h>
 #include <foundation/drv/bus/ibus.hpp>
+#include <vector>
 
 namespace drv {
 
@@ -22,6 +23,14 @@ namespace drv {
 class spi_device : public fnd::drv::bus::ibus
 {
 public:
+	//! SPI configuration device
+	struct config_t {
+		union {
+			unsigned flags: 8;
+			unsigned  speed: 24;
+		};
+		unsigned packed;
+	};
 	//! Bus address as spi
 	enum spi_addr : unsigned {
 		CS_ = 0, //! Don't apply chip select
@@ -55,6 +64,12 @@ public:
 protected:
 	//Global timeout for device
 	static const unsigned C_spi_timeout = 5000;
+	//Reconfiguration needed
+	bool mode_reconf_needed(int cs) const noexcept {
+	}
+	//! Get mode for selected cs
+	config_t mode(int cs) const noexcept {
+	}
 public:
 	spi_device() : ibus(fnd::drv::bus::ibus::type::spi)
 	{}
@@ -84,6 +99,10 @@ public:
 	virtual void CS( bool val, int cs_no ) = 0;
 	/* Transfer data (nodma) */
 	virtual uint16_t transfer( uint16_t val ) = 0;
+	/* Current config mode */
+	config_t m_current_mode {};
+	/* Vector for chip select config */
+	std::vector<config_t> m_cfg;
 };
 
 

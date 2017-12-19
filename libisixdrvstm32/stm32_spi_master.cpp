@@ -21,21 +21,21 @@ namespace {
 		const uint16_t SD_SPI_MISO_PIN	= 6;
 		const uint16_t SD_SPI_MOSI_PIN	= 7;
 		const uint16_t SD_SPI_SCK_PIN   = 5;
-		const uint16_t SD_SPI_CS_PIN 	= 4;
+		const uint16_t SD_SPI_CS_PIN	= 4;
 		GPIO_TypeDef* const SPI_PORT = GPIOA;
 	}
 	namespace spi1_alt {
 		const uint16_t SD_SPI_MISO_PIN	= 8;
 		const uint16_t SD_SPI_MOSI_PIN	= 9;
 		const uint16_t SD_SPI_SCK_PIN   = 7;
-		const uint16_t SD_SPI_CS_PIN 	= 6;
+		const uint16_t SD_SPI_CS_PIN	= 6;
 		GPIO_TypeDef* const SPI_PORT = GPIOC;
 	}
 	namespace spi2 {
 		const uint16_t SD_SPI_MISO_PIN	= 14;
 		const uint16_t SD_SPI_MOSI_PIN	= 15;
 		const uint16_t SD_SPI_SCK_PIN   = 10;
-		const uint16_t SD_SPI_CS_PIN 	= 12;
+		const uint16_t SD_SPI_CS_PIN	= 12;
 		GPIO_TypeDef* const SPI_PORT = GPIOB;
 	}
 }
@@ -91,7 +91,7 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 	{
 		using namespace spi2;
 		rcc_apb1_periph_clock_cmd( RCC_APB1Periph_SPI2, true );
-		if( !alternate ) 
+		if( !alternate )
 		{
 			gpio_clock_enable( SPI_PORT, true );
 #if defined(_CONFIG_STM32_GPIO_V2_)
@@ -134,7 +134,7 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 
 
 spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, const spi_gpio_config& iocnf )
-	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(false)
+	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(false), m_cs(iocnf.cs)
 {
 	using namespace stm32;
 	if( m_spi == SPI1 )
@@ -159,7 +159,23 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, const 
 #endif
 	using namespace stm32;
 	rcc_apb2_periph_clock_cmd( RCC_APB2Periph_SPI1, true );
-
+	/** Configure input output pins */
+#if defined(_CONFIG_STM32_GPIO_V2_)
+	gpio_config( iocnf.sck.port(), iocnf.sck.ord(),
+		GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE, GPIO_SPEED_HI, 0 );
+	gpio_config( iocnf.mosi.port(), iocnf.mosi.ord(),
+		GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE,  GPIO_SPEED_HI, 0 );
+	gpio_config( iocnf.miso.port(), iocnf.miso.ord(),
+		GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE,  GPIO_SPEED_HI, 0 );
+	for( const auto& cs : iocnf.cs )
+	{
+		gpio_config( cs.port(), cs.ord(),
+			GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_SPEED_HI);
+	}
+	gpio_pin_AF_config( iocnf.sck.port(), iocnf.sck.ord(), iocnf.alt );
+	gpio_pin_AF_config( iocnf.mosi.port(), iocnf.mosi.ord(), iocnf.alt );
+	gpio_pin_AF_config( iocnf.miso.port(), iocnf.miso.ord(), iocnf.alt );
+#endif
 }
 
 /* Destructor */
@@ -233,7 +249,7 @@ int spi_master::write( unsigned addr, const void *buf, size_t len )
 }
 
 int spi_master::write( unsigned addr, const void* buf1, size_t len1,
-					const void* buf2, size_t len2 ) 
+					const void* buf2, size_t len2 )
 {
 	int ret;
 	if(addr!=CS_) CS(0,addr);
@@ -367,28 +383,36 @@ int spi_master::crc_setup( unsigned short polynominal, bool enable )
 }
 
 /* Control CS manually*/
-void spi_master::CS( bool val, int /*cs_no*/ )
+void spi_master::CS( bool val, int cs_no )
 {
 	using namespace stm32;
-	if( m_spi == SPI1 )
+	if( m_cs.empty() )
 	{
-		if( !m_alt ) {
-			if( val ) gpio_set( spi1::SPI_PORT, spi1::SD_SPI_CS_PIN );
-			else gpio_clr( spi1::SPI_PORT, spi1::SD_SPI_CS_PIN );
-		} else {
-			if( val ) gpio_set( spi1_alt::SPI_PORT, spi1_alt::SD_SPI_CS_PIN );
-			else gpio_clr( spi1_alt::SPI_PORT, spi1_alt::SD_SPI_CS_PIN );
+		if( m_spi == SPI1 )
+		{
+			if( !m_alt ) {
+				if( val ) gpio_set( spi1::SPI_PORT, spi1::SD_SPI_CS_PIN );
+				else gpio_clr( spi1::SPI_PORT, spi1::SD_SPI_CS_PIN );
+			} else {
+				if( val ) gpio_set( spi1_alt::SPI_PORT, spi1_alt::SD_SPI_CS_PIN );
+				else gpio_clr( spi1_alt::SPI_PORT, spi1_alt::SD_SPI_CS_PIN );
+			}
+		}
+		else if( m_spi == SPI2 )
+		{
+			if( val ) gpio_set( spi2::SPI_PORT, spi2::SD_SPI_CS_PIN );
+			else gpio_clr( spi2::SPI_PORT, spi2::SD_SPI_CS_PIN );
+		}
+		else if( m_spi == SPI3 )
+		{
+			//if( val ) gpio_set( spi3::SPI_PORT, spi3::SD_SPI_CS_PIN );
+			//else gpio_clr( spi3::SPI_PORT, spi3::SD_SPI_CS_PIN );
 		}
 	}
-	else if( m_spi == SPI2 )
+	else
 	{
-		if( val ) gpio_set( spi2::SPI_PORT, spi2::SD_SPI_CS_PIN );
-		else gpio_clr( spi2::SPI_PORT, spi2::SD_SPI_CS_PIN );
-	}
-	else if( m_spi == SPI3 )
-	{
-		//if( val ) gpio_set( spi3::SPI_PORT, spi3::SD_SPI_CS_PIN );
-		//else gpio_clr( spi3::SPI_PORT, spi3::SD_SPI_CS_PIN );
+		if(val) gpio_set(m_cs[cs_no].port(),m_cs[cs_no].ord());
+		else gpio_clr(m_cs[cs_no].port(),m_cs[cs_no].ord());
 	}
 }
 
@@ -441,7 +465,7 @@ uint8_t spi_master::transfer8( uint8_t val )
 
 
 /* Disable enable the device */
-void spi_master::enable( bool en )
+void spi_master::enable(bool en)
 {
 	stm32::spi_cmd( m_spi, en );
 }
