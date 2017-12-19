@@ -65,14 +65,24 @@ protected:
 	//Global timeout for device
 	static const unsigned C_spi_timeout = 5000;
 	//Reconfiguration needed
-	bool mode_reconf_needed(int cs) const noexcept {
+	bool mode_reconf_needed(int cs) const noexcept
+	{
+		return unsigned(cs)<m_cs_modes.size() &&
+			m_cs_modes[cs].packed!=m_current_mode.packed;
 	}
 	//! Get mode for selected cs
 	config_t mode(int cs) const noexcept {
+		return m_cs_modes[cs];
 	}
 public:
-	spi_device() : ibus(fnd::drv::bus::ibus::type::spi)
-	{}
+	/** Create SPI device with number of cs
+	 * lines
+	 */
+	explicit spi_device( size_t num_of_cs )
+		: ibus(fnd::drv::bus::ibus::type::spi),
+	      m_cs_modes(num_of_cs)
+	{
+	}
 	virtual ~spi_device() {}
 	/* Flush bytes */
 	void flush(size_t elems) {
@@ -102,9 +112,15 @@ public:
 	/* Current config mode */
 	config_t m_current_mode {};
 	/* Vector for chip select config */
-	std::vector<config_t> m_cfg;
+	std::vector<config_t> m_cs_modes;
 };
 
+	inline int spi_device::set_mode( unsigned mode, unsigned khz, int cs )
+	{
+		config_t cnf { mode, khz };
+		m_cs_modes[cs] = cnf;
+		return err_ok;
+	}
 
 }
 

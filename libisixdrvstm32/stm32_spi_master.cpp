@@ -42,7 +42,7 @@ namespace {
 
 /* Constructor */
 spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool alternate )
-	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(alternate)
+	: spi_device(0), m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(alternate)
 {
 	using namespace stm32;
 	if( m_spi == SPI1 )
@@ -52,13 +52,13 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 		if( !alternate ) {
 			using namespace spi1;
 			gpio_clock_enable( SPI_PORT, true );
-			gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
+			gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,
 					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
-			gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, 
+			gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN,
 					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
-			gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, 
+			gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN,
 					AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
-			gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   
+			gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,
 					AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_FULL );
 			gpio_set( SPI_PORT, SD_SPI_CS_PIN );
 		} else {
@@ -107,13 +107,13 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 			gpio_pin_AF_config( SPI_PORT, SD_SPI_MOSI_PIN, GPIO_AF_5 );
 			gpio_pin_AF_config( SPI_PORT, SD_SPI_MISO_PIN, GPIO_AF_5 );
 #else
-			gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,  
+			gpio_abstract_config( SPI_PORT, SD_SPI_SCK_PIN,
 					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
-			gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN, 
+			gpio_abstract_config( SPI_PORT, SD_SPI_MOSI_PIN,
 					AGPIO_MODE_ALTERNATE_PP, AGPIO_SPEED_FULL );
-			gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN, 
+			gpio_abstract_config( SPI_PORT, SD_SPI_MISO_PIN,
 					AGPIO_MODE_INPUT_FLOATING, AGPIO_SPEED_FULL );
-			gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,   
+			gpio_abstract_config( SPI_PORT, SD_SPI_CS_PIN,
 					AGPIO_MODE_OUTPUT_PP, AGPIO_SPEED_FULL );
 #endif
 			gpio_set( SPI_PORT, SD_SPI_CS_PIN );
@@ -134,7 +134,7 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 
 
 spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, const spi_gpio_config& iocnf )
-	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(false), m_cs(iocnf.cs)
+	: spi_device(iocnf.cs.size()),m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(false), m_cs(iocnf.cs)
 {
 	using namespace stm32;
 	if( m_spi == SPI1 )
