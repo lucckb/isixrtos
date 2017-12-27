@@ -27,13 +27,17 @@ namespace stm32 {
 namespace drv {
 
 
+using spi_cs_conf = std::array<gpio::pin_desc,4>;
+
 //! Gpio port config
 struct spi_gpio_config {
+	unsigned pclk1;
+	unsigned pclk2;
+	unsigned alt;
 	gpio::pin_desc miso;
 	gpio::pin_desc mosi;
 	gpio::pin_desc sck;
-	std::vector<gpio::pin_desc> cs;			//null end off
-	unsigned alt { GPIO_AF_5 };			// Alternate function number
+	spi_cs_conf cs;			//null end off
 };
 
 
@@ -42,7 +46,7 @@ class spi_master : public ::drv::spi_device
 public:
 	/* Constructor */
 	spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool alternate=false );
-	spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, const spi_gpio_config& iocnf );
+	spi_master( SPI_TypeDef *spi, const spi_gpio_config& iocnf );
 	/* Destructor */
 	virtual ~spi_master();
 	/* Write to the device */
@@ -53,10 +57,7 @@ public:
 	int read ( unsigned addr, void *buf, size_t len) override;
 	/* Transfer (BIDIR) */
 	int transfer( unsigned addr, const void *inbuf, void *outbuf, size_t len ) override;
-	/* Set work mode */
-	int set_mode( unsigned mode, unsigned khz, int /*cs*/) override {
-		return hw_set_mode( mode, khz );
-	}
+
 	/* Setup CRC */
 	int crc_setup( unsigned short /*polynominal*/, bool /*enable*/ ) override;
 	/* Control CS manually*/
@@ -68,8 +69,9 @@ public:
 	}
 	/* Disable enable the device */
 	void enable( bool en ) override;
+protected:
 	/** SPI internal set mode */
-	int hw_set_mode( unsigned mode, unsigned khz ) noexcept ;
+	 void hw_set_mode( unsigned mode, unsigned khz ) noexcept override;
 private:
 	uint16_t transfer16( uint16_t val );
 	uint8_t transfer8( uint8_t val );
@@ -78,8 +80,9 @@ protected:
 private:
 	uint32_t m_pclk;
 	const bool m_alt;
+	const bool m_newapi;
 	bool m_8bit { true };
-	const std::vector<gpio::pin_desc> m_cs;
+	spi_cs_conf m_cs;
 };
 
 

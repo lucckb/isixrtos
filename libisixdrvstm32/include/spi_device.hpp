@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include <isix.h>
 #include <foundation/drv/bus/ibus.hpp>
-#include <vector>
 
 namespace drv {
 
@@ -23,18 +22,19 @@ namespace drv {
 class spi_device : public fnd::drv::bus::ibus
 {
 public:
+	static constexpr auto max_cs = 4;
 	//! SPI configuration device
-	struct config_t {
-		union {
+	union config_t {
+		struct {
 			unsigned flags: 8;
 			unsigned  speed: 24;
 		};
 		unsigned packed;
 	};
 	//! Bus address as spi
-	enum spi_addr : unsigned {
-		CS_ = 0, //! Don't apply chip select
-		CS0 = 1, //! Use CS0
+	enum spi_addr : int {
+		CS0, CS1, CS2, CS3,
+		CS_, //! Don't apply chip select
 	};
 	enum data_with
 	{
@@ -61,26 +61,21 @@ public:
 		cs_software = 0x00,
 		cs_hardware = 0x10
 	};
-protected:
+private:
 	//Global timeout for device
 	static const unsigned C_spi_timeout = 5000;
 	//Reconfiguration needed
 	bool mode_reconf_needed(int cs) const noexcept
 	{
-		return unsigned(cs)<m_cs_modes.size() &&
-			m_cs_modes[cs].packed!=m_current_mode.packed;
-	}
-	//! Get mode for selected cs
-	config_t mode(int cs) const noexcept {
-		return m_cs_modes[cs];
+		return cs>=CS0 && cs<=CS3 &&
+			m_cs_modes[cs-CS0].packed!=m_current_mode.packed;
 	}
 public:
 	/** Create SPI device with number of cs
 	 * lines
 	 */
-	explicit spi_device( size_t num_of_cs )
-		: ibus(fnd::drv::bus::ibus::type::spi),
-	      m_cs_modes(num_of_cs)
+	spi_device()
+		: ibus(fnd::drv::bus::ibus::type::spi)
 	{
 	}
 	virtual ~spi_device() {}
@@ -94,9 +89,14 @@ public:
 	/** Select mode for the chip select
 	 * @param[in] mode Bus mode
 	 * @param[in] khz Speed in khz
-	 * @return error code
 	 */
-	virtual int set_mode( unsigned mode, unsigned khz, int cs=CS0 ) = 0;
+	int set_mode( unsigned mode, unsigned khz, int cs=CS0 ) noexcept
+	{
+		if( cs < CS0 || cs > CS3 ) return err_invaddr;
+		config_t cnf { uint8_t(mode), khz };
+		m_cs_modes[cs] = cnf;
+		return err_ok;
+	}
 	/* Setup CRC */
 	virtual int crc_setup( unsigned short /*polynominal*/, bool /*enable*/ )
 	{
@@ -109,18 +109,26 @@ public:
 	virtual void CS( bool val, int cs_no ) = 0;
 	/* Transfer data (nodma) */
 	virtual uint16_t transfer( uint16_t val ) = 0;
+protected:
+	//! Hardware reconfigure mode
+	 virtual void hw_set_mode( unsigned mode, unsigned khz ) noexcept = 0;
+private:
 	/* Current config mode */
 	config_t m_current_mode {};
 	/* Vector for chip select config */
-	std::vector<config_t> m_cs_modes;
+	std::array<config_t,max_cs> m_cs_modes {{}};
 };
 
-	inline int spi_device::set_mode( unsigned mode, unsigned khz, int cs )
-	{
-		config_t cnf { mode, khz };
-		m_cs_modes[cs] = cnf;
-		return err_ok;
+//! Hardware control chip select
+inline void spi_device::CS( bool val, int cs_no )
+{
+	if( val ) return;
+	//Switch only when 0
+	if( mode_reconf_needed(cs_no) ) {
+		hw_set_mode(m_cs_modes[cs_no].flags,m_cs_modes[cs_no].speed);
+		m_current_mode = m_cs_modes[cs_no];
 	}
+}
 
 }
 

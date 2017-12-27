@@ -42,7 +42,7 @@ namespace {
 
 /* Constructor */
 spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool alternate )
-	: spi_device(0), m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(alternate)
+	: m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(alternate), m_newapi(false)
 {
 	using namespace stm32;
 	if( m_spi == SPI1 )
@@ -133,8 +133,10 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, bool a
 
 
 
-spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, const spi_gpio_config& iocnf )
-	: spi_device(iocnf.cs.size()),m_spi( spi ), m_pclk( spi==SPI1?pclk2:pclk1), m_alt(false), m_cs(iocnf.cs)
+spi_master::spi_master( SPI_TypeDef *spi, const spi_gpio_config& iocnf )
+	: m_spi( spi ),
+	m_pclk(spi==SPI1?iocnf.pclk2:iocnf.pclk1),
+	m_alt(false), m_newapi(true), m_cs(iocnf.cs)
 {
 	using namespace stm32;
 	if( m_spi == SPI1 )
@@ -169,6 +171,7 @@ spi_master::spi_master( SPI_TypeDef *spi, unsigned pclk1, unsigned pclk2, const 
 		GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE,  GPIO_SPEED_HI, 0 );
 	for( const auto& cs : iocnf.cs )
 	{
+		if( cs )
 		gpio_config( cs.port(), cs.ord(),
 			GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_SPEED_HI);
 	}
@@ -320,11 +323,9 @@ int spi_master::transfer( unsigned addr, const void *inbuf, void *outbuf, size_t
 }
 
 /* Set work mode */
-int spi_master::hw_set_mode( unsigned mode, unsigned khz ) noexcept
+void spi_master::hw_set_mode( unsigned mode, unsigned khz ) noexcept
 { 
 	using namespace stm32;
-	if( !khz )
-		return spi_device::err_inval;
 	int divide = (m_pclk/1000) / khz;
 	if( divide <= 2 )
 	{
@@ -370,7 +371,6 @@ int spi_master::hw_set_mode( unsigned mode, unsigned khz ) noexcept
 	m_8bit = !(mode&spi_device::data_16b);
 	spi_cmd( m_spi, true );
 	dbg_info("SPI_CR2 %04x", SPI1->CR2 );
-	return err_ok;
 }
 
 /* Setup CRC */
@@ -386,7 +386,7 @@ int spi_master::crc_setup( unsigned short polynominal, bool enable )
 void spi_master::CS( bool val, int cs_no )
 {
 	using namespace stm32;
-	if( m_cs.empty() )
+	if( !m_newapi )
 	{
 		if( m_spi == SPI1 )
 		{
@@ -409,8 +409,9 @@ void spi_master::CS( bool val, int cs_no )
 			//else gpio_clr( spi3::SPI_PORT, spi3::SD_SPI_CS_PIN );
 		}
 	}
-	else
+	else if( m_cs[cs_no] )
 	{
+		spi_device::CS(val,cs_no);
 		if(val) gpio_set(m_cs[cs_no].port(),m_cs[cs_no].ord());
 		else gpio_clr(m_cs[cs_no].port(),m_cs[cs_no].ord());
 	}

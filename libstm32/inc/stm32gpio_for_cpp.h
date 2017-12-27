@@ -60,10 +60,15 @@ namespace gpio {
 		static constexpr pin_id_t PIN_MASK = 0x0FU;
 	public:
 		//! Constructor
-		enum portno : unsigned { PA=1, PB, PC, PD, PE, PF, PG, PH, PI };
+		enum portno : unsigned { INVPORT, PA, PB, PC, PD, PE, PF, PG, PH, PI };
 		pin_desc(GPIO_TypeDef* port, unsigned pin)
 			: m_pins( (pin&PIN_MASK) | p2i(port)<<PORT_SHIFT)
 		{}
+		constexpr pin_desc( portno port, unsigned pin)
+			: m_pins( (pin&PIN_MASK) | port<<PORT_SHIFT)
+		{}
+		//! Default constructor invalid state
+		constexpr pin_desc() : m_pins(INVPORT) {}
 		//Public members
 		GPIO_TypeDef* port() const noexcept {
 			switch( m_pins >> PORT_SHIFT )
@@ -109,6 +114,9 @@ namespace gpio {
 		//! Return packed value
 		auto packed() const noexcept {
 			return m_pins;
+		}
+		operator bool() const noexcept {
+			return m_pins!=INVPORT;
 		}
 	private:
 		pin_id_t m_pins {};
