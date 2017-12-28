@@ -54,8 +54,9 @@ int ssd1306::putc(char ch) noexcept
 // Clear the screen
 int ssd1306::clear() noexcept
 {
+#if 0
 	int err {};
-	static constexpr uint8_t buf[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	static constexpr uint8_t buf[] = { 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 };
 	for(int row=0; row<m_rows/8; ++row) {
 		if(err) break;
 		err = setpos(0, row);
@@ -66,6 +67,23 @@ int ssd1306::clear() noexcept
 		}
 	}
 	return err;
+#else
+	int err;
+	uint8_t v = 0x01;
+	do {
+		err = command(0x21); if(err) break;
+		err = command(0x00); if(err) break;
+		err = command(0x7f); if(err) break;
+		err = command(0x22); if(err) break;
+		err = command(0x00); if(err) break;
+		err = command(0x07); if(err) break;
+		for( int i = 0; i < 1024; ++i ) {
+			err = write_data( &v, sizeof v );
+			if(err) break;
+		}
+	} while(0);
+	return err;
+#endif
 }
 
 
@@ -122,20 +140,16 @@ int ssd1306::write_data( const uint8_t buf[], std::size_t len ) noexcept
 // Initialize the display
 int ssd1306::initialize() noexcept
 {
-	m_rst(false);
-	m_bus.mdelay(10);
-	m_rst(true);
-	m_bus.mdelay(10);
 	constexpr uint8_t init_cmds[] = {
 		0xAE,						//Display off
 		0xD5, 0x81,					//Clock
 		0xA8, 0x3F,					//Mux ratio
 		0xD3, 0x00, 0x00,			//Display offset
-		0xD8, 0x14,					//Charge pump enable
+		0x8D, 0x14,					//Charge pump enable
 		0x20, 0x00,					//Memory address mode - horiz
 		0xA1,						//Segment remap
 		0xA5,						//Display on
-		0xC8, 						//Set com output scan direction
+		0xC8,						//Set com output scan direction
 		0xDA, 0x12,					//Set com pins
 		0x81, 0xFF,
 		0xD9, 0x11,
@@ -143,11 +157,11 @@ int ssd1306::initialize() noexcept
 		0xA6,
 		0xA4, 0xAF
 	};
-	int err {};
-	for( auto cmd : init_cmds ) {
-		if( (err = command(cmd)) ) break;
-	}
-	return err;
+	m_rst(false);
+	m_bus.mdelay(10);
+	m_rst(true);
+	m_bus.mdelay(10);
+	return  m_bus.write(m_cs, init_cmds, sizeof init_cmds);
 }
 
 // Deinitialize the display

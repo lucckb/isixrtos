@@ -171,9 +171,11 @@ spi_master::spi_master( SPI_TypeDef *spi, const spi_gpio_config& iocnf )
 		GPIO_MODE_ALTERNATE, GPIO_PUPD_NONE,  GPIO_SPEED_HI, 0 );
 	for( const auto& cs : iocnf.cs )
 	{
-		if( cs )
-		gpio_config( cs.port(), cs.ord(),
-			GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_SPEED_HI);
+		if( cs ) {
+			gpio_config( cs.port(), cs.ord(),
+				GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_SPEED_HI);
+			gpio_set( cs.port(), cs.ord() );
+		}
 	}
 	gpio_pin_AF_config( iocnf.sck.port(), iocnf.sck.ord(), iocnf.alt );
 	gpio_pin_AF_config( iocnf.mosi.port(), iocnf.mosi.ord(), iocnf.alt );
