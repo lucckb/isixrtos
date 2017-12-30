@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <initializer_list>
 #include <foundation/drv/bus/ibus.hpp>
 #include <foundation/drv/lcd/display.hpp>
 #include "../bus/gpioout.hpp"
@@ -82,7 +83,9 @@ private:
 	 * @param[in] cmd Input command
 	 * @return error code
 	 */
-	int command(uint8_t cmd) noexcept;
+	int command( const std::initializer_list<uint8_t>& cmd) noexcept;
+	int command( uint8_t cmd );
+
 	// Initialize the display
 	int initialize() noexcept;
 	//! Deinitialize the display
@@ -93,12 +96,18 @@ private:
 	 * @param len Input buffer length
 	 * @return Error code
 	 */
-	int write_data( const uint8_t buf[], std::size_t len ) noexcept;
+	int data( const uint8_t buf[], std::size_t len ) noexcept;
+	int data( const std::initializer_list<uint8_t>& cmd ) noexcept;
+
+	/** Setup cursor position with range */
+	int setpos( uint8_t x, uint8_t y, uint8_t maxx, uint8_t maxy ) noexcept;
 private:
 
 	/* data */
 	bus::ibus& m_bus;
 	uint8_t m_cs;
+	uint8_t m_x {};
+	uint8_t m_y {};
 	bus::gpio_out& m_di;
 	bus::gpio_out& m_rst;
 };

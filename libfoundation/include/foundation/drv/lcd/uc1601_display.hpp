@@ -16,8 +16,6 @@ namespace fnd {
 namespace drv {
 namespace lcd {
 
-struct font_t;
-struct icon_t;
 
 //! UC1601 bus interface
 class uc1601_bus

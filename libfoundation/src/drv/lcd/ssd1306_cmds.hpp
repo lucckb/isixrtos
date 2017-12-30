@@ -26,6 +26,7 @@ namespace cmd {
 	constexpr uint8_t SET_SEGMENT_REMAP		=	0xA1;
 	constexpr uint8_t DISPLAY_ALL_ON_RES	=	0xA4;
 	constexpr uint8_t NORMAL				=	0xA6;
+	constexpr uint8_t INVERSE				=	0xA7;
 	constexpr uint8_t SET_MUX				=	0xA8;
 	constexpr uint8_t DISPLAY_OFF			=	0xAE;
 	constexpr uint8_t DISPLAY_ON			=	0xAF;
@@ -40,10 +41,11 @@ namespace cmd {
 	constexpr uint8_t COLUMN_LOW_ADDR		=	0x00;
 	constexpr uint8_t COLUMN_HIGH_ADDR		=	0x10;
 	constexpr uint8_t MODE_HORIZ			=	0;
-}
-namespace addr {
-	constexpr uint8_t MODE_VERT			=	1;
-	constexpr uint8_t MODE_PAGE			=	2;
+	//Addressing mode
+	struct addr_mode {
+	enum addr_mode_ : unsigned char{
+		horiz=0, vert=1, page=2
+	}; };
 }
 
 }}
