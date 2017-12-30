@@ -83,7 +83,14 @@ int ssd1306::putc(char ch) noexcept
 		if(m_error) break;
 		data( bmp_ptr, width*height/8 );
 		if(m_error) break;
-		setpos( m_x+width, m_y, m_cols-1, m_rows-1 );
+		// Single space between chars
+		auto smx = m_x;
+		setpos( smx+width, m_y, smx+width+1, m_rows-1 );
+		if(m_error) break;
+		data( zero_buffer, height/8U );
+		if(m_error) break;
+		// Single space between chars
+		setpos( smx+width+1, m_y, m_cols-1, m_rows-1 );
 		if(m_error) break;
 	} while(0);
 	return m_error;
