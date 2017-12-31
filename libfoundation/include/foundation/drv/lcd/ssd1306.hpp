@@ -78,6 +78,17 @@ public:
 	* @return Error code
 	*/
 	int endl() noexcept override;
+
+	/** Draw horizontal line on the screen 
+	 * @param x Position X
+	 * @param y Position y
+	 * @param h length
+	 * @param color line color
+	 * @return error code
+	 */
+	//int draw_hline(int /*x*/, int /*y*/, int /*h*/, color_t /*color*/)
+		//noexcept override;
+
 private:
 	/** Write command
 	 * @param[in] cmd Input command
@@ -101,6 +112,7 @@ private:
 
 	/** Setup cursor position with range */
 	int setpos( uint8_t x, uint8_t y, uint8_t maxx, uint8_t maxy ) noexcept;
+
 private:
 
 	/* data */

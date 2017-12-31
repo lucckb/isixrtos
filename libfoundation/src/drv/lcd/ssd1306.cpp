@@ -225,8 +225,10 @@ int ssd1306::initialize() noexcept
 // Deinitialize the display
 int ssd1306::deinitialize() noexcept
 {
-	return 0;
+	return command( ns1306::cmd::DISPLAY_OFF );
 }
+
+
 
 }}}
 
