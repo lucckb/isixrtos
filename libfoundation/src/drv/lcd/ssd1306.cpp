@@ -27,6 +27,19 @@ namespace lcd {
 
 namespace {
 	constexpr uint8_t zero_buffer[32] {};
+	constexpr uint8_t ff_buffer[32]
+		{ 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+		  0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff };
+	constexpr uint8_t pattern_buffer[8][16] = {
+		{ 0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01 },
+		{ 0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02 },
+		{ 0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04 },
+		{ 0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08 },
+		{ 0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10 },
+		{ 0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20 },
+		{ 0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40 },
+		{ 0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80 },
+	};
 	inline size_t align( std::size_t value, std::size_t align ) {
 		return (value+align-1) & ~(align-1);
 	}
@@ -229,6 +242,140 @@ int ssd1306::deinitialize() noexcept
 }
 
 
+//! Draw horizontal line
+int ssd1306::hline(int x, int y, int h, color_t color) noexcept
+{
+	do {
+		if(color==color::white) {
+			m_error = ERR_INVALID_ARG;
+			dbg_err("White line without FB not supported");
+			break;
+		}
+		setpos(x,y); if(m_error) break;
+		for( auto n=0U; n<h/sizeof(pattern_buffer[0]); ++n) {
+			data(pattern_buffer[y%8],sizeof pattern_buffer[0] );
+			if(m_error) break;
+		}
+		if(m_error) break;
+		if( h%sizeof(pattern_buffer[0]) ) {
+			data( pattern_buffer[y%8], h%sizeof(pattern_buffer[0]) );
+			if(m_error) break;
+		}
+	} while(0);
+	return m_error;
+}
+
+
+//! Draw vertical line
+int ssd1306::vline(int x, int y, int h, color_t color) noexcept
+{
+	do {
+		if(color==color::white) {
+			m_error = ERR_INVALID_ARG;
+			dbg_err("White line without FB not supported");
+			break;
+		}
+		// Switch address mode to vertical
+		command( {ns1306::cmd::ADDR_MODE,ns1306::cmd::addr_mode::vert} );
+		if(m_error) break;
+		setpos(x,y); if(m_error) break;
+		uint8_t htb;
+		if(y%8) {
+			htb = 0xFF<<(y%8);
+			data({htb}); if(m_error) break;
+			h-=y%8;
+		}
+		data( ff_buffer, h/8 );
+		if(m_error) break;
+		if( h%8 ) {
+			htb = 0xFF>>(h%8);
+			data({htb}); if(m_error) break;
+		}
+		command( {ns1306::cmd::ADDR_MODE,ns1306::cmd::addr_mode::horiz} );
+		if(m_error) break;
+	} while(0);
+	return m_error;
+}
+
+
+//! Draw a box
+int ssd1306::box(int x1, int y1, int cx, int cy, box_t type) noexcept
+{
+	do {
+		if(x1>m_cols || y1>m_rows || (x1+cx)>m_cols || (y1+cy)>m_rows) {
+			m_error = ERR_OUT_RANGE;
+			break;
+		}
+		if(y1%8 || cy%8 || cy<16 ) {
+			m_error = ERR_ALIGN;
+			break;
+		}
+		setpos(x1,y1,x1+cx-1,y1+cy-1); if(m_error) break;
+		for( auto i = 0U; i < m_cols*m_rows/8/sizeof(zero_buffer); ++i ) {
+			if(type==box_t::fill)
+				data(ff_buffer,sizeof ff_buffer);
+			else
+				data(zero_buffer,sizeof zero_buffer);
+			if(m_error) break;
+		}
+		if(type==box_t::frame) {
+			hline(x1,y1,cx,color::black);
+			if(m_error) break;
+			hline(x1,y1+cy-1,cx,color::black);
+			if(m_error) break;
+			vline(x1,y1,cy,color::black);
+			if(m_error) break;
+			vline(x1+cx,y1,cy,color::black);
+			if(m_error) break;
+		}
+	} while(0);
+	return m_error;
+}
+
+
+//! Display progress bar
+int ssd1306::progress_bar(int x1, int y1, int cx, int cy, int value, int max) noexcept
+{
+	do
+	{
+		const int cx1 = ( cx * value ) / max;
+		const int cx2 = cx - cx1;
+		box( x1+cx1, y1, cx2, cy, box_t::frame );
+		if( m_error ) break;
+		box( x1, y1, cx1, cy, box_t::fill );
+		if( m_error ) break;
+	}
+	while(0);
+	return m_error;
+}
+
+
+//! Display icon on the screen
+int ssd1306::show_icon(int x1, int y1, const icon_t* icon) noexcept
+{
+	do {
+		if( !icon )
+		{
+			m_error = ERR_INVALID_ARG;
+			break;
+		}
+		if( y1%8 )
+		{
+			m_error = ERR_ALIGN;
+			break;
+		}
+		if(y1/8+icon->pg_width>m_rows/8 || x1+icon->height>m_cols )
+		{
+			m_error = ERR_OUT_RANGE;
+			break;
+		}
+		setpos(x1,y1,x1+icon->height-1,y1+icon->pg_width*8-1);
+		if(m_error) break;
+		data( icon->data, icon->pg_width*icon->height );
+		if(m_error) break;
+	} while(0);
+	return m_error;
+}
 
 }}}
 

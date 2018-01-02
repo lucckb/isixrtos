@@ -36,7 +36,7 @@ namespace lcd {
 	struct icon_t;
 
 	//! Color class definition
-	enum class color : color_t {
+	enum color : color_t {
 		white,
 		black
 	};
@@ -47,13 +47,13 @@ namespace lcd {
 		//! Display errors
 		enum error	: int
 		{
-			ERR_OK 				= 0,		//! No error
-			ERR_ALIGN 			= -4096,	//! Alignment error
-			ERR_MISSING_FONT 	= -4097,	//! Missing font
-			ERR_NO_CHAR 		= -4098,	//! No character in table
-			ERR_OUT_RANGE 		= -4099,	//! Out of range
-			ERR_INVALID_ARG 	= -4100,	//! Invalid argument
-			ERR_NOT_SUPPORTED 	= -4101		//! Command not supported
+			ERR_OK				= 0,		//! No error
+			ERR_ALIGN			= -4096,	//! Alignment error
+			ERR_MISSING_FONT	= -4097,	//! Missing font
+			ERR_NO_CHAR			= -4098,	//! No character in table
+			ERR_OUT_RANGE		= -4099,	//! Out of range
+			ERR_INVALID_ARG		= -4100,	//! Invalid argument
+			ERR_NOT_SUPPORTED	= -4101		//! Command not supported
 		};
 		//! Box draw type
 		enum class box_t
@@ -215,7 +215,7 @@ namespace lcd {
 		 * @return Error code
 		 */
 		virtual
-		int draw_hline(int /*x*/, int /*y*/, int /*h*/, color_t /*color*/) noexcept {
+		int hline(int /*x*/, int /*y*/, int /*h*/, color_t /*color*/) noexcept {
 			return ERR_NOT_SUPPORTED;
 		}
 		/**
@@ -226,7 +226,7 @@ namespace lcd {
 		 * @return Error code
 		 */
 		virtual
-		int draw_vline(int /*x*/, int /*y*/, int /*h*/, color_t /*color*/) noexcept {
+		int vline(int /*x*/, int /*y*/, int /*h*/, color_t /*color*/) noexcept {
 			return ERR_NOT_SUPPORTED;
 		}
 	protected:

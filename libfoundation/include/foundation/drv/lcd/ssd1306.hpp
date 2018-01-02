@@ -86,9 +86,52 @@ public:
 	 * @param color line color
 	 * @return error code
 	 */
-	//int draw_hline(int /*x*/, int /*y*/, int /*h*/, color_t /*color*/)
-		//noexcept override;
+	int hline(int x, int y, int h, color_t color)
+		noexcept override;
 
+	/**
+		* @param x Start position X
+		* @param y Start position Y
+		* @param h Height
+		* @param color Input color
+		* @return Error code
+		*/
+	int vline(int x, int y, int h, color_t color)
+		noexcept override;
+
+
+	/**
+	*  draw box arround the area
+	* @param x1	X pos
+	* @param y1	Y pos
+	* @param cx	box width
+	* @param cy	box height
+	* @param type display frame type @see box_t
+	*/
+	int box(int x1, int y1, int cx, int cy, box_t type)
+		noexcept override;
+
+	/**
+	* Display progress bar
+	* @param x1	Start position X
+	* @param y1	Start position Y
+	* @param cx	Bar width
+	* @param cy	Bar height
+	* @param value	Progress value
+	* @param max	Maximum value
+	* @return Error code
+	*/
+	int progress_bar(int x1, int y1, int cx,
+		int cy, int value, int max) noexcept override;
+
+	/**
+	* Show icon on screen
+	* @param x1	Position X icon
+	* @param y1	Position Y icon
+	* @param icon	Icon Pointer
+	* @return		Error code
+	*/
+	int show_icon(int x1, int y1, const icon_t* icon) noexcept override;
 private:
 	/** Write command
 	 * @param[in] cmd Input command
@@ -114,7 +157,6 @@ private:
 	int setpos( uint8_t x, uint8_t y, uint8_t maxx, uint8_t maxy ) noexcept;
 
 private:
-
 	/* data */
 	bus::ibus& m_bus;
 	uint8_t m_cs;
