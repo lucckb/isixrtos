@@ -98,7 +98,8 @@ def configure(cfg):
         cflags += _cflags_ndebug
         cfg.env.LDFLAGS = _ldflags_ndebug
     optflag = [ '-O%s' % cfg.options.optimize ]
-    cfg.env.CFLAGS += cflags + ['-std=gnu11' ] + optflag
+    cfg.env.CFLAGS += cflags + \
+        ['-std=gnu11', '-Werror=implicit-function-declaration' ] + optflag
     cfg.env.CXXFLAGS += cflags + [ '-std=gnu++14' ] + optflag
     cfg.env.ASFLAGS += cflags + [ '-Wa,-mapcs-32' ] + optflag
     cfg.env.DEFINES += _get_flag(cfg.options.cpu,'defs')
