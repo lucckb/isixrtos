@@ -24,6 +24,7 @@
 #include "stm32f30x_adc.h"
 #include "stm32f30x_exti.h"
 #include "stm32f30x_rtc.h"
+#include "stm32f30x_hrtim.h"
 #include "misc.h"
 
 #define STM32_CRC_HARDWARE_VERSION 2
