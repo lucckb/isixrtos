@@ -5,7 +5,8 @@
 bld_isixlibs = [
     'libisix',
     'libfoundation',
-    'libstm32',
+    'libperiph',
+    #'libstm32',
 ]
 
 

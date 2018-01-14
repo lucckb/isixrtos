@@ -6,11 +6,11 @@
  */
 
 #include <foundation/sys/tiny_printf.h>
-#include <stm32system.h>
-#include "stm32crashinfo.h"
+#include <boot/arch/arm/cortexm/crashinfo.h>
+#include <stdbool.h>
 
 
-//! Access to the registry 
+//! Access to the registry
 #define reg32(addr) *((volatile unsigned long*)(addr))
 #define reg8(addr) *((volatile unsigned char*)(addr))
 #define reg16(addr) *((volatile unsigned short*)(addr))
@@ -127,8 +127,11 @@ void* isix_task_self(void);
 //Cortex CM3 print core regs
 void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 {
-	//Disable interrupt
-	irq_disable();
+	asm volatile(
+		"	cpsid i			@ arch_local_irq_disable"
+		:
+		:
+		: "memory", "cc");
 	//Initialize usart simple no interrupt
 	tiny_printf("\r\n\r\nISIX panic! Exception in [%s] mode.\r\n",
 			crash_type==CRASH_TYPE_USER?"USER":"SYSTEM" );
@@ -197,6 +200,6 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 		}
 		tiny_printf("\r\n");
 	}
-	for(;;) wfi();
+	for(;;) asm volatile( "wfi\n" );
 }
 

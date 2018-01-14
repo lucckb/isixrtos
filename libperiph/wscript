@@ -15,8 +15,8 @@ def options(opt):
 def configure(conf):
     conf.env.append_value( 'LDFLAGS',
             '-Wl,--defsym=_sys_stack_size=%i' % conf.options.stack_size )
-    scripts_dir = conf.path.find_dir('./scripts').abspath()
-    conf.env.OPENOCD_SCRIPT_FILE = os.path.join( scripts_dir, 'stm32.cfg' )
+    scripts_dir = conf.path.find_dir('./scripts/openocd').abspath()
+    conf.env.OPENOCD_SCRIPT_FILE = os.path.join( scripts_dir, 'jtag.cfg' )
     if conf.options.bootloader_remap>0:
         conf.env.BOOTLOADER_REMAP_SHIFT_KB = conf.options.bootloader_remap
 
@@ -31,5 +31,7 @@ def build(bld):
             export_includes= inc,
             use = ['foundation'],
     )
-    bld.env.CRT0_LINKER_SCRIPT = bld.path.find_resource( 'scripts/stm32_flash.ld')
+    ldpath = os.path.join('scripts',bld.isix_get_arch(),bld.isix_get_subarch(),
+                          'flash.ld')
+    bld.env.CRT0_LINKER_SCRIPT = bld.path.find_resource(ldpath);
 
