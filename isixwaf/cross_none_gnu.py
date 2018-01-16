@@ -124,7 +124,7 @@ def gxx_common_flags(conf):
 def find_ar(conf):
 	"""Configuration helper used by C/C++ tools to enable the support for static libraries"""
 	"""Finds the ar program and sets the default flags in ``conf.env.ARFLAGS``"""
-	conf.find_program('%sar'% conf.options.cross, var='AR')
+	conf.find_program('%sgcc-ar'% conf.options.cross, var='AR')
 	conf.add_os_flags('ARFLAGS')
 	if not conf.env.ARFLAGS:
 		conf.env.ARFLAGS = ['rcs']
