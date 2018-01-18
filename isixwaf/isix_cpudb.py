@@ -134,6 +134,11 @@ def isix_get_cpu_family(bld):
     return _get_flag( bld.env.ISIX_CPU_TYPE,'family','mcu' )
 
 
+# Isix get cpu vendor
+@conf
+def isix_get_cpu_vendor(bld):
+    return _get_flag( bld.env.ISIX_CPU_TYPE,'vendor','mcu' )
+
 #Isix get subarchitecture
 @conf
 def isix_get_subarch(bld):

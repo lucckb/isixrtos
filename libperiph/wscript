@@ -19,12 +19,24 @@ def configure(conf):
     conf.env.OPENOCD_SCRIPT_FILE = os.path.join( scripts_dir, 'jtag.cfg' )
     if conf.options.bootloader_remap>0:
         conf.env.BOOTLOADER_REMAP_SHIFT_KB = conf.options.bootloader_remap
+    conf.define('USE_FULL_LL_DRIVER',1)
 
 #Build script
 def build(bld):
-    src = bld.path.ant_glob( 'src/**/*.c' )
-    src += bld.path.ant_glob( 'src/**/*.cpp' )
-    inc = ['./include' ]
+    src = bld.path.ant_glob( 'periph/src/**/*.c' )
+    src += bld.path.ant_glob( 'periph/src/**/*.cpp' )
+    vendor_path = os.path.join( 'vendor',bld.isix_get_arch(),bld.isix_get_subarch(),
+            bld.isix_get_cpu_vendor(), bld.isix_get_cpu_family() )
+    src += bld.path.ant_glob( vendor_path+'/**/*.cpp' )
+    src += bld.path.ant_glob( vendor_path+'/**/*.c' )
+    inc = ['./periph/include', vendor_path+'/include' ]
+    if bld.isix_get_arch()=='arm' and bld.isix_get_subarch()=='cortexm':
+        cmsis_path = os.path.join( 'vendor', bld.isix_get_arch(),bld.isix_get_subarch(), 'cmsis' )
+        inc += [ cmsis_path + '/include' ];
+        inc += [ os.path.join(cmsis_path,'device',bld.isix_get_cpu_vendor(),
+            bld.isix_get_cpu_family(),'include') ]
+        src += bld.path.ant_glob( cmsis_path + '/**/*.c' )
+        src += bld.path.ant_glob( cmsis_path + '/**/*.cpp' )
     bld.stlib( source=src,
             target='periph',
             includes = inc,

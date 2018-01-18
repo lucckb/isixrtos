@@ -4,6 +4,7 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_LD_VL" ],
+			"vendor": "stm32",
 			"family": "f1",
 			"memmap" : {
 				"ram" : {
@@ -22,6 +23,7 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_LD" ],
+			"vendor": "stm32",
 			"family": "f1",
 			"memmap" : {
 				"ram" : {
@@ -40,6 +42,7 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_LD" ],
+			"vendor": "stm32",
 			"family": "f1",
 			"memmap" : {
 				"ram" : {
@@ -58,6 +61,7 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_MD" ],
+			"vendor": "stm32",
 			"family": "f1",
 			"memmap" : {
 				"ram" : {
@@ -76,6 +80,7 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_CL" ],
+			"vendor": "stm32",
 			"family": "f1",
 			"memmap" : {
 				"ram" : {
@@ -94,6 +99,7 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F1=1","STM32F10X_CL" ],
+			"vendor": "stm32",
 			"family": "f1",
 			"memmap" : {
 				"ram" : {
@@ -112,6 +118,7 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F2=1"],
+			"vendor": "stm32",
 			"family": "f2",
 			"memmap" : {
 				"ram" : {
@@ -140,6 +147,7 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F2=1"],
+			"vendor": "stm32",
 			"family": "f2",
 			"memmap" : {
 				"ram" : {
@@ -168,6 +176,7 @@
 			"cpu": "arm_cortex_m3",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F2=1"],
+			"vendor": "stm32",
 			"family": "f2",
 			"memmap" : {
 				"ram" : {
@@ -189,6 +198,7 @@
 		},
 		"stm32f407zet6" : {
 			"cpu": "arm_cortex_m4",
+			"vendor": "stm32",
 			"family": "f4",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1"],
@@ -219,6 +229,7 @@
 			"cpu": "arm_cortex_m4",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1"],
+			"vendor": "stm32",
 			"family": "f4",
 			"memmap" : {
 				"ram" : {
@@ -242,7 +253,8 @@
 			"cpu": "arm_cortex_m4",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F37=1"],
-			"family": "f37",
+			"vendor": "stm32",
+			"family": "f3",
 			"memmap" : {
 				"ram" : {
 					"origin": "0x20000000", 
@@ -260,7 +272,8 @@
 			"cpu": "arm_cortex_m4",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F3=1","STM32F334x8"],
-			"family": "f33",
+			"vendor": "stm32",
+			"family": "f3",
 			"memmap" : {
 				"ram" : {
 					"origin": "0x20000000", 
@@ -283,6 +296,7 @@
 			"cpu": "arm_cortex_m7_vfpdp",
 			"cflags":  [ ],
 			"defs":    ["STM32MCU_MAJOR_TYPE_F7=1", "STM32F767xx"],
+			"vendor": "stm32",
 			"family": "f7",
 			"memmap" : {
 				"ram" : {
