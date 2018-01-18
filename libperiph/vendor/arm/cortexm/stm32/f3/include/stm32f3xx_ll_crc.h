@@ -352,7 +352,10 @@ __STATIC_INLINE void LL_CRC_FeedData32(CRC_TypeDef *CRCx, uint32_t InData)
   */
 __STATIC_INLINE void LL_CRC_FeedData16(CRC_TypeDef *CRCx, uint16_t InData)
 {
-  *(uint16_t __IO *)(&CRCx->DR) = (uint16_t) InData;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+  *(uint16_t __IO *)(uintptr_t)(&CRCx->DR) = (uint16_t) InData;
+#pragma GCC diagnostic pop
 }
 
 /**
@@ -364,7 +367,10 @@ __STATIC_INLINE void LL_CRC_FeedData16(CRC_TypeDef *CRCx, uint16_t InData)
   */
 __STATIC_INLINE void LL_CRC_FeedData8(CRC_TypeDef *CRCx, uint8_t InData)
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
   *(uint8_t __IO *)(&CRCx->DR) = (uint8_t) InData;
+#pragma GCC diagnostic pop
 }
 
 /**

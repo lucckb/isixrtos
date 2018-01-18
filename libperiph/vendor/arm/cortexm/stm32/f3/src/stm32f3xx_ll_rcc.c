@@ -978,6 +978,7 @@ uint32_t LL_RCC_GetHRTIMClockFreq(uint32_t HRTIMxSource)
     hrtim_frequency = RCC_PLL_GetFreqDomain_SYS();
   }
 
+  (void)HRTIMxSource;
   return hrtim_frequency;
 }
 #endif /* HRTIM1 */

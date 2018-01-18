@@ -79,6 +79,7 @@ ErrorStatus LL_HRTIM_DeInit(HRTIM_TypeDef* HRTIMx)
 
   LL_APB2_GRP1_ForceReset(LL_APB2_GRP1_PERIPH_HRTIM1);
   LL_APB2_GRP1_ReleaseReset(LL_APB2_GRP1_PERIPH_HRTIM1);  
+  (void)HRTIMx;
   
   return result;
 }

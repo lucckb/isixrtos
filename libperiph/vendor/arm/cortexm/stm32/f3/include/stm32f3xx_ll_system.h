@@ -1651,7 +1651,7 @@ __STATIC_INLINE uint32_t LL_FLASH_GetLatency(void)
 }
 
 /**
-  * @brief  Enable Prefetch
+  * @brief  Enable tm32L011refetch
   * @rmtoll FLASH_ACR    PRFTBE         LL_FLASH_EnablePrefetch
   * @retval None
   */

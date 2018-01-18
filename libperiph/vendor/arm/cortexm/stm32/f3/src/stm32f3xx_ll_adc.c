@@ -601,7 +601,8 @@ ErrorStatus LL_ADC_CommonDeInit(ADC_Common_TypeDef *ADCxy_COMMON)
 {
   /* Check the parameters */
   assert_param(IS_ADC_COMMON_INSTANCE(ADCxy_COMMON));
-  
+  (void)ADCxy_COMMON;
+ 
   /* Force reset of ADC clock (core clock) */
   #if defined(ADC1) && defined(ADC2) && defined(ADC3) && defined(ADC4)
   if(ADCxy_COMMON == ADC12_COMMON)

@@ -739,6 +739,8 @@ __STATIC_INLINE void LL_COMP_SetCommonWindowMode(COMP_Common_TypeDef *COMPxy_COM
   /* Device without pair of comparator working in window mode */
   /* No update of comparator register (corresponds to setting                 */
   /* "LL_COMP_WINDOWMODE_DISABLE").                                           */
+  (void)COMPxy_COMMON;
+  (void)WindowMode;
 #endif
 }
 
@@ -763,6 +765,7 @@ __STATIC_INLINE uint32_t LL_COMP_GetCommonWindowMode(COMP_Common_TypeDef *COMPxy
   return (uint32_t)(READ_BIT(COMPxy_COMMON->CSR, COMP_CSR_COMPxWNDWEN));
 #else
   /* Device without pair of comparator working in window mode */
+  (void)COMPxy_COMMON;
   return (LL_COMP_WINDOWMODE_DISABLE);
 #endif
 }
@@ -796,6 +799,8 @@ __STATIC_INLINE void LL_COMP_SetPowerMode(COMP_TypeDef *COMPx, uint32_t PowerMod
   /* Device without comparator power mode configurable */
   /* No update of comparator register (corresponds to setting                 */
   /* "LL_COMP_POWERMODE_HIGHSPEED").                                          */
+  (void)COMPx;
+  (void)PowerMode;
 #endif
 }
 
@@ -817,6 +822,7 @@ __STATIC_INLINE uint32_t LL_COMP_GetPowerMode(COMP_TypeDef *COMPx)
   return (uint32_t)(READ_BIT(COMPx->CSR, COMP_CSR_COMPxMODE));
 #else
   /* Device without comparator power mode configurable */
+  (void)COMPx;
   return (LL_COMP_POWERMODE_HIGHSPEED);
 #endif
 }
@@ -891,6 +897,7 @@ __STATIC_INLINE void LL_COMP_ConfigInputs(COMP_TypeDef *COMPx, uint32_t InputMin
   MODIFY_REG(COMPx->CSR,
              COMP_CSR_COMPxINSEL,
              InputMinus);
+  (void)InputPlus;
 #endif
 }
 
@@ -921,6 +928,8 @@ __STATIC_INLINE void LL_COMP_SetInputPlus(COMP_TypeDef *COMPx, uint32_t InputPlu
 #elif defined(COMP_CSR_COMPxSW1)
   MODIFY_REG(COMPx->CSR, COMP_CSR_COMPxSW1, InputPlus);
 #else
+  (void)InputPlus;
+  (void)COMPx;
   /* Device without comparator input plus configurable */
   /* No update of comparator register (corresponds to setting                 */
   /* "LL_COMP_INPUT_PLUS_IO1" or "LL_COMP_INPUT_PLUS_IO2" compared to         */
@@ -960,6 +969,7 @@ __STATIC_INLINE uint32_t LL_COMP_GetInputPlus(COMP_TypeDef *COMPx)
   /* "LL_COMP_INPUT_PLUS_IO1" or "LL_COMP_INPUT_PLUS_IO2" compared to         */
   /* other STM32F3 devices, depending on comparator instance                  */
   /* (refer to reference manual)).                                            */
+  (void)COMPx;
   return (LL_COMP_INPUT_PLUS_IO1);
 #endif
 }
@@ -1047,6 +1057,8 @@ __STATIC_INLINE void LL_COMP_SetInputHysteresis(COMP_TypeDef *COMPx, uint32_t In
   /* Device without comparator input hysteresis */
   /* No update of comparator register (corresponds to setting                 */
   /* "LL_COMP_HYSTERESIS_NONE").                                              */
+  (void)COMPx;
+  (void)InputHysteresis;
 #endif
 }
 
@@ -1068,6 +1080,7 @@ __STATIC_INLINE uint32_t LL_COMP_GetInputHysteresis(COMP_TypeDef *COMPx)
   return (uint32_t)(READ_BIT(COMPx->CSR, COMP_CSR_COMPxHYST));
 #else
   /* Device without comparator input hysteresis */
+  (void)COMPx;
   return (LL_COMP_HYSTERESIS_NONE);
 #endif
 }
