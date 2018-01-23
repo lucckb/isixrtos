@@ -26,25 +26,29 @@ namespace {
 	inline void set(int pin, bool val) {
 		impl::set(pin,val);
 	}
+	//! Toggle the port
+	inline void toggle(int pin) {
+		impl::toggle(pin);
+	}
 	//! Get value
 	inline bool get(int pin) {
 		return impl::get(pin);
 	}
 	//!Set all values
-	inline void set_mask(int pin, unsigned mask) {
-		impl::set_mask(pin,mask);
+	inline void set_mask(int port, unsigned mask) {
+		impl::set_mask(port,mask);
 	}
 	//! Clear values by mask
-	inline void clr_mask(int pin, unsigned mask) {
-		impl::clr_mask(pin,mask);
+	inline void clr_mask(int port, unsigned mask) {
+		impl::clr_mask(port,mask);
 	}
 	//! Set clr mask
-	inline void set_clr_mask(int pin, unsigned set, unsigned clr) {
-		impl::set_clr_mask(pin,set,clr);
+	inline void set_clr_mask(int port, unsigned set, unsigned clr) {
+		impl::set_clr_mask(port,set,clr);
 	}
 	//! Get mask
-	inline unsigned get_mask( int pin, unsigned mask=0xFFFFFFFFU ) {
-		return impl::get_mask(pin,mask);
+	inline unsigned get_mask(int port, unsigned mask=0xFFFFFFFFU ) {
+		return impl::get_mask(port,mask);
 	}
 }
 }}

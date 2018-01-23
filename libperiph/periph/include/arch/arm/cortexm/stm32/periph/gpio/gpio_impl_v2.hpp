@@ -126,7 +126,25 @@ template<>
 	inline bool get(int pin) {
 		return LL_GPIO_IsInputPinSet(num2port(pin),num2pin(pin));
 	}
-	//! Set value
+	//! Toggle the port
+	inline void toggle(int pin) {
+		LL_GPIO_TogglePin(num2port(pin),num2pin(pin));
+	}
+	//!Set all values
+	inline void set_mask(int port, unsigned mask) {
+		LL_GPIO_SetOutputPin(num2port(port),mask);
+	}
+	//! Clear values by mask
+	inline void clr_mask(int port, unsigned mask) {
+		LL_GPIO_ResetOutputPin(num2port(port),mask);
+	}
+	//! Set clr mask
+	inline void set_clr_mask(int port, unsigned set, unsigned clr) {
+		WRITE_REG(num2port(port)->BSRR, (set&0xffffU) | (clr&0xffffU)<<16U);
+	}
+	//! Get mask
+	inline unsigned get_mask(int port, unsigned mask) {
+		return LL_GPIO_ReadInputPort(num2port(port))&mask;
 	}
 
 
