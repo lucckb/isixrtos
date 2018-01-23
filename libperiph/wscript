@@ -27,9 +27,13 @@ def build(bld):
     src += bld.path.ant_glob( 'periph/src/**/*.cpp' )
     vendor_path = os.path.join( 'vendor',bld.isix_get_arch(),bld.isix_get_subarch(),
             bld.isix_get_cpu_vendor(), bld.isix_get_cpu_family() )
+    mach_inc = os.path.join( 'periph/include/arch',bld.isix_get_arch(),bld.isix_get_subarch(),
+            bld.isix_get_cpu_vendor(), bld.isix_get_cpu_family() )
+    arch_inc = os.path.join( 'periph/include/arch',bld.isix_get_arch(),
+            bld.isix_get_subarch(), bld.isix_get_cpu_vendor() )
     src += bld.path.ant_glob( vendor_path+'/**/*.cpp' )
     src += bld.path.ant_glob( vendor_path+'/**/*.c' )
-    inc = ['./periph/include', vendor_path+'/include' ]
+    inc = ['./periph/include', vendor_path+'/include', arch_inc, mach_inc ]
     if bld.isix_get_arch()=='arm' and bld.isix_get_subarch()=='cortexm':
         cmsis_path = os.path.join( 'vendor', bld.isix_get_arch(),bld.isix_get_subarch(), 'cmsis' )
         inc += [ cmsis_path + '/include' ];

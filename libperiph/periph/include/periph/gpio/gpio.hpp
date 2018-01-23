@@ -6,17 +6,17 @@
  */
 
 namespace periph {
-namespace bus {
+namespace gpio {
 
 	//! GPIO class interface for handle objects
 	class gpio {
 		class input {
-		public:
-			enum type { floating, pullup, pulldown, alternate, analog };
-			input( type value ) : m_value(value) {}
-			type value() const { return m_value; }
-		private:
-			type m_value;
+			public:
+				enum type { floating, pullup, pulldown, alternate, analog };
+				input( type value ) : m_value(value) {}
+				type value() const { return m_value; }
+			private:
+				type m_value;
 		};
 		// Set values
 		void operator()(unsigned bits) noexcept;
