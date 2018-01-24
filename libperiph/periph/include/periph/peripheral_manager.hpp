@@ -20,8 +20,7 @@ namespace periph {
 		//! Default constructor
 		peripheral_manager() {
 		}
-		//! Create device tree by config
-		void create_devices_tree();
+		int register_driver( const char* name, driver& drv );
+		device* open_device( const char name[] );
 	};
-
 }

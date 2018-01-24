@@ -5,19 +5,43 @@
  *      Author: lucck
  */
 
+#pragma once
+#include "gpio_modes.hpp"
+#include <periph/gpio/gpio_impl.hpp>
+
 namespace periph {
 namespace gpio {
+
 	//! GPIO class interface for handle objects
 	class gpio {
 	public:
-		//Noncopyable
+		//! Constructor
+		template <typename T>
+		gpio( int pin, T&& tag )
+			: m_pin(pin)
+		{
+			setup(std::forward<T>(tag));
+		}
+		~gpio() {
+			setup(m_pin,mode::in{pulltype::floating});
+		}
+		// !Noncopyable
 		gpio& operator=(gpio&) = delete;
 		gpio( gpio& ) = delete;
 		// Set values
-		void operator()(bool bits) noexcept;
+		void operator()(bool bit) noexcept {
+			impl::set(m_pin,bit);
+		}
 		//Get values
-		bool operator()() const noexcept;
+		bool operator()() const noexcept {
+			return impl::get(m_pin);
+		}
+		//! Toggle port
+		void toggle() noexcept {
+			impl::toggle(m_pin);
+		}
 	private:
-		int m_pin;
+		int m_pin {};
 	};
 }}
+

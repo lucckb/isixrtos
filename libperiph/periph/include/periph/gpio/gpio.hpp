@@ -7,6 +7,6 @@
 
 #pragma once
 
-#include "class_gpio.hpp"
 #include "func_gpio.hpp"
+#include "class_gpio.hpp"
 

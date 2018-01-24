@@ -3,8 +3,8 @@
 
 #include <utility>
 #include <initializer_list>
-#include <periph/gpio/gpio_impl.hpp>
 #include <periph/gpio/gpio_numbers.hpp>
+#include <periph/gpio/gpio_impl.hpp>
 
 namespace periph {
 namespace gpio {
@@ -16,8 +16,8 @@ namespace {
 			impl::setup(pin,std::forward<MODE>(tag));
 	}
 	//! Multi pin setup
-	template <typename MODE>
-		void setup( std::initializer_list<int> pins, MODE&& tag) {
+	template <typename MODE,typename T>
+		void setup( std::initializer_list<T> pins, MODE&& tag) {
 			for( auto pin: pins ) {
 				impl::setup(pin,::std::forward<MODE>(tag));
 			}

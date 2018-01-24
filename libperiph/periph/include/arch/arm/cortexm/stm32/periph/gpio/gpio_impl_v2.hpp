@@ -147,7 +147,6 @@ template<>
 		return LL_GPIO_ReadInputPort(num2port(port))&mask;
 	}
 
-
 }}}}}
 
 
