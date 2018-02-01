@@ -3,6 +3,7 @@
  *
  *  Created on: 19 sty 2018
  *      Author: lucck
+ *https://github.com/battlesnake/double-pointer-lock-template/blob/master/doubleptr.cpp
  */
 
 #pragma once
@@ -20,7 +21,7 @@ namespace periph {
 		//! Default constructor
 		peripheral_manager() {
 		}
-		int register_driver( const char* name, driver& drv );
-		device* open_device( const char name[] );
+		//int register_driver( const char* name, driver& drv );
+		//device* open_device( const char name[] );
 	};
 }
