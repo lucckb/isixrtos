@@ -1,8 +1,8 @@
 #pragma once
 
 #include <type_traits>
-#include <periph/gpio/gpio_modes.hpp>
 #include <stm32_ll_gpio.h>
+#include <periph/gpio/gpiomodes.hpp>
 
 namespace periph {
 namespace gpio {

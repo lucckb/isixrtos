@@ -6,8 +6,9 @@
  */
 
 #pragma once
-#include "gpio_modes.hpp"
 #include <periph/gpio/gpio_impl.hpp>
+#include "gpiomodes.hpp"
+#include "gpioll.hpp"
 
 namespace periph {
 namespace gpio {
