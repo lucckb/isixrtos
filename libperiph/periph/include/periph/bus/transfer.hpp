@@ -2,6 +2,7 @@
 
 namespace periph {
 
+	//! Generic transfer class
 	class transfer {
 	public:
 		enum type : char { tx, rx, trx };
@@ -11,6 +12,8 @@ namespace periph {
 		const type m_type;
 
 	};
+
+	//! Transfer base class
 	template <typename T, int J>
 	class transfer_base : public transfer {
 	protected:
@@ -19,10 +22,13 @@ namespace periph {
 		T const m_buf;
 		const size_t m_siz;
 	};
-
+	//! TX transfer base
 	using tx_transfer_base = transfer_base<const void*, transfer::tx>;
+	//! RX transfer base
 	using rx_transfer_base = transfer_base<void*, transfer::tx>;
 
+
+	//! TRX transfer
 	class trx_transfer_base : public transfer {
 	protected:
 		trx_transfer_base( const void* tx, size_t txsiz, void* rx, size_t rxsiz )
@@ -34,27 +40,27 @@ namespace periph {
 		size_t m_rxsiz;
 	};
 
-	//Transmit transfer
+	//! <<< Final user class for transfer >>>
+
+	//! TX transfer
 	template <typename T>
 	class tx_transfer : public tx_transfer_base {
 	public:
 		tx_transfer(const T* buf, size_t siz)
 			: tx_transfer_base(buf,siz)
 		{}
-	protected:
-		const void* const m_buf;
-		const size_t m_siz;
 	};
-	//Transmit transfer
+
+	//! RX transfer
 	template <typename T>
 	class rx_transfer : public rx_transfer_base {
 	public:
 		rx_transfer( T* buf, size_t siz)
 			:rx_transfer_base(buf,siz)
 		{}
-	protected:
 	};
 
+	//! Bidirectional transfer
 	template <typename T>
 		class trx_transfer : public trx_transfer_base
 	{
@@ -63,5 +69,4 @@ namespace periph {
 			: trx_transfer_base(tx,txsiz,rx,rxsiz) {}
 	};
 }
-
 

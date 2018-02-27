@@ -76,27 +76,20 @@ namespace {
 		}
 	}
 
-//! Generic not specialized tag
-template <typename MODE>
-	void setup(int,MODE) {
-		static_assert(true,"Unknown GPIO tag");
-}
+
 
 //! Configure GPIO as input
-template<>
 	inline void setup(int pin, const periph::gpio::mode::in& tag) {
 		LL_GPIO_SetPinMode(num2port(pin),num2pin(pin),LL_GPIO_MODE_INPUT);
 		LL_GPIO_SetPinPull(num2port(pin),num2pin(pin),tag_pulltype2pullmode(tag.pu));
 	}
 //! Configure GPIO as analog mode
-template<>
 	inline void setup(int pin, const periph::gpio::mode::an& tag) {
 		LL_GPIO_SetPinMode(num2port(pin),num2pin(pin),LL_GPIO_MODE_ANALOG);
 		LL_GPIO_SetPinPull(num2port(pin),num2pin(pin),tag_pulltype2pullmode(tag.pu));
 	}
 
 //! Output mode config
-template<>
 	inline void setup(int pin, const periph::gpio::mode::out& tag) {
 		LL_GPIO_SetPinMode(num2port(pin),num2pin(pin),LL_GPIO_MODE_OUTPUT);
 		LL_GPIO_SetPinSpeed(num2port(pin),num2pin(pin),tag_speed2speed(tag.spd));
@@ -104,7 +97,6 @@ template<>
 		LL_GPIO_SetPinOutputType(num2port(pin),num2pin(pin),tag_outtype2outputtype(tag.out));
 	}
 //! Alternate mode config
-template<>
 	inline void setup(int pin, const periph::gpio::mode::alt& tag) {
 		LL_GPIO_SetPinMode(num2port(pin),num2pin(pin),LL_GPIO_MODE_ALTERNATE);
 		LL_GPIO_SetPinSpeed(num2port(pin),num2pin(pin),tag_speed2speed(tag.spd));

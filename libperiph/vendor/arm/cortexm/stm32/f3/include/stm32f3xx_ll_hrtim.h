@@ -37,6 +37,11 @@
 #ifndef __STM32F3xx_LL_HRTIM_H
 #define __STM32F3xx_LL_HRTIM_H
 
+//! CRAPY STM LIBRARY FIXIT
+#if __cplusplus >= 201703
+#define register
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -10535,6 +10540,12 @@ ErrorStatus LL_HRTIM_DeInit(HRTIM_TypeDef* HRTIMx);
 
 #ifdef __cplusplus
 }
+#endif
+
+
+
+#if __cplusplus >= 201703
+#undef register
 #endif
 
 #endif /* __STM32F3xx_LL_HRTIM_H */
