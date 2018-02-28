@@ -6,7 +6,8 @@ namespace periph {
 namespace dt {
 
 	//! Available buses
-	enum class bus {
+	enum class bus : short {
+		_empty,
 		axi,
 		ahb,
 		apb1,
@@ -15,39 +16,14 @@ namespace dt {
 	};
 
 	//! Pin function type
-	enum pinfunc {
+	enum class pinfunc : short {
+		_empty,
 		sck,
 		miso,
 		mosi,
 		rxd,
 	};
 
-	//! Clock and assigned speed
-	struct clock {
-		bus busid;
-		unsigned speed;
-	};
-
-	//! GPIO function assignment to number
-	struct pin {
-		pinfunc gpiofun;
-		unsigned gpio;
-	};
-
-	//! Device tree mapper
-	struct device {
-		const char* name;	//! Device name
-		uintptr_t addr;		//! Device  mapped address
-		bus devbus;			//! Pin used map
-		unsigned mux;		//! Which mux
-		const pin* const pins;	//! Pin configuratgion
-	};
-
-	//! Global device configuration structure
-	struct configuration {
-		const clock* const clk;		//! Clocks array
-		const device*const devs;		//! Device array
-	};
 
 
 	/** Get pin by peripheral address

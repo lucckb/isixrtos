@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <initializer_list>
+
 namespace periph {
 namespace gpio {
 namespace num {
