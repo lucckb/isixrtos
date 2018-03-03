@@ -12,7 +12,10 @@ namespace error {
 
 
 enum basic_errors {
-	success 	= 0
+	success	= 0,
+	nodev  = -128,
+	nopin  = -129,
+	noclk  = -130
 };
 
 //! Bus errors
