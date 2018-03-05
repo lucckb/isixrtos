@@ -35,6 +35,7 @@ namespace _dts_config {
 		uintptr_t addr;		//! Device  mapped address
 		bus devbus;			//! Pin used map
 		unsigned mux;		//! Which mux
+		unsigned clken;		//! Clock enable pin mark number
 		const pin* pins;	//! Pin configuratgion
 	};
 

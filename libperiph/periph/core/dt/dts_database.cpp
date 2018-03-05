@@ -34,7 +34,6 @@ namespace {
 		}
 		return nullptr;
 	}
-
 	int find_pin( const _dts_config::device* dev, pinfunc pinf )
 	{
 		for( auto pin=dev->pins; pin->gpiofun!=pinfunc::_empty; ++pin ) {
@@ -43,6 +42,10 @@ namespace {
 			}
 		}
 		return error::nopin;
+	}
+	void fill_clk_periph( const _dts_config::device* dev, clk_periph& xclk ) {
+		xclk.xbus = dev->devbus;
+		xclk.bit =  dev->clken;
 	}
 }
 
@@ -111,6 +114,59 @@ int get_periph_clock( const char* name )
 }
 
 /**
+	* Get periph clock information
+	* @param[in] name Input device peripheral name
+	* @param[out] xclk Clock output struct info
+	*/
+int get_periph_clock( const char* name, clk_periph& xclk )
+{
+	auto dev = find_dev( name );
+	if( !dev ) {
+		return error::nodev;
+	} else {
+		fill_clk_periph( dev, xclk );
+		return error::success;
+	}
+}
+
+int get_periph_clock( void* addr, clk_periph& xclk )
+{
+	auto dev = find_dev( addr );
+	if( !dev ) {
+		return error::nodev;
+	} else {
+		fill_clk_periph( dev, xclk );
+		return error::success;
+	}
+}
+
+
+
+/** Get pin peripheral function
+	* @param[in] pin Requested function
+	* @return error code @see bus_errors
+	*/
+int get_periph_pin_mux( const char* name )
+{
+	auto dev = find_dev( name );
+	if( !dev ) {
+		return error::nodev;
+	} else {
+		return dev->mux;
+	}
+}
+
+int get_periph_pin_mux( void* addr )
+{
+	auto dev = find_dev( addr );
+	if( !dev ) {
+		return error::nodev;
+	} else {
+		return dev->mux;
+	}
+}
+
+/**
  * Get bus clock by bus name
  * @param xbuss Current bus
  * @return error code @see bus_errors
@@ -124,5 +180,8 @@ int get_bus_clock( bus xbus )
 	}
 	return error::noclk;
 }
+
+
+
 
 }}
