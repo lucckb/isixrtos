@@ -10,6 +10,10 @@ def options(opt):
     opt.add_option('--bootloader-remap', default=0, type='int',
         help='Bootloader flash remap shift KB [ default: 0kB ]'
     )
+    opt.add_option('--crystal-hz', type='int',
+        help='HSE oscillator speed'
+    )
+
 
 # Extra configuration arguments
 def configure(conf):
@@ -20,6 +24,8 @@ def configure(conf):
     if conf.options.bootloader_remap>0:
         conf.env.BOOTLOADER_REMAP_SHIFT_KB = conf.options.bootloader_remap
     conf.define('USE_FULL_LL_DRIVER',1)
+    if conf.options.crystal_hz:
+        conf.define('HSE_VALUE',conf.options.crystal_hz);
 
 #Build script
 def build(bld):

@@ -175,7 +175,7 @@ int get_bus_clock( bus xbus )
 {
 	for( auto clk=_dts_config::the_machine_config.clk; clk->busid!=bus::_empty; ++clk ) {
 		if( clk->busid == xbus ) {
-			return clk->speed;
+			return clk->speedfn();
 		}
 	}
 	return error::noclk;

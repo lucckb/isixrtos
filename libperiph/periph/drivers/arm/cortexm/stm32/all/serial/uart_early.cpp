@@ -40,13 +40,23 @@ int init( const char *name, unsigned baudrate )
 		int mux = dt::get_periph_pin_mux( name );
 		if( mux < 0 ) { ret = mux; break; }
 		ret = dt::get_periph_pin( name, dt::pinfunc::rxd );
-		if( ret < 0 ) break;
-		gpio::setup( ret, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::high} );
+		if( ret < 0 || ret != error::nopin ) break;
+		if( ret == error::success ) {
+			gpio::setup( ret, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::medium} );
+		}
 		ret = dt::get_periph_pin( name, dt::pinfunc::txd );
 		if( ret < 0 ) break;
-		gpio::setup( ret, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::high} );
+		gpio::setup( ret, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::medium} );
 	} while(0);
-	//LL_USART_Init
+	LL_USART_InitTypeDef ucfg;
+	ucfg.BaudRate = baudrate;
+	ucfg.DataWidth = LL_USART_DATAWIDTH_8B;
+	ucfg.StopBits = LL_USART_STOPBITS_1;
+	ucfg.Parity = LL_USART_PARITY_NONE;    /* When using Parity the word length must be configured to 9 bits */
+	ucfg.HardwareFlowControl = LL_USART_HWCONTROL_NONE;
+	ucfg.TransferDirection = LL_USART_DIRECTION_RX | LL_USART_DIRECTION_TX;
+	ucfg.OverSampling = LL_USART_OVERSAMPLING_16;
+    LL_USART_Init(USART1, &ucfg);
 	return ret;
 }
 

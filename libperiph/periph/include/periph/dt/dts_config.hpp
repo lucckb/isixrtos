@@ -20,7 +20,7 @@ namespace _dts_config {
 	//! Clock and assigned speed
 	struct clock {
 		bus busid;
-		unsigned speed;
+		unsigned (*speedfn)();
 	};
 
 	//! GPIO function assignment to number
@@ -41,8 +41,8 @@ namespace _dts_config {
 
 	//! Global device configuration structure
 	struct configuration {
-		const clock* const clk;		//! Clocks array
-		const device*const devs;		//! Device array
+		const clock*  const clk;		//! Clocks array
+		const device* const devs;		//! Device array
 	};
 	//! Machine configuration global config
 	extern const configuration the_machine_config;
