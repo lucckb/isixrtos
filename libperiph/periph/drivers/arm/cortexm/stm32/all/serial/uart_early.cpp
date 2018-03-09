@@ -27,6 +27,10 @@ namespace drivers {
 namespace uart_early {
 
 
+namespace {
+	USART_TypeDef* usart;
+};
+
 //! Initialize the usart
 int init( const char *name, unsigned baudrate )
 {
@@ -40,49 +44,77 @@ int init( const char *name, unsigned baudrate )
 		int mux = dt::get_periph_pin_mux( name );
 		if( mux < 0 ) { ret = mux; break; }
 		ret = dt::get_periph_pin( name, dt::pinfunc::rxd );
-		if( ret < 0 || ret != error::nopin ) break;
+		if( ret < 0 && ret != error::nopin ) break;
+		auto dir = LL_USART_DIRECTION_TX;
 		if( ret == error::success ) {
 			gpio::setup( ret, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::medium} );
+			dir |= LL_USART_DIRECTION_RX;
 		}
 		ret = dt::get_periph_pin( name, dt::pinfunc::txd );
 		if( ret < 0 ) break;
 		gpio::setup( ret, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::medium} );
+		uintptr_t addr = dt::get_periph_base_address( name );
+		if( ret <= 0 ) return addr;
+		usart = reinterpret_cast<USART_TypeDef*>( addr );
+		LL_USART_InitTypeDef ucfg {
+			baudrate,
+			LL_USART_DATAWIDTH_8B,
+			LL_USART_STOPBITS_1,
+			LL_USART_PARITY_NONE,
+			dir,
+			LL_USART_HWCONTROL_NONE,
+			LL_USART_OVERSAMPLING_16
+		};
+	   ret = LL_USART_Init( usart, &ucfg );
+	   if( ret != SUCCESS ) {
+		   ret = error::init;
+		   break;
+	   } else {
+		   ret = error::success;
+	   }
+	   LL_USART_Enable(usart);
 	} while(0);
-	LL_USART_InitTypeDef ucfg;
-	ucfg.BaudRate = baudrate;
-	ucfg.DataWidth = LL_USART_DATAWIDTH_8B;
-	ucfg.StopBits = LL_USART_STOPBITS_1;
-	ucfg.Parity = LL_USART_PARITY_NONE;    /* When using Parity the word length must be configured to 9 bits */
-	ucfg.HardwareFlowControl = LL_USART_HWCONTROL_NONE;
-	ucfg.TransferDirection = LL_USART_DIRECTION_RX | LL_USART_DIRECTION_TX;
-	ucfg.OverSampling = LL_USART_OVERSAMPLING_16;
-    LL_USART_Init(USART1, &ucfg);
+
 	return ret;
 }
 
 //! Put char
 int putc( int ch )
 {
+	if( !usart ) return error::noinit;
+	while( !LL_USART_IsActiveFlag_TXE(usart) );
+	LL_USART_TransmitData8(usart, ch);
 	return ch;
 }
 
 //! Get char
 int getc()
 {
-	return 0;
+	if( !usart ) return error::noinit;
+	if( LL_USART_IsActiveFlag_RXNE(usart) ) {
+		return LL_USART_ReceiveData8(usart);
+	} else {
+		return error::again;
+	}
 }
 
 //! Check for new chars
 int isc()
 {
-	return 0;
+	if( !usart ) return error::noinit;
+	return LL_USART_IsActiveFlag_RXNE(usart);
 }
 
 
 //! Put string
 int puts( const char str[] )
 {
-	return str[0];
+	int ret {};
+	while(*str) {
+		ret = putc(*str++);
+		if( ret < 0 ) break;
+	}
+	return ret;
 }
 
 

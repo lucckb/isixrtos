@@ -17,6 +17,8 @@ enum basic_errors {
 	nopin  = -129,
 	noclk  = -130,
 	nobus  = -131,
+	init   = -132,
+	again  = -133
 };
 
 //! Bus errors

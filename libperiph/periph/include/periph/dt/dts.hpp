@@ -48,6 +48,12 @@ namespace dt {
 	 */
 	int get_bus_clock( bus xbus );
 
+	/** Get peripheral address
+	 * @param[in] name Peripheral name
+	 * @return peripheral address
+	 */
+	uintptr_t get_periph_base_address( const char* name );
+
 }}
 
 

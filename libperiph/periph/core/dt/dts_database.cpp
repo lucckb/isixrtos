@@ -166,6 +166,18 @@ int get_periph_pin_mux( void* addr )
 	}
 }
 
+
+//! Get periph addr
+uintptr_t get_periph_base_address( const char* name )
+{
+	auto dev = find_dev( name );
+	if( !dev ) {
+		return 0;
+	} else {
+		return dev->addr;
+	}
+}
+
 /**
  * Get bus clock by bus name
  * @param xbuss Current bus
