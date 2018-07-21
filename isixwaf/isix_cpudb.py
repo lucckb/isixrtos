@@ -6,6 +6,7 @@ _cflags = ['-Wno-variadic-macros', '-Wno-long-long', '-pipe', '-Wextra', '-Wall'
 _cflags_ndebug = [ '-fomit-frame-pointer', '-ffunction-sections', '-fdata-sections', '-flto' ]
 _ldflags_ndebug = [ '-Wl,--gc-sections', '-flto' ]
 _cflags_debug = [ '-g' ]
+_cflags += [ '-fdiagnostics-color=always' ]
 
 import os
 import json
