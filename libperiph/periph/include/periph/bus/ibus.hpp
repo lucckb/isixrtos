@@ -17,6 +17,7 @@
  */
 #pragma once
 #include <cstddef>
+#include <periph/bus/transfer.hpp>
 
 namespace periph {
 namespace bus {
@@ -46,59 +47,30 @@ public:
 	type bus_type() const noexcept {
 		return m_bus_type;
 	}
-	/** Transfer data write and read next
-	 * @param[in] addr Hardware address
-	 * @param[in] wbuffer Memory pointer for write
-	 * @param[in] wsize  Size of write buffer
-	 * @param[out] rbuffer Read data buffer pointer
-	 * @param[in] rsize Read buffer sizes
-	 * @return Error code or success */
-	virtual int
-		transfer(unsigned /*address*/, const void* /*wbuffer*/, size_t /*wsize*/, void* /*rbuffer*/, size_t /*rsize*/)
-	{
-		return err_not_supported;
-	}
-	/**
-	 * Transfer full duplex data
-	 * @param addr Hardware address
-	 * @param inbuf  Buffer for data in
-	 * @param outbuf Buffer for data out
-	 * @param len Transfer size
-	 * @return
+	/** Make bus specified transfer for single mode
+	 * @parma[in] addr bus adddress
+	 * @param[in] data transfer data in single mode
+	 * @return error code for bus transfer type
 	 */
-	virtual int
-		transfer( unsigned /*addr*/, const void* /*inbuf*/, void* /*outbuf*/, size_t /*len*/ )
-	{
-		return err_not_supported;
-	}
-	/** Write data to the memory buffer
-	 * @param addr Hardware address
-	 * @param wrbuf Write buffer
-	 * @param size Write size
-	 * @return Error code
-	 */
-	virtual int write( unsigned addr, const void* wrbuf, size_t size ) = 0;
-	/** Double non continous transaction write
-	 * @param[in] addr I2C address
-	 * @param[in] wbuf1 Write buffer first transaction
-	 * @param[in] wsize1 First transaction buffer size
-	 * @param[in] wbuf2 Write buffer second transaction
-	 * @param[in] wsize2 Second transaction buffer
-	 * @return error code or success */
-	virtual int
-		write(unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2) = 0;
-	/**
-	 * Read data from the memory
-	 * @param[in] addr Hardware address
-	 * @param[out] rdbuf Read buffer pointer
-	 * @param size Transfer length
-	 * @return Error code
-	 */
-	virtual int read( unsigned addr, void* rdbuf, size_t size ) = 0;
+	virtual int transaction(int addr, const transfer& data) = 0;
 
+	/** Make bus transfer using vectors and multiple transfers
+	 * @param[in] addr Bus address
+	 * @param[in] items Transaction items
+	 * @return error code
+	 */
+	template <typename T>
+		int transaction( int addr, T items )
+	{
+		int ret {};
+		for( const auto& item: items ) {
+			if((ret=transaction(addr,item)))
+				break;
+		}
+		return ret;
+	}
 private:
 	type m_bus_type;
-
 };
 
 
