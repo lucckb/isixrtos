@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename:  dma.hpp
+ *       Filename:  channel.hpp
  *
- *    Description:  DMA architecture indenpendent driver
+ *    Description:  DMA channel function
  *
  *        Version:  1.0
  *        Created:  23.07.2018 18:56:54
@@ -18,9 +18,10 @@
 
 #pragma once
 #include <foundation/algo/fixed_size_function.hpp>
+#include "types.hpp"
+#include "controller.hpp"
 
-namespace periph {
-namespace dma {
+namespace periph::dma {
 
 namespace detail {
 	constexpr auto max_bounded_args = 8;
@@ -57,22 +58,26 @@ namespace detail {
 	 * void* pointer to the memory which can be filled in double
 	 * buffer mode
 	 */
-	using async_callback = fnd::estd::function<void(void*),detail::max_bounded_args*sizeof(size_t),fnd::estd::function_construct_t::copy_and_move>;
+	//using async_callback = fnd::estd::function<void(mem_ptr),detail::max_bounded_args*sizeof(size_t),fnd::estd::function_construct_t::copy_and_move>;
 
-
+	using async_callback = std::function<void(mem_ptr)>;
 
 	//Open dma channel
 	class channel
 	{
+		friend class controller;
 	public:
 	    /** @param[in] device_id Device identifer
 	     * @param[in] flags DMA operation flags
 		 * @param[in] irq_prio interrupt devfaul priority for handle
 		 */
-		channel(uintptr_t dev_id, int flags, int irq_prio = -1)
-			: m_dev_id(dev_id), m_flags(flags), m_irq_prio(irq_prio)
+		channel( controller& owner, uintptr_t dev_id, int flags, int irq_prio = -1)
+			: m_owner(owner), m_dev_id(dev_id), m_flags(flags), m_irq_prio(irq_prio)
 		{}
-		~channel() {}
+		//! Destructor
+		~channel() {
+			m_owner.abort(std::ref(*this));
+		}
 		channel(channel&) = delete;
 		channel& operator=(channel&) = delete;
 
@@ -89,9 +94,12 @@ namespace detail {
 			* @param[in] src Source transfer address
 			* @param[in] size Transfer size in bytes
 		*/
-		int single( void* dest, const void* src, std::size_t len );
+		int single( mem_ptr dest, cmem_ptr src, size len ) {
+			return m_owner.single(std::ref(*this),dest,src,len);
+		}
 
-		/** Start the double bufer continous DMA transfer. The mem0 and mem1 buffers will be swaped
+		/** Start the double bufer continous DMA transfer
+		* The mem0 and mem1 buffers will be swaped
 		*  by DMA hardware during transfer. When transfer will be finished the free buffer
 		*  will be passed to the callback or returned form the function
 		*  @param[in] handle DMA handle
@@ -100,21 +108,25 @@ namespace detail {
 		*  @param periph Peripheral address
 		*  @return DMA free swapped out buffer
 		*  */
-		int continuous_start( void* mem0, void* mem1, std::size_t len );
-
+		int continuous_start( mem_ptr mem0, mem_ptr mem1, size len ) {
+			return m_owner.continuous_start(std::ref(*this), mem0, mem1, len);
+		}
 
 		/** Stop the double transfer mode
 		 * @return error code */
-		int continous_stop();
+		int continous_stop() {
+			return m_owner.continous_stop(std::ref(*this));
+		}
 
 	private:
 		/* data */
+		controller& m_owner;
 		const uintptr_t m_dev_id;
 		const int m_flags;
 		const int m_irq_prio;
 		async_callback m_cb;
 	};
 
-}}
+}
 
 
