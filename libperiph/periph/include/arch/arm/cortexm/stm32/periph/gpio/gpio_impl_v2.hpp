@@ -4,10 +4,7 @@
 #include <stm32_ll_gpio.h>
 #include <periph/gpio/gpiomodes.hpp>
 
-namespace periph {
-namespace gpio {
-namespace stm32 {
-namespace gpio_v2 {
+namespace periph::gpio::stm32::gpio_v2 {
 namespace {
 	constexpr auto PINS_PER_PORT=16;
 	auto num2port(int pin) {
@@ -139,6 +136,6 @@ namespace {
 		return LL_GPIO_ReadInputPort(num2port(port))&mask;
 	}
 
-}}}}}
+}}
 
 

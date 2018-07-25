@@ -9,9 +9,7 @@
 
 #include <initializer_list>
 
-namespace periph {
-namespace gpio {
-namespace num {
+namespace periph::gpio::num {
 	//Single pin enumerate
 	enum _pin : unsigned char {
 		PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PA8, PA9, PA10, PA11, PA12, PA13, PA14, PA15,
@@ -56,5 +54,5 @@ namespace num {
 		constexpr auto PI_ALL [[maybe_unused]]
 		   = {PI0,PI1,PI2,PI3,PI4,PI5,PI6,PI7,PI8,PI9,PI10,PI11,PI12,PI13,PI14,PI15};
 	}
-}}}
+}
 
