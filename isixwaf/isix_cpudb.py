@@ -148,4 +148,4 @@ def isix_get_subarch(bld):
 #If cache is present return code
 @conf
 def isix_get_cpu_cache(bld):
-    return _get_flag( bld.env.ISIX_CPU_TYPE,'cache', 'cpu' );
+     return _get_flag( bld.env.ISIX_CPU_TYPE,'cache', 'cpu' );

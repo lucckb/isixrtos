@@ -42,7 +42,7 @@ namespace periph::dma {
 		 *  @param[in] irq_prio IRQ priority for dma handler
 		 *  @return Allocated channel
 		 */
-		channel_ptr_t alloc_channel(uintptr_t dev_id, int flags, int irq_prio = -1);
+		channel_ptr_t alloc_channel(chnid_t dev_id, flags_t flags, int irq_prio=-1);
 		/** Release previously allocated channel
 		 * @paam[in] chn Channel pointer
 		 * @return Error code

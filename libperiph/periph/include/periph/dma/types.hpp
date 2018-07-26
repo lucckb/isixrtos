@@ -17,9 +17,12 @@
  */
 #pragma once
 #include <cstddef>
+#include <cstdint>
 
 namespace periph::dma {
 	using mem_ptr = void*;
 	using cmem_ptr = const void*;
 	using size = std::size_t;
+	using chnid_t = int16_t;
+	using flags_t = uint16_t;
 }

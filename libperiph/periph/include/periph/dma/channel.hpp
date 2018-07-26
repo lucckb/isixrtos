@@ -29,26 +29,26 @@ namespace detail {
 
 	//! Dma flags
 // Flags
-	enum dev_mode {
+	enum dev_mode : flags_t {
 		mode_memory_to_memory = 0,
 		mode_peripheral_to_memory = 1,
 		mode_memory_to_peripheral = 2,
 	};
 
-	enum src_transfer_size {
+	enum src_transfer_size : flags_t {
 		mode_src_size_byte = 0 << 3,
 		mode_src_size_halfword = 1 << 3,
 		mode_src_size_word = 2 << 3,
 	};
 
 
-	enum dest_transfer_size {
+	enum dest_transfer_size : flags_t {
 		mode_dst_size_byte = 0 << 6,
 		mode_dst_size_halfword = 1 << 6,
 		mode_dst_size_word = 2 << 6,
 	};
 
-	enum transfer_mode {
+	enum transfer_mode : flags_t {
 		mode_single = 0 << 9,
 		mode_circural = 1 << 9,
 	};
@@ -71,7 +71,7 @@ namespace detail {
 	     * @param[in] flags DMA operation flags
 		 * @param[in] irq_prio interrupt devfaul priority for handle
 		 */
-		channel( controller& owner, uintptr_t dev_id, int flags, int irq_prio = -1)
+		channel( controller& owner, chnid_t dev_id, flags_t flags, int irq_prio = -1)
 			: m_owner(owner), m_dev_id(dev_id), m_flags(flags), m_irq_prio(irq_prio)
 		{}
 		//! Destructor
@@ -121,8 +121,8 @@ namespace detail {
 	private:
 		/* data */
 		controller& m_owner;
-		const uintptr_t m_dev_id;
-		const int m_flags;
+		const chnid_t m_dev_id;
+		const flags_t m_flags;
 		const int m_irq_prio;
 		async_callback m_cb;
 	};
