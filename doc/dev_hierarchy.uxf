@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.2">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>150</x>
+      <y>150</y>
+      <w>480</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>device
+--
+--
++ device()
++ ~device()
++ type(): const char*
++ cast&lt;T&gt;(): T&amp;;
++ set_option&lt;O&gt; ( O option ): int
++ set_option&lt;O&gt; ( O option ...): int
+# do_set_option( device_option&amp; option ): int
++ event_add( isix::event&amp; ev, usigned bit no, unsigned type): int
++ event_del( isix::event&amp; ev, usigned bit no, unsigned type ): int
++ open(int timeout): int
++ close(): int
++ error(): int
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>60</x>
+      <y>440</y>
+      <w>440</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>block_device
+--
+--
++ bus_type(): type
++ transaction( address_t address, const transfer&amp; data): int
++ transaction( address_t address, const transfers&amp; data): int
++ transaction&lt;T&gt;( address_t address, const T... data);</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>550</x>
+      <y>440</y>
+      <w>350</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>char_device
+--
+--
++ read( pointer data, size len): int
++ write( cpointer data, size len): int
++ flush(): int
++ llseek( long loffs ): int
++ fnio( bool read): int
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>240</x>
+      <y>370</y>
+      <w>30</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>370</y>
+      <w>30</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>790</x>
+      <y>160</y>
+      <w>400</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>peripheral_manager
+--
+--
+_+ instance(): peripheral_manager&amp;_
++ exceptions(bool yes): void
++ register_driver(const char[] name, device_ptr dev): int
++ create(const char name[], int flags): device_proxy
++ destroy(device_proxy dev) : int
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>620</x>
+      <y>220</y>
+      <w>190</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;170.0;10.0</additional_attributes>
+  </element>
+</diagram>
