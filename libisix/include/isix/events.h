@@ -26,32 +26,32 @@ extern "C" {
 struct isix_event;
 typedef struct isix_event* osevent_t;
 
-/** Create event group 
+/** Create event group
  * @return event group handle or null
  */
 osevent_t isix_event_create( void );
 
-/** Delete the event group 
+/** Delete the event group
  *  @param[in] Osevent input group
  * */
 int isix_event_destroy( osevent_t event );
 
-/** Atomically set bits (flags) * within an event group, 
- *  then wait for a combination of bits to be set within 
+/** Atomically set bits (flags) * within an event group,
+ *  then wait for a combination of bits to be set within
  *  the same event group
- * @param[in] 	evth Event handle
- * @param[in] 	bits_to_set Bits to set
+ * @param[in]	evth Event handle
+ * @param[in]	bits_to_set Bits to set
  * @param[in]	bits_to_wait Bits to wait for
- * @param[in] 	timeout Timeout to wait for sync
+ * @param[in]	timeout Timeout to wait for sync
  * @return Changed bits or error if negative
  */
-osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set, 
+osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 		osbitset_t bits_to_wait, ostick_t timeout );
 
 /** Wait for event bit set
  * @param[in]	evth Event handle
- * @param[in] 	bits_to_wait Bits to wait for
- * @param[in] 	clear_on_exit Clear bits on exit
+ * @param[in]	bits_to_wait Bits to wait for
+ * @param[in]	clear_on_exit Clear bits on exit
  * @param[in]	wait_for_all  Wait for all bits
  * @param[in]   timeout		 Timeout to wait for sync
  * @return Bits which are set
@@ -59,10 +59,10 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait, 
 		bool clear_on_exit, bool wait_for_all, ostick_t timeout );
 
-/** Clear the selected bits from the event 
- * @parma[in] 	evth Event handle
- * @param[in] 	bits_to_clear 
- * @return Changed bits 
+/** Clear the selected bits from the event
+ * @parma[in]	evth Event handle
+ * @param[in]	bits_to_clear
+ * @return Changed bits
  */
 osbitset_ret_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear );
 
@@ -72,9 +72,9 @@ static inline osbitset_t isix_event_clear_isr( osevent_t evth, osbitset_t bits_t
 }
 
 /** Isix set bits
- * @parma[in] 	evth Event handle
- * @param[in] 	bits_to_clear 
- * @return Changed bits 
+ * @parma[in]	evth Event handle
+ * @param[in]	bits_to_clear
+ * @return Changed bits
  */
 osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool isr );
 static inline osbitset_t isix_event_set( osevent_t evth, osbitset_t bits_to_set ) {
@@ -86,7 +86,7 @@ static inline osbitset_t isix_event_set_isr( osevent_t evth, osbitset_t bits_to_
 
 /** Get the events from the interrupt context
  * @param[in] evth Event handle
- * @return Bit state 
+ * @return Bit state
  */
 osbitset_ret_t isix_event_get_isr( osevent_t evth );
 

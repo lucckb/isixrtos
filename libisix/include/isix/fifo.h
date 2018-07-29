@@ -12,7 +12,7 @@ typedef struct isix_fifo* osfifo_t;
 
 
 //! Extra flags for fifo create EX
-enum isix_fifo_ex_flags 
+enum isix_fifo_ex_flags
 {
 	isix_fifo_f_noirq = 0x01
 };
