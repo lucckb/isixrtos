@@ -7,8 +7,7 @@
 
 #pragma once
 
-namespace periph {
-namespace error {
+namespace periph::error {
 
 
 enum basic_errors {
@@ -40,4 +39,4 @@ enum bus_errors {
 };
 
 
-}}
+}

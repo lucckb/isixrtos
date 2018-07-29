@@ -22,6 +22,6 @@ namespace periph {
 		peripheral_manager() {
 		}
 		//int register_driver( const char* name, driver& drv );
-		//device* open_device( const char name[] );
+		//device* open_device( const char name[], unsigned flags );
 	};
 }
