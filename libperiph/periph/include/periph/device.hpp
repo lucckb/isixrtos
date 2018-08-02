@@ -31,7 +31,6 @@ namespace periph {
 	using pointer = void*;
 	using cpointer = const void*;
 	using size = std::size_t;
-	using devname = char[8];
 
 	class device_option;
 	class device
@@ -74,8 +73,8 @@ namespace periph {
 		//! Monitoring event on
 		virtual int event_add(isix::event&ev, unsigned bits, poll events);
 		//! Monitoring event off
-		virtual int event_del(isix::event& ev, unsigned bits, unsigned events=poll::in|poll::out|poll::err);
-		virtual int open(int timeout=0) = 0;
+		virtual int event_del(isix::event& ev,unsigned bits,unsigned events=poll::in|poll::out|poll::err);
+		virtual int open(unsigned flags, int timeout) = 0;
 		virtual int close() = 0;
 	protected:
 		virtual int do_set_option(device_option& opt) = 0;
