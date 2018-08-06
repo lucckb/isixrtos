@@ -1,16 +1,14 @@
 #pragma once
 
 /** Serial port uart early console driver */
-namespace  periph {
-namespace drivers {
-namespace uart_early {
+namespace periph::drivers::uart_early {
 
 	/** Initialize the UART
 	 * @param[in] name Device name
 	 * @param[in] baudrate Baudrate
 	 * @return initialization error code
 	 */
-	int init( const char *name, unsigned baudrate );
+	int open( const char *name, unsigned baudrate );
 
 	/** Put char uart
 	 * @param[in] ch Input char
@@ -33,6 +31,6 @@ namespace uart_early {
 	 */
 	int puts( const char str[] );
 
-}}}
+}
 
 

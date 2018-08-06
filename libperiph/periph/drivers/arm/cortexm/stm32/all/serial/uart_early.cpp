@@ -22,9 +22,7 @@
 #include <periph/gpio/gpio.hpp>
 #include <stm32_ll_usart.h>
 
-namespace  periph {
-namespace drivers {
-namespace uart_early {
+namespace  periph::drivers::uart_early {
 
 
 namespace {
@@ -32,7 +30,7 @@ namespace {
 };
 
 //! Initialize the usart
-int init( const char *name, unsigned baudrate )
+int open( const char *name, unsigned baudrate )
 {
 	int ret;
 	do {
@@ -118,5 +116,5 @@ int puts( const char str[] )
 }
 
 
-}}}
+}
 
