@@ -20,6 +20,7 @@
 
 #include <cstddef>
 #include <functional>
+#include "error.hpp"
 
 namespace isix {
 	class event;
@@ -45,8 +46,8 @@ namespace periph {
 			in, out, err
 		};};
 		//! Device constructor
-		explicit device(type_ type)
-			: m_type(type) {
+		device(type_ type, uintptr_t base_addr)
+			: m_type(type), m_base_addr(base_addr) {
 		}
 		//! Device virtual destructor
 		virtual ~device() {}
@@ -71,15 +72,42 @@ namespace periph {
 				return set_option(options...);
 		}
 		//! Monitoring event on
-		virtual int event_add(isix::event&ev, unsigned bits, poll events);
+		virtual int event_add(isix::event& /*ev*/, unsigned /*bits*/, poll /*events*/) {
+			return error::nosys;
+		}
 		//! Monitoring event off
-		virtual int event_del(isix::event& ev,unsigned bits,unsigned events=poll::in|poll::out|poll::err);
+		virtual int event_del(isix::event& /*ev*/,
+				unsigned /*bits*/,
+				unsigned /*events=poll::in|poll::out|poll::err*/) {
+			return error::nosys;
+		}
+		/** Open the device driver
+		 * @param[in] flags Open flags
+		 * @param[in] timeout Global device timeout
+		 * @return error code
+		 */
 		virtual int open(unsigned flags, int timeout) = 0;
+		/** Close the device driver
+		 * @return error code
+		 */
 		virtual int close() = 0;
+		/** Suspend or resume device with selected state
+		 * @param[in] state suspend state
+		 * @return error code or success
+		 */
+		virtual int pm_suspend(int /*state*/) {
+			return error::nosys;
+		}
 	protected:
+		//! Do set option implementation specific
 		virtual int do_set_option(device_option& opt) = 0;
-	private:
-		const type_ m_type;
+		//! Get device base addr
+		template<typename device_type>
+		auto io() { return reinterpret_cast<device_type*>(m_base_addr); };
+		template<typename device_type>
+		auto io() const { return reinterpret_cast<const device_type*>(m_base_addr); };
+		const type_ m_type;		//! Device type
+		uintptr_t m_base_addr;	//! Base address
 	};
 }
 

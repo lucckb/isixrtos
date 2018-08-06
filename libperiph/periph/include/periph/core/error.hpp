@@ -6,11 +6,12 @@
  */
 
 #pragma once
+#include "exceptions.hpp"
 
 namespace periph::error {
 
 
-enum basic_errors {
+enum generic_errors {
 	success	= 0,
 	nodev  = -128,
 	nopin  = -129,
@@ -18,7 +19,8 @@ enum basic_errors {
 	nobus  = -131,
 	init   = -132,
 	again  = -133,
-	exists = -134
+	exists = -134,
+	nosys  = -135
 };
 
 //! Bus errors

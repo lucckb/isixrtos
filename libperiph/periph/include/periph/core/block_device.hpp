@@ -18,7 +18,7 @@
 #pragma once
 #include <cstddef>
 #include <periph/blk/transfer.hpp>
-#include <periph/device.hpp>
+#include <periph/core/device.hpp>
 
 namespace periph {
 
@@ -36,8 +36,8 @@ public:
 		spi,
 	};
 	//! Constructor
-	explicit block_device(type blk_type)
-		: device(device::block_dev), m_blk_type(blk_type)
+	explicit block_device(type blk_type, uintptr_t base_addr)
+		: device(device::block_dev,base_addr), m_blk_type(blk_type)
 	{
 	}
 	//! Destructor
