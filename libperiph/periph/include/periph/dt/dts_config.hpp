@@ -12,10 +12,7 @@
 #include "dts.hpp"
 
 
-namespace periph {
-namespace dt {
-
-namespace _dts_config {
+namespace periph::dt::_dts_config {
 
 	//! Clock and assigned speed
 	struct clock {
@@ -48,6 +45,3 @@ namespace _dts_config {
 	extern const configuration the_machine_config;
 
 }
-
-
-}}

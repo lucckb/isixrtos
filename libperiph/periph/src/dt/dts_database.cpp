@@ -10,8 +10,7 @@
 #include <periph/core/error.hpp>
 #include <cstring>
 
-namespace periph {
-namespace dt {
+namespace periph::dt {
 
 
 namespace {
@@ -195,5 +194,4 @@ int get_bus_clock( bus xbus )
 
 
 
-
-}}
+}

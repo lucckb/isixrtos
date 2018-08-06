@@ -17,8 +17,7 @@
  */
 #pragma once
 
-namespace periph {
-namespace dt {
+namespace periph::dt {
 
 	//! Available buses
 	enum class bus : short {
@@ -46,9 +45,7 @@ namespace dt {
 		unsigned bit;			//! Peripheral bit number for enable device
 	};
 
-
-
-}}
+}
 
 
 
