@@ -89,7 +89,7 @@ namespace dsp {
 			//! Private buffer for data
 			const std::unique_ptr<std::complex<pow_t>[]> m_cplx;
 			//! Real cast to the outpt
-			pow_t* const m_real { reinterpret_cast<pow_t* const>(m_cplx.get()) };
+			pow_t* const m_real { reinterpret_cast<pow_t*>(m_cplx.get()) };
 			//! Sample type buffer to copy
 			const smp_type m_sampletype;
 			//! FFT scale
