@@ -19,7 +19,7 @@
 #pragma once
 
 #include <periph/dt/types.hpp>
-#include <periph/error.hpp>
+#include <periph/core/error.hpp>
 #include <stm32f3xx_ll_bus.h>
 
 namespace periph {

@@ -7,7 +7,7 @@
 
 #include <periph/dt/dts.hpp>
 #include <periph/dt/dts_config.hpp>
-#include <periph/error.hpp>
+#include <periph/core/error.hpp>
 #include <cstring>
 
 namespace periph {

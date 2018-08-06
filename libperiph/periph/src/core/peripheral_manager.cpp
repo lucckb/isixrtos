@@ -5,9 +5,9 @@
  *      Author: lucck
  */
 
-#include <periph/peripheral_manager.hpp>
-#include <periph/error.hpp>
-#include <periph/device.hpp>
+#include <periph/core/peripheral_manager.hpp>
+#include <periph/core/error.hpp>
+#include <periph/core/device.hpp>
 #include <algorithm>
 
 namespace periph {
