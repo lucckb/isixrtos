@@ -29,8 +29,8 @@ def configure(conf):
 
 #Build script
 def build(bld):
-    src = bld.path.ant_glob( 'periph/core/**/*.c' )
-    src += bld.path.ant_glob( 'periph/core/**/*.cpp' )
+    src = bld.path.ant_glob( 'periph/src/**/*.c' )
+    src += bld.path.ant_glob( 'periph/src/**/*.cpp' )
     vendor_path = os.path.join( 'vendor',bld.isix_get_arch(),bld.isix_get_subarch(),
             bld.isix_get_cpu_vendor(), bld.isix_get_cpu_family() )
     vdrv_path =  os.path.join( 'periph','drivers',bld.isix_get_arch(),
