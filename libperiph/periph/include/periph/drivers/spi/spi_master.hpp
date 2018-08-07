@@ -22,14 +22,19 @@
 namespace periph::drivers {
 
 	class spi_master final : public block_device {
+		static constexpr auto invcs = -1;
 	public:
 		explicit spi_master(const char name[]);
 		virtual ~spi_master();
-		int open(unsigned flags, int timeout) override;
-		int close() override;
 		int transaction(int addr, const blk::transfer& data) override;
+	protected:
+		int do_open(int timeout) override;
+		int do_close() override;
 	private:
 		int do_set_option(device_option& opt) override;
-		int setup(bool en);
+		int clk_conf(bool en);
+		int gpio_conf(bool en);
+	private:
+		int m_cs[4] {invcs,invcs,invcs,invcs};
 	};
 }

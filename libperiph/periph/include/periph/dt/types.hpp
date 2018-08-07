@@ -32,12 +32,15 @@ namespace periph::dt {
 	//! Pin function type
 	enum class pinfunc : short {
 		_empty,
-		sck,
-		miso,
-		mosi,
+		sck, miso, mosi,
+		cs0, cs1, cs2, cs3,
 		rxd,
 		txd,
 	};
+
+	inline pinfunc operator++(pinfunc pf) {
+		return static_cast<pinfunc>(static_cast<int>(pf)+1);
+	}
 
 	//! Clk periph information structure
 	struct clk_periph {

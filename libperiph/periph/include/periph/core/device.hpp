@@ -81,24 +81,37 @@ namespace periph {
 				unsigned /*events=poll::in|poll::out|poll::err*/) {
 			return error::nosys;
 		}
+		virtual int pm_suspend(int /*state*/) {
+			return error::nosys;
+		}
+		int open(int timeout) {
+			if(m_opened) return error::success;
+			else {
+				m_opened = true;
+				return do_open(timeout);
+			}
+		}
+		int close() {
+			if(m_opened) {
+				m_opened = false;
+				return do_close();
+			}
+			else return error::noinit;
+		}
+	protected:
 		/** Open the device driver
-		 * @param[in] flags Open flags
 		 * @param[in] timeout Global device timeout
 		 * @return error code
 		 */
-		virtual int open(unsigned flags, int timeout) = 0;
+		virtual int do_open(int timeout) = 0;
 		/** Close the device driver
 		 * @return error code
 		 */
-		virtual int close() = 0;
+		virtual int do_close() = 0;
 		/** Suspend or resume device with selected state
 		 * @param[in] state suspend state
 		 * @return error code or success
 		 */
-		virtual int pm_suspend(int /*state*/) {
-			return error::nosys;
-		}
-	protected:
 		//! Do set option implementation specific
 		virtual int do_set_option(device_option& opt) = 0;
 		//! Get device base addr
@@ -106,7 +119,9 @@ namespace periph {
 		auto io() { return reinterpret_cast<device_type*>(m_base_addr); };
 		template<typename device_type>
 		auto io() const { return reinterpret_cast<const device_type*>(m_base_addr); };
+	private:
 		const type_ m_type;		//! Device type
+		bool m_opened;			//! Device is opened
 		uintptr_t m_base_addr;	//! Base address
 	};
 }
