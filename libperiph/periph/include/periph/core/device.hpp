@@ -33,7 +33,9 @@ namespace periph {
 	using cpointer = const void*;
 	using size = std::size_t;
 
-	class device_option;
+	namespace option {
+		class device_option;
+	}
 	class device
 	{
 	public:
@@ -113,7 +115,7 @@ namespace periph {
 		 * @return error code or success
 		 */
 		//! Do set option implementation specific
-		virtual int do_set_option(device_option& opt) = 0;
+		virtual int do_set_option(option::device_option& opt) = 0;
 		//! Get device base addr
 		template<typename device_type>
 		auto io() { return reinterpret_cast<device_type*>(m_base_addr); };

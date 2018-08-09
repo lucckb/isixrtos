@@ -13,6 +13,10 @@
 
 
 namespace periph::dt::_dts_config {
+	//! Device flags
+	enum device_flags {
+		dev_use_dma = 1U<<0,
+	};
 
 	//! Clock and assigned speed
 	struct clock {
@@ -34,6 +38,7 @@ namespace periph::dt::_dts_config {
 		unsigned mux;		//! Which mux
 		unsigned clken;		//! Clock enable pin mark number
 		const pin* pins;	//! Pin configuration
+		unsigned flags;		//! Device dma flags
 	};
 
 	//! Global device configuration structure

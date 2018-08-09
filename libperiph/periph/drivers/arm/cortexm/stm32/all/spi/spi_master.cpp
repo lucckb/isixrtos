@@ -19,6 +19,7 @@
 #include <periph/dt/dts.hpp>
 #include <periph/clock/clocks.hpp>
 #include <periph/gpio/gpio.hpp>
+#include <periph/core/device_option.hpp>
 #include <stm32f3xx_ll_spi.h>
 
 namespace periph::drivers {
@@ -76,12 +77,29 @@ int spi_master::transaction(int addr, const blk::transfer& data)
 }
 
 //Set device option
-int spi_master::do_set_option(device_option& opt)
+int spi_master::do_set_option(option::device_option& opt)
 {
-	(void)opt;
-	return -1;
+	switch(opt.ord) {
+		case option::ord::speed: {
+			auto hz = static_cast<option::speed&>(opt).hz;
+			break;
+		}
+		case option::ord::phase: {
+			auto ph = static_cast<option::phase&>(opt).ph;
+			break;
+		}
+		case option::ord::polarity: {
+			auto pol = static_cast<option::polarity&>(opt).pol;
+			break;
+		}
+		case option::ord::dwidth: {
+			auto dw = static_cast<option::dwidth&>(opt).dw;
+			break;
+		}
+	}
 }
 
+// Clocks configuration
 int spi_master::clk_conf(bool en)
 {
 	int ret {};
@@ -95,7 +113,7 @@ int spi_master::clk_conf(bool en)
 	return ret;
 }
 
-//Setup gpio and clocks
+//Gpio configuration
 int spi_master::gpio_conf(bool en)
 {
 	auto mux = dt::get_periph_pin_mux(io<void>());

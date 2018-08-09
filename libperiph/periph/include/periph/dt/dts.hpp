@@ -3,10 +3,7 @@
 #include <cstdint>
 #include <periph/dt/types.hpp>
 
-namespace periph {
-namespace dt {
-
-
+namespace periph::dt {
 
 	/** Get pin by peripheral name
 	 *
@@ -54,6 +51,6 @@ namespace dt {
 	 */
 	uintptr_t get_periph_base_address( const char* name );
 
-}}
+}
 
 
