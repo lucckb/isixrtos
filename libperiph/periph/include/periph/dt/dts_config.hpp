@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cstdint>
-
 #include "dts.hpp"
 
 
@@ -32,13 +31,13 @@ namespace periph::dt::_dts_config {
 
 	//! Device tree mapper
 	struct device {
-		const char* name;	//! Device name
-		uintptr_t addr;		//! Device  mapped address
-		bus devbus;			//! Pin used map
-		unsigned mux;		//! Which mux
-		unsigned clken;		//! Clock enable pin mark number
-		const pin* pins;	//! Pin configuration
-		unsigned flags;		//! Device dma flags
+		const char* name;		//! Device name
+		uintptr_t addr;			//! Device  mapped address
+		bus devbus;				//! Pin used map
+		unsigned mux;			//! Which mux
+		unsigned clken;			//! Clock enable pin mark number
+		const pin* pins;		//! Pin configuration
+		const device_conf* conf;//! Device configuration
 	};
 
 	//! Global device configuration structure

@@ -20,7 +20,8 @@ enum generic_errors {
 	init   = -132,
 	again  = -133,
 	exists = -134,
-	nosys  = -135
+	nosys  = -135,
+	noent = -136
 };
 
 //! Bus errors

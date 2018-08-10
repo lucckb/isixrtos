@@ -48,6 +48,13 @@ namespace periph::dt {
 		unsigned bit;			//! Peripheral bit number for enable device
 	};
 
+	//! Device configuration
+	struct device_conf {
+		int irqnum;				//! IRQ number
+		unsigned irqconf;		//! IRQ priotity
+		unsigned flags;			//! Device dma flags
+	};
+
 }
 
 

@@ -130,14 +130,15 @@ int get_periph_clock( const char* name, clk_periph& xclk )
 
 int get_periph_clock( void* addr, clk_periph& xclk )
 {
-	auto dev = find_dev( addr );
-	if( !dev ) {
+	auto dev = find_dev(addr);
+	if(!dev) {
 		return error::nodev;
 	} else {
-		fill_clk_periph( dev, xclk );
+		fill_clk_periph(dev, xclk);
 		return error::success;
 	}
 }
+
 
 
 
@@ -164,6 +165,7 @@ int get_periph_pin_mux( void* addr )
 		return dev->mux;
 	}
 }
+
 
 
 //! Get periph addr
@@ -193,5 +195,32 @@ int get_bus_clock( bus xbus )
 }
 
 
+/** Get device configuration
+	* @param[in] name Device name
+	* @param[in] conf Device configuration structure
+	*/
+template <typename T>
+int get_periph_devconf_impl(T ident, device_conf& conf)
+{
+	auto dev = find_dev(ident);
+	if(!dev) {
+		return error::nodev;
+	}
+	if(!dev->conf) {
+		return error::noent;
+	}
+	conf = *dev->conf;
+	return error::success;
+}
+
+int get_periph_devconf(const char* name, device_conf& conf)
+{
+	return get_periph_devconf_impl(name,conf);
+}
+
+int get_periph_devconf(void* addr, device_conf& conf)
+{
+	return get_periph_devconf_impl(addr,conf);
+}
 
 }
