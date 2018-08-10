@@ -37,7 +37,6 @@ void isix_request_irq( int irqno );
 void isix_free_irq( int irqno );
 
 
-
 /** Check if IRQ is active
  * @param[in] irqno IRQ input number
  * @return boolean yes or not
@@ -69,3 +68,58 @@ void isix_clear_irq_pending( int irqno );
 #ifdef __cplusplus
 }
 #endif
+
+
+#ifdef __cplusplus
+namespace isix {
+	/** Request selected interrupt handler
+	 * @param[in] irqno IRQ specific to the hardware
+	 */
+	inline __attribute__((always_inline))
+	void request_irq(int irqno) {
+		::isix_request_irq(irqno);
+	}
+
+	/** Unblock and disable selected irq number */
+	inline __attribute__((always_inline))
+	void free_irq(int irqno) {
+		::isix_free_irq(irqno);
+	}
+
+	/** Check if IRQ is active
+	 * @param[in] irqno IRQ input number
+	 * @return boolean yes or not
+	 */
+	inline __attribute__((always_inline))
+	bool get_irq_enabled(int irqno) {
+		return ::isix_get_irq_enabled(irqno);
+	}
+
+	/** Check if IRQ is pending
+	 * @param[in] irqno IRQ input numer
+	 * @return boolean yes or not
+	 */
+	inline __attribute__((always_inline))
+	bool get_irq_pending(int irqno) {
+		return ::isix_get_irq_pending(irqno);
+	}
+
+	/** SET pending IRQ state
+	 * @param[in] irqno IRQ input number
+	 */
+	inline __attribute__((always_inline))
+	void set_irq_pending( int irqno ) {
+		::isix_set_irq_pending(irqno);
+	}
+
+	/** CLEAR pending IRQ state
+	 * @param[in] irqno IRQ input number
+	 */
+	inline __attribute__((always_inline))
+	void clear_irq_pending(int irqno) {
+		::isix_clear_irq_pending(irqno);
+	}
+}
+#endif
+
+
