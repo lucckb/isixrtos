@@ -57,7 +57,7 @@ namespace periph::option {
 
 	//! Phase configuration
 	struct polarity : public device_option {
-		enum class _polarity : bool {
+		enum _polarity : bool {
 			low,
 			high
 		};

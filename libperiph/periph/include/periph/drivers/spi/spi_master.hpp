@@ -34,6 +34,7 @@ namespace periph::drivers {
 		int do_set_option(option::device_option& opt) override;
 		int clk_conf(bool en);
 		int gpio_conf(bool en);
+		int clk_to_presc(unsigned hz);
 	private:
 		int m_cs[4] {invcs,invcs,invcs,invcs};
 	};
