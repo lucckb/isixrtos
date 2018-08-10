@@ -21,7 +21,9 @@
 #include <periph/gpio/gpio.hpp>
 #include <periph/core/device_option.hpp>
 #include <isix/arch/irq_platform.h>
+#include <isix/arch/irq.h>
 #include <stm32f3xx_ll_spi.h>
+#include "spi_interrupt_handlers.hpp"
 
 namespace periph::drivers {
 
@@ -30,6 +32,11 @@ namespace periph::drivers {
 spi_master::spi_master(const char name[])
 	: block_device(block_device::type::spi, dt::get_periph_base_address(name))
 {
+	if(io<void>()) {
+		const auto ret =_handlers::register_handler(io<SPI_TypeDef>(),
+		std::bind(&spi_master::interrupt_handler,std::ref(*this)) );
+		error::expose<error::bus_exception>(ret);
+	}
 }
 
 spi_master::~spi_master() {
@@ -56,6 +63,7 @@ int spi_master::do_open(int)
 			dt::device_conf cnf;
 			if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
 			isix::set_raw_irq_priority(cnf.irqnum, cnf.irqconf);
+			isix::request_irq(cnf.irqnum);
 		}
 	} while(0);
 	error::expose<error::bus_exception>(ret);
@@ -85,6 +93,12 @@ int spi_master::do_close()
 		ret = dt::get_periph_clock(io<void>(), pclk); if(ret) break;
 		ret = clk_conf(false); if(ret) break;
 		ret = gpio_conf(false); if(ret) break;
+		{
+			//Configure interrupt
+			dt::device_conf cnf;
+			if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
+			isix::free_irq(cnf.irqnum);
+		}
 	} while(0);
 	return ret;
 }
