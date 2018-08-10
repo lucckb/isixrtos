@@ -69,6 +69,15 @@ static isix_irq_prio_t nvic_decode_prio( uint32_t raw_prio )
 }
 */
 
+/** Convert isix priority to raw prioity
+ * @param[in] prio Decoded priority
+ * @return Raw priority
+ */
+isix_irq_raw_prio_t isix_irq_priority_to_raw_priority( isix_irq_prio_t prio )
+{
+	return nvic_encode_prio(prio);
+}
+
 
 /** Request selected interrupt handler
  * @param[in] irqno IRQ specific to the hardware
