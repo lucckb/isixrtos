@@ -9,20 +9,22 @@ namespace periph::blk {
 	class transfer {
 	public:
 		enum type_ : char { tx, rx, trx };
-	protected:
-		constexpr transfer(type_ type)
-			: m_type(type)  {}
 		auto type() const {
 			return m_type;
 		}
+		virtual ~transfer() = default;
+	protected:
+		constexpr transfer(type_ type)
+			: m_type(type)  {}
 	private:
 		const type_ m_type;
 	};
 
 	//! Transfer base class
 	template <typename T>
-	class transfer_base : public virtual transfer {
+	class transfer_base : public transfer {
 	public:
+		virtual ~transfer_base() = default;
 		auto buf() const {
 			return m_buf;
 		}
@@ -38,33 +40,33 @@ namespace periph::blk {
 	};
 
 	//! TRX transfer
-	class trx_transfer_base : public transfer_base<const void*>, public transfer_base<void*> {
+	class trx_transfer_base : public transfer {
 	public:
+		virtual ~trx_transfer_base() = default;
 		auto tx_buf() const {
-			transfer_base<const void*>::buf();
+			return m_tx;
 		}
-		auto tx_size() const {
-			transfer_base<const void*>::size();
+		auto size() const {
+			return m_siz;
 		}
 		auto rx_buf() const {
-			transfer_base<void*>::buf();
-		}
-		auto rx_size() const {
-			transfer_base<void*>::size();
+			return m_rx;
 		}
 	protected:
-		trx_transfer_base(const void* tx, std::size_t txsiz, void* rx, std::size_t rxsiz)
-			: transfer(transfer::trx),
-			  transfer_base<const void*>(tx,txsiz,transfer::trx),
-			  transfer_base<void*>(rx,rxsiz,transfer::trx)
+		trx_transfer_base(const void* tx, void* rx, std::size_t siz)
+			: transfer(transfer::trx), m_siz(siz), m_tx(tx), m_rx(rx)
 		{}
+	private:
+		const std::size_t m_siz;
+		const void* const m_tx;
+		void* const m_rx;
 	};
 
 	//! <<< Final user class for transfer >>>
-
 	//! TX transfer
+	using tx_transfer_base = transfer_base<const void*>;
 	template <typename T>
-	class tx_transfer : public transfer_base<const void*> {
+	class tx_transfer : public tx_transfer_base {
 	public:
 		tx_transfer(const T buf, std::size_t siz)
 			: transfer_base(static_cast<const void*>(buf),siz,transfer::tx)
@@ -72,8 +74,9 @@ namespace periph::blk {
 	};
 
 	//! RX transfer
+	using rx_transfer_base = transfer_base<void*>;
 	template <typename T>
-	class rx_transfer : public transfer_base<void*> {
+	class rx_transfer : public rx_transfer_base {
 	public:
 		rx_transfer( T buf, std::size_t siz)
 			:transfer_base(static_cast<void*>(buf),siz,transfer::rx)
@@ -85,8 +88,9 @@ namespace periph::blk {
 		class trx_transfer : public trx_transfer_base
 	{
 	public:
-		trx_transfer(const T tx, std::size_t txsiz, T rx, std::size_t rxsiz)
-			: trx_transfer_base(static_cast<const void*>(tx),txsiz,static_cast<void*>(rx),rxsiz) {}
+		trx_transfer(const T tx, T rx, std::size_t siz)
+			: trx_transfer_base(static_cast<const void*>(tx),
+		      static_cast<void*>(rx),siz) {}
 	};
 
 	//! Ttransfer chain

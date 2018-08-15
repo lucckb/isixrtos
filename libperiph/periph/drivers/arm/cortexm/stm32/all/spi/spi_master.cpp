@@ -20,8 +20,11 @@
 #include <periph/clock/clocks.hpp>
 #include <periph/gpio/gpio.hpp>
 #include <periph/core/device_option.hpp>
+#include <periph/blk/transfer.hpp>
+#include <periph/gpio/gpio.hpp>
 #include <isix/arch/irq_platform.h>
 #include <isix/arch/irq.h>
+#include <isix/arch/cache.h>
 #include <stm32f3xx_ll_spi.h>
 #include "spi_interrupt_handlers.hpp"
 
@@ -72,8 +75,6 @@ int spi_master::do_open(int)
 	LL_SPI_SetNSSMode(io<SPI_TypeDef>(), LL_SPI_NSS_SOFT);
 	LL_SPI_SetRxFIFOThreshold(io<SPI_TypeDef>(), LL_SPI_RX_FIFO_TH_QUARTER);
 	LL_SPI_SetMode(io<SPI_TypeDef>(), LL_SPI_MODE_MASTER);
-	LL_SPI_EnableIT_RXNE(io<SPI_TypeDef>());
-	LL_SPI_EnableIT_TXE(io<SPI_TypeDef>());
 	LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
 	return ret;
 }
@@ -85,6 +86,7 @@ int spi_master::do_close()
 	LL_SPI_DisableIT_RXNE(io<SPI_TypeDef>());
 	LL_SPI_DisableIT_TXE(io<SPI_TypeDef>());
 	LL_SPI_DisableIT_ERR(io<SPI_TypeDef>());
+	LL_SPI_Disable(io<SPI_TypeDef>());
 	do {
 		if(!io<void>()) {
 			ret = error::init; break;
@@ -106,9 +108,25 @@ int spi_master::do_close()
 //Make transaction
 int spi_master::transaction(int addr, const blk::transfer& data)
 {
-	(void)addr;
-	(void)data;
-	return -1;
+	int ret {};
+	if(addr<0 || addr>=int(sizeof(m_cs)/sizeof(m_cs[0]))) {
+		return error::invaddr;
+	}
+	if(!busy()) {
+		isix::mutex_locker _lock(m_mtx);
+		start_transfer(std::make_tuple(addr,data,std::ref(ret)));
+		periphint_config();
+		LL_SPI_Enable(io<SPI_TypeDef>());
+		cs(false,addr);
+	} else {
+		if(!m_transq.try_push(std::make_tuple(addr,data,std::ref(ret)))) {
+			ret = error::again;
+			return ret;
+		}
+		auto wret = m_wait.wait(ISIX_TIME_INFINITE);
+		if(wret<0) return wret;
+	}
+	return ret;
 }
 
 //Set device option
@@ -242,6 +260,97 @@ int spi_master::clk_to_presc(unsigned hz)
 		ret = LL_SPI_BAUDRATEPRESCALER_DIV256;
 	}
 	return ret;
+}
+
+//! SPI Interrupt handler
+void spi_master::interrupt_handler() noexcept
+{
+	char stat { char((m_rxptr?0:1)|(m_txptr?0:2)) };
+	if(LL_SPI_IsActiveFlag_RXNE(io<SPI_TypeDef>()) && m_rxptr) {
+		if(m_rxi<m_rxsiz) {
+			m_rxptr[m_rxi++]=LL_SPI_ReceiveData8(io<SPI_TypeDef>());
+		} else {
+			isix::inval_dcache_by_addr(m_rxptr,m_rxsiz);
+			stat |= 1;
+		}
+	}
+	if(LL_SPI_IsActiveFlag_TXE(io<SPI_TypeDef>()) && m_txptr) {
+		if(m_txi<m_txsiz) {
+			LL_SPI_TransmitData8(io<SPI_TypeDef>(),m_txptr[m_txi++]);
+		} else {
+			stat |= 2;
+		}
+	}
+	if(LL_SPI_IsActiveFlag_OVR(io<SPI_TypeDef>())) {
+		stat |= 0x80;
+	}
+	if(stat&0x80 || stat&0x03) {
+		cs(true, m_ccs);
+	}
+	if(stat&0x80) {
+		LL_SPI_Disable(io<SPI_TypeDef>());
+		*m_ret = error::overrun;
+		m_wait.signal_isr();
+	}
+	else if(stat&0x03)
+	{
+		auto item = m_transq.front();
+		if( item ) {
+			m_transq.pop();
+			start_transfer(*item);
+			periphint_config();
+		} else {
+			*m_ret = error::success;
+			m_wait.signal_isr();
+		}
+	}
+}
+
+//! SPI master chip select
+inline void spi_master::cs(bool state,int no) noexcept
+{
+	gpio::set(m_cs[no], state);
+}
+
+//! Start transfer data
+void spi_master::start_transfer(trans_type trans) noexcept
+{
+	auto [addr,data,ret] = trans;
+	switch(data.type()) {
+		case blk::transfer::rx: {
+									auto t = static_cast<const blk::rx_transfer_base&>(data);
+									m_rxptr = reinterpret_cast<char*>(t.buf());
+									m_rxsiz = t.size();
+									m_txptr = nullptr;
+									break;
+								}
+		case blk::transfer::tx: {
+									auto t = static_cast<const blk::tx_transfer_base&>(data);
+									m_txptr = reinterpret_cast<const char*>(t.buf());
+									m_txsiz = t.size();
+									isix::clean_dcache_by_addr(const_cast<char*>(m_txptr),m_txsiz);
+									m_rxptr = nullptr;
+									break;
+								}
+		case blk::transfer::trx: {
+										auto t = static_cast<const blk::trx_transfer_base&>(data);
+										m_txptr = reinterpret_cast<const char*>(t.tx_buf());
+										m_rxptr = reinterpret_cast<char*>(t.rx_buf());
+										m_rxsiz = m_txsiz = t.size();
+										isix::clean_dcache_by_addr(const_cast<char*>(m_txptr),m_txsiz);
+										break;
+									}
+	}
+	m_rxi = m_txi = 0;
+	m_ccs = addr;
+	m_ret = &ret;
+}
+
+// Configure hardware peripherial when transfer mode is set
+void spi_master::periphint_config() noexcept
+{
+	if(m_rxptr) LL_SPI_EnableIT_RXNE(io<SPI_TypeDef>());
+	if(m_txptr) LL_SPI_EnableIT_TXE(io<SPI_TypeDef>());
 }
 
 }
