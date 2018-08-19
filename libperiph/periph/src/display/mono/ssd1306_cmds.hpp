@@ -7,14 +7,13 @@
 
 #pragma once
 
-namespace fnd {
-namespace drv {
-namespace lcd {
+#include <cstdint>
+
+namespace periph::display {
 
 
 namespace {
-namespace ns1306 {
-namespace cmd {
+namespace ns1306::cmd {
 //! Command description
 //!
 	constexpr uint8_t ADDR_MODE				=	0x20;
@@ -46,10 +45,7 @@ namespace cmd {
 	enum addr_mode_ : unsigned char{
 		horiz=0, vert=1, page=2
 	}; };
+} }
+
+
 }
-
-}}
-
-
-
-}}}

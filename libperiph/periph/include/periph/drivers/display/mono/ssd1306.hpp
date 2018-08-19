@@ -18,32 +18,31 @@
 
 #pragma once
 #include <initializer_list>
-#include <foundation/drv/bus/ibus.hpp>
-#include <foundation/drv/lcd/display.hpp>
-#include "../bus/gpioout.hpp"
+#include <periph/core/block_device.hpp>
+#include <periph/drivers/display/mono/display.hpp>
+#include <periph/core/block_device.hpp>
+#include <periph/core/block_device.hpp>
 
-namespace fnd {
-namespace drv {
-namespace lcd {
-
+namespace periph::display {
 
 class ssd1306 final : public display
 {
+	enum class pos : bool {
+		x, y
+	};
+	static int dts_pos(const char* name, pos xy);
 public:
 	//Noncopyable
 	~ssd1306() {}
 	ssd1306(ssd1306&) = delete;
 	ssd1306& operator=(ssd1306&) = delete;
+
 	/** Create SSD1306 display
-	 * @param[in] bus Bus object
-	 * @param[in] d_i  DI gpio object
-	 * @param[in] rst  DI gpio object
-	 * @param[in] cols Number of cols
-	 * @param[in] rows Number of rows
+	 * @param[in] display_name Driver name
+	 * @param[in] parent Parent driver
 	 */
-	ssd1306(
-		bus::ibus& bus, bus::gpio_out& d_i, bus::gpio_out& rst,
-		uint8_t cs, uint8_t cols, uint8_t rows );
+	ssd1306(const char* display_name, periph::block_device& parent);
+
 	/**
 	 * Enable and initialize the display
 	 * @param en Enable or disable
@@ -152,23 +151,18 @@ private:
 	 */
 	int data( const uint8_t buf[], std::size_t len ) noexcept;
 	int data( const std::initializer_list<uint8_t>& cmd ) noexcept;
-
 	/** Setup cursor position with range */
 	int setpos( uint8_t x, uint8_t y, uint8_t maxx, uint8_t maxy ) noexcept;
 
 private:
 	/* data */
-	bus::ibus& m_bus;
-	uint8_t m_cs;
+	uint8_t m_cs {};
 	uint8_t m_x {};
 	uint8_t m_y {};
-	bus::gpio_out& m_di;
-	bus::gpio_out& m_rst;
+	int m_gpio_di {};
+	int m_gpio_rst {};
+	periph::block_device& m_parent;
 };
 
 }
-}
-}
-
-
 

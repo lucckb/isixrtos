@@ -22,6 +22,7 @@ namespace periph::dt {
 	//! Available buses
 	enum class bus : short {
 		_empty,
+        unspec,
 		axi,
 		ahb1,
 		apb1,
@@ -34,8 +35,8 @@ namespace periph::dt {
 		_empty,
 		sck, miso, mosi,
 		cs0, cs1, cs2, cs3,
-		rxd,
-		txd,
+		rxd, txd,
+        rst, rw
 	};
 
 	inline pinfunc operator++(pinfunc pf) {
@@ -48,14 +49,15 @@ namespace periph::dt {
 		unsigned bit;			//! Peripheral bit number for enable device
 	};
 
-	//! Device configuration
-	struct device_conf {
-		int irqnum;				//! IRQ number
-		unsigned irqconf;		//! IRQ priotity
-		unsigned flags;			//! Device dma flags
+    struct device_conf_base {
+    };
+
+	//! Device configuration internal hardware 
+	struct device_conf : public device_conf_base {
+		int irqnum;				//! Irq number
+		unsigned short irqfl;	//! Irq low flags
+		unsigned short irqfh;	//! Irq hi con
+        unsigned long flags;		//! Base flags
 	};
-
+    
 }
-
-
-

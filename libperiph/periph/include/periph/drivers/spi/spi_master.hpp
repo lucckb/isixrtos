@@ -43,7 +43,7 @@ namespace periph::drivers {
 		int do_open(int timeout) override;
 		int do_close() override;
 	private:
-		int do_set_option(option::device_option& opt) override;
+		int do_set_option(const option::device_option& opt) override;
 		int clk_conf(bool en);
 		int gpio_conf(bool en);
 		int clk_to_presc(unsigned hz);
@@ -64,5 +64,6 @@ namespace periph::drivers {
 		char *m_rxptr{};
 		const char *m_txptr{};
 		isix::mutex m_mtx;
+		int m_timeout {};
 	};
 }

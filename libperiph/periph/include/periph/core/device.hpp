@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <functional>
 #include "error.hpp"
+#include "device_option.hpp"
 
 namespace isix {
 	class event;
@@ -33,9 +34,6 @@ namespace periph {
 	using cpointer = const void*;
 	using size = std::size_t;
 
-	namespace option {
-		class device_option;
-	}
 	class device
 	{
 	public:
@@ -65,14 +63,13 @@ namespace periph {
 			return static_cast<T>(std::ref(*this));
 		}
 		//! Set error option
-		template<typename settable_device_option>
-			void set_option(settable_device_option& option)  {
+			int set_option(const option::device_option& option)  {
 			return do_set_option( option );
 		}
 		template<typename ...settable_device_option>
-			void set_option(settable_device_option& ... options) {
-				return set_option(options...);
-		}
+			int set_option(const settable_device_option& ... options) {
+				return (0 + ... + set_option(options));
+			}
 		//! Monitoring event on
 		virtual int event_add(isix::event& /*ev*/, unsigned /*bits*/, poll /*events*/) {
 			return error::nosys;
@@ -115,7 +112,7 @@ namespace periph {
 		 * @return error code or success
 		 */
 		//! Do set option implementation specific
-		virtual int do_set_option(option::device_option& opt) = 0;
+		virtual int do_set_option(const option::device_option& opt) = 0;
 		//! Get device base addr
 		template<typename device_type>
 		auto io() { return reinterpret_cast<device_type*>(m_base_addr); };

@@ -23,13 +23,23 @@ SOFTWARE.
 #pragma once
 
 #include <atomic>
-#include <cassert>
+#if __EXCEPTIONS
 #include <stdexcept>
+#else
+#include <cstdlib>
+#endif
 #include <type_traits>
 
 namespace fnd {
 
 template <typename T> class fixedlf_queue {
+	void _assert(bool value) {
+#if __EXCEPTIONS
+		if(!value) throw std::invalid_argument("assert");
+#else
+		if(!value) std::abort();
+#endif
+	}
 public:
   explicit fixedlf_queue(const size_t capacity)
       : capacity_(capacity),
@@ -41,11 +51,11 @@ public:
 #if __EXCEPTIONS
       throw std::invalid_argument("size < 2");
 #else
-	  assert(capacity_>=2);
+	  _assert(capacity_>=2);
 #endif
     }
-    assert(alignof(fixedlf_queue<T>) >= kCacheLineSize);
-    assert(reinterpret_cast<char *>(&tail_) -
+    _assert(alignof(fixedlf_queue<T>) >= kCacheLineSize);
+    _assert(reinterpret_cast<char *>(&tail_) -
                reinterpret_cast<char *>(&head_) >=
            kCacheLineSize);
   }
@@ -132,7 +142,7 @@ public:
     static_assert(std::is_nothrow_destructible<T>::value,
                   "T must be nothrow destructible");
     auto const tail = tail_.load(std::memory_order_relaxed);
-    assert(head_.load(std::memory_order_acquire) != tail);
+    _assert(head_.load(std::memory_order_acquire) != tail);
     slots_[tail + kPadding].~T();
     auto nextTail = tail + 1;
     if (nextTail == capacity_) {

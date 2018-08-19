@@ -57,7 +57,7 @@ namespace periph::dt {
 	 */
 	int get_periph_devconf(const char* name, device_conf& conf);
 	int get_periph_devconf(void* addr, device_conf& conf);
-
+	int get_periph_devconf(const char* name, device_conf_base& conf);
 }
 
 

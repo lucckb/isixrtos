@@ -5,12 +5,10 @@
  *      Author: lucck
  */
 
-#include "foundation/drv/lcd/hd44xx_display.hpp"
+#include <periph/drivers/display/mono/hd44xx_display.hpp>
 #include <foundation/algo/utils.h>
 
-namespace fnd {
-namespace drv {
-namespace lcd {
+namespace periph::display {
 
 namespace //CFG
 {
@@ -136,8 +134,6 @@ int hd44xx_display::progress_bar(int x, int y, int value, int width, char chpos)
     return ret;
 }
 
-}
-}
 }
 
 

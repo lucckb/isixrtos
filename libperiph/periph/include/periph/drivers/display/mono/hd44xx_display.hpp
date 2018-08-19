@@ -8,11 +8,9 @@
 #pragma once
 
 #include <stdint.h>
-#include <foundation/drv/lcd/display_operators.hpp>
+#include <periph/drivers/display/mono/display_operators.hpp>
 
-namespace fnd {
-namespace drv {
-namespace lcd {
+namespace periph::display {
 
 	class hd44xx_display
 	{
@@ -82,5 +80,5 @@ namespace lcd {
 
 
 
-}}}
+}
 

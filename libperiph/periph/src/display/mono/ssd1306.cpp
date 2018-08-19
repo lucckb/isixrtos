@@ -15,15 +15,19 @@
  *
  * =====================================================================================
  */
-#include <foundation/drv/lcd/ssd1306.hpp>
-#include <foundation/drv/lcd/lcd_font.hpp>
-#include <foundation/drv/lcd/lcd_bitmap.hpp>
+#include <isix.h>
+#include <periph/core/error.hpp>
+#include <periph/drivers/display/mono/ssd1306.hpp>
+#include <periph/drivers/display/mono/lcd_font.hpp>
+#include <periph/drivers/display/mono/lcd_bitmap.hpp>
+#include <periph/drivers/display/mono/display_config.hpp>
+#include <periph/gpio/gpio.hpp>
+#include <periph/blk/transfer.hpp>
+#include <periph/dt/dts.hpp>
 #include <foundation/sys/dbglog.h>
 #include "ssd1306_cmds.hpp"
 
-namespace fnd {
-namespace drv {
-namespace lcd {
+namespace periph::display {
 
 namespace {
 	constexpr uint8_t zero_buffer[32] {};
@@ -45,15 +49,33 @@ namespace {
 	}
 }
 
-//! Constructor
-ssd1306::ssd1306(
-	bus::ibus& bus, bus::gpio_out& d_i, bus::gpio_out& rst,
-	uint8_t cs, uint8_t cols, uint8_t rows
-)
-	: display(cols,rows), m_bus(bus),
-	  m_cs(cs), m_di(d_i), m_rst(rst)
+//! Get display config by dts
+int ssd1306::dts_pos(const char* name, pos xy)
 {
+	dt::device_conf_base cfg;
+	periph::error::expose<periph::error::generic_exception>(dt::get_periph_devconf(name,cfg));
+	auto dc = static_cast<const periph::display::config&>(cfg);
+	return xy==pos::x?dc.max_x:dc.max_y;
 }
+
+//! Constructor
+ssd1306::ssd1306(const char* disp_name, periph::block_device& parent)
+	: display(dts_pos(disp_name,pos::x),dts_pos(disp_name,pos::y)),
+	  m_parent(parent)
+{
+	//GPIOS configure
+	m_gpio_di = dt::get_periph_pin(disp_name, dt::pinfunc::rw);
+	if(m_gpio_di!=periph::error::success) {
+		periph::error::expose<periph::error::generic_exception>(m_gpio_di);
+	}
+	gpio::setup(m_gpio_di, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
+	m_gpio_rst = dt::get_periph_pin(disp_name, dt::pinfunc::rw);
+	if(m_gpio_rst!=periph::error::success) {
+		periph::error::expose<periph::error::generic_exception>(m_gpio_rst);
+	}
+	gpio::setup(m_gpio_rst, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
+}
+
 
 // Enable the display
 int ssd1306::enable(bool en) noexcept
@@ -170,20 +192,21 @@ int ssd1306::endl() noexcept
 
 
 //! Send command to display single byte
-
 int ssd1306::command( uint8_t cmd )
 {
 	//! Data or instruction
-	m_di(false);
-	m_error = m_bus.write(m_cs, &cmd, sizeof(cmd));
+	periph::gpio::set(m_gpio_di, false);
+	periph::blk::tx_transfer trans(&cmd,sizeof cmd);
+	m_error = m_parent.transaction(m_cs, trans);
 	return m_error;
 }
 
 //! Send command to the display
 int ssd1306::command(const std::initializer_list<uint8_t>& cmd) noexcept
 {
-	m_di(false);
-	m_error = m_bus.write(m_cs, cmd.begin(), cmd.size());
+	periph::gpio::set(m_gpio_di, false);
+	periph::blk::tx_transfer trans(cmd.begin(),cmd.size());
+	m_error = m_parent.transaction(m_cs, trans);
 	return m_error;
 }
 
@@ -191,16 +214,18 @@ int ssd1306::command(const std::initializer_list<uint8_t>& cmd) noexcept
 //! Write data
 int ssd1306::data( const uint8_t buf[], std::size_t len ) noexcept
 {
-	m_di(true);
-	m_error = m_bus.write(m_cs,buf,len);
+	periph::gpio::set(m_gpio_di, true);
+	periph::blk::tx_transfer trans(buf,len);
+	m_error = m_parent.transaction(m_cs, trans);
 	return m_error;
 }
 
 
 int ssd1306::data( const std::initializer_list<uint8_t>& cmd ) noexcept
 {
-	m_di(true);
-	m_error = m_bus.write(m_cs, cmd.begin(), cmd.size());
+	periph::gpio::set(m_gpio_di, true);
+	periph::blk::tx_transfer trans(cmd.begin(),cmd.size());
+	m_error = m_parent.transaction(m_cs, trans);
 	return m_error;
 }
 
@@ -227,11 +252,12 @@ int ssd1306::initialize() noexcept
 		cmd::DISPLAY_ALL_ON_RES,
 		cmd::DISPLAY_ON
 	};
-	m_rst(false);
-	m_bus.mdelay(10);
-	m_rst(true);
-	m_bus.mdelay(10);
-	m_error = m_bus.write(m_cs, init_cmds, sizeof init_cmds);
+	periph::gpio::set(m_gpio_rst, false);
+	isix::wait_ms(10);
+	periph::gpio::set(m_gpio_rst, true);
+	isix::wait_ms(10);
+	periph::blk::tx_transfer trans(init_cmds, sizeof init_cmds);
+	m_error = m_parent.transaction(m_cs, trans);
 	return m_error;
 }
 
@@ -377,5 +403,5 @@ int ssd1306::show_icon(int x1, int y1, const icon_t* icon) noexcept
 	return m_error;
 }
 
-}}}
+}
 

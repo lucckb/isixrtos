@@ -5,13 +5,11 @@
  *      Author: lucck
  */
 
-#include <foundation/drv/lcd/uc1601_display.hpp>
-#include <foundation/drv/lcd/lcd_font.hpp>
-#include <foundation/drv/lcd/lcd_bitmap.hpp>
+#include <periph/drivers/display/mono/uc1601_display.hpp>
+#include <periph/drivers/display/mono/lcd_font.hpp>
+#include <periph/drivers/display/mono/lcd_bitmap.hpp>
 
-namespace fnd {
-namespace drv {
-namespace lcd {
+namespace periph::display {
 
 namespace {
 
@@ -371,7 +369,5 @@ int uc1601_display::endl() noexcept
 	return m_error;
 }
 
-} /* namespace lcd */
-} /* namespace drv */
-} /* namespace fnd */
+}
 

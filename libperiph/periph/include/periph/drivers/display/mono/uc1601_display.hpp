@@ -10,11 +10,9 @@
 #include <cstdint>
 #include <cstddef>
 #include <foundation/algo/noncopyable.hpp>
-#include <foundation/drv/lcd/display.hpp>
+#include <periph/drivers/display/mono/display.hpp>
 
-namespace fnd {
-namespace drv {
-namespace lcd {
+namespace periph::display {
 
 
 //! UC1601 bus interface
@@ -172,8 +170,6 @@ private:
 	uint8_t m_pa {}, m_ca {};
 };
 
-} /* namespace lcd */
-} /* namespace drv */
-} /* namespace fnd */
+}
 
 

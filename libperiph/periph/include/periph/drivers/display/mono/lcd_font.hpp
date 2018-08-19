@@ -8,9 +8,7 @@
 #pragma once
 
 
-namespace fnd {
-namespace drv {
-namespace lcd {
+namespace periph::display {
 
 //Very simple font for lcd
 struct font_t
@@ -28,5 +26,4 @@ struct font_t
 };
 
 
-}}}
-
+}

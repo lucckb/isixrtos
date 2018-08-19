@@ -39,16 +39,19 @@ namespace {
 #ifdef SPI1
 		if(spi==SPI1) {
 			spi_vector[0] = callback;
+			return error::success;
 		}
 #endif
 #ifdef SPI2
 		if(spi==SPI2) {
 			spi_vector[1] = callback;
+			return error::success;
 		}
 #endif
 #ifdef SPI3
 		if(spi==SPI3) {
 			spi_vector[2] = callback;
+			return error::success;
 		}
 #endif
 		return error::inval;

@@ -47,7 +47,7 @@ spi_master::~spi_master() {
 }
 
 //Open device
-int spi_master::do_open(int)
+int spi_master::do_open(int timeout)
 {
 	int ret {};
 	do {
@@ -65,7 +65,7 @@ int spi_master::do_open(int)
 			//Configure interrupt
 			dt::device_conf cnf;
 			if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
-			isix::set_raw_irq_priority(cnf.irqnum, cnf.irqconf);
+			isix::set_irq_priority(cnf.irqnum, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
 			isix::request_irq(cnf.irqnum);
 		}
 	} while(0);
@@ -76,6 +76,7 @@ int spi_master::do_open(int)
 	LL_SPI_SetRxFIFOThreshold(io<SPI_TypeDef>(), LL_SPI_RX_FIFO_TH_QUARTER);
 	LL_SPI_SetMode(io<SPI_TypeDef>(), LL_SPI_MODE_MASTER);
 	LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
+	m_timeout = timeout;
 	return ret;
 }
 
@@ -123,14 +124,14 @@ int spi_master::transaction(int addr, const blk::transfer& data)
 			ret = error::again;
 			return ret;
 		}
-		auto wret = m_wait.wait(ISIX_TIME_INFINITE);
+		auto wret = m_wait.wait(m_timeout);
 		if(wret<0) return wret;
 	}
 	return ret;
 }
 
 //Set device option
-int spi_master::do_set_option(option::device_option& opt)
+int spi_master::do_set_option(const option::device_option& opt)
 {
 	int ret {};
 	static constexpr unsigned d2w[] = {
@@ -141,26 +142,26 @@ int spi_master::do_set_option(option::device_option& opt)
 	};
 	switch(opt.ord) {
 		case option::ord::speed: {
-			if((ret=clk_to_presc(static_cast<option::speed&>(opt).hz))<0) break;
+			if((ret=clk_to_presc(static_cast<const option::speed&>(opt).hz))<0) break;
 			LL_SPI_SetBaudRatePrescaler(io<SPI_TypeDef>(),ret); ret = 0;
 			break;
 		}
 		case option::ord::phase: {
-			const auto ph = static_cast<option::phase&>(opt).ph;
+			const auto ph = static_cast<const option::phase&>(opt).ph;
 			LL_SPI_SetClockPhase(io<SPI_TypeDef>(),
 				ph==option::phase::_1_edge?LL_SPI_PHASE_1EDGE:LL_SPI_PHASE_2EDGE
 			);
 			break;
 		}
 		case option::ord::polarity: {
-			const auto pol = static_cast<option::polarity&>(opt).pol;
+			const auto pol = static_cast<const option::polarity&>(opt).pol;
 			LL_SPI_SetClockPolarity(io<SPI_TypeDef>(),
 				pol==option::polarity::high?LL_SPI_POLARITY_HIGH:LL_SPI_POLARITY_LOW
 			);
 			break;
 		}
 		case option::ord::dwidth: {
-			auto dw = static_cast<option::dwidth&>(opt).dw;
+			auto dw = static_cast<const option::dwidth&>(opt).dw;
 			if(dw<4||dw>16) {
 				ret = error::inval;
 				break;
