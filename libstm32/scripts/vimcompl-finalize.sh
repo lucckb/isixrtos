@@ -9,7 +9,7 @@ if [ ! -f "$COMPL_FILE" ]; then
 fi
 #Add extra system paths
 $CXX -Wp,-v -x c++ - -fsyntax-only 2>&1 </dev/null | \
-	awk -v cfile=${COMPL_FILE} ' /^ / { 
+	gawk -v cfile=${COMPL_FILE} ' /^ / { 
 					gsub(/ /, "", $$1)
 					print "-isystem\n"$$1 >> cfile; 
 			} 
@@ -17,7 +17,7 @@ $CXX -Wp,-v -x c++ - -fsyntax-only 2>&1 </dev/null | \
 				print "-std=c++14" >> cfile; 
 			} '
 #Extra vim custom include directories generator
-	awk 'BEGIN { 
+	gawk 'BEGIN { 
 			v="."; 
 		}  
 		/^-I/ { 
