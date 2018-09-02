@@ -112,6 +112,7 @@ int spi_master::transaction(int addr, const blk::transfer& data)
 {
 	int ret {};
 	if(addr<0 || addr>=int(sizeof(m_cs)/sizeof(m_cs[0]))) {
+		dbg_err("Invalid address");
 		return error::invaddr;
 	}
 	if(!busy()) {
@@ -292,8 +293,7 @@ void spi_master::interrupt_handler() noexcept
 	}
 	if(stat&0x80) {
 		LL_SPI_Disable(io<SPI_TypeDef>());
-		*m_ret = error::overrun;
-		m_wait.signal_isr();
+		finalize_transfer(error::overrun);
 	}
 	else if(stat&0x03)
 	{
@@ -303,8 +303,7 @@ void spi_master::interrupt_handler() noexcept
 			start_transfer(*item);
 			periphint_config();
 		} else {
-			*m_ret = error::success;
-			m_wait.signal_isr();
+			finalize_transfer(error::success);
 		}
 	}
 }
@@ -313,6 +312,15 @@ void spi_master::interrupt_handler() noexcept
 inline void spi_master::cs(bool state,int no) noexcept
 {
 	gpio::set(m_cs[no], state);
+}
+
+//! Finalize transfer
+void spi_master::finalize_transfer(int err) noexcept
+{
+	*m_ret =  err;
+	m_rxptr = nullptr; m_txptr = nullptr;
+	m_rxsiz = m_txsiz = 0;
+	m_wait.signal_isr();
 }
 
 //! Start transfer data

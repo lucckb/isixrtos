@@ -50,9 +50,10 @@ namespace periph::drivers {
 		void interrupt_handler() noexcept;
 		void cs(bool state,int no) noexcept;
 		bool busy() const {
-			return m_rxi || m_txi;
+			return m_rxsiz || m_txsiz;
 		}
 		void start_transfer(trans_type) noexcept;
+		void finalize_transfer(int err) noexcept;
 		void periphint_config() noexcept;
 	private:
 		int m_cs[4] {invcs,invcs,invcs,invcs};
