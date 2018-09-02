@@ -63,13 +63,9 @@ namespace periph {
 			return static_cast<T>(std::ref(*this));
 		}
 		//! Set error option
-			int set_option(const option::device_option& option)  {
-			return do_set_option( option );
+		int set_option(const option::device_option& option)  {
+			 return  do_set_option(option);
 		}
-		template<typename ...settable_device_option>
-			int set_option(const settable_device_option& ... options) {
-				return (0 + ... + set_option(options));
-			}
 		//! Monitoring event on
 		virtual int event_add(isix::event& /*ev*/, unsigned /*bits*/, poll /*events*/) {
 			return error::nosys;

@@ -65,14 +65,18 @@ ssd1306::ssd1306(const char* disp_name, periph::block_device& parent)
 {
 	//GPIOS configure
 	m_gpio_di = dt::get_periph_pin(disp_name, dt::pinfunc::rw);
-	if(m_gpio_di!=periph::error::success) {
+	if(m_gpio_di<0) {
+		dbg_err("Unable to get RW pin func for dev %s",disp_name);
 		periph::error::expose<periph::error::generic_exception>(m_gpio_di);
 	}
+	dbg_info("RWPIN is %i", m_gpio_di);
 	gpio::setup(m_gpio_di, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
-	m_gpio_rst = dt::get_periph_pin(disp_name, dt::pinfunc::rw);
-	if(m_gpio_rst!=periph::error::success) {
+	m_gpio_rst = dt::get_periph_pin(disp_name, dt::pinfunc::rst);
+	if(m_gpio_rst<0) {
+		dbg_err("Unable to get RST pin func for dev %i",disp_name);
 		periph::error::expose<periph::error::generic_exception>(m_gpio_rst);
 	}
+	dbg_info("RSTPIN is %i", m_gpio_rst);
 	gpio::setup(m_gpio_rst, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
 }
 

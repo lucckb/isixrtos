@@ -26,6 +26,7 @@
 #include <isix/arch/irq.h>
 #include <isix/arch/cache.h>
 #include <stm32f3xx_ll_spi.h>
+#include <foundation/sys/dbglog.h>
 #include "spi_interrupt_handlers.hpp"
 
 namespace periph::drivers {
@@ -140,28 +141,28 @@ int spi_master::do_set_option(const option::device_option& opt)
 		LL_SPI_DATAWIDTH_12BIT, LL_SPI_DATAWIDTH_13BIT,LL_SPI_DATAWIDTH_14BIT, LL_SPI_DATAWIDTH_15BIT,
 		LL_SPI_DATAWIDTH_16BIT,
 	};
-	switch(opt.ord) {
+	switch(opt.ord()) {
 		case option::ord::speed: {
-			if((ret=clk_to_presc(static_cast<const option::speed&>(opt).hz))<0) break;
+			if((ret=clk_to_presc(static_cast<const option::speed&>(opt).hz()))<0) break;
 			LL_SPI_SetBaudRatePrescaler(io<SPI_TypeDef>(),ret); ret = 0;
 			break;
 		}
 		case option::ord::phase: {
-			const auto ph = static_cast<const option::phase&>(opt).ph;
+			const auto ph = static_cast<const option::phase&>(opt).ph();
 			LL_SPI_SetClockPhase(io<SPI_TypeDef>(),
 				ph==option::phase::_1_edge?LL_SPI_PHASE_1EDGE:LL_SPI_PHASE_2EDGE
 			);
 			break;
 		}
 		case option::ord::polarity: {
-			const auto pol = static_cast<const option::polarity&>(opt).pol;
+			const auto pol = static_cast<const option::polarity&>(opt).pol();
 			LL_SPI_SetClockPolarity(io<SPI_TypeDef>(),
 				pol==option::polarity::high?LL_SPI_POLARITY_HIGH:LL_SPI_POLARITY_LOW
 			);
 			break;
 		}
 		case option::ord::dwidth: {
-			auto dw = static_cast<const option::dwidth&>(opt).dw;
+			auto dw = static_cast<const option::dwidth&>(opt).dw();
 			if(dw<4||dw>16) {
 				ret = error::inval;
 				break;
@@ -226,6 +227,7 @@ int spi_master::clk_to_presc(unsigned hz)
 	do {
 		if((ret=dt::get_periph_clock(io<void>(),pclk))<0) break;
 		if((ret=dt::get_bus_clock(pclk.xbus))<0) break;
+		dbg_info("PCLK.XBUS=%i HZ=%i",ret,hz);
 		ret = (ret/1000)/(hz/1000U);
 	} while(0);
 	if( ret <= 2 )

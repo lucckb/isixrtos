@@ -27,55 +27,78 @@ namespace periph::option {
 		};
 	}
 	//Base device option
-	struct device_option {
+	class device_option {
 	public:
 		explicit device_option(int option)
-			: ord(option) {
+			: _ord(option) {
 		}
-		const int ord;
+		auto ord() const {
+			return _ord;
+		}
+	private:
+		const int _ord;
 	};
 
 	//! Speed configuration
-	struct speed : public device_option {
+	class speed : public device_option {
+	public:
 		explicit speed(unsigned _hz)
-			: device_option(ord::speed), hz(_hz) {
+			: device_option(ord::speed), hz_(_hz) {
 			}
-		const unsigned hz;
+		auto hz() const {
+			return hz_;
+		}
+	private:
+		const unsigned hz_;
 	};
 
 	//! Phase configuration
-	struct phase : public device_option {
+	class phase : public device_option {
+	public:
 		enum _phase : bool {
 			_1_edge,
 			_2_edge
 		};
-		phase(_phase _ph)
-			: device_option(ord::phase), ph(_ph) {
+		phase(_phase ph_)
+			: device_option(ord::phase), _ph(ph_) {
 		}
-		const _phase ph;
+		auto ph() const {
+			return _ph;
+		}
+	private:
+		const _phase _ph;
 	};
 
 	//! Phase configuration
-	struct polarity : public device_option {
+	class polarity : public device_option {
+	public:
 		enum _polarity : bool {
 			low,
 			high
 		};
 		polarity(_polarity _pol)
-			: device_option(ord::polarity), pol(_pol) {
+			: device_option(ord::polarity), pol_(_pol) {
 		}
-		const _polarity pol;
+		auto pol() const {
+			return pol_;
+		}
+	private:
+		const _polarity pol_;
 	};
 
 	//! Data with option
-	struct dwidth: public device_option {
+	class dwidth: public device_option {
 	public:
 		using dwidth_t = unsigned char;
 		explicit dwidth(dwidth_t _dwidth)
-			: device_option(ord::dwidth) , dw(_dwidth)
+			: device_option(ord::dwidth) , _dw(_dwidth)
 		{
 		}
-		dwidth_t dw;
+		auto dw() const {
+			return _dw;
+		}
+	private:
+		dwidth_t _dw;
 	};
 }
 
