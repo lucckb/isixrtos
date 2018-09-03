@@ -39,8 +39,10 @@ namespace periph::dt {
         rst, rw
 	};
 
-	inline pinfunc operator++(pinfunc pf) {
-		return static_cast<pinfunc>(static_cast<int>(pf)+1);
+	//++ operator
+	inline pinfunc operator++(pinfunc& pf) {
+		pf = static_cast<pinfunc>(static_cast<int>(pf)+1);
+		return pf;
 	}
 
 	//! Clk periph information structure
@@ -52,7 +54,7 @@ namespace periph::dt {
     struct device_conf_base {
     };
 
-	//! Device configuration internal hardware 
+	//! Device configuration internal hardware
 	struct device_conf : public device_conf_base {
 		int irqnum;				//! Irq number
 		unsigned short irqfl;	//! Irq low flags

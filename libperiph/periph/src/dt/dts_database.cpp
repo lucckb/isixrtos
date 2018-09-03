@@ -200,7 +200,7 @@ int get_bus_clock( bus xbus )
 	* @param[in] conf Device configuration structure
 	*/
 template <typename T, typename K>
-int get_periph_devconf_impl(T ident, K conf)
+int get_periph_devconf_impl(T ident, K& conf)
 {
 	auto dev = find_dev(ident);
 	if(!dev) {
@@ -223,9 +223,17 @@ int get_periph_devconf(void* addr, device_conf& conf)
 	return get_periph_devconf_impl(addr,conf);
 }
 
-int get_periph_devconf(const char* name, device_conf_base& conf)
+int get_periph_devconf(const char* name, const device_conf_base*& conf)
 {
-	return get_periph_devconf_impl(name,conf);
+	auto dev = find_dev(name);
+	if(!dev) {
+		return error::nodev;
+	}
+	if(!dev->conf) {
+		return error::noent;
+	}
+	conf = dev->conf;
+	return error::success;
 }
 
 }

@@ -60,24 +60,26 @@ int spi_master::do_open(int timeout)
 			dt::clk_periph pclk;
 			ret = dt::get_periph_clock(io<void>(), pclk); if(ret) break;
 			ret = clk_conf(true); if(ret) break;
+			ret = clk_conf(true); if(ret) break;
 			ret = gpio_conf(true); if(ret) break;
 		}
 		{
 			//Configure interrupt
 			dt::device_conf cnf;
 			if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
+			dbg_info("Set irq: %i prio: %i:%i", cnf.irqnum, cnf.irqfh, cnf.irqfl);
 			isix::set_irq_priority(cnf.irqnum, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
 			isix::request_irq(cnf.irqnum);
+			error::expose<error::bus_exception>(ret);
+			//Rest of the config
+			LL_SPI_SetTransferDirection(io<SPI_TypeDef>(),LL_SPI_FULL_DUPLEX);
+			LL_SPI_SetNSSMode(io<SPI_TypeDef>(), LL_SPI_NSS_SOFT);
+			LL_SPI_SetRxFIFOThreshold(io<SPI_TypeDef>(), LL_SPI_RX_FIFO_TH_QUARTER);
+			LL_SPI_SetMode(io<SPI_TypeDef>(), LL_SPI_MODE_MASTER);
+			LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
+			m_timeout = timeout;
 		}
 	} while(0);
-	error::expose<error::bus_exception>(ret);
-	//Rest of the config
-	LL_SPI_SetTransferDirection(io<SPI_TypeDef>(),LL_SPI_FULL_DUPLEX);
-	LL_SPI_SetNSSMode(io<SPI_TypeDef>(), LL_SPI_NSS_SOFT);
-	LL_SPI_SetRxFIFOThreshold(io<SPI_TypeDef>(), LL_SPI_RX_FIFO_TH_QUARTER);
-	LL_SPI_SetMode(io<SPI_TypeDef>(), LL_SPI_MODE_MASTER);
-	LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
-	m_timeout = timeout;
 	return ret;
 }
 
@@ -115,20 +117,23 @@ int spi_master::transaction(int addr, const blk::transfer& data)
 		dbg_err("Invalid address");
 		return error::invaddr;
 	}
+	dbg_info("Start transfer addr %i", addr);
 	if(!busy()) {
 		isix::mutex_locker _lock(m_mtx);
 		start_transfer(std::make_tuple(addr,data,std::ref(ret)));
 		periphint_config();
 		LL_SPI_Enable(io<SPI_TypeDef>());
 		cs(false,addr);
+		dbg_info("Not busy");
 	} else {
 		if(!m_transq.try_push(std::make_tuple(addr,data,std::ref(ret)))) {
 			ret = error::again;
 			return ret;
 		}
-		auto wret = m_wait.wait(m_timeout);
-		if(wret<0) return wret;
+		dbg_info("Busy push");
 	}
+	ret = m_wait.wait(m_timeout);
+	dbg_info("Fin transfer with code %i", ret);
 	return ret;
 }
 
@@ -206,7 +211,7 @@ int spi_master::gpio_conf(bool en)
 	for(auto it=dt::pinfunc::cs0;it<=dt::pinfunc::cs3;++it,++csi) {
 		int pin=dt::get_periph_pin(io<void>(),it);
 		if(pin<0 && pin!=error::nopin) return pin;
-		if(pin) {
+		if(pin>0) {
 			if(en) {
 				gpio::setup(pin, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
 				m_cs[csi] = pin;
@@ -216,6 +221,7 @@ int spi_master::gpio_conf(bool en)
 			}
 		}
 	}
+	dbg_info("Pin exit success");
 	return error::success;
 }
 

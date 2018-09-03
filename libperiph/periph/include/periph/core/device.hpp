@@ -115,9 +115,9 @@ namespace periph {
 		template<typename device_type>
 		auto io() const { return reinterpret_cast<const device_type*>(m_base_addr); };
 	private:
-		const type_ m_type;		//! Device type
-		bool m_opened;			//! Device is opened
-		uintptr_t m_base_addr;	//! Base address
+		const type_ m_type {};		//! Device type
+		bool m_opened {};			//! Device is opened
+		uintptr_t m_base_addr {};	//! Base address
 	};
 }
 

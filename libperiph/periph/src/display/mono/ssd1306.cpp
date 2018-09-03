@@ -52,9 +52,9 @@ namespace {
 //! Get display config by dts
 int ssd1306::dts_pos(const char* name, pos xy)
 {
-	dt::device_conf_base cfg;
+	const periph::dt::device_conf_base* cfg;
 	periph::error::expose<periph::error::generic_exception>(dt::get_periph_devconf(name,cfg));
-	auto dc = static_cast<const periph::display::config&>(cfg);
+	auto dc = static_cast<const periph::display::config&>(*cfg);
 	dbg_info("x: %i y: %i", dc.max_x, dc.max_y);
 	return xy==pos::x?dc.max_x:dc.max_y;
 }
