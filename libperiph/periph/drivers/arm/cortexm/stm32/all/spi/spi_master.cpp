@@ -187,6 +187,13 @@ int spi_master::do_set_option(const option::device_option& opt)
 			m_transfer_size = dw;
 			break;
 		}
+		case option::ord::bitorder: {
+			auto ord = static_cast<const option::bitorder&>(opt).order();
+			LL_SPI_SetTransferBitOrder(io<SPI_TypeDef>(),
+				ord==option::bitorder::msb?LL_SPI_MSB_FIRST:LL_SPI_LSB_FIRST
+			);
+			break;
+		}
 	}
 	return ret;
 }

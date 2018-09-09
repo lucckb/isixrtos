@@ -24,6 +24,7 @@ namespace periph::option {
 			phase,
 			polarity,
 			dwidth,
+			bitorder,
 		};
 	}
 	//Base device option
@@ -50,6 +51,20 @@ namespace periph::option {
 		}
 	private:
 		const unsigned hz_;
+	};
+
+	//Byte order
+	class bitorder : public device_option {
+	public:
+		enum order : bool { lsb, msb };
+		explicit bitorder( order _ord)
+			: device_option(ord::bitorder), ord_(_ord) {
+			}
+		auto order() const {
+			return ord_;
+		}
+	private:
+		const enum order ord_;
 	};
 
 	//! Phase configuration
