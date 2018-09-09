@@ -22,15 +22,15 @@
 #include <functional>
 #include "spi_interrupt_handlers.hpp"
 
-namespace periph::drivers::_handlers {
+namespace periph::drivers::spi::_handlers {
 
 namespace {
 #if defined(SPI3)
-	std::function<void()> spi_vector[3]= { std::abort, std::abort, std::abort }
+	std::function<void()> spi_vector[3] { std::abort, std::abort, std::abort }
 #elif defined(SPI2)
-	std::function<void()> spi_vector[2] = { std::abort, std::abort };
+	std::function<void()> spi_vector[2] { std::abort, std::abort };
 #elif defined(SPI1)
-	std::function<void()> spi_vector[1] = { std::abort };
+	std::function<void()> spi_vector[1] { std::abort };
 #endif
 }
 

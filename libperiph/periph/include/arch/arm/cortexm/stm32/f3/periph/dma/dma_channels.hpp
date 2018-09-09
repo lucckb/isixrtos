@@ -44,9 +44,10 @@ namespace detail {
 #error unknown DMA cpu type
 #endif
 
+	/** DMA channel mapping to the device assignment
+	 */
 	namespace detail {
-	namespace {
-		constexpr unsigned char dev_chn_map [[maybe_unused]] [] = {
+		static constexpr unsigned char dev_chn_map [[maybe_unused]] [] = {
 			_chb(1), _chb(2,4), _chb(2,4,6), _chb(3,5,7),_chb(2),_chb(2), //a
 			_chb(5), _chb(4), _chb(7), _chb(6),	//b
 			_chb(3,5,7), _chb(2,4,6), _chb(2), _chb(3), _chb(4),	//c
@@ -58,7 +59,6 @@ namespace detail {
 			_chb(1), _chb(1), _chb(2), _chb(3), _chb(4),	//i
 			_chb(5), _chb(6), _chb(7)						//j
 		};
-	}
 	}
 }
 

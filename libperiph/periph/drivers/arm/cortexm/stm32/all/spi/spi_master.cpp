@@ -40,7 +40,7 @@ spi_master::spi_master(const char name[])
 	: block_device(block_device::type::spi, dt::get_periph_base_address(name))
 {
 	if(io<void>()) {
-		const auto ret =_handlers::register_handler(io<SPI_TypeDef>(),
+		const auto ret =spi::_handlers::register_handler(io<SPI_TypeDef>(),
 		std::bind(&spi_master::interrupt_handler,std::ref(*this)) );
 		error::expose<error::bus_exception>(ret);
 	}

@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  spi_interrupt_handlers.hpp
+ *       Filename:  dma_interrupt_handlers.hpp
  *
- *    Description:  SPI interrupt handlers
+ *    Description:  DMA interrupt handlers header file
  *
  *        Version:  1.0
- *        Created:  10.08.2018 22:24:41
+ *        Created:  09.09.2018 21:39:16
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -17,12 +17,8 @@
  */
 
 #pragma once
-#ifdef STM32MCU_MAJOR_TYPE_F3
-#include <stm32f3xx_ll_spi.h>
-#endif
 #include <functional>
 
-namespace periph::drivers::spi::_handlers {
-
-	int register_handler(const SPI_TypeDef * const spi, std::function<void()> callback);
+namespace periph::drivers::dma::_handlers {
+	int register_handler(int channel, std::function<void()> callback);
 }

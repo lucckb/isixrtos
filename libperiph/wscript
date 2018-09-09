@@ -35,18 +35,23 @@ def build(bld):
             bld.isix_get_cpu_vendor(), bld.isix_get_cpu_family() )
     vdrv_path =  os.path.join( 'periph','drivers',bld.isix_get_arch(),
                     bld.isix_get_subarch(), bld.isix_get_cpu_vendor(), 'all' )
-    mach_inc = os.path.join( 'periph/include/arch',bld.isix_get_arch(),bld.isix_get_subarch(),
-            bld.isix_get_cpu_vendor(), bld.isix_get_cpu_family() )
+    vdrvc_path =  os.path.join( 'periph','drivers',bld.isix_get_arch(),
+                    bld.isix_get_subarch(), bld.isix_get_cpu_vendor(),
+                    bld.isix_get_cpu_family() )
+    mach_inc = os.path.join( 'periph/include/arch',bld.isix_get_arch(),
+        bld.isix_get_subarch(),
+        bld.isix_get_cpu_vendor(), bld.isix_get_cpu_family() )
     arch_inc = os.path.join( 'periph/include/arch',bld.isix_get_arch(),
             bld.isix_get_subarch(), bld.isix_get_cpu_vendor() )
     subarch_inc = os.path.join('periph/include/arch',bld.isix_get_arch(),
             bld.isix_get_subarch(), bld.isix_get_cpu_vendor(),
             bld.isix_get_cpu_family() )
-
     src += bld.path.ant_glob( vendor_path+'/**/*.cpp' )
     src += bld.path.ant_glob( vendor_path+'/**/*.c' )
     src += bld.path.ant_glob( vdrv_path+'/**/*.cpp')
     src += bld.path.ant_glob( vdrv_path+'/**/*.c')
+    src += bld.path.ant_glob( vdrvc_path+'/**/*.cpp')
+    src += bld.path.ant_glob( vdrvc_path+'/**/*.c')
     inc = ['./periph/include', vendor_path+'/include',
            arch_inc, mach_inc, subarch_inc ]
     if bld.isix_get_arch()=='arm' and bld.isix_get_subarch()=='cortexm':
