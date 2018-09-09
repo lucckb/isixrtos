@@ -52,9 +52,10 @@ namespace periph::drivers {
 		bool busy() const {
 			return m_rxsiz || m_txsiz;
 		}
-		void start_transfer(trans_type) noexcept;
+		int start_transfer(trans_type) noexcept;
 		void finalize_transfer(int err) noexcept;
 		void periphint_config() noexcept;
+		void periph_deconfig() noexcept;
 	private:
 		int m_cs[4] {invcs,invcs,invcs,invcs};
 		std::atomic<size_type> m_rxsiz{}, m_txsiz{}, m_rxi {}, m_txi{};

@@ -8,6 +8,8 @@ namespace periph::blk {
 	//! Generic transfer class
 	class transfer {
 	public:
+		transfer( transfer& ) = delete;
+		transfer& operator=(transfer*) = delete;
 		enum type_ : char { tx, rx, trx };
 		auto type() const {
 			return m_type;

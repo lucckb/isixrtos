@@ -60,7 +60,6 @@ int spi_master::do_open(int timeout)
 			dt::clk_periph pclk;
 			ret = dt::get_periph_clock(io<void>(), pclk); if(ret) break;
 			ret = clk_conf(true); if(ret) break;
-			ret = clk_conf(true); if(ret) break;
 			ret = gpio_conf(true); if(ret) break;
 		}
 		{
@@ -76,7 +75,7 @@ int spi_master::do_open(int timeout)
 			LL_SPI_SetNSSMode(io<SPI_TypeDef>(), LL_SPI_NSS_SOFT);
 			LL_SPI_SetRxFIFOThreshold(io<SPI_TypeDef>(), LL_SPI_RX_FIFO_TH_QUARTER);
 			LL_SPI_SetMode(io<SPI_TypeDef>(), LL_SPI_MODE_MASTER);
-			LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
+			LL_SPI_Enable(io<SPI_TypeDef>());
 			m_timeout = timeout;
 		}
 	} while(0);
@@ -112,28 +111,31 @@ int spi_master::do_close()
 //Make transaction
 int spi_master::transaction(int addr, const blk::transfer& data)
 {
+	//dbg_info("spi_master::transaction");
 	int ret {};
 	if(addr<0 || addr>=int(sizeof(m_cs)/sizeof(m_cs[0]))) {
 		dbg_err("Invalid address");
 		return error::invaddr;
 	}
-	dbg_info("Start transfer addr %i", addr);
 	if(!busy()) {
 		isix::mutex_locker _lock(m_mtx);
-		start_transfer(std::make_tuple(addr,data,std::ref(ret)));
-		periphint_config();
-		LL_SPI_Enable(io<SPI_TypeDef>());
+		ret = start_transfer(std::make_tuple(addr,std::ref(data),std::ref(ret)));
+		if( ret ) {
+			dbg_info("Invalid arguments");
+			return ret;
+		}
+		//dbg_info("New transaction");
 		cs(false,addr);
-		dbg_info("Not busy");
+		periphint_config();
 	} else {
-		if(!m_transq.try_push(std::make_tuple(addr,data,std::ref(ret)))) {
+		if(!m_transq.try_push(std::make_tuple(addr,std::ref(data),std::ref(ret)))) {
 			ret = error::again;
 			return ret;
 		}
-		dbg_info("Busy push");
+		//dbg_info("Busy push");
 	}
 	ret = m_wait.wait(m_timeout);
-	dbg_info("Fin transfer with code %i", ret);
+	//dbg_info("Finalize transaction");
 	return ret;
 }
 
@@ -185,12 +187,15 @@ int spi_master::clk_conf(bool en)
 {
 	int ret {};
 	dt::clk_periph pclk;
-	if((ret=dt::get_periph_clock(io<void>(),pclk))<0) return ret;
-	if(en) {
-		if((ret=clock::device_enable(pclk))<0) return ret;
-	} else {
-		if((ret=clock::device_disable(pclk))<0) return ret;
-	}
+	do {
+		if((ret=dt::get_periph_clock(io<void>(),pclk))<0) break;
+		if(en) {
+			if((ret=clock::device_enable(pclk))<0) break;
+		} else {
+			if((ret=clock::device_disable(pclk))<0) break;
+		}
+	} while(0);
+	dbg_info("clock setup status %i", ret);
 	return ret;
 }
 
@@ -221,7 +226,7 @@ int spi_master::gpio_conf(bool en)
 			}
 		}
 	}
-	dbg_info("Pin exit success");
+	dbg_info("Pin exit success %i", en);
 	return error::success;
 }
 
@@ -294,20 +299,22 @@ void spi_master::interrupt_handler() noexcept
 	if(LL_SPI_IsActiveFlag_OVR(io<SPI_TypeDef>())) {
 		stat |= 0x80;
 	}
-	if(stat&0x80 || stat&0x03) {
+	if(((stat&0x3)==0x3) || stat&0x80) {
 		cs(true, m_ccs);
 	}
 	if(stat&0x80) {
 		LL_SPI_Disable(io<SPI_TypeDef>());
 		finalize_transfer(error::overrun);
 	}
-	else if(stat&0x03)
+	if((stat&0x3)==0x3)
 	{
 		auto item = m_transq.front();
 		if( item ) {
 			m_transq.pop();
-			start_transfer(*item);
-			periphint_config();
+			dbg_info("Transfer again");
+			int ret = start_transfer(*item);
+			if(ret) finalize_transfer(ret);
+			else periphint_config();
 		} else {
 			finalize_transfer(error::success);
 		}
@@ -327,40 +334,43 @@ void spi_master::finalize_transfer(int err) noexcept
 	m_rxptr = nullptr; m_txptr = nullptr;
 	m_rxsiz = m_txsiz = 0;
 	m_wait.signal_isr();
+	periph_deconfig();
 }
 
 //! Start transfer data
-void spi_master::start_transfer(trans_type trans) noexcept
+int spi_master::start_transfer(trans_type trans) noexcept
 {
 	auto [addr,data,ret] = trans;
 	switch(data.type()) {
 		case blk::transfer::rx: {
-									auto t = static_cast<const blk::rx_transfer_base&>(data);
-									m_rxptr = reinterpret_cast<char*>(t.buf());
-									m_rxsiz = t.size();
-									m_txptr = nullptr;
-									break;
-								}
+					auto& t = static_cast<const blk::rx_transfer_base&>(data);
+					m_rxptr = reinterpret_cast<char*>(t.buf());
+					m_rxsiz = t.size();
+					m_txptr = nullptr;
+					break;
+		}
 		case blk::transfer::tx: {
-									auto t = static_cast<const blk::tx_transfer_base&>(data);
-									m_txptr = reinterpret_cast<const char*>(t.buf());
-									m_txsiz = t.size();
-									isix::clean_dcache_by_addr(const_cast<char*>(m_txptr),m_txsiz);
-									m_rxptr = nullptr;
-									break;
-								}
+					auto& t = static_cast<const blk::tx_transfer_base&>(data);
+					dbg_info("TXSIZ %u", t.size());
+					m_txptr = reinterpret_cast<const char*>(t.buf());
+					m_txsiz = t.size();
+					isix::clean_dcache_by_addr(const_cast<char*>(m_txptr),m_txsiz);
+					m_rxptr = nullptr;
+					break;
+		}
 		case blk::transfer::trx: {
-										auto t = static_cast<const blk::trx_transfer_base&>(data);
-										m_txptr = reinterpret_cast<const char*>(t.tx_buf());
-										m_rxptr = reinterpret_cast<char*>(t.rx_buf());
-										m_rxsiz = m_txsiz = t.size();
-										isix::clean_dcache_by_addr(const_cast<char*>(m_txptr),m_txsiz);
-										break;
-									}
+					auto& t = static_cast<const blk::trx_transfer_base&>(data);
+					m_txptr = reinterpret_cast<const char*>(t.tx_buf());
+					m_rxptr = reinterpret_cast<char*>(t.rx_buf());
+					m_rxsiz = m_txsiz = t.size();
+					isix::clean_dcache_by_addr(const_cast<char*>(m_txptr),m_txsiz);
+					break;
+		}
 	}
 	m_rxi = m_txi = 0;
 	m_ccs = addr;
 	m_ret = &ret;
+	return (!m_rxptr&&!m_txptr&&!m_rxsiz&&!m_txsiz)?int(error::inval):int(error::success);
 }
 
 // Configure hardware peripherial when transfer mode is set
@@ -368,6 +378,16 @@ void spi_master::periphint_config() noexcept
 {
 	if(m_rxptr) LL_SPI_EnableIT_RXNE(io<SPI_TypeDef>());
 	if(m_txptr) LL_SPI_EnableIT_TXE(io<SPI_TypeDef>());
+	//dbg_info("RXNE %i TXE %i", !!m_rxptr, !!m_txptr);
+	if(m_rxptr||m_txptr) LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
 }
+
+void spi_master::periph_deconfig() noexcept
+{
+	LL_SPI_DisableIT_RXNE(io<SPI_TypeDef>());
+	LL_SPI_DisableIT_TXE(io<SPI_TypeDef>());
+	LL_SPI_DisableIT_ERR(io<SPI_TypeDef>());
+}
+
 
 }
