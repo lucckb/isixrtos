@@ -27,6 +27,7 @@
 #include <isix/arch/cache.h>
 #include <stm32f3xx_ll_spi.h>
 #include <foundation/sys/dbglog.h>
+#include <isix.h>
 #include "spi_interrupt_handlers.hpp"
 
 namespace periph::drivers {
@@ -117,25 +118,30 @@ int spi_master::transaction(int addr, const blk::transfer& data)
 		dbg_err("Invalid address");
 		return error::invaddr;
 	}
-	if(!busy()) {
-		isix::mutex_locker _lock(m_mtx);
-		ret = start_transfer(std::make_tuple(addr,std::ref(data),std::ref(ret)));
-		if( ret ) {
-			dbg_info("Invalid arguments");
-			return ret;
-		}
-		//dbg_info("New transaction");
-		cs(false,addr);
-		periphint_config();
-	} else {
-		if(!m_transq.try_push(std::make_tuple(addr,std::ref(data),std::ref(ret)))) {
-			ret = error::again;
-			return ret;
-		}
-		//dbg_info("Busy push");
+	isix::mutex_locker _lock(m_mtx);
+	ret = start_transfer(std::ref(data),std::ref(ret));
+	if( ret ) {
+		dbg_info("Invalid arguments");
+		return ret;
 	}
+	cs(false,addr);
+	periphint_config();
 	ret = m_wait.wait(m_timeout);
-	//dbg_info("Finalize transaction");
+	//Now finalize transfer
+	constexpr auto duration = 50U;
+	{
+		const auto tb=isix::get_jiffies();
+		while(!isix::timer_elapsed(tb,duration)) {
+			if(!LL_SPI_IsActiveFlag_BSY(io<SPI_TypeDef>())) {
+				break;
+			}
+		}
+		if(isix::timer_elapsed(tb,duration)) {
+			dbg_info("timeout");
+			return error::bus_timeout;
+		}
+	}
+	cs(true,addr);
 	return ret;
 }
 
@@ -280,44 +286,38 @@ int spi_master::clk_to_presc(unsigned hz)
 //! SPI Interrupt handler
 void spi_master::interrupt_handler() noexcept
 {
-	char stat { char((m_rxptr?0:1)|(m_txptr?0:2)) };
-	if(LL_SPI_IsActiveFlag_RXNE(io<SPI_TypeDef>()) && m_rxptr) {
-		if(m_rxi<m_rxsiz) {
-			m_rxptr[m_rxi++]=LL_SPI_ReceiveData8(io<SPI_TypeDef>());
+	enum tstat {srxfin=1,stxfin=2,sfin=0x03 };
+	char stat { char((m_rxptr?0:srxfin)|(m_txptr?0:stxfin)) };
+
+	if(LL_SPI_IsActiveFlag_RXNE(io<SPI_TypeDef>())) {
+		if(m_rxptr) {
+			if(m_rxi<m_rxsiz) {
+				m_rxptr[m_rxi++]=LL_SPI_ReceiveData8(io<SPI_TypeDef>());
+			} else {
+				isix::inval_dcache_by_addr(m_rxptr,m_rxsiz);
+				stat |= srxfin;
+			}
 		} else {
-			isix::inval_dcache_by_addr(m_rxptr,m_rxsiz);
-			stat |= 1;
+			LL_SPI_ReceiveData8(io<SPI_TypeDef>());
 		}
 	}
-	if(LL_SPI_IsActiveFlag_TXE(io<SPI_TypeDef>()) && m_txptr) {
-		if(m_txi<m_txsiz) {
-			LL_SPI_TransmitData8(io<SPI_TypeDef>(),m_txptr[m_txi++]);
+	if(m_txptr) {
+		if(LL_SPI_IsActiveFlag_TXE(io<SPI_TypeDef>())) {
+			if(m_txi<m_txsiz) {
+				LL_SPI_TransmitData8(io<SPI_TypeDef>(),m_txptr[m_txi++]);
+			} else {
+				stat |= stxfin;
+			}
 		} else {
-			stat |= 2;
+			LL_SPI_TransmitData8(io<SPI_TypeDef>(),0xff);
 		}
 	}
-	if(LL_SPI_IsActiveFlag_OVR(io<SPI_TypeDef>())) {
-		stat |= 0x80;
-	}
-	if(((stat&0x3)==0x3) || stat&0x80) {
-		cs(true, m_ccs);
-	}
-	if(stat&0x80) {
-		LL_SPI_Disable(io<SPI_TypeDef>());
+	if(stat!=sfin && LL_SPI_IsActiveFlag_OVR(io<SPI_TypeDef>())) {
 		finalize_transfer(error::overrun);
 	}
-	if((stat&0x3)==0x3)
+	if((stat&sfin)==sfin)
 	{
-		auto item = m_transq.front();
-		if( item ) {
-			m_transq.pop();
-			dbg_info("Transfer again");
-			int ret = start_transfer(*item);
-			if(ret) finalize_transfer(ret);
-			else periphint_config();
-		} else {
-			finalize_transfer(error::success);
-		}
+		finalize_transfer(error::success);
 	}
 }
 
@@ -338,9 +338,8 @@ void spi_master::finalize_transfer(int err) noexcept
 }
 
 //! Start transfer data
-int spi_master::start_transfer(trans_type trans) noexcept
+int spi_master::start_transfer(const blk::transfer& data,int& ret) noexcept
 {
-	auto [addr,data,ret] = trans;
 	switch(data.type()) {
 		case blk::transfer::rx: {
 					auto& t = static_cast<const blk::rx_transfer_base&>(data);
@@ -351,7 +350,7 @@ int spi_master::start_transfer(trans_type trans) noexcept
 		}
 		case blk::transfer::tx: {
 					auto& t = static_cast<const blk::tx_transfer_base&>(data);
-					dbg_info("TXSIZ %u", t.size());
+					//dbg_info("TXSIZ %u", t.size());
 					m_txptr = reinterpret_cast<const char*>(t.buf());
 					m_txsiz = t.size();
 					isix::clean_dcache_by_addr(const_cast<char*>(m_txptr),m_txsiz);
@@ -368,7 +367,6 @@ int spi_master::start_transfer(trans_type trans) noexcept
 		}
 	}
 	m_rxi = m_txi = 0;
-	m_ccs = addr;
 	m_ret = &ret;
 	return (!m_rxptr&&!m_txptr&&!m_rxsiz&&!m_txsiz)?int(error::inval):int(error::success);
 }
@@ -388,6 +386,5 @@ void spi_master::periph_deconfig() noexcept
 	LL_SPI_DisableIT_TXE(io<SPI_TypeDef>());
 	LL_SPI_DisableIT_ERR(io<SPI_TypeDef>());
 }
-
 
 }
