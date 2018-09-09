@@ -93,7 +93,7 @@ int isix_vtimer_destroy( osvtimer_t timer );
 /** Only one function schedule task from an interrupt or
  * other task context for delayed execution
  * @param[in] func Function to call
- * @param[in[ arg Functon argument
+ * @param[in] arg Functon argument
  */
 int isix_schedule_work_isr( osworkfunc_t func, void* arg );
 
@@ -120,11 +120,11 @@ namespace {
 	inline osvtimer_t vtimer_create() {
 		return ::isix_vtimer_create();
 	}
-	inline int vtimer_start( osvtimer_t timer, osvtimer_callback func, 
+	inline int vtimer_start( osvtimer_t timer, osvtimer_callback func,
 			void* arg, ostick_t timeout, bool cyclic ) {
 		return ::isix_vtimer_start( timer, func, arg, timeout, cyclic );
 	}
-	inline int vtimer_start_isr( osvtimer_t timer, osvtimer_callback func, 
+	inline int vtimer_start_isr( osvtimer_t timer, osvtimer_callback func,
 			void* arg, ostick_t timeout, bool cyclic ) {
 		return ::isix_vtimer_start_isr( timer, func, arg, timeout, cyclic );
 	}
