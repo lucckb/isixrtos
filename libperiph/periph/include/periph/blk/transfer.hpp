@@ -9,7 +9,8 @@ namespace periph::blk {
 	class transfer {
 	public:
 		transfer( transfer& ) = delete;
-		transfer& operator=(transfer*) = delete;
+		transfer& operator=(transfer&) = delete;
+		transfer( transfer&& ) = delete;
 		enum type_ : char { tx, rx, trx };
 		auto type() const {
 			return m_type;
@@ -86,11 +87,11 @@ namespace periph::blk {
 	};
 
 	//! Bidirectional transfer
-	template <typename T>
+	template <typename T, typename K>
 		class trx_transfer : public trx_transfer_base
 	{
 	public:
-		trx_transfer(const T tx, T rx, std::size_t siz)
+		trx_transfer(const T tx, K rx, std::size_t siz)
 			: trx_transfer_base(static_cast<const void*>(tx),
 		      static_cast<void*>(rx),siz) {}
 	};

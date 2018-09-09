@@ -301,21 +301,25 @@ void spi_master::interrupt_handler() noexcept
 	if(LL_SPI_IsActiveFlag_RXNE(io<SPI_TypeDef>())) {
 		if(m_rxptr.p8) {
 			if(m_rxi<m_rxsiz) {
-				if(m_transfer_size<=8)
+				if(m_transfer_size<=8) {
 					m_rxptr.p8[m_rxi++]=LL_SPI_ReceiveData8(io<SPI_TypeDef>());
-				else
+				} else {
 					m_rxptr.p16[m_rxi++]=LL_SPI_ReceiveData16(io<SPI_TypeDef>());
-			} else {
+				}
+			}
+			if(m_rxi>=m_rxsiz) {
 				size_type cw = m_rxsiz;
 				if(m_transfer_size>8) cw *= 2U;
 				isix::inval_dcache_by_addr(m_rxptr.p8,cw);
 				stat |= srxfin;
 			}
 		} else {
-			if(m_transfer_size<=8)
+			if(m_transfer_size<=8) {
 				LL_SPI_ReceiveData8(io<SPI_TypeDef>());
-			else
+			}
+			else {
 				LL_SPI_ReceiveData16(io<SPI_TypeDef>());
+			}
 		}
 	}
 	if(m_txptr.p8) {
@@ -325,7 +329,8 @@ void spi_master::interrupt_handler() noexcept
 					LL_SPI_TransmitData8(io<SPI_TypeDef>(),m_txptr.p8[m_txi++]);
 				else
 					LL_SPI_TransmitData16(io<SPI_TypeDef>(),m_txptr.p16[m_txi++]);
-			} else {
+			} 
+			if(m_txi>=m_txsiz) {
 				stat |= stxfin;
 			}
 		} else {
@@ -374,11 +379,11 @@ int spi_master::start_transfer(const blk::transfer& data,int& ret) noexcept
 						m_rxsiz = t.size()/2;
 					}
 					m_txptr.p8 = nullptr;
+					m_txsiz = 0;
 					break;
 		}
 		case blk::transfer::tx: {
 					auto& t = static_cast<const blk::tx_transfer_base&>(data);
-					//dbg_info("TXSIZ %u", t.size());
 					if(m_transfer_size<=8) {
 						m_txptr.p8 = reinterpret_cast<decltype(m_txptr.p8)>(t.buf());
 						m_txsiz = t.size();
@@ -388,6 +393,7 @@ int spi_master::start_transfer(const blk::transfer& data,int& ret) noexcept
 					}
 					isix::clean_dcache_by_addr(const_cast<void*>(t.buf()),t.size());
 					m_rxptr.p8 = nullptr;
+					m_rxsiz = 0;
 					break;
 		}
 		case blk::transfer::trx: {
@@ -415,7 +421,6 @@ void spi_master::periphint_config() noexcept
 {
 	if(m_rxptr.p8) LL_SPI_EnableIT_RXNE(io<SPI_TypeDef>());
 	if(m_txptr.p8) LL_SPI_EnableIT_TXE(io<SPI_TypeDef>());
-	//dbg_info("RXNE %i TXE %i", !!m_rxptr, !!m_txptr);
 	if(m_rxptr.p8||m_txptr.p8) LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
 }
 
