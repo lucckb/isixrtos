@@ -33,7 +33,14 @@ namespace periph::drivers {
 	class spi_master final : public block_device {
 		static constexpr auto invcs = -1;
 		using size_type = unsigned short;
-		using trans_type = std::tuple<uint8_t,const blk::transfer&,int&>;
+		union dptr {
+			unsigned char*  p8;
+			unsigned short* p16;
+		};
+		union cdptr {
+			const unsigned char*  p8;
+			const unsigned short* p16;
+		};
 	public:
 		explicit spi_master(const char name[]);
 		virtual ~spi_master();
@@ -57,9 +64,10 @@ namespace periph::drivers {
 		std::atomic<size_type> m_rxsiz{}, m_txsiz{}, m_rxi {}, m_txi{};
 		std::atomic<int*> m_ret;
 		isix::semaphore m_wait {0,1};
-		char *m_rxptr{};
-		const char *m_txptr{};
+		dptr m_rxptr {};
+		cdptr m_txptr {};
 		isix::mutex m_mtx;
 		int m_timeout {};
+		unsigned char m_transfer_size {8};
 	};
 }

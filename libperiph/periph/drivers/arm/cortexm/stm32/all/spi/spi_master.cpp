@@ -25,10 +25,12 @@
 #include <isix/arch/irq_platform.h>
 #include <isix/arch/irq.h>
 #include <isix/arch/cache.h>
+#include <isix.h>
 #include <stm32f3xx_ll_spi.h>
 #include <foundation/sys/dbglog.h>
-#include <isix.h>
 #include "spi_interrupt_handlers.hpp"
+#include <type_traits>
+
 
 namespace periph::drivers {
 
@@ -182,6 +184,7 @@ int spi_master::do_set_option(const option::device_option& opt)
 				break;
 			}
 			LL_SPI_SetDataWidth(io<SPI_TypeDef>(),d2w[dw-4]);
+			m_transfer_size = dw;
 			break;
 		}
 	}
@@ -287,29 +290,42 @@ int spi_master::clk_to_presc(unsigned hz)
 void spi_master::interrupt_handler() noexcept
 {
 	enum tstat {srxfin=1,stxfin=2,sfin=0x03 };
-	char stat { char((m_rxptr?0:srxfin)|(m_txptr?0:stxfin)) };
-
+	char stat { char((m_rxptr.p8?0:srxfin)|(m_txptr.p8?0:stxfin)) };
 	if(LL_SPI_IsActiveFlag_RXNE(io<SPI_TypeDef>())) {
-		if(m_rxptr) {
+		if(m_rxptr.p8) {
 			if(m_rxi<m_rxsiz) {
-				m_rxptr[m_rxi++]=LL_SPI_ReceiveData8(io<SPI_TypeDef>());
+				if(m_transfer_size<=8)
+					m_rxptr.p8[m_rxi++]=LL_SPI_ReceiveData8(io<SPI_TypeDef>());
+				else
+					m_rxptr.p16[m_rxi++]=LL_SPI_ReceiveData16(io<SPI_TypeDef>());
 			} else {
-				isix::inval_dcache_by_addr(m_rxptr,m_rxsiz);
+				size_type cw = m_rxsiz;
+				if(m_transfer_size>8) cw *= 2U;
+				isix::inval_dcache_by_addr(m_rxptr.p8,cw);
 				stat |= srxfin;
 			}
 		} else {
-			LL_SPI_ReceiveData8(io<SPI_TypeDef>());
+			if(m_transfer_size<=8)
+				LL_SPI_ReceiveData8(io<SPI_TypeDef>());
+			else
+				LL_SPI_ReceiveData16(io<SPI_TypeDef>());
 		}
 	}
-	if(m_txptr) {
+	if(m_txptr.p8) {
 		if(LL_SPI_IsActiveFlag_TXE(io<SPI_TypeDef>())) {
 			if(m_txi<m_txsiz) {
-				LL_SPI_TransmitData8(io<SPI_TypeDef>(),m_txptr[m_txi++]);
+				if(m_transfer_size<=8)
+					LL_SPI_TransmitData8(io<SPI_TypeDef>(),m_txptr.p8[m_txi++]);
+				else
+					LL_SPI_TransmitData16(io<SPI_TypeDef>(),m_txptr.p16[m_txi++]);
 			} else {
 				stat |= stxfin;
 			}
 		} else {
-			LL_SPI_TransmitData8(io<SPI_TypeDef>(),0xff);
+			if(m_transfer_size<=8)
+				LL_SPI_TransmitData8(io<SPI_TypeDef>(),0xff);
+			else
+				LL_SPI_TransmitData16(io<SPI_TypeDef>(),0xffff);
 		}
 	}
 	if(stat!=sfin && LL_SPI_IsActiveFlag_OVR(io<SPI_TypeDef>())) {
@@ -331,7 +347,7 @@ inline void spi_master::cs(bool state,int no) noexcept
 void spi_master::finalize_transfer(int err) noexcept
 {
 	*m_ret =  err;
-	m_rxptr = nullptr; m_txptr = nullptr;
+	m_rxptr.p8 = nullptr; m_txptr.p8 = nullptr;
 	m_rxsiz = m_txsiz = 0;
 	m_wait.signal_isr();
 	periph_deconfig();
@@ -343,41 +359,57 @@ int spi_master::start_transfer(const blk::transfer& data,int& ret) noexcept
 	switch(data.type()) {
 		case blk::transfer::rx: {
 					auto& t = static_cast<const blk::rx_transfer_base&>(data);
-					m_rxptr = reinterpret_cast<char*>(t.buf());
-					m_rxsiz = t.size();
-					m_txptr = nullptr;
+					if(m_transfer_size<=8) {
+						m_rxptr.p8 = reinterpret_cast<decltype(m_rxptr.p8)>(t.buf());
+						m_rxsiz = t.size();
+					} else {
+						m_rxptr.p16 = reinterpret_cast<decltype(m_rxptr.p16)>(t.buf());
+						m_rxsiz = t.size()/2;
+					}
+					m_txptr.p8 = nullptr;
 					break;
 		}
 		case blk::transfer::tx: {
 					auto& t = static_cast<const blk::tx_transfer_base&>(data);
 					//dbg_info("TXSIZ %u", t.size());
-					m_txptr = reinterpret_cast<const char*>(t.buf());
-					m_txsiz = t.size();
-					isix::clean_dcache_by_addr(const_cast<char*>(m_txptr),m_txsiz);
-					m_rxptr = nullptr;
+					if(m_transfer_size<=8) {
+						m_txptr.p8 = reinterpret_cast<decltype(m_txptr.p8)>(t.buf());
+						m_txsiz = t.size();
+					} else {
+						m_txptr.p16 = reinterpret_cast<decltype(m_txptr.p16)>(t.buf());
+						m_txsiz = t.size()/2;
+					}
+					isix::clean_dcache_by_addr(const_cast<void*>(t.buf()),t.size());
+					m_rxptr.p8 = nullptr;
 					break;
 		}
 		case blk::transfer::trx: {
 					auto& t = static_cast<const blk::trx_transfer_base&>(data);
-					m_txptr = reinterpret_cast<const char*>(t.tx_buf());
-					m_rxptr = reinterpret_cast<char*>(t.rx_buf());
-					m_rxsiz = m_txsiz = t.size();
-					isix::clean_dcache_by_addr(const_cast<char*>(m_txptr),m_txsiz);
+					if(m_transfer_size<=8) {
+						m_txptr.p8 = reinterpret_cast<decltype(m_txptr.p8)>(t.tx_buf());
+						m_rxptr.p8 = reinterpret_cast<decltype(m_rxptr.p8)>(t.rx_buf());
+						m_rxsiz = m_txsiz = t.size();
+					} else {
+						m_txptr.p16 = reinterpret_cast<decltype(m_txptr.p16)>(t.tx_buf());
+						m_rxptr.p16 = reinterpret_cast<decltype(m_rxptr.p16)>(t.rx_buf());
+						m_rxsiz = m_txsiz = t.size()/2;
+					}
+					isix::clean_dcache_by_addr(const_cast<void*>(t.tx_buf()),t.size());
 					break;
 		}
 	}
 	m_rxi = m_txi = 0;
 	m_ret = &ret;
-	return (!m_rxptr&&!m_txptr&&!m_rxsiz&&!m_txsiz)?int(error::inval):int(error::success);
+	return (!m_rxptr.p8&&!m_txptr.p8&&!m_rxsiz&&!m_txsiz)?int(error::inval):int(error::success);
 }
 
 // Configure hardware peripherial when transfer mode is set
 void spi_master::periphint_config() noexcept
 {
-	if(m_rxptr) LL_SPI_EnableIT_RXNE(io<SPI_TypeDef>());
-	if(m_txptr) LL_SPI_EnableIT_TXE(io<SPI_TypeDef>());
+	if(m_rxptr.p8) LL_SPI_EnableIT_RXNE(io<SPI_TypeDef>());
+	if(m_txptr.p8) LL_SPI_EnableIT_TXE(io<SPI_TypeDef>());
 	//dbg_info("RXNE %i TXE %i", !!m_rxptr, !!m_txptr);
-	if(m_rxptr||m_txptr) LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
+	if(m_rxptr.p8||m_txptr.p8) LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
 }
 
 void spi_master::periph_deconfig() noexcept
