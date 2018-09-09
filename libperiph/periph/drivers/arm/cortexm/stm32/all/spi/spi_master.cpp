@@ -218,6 +218,7 @@ int spi_master::clk_conf(bool en)
 //Gpio configuration
 int spi_master::gpio_conf(bool en)
 {
+	dbg_info("gpio_config(%i)", en);
 	auto mux = dt::get_periph_pin_mux(io<void>());
 	if(mux<0) return mux;
 	for(auto it=dt::pinfunc::sck;it<=dt::pinfunc::mosi;++it) {
@@ -235,6 +236,7 @@ int spi_master::gpio_conf(bool en)
 		if(pin>0) {
 			if(en) {
 				gpio::setup(pin, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
+				gpio::set(pin, true);
 				m_cs[csi] = pin;
 			} else {
 				gpio::setup(pin, gpio::mode::in{gpio::pulltype::floating});
@@ -329,15 +331,10 @@ void spi_master::interrupt_handler() noexcept
 					LL_SPI_TransmitData8(io<SPI_TypeDef>(),m_txptr.p8[m_txi++]);
 				else
 					LL_SPI_TransmitData16(io<SPI_TypeDef>(),m_txptr.p16[m_txi++]);
-			} 
+			}
 			if(m_txi>=m_txsiz) {
 				stat |= stxfin;
 			}
-		} else {
-			if(m_transfer_size<=8)
-				LL_SPI_TransmitData8(io<SPI_TypeDef>(),0xff);
-			else
-				LL_SPI_TransmitData16(io<SPI_TypeDef>(),0xffff);
 		}
 	}
 	if(stat!=sfin && LL_SPI_IsActiveFlag_OVR(io<SPI_TypeDef>())) {
@@ -352,7 +349,9 @@ void spi_master::interrupt_handler() noexcept
 //! SPI master chip select
 inline void spi_master::cs(bool state,int no) noexcept
 {
+	__sync_synchronize();
 	gpio::set(m_cs[no], state);
+	__sync_synchronize();
 }
 
 //! Finalize transfer
