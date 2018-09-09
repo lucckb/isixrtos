@@ -358,7 +358,8 @@ inline void spi_master::cs(bool state,int no) noexcept
 void spi_master::finalize_transfer(int err) noexcept
 {
 	*m_ret =  err;
-	m_rxptr.p8 = nullptr; m_txptr.p8 = nullptr;
+	m_rxptr.p8 = nullptr;
+	m_txptr.p8 = nullptr;
 	m_rxsiz = m_txsiz = 0;
 	m_wait.signal_isr();
 	periph_deconfig();
