@@ -33,7 +33,7 @@ namespace periph::dma {
 		//! Instance the controller
 		static controller& instance();
 		using channel_ptr_t = std::unique_ptr<channel>;
-		~controller() {}
+		virtual ~controller() {}
 		controller(controller&) = delete;
 		controller& operator=(controller&) = delete;
 		/** Create new dma channel for the device
@@ -48,19 +48,18 @@ namespace periph::dma {
 		 * @return Error code
 		 */
 		int release_channel(channel_ptr_t& chn);
-	private:
+	protected:
 		//! Private constructor by factory method only
 		controller() {}
+	private:
 		/** Single tranfer from controller */
 		virtual int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) = 0;
 		/** Single Continous stop tranaction */
 		virtual int continuous_start(channel& chn, mem_ptr mem0, mem_ptr mem1, size len) = 0;
 		/** Continous stop transaction */
-		virtual int continous_stop(channel& chn ) = 0;
+		virtual int continous_stop(channel& chn) = 0;
 		/** Abort pending transaction */
-		virtual int abort( channel& chn ) = 0;
-	private:
-		/* data */
+		virtual int abort(channel& chn) = 0;
 	};
 }
 
