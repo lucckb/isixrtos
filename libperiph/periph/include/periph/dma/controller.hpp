@@ -24,6 +24,9 @@
 
 namespace periph::dma {
 	class channel;
+	namespace detail {
+		struct controller_config;
+	}
 
 	//! Setup dma controller class
 	class controller
@@ -38,7 +41,7 @@ namespace periph::dma {
 		controller& operator=(controller&) = delete;
 		/** Create new dma channel for the device
 		 *  @param[in] dev_id Device identifier
-		 *  @param[in] flags  Dma flags
+		 *  @param[in] flags Dma flags
 		 *  @param[in] irq_prio IRQ priority for dma handler
 		 *  @return Allocated channel
 		 */
@@ -51,6 +54,10 @@ namespace periph::dma {
 	protected:
 		//! Private constructor by factory method only
 		controller() {}
+		//! Channel callback
+		static void channel_callback(channel& chn,mem_ptr mem) noexcept;
+		//! Config callback
+		static const detail::controller_config& channel_config(channel& chn);
 	private:
 		/** Single tranfer from controller */
 		virtual int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) = 0;

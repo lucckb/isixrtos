@@ -19,17 +19,19 @@
 #pragma once
 
 #include <periph/dma/controller.hpp>
+#include <isix/mutex.h>
+#include <isix/cpp/mutex.hpp>
 
 namespace periph::dma {
 
 	class stm32_dma_v1 final : public controller {
+		static constexpr auto nchns = 7U;
 	public:
 		/** Constructor */
-		stm32_dma_v1() {
-		}
+		stm32_dma_v1();
 		/** Destructor */
-		virtual ~stm32_dma_v1() {
-		}
+		virtual ~stm32_dma_v1();
+	private:
 		/** Single tranfer from controller */
 		int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) override;
 		/** Single Continous stop tranaction */
@@ -38,6 +40,10 @@ namespace periph::dma {
 		int continous_stop(channel& chn) override;
 		/** Abort pending transaction */
 		int abort(channel& chn) override;
+		/** Find first unused channel slot */
+		int find_first_unused(unsigned device);
+	private:
+		channel* m_act_chns[nchns] {};
+		isix::mutex m_mtx;
 	};
-
 }

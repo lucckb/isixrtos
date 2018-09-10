@@ -25,6 +25,15 @@ namespace periph::dma {
 
 namespace detail {
 	constexpr auto max_bounded_args = 8;
+	struct controller_config {
+		controller_config(chnid_t id, flags_t fl, int irqp)
+			: dev_id(id),flags(fl),irq_prio(irqp) {
+			}
+		chnid_t dev_id;
+		flags_t flags;
+		int irq_prio;
+	};
+
 }
 
 	//! Dma flags
@@ -72,7 +81,7 @@ namespace detail {
 		 * @param[in] irq_prio interrupt devfaul priority for handle
 		 */
 		channel( controller& owner, chnid_t dev_id, flags_t flags, int irq_prio = -1)
-			: m_owner(owner), m_dev_id(dev_id), m_flags(flags), m_irq_prio(irq_prio)
+			: m_owner(owner), m_conf(dev_id, flags, irq_prio)
 		{}
 		//! Destructor
 		~channel() {
@@ -121,9 +130,7 @@ namespace detail {
 	private:
 		/* data */
 		controller& m_owner;
-		const chnid_t m_dev_id;
-		const flags_t m_flags;
-		const int m_irq_prio;
+		const detail::controller_config m_conf;
 		async_callback m_cb;
 	};
 
