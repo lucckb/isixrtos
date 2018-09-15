@@ -22,8 +22,8 @@
 namespace periph::dma {
 
 //!Inline member for access controller data
-void controller::channel_callback(channel& chn,mem_ptr mem) noexcept {
-	if(chn.m_cb) chn.m_cb(mem);
+void controller::channel_callback(channel& chn,mem_ptr mem, bool te) noexcept {
+	if(chn.m_cb) chn.m_cb(mem,te);
 }
 
 //!Inline member for access controller data

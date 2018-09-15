@@ -21,6 +21,7 @@
 #include <periph/dma/controller.hpp>
 #include <isix/mutex.h>
 #include <isix/cpp/mutex.hpp>
+#include <atomic>
 
 namespace periph::dma {
 
@@ -32,6 +33,14 @@ namespace periph::dma {
 		/** Destructor */
 		virtual ~stm32_dma_v1();
 	private:
+		enum class tmode {
+			error,
+			mem2mem,
+			periph2mem,
+			mem2periph
+		};
+		/** Determine transfer mode */
+		tmode transfer_mode(cmem_ptr dst, cmem_ptr src);
 		/** Single tranfer from controller */
 		int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) override;
 		/** Single Continous stop tranaction */
@@ -42,10 +51,14 @@ namespace periph::dma {
 		int abort(channel& chn) override;
 		/** Find first unused channel slot */
 		int find_first_unused(unsigned device);
+		/** Find slot by channel */
+		int find_channel(const channel& chn) const;
 		/** Configure interrupt and DMA according to flags */
-		void dma_configure(const detail::controller_config& cfg, int chn);
+		int dma_flags_configure(const detail::controller_config& cfg, tmode mode, int chn);
+		/** Configure dma address and speed addresses */
+		void dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, int chn);
 	private:
-		channel* m_act_chns[nchns] {};
+		std::atomic<channel*> m_act_chns[nchns] {};
 		isix::mutex m_mtx;
 	};
 }

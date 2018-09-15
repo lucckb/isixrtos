@@ -36,22 +36,20 @@ namespace detail {
 		unsigned short irql;
 	};
 	namespace mask {
-		static constexpr auto dev_mode = 0x03U;
 		static constexpr auto src_transfer_size = 0x18U;
-		static constexpr auto dest_transfer_size = 0xC0U;
+		static constexpr auto dst_transfer_size = 0xC0U;
 		static constexpr auto transfer_mode = 0x200U;
 		static constexpr auto transfer_prio = 0x3000U;
 	}
 }
-
-	//! Dma flags
-// Flags
-	enum dev_mode : flags_t {
-		mode_memory_to_memory = 0,
-		mode_peripheral_to_memory = 1,
-		mode_memory_to_peripheral = 2,
+	enum src_increment_mode {
+		mode_src_ninc = 0 << 0,
+		mode_src_inc =  1 << 0
 	};
-
+	enum dst_increment_mode {
+		mode_dst_ninc = 0 << 1,
+		mode_dst_inc =  1 << 1
+	};
 	enum src_transfer_size : flags_t {
 		mode_src_size_byte = 0 << 3,
 		mode_src_size_halfword = 1 << 3,
@@ -84,7 +82,8 @@ namespace detail {
 	 */
 	//using async_callback = fnd::estd::function<void(mem_ptr),detail::max_bounded_args*sizeof(size_t),fnd::estd::function_construct_t::copy_and_move>;
 
-	using async_callback = std::function<void(mem_ptr)>;
+	//memptr switch to next callback bool transfer error
+	using async_callback = std::function<void(mem_ptr,bool)>;
 
 	//Open dma channel
 	class channel

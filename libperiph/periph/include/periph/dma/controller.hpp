@@ -55,7 +55,7 @@ namespace periph::dma {
 		//! Private constructor by factory method only
 		controller() {}
 		//! Channel callback
-		static void channel_callback(channel& chn,mem_ptr mem) noexcept;
+		static void channel_callback(channel& chn,mem_ptr mem, bool te) noexcept;
 		//! Config callback
 		static const detail::controller_config& channel_config(channel& chn);
 	private:
