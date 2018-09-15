@@ -25,8 +25,8 @@
 namespace periph::dma {
 
 	class stm32_dma_v1 final : public controller {
-		static constexpr auto nchns = 7U;
 	public:
+		static constexpr auto nchns = 7U;
 		/** Constructor */
 		stm32_dma_v1();
 		/** Destructor */
@@ -42,6 +42,8 @@ namespace periph::dma {
 		int abort(channel& chn) override;
 		/** Find first unused channel slot */
 		int find_first_unused(unsigned device);
+		/** Configure interrupt and DMA according to flags */
+		void dma_configure(const detail::controller_config& cfg, int chn);
 	private:
 		channel* m_act_chns[nchns] {};
 		isix::mutex m_mtx;

@@ -16,15 +16,28 @@
  * =====================================================================================
  */
 
+#include "stm32_dma_v1.hpp"
 #include <periph/dma/controller.hpp>
 #include <periph/dma/channel.hpp>
 #include <periph/dma/dma_channels.hpp>
 #include <periph/core/error.hpp>
-#include "stm32_dma_v1.hpp"
 #include <stm32f3xx_ll_dma.h>
 #include <stm32f3xx_ll_bus.h>
+#include <isix/arch/irq_platform.h>
+#include <isix/arch/irq.h>
+#include <isix/arch/cache.h>
+#include <foundation/sys/dbglog.h>
 
 namespace periph::dma {
+
+namespace {
+	auto chn2cntrl( int /*chn*/ ) {
+		return DMA1;
+	}
+	auto chn2hwchn(int chn) {
+		return chn + LL_DMA_CHANNEL_1;
+	}
+}
 
 /** Controller create instance with stm32 version1 */
 controller& controller::instance()
@@ -87,7 +100,6 @@ int stm32_dma_v1::abort(channel& chn)
 	return 0;
 }
 
-
 /** Find first unused channel slot */
 int stm32_dma_v1::find_first_unused(unsigned device)
 {
@@ -101,6 +113,40 @@ int stm32_dma_v1::find_first_unused(unsigned device)
 		}
 	}
 	return error::noent;
+}
+
+//! DMA configure
+void stm32_dma_v1::dma_configure(const detail::controller_config& cfg, int chn)
+{
+	//Configure DMA according to the channel flags
+	switch(cfg.flags & detail::mask::dev_mode) {
+		case mode_memory_to_memory:
+			LL_DMA_SetDataTransferDirection( chn2cntrl(chn), chn2hwchn(chn),
+				LL_DMA_DIRECTION_MEMORY_TO_MEMORY );
+			break;
+		case mode_peripheral_to_memory:
+			LL_DMA_SetDataTransferDirection( chn2cntrl(chn), chn2hwchn(chn),
+				LL_DMA_DIRECTION_PERIPH_TO_MEMORY );
+			break;
+		case mode_memory_to_peripheral:
+			LL_DMA_SetDataTransferDirection( chn2cntrl(chn), chn2hwchn(chn),
+				LL_DMA_DIRECTION_MEMORY_TO_PERIPH );
+			break;
+	}
+	switch(cfg.flags & detail::mask::src_transfer_size) {
+		case mode_src_size_byte:
+			LL_DMA_SetMemorySize
+			break;
+		case mode_src_size_halfword:
+			break;
+		case mode_src_size_word:
+			break;
+	}
+	//Configure interrupt
+	chn += DMA1_Channel1_IRQn;
+	dbg_info("Set irq: %i prio: %i:%i", chn, cfg.irqh, cfg.irql);
+	isix::set_irq_priority(chn, {uint8_t(cfg.irqh), uint8_t(cfg.irql)});
+	isix::request_irq(chn);
 }
 
 } //periph::dma

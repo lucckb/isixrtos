@@ -26,14 +26,22 @@ namespace periph::dma {
 namespace detail {
 	constexpr auto max_bounded_args = 8;
 	struct controller_config {
-		controller_config(chnid_t id, flags_t fl, int irqp)
-			: dev_id(id),flags(fl),irq_prio(irqp) {
+		controller_config(chnid_t id, flags_t fl,
+			unsigned short _irql, unsigned short _irqh)
+			: dev_id(id),flags(fl),irqh(_irqh),irql(_irql) {
 			}
 		chnid_t dev_id;
 		flags_t flags;
-		int irq_prio;
+		unsigned short irqh;
+		unsigned short irql;
 	};
-
+	namespace mask {
+		static constexpr auto dev_mode = 0x03U;
+		static constexpr auto src_transfer_size = 0x18U;
+		static constexpr auto dest_transfer_size = 0xC0U;
+		static constexpr auto transfer_mode = 0x200U;
+		static constexpr auto transfer_prio = 0x3000U;
+	}
 }
 
 	//! Dma flags
@@ -62,6 +70,13 @@ namespace detail {
 		mode_circural = 1 << 9,
 	};
 
+	enum transfer_prio : flags_t {
+		priority_low = 0 << 12,
+		priority_med = 1 << 12,
+		priority_hi  = 2 << 12,
+		priority_vhi = 3 << 12
+	};
+
 
 	/** Don't use std function it must be quite fast
 	 * void* pointer to the memory which can be filled in double
@@ -76,12 +91,14 @@ namespace detail {
 	{
 		friend class controller;
 	public:
+		static constexpr auto default_irq=0xffffU;
 	    /** @param[in] device_id Device identifer
 	     * @param[in] flags DMA operation flags
 		 * @param[in] irq_prio interrupt devfaul priority for handle
 		 */
-		channel( controller& owner, chnid_t dev_id, flags_t flags, int irq_prio = -1)
-			: m_owner(owner), m_conf(dev_id, flags, irq_prio)
+		channel( controller& owner, chnid_t dev_id, flags_t flags,
+				 unsigned short irqh=default_irq, unsigned short irql=default_irq)
+			: m_owner(owner), m_conf(dev_id, flags, irqh, irql)
 		{}
 		//! Destructor
 		~channel() {

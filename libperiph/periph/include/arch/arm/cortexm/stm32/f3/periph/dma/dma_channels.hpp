@@ -40,9 +40,6 @@ namespace detail {
 		tim17_ch1, tim17_up, hrtim1_m, hrtim1_a, hrtim1_b,	//i
 		hrtim1_c, hrtim1_d, hrtim1_e //j
 	};
-#else
-#error unknown DMA cpu type
-#endif
 
 	/** DMA channel mapping to the device assignment
 	 */
@@ -60,5 +57,8 @@ namespace detail {
 			_chb(5), _chb(6), _chb(7)						//j
 		};
 	}
+#else
+#error unknown DMA cpu type
+#endif
 }
 

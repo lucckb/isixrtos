@@ -59,7 +59,6 @@ namespace periph::dt {
 		int irqnum;				//! Irq number
 		unsigned short irqfl;	//! Irq low flags
 		unsigned short irqfh;	//! Irq hi con
-        unsigned long flags;		//! Base flags
+        unsigned long flags;	//! Base flags
 	};
-    
 }
