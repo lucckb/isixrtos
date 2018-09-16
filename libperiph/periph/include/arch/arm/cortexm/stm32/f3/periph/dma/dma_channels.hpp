@@ -23,12 +23,19 @@ namespace periph::dma::devid {
 
 namespace detail {
 	template <typename... T> constexpr auto _chb(T... args) {
-		return ( ... | args );
+		return ( ... | (1U<<(args-1)) );
 	}
 }
+	struct alt_remap {
+		chnid_t devid;			//! Transfer device identifier
+		uint8_t chn;			//! Number of channel mapped
+		uintptr_t paddr;		//! Remap peripheral addres
+		uint32_t set_set;		//! Set mask
+		uint32_t clr_mask;		//! Clear mask
+	};
 
-#if defined(STM32F334x8)
 	enum _devid : chnid_t {
+		mem,
 		adc1, adc2, spi1_rx, spi1_tx, usart3_tx, usart3_rx, //a
 		usart1_rx, usart1_tx, usart2_tx, usart2_rx,		//b
 		i2c1_rx, i2c1_tx, tim1_ch1, tim1_ch2, tim1_ch4,	//c
@@ -41,10 +48,12 @@ namespace detail {
 		hrtim1_c, hrtim1_d, hrtim1_e //j
 	};
 
+
 	/** DMA channel mapping to the device assignment
 	 */
 	namespace detail {
 		static constexpr unsigned char dev_chn_map [[maybe_unused]] [] = {
+			0xff,
 			_chb(1), _chb(2,4), _chb(2,4,6), _chb(3,5,7),_chb(2),_chb(2), //a
 			_chb(5), _chb(4), _chb(7), _chb(6),	//b
 			_chb(3,5,7), _chb(2,4,6), _chb(2), _chb(3), _chb(4),	//c
@@ -56,9 +65,10 @@ namespace detail {
 			_chb(1), _chb(1), _chb(2), _chb(3), _chb(4),	//i
 			_chb(5), _chb(6), _chb(7)						//j
 		};
+		/** Remapping table */
+		static constexpr alt_remap remaping_table [[maybe_unused]] [] = {
+			{ adc2, 2, 0, 0x1, 0x2 }
+		};
 	}
-#else
-#error unknown DMA cpu type
-#endif
 }
 

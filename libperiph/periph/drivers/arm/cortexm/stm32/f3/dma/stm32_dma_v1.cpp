@@ -108,17 +108,22 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 		dbg_err("Dma flag configure error %i", chnf);
 		return res;
 	}
+	remap_alt_channel(cnf.dev_id,chnf);
 	m_act_chns[chnf] = &chn;
 	drivers::dma::_handlers::register_handler(chnf, [&]() {
 		if(READ_BIT(chn2cntrl(chnf)->ISR, chn2tcbit(chnf)) == chn2tcbit(chnf)) {
 			channel_callback(chn, nullptr, false);
 			m_act_chns[chnf] = nullptr;
 			LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
+			LL_DMA_DisableIT_TC(chn2cntrl(chnf),chn2hwchn(chnf));
+			LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
 		}
 		if(READ_BIT(chn2cntrl(chnf)->ISR, chn2tebit(chnf)) == chn2tebit(chnf)) {
 			channel_callback(chn, nullptr, true);
 			m_act_chns[chnf] = nullptr;
 			LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
+			LL_DMA_DisableIT_TC(chn2cntrl(chnf),chn2hwchn(chnf));
+			LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
 		}
 	});
 	dma_addr_configure(dest,src,len/res,chnf);
@@ -149,6 +154,8 @@ int stm32_dma_v1::abort(channel& chn)
 		return error::noent;
 	}
 	LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
+	LL_DMA_DisableIT_TC(chn2cntrl(chnf),chn2hwchn(chnf));
+	LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
 	return error::success;
 }
 
@@ -311,6 +318,12 @@ void stm32_dma_v1::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, i
 	LL_DMA_EnableIT_TC(chn2cntrl(chn),chn2hwchn(chn));
 	LL_DMA_EnableIT_TE(chn2cntrl(chn),chn2hwchn(chn));
 	LL_DMA_EnableChannel(chn2cntrl(chn),chn2hwchn(chn));
+}
+
+/** Remap alternative channel when needed */
+void stm32_dma_v1::remap_alt_channel(chnid_t chn,int num)
+{
+
 }
 
 } //periph::dma

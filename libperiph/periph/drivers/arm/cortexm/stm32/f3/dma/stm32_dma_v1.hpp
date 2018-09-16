@@ -57,6 +57,7 @@ namespace periph::dma {
 		int dma_flags_configure(const detail::controller_config& cfg, tmode mode, int chn);
 		/** Configure dma address and speed addresses */
 		void dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, int chn);
+		void remap_alt_channel(chnid_t chn,int num);
 	private:
 		std::atomic<channel*> m_act_chns[nchns] {};
 		isix::mutex m_mtx;
