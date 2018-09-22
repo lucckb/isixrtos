@@ -21,18 +21,6 @@
 
 namespace periph::dma::devid {
 
-namespace detail {
-	template <typename... T> constexpr auto _chb(T... args) {
-		return ( ... | (1U<<(args-1)) );
-	}
-}
-	struct alt_remap {
-		chnid_t devid;			//! Transfer device identifier
-		uint8_t chn;			//! Number of channel mapped
-		uint32_t set_mask;		//! Set mask
-		uint32_t clr_mask;		//! Clear mask
-	};
-
 	enum _devid : chnid_t {
 		mem,
 		adc1, adc2, spi1_rx, spi1_tx, usart3_tx, usart3_rx, //a
