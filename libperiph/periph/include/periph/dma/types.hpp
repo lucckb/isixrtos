@@ -3,7 +3,7 @@
  *
  *       Filename:  types.hpp
  *
- *    Description:  
+ *    Description:  DMA system types
  *
  *        Version:  1.0
  *        Created:  25.07.2018 21:21:11

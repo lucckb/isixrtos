@@ -131,6 +131,8 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 	dma_addr_configure(dest,src,len/res,chnf);
 	return error::success;
 }
+/** TODO: STM32v1 controller doesn't support double buffer mode transfer
+ * so it is not implemented */
 /** Single Continous stop tranaction */
 int stm32_dma_v1::continuous_start(channel& /*chn*/, mem_ptr /*mem0*/, mem_ptr /*mem1*/, size /*len*/)
 {
