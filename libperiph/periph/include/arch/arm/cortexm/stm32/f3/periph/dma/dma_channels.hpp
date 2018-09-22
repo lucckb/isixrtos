@@ -29,8 +29,7 @@ namespace detail {
 	struct alt_remap {
 		chnid_t devid;			//! Transfer device identifier
 		uint8_t chn;			//! Number of channel mapped
-		uintptr_t paddr;		//! Remap peripheral addres
-		uint32_t set_set;		//! Set mask
+		uint32_t set_mask;		//! Set mask
 		uint32_t clr_mask;		//! Clear mask
 	};
 
@@ -45,8 +44,10 @@ namespace detail {
 		dac1_ch1, tim7_up, dac1_ch2, dac2_ch1, tim15_ch1,	//g
 		tim15_up, tim15_trig, tim15_com, tim16_ch1, tim16_up, //h
 		tim17_ch1, tim17_up, hrtim1_m, hrtim1_a, hrtim1_b,	//i
-		hrtim1_c, hrtim1_d, hrtim1_e //j
+		hrtim1_c, hrtim1_d, hrtim1_e, //j
+		_devid_end	//Enumeration termination mark
 	};
+
 
 
 	/** DMA channel mapping to the device assignment
@@ -67,7 +68,20 @@ namespace detail {
 		};
 		/** Remapping table */
 		static constexpr alt_remap remaping_table [[maybe_unused]] [] = {
-			{ adc2, 2, 0, 0x1, 0x2 }
+			{ adc2, 2,  0x200, 0x100 },
+			{ adc2, 4,  0x300, 0x000 },
+			{ spi1_rx, 2,  0x0, 0x3 },
+			{ spi1_rx, 4,  0x1, 0x2 },
+			{ spi1_rx, 6,  0x2, 0x1 },
+			{ spi1_tx, 3,  0x0, 0xC },
+			{ spi1_tx, 5,  0x4, 0x8 },
+			{ spi1_tx, 7,  0x8, 0x4 },
+			{ i2c1_tx, 2,  0x40, 0x80 },
+			{ i2c1_tx, 4,  0x80, 0x40 },
+			{ i2c1_tx, 6,  0xc0, 0x00 },
+			{ i2c1_rx, 3,  0x1, 0x2 },
+			{ i2c1_rx, 5,  0x1, 0x2 },
+			{ i2c1_rx, 7,  0x1, 0x2 },
 		};
 	}
 }

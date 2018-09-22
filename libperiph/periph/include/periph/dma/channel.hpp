@@ -27,7 +27,7 @@ namespace detail {
 	constexpr auto max_bounded_args = 8;
 	struct controller_config {
 		controller_config(chnid_t id, flags_t fl,
-			unsigned short _irql, unsigned short _irqh)
+			unsigned short _irqh, unsigned short _irql)
 			: dev_id(id),flags(fl),irqh(_irqh),irql(_irql) {
 			}
 		chnid_t dev_id;
@@ -90,13 +90,12 @@ namespace detail {
 	{
 		friend class controller;
 	public:
-		static constexpr auto default_irq=0xffffU;
 	    /** @param[in] device_id Device identifer
 	     * @param[in] flags DMA operation flags
 		 * @param[in] irq_prio interrupt devfaul priority for handle
 		 */
 		channel( controller& owner, chnid_t dev_id, flags_t flags,
-				 unsigned short irqh=default_irq, unsigned short irql=default_irq)
+				 unsigned short irqh, unsigned short irql)
 			: m_owner(owner), m_conf(dev_id, flags, irqh, irql)
 		{}
 		//! Destructor
@@ -110,7 +109,7 @@ namespace detail {
 		* @param[in] cb Transfer callback
 		* @return dma error
 		*/
-		void callback( async_callback& cb ) noexcept {
+		void callback( async_callback cb ) noexcept {
 			m_cb = cb;
 		}
 		/** Start the single DMA transfer on selected dma_handle

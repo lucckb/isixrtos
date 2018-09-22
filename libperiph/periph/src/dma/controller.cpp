@@ -33,9 +33,9 @@ const detail::controller_config& controller::channel_config(channel& chn) {
 
 //Allocate and initialize channel
 controller::channel_ptr_t
-	controller::alloc_channel(chnid_t dev_id, flags_t flags, int irq_prio)
+	controller::alloc_channel(chnid_t dev_id, flags_t flags, irq_t irqh, irq_t irql)
 {
-	return std::make_unique<channel>(std::ref(*this),dev_id,flags,irq_prio);
+	return std::make_unique<channel>(std::ref(*this),dev_id,flags,irqh,irql);
 }
 
 }

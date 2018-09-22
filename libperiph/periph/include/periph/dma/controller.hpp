@@ -33,6 +33,7 @@ namespace periph::dma {
 	{
 		friend class channel;
 	public:
+		using irq_t = unsigned short;
 		//! Instance the controller
 		static controller& instance();
 		using channel_ptr_t = std::unique_ptr<channel>;
@@ -43,9 +44,10 @@ namespace periph::dma {
 		 *  @param[in] dev_id Device identifier
 		 *  @param[in] flags Dma flags
 		 *  @param[in] irq_prio IRQ priority for dma handler
+		 *  @param
 		 *  @return Allocated channel
 		 */
-		channel_ptr_t alloc_channel(chnid_t dev_id, flags_t flags, int irq_prio=-1);
+		channel_ptr_t alloc_channel(chnid_t dev_id, flags_t flags,irq_t irqh=1, irq_t irql=7);
 		/** Release previously allocated channel
 		 * @paam[in] chn Channel pointer
 		 * @return Error code

@@ -110,8 +110,9 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 	}
 	remap_alt_channel(cnf.dev_id,chnf);
 	m_act_chns[chnf] = &chn;
-	drivers::dma::_handlers::register_handler(chnf, [&]() {
+	drivers::dma::_handlers::register_handler(chnf, [this, chnf, &chn]() {
 		if(READ_BIT(chn2cntrl(chnf)->ISR, chn2tcbit(chnf)) == chn2tcbit(chnf)) {
+			WRITE_REG(chn2cntrl(chnf)->IFCR,chn2tcbit(chnf));
 			channel_callback(chn, nullptr, false);
 			m_act_chns[chnf] = nullptr;
 			LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
@@ -119,6 +120,7 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 			LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
 		}
 		if(READ_BIT(chn2cntrl(chnf)->ISR, chn2tebit(chnf)) == chn2tebit(chnf)) {
+			WRITE_REG(chn2cntrl(chnf)->IFCR,chn2tebit(chnf));
 			channel_callback(chn, nullptr, true);
 			m_act_chns[chnf] = nullptr;
 			LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
@@ -156,6 +158,7 @@ int stm32_dma_v1::abort(channel& chn)
 	LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
 	LL_DMA_DisableIT_TC(chn2cntrl(chnf),chn2hwchn(chnf));
 	LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
+	m_act_chns[chnf] = nullptr;
 	return error::success;
 }
 
@@ -323,7 +326,17 @@ void stm32_dma_v1::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, i
 /** Remap alternative channel when needed */
 void stm32_dma_v1::remap_alt_channel(chnid_t chn,int num)
 {
-
+	constexpr auto array_size=
+		sizeof(devid::detail::remaping_table)/sizeof(devid::detail::remaping_table[0]);
+	for(auto i=0U;i<array_size;++i) {
+		const auto& it = devid::detail::remaping_table[i];
+	;	if(it.devid==chn&&it.chn==num) {
+			dbg_info("Remapping found %i:%i",chn,num);
+			SYSCFG->CFGR3 |= it.set_mask;
+	        SYSCFG->CFGR3 &= ~it.clr_mask;
+			return;
+		}
+	}
 }
 
 } //periph::dma
