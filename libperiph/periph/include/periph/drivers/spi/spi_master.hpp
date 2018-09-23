@@ -22,6 +22,7 @@
 #include <isix/cpp/mutex.hpp>
 #include <isix/cpp/semaphore.hpp>
 #include <periph/core/block_device.hpp>
+#include <periph/dma/controller.hpp>
 #include <atomic>
 
 namespace periph::blk {
@@ -55,10 +56,11 @@ namespace periph::drivers {
 		int clk_to_presc(unsigned hz);
 		void interrupt_handler() noexcept;
 		void cs(bool state,int no) noexcept;
-		int start_transfer(const blk::transfer& tran,int& ret);
+		int start_transfer(const blk::transfer& tran,int& ret) noexcept;
 		void finalize_transfer(int err) noexcept;
-		void periphint_config() noexcept;
+		int periphint_config() noexcept;
 		void periph_deconfig() noexcept;
+		void dma_interrupt_handler(periph::dma::mem_ptr ptr, bool err, bool tx) noexcept;
 	private:
 		int m_cs[4] {invcs,invcs,invcs,invcs};
 		std::atomic<size_type> m_rxsiz{}, m_txsiz{}, m_rxi {}, m_txi{};
@@ -68,6 +70,9 @@ namespace periph::drivers {
 		cdptr m_txptr {};
 		isix::mutex m_mtx;
 		int m_timeout {};
-		unsigned char m_transfer_size {8};
+		unsigned char m_transfer_size {};
+		bool m_dma {};
+		periph::dma::controller::channel_ptr_t m_dma_rx;
+		periph::dma::controller::channel_ptr_t m_dma_tx;
 	};
 }

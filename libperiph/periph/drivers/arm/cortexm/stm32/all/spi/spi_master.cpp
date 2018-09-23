@@ -22,6 +22,7 @@
 #include <periph/core/device_option.hpp>
 #include <periph/blk/transfer.hpp>
 #include <periph/gpio/gpio.hpp>
+#include <periph/dma/dma.hpp>
 #include <isix/arch/irq_platform.h>
 #include <isix/arch/irq.h>
 #include <isix/arch/cache.h>
@@ -34,6 +35,33 @@
 
 namespace periph::drivers {
 
+
+namespace {
+	auto spi2txchn( const SPI_TypeDef* spi) {
+#		if defined(SPI1)
+		if(spi==SPI1) return periph::dma::devid::spi1_tx;
+#		endif
+#		if defined(SPI2)
+		if(spi==SPI2) return periph::dma::devid::spi2_tx;
+#		endif
+#		if defined(SPI3)
+		if(spi==SPI3) return periph::dma::devid::spi3_tx;
+#		endif
+		return periph::dma::devid::_devid_end;
+	}
+	auto spi2rxchn( const SPI_TypeDef* spi) {
+#		if defined(SPI1)
+		if(spi==SPI1) return periph::dma::devid::spi1_rx;
+#		endif
+#		if defined(SPI2)
+		if(spi==SPI2) return periph::dma::devid::spi2_rx;
+#		endif
+#		if defined(SPI3)
+		if(spi==SPI3) return periph::dma::devid::spi3_rx;
+#		endif
+		return periph::dma::devid::_devid_end;
+	}
+}
 
 //Constructor
 spi_master::spi_master(const char name[])
@@ -58,6 +86,9 @@ int spi_master::do_open(int timeout)
 		if(!io<void>()) {
 			ret = error::init; break;
 		}
+		if(!m_transfer_size) {
+			ret = error::init; break;
+		}
 		{
 			//Clock config
 			dt::clk_periph pclk;
@@ -70,9 +101,10 @@ int spi_master::do_open(int timeout)
 			dt::device_conf cnf;
 			if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
 			dbg_info("Set irq: %i prio: %i:%i", cnf.irqnum, cnf.irqfh, cnf.irqfl);
-			isix::set_irq_priority(cnf.irqnum, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
-			isix::request_irq(cnf.irqnum);
-			error::expose<error::bus_exception>(ret);
+			if(!m_dma) {
+				isix::set_irq_priority(cnf.irqnum, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
+				isix::request_irq(cnf.irqnum); error::expose<error::bus_exception>(ret);
+			}
 			//Rest of the config
 			LL_SPI_SetTransferDirection(io<SPI_TypeDef>(),LL_SPI_FULL_DUPLEX);
 			LL_SPI_SetNSSMode(io<SPI_TypeDef>(), LL_SPI_NSS_SOFT);
@@ -80,6 +112,25 @@ int spi_master::do_open(int timeout)
 			LL_SPI_SetMode(io<SPI_TypeDef>(), LL_SPI_MODE_MASTER);
 			LL_SPI_Enable(io<SPI_TypeDef>());
 			m_timeout = timeout;
+			m_dma = (cnf.flags&dt::device_conf::fl_dma)?(true):(false);
+			if(m_dma) {
+				namespace fl = periph::dma;
+				auto& ctrl = periph::dma::controller::instance();
+				m_dma_rx = ctrl.alloc_channel(spi2rxchn(io<SPI_TypeDef>()),
+					fl::mode_dst_inc|fl::mode_src_ninc|
+					(m_transfer_size>8?fl::mode_dst_size_halfword:fl::mode_dst_size_halfword)|
+					(m_transfer_size>8?fl::mode_src_size_halfword:fl::mode_src_size_halfword),
+					cnf.irqfh, cnf.irqfl);
+				m_dma_tx = ctrl.alloc_channel(spi2txchn(io<SPI_TypeDef>()),
+					fl::mode_dst_inc|fl::mode_src_ninc|
+					(m_transfer_size>8?fl::mode_dst_size_halfword:fl::mode_dst_size_halfword)|
+					(m_transfer_size>8?fl::mode_src_size_halfword:fl::mode_src_size_halfword),
+					cnf.irqfh, cnf.irqfl);
+				m_dma_tx->callback( std::bind(&spi_master::dma_interrupt_handler,this,
+					std::placeholders::_1, std::placeholders::_2, true) );
+				m_dma_rx->callback( std::bind(&spi_master::dma_interrupt_handler,this,
+					std::placeholders::_1, std::placeholders::_2, false) );
+			}
 		}
 	} while(0);
 	return ret;
@@ -107,6 +158,12 @@ int spi_master::do_close()
 			if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
 			isix::free_irq(cnf.irqnum);
 		}
+		{
+			auto& ctrl = periph::dma::controller::instance();
+			ret = ctrl.release_channel(m_dma_tx);
+			const auto ret2 = ctrl.release_channel(m_dma_rx);
+			if(ret==error::success) ret=ret2;
+		}
 	} while(0);
 	return ret;
 }
@@ -127,7 +184,12 @@ int spi_master::transaction(int addr, const blk::transfer& data)
 		return ret;
 	}
 	cs(false,addr);
-	periphint_config();
+	ret = periphint_config();
+	if(ret) {
+		dbg_info("Periph config error %i",ret);
+		cs(true,addr);
+		return ret;
+	}
 	ret = m_wait.wait(m_timeout);
 	//Now finalize transfer
 	constexpr auto duration = 50U;
@@ -346,6 +408,19 @@ void spi_master::interrupt_handler() noexcept
 	}
 }
 
+//! DMA interrupt handler
+void spi_master::dma_interrupt_handler(periph::dma::mem_ptr, bool err, bool tx) noexcept
+{
+	if(err) {
+		finalize_transfer(error::overrun);
+	}
+	if(tx && !m_rxptr.p8) {
+		finalize_transfer(error::success);
+	} else {
+		finalize_transfer(error::success);
+	}
+}
+
 //! SPI master chip select
 inline void spi_master::cs(bool state,int no) noexcept
 {
@@ -417,18 +492,40 @@ int spi_master::start_transfer(const blk::transfer& data,int& ret) noexcept
 }
 
 // Configure hardware peripherial when transfer mode is set
-void spi_master::periphint_config() noexcept
+int spi_master::periphint_config() noexcept
 {
-	if(m_rxptr.p8) LL_SPI_EnableIT_RXNE(io<SPI_TypeDef>());
-	if(m_txptr.p8) LL_SPI_EnableIT_TXE(io<SPI_TypeDef>());
-	if(m_rxptr.p8||m_txptr.p8) LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
+	int err {};
+	if(!m_dma) {
+		if(m_rxptr.p8) LL_SPI_EnableIT_RXNE(io<SPI_TypeDef>());
+		if(m_txptr.p8) LL_SPI_EnableIT_TXE(io<SPI_TypeDef>());
+		if(m_rxptr.p8||m_txptr.p8) LL_SPI_EnableIT_ERR(io<SPI_TypeDef>());
+	} else {
+		auto txs = m_txsiz.load(); if( m_transfer_size>8) txs*=2;
+		auto rxs = m_rxsiz.load(); if( m_transfer_size>8) rxs*=2;
+		if(m_rxptr.p8) {
+			LL_SPI_EnableDMAReq_RX(io<SPI_TypeDef>());
+			err = m_dma_rx->single(m_rxptr.p8, const_cast<uint32_t*>(&io<SPI_TypeDef>()->DR), rxs);
+			if(err) return err;
+		}
+		if(m_txptr.p8) {
+			LL_SPI_EnableDMAReq_TX(io<SPI_TypeDef>());
+			err = m_dma_tx->single(const_cast<uint32_t*>(&io<SPI_TypeDef>()->DR), m_txptr.p8, txs);
+			if(err) return err;
+		}
+	}
+	return err;
 }
 
 void spi_master::periph_deconfig() noexcept
 {
-	LL_SPI_DisableIT_RXNE(io<SPI_TypeDef>());
-	LL_SPI_DisableIT_TXE(io<SPI_TypeDef>());
-	LL_SPI_DisableIT_ERR(io<SPI_TypeDef>());
+	if(!m_dma) {
+		LL_SPI_DisableIT_RXNE(io<SPI_TypeDef>());
+		LL_SPI_DisableIT_TXE(io<SPI_TypeDef>());
+		LL_SPI_DisableIT_ERR(io<SPI_TypeDef>());
+	} else {
+		LL_SPI_DisableDMAReq_TX(io<SPI_TypeDef>());
+		LL_SPI_DisableDMAReq_RX(io<SPI_TypeDef>());
+	}
 }
 
 }
