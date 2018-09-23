@@ -17,6 +17,8 @@
  */
 #include <periph/dma/controller.hpp>
 #include <periph/dma/channel.hpp>
+#include <periph/core/error.hpp>
+#include <foundation/sys/dbglog.h>
 
 
 namespace periph::dma {
@@ -36,6 +38,28 @@ controller::channel_ptr_t
 	controller::alloc_channel(chnid_t dev_id, flags_t flags, irq_t irqh, irq_t irql)
 {
 	return std::make_unique<channel>(std::ref(*this),dev_id,flags,irqh,irql);
+}
+
+//! Set handled channel
+void controller::set_handled_channel(channel& chn, chnid_t chnid) noexcept
+{
+	chn.m_chn_id = chnid;
+}
+
+//! Get handled channel
+chnid_t controller::get_handled_channel(channel& chn) noexcept
+{
+	return chn.m_chn_id;
+}
+
+//Release controller channel
+int controller::release_channel(channel_ptr_t& chn)
+{
+	if(chn->busy()) {
+		return error::busy;
+	}
+	chn.reset();
+	return error::success;
 }
 
 }

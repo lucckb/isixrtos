@@ -51,15 +51,13 @@ namespace periph::dma {
 		int abort(channel& chn) override;
 		/** Find first unused channel slot */
 		int find_first_unused(unsigned device);
-		/** Find slot by channel */
-		int find_channel(const channel& chn) const;
 		/** Configure interrupt and DMA according to flags */
 		int dma_flags_configure(const detail::controller_config& cfg, tmode mode, int chn);
 		/** Configure dma address and speed addresses */
 		void dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, int chn);
 		void remap_alt_channel(chnid_t chn,int num);
 	private:
-		std::atomic<channel*> m_act_chns[nchns] {};
+		std::atomic<bool> m_act_chns[nchns] {};
 		isix::mutex m_mtx;
 	};
 }

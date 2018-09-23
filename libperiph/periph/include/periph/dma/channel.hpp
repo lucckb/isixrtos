@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <atomic>
 #include <foundation/algo/fixed_size_function.hpp>
 #include "types.hpp"
 #include "controller.hpp"
@@ -142,13 +143,19 @@ namespace detail {
 			return m_owner.continous_stop(std::ref(*this));
 		}
 
+		/** Check if channel is busy
+		 * @return true or false */
+		bool busy() const {
+			return m_chn_id!=chnid_empty;
+		}
 	private:
+		static constexpr auto chnid_empty = -1;
 		/* data */
 		controller& m_owner;
 		const detail::controller_config m_conf;
 		async_callback m_cb;
+		std::atomic<chnid_t> m_chn_id;
 	};
-
 }
 
 

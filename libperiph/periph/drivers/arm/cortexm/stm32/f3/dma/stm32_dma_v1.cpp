@@ -90,6 +90,7 @@ stm32_dma_v1::~stm32_dma_v1()
 #ifdef LL_AHB1_GRP1_PERIPH_DMA2
 	LL_AHB1_GRP1_DisableClock(LL_AHB1_GRP1_PERIPH_DMA2);
 #endif
+	dbg_info("Destroy controller");
 }
 
 /** Single tranfer from controller */
@@ -109,23 +110,26 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 		return res;
 	}
 	remap_alt_channel(cnf.dev_id,chnf);
-	m_act_chns[chnf] = &chn;
+	m_act_chns[chnf] = true;
+	set_handled_channel(chn,chnf);
 	drivers::dma::_handlers::register_handler(chnf, [this, chnf, &chn]() {
 		if(READ_BIT(chn2cntrl(chnf)->ISR, chn2tcbit(chnf)) == chn2tcbit(chnf)) {
 			WRITE_REG(chn2cntrl(chnf)->IFCR,chn2tcbit(chnf));
-			m_act_chns[chnf] = nullptr;
 			LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
 			LL_DMA_DisableIT_TC(chn2cntrl(chnf),chn2hwchn(chnf));
 			LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
 			channel_callback(chn, nullptr, false);
+			set_handled_channel(chn);
+			m_act_chns[chnf] = false;
 		}
 		if(READ_BIT(chn2cntrl(chnf)->ISR, chn2tebit(chnf)) == chn2tebit(chnf)) {
 			WRITE_REG(chn2cntrl(chnf)->IFCR,chn2tebit(chnf));
-			m_act_chns[chnf] = nullptr;
 			LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
 			LL_DMA_DisableIT_TC(chn2cntrl(chnf),chn2hwchn(chnf));
 			LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
 			channel_callback(chn, nullptr, true);
+			set_handled_channel(chn);
+			m_act_chns[chnf] = false;
 		}
 	});
 	dma_addr_configure(dest,src,len/res,chnf);
@@ -148,7 +152,7 @@ int stm32_dma_v1::continous_stop(channel& /*chn*/)
 int stm32_dma_v1::abort(channel& chn)
 {
 	isix::mutex_locker _lck(m_mtx);
-	int chnf = find_channel(chn);
+	int chnf = get_handled_channel(chn);
 	if(chnf<0) {
 		dbg_warn("Channel %i is not active", chnf);
 		return error::noent;
@@ -156,18 +160,9 @@ int stm32_dma_v1::abort(channel& chn)
 	LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
 	LL_DMA_DisableIT_TC(chn2cntrl(chnf),chn2hwchn(chnf));
 	LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
-	m_act_chns[chnf] = nullptr;
+	m_act_chns[chnf] = false;
+	set_handled_channel(chn);
 	return error::success;
-}
-
-
-/** Find slot by channel */
-int stm32_dma_v1::find_channel(const channel& chn) const
-{
-	for(auto i=0U; i<nchns; ++i) {
-		if(&chn==m_act_chns[i]) return i;
-	}
-	return error::noent;
 }
 
 /** Find first unused channel slot */
@@ -178,7 +173,7 @@ int stm32_dma_v1::find_first_unused(unsigned device)
 	}
 	const auto mask = devid::detail::dev_chn_map[device];
 	for(auto i=0U; i<nchns; ++i) {
-		if((mask&(1U<<i)) && m_act_chns[i]==nullptr) {
+		if((mask&(1U<<i)) && !m_act_chns[i]) {
 			return i;
 		}
 	}
@@ -340,5 +335,6 @@ void stm32_dma_v1::remap_alt_channel(chnid_t chn,int num)
 		}
 	}
 }
+
 
 } //periph::dma

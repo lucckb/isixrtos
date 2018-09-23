@@ -60,6 +60,9 @@ namespace periph::dma {
 		static void channel_callback(channel& chn,mem_ptr mem, bool te) noexcept;
 		//! Config callback
 		static const detail::controller_config& channel_config(channel& chn);
+		//! Configure channel id
+		static void set_handled_channel(channel& chn, chnid_t chnid=-1) noexcept;
+		static chnid_t get_handled_channel(channel& chn) noexcept;
 	private:
 		/** Single tranfer from controller */
 		virtual int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) = 0;
