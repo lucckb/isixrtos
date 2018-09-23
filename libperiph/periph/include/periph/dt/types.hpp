@@ -56,6 +56,9 @@ namespace periph::dt {
 
 	//! Device configuration internal hardware
 	struct device_conf : public device_conf_base {
+		enum _flags {
+			fl_dma  = 1U<<0U,		//Use DMA flags
+		};
 		int irqnum;				//! Irq number
 		unsigned short irqfl;	//! Irq low flags
 		unsigned short irqfh;	//! Irq hi con

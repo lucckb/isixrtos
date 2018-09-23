@@ -296,7 +296,7 @@ int stm32_dma_v1::dma_flags_configure(const detail::controller_config& cfg, tmod
 	}
 	//Configure interrupt
 	chn += DMA1_Channel1_IRQn;
-	dbg_info("Set irq: %i prio: %i:%i", chn, cfg.irqh, cfg.irql);
+	//dbg_info("Set irq: %i prio: %i:%i", chn, cfg.irqh, cfg.irql);
 	isix::set_irq_priority(chn, {uint8_t(cfg.irqh), uint8_t(cfg.irql)});
 	isix::request_irq(chn);
 	return tsize;

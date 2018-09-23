@@ -143,6 +143,13 @@ namespace detail {
 			return m_owner.continous_stop(std::ref(*this));
 		}
 
+		/** Abort pending transaction
+		 * @return error code
+		 */
+		int abort() {
+			return m_owner.abort(std::ref(*this));
+		}
+
 		/** Check if channel is busy
 		 * @return true or false */
 		bool busy() const {
