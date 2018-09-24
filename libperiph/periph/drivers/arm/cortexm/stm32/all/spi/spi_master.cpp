@@ -110,7 +110,6 @@ int spi_master::do_open(int timeout)
 			LL_SPI_SetNSSMode(io<SPI_TypeDef>(), LL_SPI_NSS_SOFT);
 			LL_SPI_SetRxFIFOThreshold(io<SPI_TypeDef>(), LL_SPI_RX_FIFO_TH_QUARTER);
 			LL_SPI_SetMode(io<SPI_TypeDef>(), LL_SPI_MODE_MASTER);
-			LL_SPI_Enable(io<SPI_TypeDef>());
 			m_timeout = timeout;
 			m_dma = (cnf.flags&dt::device_conf::fl_dma)?(true):(false);
 			if(m_dma) {
@@ -514,6 +513,7 @@ int spi_master::periphint_config() noexcept
 			if(err) return err;
 		}
 	}
+	LL_SPI_Enable(io<SPI_TypeDef>());
 	return err;
 }
 
@@ -527,6 +527,7 @@ void spi_master::periph_deconfig() noexcept
 		LL_SPI_DisableDMAReq_TX(io<SPI_TypeDef>());
 		LL_SPI_DisableDMAReq_RX(io<SPI_TypeDef>());
 	}
+	LL_SPI_Disable(io<SPI_TypeDef>());
 }
 
 }
