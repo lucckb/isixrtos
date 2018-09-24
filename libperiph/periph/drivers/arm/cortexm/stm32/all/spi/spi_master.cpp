@@ -118,14 +118,15 @@ int spi_master::do_open(int timeout)
 				auto& ctrl = periph::dma::controller::instance();
 				m_dma_rx = ctrl.alloc_channel(spi2rxchn(io<SPI_TypeDef>()),
 					fl::mode_dst_inc|fl::mode_src_ninc|
-					(m_transfer_size>8?fl::mode_dst_size_halfword:fl::mode_dst_size_halfword)|
-					(m_transfer_size>8?fl::mode_src_size_halfword:fl::mode_src_size_halfword),
+					(m_transfer_size>8?fl::mode_dst_size_halfword:fl::mode_dst_size_byte)|
+					(m_transfer_size>8?fl::mode_src_size_halfword:fl::mode_src_size_byte),
 					cnf.irqfh, cnf.irqfl);
 				m_dma_tx = ctrl.alloc_channel(spi2txchn(io<SPI_TypeDef>()),
-					fl::mode_dst_inc|fl::mode_src_ninc|
-					(m_transfer_size>8?fl::mode_dst_size_halfword:fl::mode_dst_size_halfword)|
-					(m_transfer_size>8?fl::mode_src_size_halfword:fl::mode_src_size_halfword),
+					fl::mode_dst_ninc|fl::mode_src_inc|
+					(m_transfer_size>8?fl::mode_dst_size_halfword:fl::mode_dst_size_byte)|
+					(m_transfer_size>8?fl::mode_src_size_halfword:fl::mode_src_size_byte),
 					cnf.irqfh, cnf.irqfl);
+
 				m_dma_tx->callback( std::bind(&spi_master::dma_interrupt_handler,this,
 					std::placeholders::_1, std::placeholders::_2, true) );
 				m_dma_rx->callback( std::bind(&spi_master::dma_interrupt_handler,this,
@@ -414,7 +415,7 @@ void spi_master::dma_interrupt_handler(periph::dma::mem_ptr, bool err, bool tx) 
 	if(err) {
 		finalize_transfer(error::overrun);
 	}
-	if(tx && !m_rxptr.p8) {
+	else if(tx && !m_rxptr.p8) {
 		finalize_transfer(error::success);
 	} else {
 		finalize_transfer(error::success);

@@ -26,6 +26,7 @@
 #include <isix/arch/irq_platform.h>
 #include <isix/arch/irq.h>
 #include <isix/arch/cache.h>
+#include <isix/scheduler.h>
 #include <isix/cortexm/memorymap.h>
 #include <foundation/sys/dbglog.h>
 #include <periph/dma/dma_interrupt_handlers.hpp>
@@ -199,6 +200,7 @@ int stm32_dma_v1::dma_flags_configure(const detail::controller_config& cfg, tmod
 				LL_DMA_DIRECTION_MEMORY_TO_PERIPH );
 			break;
 		case tmode::error:
+			dbg_info("tmode::error");
 			return error::inval;
 	}
 	if(mode==tmode::periph2mem||mode==tmode::mem2mem) {
@@ -319,18 +321,20 @@ void stm32_dma_v1::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, i
 /** Remap alternative channel when needed */
 void stm32_dma_v1::remap_alt_channel(chnid_t chn,int num)
 {
+	++num;	//! Base channel number is n+1
 	if(chn==devid::mem) return;
-	if( __builtin_popcount(devid::detail::dev_chn_map[chn])>1) return;
+	if( __builtin_popcount(devid::detail::dev_chn_map[chn])<=1) {
+		return;
+	}
 	constexpr auto array_size=
 		sizeof(devid::detail::remaping_table)/sizeof(devid::detail::remaping_table[0]);
 	for(auto i=0U;i<array_size;++i) {
 		const auto& it = devid::detail::remaping_table[i];
 		if(it.devid==chn&&it.chn==num) {
-			dbg_info("Remapping found %i:%i",chn,num);
-			__disable_irq();
+			isix::enter_critical();
 			SYSCFG->CFGR3 |= it.set_mask;
 	        SYSCFG->CFGR3 &= ~it.clr_mask;
-			__enable_irq();
+			isix::exit_critical();
 			return;
 		}
 	}
