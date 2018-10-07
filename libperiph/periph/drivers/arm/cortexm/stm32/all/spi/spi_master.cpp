@@ -61,6 +61,12 @@ namespace {
 #		endif
 		return periph::dma::devid::_devid_end;
 	}
+	//! Helper function flush RX fifo
+	void spi_flush_rx_fifo( SPI_TypeDef* spi) {
+		while(LL_SPI_GetRxFIFOLevel(spi) != LL_SPI_RX_FIFO_EMPTY) {
+			auto tmpreg [[maybe_unused]] = spi->DR;
+		}
+	}
 }
 
 //Constructor
@@ -413,11 +419,14 @@ void spi_master::dma_interrupt_handler(periph::dma::mem_ptr, bool err, bool tx) 
 {
 	if(err) {
 		finalize_transfer(error::overrun);
+		return;
 	}
 	else if(tx && !m_rxptr.p8) {
 		finalize_transfer(error::success);
+		return;
 	} else {
 		finalize_transfer(error::success);
+		return;
 	}
 }
 
@@ -495,6 +504,8 @@ int spi_master::start_transfer(const blk::transfer& data,int& ret) noexcept
 int spi_master::periphint_config() noexcept
 {
 	int err {};
+	LL_SPI_Enable(io<SPI_TypeDef>());
+	spi_flush_rx_fifo(io<SPI_TypeDef>());
 	if(!m_dma) {
 		if(m_rxptr.p8) LL_SPI_EnableIT_RXNE(io<SPI_TypeDef>());
 		if(m_txptr.p8) LL_SPI_EnableIT_TXE(io<SPI_TypeDef>());
@@ -513,7 +524,6 @@ int spi_master::periphint_config() noexcept
 			if(err) return err;
 		}
 	}
-	LL_SPI_Enable(io<SPI_TypeDef>());
 	return err;
 }
 
