@@ -97,17 +97,39 @@ stm32_dma_v1::~stm32_dma_v1()
 /** Single tranfer from controller */
 int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 {
-	isix::mutex_locker _lck(m_mtx);
+	m_mtx.lock();
 	auto& cnf = channel_config(chn);
-	const auto chnf = find_first_unused(cnf.dev_id);
-	if(chnf<0) {
-		dbg_err("Unable to find devmatching channel %i", chnf);
-		return chnf;
+	int chnf;
+	for(;;)
+	{
+		chnf = find_first(cnf.dev_id,true);
+		if(chnf<0)
+		{
+			chnf = find_first(cnf.dev_id,false);
+			if(chnf<0)
+			{
+				dbg_err("Unable to find devmatching channel %i", chnf);
+				m_mtx.unlock();
+				return chnf;
+			}
+			else
+			{
+				m_mtx.unlock();
+				chnf = wait();
+				if(chnf<0) return chnf;
+				m_mtx.lock();
+			}
+		}
+		else
+		{
+			break;
+		}
 	}
 	const auto tmode = transfer_mode(dest,src);
 	int res = dma_flags_configure(cnf,tmode,chnf);
 	if(res<0) {
 		dbg_err("Dma flag configure error %i", chnf);
+		m_mtx.unlock();
 		return res;
 	}
 	remap_alt_channel(cnf.dev_id,chnf);
@@ -122,6 +144,7 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 			channel_callback(chn, nullptr, false);
 			set_handled_channel(chn);
 			m_act_chns[chnf] = false;
+			broadcast_all();
 		}
 		if(READ_BIT(chn2cntrl(chnf)->ISR, chn2tebit(chnf)) == chn2tebit(chnf)) {
 			WRITE_REG(chn2cntrl(chnf)->IFCR,chn2tebit(chnf));
@@ -131,9 +154,11 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 			channel_callback(chn, nullptr, true);
 			set_handled_channel(chn);
 			m_act_chns[chnf] = false;
+			broadcast_all();
 		}
 	});
 	dma_addr_configure(dest,src,len/res,chnf);
+	m_mtx.unlock();
 	return error::success;
 }
 /** TODO: STM32v1 controller doesn't support double buffer mode transfer
@@ -167,15 +192,19 @@ int stm32_dma_v1::abort(channel& chn)
 }
 
 /** Find first unused channel slot */
-int stm32_dma_v1::find_first_unused(unsigned device)
+int stm32_dma_v1::find_first(unsigned device, bool unused)
 {
 	if(device >= sizeof devid::detail::dev_chn_map) {
 		return error::inval;
 	}
 	const auto mask = devid::detail::dev_chn_map[device];
 	for(auto i=0U; i<nchns; ++i) {
-		if((mask&(1U<<i)) && !m_act_chns[i]) {
-			return i;
+		if(mask&(1U<<i)) {
+			if(unused) {
+				if(!m_act_chns[i]) return i;
+			} else {
+				return i;
+			}
 		}
 	}
 	return error::noent;
