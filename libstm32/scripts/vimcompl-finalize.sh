@@ -14,7 +14,8 @@ $CXX -Wp,-v -x c++ - -fsyntax-only 2>&1 </dev/null | \
 					print "-isystem\n"$$1 >> cfile; 
 			} 
 			END { 
-				print "-std=c++14" >> cfile; 
+				print "-std=c++17" >> cfile; 
+				print "-m32" >> cfile; 
 			} '
 #Extra vim custom include directories generator
 	gawk 'BEGIN { 
