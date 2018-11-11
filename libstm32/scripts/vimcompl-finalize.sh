@@ -7,6 +7,25 @@ if [ ! -f "$COMPL_FILE" ]; then
 	echo "Unable to find compl file"
 	exit
 fi
+#Remove not existing directories
+gawk -i inplace '@load "filefuncs"
+	{ 
+		if( $1 ~ /-I/ ) {
+			fullname=$1
+			gsub(/-I/,""); 
+			dpath=$1
+			rc=stat(dpath,status)
+			if(rc==0 && status["type"]=="directory") {
+				print fullname
+			}
+		} else {
+			print $0
+		}
+	}'  $COMPL_FILE
+
+#Extra version
+echo "-I./build/isixrtos/libisix/include" >> $COMPL_FILE
+
 #Add extra system paths
 $CXX -Wp,-v -x c++ - -fsyntax-only 2>&1 </dev/null | \
 	gawk -v cfile=${COMPL_FILE} ' /^ / { 
