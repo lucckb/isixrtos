@@ -32,8 +32,6 @@ typedef void(*vect_fun_t)(void);
 
 #if defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
 #include "vectors/f2_4v.h"
-#elif defined(STM32MCU_MAJOR_TYPE_F3)
-#include "vectors/f3xx.h"
 #elif defined(STM32MCU_MAJOR_TYPE_F37)
 #include "vectors/f37x.h"
 #elif defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL)
@@ -44,7 +42,7 @@ typedef void(*vect_fun_t)(void);
 #if defined(STM32F334x8)
 #include "vectors/f33x.h"
 #else
-#error Unknown F33 MCU subtype
+#include "vectors/f3xx.h"
 #endif
 #else /*  !(defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || (defined STM32F10X_HD_VL)) */
 #include "vectors/f101_3.h"
