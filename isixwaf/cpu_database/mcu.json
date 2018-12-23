@@ -225,6 +225,25 @@
 				}
 			}
 		},
+		"stm32f411vet6" : {
+			"cpu": "arm_cortex_m4",
+			"vendor": "stm32",
+			"family": "f4",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1", "STM32F411xE" ],
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "128K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "512K", 
+					"attrib": "xr"
+				}
+			}
+		},
 		"stm32f417vgt6" : {
 			"cpu": "arm_cortex_m4",
 			"cflags":  [ ],

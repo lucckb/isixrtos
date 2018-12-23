@@ -27,7 +27,7 @@
 #include <isix/arch/irq.h>
 #include <isix/arch/cache.h>
 #include <isix.h>
-#include <stm32f3xx_ll_spi.h>
+#include <stm32_ll_spi.h>
 #include <foundation/sys/dbglog.h>
 #include "spi_interrupt_handlers.hpp"
 #include <type_traits>
@@ -63,9 +63,11 @@ namespace {
 	}
 	//! Helper function flush RX fifo
 	void spi_flush_rx_fifo( SPI_TypeDef* spi) {
+#ifdef LL_SPI_RX_FIFO_EMPTY
 		while(LL_SPI_GetRxFIFOLevel(spi) != LL_SPI_RX_FIFO_EMPTY) {
 			auto tmpreg [[maybe_unused]] = spi->DR;
 		}
+#endif
 	}
 }
 
@@ -114,7 +116,9 @@ int spi_master::do_open(int timeout)
 			//Rest of the config
 			LL_SPI_SetTransferDirection(io<SPI_TypeDef>(),LL_SPI_FULL_DUPLEX);
 			LL_SPI_SetNSSMode(io<SPI_TypeDef>(), LL_SPI_NSS_SOFT);
+#ifdef LL_SPI_RX_FIFO_TH_QUARTER
 			LL_SPI_SetRxFIFOThreshold(io<SPI_TypeDef>(), LL_SPI_RX_FIFO_TH_QUARTER);
+#endif
 			LL_SPI_SetMode(io<SPI_TypeDef>(), LL_SPI_MODE_MASTER);
 			m_timeout = timeout;
 			m_dma = (cnf.flags&dt::device_conf::fl_dma)?(true):(false);
@@ -219,12 +223,14 @@ int spi_master::transaction(int addr, const blk::transfer& data)
 int spi_master::do_set_option(const option::device_option& opt)
 {
 	int ret {};
+#ifdef LL_SPI_DATAWIDTH_4BIT
 	static constexpr unsigned d2w[] = {
 		LL_SPI_DATAWIDTH_4BIT, LL_SPI_DATAWIDTH_5BIT,LL_SPI_DATAWIDTH_6BIT,LL_SPI_DATAWIDTH_7BIT,
 		LL_SPI_DATAWIDTH_8BIT, LL_SPI_DATAWIDTH_9BIT,LL_SPI_DATAWIDTH_10BIT,LL_SPI_DATAWIDTH_11BIT,
 		LL_SPI_DATAWIDTH_12BIT, LL_SPI_DATAWIDTH_13BIT,LL_SPI_DATAWIDTH_14BIT, LL_SPI_DATAWIDTH_15BIT,
 		LL_SPI_DATAWIDTH_16BIT,
 	};
+#endif
 	switch(opt.ord()) {
 		case option::ord::speed: {
 			if((ret=clk_to_presc(static_cast<const option::speed&>(opt).hz()))<0) break;
@@ -247,11 +253,19 @@ int spi_master::do_set_option(const option::device_option& opt)
 		}
 		case option::ord::dwidth: {
 			auto dw = static_cast<const option::dwidth&>(opt).dw();
+#ifdef LL_SPI_DATAWIDTH_4BIT
 			if(dw<4||dw>16) {
+#else
+			if(dw!=4 && dw!=16) {
+#endif
 				ret = error::inval;
 				break;
 			}
+#ifdef LL_SPI_DATAWIDTH_4BIT
 			LL_SPI_SetDataWidth(io<SPI_TypeDef>(),d2w[dw-4]);
+#else
+			LL_SPI_SetDataWidth(io<SPI_TypeDef>(),dw==8?LL_SPI_DATAWIDTH_8BIT:LL_SPI_DATAWIDTH_16BIT);
+#endif
 			m_transfer_size = dw;
 			break;
 		}

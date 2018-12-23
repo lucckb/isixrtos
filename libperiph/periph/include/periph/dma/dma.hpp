@@ -22,7 +22,3 @@
 #include "controller.hpp"
 #include "channel.hpp"
 #include <periph/dma/dma_channels.hpp>
-
-
-
-
