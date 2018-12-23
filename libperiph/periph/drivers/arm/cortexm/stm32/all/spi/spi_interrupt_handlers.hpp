@@ -17,9 +17,7 @@
  */
 
 #pragma once
-#ifdef STM32MCU_MAJOR_TYPE_F3
-#include <stm32f3xx_ll_spi.h>
-#endif
+#include <stm32_ll_spi.h>
 #include <functional>
 
 namespace periph::drivers::spi::_handlers {

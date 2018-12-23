@@ -16,7 +16,6 @@
  * =====================================================================================
  */
 
-#include <stm32f3xx_ll_spi.h>
 #include <periph/core/error.hpp>
 #include <cstdlib>
 #include <functional>
@@ -25,12 +24,23 @@
 namespace periph::drivers::spi::_handlers {
 
 namespace {
-#if defined(SPI3)
-	std::function<void()> spi_vector[3] { std::abort, std::abort, std::abort }
+#if defined(SPI6)
+	std::function<void()> spi_vector[6] { std::abort, std::abort, std::abort,
+										  std::abort, std::abort, std::abort };
+#elif defined(SPI5)
+	std::function<void()> spi_vector[5] { std::abort, std::abort, std::abort,
+										  std::abort, std::abort };
+#elif defined(SPI4)
+	std::function<void()> spi_vector[4] { std::abort, std::abort, std::abort,
+										  std::abort };
+#elif defined(SPI3)
+	std::function<void()> spi_vector[3] { std::abort, std::abort, std::abort };
 #elif defined(SPI2)
 	std::function<void()> spi_vector[2] { std::abort, std::abort };
 #elif defined(SPI1)
 	std::function<void()> spi_vector[1] { std::abort };
+#else
+#	error NO SPI present
 #endif
 }
 
