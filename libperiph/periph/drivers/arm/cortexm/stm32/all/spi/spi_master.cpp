@@ -67,6 +67,8 @@ namespace {
 		while(LL_SPI_GetRxFIFOLevel(spi) != LL_SPI_RX_FIFO_EMPTY) {
 			auto tmpreg [[maybe_unused]] = spi->DR;
 		}
+#else
+		static_cast<void>(spi);
 #endif
 	}
 }
