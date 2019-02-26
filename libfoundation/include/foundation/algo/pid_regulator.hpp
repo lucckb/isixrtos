@@ -16,9 +16,17 @@ template <typename T>
 class pid_regulator	 : private fnd::noncopyable
 {
 public:
+	//! Constructor V1
 	explicit pid_regulator( T tp )
 		: m_tp( tp ) {}
-
+	//! Constructor V2
+	pid_regulator( T kp, T ki, T kd, T tp )
+		: m_kp(kp)
+		, m_ki(ki)
+		, m_kd(kd)
+		, m_tp(tp)
+	{
+	}
 	//!Reset the regulator to the initial state
 	void clear() {
 		m_sum = T(0);
