@@ -860,7 +860,7 @@ uint32_t LL_RCC_GetCECClockFreq(uint32_t CECxSource)
   * @retval USB clock frequency (in Hz)
   *         - @ref  LL_RCC_PERIPH_FREQUENCY_NO indicates that oscillator is not ready
   */
-uint32_t LL_RCC_GetUSBClockFreq(uint32_t USBxSource)
+uint32_t LL_RCC_GetUSBClockFreq(uint32_t USBxSource __attribute__((unused)))
 {
   uint32_t usb_frequency = LL_RCC_PERIPH_FREQUENCY_NO;
 
