@@ -43,6 +43,27 @@ def _openocd_proc( args ):
     )
 
 
+#Ask for item choice on program
+def _ask_for_item_choice(in0):
+    from waflib.Errors import WafError
+    i = 1
+    print("Please select the application:")
+    print("[0].\tAbort")
+    arr = []
+    for key,val in in0.items():
+        print("[{:d}].\t{:s}".format(i,key))
+        i = i + 1
+        arr.append(val)
+    try:
+        val = int(input())
+    except ValueError as err:
+        raise WafError('Invalid input', err)
+    if val >= i:
+        raise WafError('Invalid choice')
+    elif val==0:
+        raise WafError('Aborted')
+    return arr[val-1]
+
 # Read inicmd file
 def _read_openocd_initial_string( ctx ):
     from waflib.Errors import WafError
@@ -54,9 +75,12 @@ def _read_openocd_initial_string( ctx ):
     if not cfg:
         ctx.fatal('Error default configuration does not exist')
     try:
-        tgt = os.path.join( ctx.out_dir,
-            os.path.normpath(cfg['jtag']['target'])
-        )
+        cfg_tgt = cfg['jtag']['target'];
+        if type(cfg_tgt) is str:
+            final_tgt = cfg_tgt
+        elif type(cfg_tgt) is dict:
+            final_tgt = _ask_for_item_choice(cfg_tgt)
+        tgt = os.path.join( ctx.out_dir, os.path.normpath(final_tgt))
         family = ctx.isix_get_cpu_family()
         ini_cmd = "set ISIX_INTERFACE %s; " % cfg['jtag']['type']
         ini_cmd += "set ISIX_INTERFACE_TARGET stm32%sx; " % family

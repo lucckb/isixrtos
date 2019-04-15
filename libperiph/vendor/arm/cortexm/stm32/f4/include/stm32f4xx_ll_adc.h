@@ -1787,7 +1787,7 @@ __STATIC_INLINE uint32_t LL_ADC_DMA_GetRegAddr(ADC_TypeDef *ADCx, uint32_t Regis
   return data_reg_addr;
 }
 #else
-__STATIC_INLINE uint32_t LL_ADC_DMA_GetRegAddr(ADC_TypeDef *ADCx, uint32_t Register)
+__STATIC_INLINE uint32_t LL_ADC_DMA_GetRegAddr(ADC_TypeDef *ADCx, uint32_t Register __attribute__((unused)))
 {
   /* Retrieve address of register DR */
   return (uint32_t)&(ADCx->DR);
