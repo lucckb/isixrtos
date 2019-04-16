@@ -21,7 +21,8 @@ enum generic_errors {
 	again  = -133,
 	exists = -134,
 	nosys  = -135,
-	noent = -136
+	noent = -136,
+	unimplemented = -137,
 };
 
 //! Bus errors

@@ -42,6 +42,13 @@ namespace {
 	inline int device_disable( const dt::clk_periph& clk ) {
 		return impl::device_disable( clk );
 	}
+	/** Check if device has enabled clock signal
+	 * @param[in] clk Clock input struct
+	 * @return 0 if disabled 1 if enable negative if error
+	 */
+	inline int device_is_enabled( const dt::clk_periph& clk ) {
+		return impl::device_is_enabled( clk );
+	}
 
 	/** Enable device clock
 	 * @param[in] Clock input struct
@@ -50,6 +57,8 @@ namespace {
 	inline int device_reset( const dt::clk_periph& clk ) {
 		return impl::device_reset( clk );
 	}
+
+
 
 }}}
 
