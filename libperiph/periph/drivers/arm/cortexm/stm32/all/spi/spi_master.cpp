@@ -216,6 +216,7 @@ int spi_master::transaction(int addr, const blk::transfer& data)
 			return error::bus_timeout;
 		}
 	}
+	LL_SPI_Disable(io<SPI_TypeDef>());
 	cs(true,addr);
 	return ret;
 }
@@ -462,12 +463,12 @@ inline void spi_master::cs(bool state,int no) noexcept
 //! Finalize transfer
 void spi_master::finalize_transfer(int err) noexcept
 {
+	periph_deconfig();
 	*m_ret =  err;
 	m_rxptr.p8 = nullptr;
 	m_txptr.p8 = nullptr;
 	m_rxsiz = m_txsiz = 0;
 	m_wait.signal_isr();
-	periph_deconfig();
 }
 
 //! Start transfer data
@@ -558,7 +559,6 @@ void spi_master::periph_deconfig() noexcept
 		LL_SPI_DisableDMAReq_TX(io<SPI_TypeDef>());
 		LL_SPI_DisableDMAReq_RX(io<SPI_TypeDef>());
 	}
-	LL_SPI_Disable(io<SPI_TypeDef>());
 }
 
 }
