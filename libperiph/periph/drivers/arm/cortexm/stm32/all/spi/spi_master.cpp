@@ -183,7 +183,6 @@ int spi_master::do_close()
 //Make transaction
 int spi_master::transaction(int addr, const blk::transfer& data)
 {
-	//dbg_info("spi_master::transaction");
 	int ret {};
 	if(addr<0 || addr>=int(sizeof(m_cs)/sizeof(m_cs[0]))) {
 		dbg_err("Invalid address");
@@ -233,6 +232,10 @@ int spi_master::do_set_option(const option::device_option& opt)
 		LL_SPI_DATAWIDTH_16BIT,
 	};
 #endif
+	ret = clk_conf(true);
+	if( ret < 0 ) {
+		dbg_err("Unable to enable clock %i", ret );
+	}
 	switch(opt.ord()) {
 		case option::ord::speed: {
 			if((ret=clk_to_presc(static_cast<const option::speed&>(opt).hz()))<0) break;
@@ -258,7 +261,7 @@ int spi_master::do_set_option(const option::device_option& opt)
 #ifdef LL_SPI_DATAWIDTH_4BIT
 			if(dw<4||dw>16) {
 #else
-			if(dw!=4 && dw!=16) {
+			if(dw!=8 && dw!=16) {
 #endif
 				ret = error::inval;
 				break;
@@ -289,10 +292,13 @@ int spi_master::clk_conf(bool en)
 	dt::clk_periph pclk;
 	do {
 		if((ret=dt::get_periph_clock(io<void>(),pclk))<0) break;
-		if(en) {
+		if((ret=clock::device_is_enabled(pclk))<0) break;
+		if(en && ret==0) {
 			if((ret=clock::device_enable(pclk))<0) break;
-		} else {
+		} else if(!en && ret>0) {
 			if((ret=clock::device_disable(pclk))<0) break;
+		} else {
+			ret = error::success;
 		}
 	} while(0);
 	dbg_info("clock setup status %i", ret);
@@ -341,7 +347,6 @@ int spi_master::clk_to_presc(unsigned hz)
 	do {
 		if((ret=dt::get_periph_clock(io<void>(),pclk))<0) break;
 		if((ret=dt::get_bus_clock(pclk.xbus))<0) break;
-		dbg_info("PCLK.XBUS=%i HZ=%i",ret,hz);
 		ret = (ret/1000)/(hz/1000U);
 	} while(0);
 	if( ret <= 2 )
