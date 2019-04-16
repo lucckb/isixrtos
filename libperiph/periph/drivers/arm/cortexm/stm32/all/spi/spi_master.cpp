@@ -172,8 +172,13 @@ int spi_master::do_close()
 		}
 		{
 			auto& ctrl = periph::dma::controller::instance();
-			ret = ctrl.release_channel(m_dma_tx);
-			const auto ret2 = ctrl.release_channel(m_dma_rx);
+			if(m_dma_tx) {
+				ret=ctrl.release_channel(m_dma_tx);
+			}
+			int ret2 {};
+			if(m_dma_rx) {
+				ret2=ctrl.release_channel(m_dma_rx);
+			}
 			if(ret==error::success) ret=ret2;
 		}
 	} while(0);
@@ -549,6 +554,7 @@ int spi_master::periphint_config() noexcept
 	return err;
 }
 
+//! Deconfigure device
 void spi_master::periph_deconfig() noexcept
 {
 	if(!m_dma) {
