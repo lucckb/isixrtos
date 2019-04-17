@@ -19,61 +19,66 @@
 #pragma once
 #include <periph/dma/types.hpp>
 
-//! FIXME: Setup proper dma channel config not working yet not merged yet
 
 namespace periph::dma::devid {
 
 	enum _devid : chnid_t {
-		mem,
-		adc1, adc2, spi1_rx, spi1_tx, usart3_tx, usart3_rx, //a
-		usart1_rx, usart1_tx, usart2_tx, usart2_rx,		//b
-		i2c1_rx, i2c1_tx, tim1_ch1, tim1_ch2, tim1_ch4,	//c
-		tim1_trig,tim1_com, tim1_up, tim1_ch3, tim2_ch3,	//d
-		tim2_up, tim2_ch1, tim2_ch2, tim2_ch4, tim3_ch3,	//e
-		tim3_ch4, tim3_up, tim3_ch1, tim3_trig, tim6_up,	//f
-		dac1_ch1, tim7_up, dac1_ch2, dac2_ch1, tim15_ch1,	//g
-		tim15_up, tim15_trig, tim15_com, tim16_ch1, tim16_up, //h
-		tim17_ch1, tim17_up, hrtim1_m, hrtim1_a, hrtim1_b,	//i
-		hrtim1_c, hrtim1_d, hrtim1_e, //j
-		spi2_rx, spi2_tx,
-		spi3_rx, spi3_tx,
-		_devid_end	//Enumeration termination mark
+ 	mem,                                                //:D1
+    spi3_rx, spi3_tx, spi2_rx, spi2_tx,                 //Ch0
+    i2c1_rx, i2c1_tx, tim7_up,                          //Ch1
+    tim4_ch1, tim4_ch2, tim4_ch3, tim4_up,              //Ch2
+    i2s3_ext_rx, i2s3_ext_tx, i2s2_ext_tx,              //---
+    i2s2_ext_rx, tim2_up, tim2_ch4, tim2_ch3,           //Ch3
+    tim2_ch2, tim2_ch1, i2c3_rx, i2c3_tx,               //--- 
+    uart5_rx, uart5_tx, uart4_rx, uart4_tx,             //Ch4
+    usart3_rx, usart3_tx, usart2_rx, usart2_tx,         //---
+    uart8_rx, uart8_tx, uart7_rx, uart7_tx,             //Ch5
+    tim3_ch4, tim3_ch3, tim3_ch2, tim3_ch1, tim3_up,    //---
+    tim5_ch4, tim5_ch3, tim5_ch2, tim5_ch1,             //Ch6
+    tim5_up, tim5_trig,                                 //---
+    tim6_up, i2c2_rx, i2c2_tx, dac1, dac2,              //Ch7
+                                                        //:D2
+    adc1, sai1_a, sai1_b, tim1_ch1, tim1_ch2, tim1_ch3, //Ch0
+    tim8_ch1, tim8_ch2, tim8_ch3,                       //---
+    dcmi, adc2, spi6_rx, spi6_tx,                       //Ch1
+    adc3, spi5_rx, spi5_tx, cryp_out, cryp_in, hash_in, //Ch2
+    spi1_rx, spi1_tx,                                   //Ch3
+    spi4_rx, spi4_tx, usart1_rx, usart1_tx, sdio,       //Ch4
+    usart6_rx, usart6_tx,                               //Ch5
+    tim1_trig,  tim1_up,                                //Ch6
+    tim8_up, tim8_com, tim8_trig,                       //Ch7
+	_devid_end
 	};
 
-
+	namespace detail {
+		//! Standard mapping
+		template <typename... T> constexpr auto _chb(T... args) {
+			return ( ... | (1U<<args ) );
+		}
+		// For version2 yet another mapping
+		struct chn_ext {
+			template<
+				typename... T,
+				typename E = std::enable_if_t<(std::is_same_v<T,int> && ...)>
+			>
+			constexpr chn_ext( unsigned char _dma, unsigned char _chn, T... strms)
+				: dma(_dma),chn(_chn), strm( detail::_chb(strms...))
+			{
+			}
+			constexpr chn_ext()
+				: dma(0x03),chn(0x3f),strm(0xff)
+			{}
+			const unsigned char dma : 2;
+			const unsigned char chn : 6;
+			const unsigned char strm;
+		};
 
 	/** DMA channel mapping to the device assignment
+	  { dma=1,2; channel=0-7 stream_no1=0-7, stream_no2=0-7 ... }
 	 */
-	namespace detail {
-		static constexpr unsigned char dev_chn_map [[maybe_unused]] [] = {
-			0xff,
-			_chb(1), _chb(2,4), _chb(2,4,6), _chb(3,5,7),_chb(2),_chb(2), //a
-			_chb(5), _chb(4), _chb(7), _chb(6),	//b
-			_chb(3,5,7), _chb(2,4,6), _chb(2), _chb(3), _chb(4),	//c
-			_chb(4), _chb(4), _chb(5), _chb(6), _chb(1),	//d
-			_chb(2), _chb(5), _chb(7), _chb(7), _chb(2),	//e
-			_chb(3), _chb(3), _chb(6), _chb(6), _chb(3),	//f
-			_chb(3), _chb(4), _chb(4), _chb(5), _chb(5),	//g
-			_chb(5), _chb(5), _chb(5), _chb(3), _chb(3),	//h
-			_chb(1), _chb(1), _chb(2), _chb(3), _chb(4),	//i
-			_chb(5), _chb(6), _chb(7)						//j
-		};
-		/** Remapping table */
-		static constexpr alt_remap remaping_table [[maybe_unused]] [] = {
-			{ adc2, 2,  0x200, 0x100 },
-			{ adc2, 4,  0x300, 0x000 },
-			{ spi1_rx, 2,  0x0, 0x3 },
-			{ spi1_rx, 4,  0x1, 0x2 },
-			{ spi1_rx, 6,  0x2, 0x1 },
-			{ spi1_tx, 3,  0x0, 0xC },
-			{ spi1_tx, 5,  0x4, 0x8 },
-			{ spi1_tx, 7,  0x8, 0x4 },
-			{ i2c1_tx, 2,  0x40, 0x80 },
-			{ i2c1_tx, 4,  0x80, 0x40 },
-			{ i2c1_tx, 6,  0xc0, 0x00 },
-			{ i2c1_rx, 3,  0x1, 0x2 },
-			{ i2c1_rx, 5,  0x1, 0x2 },
-			{ i2c1_rx, 7,  0x1, 0x2 },
+		static constexpr chn_ext dev_chn_map [[maybe_unused]] [] = {
+			{},							//MEM
+			{1,1,1,2,3}
 		};
 	}
 }

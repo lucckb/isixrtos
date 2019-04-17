@@ -36,6 +36,19 @@ namespace periph::dma::devid {
 		_devid_end	//Enumeration termination mark
 	};
 
+	namespace detail {
+			//! Standard mapping
+			template <typename... T> constexpr auto _chb(T... args) {
+				return ( ... | (1U<<(args-1)) );
+			}
+		}
+		//Remaping channel for version 1
+		struct alt_remap {
+			chnid_t devid;			//! Transfer device identifier
+			uint8_t chn;			//! Number of channel mapped
+			uint32_t set_mask;		//! Set mask
+			uint32_t clr_mask;		//! Clear mask
+		};
 
 
 	/** DMA channel mapping to the device assignment

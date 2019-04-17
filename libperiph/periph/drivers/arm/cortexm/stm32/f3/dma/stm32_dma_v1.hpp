@@ -43,7 +43,7 @@ namespace periph::dma {
 			mem2periph
 		};
 		/** Determine transfer mode */
-		tmode transfer_mode(cmem_ptr dst, cmem_ptr src);
+		static tmode transfer_mode(cmem_ptr dst, cmem_ptr src);
 		/** Single tranfer from controller */
 		int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) override;
 		/** Single Continous stop tranaction */

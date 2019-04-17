@@ -25,17 +25,4 @@ namespace periph::dma {
 	using size = std::size_t;
 	using chnid_t = int16_t;
 	using flags_t = uint16_t;
-	namespace devid {
-		namespace detail {
-			template <typename... T> constexpr auto _chb(T... args) {
-				return ( ... | (1U<<(args-1)) );
-			}
-		}
-		struct alt_remap {
-			chnid_t devid;			//! Transfer device identifier
-			uint8_t chn;			//! Number of channel mapped
-			uint32_t set_mask;		//! Set mask
-			uint32_t clr_mask;		//! Clear mask
-		};
-	}
 }
