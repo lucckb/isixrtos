@@ -79,7 +79,6 @@ namespace periph::dma::devid {
 	 */
 		static constexpr chn_ext dev_chn_map [[maybe_unused]] [] = {
 				{},							//MEM
-				{1,1,1,2,3},
 				{1,0,0,2},                  //spi3_rx     Ch0
 				{1,0,5,7},                  //spi3_tx     Ch0
 				{1,0,3},                    //spi2_rx     Ch0
