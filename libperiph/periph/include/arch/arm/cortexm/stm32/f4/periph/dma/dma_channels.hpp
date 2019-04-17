@@ -24,13 +24,13 @@
 namespace periph::dma::devid {
 
 	enum _devid : chnid_t {
- 	mem,                                                											 //:D1                                                                   //:D1
+	mem,																	 //:D1
     spi3_rx,     spi3_tx,       spi2_rx,    spi2_tx,                         //Ch0
     i2c1_rx,     i2c1_tx,       tim7_up,                                     //Ch1
     tim4_ch1,    tim4_ch2,      tim4_ch3,   tim4_up,                         //Ch2
     i2s3_ext_rx, i2s3_ext_tx,   i2s2_ext_tx,                                 //---
     i2s2_ext_rx, tim2_up,       tim2_ch4,   tim2_ch3,                        //Ch3
-    tim2_ch2,    tim2_ch1,      i2c3_rx,    i2c3_tx,                         //--- 
+    tim2_ch2,    tim2_ch1,      i2c3_rx,    i2c3_tx,                         //---
     uart5_rx,    uart5_tx,      uart4_rx,   uart4_tx,                        //Ch4
     usart3_rx,   usart3_tx,     usart2_rx,  usart2_tx,                       //---
     uart8_rx,    uart8_tx,      uart7_rx,   uart7_tx,                        //Ch5
