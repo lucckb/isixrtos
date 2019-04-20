@@ -27,7 +27,6 @@
 #include <isix/arch/irq.h>
 #include <isix/arch/cache.h>
 #include <isix/scheduler.h>
-#include <isix/cortexm/memorymap.h>
 #include <foundation/sys/dbglog.h>
 #include <periph/dma/dma_interrupt_handlers.hpp>
 
@@ -57,20 +56,6 @@ controller& controller::instance()
 	return std::ref(dmactrl);
 }
 
-/** Determine transfer mode */
-stm32_dma_v1::tmode stm32_dma_v1::transfer_mode(cmem_ptr dst, cmem_ptr src) {
-	const bool src_periph = memmap_is_periph_addr(reinterpret_cast<uintptr_t>(src));
-	const bool dst_periph = memmap_is_periph_addr(reinterpret_cast<uintptr_t>(dst));
-	if(!src_periph && dst_periph) {
-		return tmode::mem2periph;
-	} else if(src_periph && !dst_periph) {
-		return tmode::periph2mem;
-	} else if(!src_periph && !dst_periph) {
-		return tmode::mem2mem;
-	} else {
-		return tmode::error;
-	}
-}
 
 /** Constructor */
 stm32_dma_v1::stm32_dma_v1() {
@@ -125,7 +110,7 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 			break;
 		}
 	}
-	const auto tmode = transfer_mode(dest,src);
+	const auto tmode = detail::transfer_mode(dest,src);
 	int res = dma_flags_configure(cnf,tmode,chnf);
 	if(res<0) {
 		dbg_err("Dma flag configure error %i", chnf);
@@ -211,28 +196,28 @@ int stm32_dma_v1::find_first(unsigned device, bool unused)
 }
 
 //! DMA configure
-int stm32_dma_v1::dma_flags_configure(const detail::controller_config& cfg, tmode mode, int chn)
+int stm32_dma_v1::dma_flags_configure(const detail::controller_config& cfg, detail::tmode mode, int chn)
 {
 	size_t tsize {1};
 	//dbg_info("DMA input mode cnf %i channel %i", mode, chn);
 	switch(mode) {
-		case tmode::mem2mem:
+		case detail::tmode::mem2mem:
 			LL_DMA_SetDataTransferDirection(chn2cntrl(chn), chn2hwchn(chn),
 				LL_DMA_DIRECTION_MEMORY_TO_MEMORY );
 			break;
-		case tmode::periph2mem:
+		case detail::tmode::periph2mem:
 			LL_DMA_SetDataTransferDirection(chn2cntrl(chn), chn2hwchn(chn),
 				LL_DMA_DIRECTION_PERIPH_TO_MEMORY );
 			break;
-		case tmode::mem2periph:
+		case detail::tmode::mem2periph:
 			LL_DMA_SetDataTransferDirection(chn2cntrl(chn), chn2hwchn(chn),
 				LL_DMA_DIRECTION_MEMORY_TO_PERIPH );
 			break;
-		case tmode::error:
+		case detail::tmode::error:
 			dbg_info("tmode::error");
 			return error::inval;
 	}
-	if(mode==tmode::periph2mem||mode==tmode::mem2mem) {
+	if(mode==detail::tmode::periph2mem||mode==detail::tmode::mem2mem) {
 		switch(cfg.flags & detail::mask::src_transfer_size) {
 			case mode_src_size_byte:
 				LL_DMA_SetPeriphSize(chn2cntrl(chn),chn2hwchn(chn), LL_DMA_PDATAALIGN_BYTE);
@@ -267,7 +252,7 @@ int stm32_dma_v1::dma_flags_configure(const detail::controller_config& cfg, tmod
 		} else {
 			LL_DMA_SetMemoryIncMode(chn2cntrl(chn),chn2hwchn(chn), LL_DMA_MEMORY_NOINCREMENT);
 		}
-	} else if(mode==tmode::mem2periph) {
+	} else if(mode==detail::tmode::mem2periph) {
 		switch(cfg.flags & detail::mask::dst_transfer_size) {
 			case mode_dst_size_byte:
 				LL_DMA_SetPeriphSize(chn2cntrl(chn),chn2hwchn(chn), LL_DMA_PDATAALIGN_BYTE);

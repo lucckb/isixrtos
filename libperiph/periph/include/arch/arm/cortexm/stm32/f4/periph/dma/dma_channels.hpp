@@ -63,12 +63,15 @@ namespace periph::dma::devid {
 				typename E = std::enable_if_t<(std::is_same_v<T,int> && ...)>
 			>
 			constexpr chn_ext( unsigned char _dma, unsigned char _chn, T... strms)
-				: dma(_dma),chn(_chn), strm( detail::_chb(strms...))
+				: dma(_dma),chn(_chn), strm(detail::_chb(strms...))
 			{
 			}
 			constexpr chn_ext()
-				: dma(0x03),chn(0x3f),strm(0xff)
+				: dma(0),chn(0),strm(0)
 			{}
+			unsigned chn_msk() const {
+				return strm << (dma==2?8:0);
+			}
 			const unsigned char dma : 2;
 			const unsigned char chn : 6;
 			const unsigned char strm;
@@ -78,7 +81,7 @@ namespace periph::dma::devid {
 	  { dma=1,2; channel=0-7 stream_no1=0-7, stream_no2=0-7 ... }
 	 */
 		static constexpr chn_ext dev_chn_map [[maybe_unused]] [] = {
-				{},							//MEM
+				{2,0,0,1,2,3,4,5,6,7},		//MEM DMA2 only is supported
 				{1,0,0,2},                  //spi3_rx     Ch0
 				{1,0,5,7},                  //spi3_tx     Ch0
 				{1,0,3},                    //spi2_rx     Ch0

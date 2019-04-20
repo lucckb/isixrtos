@@ -79,7 +79,9 @@
 #endif
 
 /* MPU: Memory protection unit */
+#ifndef MPU_BASE
 #define MPU_BASE                        (SCS_BASE + 0x0D90)
+#endif
 
 /* Those defined only on CM0*/
 #if defined(__ARM_ARCH_6M__)

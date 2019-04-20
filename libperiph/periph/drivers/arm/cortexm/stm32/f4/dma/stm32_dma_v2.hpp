@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  stm32_dma_v1.hpp
+ *       Filename:  stm32_dma_v2.hpp
  *
- *    Description:  STM32 DMA controller simple version 1
+ *    Description:  
  *
  *        Version:  1.0
- *        Created:  09/10/2018 15:59:52
+ *        Created:  15.04.2019 13:58:35
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -17,27 +17,26 @@
  */
 
 #pragma once
-
 #include <periph/dma/controller.hpp>
-#include <periph/dma/dma_common.hpp>
+#include <atomic>
+#include <tuple>
 #include <isix/mutex.h>
 #include <isix/cpp/mutex.hpp>
 #include <isix/semaphore.h>
 #include <isix/cpp/semaphore.hpp>
-#include <atomic>
+#include <periph/dma/dma_common.hpp>
 
 namespace periph::dma {
 
-	class stm32_dma_v1 final : public controller {
-	public:
-		static constexpr auto nchns = 7U;
+	class stm32_dma_v2 final : public controller {
+		static constexpr auto nchns = 16;
 		static constexpr auto wait_timeout = 5000U;
-		/** Constructor */
-		stm32_dma_v1();
-		/** Destructor */
-		virtual ~stm32_dma_v1();
-		stm32_dma_v1(const stm32_dma_v1&) = delete;
-		stm32_dma_v1& operator=(const stm32_dma_v1& ) = delete;
+	public:
+		//! Constructors and destructors
+		stm32_dma_v2();
+		virtual ~stm32_dma_v2();
+		stm32_dma_v2(const stm32_dma_v2&) = delete;
+		stm32_dma_v2& operator=(const stm32_dma_v2& ) = delete;
 	private:
 		/** Single tranfer from controller */
 		int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) override;
@@ -48,12 +47,13 @@ namespace periph::dma {
 		/** Abort pending transaction */
 		int abort(channel& chn) override;
 		/** Find first unused channel slot */
-		int find_first(unsigned device, bool unused);
+		std::tuple<int,int> find_first(unsigned device, bool unused);
 		/** Configure interrupt and DMA according to flags */
-		int dma_flags_configure(const detail::controller_config& cfg, detail::tmode mode, int chn);
+		int dma_flags_configure(const detail::controller_config& cfg,
+				detail::tmode mode, int strm, int chns);
 		/** Configure dma address and speed addresses */
-		void dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, int chn);
-		void remap_alt_channel(chnid_t chn,int num);
+		void dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans,
+				int strm, detail::tmode mode);
 		void broadcast_all() {
 			m_brodcast.reset_isr(0);
 		}
@@ -65,4 +65,5 @@ namespace periph::dma {
 		isix::mutex m_mtx;
 		isix::semaphore m_brodcast { 0 };
 	};
+
 }
