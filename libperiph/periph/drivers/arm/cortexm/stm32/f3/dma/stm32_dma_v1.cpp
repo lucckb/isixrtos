@@ -47,6 +47,9 @@ namespace {
 		chn %= 8U;
 		return 1U<<(3U+4U*chn);
 	}
+	auto chn2irqn(int chn) {
+		return chn + DMA1_Channel1_IRQn;
+	}
 }
 
 /** Controller create instance with stm32 version1 */
@@ -65,11 +68,17 @@ stm32_dma_v1::stm32_dma_v1() {
 #ifdef LL_AHB1_GRP1_PERIPH_DMA2
 	LL_AHB0_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
 #endif
+    for(auto chn=0U;chn<nchns;++chn) {
+		isix::request_irq(chn2irqn(chn));
+	}
 }
 
 /** Destructor */
 stm32_dma_v1::~stm32_dma_v1()
 {
+    for(auto chn=0U;chn<nchns;++chn) {
+		isix::free_irq(chn2irqn(chn));
+	}
 #ifdef LL_AHB1_GRP1_PERIPH_DMA1
 	LL_AHB1_GRP1_DisableClock(LL_AHB1_GRP1_PERIPH_DMA1);
 #endif
@@ -310,11 +319,12 @@ int stm32_dma_v1::dma_flags_configure(const detail::controller_config& cfg, deta
 			dbg_err("Invalid dma priority mode");
 			return error::inval;
 	}
-	//Configure interrupt
-	chn += DMA1_Channel1_IRQn;
 	//dbg_info("Set irq: %i prio: %i:%i", chn, cfg.irqh, cfg.irql);
 	isix::set_irq_priority(chn, {uint8_t(cfg.irqh), uint8_t(cfg.irql)});
-	isix::request_irq(chn);
+	const auto rp=isix::irq_priority_to_raw_priority({uint8_t(cfg.irqh), uint8_t(cfg.irql)});
+	if(isix::get_raw_irq_priority(chn2irqn(chn))!=rp) {
+		isix::set_raw_irq_priority(chn2irqn(chn), rp);
+	}
 	return tsize;
 }
 
