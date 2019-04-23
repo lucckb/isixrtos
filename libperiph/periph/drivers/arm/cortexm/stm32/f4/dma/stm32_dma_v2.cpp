@@ -154,6 +154,7 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 			dmaflag_clear(strm,dmaflag::teif);
 			channel_callback(chn, nullptr, true);
 			m_act_mode[strm] = bsy_mode::idle;
+			set_handled_channel(chn);
 			broadcast_all();
 			error=true;
 		}
@@ -162,6 +163,7 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 			if(!error) {
 				channel_callback(chn, nullptr, false);
 				m_act_mode[strm] = bsy_mode::idle;
+				set_handled_channel(chn);
 				broadcast_all();
 			}
 		}
