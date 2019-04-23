@@ -179,6 +179,22 @@ void isix_set_raw_irq_priority( int irqno, isix_irq_raw_prio_t prio )
 	}
 }
 
+/** Get the raw priority
+ * @param[in] irqno IRQ input number
+ * @return Current interrupt raw priority
+ */
+isix_irq_raw_prio_t isix_get_raw_irq_priority( int irqno )
+{
+	if (irqno < 0 ) {
+		/* Cortex-M  system interrupts */
+		return SCS_SHPR((irqno & 0xF) - 4);
+	} else {
+		/* Device specific interrupts */
+		//WARNING: 8bit IO
+		return NVIC_IPR(irqno);
+	}
+}
+
 /** Set irqnumber to the requested priority level
  * @param[in] irqno IRQ input number
  * @param[in] new interrupt priority

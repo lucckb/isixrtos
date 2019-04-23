@@ -98,6 +98,11 @@ void isix_set_irq_priority( int irqno, isix_irq_prio_t priority );
  */
 void isix_set_raw_irq_priority( int irqno, isix_irq_raw_prio_t prio );
 
+/** Get the raw priority
+ * @param[in] irqno IRQ input number
+ * @return Current interrupt raw priority
+ */
+isix_irq_raw_prio_t isix_get_raw_irq_priority( int irqno );
 
 
 /** Convert isix priority to raw prioity
@@ -204,6 +209,12 @@ namespace isix {
 	set_raw_irq_priority( int irqno, irq_raw_prio_t prio )
 	{
 		::isix_set_raw_irq_priority(irqno,prio);
+	}
+
+
+	static inline irq_raw_prio_t  __attribute__((always_inline))
+	get_raw_irq_priority( int irqno ) {
+		return ::isix_get_raw_irq_priority(irqno);
 	}
 
 	static inline irq_raw_prio_t __attribute__((always_inline))
