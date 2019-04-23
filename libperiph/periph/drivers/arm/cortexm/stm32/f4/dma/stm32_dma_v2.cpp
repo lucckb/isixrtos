@@ -99,31 +99,44 @@ stm32_dma_v2::~stm32_dma_v2()
 #endif
 }
 
-/** Single tranfer from controller */
-int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len) {
-	m_mtx.lock();
-	auto& cnf = channel_config(chn);
+/** Find or wait for transmission */
+std::tuple<int,int> stm32_dma_v2::find_empty_or_wait(unsigned device)
+{
 	int strm,chnm;
 	for(;;)
 	{
-		std::tie(strm,chnm) = find_first(cnf.dev_id,true);
+		std::tie(strm,chnm) = find_first(device,true);
 		if(strm<0)
 		{
-			std::tie(strm,chnm) = find_first(cnf.dev_id,false);
+			std::tie(strm,chnm) = find_first(device,false);
 			if(strm<0)
 			{
 				dbg_err("Unable to find devmatching channel %i", strm);
-				m_mtx.unlock();
-				return strm;
+				return std::make_tuple(strm,-1);
 			}
 			else {
 				m_mtx.unlock();
 				strm = wait();
-				if(strm<0) return strm;
 				m_mtx.lock();
+				if(strm<0) return std::make_tuple(strm,-1);
 			}
 		}
 		else break;
+	}
+	return std::make_tuple(strm,chnm);
+}
+
+/** Single tranfer from controller */
+int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
+{
+	int strm,chnm;
+	m_mtx.lock();
+	const auto& cnf = channel_config(chn);
+	std::tie(strm,chnm) = find_empty_or_wait(cnf.dev_id);
+	if(strm<0) {
+		dbg_err("Slot error %i",strm);
+		m_mtx.unlock();
+		return strm;
 	}
 	//dbg_info("Stream %i, channel %i", strm, chnm);
 	const auto tmode = detail::transfer_mode(dest,src);
@@ -133,15 +146,14 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len) {
 		m_mtx.unlock();
 		return res;
 	}
-	m_act_chns[strm] = true;
+	m_act_mode[strm] = bsy_mode::single;
 	set_handled_channel(chn,strm);
 	drivers::dma::_handlers::register_handler(strm, [this, strm, &chn]() {
 		bool error {};
 		if(dmaflag_isset(strm,dmaflag::teif)) {
 			dmaflag_clear(strm,dmaflag::teif);
 			channel_callback(chn, nullptr, true);
-			set_handled_channel(chn);
-			m_act_chns[strm] = false;
+			m_act_mode[strm] = bsy_mode::idle;
 			broadcast_all();
 			error=true;
 		}
@@ -149,8 +161,7 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len) {
 			dmaflag_clear(strm,dmaflag::tcif);
 			if(!error) {
 				channel_callback(chn, nullptr, false);
-				set_handled_channel(chn);
-				m_act_chns[strm] = false;
+				m_act_mode[strm] = bsy_mode::idle;
 				broadcast_all();
 			}
 		}
@@ -165,10 +176,11 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len) {
 /** Single Continous stop tranaction */
 int stm32_dma_v2::continuous_start(channel& chn, mem_ptr mem0, mem_ptr mem1, size len)
 {
-	(void)chn;
+
 	(void)mem0;
 	(void)mem1;
 	(void)len;
+	(void)chn;
 	return error::unimplemented;
 }
 /** Continous stop transaction */
@@ -195,10 +207,12 @@ std::tuple<int,int> stm32_dma_v2::find_first(unsigned device, bool unused)
 	for(auto i=0U; i<nchns; ++i) {
 		if(mask.chn_msk()&(1U<<i)) {
 			if(unused) {
-				if(!m_act_chns[i])
+				if(m_act_mode[i]==bsy_mode::idle)
 					return std::make_tuple(i,mask.chn);
 			} else {
-				return std::make_tuple(i,mask.chn);
+				//! We can wait only for single xmit when wait for bsy
+				if(m_act_mode[i]==bsy_mode::single)
+					return std::make_tuple(i,mask.chn);
 			}
 		}
 	}

@@ -31,6 +31,11 @@ namespace periph::dma {
 	class stm32_dma_v2 final : public controller {
 		static constexpr auto nchns = 16;
 		static constexpr auto wait_timeout = 5000U;
+		enum class bsy_mode : char {
+			idle,
+			single,
+			continous
+		};
 	public:
 		//! Constructors and destructors
 		stm32_dma_v2();
@@ -48,6 +53,8 @@ namespace periph::dma {
 		int abort(channel& chn) override;
 		/** Find first unused channel slot */
 		std::tuple<int,int> find_first(unsigned device, bool unused);
+		/** Find or wait for transmission */
+		std::tuple<int,int> find_empty_or_wait(unsigned device);
 		/** Configure interrupt and DMA according to flags */
 		int dma_flags_configure(const detail::controller_config& cfg,
 				detail::tmode mode, int strm);
@@ -61,7 +68,7 @@ namespace periph::dma {
 			return m_brodcast.wait(wait_timeout);
 		}
 	private:
-		std::atomic<bool> m_act_chns[nchns] {};
+		std::atomic<bsy_mode> m_act_mode[nchns] {};
 		isix::mutex m_mtx;
 		isix::semaphore m_brodcast { 0 };
 	};
