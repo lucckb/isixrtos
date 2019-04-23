@@ -37,7 +37,9 @@ const detail::controller_config& controller::channel_config(channel& chn) {
 controller::channel_ptr_t
 	controller::alloc_channel(chnid_t dev_id, flags_t flags, irq_t irqh, irq_t irql)
 {
-	return std::make_unique<channel>(std::ref(*this),dev_id,flags,irqh,irql);
+	auto ret = std::make_unique<channel>(std::ref(*this),dev_id,flags,irqh,irql);
+	open_channel(std::ref(*ret));
+	return ret;
 }
 
 //! Set handled channel
@@ -58,6 +60,7 @@ int controller::release_channel(channel_ptr_t& chn)
 	if(chn->busy()) {
 		return error::busy;
 	}
+	close_channel(std::ref(*chn));
 	chn.reset();
 	return error::success;
 }

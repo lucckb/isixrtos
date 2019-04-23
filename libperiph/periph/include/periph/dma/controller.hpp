@@ -72,6 +72,12 @@ namespace periph::dma {
 		virtual int continous_stop(channel& chn) = 0;
 		/** Abort pending transaction */
 		virtual int abort(channel& chn) = 0;
+		//** Preconfigure channel when it is open */
+		virtual void open_channel(channel& /*chn*/) {
+		}
+		//** Preconfigure channel when it is closed */
+		virtual void close_channel(channel& /*chn*/) {
+		}
 	};
 }
 

@@ -27,11 +27,19 @@
 #include <periph/dma/dma_interrupt_handlers.hpp>
 
 namespace {
+	//! Convert stream id to dma controller
 	inline auto strm2cntrl( int strm ) {
 		return strm<=7?DMA1:DMA2;
 	}
-	inline auto strm2strm( int strm ) {
+	//! Convert stream id to dma stream number
+	inline constexpr auto strm2strm( int strm ) {
 		return strm%8;
+	}
+	//! Convert stream id to interrupt controller
+	inline auto constexpr strm2irqn( int strm ) {
+		if( strm <= 7 ) strm+=DMA1_Stream0_IRQn;
+		else  strm=strm-8+DMA2_Stream0_IRQn;
+		return strm;
 	}
 	//! DMA controller flags
 	enum class dmaflag {feif,_reserved_, dmeif,teif,htif,tcif};
@@ -49,7 +57,7 @@ namespace {
 			={&DMA1->LIFCR,&DMA1->HIFCR,&DMA2->LIFCR,&DMA2->HIFCR};
 		*cr[chn/4] = 1U<<((index[chn%4]+int(fl)));
 	}
-
+	//! Translate channel number to phycical channel map
 	inline decltype(LL_DMA_CHANNEL_0) chn2llchn(int chn) {
 		if( chn > 7 || chn < 0) return 0;
 		static constexpr decltype(LL_DMA_CHANNEL_0) chtab[] = {
@@ -76,11 +84,15 @@ stm32_dma_v2::stm32_dma_v2()
 #ifdef LL_AHB1_GRP1_PERIPH_DMA2
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
 #endif
+    for(int strm=0;strm<nchns;++strm)
+		isix::request_irq(strm2irqn(strm));
 }
 
 //! Destructor
 stm32_dma_v2::~stm32_dma_v2()
 {
+    for(int strm=0;strm<nchns;++strm)
+		isix::free_irq(strm2irqn(strm));
   LL_AHB1_GRP1_DisableClock(LL_AHB1_GRP1_PERIPH_DMA1);
 #ifdef LL_AHB1_GRP1_PERIPH_DMA2
   LL_AHB1_GRP1_DisableClock(LL_AHB1_GRP1_PERIPH_DMA2);
@@ -171,6 +183,7 @@ int stm32_dma_v2::abort(channel& chn)
 	(void)chn;
 	return error::unimplemented;
 }
+
 
 /** Find first unused channel slot */
 std::tuple<int,int> stm32_dma_v2::find_first(unsigned device, bool unused)
@@ -311,10 +324,10 @@ int stm32_dma_v2::dma_flags_configure(const detail::controller_config& cfg,
 	LL_DMA_SetMemoryBurstxfer(strm2cntrl(strm),strm2strm(strm),LL_DMA_MBURST_SINGLE);
 	LL_DMA_SetPeriphBurstxfer(strm2cntrl(strm),strm2strm(strm),LL_DMA_PBURST_SINGLE);
 	//Configure interrupt
-	if( strm <= 7 ) strm+=DMA1_Stream0_IRQn;
-	else  strm=strm-8+DMA2_Stream0_IRQn;
-	isix::set_irq_priority(strm, {uint8_t(cfg.irqh), uint8_t(cfg.irql)});
-	isix::request_irq(strm);
+	const auto rp=isix::irq_priority_to_raw_priority({uint8_t(cfg.irqh), uint8_t(cfg.irql)});
+	if(isix::get_raw_irq_priority(strm2irqn(strm))!=rp) {
+		isix::set_raw_irq_priority(strm2irqn(strm), rp);
+	}
 	return tsize;
 }
 
