@@ -68,7 +68,9 @@ namespace {
 			auto tmpreg [[maybe_unused]] = spi->DR;
 		}
 #else
-		static_cast<void>(spi);
+		while(LL_SPI_IsActiveFlag_RXNE(spi)) {
+			auto tmpreg [[maybe_unused]] = spi->DR;
+		}
 #endif
 	}
 }
@@ -110,7 +112,7 @@ int spi_master::do_open(int timeout)
 			//Configure interrupt
 			dt::device_conf cnf;
 			if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
-			dbg_info("Set irq: %i prio: %i:%i", cnf.irqnum, cnf.irqfh, cnf.irqfl);
+			//dbg_info("Set irq: %i prio: %i:%i", cnf.irqnum, cnf.irqfh, cnf.irqfl);
 			if(!m_dma) {
 				isix::set_irq_priority(cnf.irqnum, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
 				isix::request_irq(cnf.irqnum); error::expose<error::bus_exception>(ret);
@@ -189,12 +191,13 @@ int spi_master::do_close()
 int spi_master::transaction(int addr, const blk::transfer& data)
 {
 	int ret {};
+	int tret {};
 	if(addr<0 || addr>=int(sizeof(m_cs)/sizeof(m_cs[0]))) {
 		dbg_err("Invalid address");
 		return error::invaddr;
 	}
 	isix::mutex_locker _lock(m_mtx);
-	ret = start_transfer(std::ref(data),std::ref(ret));
+	ret = start_transfer(std::ref(data),std::ref(tret));
 	if( ret ) {
 		dbg_info("Invalid arguments");
 		return ret;
@@ -207,6 +210,7 @@ int spi_master::transaction(int addr, const blk::transfer& data)
 		return ret;
 	}
 	ret = m_wait.wait(m_timeout);
+	if(!ret) ret = tret;
 	//Now finalize transfer
 	constexpr auto duration = 50U;
 	{
@@ -307,14 +311,12 @@ int spi_master::clk_conf(bool en)
 			ret = error::success;
 		}
 	} while(0);
-	dbg_info("clock setup status %i", ret);
 	return ret;
 }
 
 //Gpio configuration
 int spi_master::gpio_conf(bool en)
 {
-	dbg_info("gpio_config(%i)", en);
 	auto mux = dt::get_periph_pin_mux(io<void>());
 	if(mux<0) return mux;
 	for(auto it=dt::pinfunc::sck;it<=dt::pinfunc::mosi;++it) {
@@ -340,7 +342,6 @@ int spi_master::gpio_conf(bool en)
 			}
 		}
 	}
-	dbg_info("Pin exit success %i", en);
 	return error::success;
 }
 

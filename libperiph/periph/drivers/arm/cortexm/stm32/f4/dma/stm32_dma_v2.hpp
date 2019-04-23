@@ -50,10 +50,10 @@ namespace periph::dma {
 		std::tuple<int,int> find_first(unsigned device, bool unused);
 		/** Configure interrupt and DMA according to flags */
 		int dma_flags_configure(const detail::controller_config& cfg,
-				detail::tmode mode, int strm, int chns);
+				detail::tmode mode, int strm);
 		/** Configure dma address and speed addresses */
 		void dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans,
-				int strm, detail::tmode mode);
+				int strm, detail::tmode mode, int chns);
 		void broadcast_all() {
 			m_brodcast.reset_isr(0);
 		}

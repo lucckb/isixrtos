@@ -3,7 +3,7 @@
  *
  *       Filename:  stm32_dma_v2.cpp
  *
- *    Description:  
+ *    Description:  DMA controller version 2 for stm32 devices
  *
  *        Version:  1.0
  *        Created:  15.04.2019 13:59:53
@@ -35,17 +35,29 @@ namespace {
 	}
 	//! DMA controller flags
 	enum class dmaflag {feif,_reserved_, dmeif,teif,htif,tcif};
+	//! Check if flag is set
 	inline bool dmaflag_isset(int chn, dmaflag fl) {
 		static constexpr int index[] = { 0, 6, 16, 22 };
-		static const volatile uint32_t* sr[]
+		static const volatile uint32_t* const sr[]
 			={&DMA1->LISR,&DMA1->HISR,&DMA2->LISR,&DMA2->HISR};
-		return *sr[chn/4] & (1U<<(index[chn%4]+int(fl)));
+		return (*sr[chn/4]&(1U<<(index[chn%4]+int(fl))))!=0;
 	}
+	//! Clear interrupt flag
 	inline void dmaflag_clear(int chn, dmaflag fl) {
 		static constexpr int index[] = { 0, 6, 16, 22 };
-		static volatile uint32_t* cr[]
+		static volatile uint32_t* const cr[]
 			={&DMA1->LIFCR,&DMA1->HIFCR,&DMA2->LIFCR,&DMA2->HIFCR};
 		*cr[chn/4] = 1U<<((index[chn%4]+int(fl)));
+	}
+
+	inline decltype(LL_DMA_CHANNEL_0) chn2llchn(int chn) {
+		if( chn > 7 || chn < 0) return 0;
+		static constexpr decltype(LL_DMA_CHANNEL_0) chtab[] = {
+			LL_DMA_CHANNEL_0, LL_DMA_CHANNEL_1, LL_DMA_CHANNEL_2,
+			LL_DMA_CHANNEL_3, LL_DMA_CHANNEL_4, LL_DMA_CHANNEL_5,
+			LL_DMA_CHANNEL_6, LL_DMA_CHANNEL_7
+		};
+		return chtab[chn];
 	}
 }
 
@@ -101,9 +113,9 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len) {
 		}
 		else break;
 	}
-	dbg_info("Stream %i, channel %i", strm, chnm);
+	//dbg_info("Stream %i, channel %i", strm, chnm);
 	const auto tmode = detail::transfer_mode(dest,src);
-	int res = dma_flags_configure(cnf,tmode,strm,chnm);
+	int res = dma_flags_configure(cnf,tmode,strm);
 	if(res<0) {
 		dbg_err("Dma flag configure error %i", strm);
 		m_mtx.unlock();
@@ -112,25 +124,29 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len) {
 	m_act_chns[strm] = true;
 	set_handled_channel(chn,strm);
 	drivers::dma::_handlers::register_handler(strm, [this, strm, &chn]() {
-		if(dmaflag_isset(strm,dmaflag::tcif)) {
-			dmaflag_clear(strm,dmaflag::tcif);
-			channel_callback(chn, nullptr, false);
-			set_handled_channel(chn);
-			m_act_chns[strm] = false;
-			broadcast_all();
-		}
+		bool error {};
 		if(dmaflag_isset(strm,dmaflag::teif)) {
 			dmaflag_clear(strm,dmaflag::teif);
 			channel_callback(chn, nullptr, true);
 			set_handled_channel(chn);
 			m_act_chns[strm] = false;
 			broadcast_all();
+			error=true;
+		}
+		if(dmaflag_isset(strm,dmaflag::tcif)) {
+			dmaflag_clear(strm,dmaflag::tcif);
+			if(!error) {
+				channel_callback(chn, nullptr, false);
+				set_handled_channel(chn);
+				m_act_chns[strm] = false;
+				broadcast_all();
+			}
 		}
 		LL_DMA_DisableIT_TC(strm2cntrl(strm),strm2strm(strm));
 		LL_DMA_DisableIT_TE(strm2cntrl(strm),strm2strm(strm));
 		LL_DMA_DisableStream(strm2cntrl(strm),strm2strm(strm));
 	});
-	dma_addr_configure(dest,src,len/res,strm,tmode);
+	dma_addr_configure(dest,src,len/res,strm,tmode,chnm);
 	m_mtx.unlock();
 	return error::success;
 }
@@ -177,12 +193,8 @@ std::tuple<int,int> stm32_dma_v2::find_first(unsigned device, bool unused)
 }
 //! DMA configure
 int stm32_dma_v2::dma_flags_configure(const detail::controller_config& cfg,
-		detail::tmode mode, int strm, int chns)
+		detail::tmode mode, int strm)
 {
-	LL_DMA_ConfigFifo(strm2cntrl(strm),strm2strm(strm),
-			LL_DMA_FIFOMODE_ENABLE, LL_DMA_FIFOTHRESHOLD_1_2);
-	LL_DMA_SetMemoryBurstxfer(strm2cntrl(strm),strm2strm(strm),LL_DMA_MBURST_SINGLE);
-	LL_DMA_SetPeriphBurstxfer(strm2cntrl(strm),strm2strm(strm),LL_DMA_PBURST_SINGLE);
 	uint32_t config_transfer {};
 	size_t tsize {1};
 	switch(mode) {
@@ -292,12 +304,15 @@ int stm32_dma_v2::dma_flags_configure(const detail::controller_config& cfg,
 			dbg_err("Invalid dma priority mode");
 			return error::inval;
 	}
+	LL_DMA_DeInit(strm2cntrl(strm),strm2strm(strm));
 	LL_DMA_ConfigTransfer(strm2cntrl(strm),strm2strm(strm),config_transfer);
-	LL_DMA_SetChannelSelection(strm2cntrl(strm),strm2strm(strm),chns);
+	LL_DMA_ConfigFifo(strm2cntrl(strm),strm2strm(strm),
+			LL_DMA_FIFOMODE_ENABLE, LL_DMA_FIFOTHRESHOLD_1_2);
+	LL_DMA_SetMemoryBurstxfer(strm2cntrl(strm),strm2strm(strm),LL_DMA_MBURST_SINGLE);
+	LL_DMA_SetPeriphBurstxfer(strm2cntrl(strm),strm2strm(strm),LL_DMA_PBURST_SINGLE);
 	//Configure interrupt
 	if( strm <= 7 ) strm+=DMA1_Stream0_IRQn;
 	else  strm=strm-8+DMA2_Stream0_IRQn;
-	//dbg_info("Set irq: %i prio: %i:%i", chn, cfg.irqh, cfg.irql);
 	isix::set_irq_priority(strm, {uint8_t(cfg.irqh), uint8_t(cfg.irql)});
 	isix::request_irq(strm);
 	return tsize;
@@ -305,7 +320,7 @@ int stm32_dma_v2::dma_flags_configure(const detail::controller_config& cfg,
 
 /** Configure dma address and speed addresses */
 void stm32_dma_v2::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans,
-		int strm, detail::tmode mode)
+		int strm, detail::tmode mode, int chns)
 {
 	if(mode==detail::tmode::periph2mem||mode==detail::tmode::mem2mem) {
 		LL_DMA_SetMemoryAddress(strm2cntrl(strm),strm2strm(strm),
@@ -319,6 +334,7 @@ void stm32_dma_v2::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans,
 			reinterpret_cast<uintptr_t>(dest) );
 	}
 	LL_DMA_SetDataLength(strm2cntrl(strm),strm2strm(strm),ntrans);
+	LL_DMA_SetChannelSelection(strm2cntrl(strm),strm2strm(strm),chn2llchn(chns));
 	LL_DMA_EnableIT_TC(strm2cntrl(strm),strm2strm(strm));
 	LL_DMA_EnableIT_TE(strm2cntrl(strm),strm2strm(strm));
 	LL_DMA_EnableStream(strm2cntrl(strm),strm2strm(strm));
