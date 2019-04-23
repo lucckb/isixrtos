@@ -135,7 +135,7 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 			LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
 			LL_DMA_DisableIT_TC(chn2cntrl(chnf),chn2hwchn(chnf));
 			LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
-			channel_callback(chn, nullptr, false);
+			channel_callback(chn, false);
 			set_handled_channel(chn);
 			m_act_chns[chnf] = false;
 			broadcast_all();
@@ -145,7 +145,7 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 			LL_DMA_DisableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
 			LL_DMA_DisableIT_TC(chn2cntrl(chnf),chn2hwchn(chnf));
 			LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
-			channel_callback(chn, nullptr, true);
+			channel_callback(chn, true);
 			set_handled_channel(chn);
 			m_act_chns[chnf] = false;
 			broadcast_all();
@@ -158,11 +158,11 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 /** TODO: STM32v1 controller doesn't support double buffer mode transfer
  * so it is not implemented */
 /** Single Continous stop tranaction */
-int stm32_dma_v1::continuous_start(channel& /*chn*/, mem_ptr /*mem0*/, mem_ptr /*mem1*/, size /*len*/)
+int stm32_dma_v1::continuous_start(channel& , mem_ptr ,
+		mem_ptr , mem_ptr , size , dblbuf_dir )
 {
 	return error::not_supported;
 }
-/** Continous stop transaction */
 int stm32_dma_v1::continous_stop(channel& /*chn*/)
 {
 	return error::not_supported;

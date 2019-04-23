@@ -42,7 +42,8 @@ namespace periph::dma {
 		/** Single tranfer from controller */
 		int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) override;
 		/** Single Continous stop tranaction */
-		int continuous_start(channel& chn, mem_ptr mem0, mem_ptr mem1, size len) override;
+		int continuous_start(channel& chn, mem_ptr mem0,
+				mem_ptr mem1, mem_ptr periph, size len, dblbuf_dir dir) override;
 		/** Continous stop transaction */
 		int continous_stop(channel& chn) override;
 		/** Abort pending transaction */
