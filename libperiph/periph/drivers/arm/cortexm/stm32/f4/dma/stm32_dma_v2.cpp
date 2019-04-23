@@ -191,11 +191,22 @@ int stm32_dma_v2::continous_stop(channel& chn)
 	(void)chn;
 	return error::unimplemented;
 }
+
 /** Abort pending transaction */
 int stm32_dma_v2::abort(channel& chn)
 {
-	(void)chn;
-	return error::unimplemented;
+	isix::mutex_locker _lck(m_mtx);
+	int strm = get_handled_channel(chn);
+	if(strm<0) {
+		dbg_warn("Stream %i is not active", strm);
+		return error::noent;
+	}
+	LL_DMA_DisableIT_TC(strm2cntrl(strm),strm2strm(strm));
+	LL_DMA_DisableIT_TE(strm2cntrl(strm),strm2strm(strm));
+	LL_DMA_DisableStream(strm2cntrl(strm),strm2strm(strm));
+	m_act_mode[strm] = bsy_mode::idle;
+	set_handled_channel(chn);
+	return error::success;
 }
 
 
