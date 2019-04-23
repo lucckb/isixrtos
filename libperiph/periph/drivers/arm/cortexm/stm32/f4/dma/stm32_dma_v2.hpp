@@ -46,9 +46,8 @@ namespace periph::dma {
 		/** Single tranfer from controller */
 		int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) override;
 		/** Single Continous stop tranaction */
-		int continuous_start(channel& chn, mem_ptr mem0, mem_ptr mem1, size len) override;
-		/** Continous stop transaction */
-		int continous_stop(channel& chn) override;
+		int continuous_start(channel& chn, mem_ptr mem0,
+				mem_ptr mem1, mem_ptr periph, size len, dblbuf_dir dir) override;
 		/** Abort pending transaction */
 		int abort(channel& chn) override;
 		/** Find first unused channel slot */
@@ -61,6 +60,9 @@ namespace periph::dma {
 		/** Configure dma address and speed addresses */
 		void dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans,
 				int strm, detail::tmode mode, int chns);
+		// Double buffer mode address
+		void dma_addr_configure(mem_ptr mem0, mem_ptr mem1, mem_ptr periph,
+				size ntrans, int strm, int chns );
 		void broadcast_all() {
 			m_brodcast.reset_isr(0);
 		}

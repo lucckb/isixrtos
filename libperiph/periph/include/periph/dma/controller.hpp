@@ -57,7 +57,9 @@ namespace periph::dma {
 		//! Private constructor by factory method only
 		controller() {}
 		//! Channel callback
-		static void channel_callback(channel& chn,mem_ptr mem, bool te) noexcept;
+		static void* channel_callback(channel& chn,mem_ptr mem) noexcept;
+		//! Channel callback v2
+		static void channel_callback(channel& chn, bool te) noexcept;
 		//! Config callback
 		static const detail::controller_config& channel_config(channel& chn);
 		//! Configure channel id
@@ -67,9 +69,12 @@ namespace periph::dma {
 		/** Single tranfer from controller */
 		virtual int single(channel& chn, mem_ptr dest, cmem_ptr src, size len) = 0;
 		/** Single Continous stop tranaction */
-		virtual int continuous_start(channel& chn, mem_ptr mem0, mem_ptr mem1, size len) = 0;
+		virtual int continuous_start(channel& chn, mem_ptr mem0,
+				mem_ptr mem1, mem_ptr periph, size len, dblbuf_dir dir) = 0;
 		/** Continous stop transaction */
-		virtual int continous_stop(channel& chn) = 0;
+		virtual int continous_stop(channel& chn) {
+			return abort(chn);
+		}
 		/** Abort pending transaction */
 		virtual int abort(channel& chn) = 0;
 		//** Preconfigure channel when it is open */

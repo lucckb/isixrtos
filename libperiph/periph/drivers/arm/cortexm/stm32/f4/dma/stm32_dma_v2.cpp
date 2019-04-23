@@ -152,7 +152,7 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 		bool error {};
 		if(dmaflag_isset(strm,dmaflag::teif)) {
 			dmaflag_clear(strm,dmaflag::teif);
-			channel_callback(chn, nullptr, true);
+			channel_callback(chn, true);
 			m_act_mode[strm] = bsy_mode::idle;
 			set_handled_channel(chn);
 			broadcast_all();
@@ -161,7 +161,7 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 		if(dmaflag_isset(strm,dmaflag::tcif)) {
 			dmaflag_clear(strm,dmaflag::tcif);
 			if(!error) {
-				channel_callback(chn, nullptr, false);
+				channel_callback(chn, false);
 				m_act_mode[strm] = bsy_mode::idle;
 				set_handled_channel(chn);
 				broadcast_all();
@@ -176,20 +176,74 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 	return error::success;
 }
 /** Single Continous stop tranaction */
-int stm32_dma_v2::continuous_start(channel& chn, mem_ptr mem0, mem_ptr mem1, size len)
+int stm32_dma_v2::continuous_start(channel& chn, mem_ptr mem0,
+		mem_ptr mem1, mem_ptr periph, size len, dblbuf_dir dir)
 {
+	int strm,chnm;
+	m_mtx.lock();
+	const auto& cnf = channel_config(chn);
+	std::tie(strm,chnm) = find_empty_or_wait(cnf.dev_id);
+	if(strm<0) {
+		dbg_err("Slot error %i",strm);
+		m_mtx.unlock();
+		return strm;
+	}
+	int res = dma_flags_configure(cnf,
+		(dir==dblbuf_dir::mem2periph)?(detail::tmode::mem2periph):(detail::tmode::periph2mem),
+		strm
+	);
+	if(res<0) {
+		dbg_err("Dma flag configure error %i", strm);
+		m_mtx.unlock();
+		return res;
+	}
+	//Configure double buffering hardwares setup
+	LL_DMA_SetIncOffsetSize(strm2cntrl(strm),strm2strm(strm),LL_DMA_OFFSETSIZE_PSIZE);
+	LL_DMA_SetCurrentTargetMem(strm2cntrl(strm),strm2strm(strm),LL_DMA_CURRENTTARGETMEM0);
+	LL_DMA_EnableDoubleBufferMode(strm2cntrl(strm),strm2strm(strm));
 
-	(void)mem0;
-	(void)mem1;
-	(void)len;
-	(void)chn;
-	return error::unimplemented;
-}
-/** Continous stop transaction */
-int stm32_dma_v2::continous_stop(channel& chn)
-{
-	(void)chn;
-	return error::unimplemented;
+	m_act_mode[strm] = bsy_mode::continous;
+	set_handled_channel(chn,strm);
+	drivers::dma::_handlers::register_handler(strm, [this, strm, &chn]() {
+		bool error {};
+		if(dmaflag_isset(strm,dmaflag::teif)) {
+			dmaflag_clear(strm,dmaflag::teif);
+			channel_callback(chn, nullptr);
+			m_act_mode[strm] = bsy_mode::idle;
+			set_handled_channel(chn);
+			broadcast_all();
+			error=true;
+		}
+		if(dmaflag_isset(strm,dmaflag::tcif)) {
+			dmaflag_clear(strm,dmaflag::tcif);
+			if(!error) {
+				const auto tm = LL_DMA_GetCurrentTargetMem(strm2cntrl(strm),strm2strm(strm));
+				const auto oldmem = reinterpret_cast<void*>(
+					tm==LL_DMA_CURRENTTARGETMEM0 ?
+						LL_DMA_GetMemory1Address(strm2cntrl(strm),strm2strm(strm)) :
+						LL_DMA_GetMemoryAddress(strm2cntrl(strm),strm2strm(strm)) );
+				const auto newmem = channel_callback(chn,oldmem);
+				if(newmem) {
+					auto tfunc=
+						tm==LL_DMA_CURRENTTARGETMEM0?&LL_DMA_SetMemoryAddress:
+						&LL_DMA_SetMemoryAddress;
+					tfunc(strm2cntrl(strm),strm2strm(strm),reinterpret_cast<uint32_t>(newmem));
+				} else {
+					LL_DMA_DisableIT_TC(strm2cntrl(strm),strm2strm(strm));
+					LL_DMA_DisableIT_TE(strm2cntrl(strm),strm2strm(strm));
+					LL_DMA_DisableStream(strm2cntrl(strm),strm2strm(strm));
+					m_act_mode[strm] = bsy_mode::idle;
+					set_handled_channel(chn);
+					broadcast_all();
+				}
+			}
+		}
+
+	});
+	dma_addr_configure(mem0,mem1,periph,len/res,strm,chnm);
+	m_mtx.unlock();
+	return error::success;
+
 }
 
 /** Abort pending transaction */
@@ -381,5 +435,22 @@ void stm32_dma_v2::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans,
 }
 
 
+// Double buffer mode address
+void stm32_dma_v2::dma_addr_configure(mem_ptr mem0, mem_ptr mem1,
+		mem_ptr periph, size ntrans, int strm, int chns )
+{
+	LL_DMA_SetMemoryAddress(strm2cntrl(strm),strm2strm(strm),
+			reinterpret_cast<uintptr_t>(mem0));
+	LL_DMA_SetMemory1Address(strm2cntrl(strm),strm2strm(strm),
+			reinterpret_cast<uintptr_t>(mem1));
+	LL_DMA_SetPeriphAddress(strm2cntrl(strm),strm2strm(strm),
+			reinterpret_cast<uintptr_t>(periph));
+	LL_DMA_SetDataLength(strm2cntrl(strm),strm2strm(strm),ntrans);
+	LL_DMA_SetChannelSelection(strm2cntrl(strm),strm2strm(strm),chn2llchn(chns));
+	LL_DMA_EnableIT_TC(strm2cntrl(strm),strm2strm(strm));
+	LL_DMA_EnableIT_TE(strm2cntrl(strm),strm2strm(strm));
+	LL_DMA_EnableStream(strm2cntrl(strm),strm2strm(strm));
+
+}
 
 }

@@ -25,4 +25,9 @@ namespace periph::dma {
 	using size = std::size_t;
 	using chnid_t = int16_t;
 	using flags_t = uint16_t;
+
+    enum class dblbuf_dir : bool {
+		periph2mem,
+		mem2periph
+	};
 }

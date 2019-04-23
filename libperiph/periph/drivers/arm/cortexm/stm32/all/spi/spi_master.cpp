@@ -140,10 +140,10 @@ int spi_master::do_open(int timeout)
 					(m_transfer_size>8?fl::mode_src_size_halfword:fl::mode_src_size_byte),
 					cnf.irqfh, cnf.irqfl);
 
-				m_dma_tx->callback( std::bind(&spi_master::dma_interrupt_handler,this,
-					std::placeholders::_1, std::placeholders::_2, true) );
-				m_dma_rx->callback( std::bind(&spi_master::dma_interrupt_handler,this,
-					std::placeholders::_1, std::placeholders::_2, false) );
+				m_dma_tx->callback( std::bind(&spi_master::dma_interrupt_handler,
+						this, std::placeholders::_1, true) );
+				m_dma_rx->callback( std::bind(&spi_master::dma_interrupt_handler,
+						this, std::placeholders::_1, false) );
 			}
 		}
 	} while(0);
@@ -443,7 +443,7 @@ void spi_master::interrupt_handler() noexcept
 }
 
 //! DMA interrupt handler
-void spi_master::dma_interrupt_handler(periph::dma::mem_ptr, bool err, bool tx) noexcept
+void spi_master::dma_interrupt_handler(bool err, bool tx) noexcept
 {
 	if(err) {
 		finalize_transfer(error::overrun);

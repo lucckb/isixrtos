@@ -60,7 +60,7 @@ namespace periph::drivers {
 		void finalize_transfer(int err) noexcept;
 		int periphint_config() noexcept;
 		void periph_deconfig() noexcept;
-		void dma_interrupt_handler(periph::dma::mem_ptr ptr, bool err, bool tx) noexcept;
+		void dma_interrupt_handler(bool err, bool tx) noexcept;
 	private:
 		int m_cs[4] {invcs,invcs,invcs,invcs};
 		std::atomic<size_type> m_rxsiz{}, m_txsiz{}, m_rxi {}, m_txi{};
