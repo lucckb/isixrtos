@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<diagram program="umlet" version="14.2">
+<diagram program="umlet" version="14.3.0">
   <zoom_level>10</zoom_level>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>150</x>
-      <y>150</y>
+      <x>360</x>
+      <y>240</y>
       <w>480</w>
       <h>230</h>
     </coordinates>
@@ -30,9 +30,9 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>60</x>
-      <y>440</y>
-      <w>440</w>
+      <x>220</x>
+      <y>530</y>
+      <w>490</w>
       <h>110</h>
     </coordinates>
     <panel_attributes>block_device
@@ -41,14 +41,14 @@
 + bus_type(): type
 + transaction( address_t address, const transfer&amp; data): int
 + transaction( address_t address, const transfers&amp; data): int
-+ transaction&lt;T&gt;( address_t address, const T... data);</panel_attributes>
++ transaction( address_t address, const transfer_chain&amp; data): int </panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>550</x>
-      <y>440</y>
+      <x>780</x>
+      <y>530</y>
       <w>350</w>
       <h>120</h>
     </coordinates>
@@ -67,8 +67,8 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>240</x>
-      <y>370</y>
+      <x>390</x>
+      <y>460</y>
       <w>30</w>
       <h>90</h>
     </coordinates>
@@ -78,8 +78,8 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>560</x>
-      <y>370</y>
+      <x>790</x>
+      <y>460</y>
       <w>30</w>
       <h>90</h>
     </coordinates>
@@ -89,8 +89,8 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>790</x>
-      <y>160</y>
+      <x>1000</x>
+      <y>250</y>
       <w>400</w>
       <h>130</h>
     </coordinates>
@@ -108,12 +108,225 @@ _+ instance(): peripheral_manager&amp;_
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>620</x>
-      <y>220</y>
+      <x>830</x>
+      <y>310</y>
       <w>190</w>
       <h>30</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
     <additional_attributes>10.0;10.0;170.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>710</x>
+      <y>460</y>
+      <w>70</w>
+      <h>330</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;call&gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;310.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>620</x>
+      <y>770</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>transfer
+--
+--
++ type(): _type
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>960</x>
+      <y>760</y>
+      <w>120</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;enumeration&gt;&gt;
+_type
+--
+tx
+rx
+trx</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>820</x>
+      <y>810</y>
+      <w>160</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>140.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>640</x>
+      <y>830</y>
+      <w>30</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>550</x>
+      <y>900</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>transfer_base &lt;T&gt;
+--
+--
++ buf(): T
++ size(): size_t
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>790</x>
+      <y>900</y>
+      <w>210</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>trx_transfer_base &lt;T&gt;
+--
+--
++ tx_buf(): T
++ rx_buf(): T
++ size(): size_t</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>800</x>
+      <y>830</y>
+      <w>30</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>330</x>
+      <y>1050</y>
+      <w>270</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>tx_transfer &lt;T&gt;
+--
+--
++ tx_transfer(const T buf, size_t siz)
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>630</x>
+      <y>1050</y>
+      <w>220</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>rx_transfer &lt;T&gt;
+--
+--
++rx_transfer(T buf, size_t siz)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>960</y>
+      <w>30</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>960</y>
+      <w>30</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>890</x>
+      <y>1050</y>
+      <w>310</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>trx_transfer &lt;T&gt;
+--
+--
++trx_transfer(const T tx, T rx, size_t siz)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>940</x>
+      <y>970</y>
+      <w>30</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>550</y>
+      <w>120</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;enumeration&gt;&gt;
+bus_type
+--
+spi,
+i2c</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>110</x>
+      <y>580</y>
+      <w>130</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>110.0;10.0;10.0;10.0</additional_attributes>
   </element>
 </diagram>

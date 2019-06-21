@@ -25,7 +25,7 @@ extern unsigned long _estack;	   /* init value for the stack pointer. defined in
 
 
 extern void _mcu_reset_handler_(void) __attribute__((interrupt,noreturn));
-static void unused_vector(void) __attribute__((interrupt,noreturn));
+static void unused_vector(void) __attribute__((interrupt));
 static void unused_vector() { while(1); }
 typedef void(*vect_fun_t)(void);
 
