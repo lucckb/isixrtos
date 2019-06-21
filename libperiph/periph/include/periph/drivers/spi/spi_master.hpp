@@ -17,10 +17,8 @@
  */
 #pragma once
 
-#include <isix/mutex.h>
-#include <isix/semaphore.h>
-#include <isix/cpp/mutex.hpp>
-#include <isix/cpp/semaphore.hpp>
+#include <isix/mutex.hpp>
+#include <isix/semaphore.hpp>
 #include <periph/core/block_device.hpp>
 #include <periph/dma/controller.hpp>
 #include <atomic>
