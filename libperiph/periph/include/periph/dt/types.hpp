@@ -36,7 +36,8 @@ namespace periph::dt {
 		sck, miso, mosi,
 		cs0, cs1, cs2, cs3,
 		rxd, txd,
-        rst, rw
+        rst, rw,
+		sda, scl
 	};
 
 	//++ operator

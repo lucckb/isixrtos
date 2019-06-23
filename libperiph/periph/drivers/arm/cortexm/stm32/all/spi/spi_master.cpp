@@ -101,13 +101,9 @@ int spi_master::do_open(int timeout)
 		if(!m_transfer_size) {
 			ret = error::init; break;
 		}
-		{
 			//Clock config
-			dt::clk_periph pclk;
-			ret = dt::get_periph_clock(io<void>(), pclk); if(ret) break;
-			ret = clk_conf(true); if(ret) break;
-			ret = gpio_conf(true); if(ret) break;
-		}
+		ret = clock::device_enable(io<void>(),true); if(ret) break;
+		ret = gpio_conf(true); if(ret) break;
 		{
 			//Configure interrupt
 			dt::device_conf cnf;
@@ -164,7 +160,7 @@ int spi_master::do_close()
 		}
 		dt::clk_periph pclk;
 		ret = dt::get_periph_clock(io<void>(), pclk); if(ret) break;
-		ret = clk_conf(false); if(ret) break;
+		ret = clock::device_enable(io<void>(),false); if(ret) break;
 		ret = gpio_conf(false); if(ret) break;
 		{
 			//Configure interrupt
@@ -242,7 +238,7 @@ int spi_master::do_set_option(const option::device_option& opt)
 		LL_SPI_DATAWIDTH_16BIT,
 	};
 #endif
-	ret = clk_conf(true);
+	ret = clock::device_enable(io<void>(),true);
 	if( ret < 0 ) {
 		dbg_err("Unable to enable clock %i", ret );
 	}
@@ -295,24 +291,6 @@ int spi_master::do_set_option(const option::device_option& opt)
 	return ret;
 }
 
-// Clocks configuration
-int spi_master::clk_conf(bool en)
-{
-	int ret {};
-	dt::clk_periph pclk;
-	do {
-		if((ret=dt::get_periph_clock(io<void>(),pclk))<0) break;
-		if((ret=clock::device_is_enabled(pclk))<0) break;
-		if(en && ret==0) {
-			if((ret=clock::device_enable(pclk))<0) break;
-		} else if(!en && ret>0) {
-			if((ret=clock::device_disable(pclk))<0) break;
-		} else {
-			ret = error::success;
-		}
-	} while(0);
-	return ret;
-}
 
 //Gpio configuration
 int spi_master::gpio_conf(bool en)

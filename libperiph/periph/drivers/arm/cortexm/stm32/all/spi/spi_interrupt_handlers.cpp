@@ -45,7 +45,7 @@ namespace {
 }
 
 
-	int register_handler(const SPI_TypeDef * const spi, std::function<void()> callback ) {
+int register_handler(const SPI_TypeDef * const spi, std::function<void()> callback) {
 #ifdef SPI1
 		if(spi==SPI1) {
 			spi_vector[0] = callback;

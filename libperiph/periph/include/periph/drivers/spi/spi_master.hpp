@@ -49,7 +49,6 @@ namespace periph::drivers {
 		int do_close() override;
 	private:
 		int do_set_option(const option::device_option& opt) override;
-		int clk_conf(bool en);
 		int gpio_conf(bool en);
 		int clk_to_presc(unsigned hz);
 		void interrupt_handler() noexcept;

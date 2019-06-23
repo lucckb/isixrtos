@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <periph/dt/types.hpp>
+#include <periph/dt/dts.hpp>
 #include <periph/clock/clocks_impl.hpp>
 
 
@@ -58,6 +58,29 @@ namespace {
 		return impl::device_reset( clk );
 	}
 
+	/** Enable or disable device by address and ioctl
+	 *  Common hi level API
+	 * @param[in] ioaddr Device io address
+	 * @param[in] en Enable or disable device
+	 * @return error code
+	 */
+	inline int device_enable(void* const ioaddr, bool en)
+	{
+		int ret {};
+		dt::clk_periph pclk;
+		do {
+			if((ret=dt::get_periph_clock(ioaddr,pclk))<0) break;
+			if((ret=clock::device_is_enabled(pclk))<0) break;
+			if(en && ret==0) {
+				if((ret=clock::device_enable(pclk))<0) break;
+			} else if(!en && ret>0) {
+				if((ret=clock::device_disable(pclk))<0) break;
+			} else {
+				ret = error::success;
+			}
+		} while(0);
+		return ret;
+	}
 
 
 }}}
