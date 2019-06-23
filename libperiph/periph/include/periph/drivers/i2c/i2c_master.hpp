@@ -23,6 +23,10 @@ namespace periph::blk {
 	class transfer;
 }
 
+namespace periph::drivers::i2c::_handlers {
+	enum class htype : bool ;
+}
+
 namespace periph::drivers {
 	class i2c_master final : public block_device
 	{
@@ -37,6 +41,7 @@ namespace periph::drivers {
 		int do_close() override;
 		int do_set_option(const option::device_option& opt) override;
 	private:
-		void interrupt_handler() noexcept;
+		void interrupt_handler(i2c::_handlers::htype) noexcept;
+		int periph_conf(bool en) noexcept;
 	};
 }

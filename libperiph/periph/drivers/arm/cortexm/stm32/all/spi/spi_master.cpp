@@ -295,7 +295,7 @@ int spi_master::do_set_option(const option::device_option& opt)
 //Gpio configuration
 int spi_master::gpio_conf(bool en)
 {
-	auto mux = dt::get_periph_pin_mux(io<void>());
+	const auto mux = dt::get_periph_pin_mux(io<void>());
 	if(mux<0) return mux;
 	for(auto it=dt::pinfunc::sck;it<=dt::pinfunc::mosi;++it) {
 		int pin = dt::get_periph_pin(io<void>(),it);
