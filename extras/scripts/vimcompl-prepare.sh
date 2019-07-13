@@ -1,8 +1,8 @@
 #!/bin/sh
 # Generate clang complete using WAF script tool
-PYCC=$(command -v python2)
+PYCC=$(command -v python3)
 if [[ ! -z $PYCC ]]; then
-	PYCC=python2
+	PYCC=python3
 else
 	PYCC=
 fi
@@ -11,7 +11,7 @@ if [[ -z $PYCC ]]; then
 fi
 
 if [[ -z $PYCC ]]; then
-	echo "Unable to find python2 interpreter"
+	echo "Unable to find python3 interpreter"
 	exit -1
 fi
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
