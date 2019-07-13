@@ -20,6 +20,10 @@
 #include <periph/clock/clocks.hpp>
 #include <periph/i2c/i2c_interrupt_handlers.hpp>
 #include <periph/gpio/gpio.hpp>
+#include <isix/arch/irq_platform.h>
+#include <isix/arch/irq.h>
+#include <isix/arch/cache.h>
+#include <foundation/sys/dbglog.h>
 
 
 namespace periph::drivers {
@@ -47,13 +51,44 @@ int i2c_master::do_open(int /*timeout*/)
 	int ret {};
 	do {
 		ret = periph_conf(true); if(ret) break;
+		dt::device_conf cnf;
+		if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
+		m_dma = (cnf.flags&dt::device_conf::fl_dma)?(true):(false);
+		if(!m_dma) {
+			isix::set_irq_priority(cnf.irqnum, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
+			isix::request_irq(cnf.irqnum); error::expose<error::bus_exception>(ret);
+		}
+		LL_I2C_Disable(io<I2C_TypeDef>());
+		if((ret=dt::get_periph_clock(io<void>()))<0) break;
+		//Default speed configuration
+		LL_I2C_Disable(io<I2C_TypeDef>());
+		LL_I2C_ConfigSpeed(io<I2C_TypeDef>(),ret,100'000,LL_I2C_DUTYCYCLE_2);
+		LL_I2C_Enable(io<I2C_TypeDef>());
+		LL_I2C_EnableIT_EVT(io<I2C_TypeDef>());
+		LL_I2C_EnableIT_ERR(io<I2C_TypeDef>());
+		//! Bug!
+		if(LL_I2C_IsActiveFlag_STOP(io<I2C_TypeDef>())) {
+			LL_I2C_EnableReset(io<I2C_TypeDef>());
+			for(int i=0;i<8;++i) asm volatile("nop\t\n");
+			LL_I2C_DisableReset(io<I2C_TypeDef>());
+		}
 	} while(0);
 	return ret;
 }
 
 //! Make transaction
-int i2c_master::transaction(int /*addr*/, const blk::transfer& /*data*/)
+/** Należy wykorzystać 3 rodzaje transferu jako tylko RX tylko TX albo TRX
+ * i w tej zależności RX TX lub TRX
+ */
+int i2c_master::transaction(int addr, const blk::transfer& /*data*/)
 {
+	//1 Means RO 0xff MAX I2C addr
+	if(addr<0 || addr>=0xff || (addr&1)) {
+		dbg_err("Invalid address");
+		return error::invaddr;
+	}
+	isix::mutex_locker _lock(m_mtx);
+
 	return error::inval;
 }
 
@@ -96,6 +131,11 @@ int i2c_master::periph_conf(bool en) noexcept
 			gpio::setup(scl, gpio::mode::in{gpio::pulltype::floating});
 			gpio::setup(sda, gpio::mode::in{gpio::pulltype::floating});
 		}
+		// Some F1 devices IP core have bugs so reset controller
+		// After GPIO config
+		LL_I2C_EnableReset(io<I2C_TypeDef>());
+		for(int i=0;i<8;++i) asm volatile("nop\t\n");
+		LL_I2C_DisableReset(io<I2C_TypeDef>());
 	} while(0);
 	return ret;
 }

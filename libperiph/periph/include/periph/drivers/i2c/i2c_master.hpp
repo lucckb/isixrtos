@@ -18,6 +18,8 @@
 
 #pragma once
 #include <periph/core/block_device.hpp>
+#include <isix/mutex.hpp>
+#include <isix/semaphore.hpp>
 
 namespace periph::blk {
 	class transfer;
@@ -43,5 +45,9 @@ namespace periph::drivers {
 	private:
 		void interrupt_handler(i2c::_handlers::htype) noexcept;
 		int periph_conf(bool en) noexcept;
+	private:
+		bool m_dma {};
+		isix::mutex m_mtx;
+		isix::semaphore m_wait {0,1};
 	};
 }

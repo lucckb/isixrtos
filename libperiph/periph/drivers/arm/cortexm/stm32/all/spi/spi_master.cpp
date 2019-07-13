@@ -108,6 +108,7 @@ int spi_master::do_open(int timeout)
 			//Configure interrupt
 			dt::device_conf cnf;
 			if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
+			m_dma = (cnf.flags&dt::device_conf::fl_dma)?(true):(false);
 			//dbg_info("Set irq: %i prio: %i:%i", cnf.irqnum, cnf.irqfh, cnf.irqfl);
 			if(!m_dma) {
 				isix::set_irq_priority(cnf.irqnum, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
@@ -121,7 +122,6 @@ int spi_master::do_open(int timeout)
 #endif
 			LL_SPI_SetMode(io<SPI_TypeDef>(), LL_SPI_MODE_MASTER);
 			m_timeout = timeout;
-			m_dma = (cnf.flags&dt::device_conf::fl_dma)?(true):(false);
 			if(m_dma) {
 				namespace fl = periph::dma;
 				auto& ctrl = periph::dma::controller::instance();
