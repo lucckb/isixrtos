@@ -53,11 +53,11 @@ int i2c_master::do_open(int /*timeout*/)
 		ret = periph_conf(true); if(ret) break;
 		dt::device_conf cnf;
 		if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
-		m_dma = (cnf.flags&dt::device_conf::fl_dma)?(true):(false);
-		if(!m_dma) {
-			isix::set_irq_priority(cnf.irqnum, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
-			isix::request_irq(cnf.irqnum); error::expose<error::bus_exception>(ret);
-		}
+		isix::set_irq_priority(cnf.irqnum, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
+		isix::request_irq(cnf.irqnum); error::expose<error::bus_exception>(ret);
+		//+1 ERR IRQN
+		isix::set_irq_priority(cnf.irqnum+1, {uint8_t(cnf.irqfh), uint8_t(cnf.irqfl)});
+		isix::request_irq(cnf.irqnum+1); error::expose<error::bus_exception>(ret);
 		LL_I2C_Disable(io<I2C_TypeDef>());
 		if((ret=dt::get_periph_clock(io<void>()))<0) break;
 		//Default speed configuration
@@ -96,13 +96,21 @@ int i2c_master::transaction(int addr, const blk::transfer& /*data*/)
 //! Do close
 int i2c_master::do_close()
 {
-	return error::inval;
+	int ret {};
+	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
+	LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
+	LL_I2C_Disable(io<I2C_TypeDef>());
+	do {
+		dt::device_conf cnf;
+		if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
+		isix::free_irq(cnf.irqnum+1); error::expose<error::bus_exception>(ret);
+	} while(0);
+	return ret;
 }
 
 // Set option
-int i2c_master::do_set_option(const option::device_option& /*opt*/)
+int i2c_master::do_set_option(const option::device_option& opt)
 {
-	return error::inval;
 }
 
 //! Common interrupt handler for i2c device
