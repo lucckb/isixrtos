@@ -1,0 +1,58 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/stm32f411e_disco/led_blink/411disco_blink",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "windows": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "arm-none-eabi-gdb.exe",
+                "miDebuggerServerAddress": "localhost:3333",
+                "miDebuggerArgs": "-x ${workspaceFolder}/libstm32/scripts/gdbinit",
+                "debugServerPath": "openocd.exe",
+                "debugServerArgs": "-c \"set ISIX_INTERFACE stlink-v2; set ISIX_INTERFACE_TARGET stm32f4x; set ISIX_INTERFACE_SWD 1; set ISIX_INTERFACE_SPEED_KHZ 2000; \" -s C:\\tools\\openocd\\share\\openocd\\scripts -f ${workspaceFolder}\\isixrtos\\libperiph\\scripts\\openocd\\jtag.cfg",
+                "serverLaunchTimeout": 20000,
+                "serverStarted": "Listening on port 3333 for gdb connections",
+                "filterStderr": true,
+                "filterStdout": false,
+            },
+            "linux": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "arm-none-eabi-gdb.exe",
+                "miDebuggerServerAddress": "localhost:3333",
+                "miDebuggerArgs": "-x ${workspaceFolder}/libstm32/scripts/gdbinit",
+                "debugServerPath": "openocd.exe",
+                "debugServerArgs": "-c \"set ISIX_INTERFACE stlink-v2; set ISIX_INTERFACE_TARGET stm32f4x; set ISIX_INTERFACE_SWD 1; set ISIX_INTERFACE_SPEED_KHZ 2000; \"  -f ${workspaceFolder}/isixrtos/libperiph/scripts/openocd/jtag.cfg",
+                "serverLaunchTimeout": 20000,
+                "serverStarted": "Listening on port 3333 for gdb connections",
+                "filterStderr": true,
+                "filterStdout": false,
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "logging": {
+                "moduleLoad": false,
+                "trace": false,
+                "engineLogging": false,
+                "programOutput": true,
+                "exceptions": true
+            },
+            "targetArchitecture": "arm"
+        }
+    ]
+}
