@@ -20,6 +20,7 @@
 #include <periph/core/block_device.hpp>
 #include <isix/mutex.hpp>
 #include <isix/semaphore.hpp>
+#include <periph/core/block_device.hpp>
 
 namespace periph::blk {
 	class transfer;
@@ -45,8 +46,17 @@ namespace periph::drivers {
 	private:
 		void interrupt_handler(i2c::_handlers::htype) noexcept;
 		int periph_conf(bool en) noexcept;
+		bool is_rx() const noexcept {
+			return m_addr&1U;
+		}
+		int get_hwerror() const noexcept;
 	private:
+		uint8_t m_addr {};
+		uint8_t m_hw_error {};
 		bool m_dma {};
+		volatile void* m_data {};
+		unsigned short m_dsize {};
+		unsigned short m_timeout {};
 		isix::mutex m_mtx;
 		isix::semaphore m_wait {0,1};
 	};

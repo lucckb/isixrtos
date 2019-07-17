@@ -41,7 +41,8 @@ enum bus_errors {
 	noinit = -523,				//! Driver not initialized
 	dma = -524,					//! DMA error
 	inval = -525,				//! Invalid argument
-	busy  = -526				//! Controler is busy
+	busy  = -526,				//! Controler is busy
+	bus  = -527					//! Generic bus error
 };
 
 
