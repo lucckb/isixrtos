@@ -52,11 +52,13 @@ namespace periph::drivers {
 		}
 		int get_hwerror() const noexcept;
 	private:
-		uint8_t m_addr {};
-		uint8_t m_hw_error {};
+		volatile uint8_t m_addr {};
+		volatile uint8_t m_hw_error {};
 		bool m_dma {};
-		volatile uint8_t* m_data {};
-		std::atomic<unsigned short> m_dsize {};
+		const volatile uint8_t* m_txdata {};
+		volatile uint8_t* m_rxdata {};
+		std::atomic<unsigned short> m_txdsize {};
+		std::atomic<unsigned short> m_rxdsize {};
 		std::atomic<unsigned short> m_datacnt {};
 		unsigned short m_timeout {};
 		isix::mutex m_mtx;
