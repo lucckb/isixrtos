@@ -21,6 +21,7 @@
 #include <isix/mutex.hpp>
 #include <isix/semaphore.hpp>
 #include <periph/core/block_device.hpp>
+#include <atomic>
 
 namespace periph::blk {
 	class transfer;
@@ -54,8 +55,9 @@ namespace periph::drivers {
 		uint8_t m_addr {};
 		uint8_t m_hw_error {};
 		bool m_dma {};
-		volatile void* m_data {};
-		unsigned short m_dsize {};
+		volatile uint8_t* m_data {};
+		std::atomic<unsigned short> m_dsize {};
+		std::atomic<unsigned short> m_datacnt {};
 		unsigned short m_timeout {};
 		isix::mutex m_mtx;
 		isix::semaphore m_wait {0,1};

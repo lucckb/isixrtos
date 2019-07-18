@@ -105,7 +105,7 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 		case blk::transfer::rx: {
 			auto& t = static_cast<const blk::rx_transfer_base&>(data);
 			m_addr |= I2C_OAR1_ADD0;
-			m_data = t.buf();
+			m_data = reinterpret_cast<volatile uint8_t*>(const_cast<volatile void*>(t.buf()));
 			m_dsize = t.size();
 			break;
 		}
@@ -113,7 +113,7 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 		case blk::transfer::tx: {
 			auto& t = static_cast<const blk::tx_transfer_base&>(data);
 			m_addr &= ~(I2C_OAR1_ADD0);
-			m_data = const_cast<volatile void*>(t.buf());
+			m_data = reinterpret_cast<volatile uint8_t*>(const_cast<volatile void*>(t.buf()));
 			m_dsize = t.size();
 			isix::clean_dcache_by_addr(const_cast<void*>(t.buf()),t.size());
 			break;
@@ -121,6 +121,7 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 		default:
 			return error::not_supported;
 	}
+	m_datacnt = 0;
 	LL_I2C_EnableIT_ERR(io<I2C_TypeDef>());
 	LL_I2C_EnableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_ACK);
@@ -132,8 +133,6 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 			break;
 		}
 	} while(0);
-	LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
-	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
 	ret = get_hwerror();
 	if(ret) m_hw_error = 0;
 	return ret;
@@ -199,18 +198,92 @@ int i2c_master::do_set_option(const option::device_option& opt)
 void i2c_master::interrupt_handler(i2c::_handlers::htype type) noexcept
 {
 	if(type==i2c::_handlers::htype::ev)
-	{
-
+	{	
+		//! Start byte send
+		if(LL_I2C_IsActiveFlag_SB(io<I2C_TypeDef>())) {
+			LL_I2C_TransmitData8(io<I2C_TypeDef>(), m_addr);
+		}
+			//! Receive mode callback
+		if(is_rx()) {
+			if(LL_I2C_IsActiveFlag_ADDR(io<I2C_TypeDef>()))  {
+				if(m_dsize==1) {
+					LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_NACK);
+					LL_I2C_EnableIT_BUF(io<I2C_TypeDef>());
+				} else if(m_dsize==2) {
+					LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_NACK);
+					LL_I2C_EnableBitPOS(io<I2C_TypeDef>());
+				} else {
+					LL_I2C_EnableIT_BUF(io<I2C_TypeDef>());
+				}
+				LL_I2C_ClearFlag_ADDR(io<I2C_TypeDef>());
+			} else if(LL_I2C_IsActiveFlag_BTF(io<I2C_TypeDef>())) {
+				if(m_dsize==3) {
+					LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_NACK);
+					m_data[m_datacnt++] = LL_I2C_ReceiveData8(io<I2C_TypeDef>());
+					--m_dsize;
+					LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
+				} else if(m_dsize==2) {
+					LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
+					m_data[m_datacnt++] = LL_I2C_ReceiveData8(io<I2C_TypeDef>());
+					--m_dsize;
+					LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
+					m_data[m_datacnt++] = LL_I2C_ReceiveData8(io<I2C_TypeDef>());
+					--m_dsize;
+				} else if(m_dsize>0) {
+					m_data[m_datacnt++] = LL_I2C_ReceiveData8(io<I2C_TypeDef>());
+					--m_dsize;
+				}
+				if(m_dsize==0)  {
+					LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
+					LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
+					m_wait.signal_isr();
+				}
+			} else if(LL_I2C_IsActiveFlag_RXNE(io<I2C_TypeDef>())) {
+				if(m_dsize>3) {
+					m_data[m_datacnt++] = LL_I2C_ReceiveData8(io<I2C_TypeDef>());
+					--m_dsize;
+				} else if(m_dsize==2||m_dsize==3) {
+					LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
+				} else if(m_dsize==1) {
+					LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
+					LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
+				m_data[m_datacnt++] = LL_I2C_ReceiveData8(io<I2C_TypeDef>());
+						--m_dsize;
+				} else if(m_dsize==0) {
+					LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
+					LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
+					m_wait.signal_isr();
+				}
+			}
+		} else {	// TX callback
+				if(LL_I2C_IsActiveFlag_ADDR(io<I2C_TypeDef>())) { 
+					if(m_dsize>1) {
+						LL_I2C_EnableIT_BUF(io<I2C_TypeDef>());
+					}
+					LL_I2C_ClearFlag_ADDR(io<I2C_TypeDef>());
+				}
+				if(LL_I2C_IsActiveFlag_TXE(io<I2C_TypeDef>())) {
+					LL_I2C_TransmitData8(io<I2C_TypeDef>(),m_data[m_datacnt++]);
+					--m_dsize;
+					if(m_dsize<=1) {
+						LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
+						LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
+						LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
+						LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
+						m_wait.signal_isr();
+					}
+				}
+		}
 	}
 	else	/* type */
 	{
+		static constexpr auto err_mask = 0xff00U;
 		//Get hardware error flags
 		m_hw_error = io<I2C_TypeDef>()->SR1 >> 8U;
 		//Clear all hardware errors
-		io<I2C_TypeDef>()->SR1 &= ~0xff00U;
+		io<I2C_TypeDef>()->SR1 &= ~err_mask;
 	}
 }
-
 
 //! Peripheral configuration
 int i2c_master::periph_conf(bool en) noexcept
