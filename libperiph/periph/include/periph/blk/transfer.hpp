@@ -50,17 +50,27 @@ namespace periph::blk {
 			return m_tx;
 		}
 		auto size() const {
-			return m_siz;
+			return m_tx_siz;
 		}
 		auto rx_buf() const {
 			return m_rx;
 		}
+		auto tx_size() const  {
+			return m_tx_siz;
+		}
+		auto rx_size() const {
+			return m_rx_siz;
+		}
 	protected:
+		trx_transfer_base(const void* tx, void* rx, std::size_t tx_size, std::size_t rx_size)
+			: transfer(transfer::trx), m_tx_siz(tx_size), m_rx_siz(rx_size), m_tx(tx), m_rx(rx)
+		{}
 		trx_transfer_base(const void* tx, void* rx, std::size_t siz)
-			: transfer(transfer::trx), m_siz(siz), m_tx(tx), m_rx(rx)
+			: trx_transfer_base(tx,rx,siz,siz)
 		{}
 	private:
-		const std::size_t m_siz;
+		const std::size_t m_tx_siz;
+		const std::size_t m_rx_siz;
 		const void* const m_tx;
 		void* const m_rx;
 	};
@@ -94,9 +104,12 @@ namespace periph::blk {
 		trx_transfer(const T tx, K rx, std::size_t siz)
 			: trx_transfer_base(static_cast<const void*>(tx),
 		      static_cast<void*>(rx),siz) {}
+		trx_transfer(const T tx, K rx, std::size_t tx_size, std::size_t rx_size)
+		: trx_transfer_base(static_cast<const void*>(tx),
+		     static_cast<void*>(rx),tx_size,rx_size) {}
 	};
 
-	//! Ttransfer chain
+	//! Transfer chain
 	using transfer_chain = std::forward_list<transfer>;
 }
 
