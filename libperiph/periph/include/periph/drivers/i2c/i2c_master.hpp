@@ -48,13 +48,14 @@ namespace periph::drivers {
 		void interrupt_handler(i2c::_handlers::htype) noexcept;
 		int periph_conf(bool en) noexcept;
 		bool is_rx() const noexcept {
-			return m_addr&1U;
+			return m_rxsw;
 		}
 		int get_hwerror() const noexcept;
 	private:
 		volatile uint8_t m_addr {};
 		volatile uint8_t m_hw_error {};
 		bool m_dma {};
+		bool m_rxsw {};
 		const volatile uint8_t* m_txdata {};
 		volatile uint8_t* m_rxdata {};
 		std::atomic<unsigned short> m_txdsize {};
