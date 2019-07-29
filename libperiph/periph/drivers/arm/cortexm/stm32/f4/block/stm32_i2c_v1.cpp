@@ -25,6 +25,37 @@
 #include <isix/arch/cache.h>
 #include <foundation/sys/dbglog.h>
 
+namespace {
+	inline uint32_t i2c_get_last_event(I2C_TypeDef* I2Cx)
+	{
+		constexpr uint32_t flag_msk = 0x00FFFFFF;
+		uint32_t lastevent;
+		uint32_t flag1, flag2;
+		flag1 = I2Cx->SR1;
+		flag2 = I2Cx->SR2;
+		flag2 = flag2 << 16;
+		lastevent = (flag1 | flag2) & flag_msk;
+		return lastevent;
+	}
+	enum i2c_events : uint32_t {
+		/* BUSY, MSL and SB flag */
+		I2C_EVENT_MASTER_MODE_SELECT = 0x00030001,
+		/* BUSY, MSL, ADDR, TXE and TRA flags */
+		I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED = 0x00070082,
+		/* BUSY, MSL and ADDR flags */
+		I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED = 0x00030002,
+		/* BUSY, MSL and ADD10 flags */
+		I2C_EVENT_MASTER_MODE_ADDRESS10 = 0x00030008,
+		/* BUSY, MSL and RXNE flags */
+		I2C_EVENT_MASTER_BYTE_RECEIVED = 0x00030040,
+		/* BUSY, MSL and RXNE BTF flags */
+		I2C_EVENT_MASTER_BYTE_RECEIVED_BTF = 0x00030044,
+		/* TRA, BUSY, MSL, TXE flags */
+		I2C_EVENT_MASTER_BYTE_TRANSMITTING = 0x00070080,
+		/* TRA, BUSY, MSL, TXE and BTF flags */
+		I2C_EVENT_MASTER_BYTE_TRANSMITTED = 0x00070084,
+	};
+}
 
 namespace periph::drivers {
 
@@ -123,7 +154,6 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 			m_txdata = nullptr;
 			m_rxdsize = t.size();
 			m_txdsize = 0;
-			m_rxsw = true;
 			break;
 		}
 		//Tx transfer
@@ -134,7 +164,6 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 			m_rxdata = nullptr;
 			m_txdsize = t.size();
 			m_rxdsize = 0;
-			m_rxsw = false;
 			isix::clean_dcache_by_addr(const_cast<void*>(t.buf()),t.size());
 			break;
 		}
@@ -147,7 +176,6 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 			isix::clean_dcache_by_addr(const_cast<void*>(t.tx_buf()),t.size());
 			// Transmit part first
 			m_addr &= ~(I2C_OAR1_ADD0);
-			m_rxsw = false;
 			break;
 		}
 		default:
@@ -157,6 +185,7 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 	LL_I2C_EnableIT_ERR(io<I2C_TypeDef>());
 	LL_I2C_EnableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_ACK);
+	i2c_get_last_event(io<I2C_TypeDef>());
 	LL_I2C_GenerateStartCondition(io<I2C_TypeDef>());
 	int ret = m_wait.wait(m_timeout);
 	if(ret<0) {
@@ -196,6 +225,7 @@ int i2c_master::do_close()
 	int ret {};
 	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
+	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_Disable(io<I2C_TypeDef>());
 	do {
 		dt::device_conf cnf;
@@ -230,74 +260,49 @@ void i2c_master::interrupt_handler(i2c::_handlers::htype type) noexcept
 {
 	if(type==i2c::_handlers::htype::ev)
 	{
-		auto rx_next = [this]() {
-			if(m_rxdsize>0) {
-				m_rxdata[m_datacnt++] = LL_I2C_ReceiveData8(io<I2C_TypeDef>());
-				--m_rxdsize;
-			}
-		};
-		//! Start byte send
-		if(LL_I2C_IsActiveFlag_SB(io<I2C_TypeDef>())) {
-			LL_I2C_TransmitData8(io<I2C_TypeDef>(), m_addr);
-		}
-		//! Receive mode callback
-		if(is_rx()) {
-			if(LL_I2C_IsActiveFlag_ADDR(io<I2C_TypeDef>()))  {
+		const auto event = i2c_get_last_event(io<I2C_TypeDef>());
+		switch(event) {
+			case I2C_EVENT_MASTER_MODE_SELECT:
+				LL_I2C_TransmitData8(io<I2C_TypeDef>(),m_addr);
+			break;
+			case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:
+				LL_I2C_TransmitData8(io<I2C_TypeDef>(),m_txdata[m_datacnt++]);
+			break;
+			case I2C_EVENT_MASTER_BYTE_TRANSMITTED:
+				if(m_datacnt < m_txdsize) {
+					LL_I2C_TransmitData8(io<I2C_TypeDef>(),m_txdata[m_datacnt++]);
+				} else {
+					if(m_rxdsize) {
+						m_addr |= I2C_OAR1_ADD0;
+						LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_ACK);
+						LL_I2C_GenerateStartCondition(io<I2C_TypeDef>());
+					} else {
+						ev_finalize(false);
+					}
+				}
+			break;
+			case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:
 				if(m_rxdsize==1) {
 					LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_NACK);
 				}
-				LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
-				LL_I2C_ClearFlag_ADDR(io<I2C_TypeDef>());
-			}
-			if(LL_I2C_IsActiveFlag_BTF(io<I2C_TypeDef>()) ||
-				LL_I2C_IsActiveFlag_RXNE(io<I2C_TypeDef>()))
-			{
-					rx_next();
-					if(m_rxdsize==1) {
+				LL_I2C_EnableIT_BUF(io<I2C_TypeDef>());
+				m_datacnt = 0;
+			break;
+			case I2C_EVENT_MASTER_BYTE_RECEIVED_BTF:
+			case I2C_EVENT_MASTER_BYTE_RECEIVED:
+				if(m_datacnt < m_rxdsize) {
+					m_rxdata[m_datacnt++] = LL_I2C_ReceiveData8(io<I2C_TypeDef>());
+					if(m_datacnt==m_rxdsize-1) {
 						LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_NACK);
 					}
-					if(m_rxdsize==0) {
-						LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
-					}
-					if(m_rxdsize==0)  {
-						LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
-						LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
-						LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
-						m_wait.signal_isr();
-					}
-			}
-		} else {	// TX callback
-			if(LL_I2C_IsActiveFlag_ADDR(io<I2C_TypeDef>())) {
-				if(m_txdsize>1) {
-					LL_I2C_EnableIT_BUF(io<I2C_TypeDef>());
 				}
-				LL_I2C_ClearFlag_ADDR(io<I2C_TypeDef>());
-			}
-			if(LL_I2C_IsActiveFlag_TXE(io<I2C_TypeDef>())) {
-				LL_I2C_TransmitData8(io<I2C_TypeDef>(),m_txdata[m_datacnt++]);
-				--m_txdsize;
-				if(m_txdsize<=0) {
-					if(m_rxdsize>0) {
-						//Switch to read mode
-						m_addr |= I2C_OAR1_ADD0;
-						LL_I2C_GenerateStartCondition(io<I2C_TypeDef>());
-						LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
-						m_datacnt = 0;
-						return;
-					} else {
-						LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
-						LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
-						LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
-						LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
-						m_wait.signal_isr();
-
-					}
+				if(m_datacnt>=m_rxdsize) {
+					ev_finalize(false);
 				}
-			}
-			if(LL_I2C_IsActiveFlag_BTF(io<I2C_TypeDef>())&&(m_addr&I2C_OAR1_ADD0))
-			{
-				m_rxsw = true;
-			}
+			break;
+			default:
+				ev_finalize(true);
+			break;
 		}
 	}
 	else	/* type */
@@ -307,6 +312,7 @@ void i2c_master::interrupt_handler(i2c::_handlers::htype type) noexcept
 		m_hw_error = io<I2C_TypeDef>()->SR1 >> 8U;
 		//Clear all hardware errors
 		io<I2C_TypeDef>()->SR1 &= ~err_mask;
+		ev_finalize(true);
 	}
 }
 
@@ -339,7 +345,18 @@ int i2c_master::periph_conf(bool en) noexcept
 	return ret;
 }
 
+
+void i2c_master::ev_finalize(bool inv_state) noexcept
+{
+	LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
+	LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
+	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
+	LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
+	if( inv_state ) {
+		static constexpr auto inv_state_bit = 0x80;
+		m_hw_error |= inv_state_bit;
+	}
+	m_wait.signal_isr();
 }
-
-
+}
 
