@@ -55,9 +55,9 @@ namespace periph::drivers {
 		bool m_dma {};
 		const volatile uint8_t* m_txdata {};
 		volatile uint8_t* m_rxdata {};
-		std::atomic<unsigned short> m_txdsize {};
-		std::atomic<unsigned short> m_rxdsize {};
-		std::atomic<unsigned short> m_datacnt {};
+		volatile unsigned short m_txdsize {};
+		volatile unsigned short m_rxdsize {};
+		volatile unsigned short m_datacnt {};
 		unsigned short m_timeout {};
 		isix::mutex m_mtx;
 		isix::semaphore m_wait {0,1};

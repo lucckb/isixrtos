@@ -55,6 +55,11 @@ namespace {
 		/* TRA, BUSY, MSL, TXE and BTF flags */
 		I2C_EVENT_MASTER_BYTE_TRANSMITTED = 0x00070084,
 	};
+	inline void i2c_clear_errors(I2C_TypeDef* I2Cx)
+	{
+		I2Cx->SR1 &= ~0xff00U;
+		i2c_get_last_event(I2Cx);
+	}
 }
 
 namespace periph::drivers {
@@ -182,10 +187,10 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 			return error::not_supported;
 	}
 	m_datacnt = 0;
+	i2c_clear_errors(io<I2C_TypeDef>());
 	LL_I2C_EnableIT_ERR(io<I2C_TypeDef>());
 	LL_I2C_EnableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_ACK);
-	i2c_get_last_event(io<I2C_TypeDef>());
 	LL_I2C_GenerateStartCondition(io<I2C_TypeDef>());
 	int ret = m_wait.wait(m_timeout);
 	if(ret<0) {
@@ -193,7 +198,6 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 	} else {
 		ret = get_hwerror();
 	}
-	dbg_info("Transaction result %i", ret );
 	return ret;
 }
 
