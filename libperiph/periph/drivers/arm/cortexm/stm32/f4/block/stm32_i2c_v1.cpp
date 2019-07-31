@@ -311,12 +311,7 @@ void i2c_master::interrupt_handler(i2c::_handlers::htype type) noexcept
 	}
 	else	/* type */
 	{
-		static constexpr auto err_mask = 0xff00U;
-		//Get hardware error flags
-		m_hw_error = io<I2C_TypeDef>()->SR1 >> 8U;
-		//Clear all hardware errors
-		io<I2C_TypeDef>()->SR1 &= ~err_mask;
-		ev_finalize(true);
+		handle_ev_error();
 	}
 }
 
@@ -349,7 +344,7 @@ int i2c_master::periph_conf(bool en) noexcept
 	return ret;
 }
 
-
+//! Finalize transfer
 void i2c_master::ev_finalize(bool inv_state) noexcept
 {
 	LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
@@ -362,5 +357,17 @@ void i2c_master::ev_finalize(bool inv_state) noexcept
 	}
 	m_wait.signal_isr();
 }
+
+//! Handle event error
+void i2c_master::handle_ev_error() noexcept
+{
+	static constexpr auto err_mask = 0xff00U;
+	//Get hardware error flags
+	m_hw_error = io<I2C_TypeDef>()->SR1 >> 8U;
+	//Clear all hardware errors
+	io<I2C_TypeDef>()->SR1 &= ~err_mask;
+	ev_finalize(true);
+}
+
 }
 

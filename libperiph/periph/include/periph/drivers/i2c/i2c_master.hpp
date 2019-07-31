@@ -49,6 +49,7 @@ namespace periph::drivers {
 		int periph_conf(bool en) noexcept;
 		int get_hwerror() const noexcept;
 		void ev_finalize(bool inv_state) noexcept;
+		void handle_ev_error() noexcept;
 	private:
 		volatile uint8_t m_addr {};
 		volatile uint8_t m_hw_error {};
