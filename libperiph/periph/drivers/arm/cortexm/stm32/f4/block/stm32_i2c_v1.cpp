@@ -202,7 +202,7 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 }
 
 //Translate error flag to bus error
-int i2c_master::get_hwerror(void) const
+int i2c_master::get_hwerror(void) const noexcept
 {
 	static constexpr int err_tbl[] =
 	{
