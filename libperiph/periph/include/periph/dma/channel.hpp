@@ -156,6 +156,15 @@ namespace detail {
 			return m_owner.continuous_start(std::ref(*this),mem0,mem1,periph,len,dir);
 		}
 
+		/**
+		 * Start single transfer only when flag delayed start is set
+		 * @note Function can be called from interrupt context
+		 * @return error code
+		 */
+		int single_start() noexcept {
+			return m_owner.single_start(std::ref(*this));
+		}
+
 		/** Stop the double transfer mode
 		 * @return error code */
 		int continous_stop() {
