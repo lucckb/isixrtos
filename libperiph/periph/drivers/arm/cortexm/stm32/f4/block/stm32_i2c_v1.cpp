@@ -244,11 +244,27 @@ int i2c_master::transaction(int addr, const blk::transfer& data)
 		default:
 			return error::not_supported;
 	}
+	if(m_dma) {		//Configure DMA transfer
+		if(m_rxdsize>1) {
+			m_dma_rx->single(const_cast<uint8_t*>(m_rxdata),
+				const_cast<uint32_t*>(&io<I2C_TypeDef>()->DR),m_rxdsize);
+		}
+		if(m_txdsize>0) {
+			m_dma_tx->single(const_cast<uint32_t*>(&io<I2C_TypeDef>()->DR), 
+				const_cast<uint8_t*>(m_txdata), m_txdsize);
+		}
+	}
+
 	m_datacnt = 0;
 	i2c_clear_errors(io<I2C_TypeDef>());
 	LL_I2C_EnableIT_ERR(io<I2C_TypeDef>());
 	LL_I2C_EnableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),LL_I2C_ACK);
+	if(m_dma) {
+		LL_I2C_DisableLastDMA(io<I2C_TypeDef>());
+		LL_I2C_EnableDMAReq_RX(io<I2C_TypeDef>());
+		LL_I2C_EnableDMAReq_TX(io<I2C_TypeDef>());
+	}
 	LL_I2C_GenerateStartCondition(io<I2C_TypeDef>());
 	int ret = m_wait.wait(m_timeout);
 	if(ret<0) {
@@ -401,6 +417,29 @@ void i2c_master::interrupt_dma_handler(i2c::_handlers::htype type) noexcept
 			break;
 			case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:
 				//! TODO: More dma event handlers
+				m_dma_tx->single_start();
+			break;
+			case I2C_EVENT_MASTER_BYTE_TRANSMITTED:
+				if(m_rxdsize>0) {
+					m_addr |= I2C_OAR1_ADD0;
+					LL_I2C_GenerateStartCondition(io<I2C_TypeDef>());
+				} else {
+					ev_finalize(false);
+				}
+			break;
+			case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:
+				if(m_rxdsize>1) {
+					LL_I2C_EnableLastDMA(io<I2C_TypeDef>());
+					m_dma_rx->single_start();
+				} else {
+					LL_I2C_AcknowledgeNextData(io<I2C_TypeDef>(),false);
+				}
+				LL_I2C_EnableIT_BUF(io<I2C_TypeDef>());
+			break;
+			case I2C_EVENT_MASTER_BYTE_RECEIVED_BTF:
+			case I2C_EVENT_MASTER_BYTE_RECEIVED:
+				m_rxdata[0] = LL_I2C_ReceiveData8(io<I2C_TypeDef>());
+				ev_finalize(false);
 			break;
 		}
 	} else {
@@ -469,6 +508,10 @@ void i2c_master::ev_finalize(bool inv_state) noexcept
 	LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
 	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
+	if(m_dma) {
+		LL_I2C_DisableDMAReq_RX(io<I2C_TypeDef>());
+		LL_I2C_DisableDMAReq_TX(io<I2C_TypeDef>());
+	}
 	if( inv_state ) {
 		m_hw_error |= errbits::invstate;
 	}
