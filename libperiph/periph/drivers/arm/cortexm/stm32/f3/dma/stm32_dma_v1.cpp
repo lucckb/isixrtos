@@ -151,7 +151,7 @@ int stm32_dma_v1::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 			broadcast_all();
 		}
 	});
-	dma_addr_configure(dest,src,len/res,chnf);
+	dma_addr_configure(dest,src,len/res,chnf,!(cnf.flags&mode_start_delayed));
 	m_mtx.unlock();
 	return error::success;
 }
@@ -182,6 +182,21 @@ int stm32_dma_v1::abort(channel& chn)
 	LL_DMA_DisableIT_TE(chn2cntrl(chnf),chn2hwchn(chnf));
 	m_act_chns[chnf] = false;
 	set_handled_channel(chn);
+	return error::success;
+}
+
+/** Single start when non continous mode */
+int stm32_dma_v1::single_start(channel& chn) noexcept
+{
+	int chnf = get_handled_channel(chn);
+	if(chnf<0) {
+		return error::noent;
+	}
+	const auto& cnf = channel_config(chn);
+	if(!(cnf.flags&mode_start_delayed)) {
+		return error::inval;
+	}
+	LL_DMA_EnableChannel(chn2cntrl(chnf),chn2hwchn(chnf));
 	return error::success;
 }
 
@@ -330,7 +345,8 @@ int stm32_dma_v1::dma_flags_configure(const detail::controller_config& cfg, deta
 
 
 /** Configure dma address and speed addresses */
-void stm32_dma_v1::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, int chn)
+void stm32_dma_v1::dma_addr_configure(mem_ptr dest, cmem_ptr src,
+		size ntrans, int chn, bool start)
 {
 	LL_DMA_ConfigAddresses(chn2cntrl(chn),chn2hwchn(chn),
 		reinterpret_cast<uintptr_t>(src),reinterpret_cast<uintptr_t>(dest),
@@ -339,7 +355,9 @@ void stm32_dma_v1::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, i
 	LL_DMA_SetDataLength(chn2cntrl(chn),chn2hwchn(chn),ntrans);
 	LL_DMA_EnableIT_TC(chn2cntrl(chn),chn2hwchn(chn));
 	LL_DMA_EnableIT_TE(chn2cntrl(chn),chn2hwchn(chn));
-	LL_DMA_EnableChannel(chn2cntrl(chn),chn2hwchn(chn));
+	if(start) {
+		LL_DMA_EnableChannel(chn2cntrl(chn),chn2hwchn(chn));
+	}
 }
 
 /** Remap alternative channel when needed */

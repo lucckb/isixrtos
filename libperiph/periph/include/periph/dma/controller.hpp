@@ -71,6 +71,8 @@ namespace periph::dma {
 		/** Single Continous stop tranaction */
 		virtual int continuous_start(channel& chn, mem_ptr mem0,
 				mem_ptr mem1, mem_ptr periph, size len, dblbuf_dir dir) = 0;
+		/** Single start when non continous mode */
+		virtual int single_start(channel& chn) noexcept;
 		/** Continous stop transaction */
 		virtual int continous_stop(channel& chn) {
 			return abort(chn);

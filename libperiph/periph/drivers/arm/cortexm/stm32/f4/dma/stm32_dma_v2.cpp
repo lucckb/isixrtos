@@ -138,7 +138,6 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 		m_mtx.unlock();
 		return strm;
 	}
-	//dbg_info("Stream %i, channel %i", strm, chnm);
 	const auto tmode = detail::transfer_mode(dest,src);
 	int res = dma_flags_configure(cnf,tmode,strm);
 	if(res<0) {
@@ -171,7 +170,7 @@ int stm32_dma_v2::single(channel& chn, mem_ptr dest, cmem_ptr src, size len)
 		LL_DMA_DisableIT_TE(strm2cntrl(strm),strm2strm(strm));
 		LL_DMA_DisableStream(strm2cntrl(strm),strm2strm(strm));
 	});
-	dma_addr_configure(dest,src,len/res,strm,tmode,chnm);
+	dma_addr_configure(dest,src,len/res,strm,tmode,chnm,!(cnf.flags&mode_start_delayed));
 	m_mtx.unlock();
 	return error::success;
 }
@@ -244,6 +243,21 @@ int stm32_dma_v2::continuous_start(channel& chn, mem_ptr mem0,
 	m_mtx.unlock();
 	return error::success;
 
+}
+
+/** Single start when non continous mode */
+int stm32_dma_v2::single_start(channel& chn) noexcept
+{
+	int strm = get_handled_channel(chn);
+	if(strm<0) {
+		return error::noent;
+	}
+	const auto& cnf = channel_config(chn);
+	if(!(cnf.flags&mode_start_delayed)) {
+		return error::inval;
+	}
+	LL_DMA_EnableStream(strm2cntrl(strm),strm2strm(strm));
+	return error::success;
 }
 
 /** Abort pending transaction */
@@ -414,7 +428,7 @@ int stm32_dma_v2::dma_flags_configure(const detail::controller_config& cfg,
 
 /** Configure dma address and speed addresses */
 void stm32_dma_v2::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans,
-		int strm, detail::tmode mode, int chns)
+		int strm, detail::tmode mode, int chns, bool start)
 {
 	if(mode==detail::tmode::periph2mem||mode==detail::tmode::mem2mem) {
 		LL_DMA_SetMemoryAddress(strm2cntrl(strm),strm2strm(strm),
@@ -431,13 +445,15 @@ void stm32_dma_v2::dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans,
 	LL_DMA_SetChannelSelection(strm2cntrl(strm),strm2strm(strm),chn2llchn(chns));
 	LL_DMA_EnableIT_TC(strm2cntrl(strm),strm2strm(strm));
 	LL_DMA_EnableIT_TE(strm2cntrl(strm),strm2strm(strm));
-	LL_DMA_EnableStream(strm2cntrl(strm),strm2strm(strm));
+	if(start) {
+		LL_DMA_EnableStream(strm2cntrl(strm),strm2strm(strm));
+	}
 }
 
 
 // Double buffer mode address
 void stm32_dma_v2::dma_addr_configure(mem_ptr mem0, mem_ptr mem1,
-		mem_ptr periph, size ntrans, int strm, int chns )
+		mem_ptr periph, size ntrans, int strm, int chns)
 {
 	LL_DMA_SetMemoryAddress(strm2cntrl(strm),strm2strm(strm),
 			reinterpret_cast<uintptr_t>(mem0));

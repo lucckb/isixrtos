@@ -78,6 +78,11 @@ namespace detail {
 		priority_vhi = 3 << 12
 	};
 
+	enum start_mode : flags_t {
+		mode_start_now		   = 0 << 13,
+		mode_start_delayed	   = 1 << 13,
+	};
+
 
 	/** Don't use std function it must be quite fast
 	 * void* pointer to the memory which can be filled in double
@@ -128,6 +133,7 @@ namespace detail {
 			* @param[in] dest Destination address
 			* @param[in] src Source transfer address
 			* @param[in] size Transfer size in bytes
+			* @return[in] allocated hardware id number or <0 if error
 		*/
 		int single(mem_ptr dest, cmem_ptr src, size len) {
 			return m_owner.single(std::ref(*this),dest,src,len);
@@ -143,7 +149,7 @@ namespace detail {
 		*  @param periph[in,out] Peripheral address
 		*  @param[in] size		 Transfer size in bytes
 		*  @param[in] dir		 Double buffer dir
-		*  @return		DMA free swapped out buffer
+		*  @return	 allocated channel number of -1 if fail
 		*  */
 		int continuous_start(mem_ptr mem0, mem_ptr mem1,
 				mem_ptr periph, size len, dblbuf_dir dir) {

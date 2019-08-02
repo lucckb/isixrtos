@@ -44,6 +44,8 @@ namespace periph::dma {
 		/** Single Continous stop tranaction */
 		int continuous_start(channel& chn, mem_ptr mem0,
 				mem_ptr mem1, mem_ptr periph, size len, dblbuf_dir dir) override;
+		/** Single start when non continous mode */
+		int single_start(channel& chn) noexcept override;
 		/** Continous stop transaction */
 		int continous_stop(channel& chn) override;
 		/** Abort pending transaction */
@@ -53,7 +55,7 @@ namespace periph::dma {
 		/** Configure interrupt and DMA according to flags */
 		int dma_flags_configure(const detail::controller_config& cfg, detail::tmode mode, int chn);
 		/** Configure dma address and speed addresses */
-		void dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, int chn);
+		void dma_addr_configure(mem_ptr dest, cmem_ptr src, size ntrans, int chn, bool start);
 		void remap_alt_channel(chnid_t chn,int num);
 		void broadcast_all() {
 			m_brodcast.reset_isr(0);
