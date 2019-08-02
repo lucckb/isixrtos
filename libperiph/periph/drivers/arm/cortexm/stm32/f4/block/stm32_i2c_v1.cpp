@@ -20,12 +20,19 @@
 #include <periph/clock/clocks.hpp>
 #include <periph/i2c/i2c_interrupt_handlers.hpp>
 #include <periph/gpio/gpio.hpp>
+#include <periph/dma/dma.hpp>
 #include <isix/arch/irq_platform.h>
 #include <isix/arch/irq.h>
 #include <isix/arch/cache.h>
 #include <foundation/sys/dbglog.h>
 
 namespace {
+	//! Generic error bits reporting
+	namespace errbits {
+		static constexpr auto dmafail =  0x0080U;
+		static constexpr auto invstate = 0x0100U;
+	}
+	//! I2C state to event translation
 	inline uint32_t i2c_get_last_event(I2C_TypeDef* I2Cx)
 	{
 		constexpr uint32_t flag_msk = 0x00FFFFFF;
@@ -37,6 +44,7 @@ namespace {
 		lastevent = (flag1 | flag2) & flag_msk;
 		return lastevent;
 	}
+	//! I2C events enumeration
 	enum i2c_events : uint32_t {
 		/* BUSY, MSL and SB flag */
 		I2C_EVENT_MASTER_MODE_SELECT = 0x00030001,
@@ -55,10 +63,38 @@ namespace {
 		/* TRA, BUSY, MSL, TXE and BTF flags */
 		I2C_EVENT_MASTER_BYTE_TRANSMITTED = 0x00070084,
 	};
+	//! I2C clear error
 	inline void i2c_clear_errors(I2C_TypeDef* I2Cx)
 	{
 		I2Cx->SR1 &= ~0xff00U;
 		i2c_get_last_event(I2Cx);
+	}
+	//! Install event translation
+	inline auto i2c2chtx(const I2C_TypeDef* const i2c)
+	{
+#if		defined(I2C1)
+		if(i2c==I2C1) return periph::dma::devid::i2c1_tx;
+#endif
+#if		defined(I2C2)
+		if(i2c==I2C2) return periph::dma::devid::i2c2_tx;
+#endif
+#if		defined(I2C3)
+		if(i2c==I2C3) return periph::dma::devid::i2c3_tx;
+#endif
+	}
+	//! Install event translation
+	inline auto i2c2chrx(const I2C_TypeDef* const i2c)
+	{
+#if		defined(I2C1)
+		if(i2c==I2C1) return periph::dma::devid::i2c1_rx;
+#endif
+#if		defined(I2C2)
+		if(i2c==I2C2) return periph::dma::devid::i2c2_rx;
+#endif
+#if		defined(I2C3)
+		if(i2c==I2C3) return periph::dma::devid::i2c3_rx;
+#endif
+		return periph::dma::devid::_devid_end;
 	}
 }
 
@@ -66,16 +102,23 @@ namespace periph::drivers {
 
 //! Constructor
 i2c_master::i2c_master(const char name[])
-	: block_device(block_device::type::i2c, dt::get_periph_base_address(name))
+	: block_device(block_device::type::i2c, dt::get_periph_base_address(name)),
+	  m_dma(check_dma_mode())
 {
 	if(io<void>()) {
-		int ret = i2c::_handlers::register_handler(io<I2C_TypeDef>(),
-		std::bind(&i2c_master::interrupt_handler,std::ref(*this), std::placeholders::_1) );
+		int ret {};
 		error::expose<error::bus_exception>(ret);
-		dt::device_conf cnf;
-		ret = dt::get_periph_devconf(io<void>(),cnf);
-		error::expose<error::bus_exception>(ret);
-		m_dma = (cnf.flags&dt::device_conf::fl_dma)?(true):(false);
+		if(!m_dma) {
+			dbg_info("I2C in non dma mode");
+			i2c::_handlers::register_handler(io<I2C_TypeDef>(),
+				std::bind(&i2c_master::interrupt_handler,std::ref(*this), std::placeholders::_1) 
+			);
+		} else {
+			dbg_info("I2C in dma mode");
+			i2c::_handlers::register_handler(io<I2C_TypeDef>(),
+				std::bind(&i2c_master::interrupt_dma_handler,std::ref(*this), std::placeholders::_1) 
+			);
+		}
 	}
 }
 
@@ -117,6 +160,24 @@ int i2c_master::do_open(int timeout)
 			dbg_err("Get periph clock fail %i",ret);
 			break;
 		}
+		if(m_dma) {
+			namespace fl = periph::dma;
+			auto& ctrl = periph::dma::controller::instance();
+			m_dma_rx = ctrl.alloc_channel(i2c2chrx(io<I2C_TypeDef>()),
+				fl::mode_dst_inc|fl::mode_src_ninc|fl::mode_start_delayed|
+				fl::mode_dst_size_byte| fl::mode_src_size_byte,
+				cnf.irqfh, cnf.irqfl
+			);
+			m_dma_tx = ctrl.alloc_channel(i2c2chrx(io<I2C_TypeDef>()),
+				fl::mode_dst_ninc|fl::mode_src_inc|fl::mode_start_delayed|
+				fl::mode_dst_size_byte| fl::mode_src_size_byte,
+				cnf.irqfh, cnf.irqfl
+			);
+			m_dma_tx->callback( std::bind(&i2c_master::interrupt_dma_controller_handler,
+					this, std::placeholders::_1) );
+			m_dma_rx->callback( std::bind(&i2c_master::interrupt_dma_controller_handler,
+					this, std::placeholders::_1) );
+		}
 		//Default speed configuration
 		LL_I2C_Disable(io<I2C_TypeDef>());
 		LL_I2C_ConfigSpeed(io<I2C_TypeDef>(),ret,100'000,LL_I2C_DUTYCYCLE_2);
@@ -137,9 +198,6 @@ int i2c_master::do_open(int timeout)
 }
 
 //! Make transaction
-/** Należy wykorzystać 3 rodzaje transferu jako tylko RX tylko TX albo TRX
- * i w tej zależności RX TX lub TRX
- */
 int i2c_master::transaction(int addr, const blk::transfer& data)
 {
 	//1 Means RO 0xff MAX I2C addr
@@ -213,9 +271,10 @@ int i2c_master::get_hwerror(void) const noexcept
 		error::pec,
 		error::unknown,
 		error::bus_timeout,
+		error::dma,
 		error::invstate
 	};
-	for(int i=0; i<8; i++) {
+	for(auto i=0U; i<std::size(err_tbl); i++) {
 		if(m_hw_error & (1<<i)) {
 			return err_tbl[i];
 		}
@@ -227,15 +286,31 @@ int i2c_master::get_hwerror(void) const noexcept
 int i2c_master::do_close()
 {
 	int ret {};
+	//! Disable interrupt
 	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
 	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_Disable(io<I2C_TypeDef>());
-	do {
-		dt::device_conf cnf;
-		if((ret=dt::get_periph_devconf(io<void>(),cnf))<0) break;
-		isix::free_irq(cnf.irqnum+1); error::expose<error::bus_exception>(ret);
-	} while(0);
+	//Disable clocks
+	{
+		dt::clk_periph pclk;
+		auto ret2 = dt::get_periph_clock(io<void>(), pclk);
+		if(!ret2) ret2 = clock::device_enable(io<void>(),false);
+		if(ret2) ret = ret2;
+	}
+	//Disable DMA and release channels
+	dt::device_conf cnf;
+	ret=dt::get_periph_devconf(io<void>(),cnf);
+	isix::free_irq(cnf.irqnum+1); error::expose<error::bus_exception>(ret);
+	auto& ctrl = periph::dma::controller::instance();
+	if(m_dma_tx) {
+		auto ret2 = ctrl.release_channel(m_dma_tx);
+		if(!ret) ret=ret2;
+	}
+	if(m_dma_rx) {
+		auto ret2=ctrl.release_channel(m_dma_rx);
+		if(!ret) ret=ret2;
+	}
 	return ret;
 }
 
@@ -315,6 +390,40 @@ void i2c_master::interrupt_handler(i2c::_handlers::htype type) noexcept
 	}
 }
 
+//! Interrupt DMA handler when DMA controller is used
+void i2c_master::interrupt_dma_handler(i2c::_handlers::htype type) noexcept
+{
+	if(type==i2c::_handlers::htype::ev) {
+		const auto event = i2c_get_last_event(io<I2C_TypeDef>());
+		switch(event) {
+			case I2C_EVENT_MASTER_MODE_SELECT:
+				LL_I2C_TransmitData8(io<I2C_TypeDef>(),m_addr);
+			break;
+			case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:
+				//! TODO: More dma event handlers
+			break;
+		}
+	} else {
+		handle_ev_error();
+		LL_I2C_DisableDMAReq_RX(io<I2C_TypeDef>());
+		LL_I2C_DisableDMAReq_TX(io<I2C_TypeDef>());
+	}
+}
+
+//! Handler used by interrupt controller
+void i2c_master::interrupt_dma_controller_handler(bool err) noexcept
+{
+	LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
+	LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
+	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
+	LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
+	LL_I2C_DisableDMAReq_RX(io<I2C_TypeDef>());
+	LL_I2C_DisableDMAReq_TX(io<I2C_TypeDef>());
+	LL_I2C_DisableLastDMA(io<I2C_TypeDef>());
+	if(err) m_hw_error = errbits::dmafail;
+	m_wait.signal_isr();
+}
+
 //! Peripheral configuration
 int i2c_master::periph_conf(bool en) noexcept
 {
@@ -344,6 +453,15 @@ int i2c_master::periph_conf(bool en) noexcept
 	return ret;
 }
 
+//! Check dma mode
+bool i2c_master::check_dma_mode()
+{
+	dt::device_conf cnf;
+	int ret = dt::get_periph_devconf(io<void>(),cnf);
+	error::expose<error::bus_exception>(ret);
+	return (cnf.flags&dt::device_conf::fl_dma)?(true):(false);
+}
+
 //! Finalize transfer
 void i2c_master::ev_finalize(bool inv_state) noexcept
 {
@@ -352,8 +470,7 @@ void i2c_master::ev_finalize(bool inv_state) noexcept
 	LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
 	LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
 	if( inv_state ) {
-		static constexpr auto inv_state_bit = 0x80;
-		m_hw_error |= inv_state_bit;
+		m_hw_error |= errbits::invstate;
 	}
 	m_wait.signal_isr();
 }

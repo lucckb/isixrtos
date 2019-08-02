@@ -21,6 +21,7 @@
 #include <isix/mutex.hpp>
 #include <isix/semaphore.hpp>
 #include <periph/core/block_device.hpp>
+#include <periph/dma/controller.hpp>
 #include <atomic>
 
 //! Forward declaration for transfer
@@ -64,6 +65,10 @@ namespace periph::drivers {
 	private:
 		//! Interrupt handler called from interrupt context
 		void interrupt_handler(i2c::_handlers::htype) noexcept;
+		//! Interrupt handler when DMA is used
+		void interrupt_dma_handler(i2c::_handlers::htype) noexcept;
+		//! Handler used by interrupt controller
+		void interrupt_dma_controller_handler(bool err) noexcept;
 		//! Internal peripheral settings
 		int periph_conf(bool en) noexcept;
 		//! Get hardware error from i2c bus
@@ -72,13 +77,15 @@ namespace periph::drivers {
 		void ev_finalize(bool inv_state) noexcept;
 		//! Handle event error
 		void handle_ev_error() noexcept;
+		//! Determine dma mode
+		bool check_dma_mode();
 	private:
 		//! Bus address to send
 		volatile uint8_t m_addr {};
 		//! Last hardware error
-		volatile uint8_t m_hw_error {};
+		volatile uint16_t m_hw_error {};
 		//! Need dma transfer
-		bool m_dma {};
+		const bool m_dma {};
 		//! TX data internal pointer
 		const volatile uint8_t* m_txdata {};
 		//! RX data internal pointer
@@ -94,5 +101,9 @@ namespace periph::drivers {
 		isix::mutex m_mtx;
 		//! Notification semaphore
 		isix::semaphore m_wait {0,1};
+		//! Dma receive channel
+		periph::dma::controller::channel_ptr_t m_dma_rx;
+		//! DMA transmit channel 
+		periph::dma::controller::channel_ptr_t m_dma_tx;
 	};
 }
