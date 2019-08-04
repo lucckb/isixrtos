@@ -81,6 +81,7 @@ namespace {
 #if		defined(I2C3)
 		if(i2c==I2C3) return periph::dma::devid::i2c3_tx;
 #endif
+		return periph::dma::devid::_devid_end;
 	}
 	//! Install event translation
 	inline auto i2c2chrx(const I2C_TypeDef* const i2c)
@@ -168,14 +169,14 @@ int i2c_master::do_open(int timeout)
 				fl::mode_dst_size_byte| fl::mode_src_size_byte,
 				cnf.irqfh, cnf.irqfl
 			);
-			m_dma_tx = ctrl.alloc_channel(i2c2chrx(io<I2C_TypeDef>()),
+			m_dma_tx = ctrl.alloc_channel(i2c2chtx(io<I2C_TypeDef>()),
 				fl::mode_dst_ninc|fl::mode_src_inc|fl::mode_start_delayed|
 				fl::mode_dst_size_byte| fl::mode_src_size_byte,
 				cnf.irqfh, cnf.irqfl
 			);
-			m_dma_tx->callback( std::bind(&i2c_master::interrupt_dma_controller_handler,
+			m_dma_tx->callback( std::bind(&i2c_master::interrupt_dma_tx_controller_handler,
 					this, std::placeholders::_1) );
-			m_dma_rx->callback( std::bind(&i2c_master::interrupt_dma_controller_handler,
+			m_dma_rx->callback( std::bind(&i2c_master::interrupt_dma_rx_controller_handler,
 					this, std::placeholders::_1) );
 		}
 		//Default speed configuration
@@ -450,7 +451,7 @@ void i2c_master::interrupt_dma_handler(i2c::_handlers::htype type) noexcept
 }
 
 //! Handler used by interrupt controller
-void i2c_master::interrupt_dma_controller_handler(bool err) noexcept
+void i2c_master::interrupt_dma_rx_controller_handler(bool err) noexcept
 {
 	LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
 	LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
@@ -462,6 +463,22 @@ void i2c_master::interrupt_dma_controller_handler(bool err) noexcept
 	if(err) m_hw_error = errbits::dmafail;
 	m_wait.signal_isr();
 }
+
+void i2c_master::interrupt_dma_tx_controller_handler(bool err) noexcept
+{
+	if(err) {
+		LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
+		LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
+		LL_I2C_DisableIT_EVT(io<I2C_TypeDef>());
+		LL_I2C_DisableIT_ERR(io<I2C_TypeDef>());
+		LL_I2C_DisableDMAReq_RX(io<I2C_TypeDef>());
+		LL_I2C_DisableDMAReq_TX(io<I2C_TypeDef>());
+		LL_I2C_DisableLastDMA(io<I2C_TypeDef>());
+		 m_hw_error = errbits::dmafail;
+		 m_wait.signal_isr();
+	}
+}
+
 
 //! Peripheral configuration
 int i2c_master::periph_conf(bool en) noexcept

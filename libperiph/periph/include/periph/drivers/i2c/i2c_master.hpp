@@ -68,7 +68,9 @@ namespace periph::drivers {
 		//! Interrupt handler when DMA is used
 		void interrupt_dma_handler(i2c::_handlers::htype) noexcept;
 		//! Handler used by interrupt controller
-		void interrupt_dma_controller_handler(bool err) noexcept;
+		void interrupt_dma_rx_controller_handler(bool err) noexcept;
+		//! Handler used by transmit end controller handler
+		void interrupt_dma_tx_controller_handler(bool err) noexcept;
 		//! Internal peripheral settings
 		int periph_conf(bool en) noexcept;
 		//! Get hardware error from i2c bus
