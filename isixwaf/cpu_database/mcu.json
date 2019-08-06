@@ -230,7 +230,7 @@
 			"vendor": "stm32",
 			"family": "f4",
 			"cflags":  [ ],
-			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1", "STM32F411xE" ],
+			"defs":    [ "STM32MCU_MAJOR_TYPE_F4=1", "STM32F411xE" ],
 			"memmap" : {
 				"ram" : {
 					"origin": "0x20000000", 
@@ -331,6 +331,30 @@
 				"auxram" : {
 					"origin": "0x2007C000", 
 					"length": "16K",
+					"attrib": "xrw"
+				}
+			}
+		},
+		"stm32f469nih6" : {
+			"cpu": "arm_cortex_m4",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1","STM32F469xx"],
+			"vendor": "stm32",
+			"family": "f4",
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "320K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "2048K", 
+					"attrib": "xr"
+				},
+				"ccmram" : {
+					"origin": "0x10000000", 
+					"length": "64K",
 					"attrib": "xrw"
 				}
 			}
