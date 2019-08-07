@@ -22,8 +22,8 @@
 //! Enable TLSF statistics
 #define TLSF_STATISTIC (1)
 
-//! Log2 maximum allowed memory block (256KB for embedded fill be sufficient)
-#define MAX_FLI (18)
+//! Log2 maximum allowed memory block (512KB for embedded fill be sufficient)
+#define MAX_FLI (19)
 
 
 //! Enable locking mechanism
