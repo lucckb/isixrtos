@@ -78,6 +78,7 @@
   */
 ErrorStatus LL_RNG_DeInit(RNG_TypeDef *RNGx)
 {
+  (void)RNGx;
   /* Check the parameters */
   assert_param(IS_RNG_ALL_INSTANCE(RNGx));
 
