@@ -36,9 +36,14 @@ namespace {
 			case periph::dt::bus::apb1:
 				LL_APB1_GRP1_EnableClock( 1U << clk.bit );
 				return error::success;
-				case periph::dt::bus::apb2:
+			case periph::dt::bus::apb2:
 				LL_APB2_GRP1_EnableClock( 1U << clk.bit );
 				return error::success;
+#			ifdef RCC_AHB3_SUPPORT
+			case periph::dt::bus::ahb3:
+				LL_AHB3_GRP1_EnableClock( 1U << clk.bit );
+				return error::success;
+#			endif
 			default:
 				return error::nobus;
 		}
@@ -51,9 +56,14 @@ namespace {
 			case periph::dt::bus::apb1:
 				LL_APB1_GRP1_DisableClock( 1U << clk.bit );
 				return error::success;
-				case periph::dt::bus::apb2:
+			case periph::dt::bus::apb2:
 				LL_APB2_GRP1_DisableClock( 1U << clk.bit );
 				return error::success;
+#			ifdef RCC_AHB3_SUPPORT
+			case periph::dt::bus::ahb3:
+				LL_AHB3_GRP1_DisableClock( 1U << clk.bit );
+				return error::success;
+#			endif
 			default:
 				return error::nobus;
 		}
@@ -67,6 +77,10 @@ namespace {
 				return LL_APB1_GRP1_IsEnabledClock( 1U << clk.bit );
 			case periph::dt::bus::apb2:
 				return LL_APB2_GRP1_IsEnabledClock( 1U << clk.bit );
+#			ifdef RCC_AHB3_SUPPORT
+			case periph::dt::bus::ahb3:
+				return LL_AHB3_GRP1_IsEnabledClock( 1U << clk.bit );
+#			endif
 			default:
 				return error::nobus;
 		}
@@ -82,10 +96,16 @@ namespace {
 				LL_APB1_GRP1_ForceReset( 1U << clk.bit );
 				LL_APB1_GRP1_ReleaseReset( 1U << clk.bit );
 				return error::success;
-				case periph::dt::bus::apb2:
+			case periph::dt::bus::apb2:
 				LL_APB2_GRP1_ForceReset( 1U << clk.bit );
 				LL_APB2_GRP1_ReleaseReset( 1U << clk.bit );
 				return error::success;
+#			ifdef RCC_AHB3_SUPPORT
+			case periph::dt::bus::ahb3:
+				LL_AHB3_GRP1_ForceReset( 1U << clk.bit );
+				LL_AHB3_GRP1_ReleaseReset( 1U << clk.bit );
+				return error::success;
+#			endif
 			default:
 				return error::nobus;
 		}

@@ -36,6 +36,12 @@ namespace {
 #ifdef GPIOI
 		case 8: return GPIOI;
 #endif
+#ifdef GPIOJ
+		case 9: return GPIOJ;
+#endif
+#ifdef GPIOK
+		case 10: return GPIOK;
+#endif
 		default: return static_cast<decltype(GPIOA)>(nullptr);
 		}
 	}
@@ -75,25 +81,26 @@ namespace {
 
 
 
-//! Configure GPIO as input
+	//! Configure GPIO as input
 	inline void setup(int pin, const periph::gpio::mode::in& tag) {
 		LL_GPIO_SetPinMode(num2port(pin),num2pin(pin),LL_GPIO_MODE_INPUT);
 		LL_GPIO_SetPinPull(num2port(pin),num2pin(pin),tag_pulltype2pullmode(tag.pu));
 	}
-//! Configure GPIO as analog mode
+
+	//! Configure GPIO as analog mode
 	inline void setup(int pin, const periph::gpio::mode::an& tag) {
 		LL_GPIO_SetPinMode(num2port(pin),num2pin(pin),LL_GPIO_MODE_ANALOG);
 		LL_GPIO_SetPinPull(num2port(pin),num2pin(pin),tag_pulltype2pullmode(tag.pu));
 	}
 
-//! Output mode config
+	//! Output mode config
 	inline void setup(int pin, const periph::gpio::mode::out& tag) {
 		LL_GPIO_SetPinMode(num2port(pin),num2pin(pin),LL_GPIO_MODE_OUTPUT);
 		LL_GPIO_SetPinSpeed(num2port(pin),num2pin(pin),tag_speed2speed(tag.spd));
 		LL_GPIO_SetPinPull(num2port(pin),num2pin(pin),tag_outtype2pullmode(tag.out));
 		LL_GPIO_SetPinOutputType(num2port(pin),num2pin(pin),tag_outtype2outputtype(tag.out));
 	}
-//! Alternate mode config
+	//! Alternate mode config
 	inline void setup(int pin, const periph::gpio::mode::alt& tag) {
 		LL_GPIO_SetPinMode(num2port(pin),num2pin(pin),LL_GPIO_MODE_ALTERNATE);
 		LL_GPIO_SetPinSpeed(num2port(pin),num2pin(pin),tag_speed2speed(tag.spd));
@@ -104,6 +111,7 @@ namespace {
 			LL_GPIO_SetAFPin_8_15(num2port(pin),num2pin(pin),tag.altno);
 		LL_GPIO_SetPinOutputType(num2port(pin),num2pin(pin),tag_outtype2outputtype(tag.out));
 	}
+	
 	//! GPIO set
 	inline void set(int pin, bool val) {
 		if(val)
