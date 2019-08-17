@@ -7,9 +7,12 @@
             "defines": [ <DEFINES_REPLACE>
              ],
             "compilerPath": "/usr/bin/arm-none-eabi-g++",
+			"compilerArgs": ["-mcpu=cortex-m4", "-mthumb", 
+							  "-mfloat-abi=hard", "-mfpu=fpv4-sp-d16", "-ffast-math", 
+							  "-fsingle-precision-constant", "-Wno-variadic-macros", "-Wno-long-long" ],
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-x64"
+            "intelliSenseMode": "gcc-x86"
         }
     ],
     "version": 4
