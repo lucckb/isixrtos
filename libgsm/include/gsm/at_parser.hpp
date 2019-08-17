@@ -20,14 +20,14 @@
 #include <foundation/fixed_vector.hpp>
 #include <foundation/serial_port.hpp>
 #include "errors.hpp"
-/* ------------------------------------------------------------------ */ 
+  
 namespace gsm_modem {
-/* ------------------------------------------------------------------ */
+ 
 //! Static vector of input string
 using resp_vec = fnd::fixed_vector<char*,8>;
 //Fwd decl
 class event;
-/* ------------------------------------------------------------------ */
+ 
 //At parser command class
 class at_parser 
 {
@@ -151,5 +151,5 @@ private:
 	const unsigned m_capabilities {};	    //Parser capabilities
 	event* m_event {};
 };
-/* ------------------------------------------------------------------ */
+ 
 }

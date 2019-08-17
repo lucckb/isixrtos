@@ -4,9 +4,9 @@
  *  Created on: 29 wrz 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #pragma once 
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
 	class window;
@@ -15,7 +15,7 @@ namespace gui {
 }
 namespace input {
 
-/* ------------------------------------------------------------------ */
+ 
 /** Keybd codes */
 struct kbdcodes {
 	enum keyboard : unsigned char {
@@ -64,14 +64,14 @@ struct scancodes {
 	};
 };
 
-/* ------------------------------------------------------------------ */
+ 
 /* Mouse codes */
 struct mousecodes {
 	enum mouse : char {
 		any_button, left_button, middle_button, right_button
 	};
 };
-/* ------------------------------------------------------------------ */
+ 
 namespace detail {
 
 	/** Keyboard tag event */
@@ -146,7 +146,7 @@ namespace detail {
 		gfx::gui::timer* owner;
 	};
 } // ns detail
-/* ------------------------------------------------------------------ */
+ 
 struct event_info {
 	/** Event type */
 	enum evtype	: unsigned short {
@@ -184,7 +184,7 @@ struct event_info {
 		detail::timer timer;			//! Timer event
 	};
 };
-/* ------------------------------------------------------------------ */
+ 
 }	//ns gui
 }	//ns gfx
 

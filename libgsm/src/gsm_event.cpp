@@ -20,9 +20,9 @@
 #include <gsm/device.hpp>
 #include <gsm/param_parser.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */ 
+  
 namespace gsm_modem {
-/* ------------------------------------------------------------------ */ 
+  
 //! TODO: Dispatch event add support for cell broadcast
 void event::dispatch( at_parser& at , char* str ) 
 {
@@ -171,7 +171,7 @@ void event::dispatch( at_parser& at , char* str )
 		at.ack_excepted();
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //Callback functions
 void event::sms_reception( sms& sms ) 
 {
@@ -192,7 +192,7 @@ void event::sms_reception( sms& sms )
 	static_cast<void>(sms);
 #endif
 }
-/* ------------------------------------------------------------------ */ 
+  
 //SMS reception indication
 void event::sms_reception_indication(const smsmem_id& storage ,int index)
 {
@@ -202,7 +202,7 @@ void event::sms_reception_indication(const smsmem_id& storage ,int index)
 	static_cast<void>(index);
 #endif
 }
-/* ------------------------------------------------------------------ */ 
+  
 // number, subaddr, alpha
 void event::caller_line_id( const char* number, const char* alpha) 
 {
@@ -212,6 +212,6 @@ void event::caller_line_id( const char* number, const char* alpha)
 	static_cast<void>(alpha);
 #endif
 }
-/* ------------------------------------------------------------------ */ 
+  
 }
 

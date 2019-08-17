@@ -35,7 +35,7 @@ documentation and/or software.
 
 namespace fnd {
 namespace crypto {
-/* ------------------------------------------------------------------ */ 
+  
 namespace {
 	constexpr auto S11 =  7;
 	constexpr auto S12 =  12;
@@ -54,7 +54,7 @@ namespace {
 	constexpr auto S43 =  15;
 	constexpr auto S44 =  21;
 }
-/* ------------------------------------------------------------------ */ 
+  
 // F, G, H and I are basic MD5 functions.
 inline MD5::uint4 MD5::F(uint4 x, uint4 y, uint4 z) {
   return (x&y) | (~x&z);
@@ -332,7 +332,7 @@ MD5& MD5::finalize()
  
   return *this;
 }
-/* ------------------------------------------------------------------ */ 
+  
 const char* MD5::hexdigest( char* buf, size_t len )
 {
 	if (!finalized)
@@ -341,5 +341,5 @@ const char* MD5::hexdigest( char* buf, size_t len )
 		tiny_snprintf(buf+i*2,len, "%02x", digest[i]);
 	return buf;
 }
-/* ------------------------------------------------------------------ */ 
+  
 }}

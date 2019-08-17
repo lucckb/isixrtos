@@ -24,7 +24,7 @@ namespace stm32 {
 #define PCR_ECCEN_SET          ((uint32_t)0x00000040)
 #define PCR_ECCEN_RESET        ((uint32_t)0x000FFFBF)
 #define PCR_MEMORYTYPE_NAND    ((uint32_t)0x00000008)
-/* ------------------------------------------------------------------ */
+ 
 /** @defgroup FSMC_Exported_Constants
   * @{
   */
@@ -202,7 +202,7 @@ namespace stm32 {
 #define FSMC_FLAG_FEMPT                          ((uint32_t)0x00000040)
 
 
-/* ------------------------------------------------------------------ */
+ 
 struct fsmc_timing {
 	uint8_t address_setup_time;
 	uint8_t address_hold_time;
@@ -277,7 +277,7 @@ static inline void fsmc_nor_cmd( uint32_t bank, bool en )
 	}
 }
 
-/* ------------------------------------------------------------------ */
+ 
 #undef BCR_MBKEN_SET
 #undef BCR_MBKEN_RESET
 #undef BCR_FACCEN_SET

@@ -1,19 +1,19 @@
-/* ------------------------------------------------------------------ */
+ 
 /*
  * editbox.hpp
  *
  *  Created on: 14 paz 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #pragma once
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/widget.hpp>
 #include <gfx/gui/detail/defines.hpp>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 /* Edit box widget for editing values */
 class editbox: public widget
 {
@@ -140,9 +140,9 @@ private:	//Private constants
 	static constexpr coord_t text_margin = 2;
 	bool long_flag { false };
 };
-/* ------------------------------------------------------------------ */
+ 
 
 } /* namespace gui */
 } /* namespace gfx */
 
-/* ------------------------------------------------------------------ */
+ 

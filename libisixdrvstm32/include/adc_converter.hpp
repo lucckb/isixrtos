@@ -1,4 +1,4 @@
-/* ------------------------------------------------------------------ */
+ 
 /*
  * adc_converter.hpp
  *
@@ -8,20 +8,20 @@
 
 #ifndef ADC_CONVERTER_HPP_
 #define ADC_CONVERTER_HPP_
-/* ------------------------------------------------------------------ */
+ 
 #include <stm32system.h>
 #include <stm32lib.h>
 #include <isix.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace stm32 {
 namespace dev {
-/* ------------------------------------------------------------------ */
+ 
 extern "C"
 {
     void dma1_channel1_isr_vector() __attribute__((interrupt));
     void dma2_stream0_isr_vector() __attribute__((interrupt));
 }
-/* ------------------------------------------------------------------ */
+ 
 class adc_converter {
     friend void dma1_channel1_isr_vector();
     friend void dma2_stream0_isr_vector();
@@ -60,10 +60,10 @@ private: //nonocopyable
 	adc_converter& operator=(const adc_converter&);
 };
 
-/* ------------------------------------------------------------------ */
+ 
 
 }
 }
-/* ------------------------------------------------------------------ */
+ 
 #endif /* ADC_CONVERTER_HPP_ */
-/* ------------------------------------------------------------------ */
+ 

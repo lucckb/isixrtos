@@ -16,16 +16,16 @@
  * =====================================================================================
  */
 #pragma once
-/* ------------------------------------------------------------------ */ 
+  
 #include <stdint.h>
 #include <stdbool.h>
 #include <usb/host/usbh_driver_desc_type.h>
 
-/* ------------------------------------------------------------------ */
+ 
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* ------------------------------------------------------------------ */
+ 
 //!Forward struct decl
 struct usbh_hid_joy_context;
 typedef struct usbh_hid_joy_context usbh_hid_joy_context_t;
@@ -67,11 +67,11 @@ struct usbh_hid_joystick_ops {
 	void (*enum_desc)( const usbh_hid_joy_context_t *id, enum usbh_driver_desc_type desc, const char *str );
 };
 typedef struct usbh_hid_joystick_ops usbh_hid_joystick_ops_t;
-/* ------------------------------------------------------------------ */ 
+  
 //! Initialize the joystick HID driver
 const struct usbh_driver*
 	usbh_hid_joystick_init( const usbh_hid_joystick_ops_t* joy_ops );
-/* ------------------------------------------------------------------ */ 
+  
 #ifdef __cplusplus
 }
 #endif

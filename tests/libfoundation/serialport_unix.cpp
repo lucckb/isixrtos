@@ -28,7 +28,7 @@
 #include <poll.h>
 
 namespace fnd {
-/* ------------------------------------------------------------------ */
+ 
 namespace {
 int nbaud_to_unix_baud( int baudrate ) {
 	int baudr {};
@@ -69,7 +69,7 @@ int nbaud_to_unix_baud( int baudrate ) {
   }
   return baudr;	
 }
-/* ------------------------------------------------------------------ */
+ 
 void parity_to_unix_parity( int& cpar, int& ipar, serial_port::parity par ) 
 {
 	switch( par ) {
@@ -87,7 +87,7 @@ void parity_to_unix_parity( int& cpar, int& ipar, serial_port::parity par )
 		break;
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 int tiocm_bits_to_unix( unsigned bits ) 
 {
 	int ret {};
@@ -111,7 +111,7 @@ int tiocm_bits_to_unix( unsigned bits )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+ 
 unsigned unix_to_tiocm_bits( int bits ) 
 {
 	unsigned ret {};
@@ -135,9 +135,9 @@ unsigned unix_to_tiocm_bits( int bits )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+ 
 }	//! Unnamed namespace end
-/* ------------------------------------------------------------------ */
+ 
 serialport_unix::serialport_unix( const char *port , unsigned baud, parity par )
 	: m_oldcfg( new termios )
 {
@@ -165,7 +165,7 @@ serialport_unix::serialport_unix( const char *port , unsigned baud, parity par )
 		throw std::system_error( errno, std::system_category() );
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //Destructor
 serialport_unix::~serialport_unix() 
 {
@@ -173,7 +173,7 @@ serialport_unix::~serialport_unix()
 	tcsetattr( m_fd, TCSANOW, m_oldcfg.get() );
 	close(m_fd);
 }
-/* ------------------------------------------------------------------ */ 
+  
 //!Set baudrate
 int serialport_unix::set_baudrate(unsigned baud )
 {
@@ -189,7 +189,7 @@ int serialport_unix::set_baudrate(unsigned baud )
 	}
 	return 0;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //!Set parity
 int serialport_unix::set_parity( parity cparity )
 {
@@ -208,7 +208,7 @@ int serialport_unix::set_parity( parity cparity )
 	}
 	return 0;
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Set special control 
 	* @param[in] flow Hardware flow control settings
 	* @param[in] tio_report input line for state change monitoring
@@ -230,7 +230,7 @@ int serialport_unix::set_flow( flow_control flow )
 	}
 	return 0;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /*	Set io report
 * @param[in] tio_report input line for state change monitoring
 */
@@ -253,31 +253,31 @@ int serialport_unix::set_ioreport( unsigned tio_report )
 	}
 	return 0;
 }
-/* ------------------------------------------------------------------ */
+ 
 //!Putchar
 int serialport_unix::putchar( value_type c, int )
 {
 	return write_all( &c, sizeof c );
 }
-/* ------------------------------------------------------------------ */ 
+  
 //!Get char
 int serialport_unix::getchar( value_type& c, int timeout )
 {
 	return read_timeout( &c, sizeof c, timeout );
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Putstring
 int serialport_unix::puts(const value_type *str)
 {
 	return write_all( str, std::strlen(str) );
 }
-/* ------------------------------------------------------------------ */ 
+  
 //Put data
 int serialport_unix::put(const void *buf, std::size_t buf_len)
 {
 	return write_all( buf, buf_len );
 }
-/* ------------------------------------------------------------------ */ 
+  
 //Get string into the uart
 int serialport_unix::gets(value_type *str, std::size_t max_len, int timeout ) 
 {
@@ -301,14 +301,14 @@ int serialport_unix::gets(value_type *str, std::size_t max_len, int timeout )
 	if(l>=max_len) str[l] = '\0';
 	return l;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Get data
 int serialport_unix::get(void *buf, std::size_t max_len, int timeout, 
 		std::size_t min_len )
 {
 	return read_timeout( buf, max_len, timeout, min_len );
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Get avail bytes
 int serialport_unix::rx_avail() const
 {
@@ -318,7 +318,7 @@ int serialport_unix::rx_avail() const
 	}
 	return -1;
 }
-/* ------------------------------------------------------------------ */
+ 
 //!Get status lines
 int serialport_unix::tiocm_get() const
 {
@@ -328,20 +328,20 @@ int serialport_unix::tiocm_get() const
 	}
 	return unix_to_tiocm_bits( status );
 }
-/* ------------------------------------------------------------------ */
+ 
 //!Get tiocm event
 int serialport_unix::tiocm_flags( unsigned flags ) const
 {
 	return m_flags.fetch_and( ~flags );
 }
-/* ------------------------------------------------------------------ */
+ 
 //!Set status line
 int serialport_unix::tiocm_set( unsigned tiosigs )
 {
 	auto flags = tiocm_bits_to_unix( tiosigs );
 	return ::ioctl( m_fd, TIOCMSET, &flags );
 }
-/* ------------------------------------------------------------------ */
+ 
 //Watcher thread
 void serialport_unix::io_watcher_thread() 
 {
@@ -367,7 +367,7 @@ void serialport_unix::io_watcher_thread()
 		m_flags = out;
 	}
 }
-/* ------------------------------------------------------------------ */ 
+  
 int serialport_unix::read_timeout( void* buf, size_t len, int timeout, size_t min_len )
 {
 	pollfd pfd[1];
@@ -396,7 +396,7 @@ int serialport_unix::read_timeout( void* buf, size_t len, int timeout, size_t mi
 	if( ret >= 0 ) ret = pos;
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+ 
 int serialport_unix::write_all( const void* buf, size_t len )
 {
 	char *d = (char*)buf;
@@ -412,12 +412,12 @@ int serialport_unix::write_all( const void* buf, size_t len )
 	return len;
 
 }
-/* ------------------------------------------------------------------ */
+ 
 void serialport_unix::sleep( unsigned ms ) 
 {
 	usleep(1000*ms);
 }
-/* ------------------------------------------------------------------ */ 
+  
 }
 
 

@@ -5,17 +5,17 @@
  *      Author: lucck
  */
 
-/* ------------------------------------------------------------------ */
+ 
 #ifndef ISIX_GFX_DISP_BASE_HPP_
 #define ISIX_GFX_DISP_BASE_HPP_
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/types.hpp>
 #include <utility>
 #include <cstddef>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace drv {
-/* ------------------------------------------------------------------ */
+ 
 //Display power control
 enum class power_ctl_t : short
 {
@@ -24,7 +24,7 @@ enum class power_ctl_t : short
 	on,
 	sleep
 };
-/* ------------------------------------------------------------------ */
+ 
 enum class rotation_t : short
 {
 	rot_0,
@@ -32,7 +32,7 @@ enum class rotation_t : short
 	rot_180,
 	rot_270
 };
-/* ------------------------------------------------------------------ */
+ 
 class disp_base
 {
 	//Make object noncopyable
@@ -104,10 +104,10 @@ private:
 	coord_t m_width {}, m_height {};	//Disp width and height
 };
 
-/* ------------------------------------------------------------------ */
+ 
 }}
-/* ------------------------------------------------------------------ */
+ 
 
 #endif /* ISIX_GFX_DISP_BASE_HPP_ */
 
-/* ------------------------------------------------------------------ */
+ 

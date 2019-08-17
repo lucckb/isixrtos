@@ -23,10 +23,10 @@
 #include <cstring>
 #include <string.h>
 #include <cstdlib>
-/* ------------------------------------------------------------------ */ 
+  
 //! TODO: PDU mode text messages
 namespace gsm_modem {
-/* ------------------------------------------------------------------ */
+ 
 //! GSM device constructor
 device::device( fnd::serial_port& comm,  hw_control& hwctl, unsigned cap )
 	: m_at( comm ), m_hwctl( hwctl ), m_phonebook( *this ), 
@@ -34,7 +34,7 @@ device::device( fnd::serial_port& comm,  hw_control& hwctl, unsigned cap )
 {
 
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Do enable device
 int device::do_enable () {
 
@@ -123,7 +123,7 @@ int device::do_enable () {
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //Do single command
 int device::send_command_noresp( const char *cmd, const char* arg )
 {
@@ -136,19 +136,19 @@ int device::send_command_noresp( const char *cmd, const char* arg )
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Set character set to the modem
 int device::set_charset( const char* charset ) 
 {
 	return send_command_noresp( "+CSCS=", charset );
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Set pin
 int device::set_pin( const char* pin )
 {
 	return send_command_noresp("+CPIN=", pin );
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Get pin
 int device::get_pin_status()
 {
@@ -174,7 +174,7 @@ int device::get_pin_status()
 	}
 	return error::unexpected_resp;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Register to GSM network 
 int device::register_to_network( const char *pin, reg_notify notify )
 {
@@ -207,7 +207,7 @@ int device::register_to_network( const char *pin, reg_notify notify )
 	m_at.unsolicited_creg( notify!=reg_notify::disabled );
 	return ret;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /** Get current operator information 
 	* @param[out] Information structure
 	* @return success or error code if failure
@@ -279,7 +279,7 @@ int device::get_current_op_info( oper_info& info )
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /** Print registration status
 * @param[in] gprs Gprs registration status
 * @return registration code or failed if fatal
@@ -315,7 +315,7 @@ int device::get_registration_status( bool gprs )
 	}
 	return val;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /** Get signal strength information
 * @return signal stength or error code
 */
@@ -334,7 +334,7 @@ int device::get_signal_strength()
 	}
 	return val;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Get text mode sms parameter
 int device::get_text_mode_param_config( sms_text_params& param )
 {
@@ -372,7 +372,7 @@ int device::get_text_mode_param_config( sms_text_params& param )
 	param.data_coding_scheme = val;
 	return error::success;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Set text mode parameters
 int device::set_text_mode_param_config( const sms_text_params& param )
 {
@@ -385,7 +385,7 @@ int device::set_text_mode_param_config( const sms_text_params& param )
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Send sms message and return
 	* error code if it is required
 	*/
@@ -443,7 +443,7 @@ int device::send_sms( const sms_submit& sms )
 	return mref;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //Set sms routing to TA
 int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs, 
 		bool en_stat_report, bool only_reception_indication )
@@ -595,7 +595,7 @@ int device::set_sms_routing_to_ta( bool en_sms, bool en_cbs,
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Get phone IMEI
 	* @param[in] inp Input IMEI structure 
 	* @return Error code or 0 */
@@ -614,7 +614,7 @@ int device::get_imei( imei_number& inp )
 	std::strncpy( inp.value, imei, sizeof(inp)-1);
 	return error::success;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /** Get phone imsi 
 	* @param[in] inp Input structure with imsi
 	* @return Error code or success */
@@ -633,7 +633,7 @@ int device::get_imsi( imsi_number& inp )
 	std::strncpy( inp.value, imsi, sizeof(inp)-1 );
 	return error::success;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Switch to command mode if DSR/DTR not set ignore
 int device::command_mode( bool hang )
 {
@@ -672,7 +672,7 @@ int device::command_mode( bool hang )
 	} while(0);
 	return err;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Switch to data mode if DSR/DTR not set ignore
 int device::data_mode()
 {
@@ -685,7 +685,7 @@ int device::data_mode()
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Activate GPRS session
 int device::connect_gprs(  std::function<const char*()> apn_callback )
 {
@@ -747,7 +747,7 @@ int device::connect_gprs(  std::function<const char*()> apn_callback )
 	} while(0);
 	return res;
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Deactivate GPRS session and return to command mode 
 	* @return Error code
 	*/
@@ -777,5 +777,5 @@ int device::disconnect_gprs()
 	} while(0);
 	return res;
 }
-/* ------------------------------------------------------------------ */
+ 
 }

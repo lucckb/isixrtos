@@ -18,15 +18,15 @@
 #pragma once
 #include <foundation/drv/storage/iflash_mem.hpp>
 #include <foundation/algo/lrucache.hpp>
-/* ------------------------------------------------------------------ */
+ 
 /**  Filesystem implementation */
 namespace fnd {
 namespace filesystem {
-/* ------------------------------------------------------------------ */
+ 
 namespace detail {
 	struct fnode_0;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Env FS class implementation
 class fs_env 
 {
@@ -184,6 +184,6 @@ private:
 	unsigned m_last_free_clust { c_first_cluster };			//! Last free cluster
 	fnd::lru_cache<unsigned, unsigned short> m_lru;	//! LRU cache
 };
-/* ------------------------------------------------------------------ */ 
+  
 }
 }

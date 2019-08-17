@@ -4,19 +4,19 @@
  *  Created on: 10 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/icon.hpp>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
 
-/* ------------------------------------------------------------------ */
+ 
 //Constructor
 icon::icon( rectangle const& rect,layout const& layout ,window &win )
 	: widget( rect, layout, win  )
 {
 }
-/* ------------------------------------------------------------------ */
+ 
 //Repaint the window
 void icon::repaint( bool /* focus */ )
 {
@@ -31,8 +31,8 @@ void icon::repaint( bool /* focus */ )
 	}
 }
 
-/* ------------------------------------------------------------------ */
+ 
 } /* namespace gui */
 } /* namespace gfx */
 
-/* ------------------------------------------------------------------ */
+ 

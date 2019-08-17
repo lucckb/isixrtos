@@ -4,7 +4,7 @@
  *  Created on: 1 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/frame.hpp>
 #include <gfx/input/event_info.hpp>
 #include <gfx/gui/window.hpp>
@@ -12,10 +12,10 @@
 #include <isix.h>
 #include <foundation/sys/dbglog.h>
 #include <algorithm>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 /** Execute gui main loop */
 void frame::execute()
 {
@@ -70,7 +70,7 @@ void frame::execute()
 		}
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //Add widget to frame
 void frame::add_window( window* window )
 {
@@ -78,7 +78,7 @@ void frame::add_window( window* window )
 	m_windows.push_back( window );
 	//queue_repaint( true, nullptr, true );
 }
-/* ------------------------------------------------------------------ */
+ 
 //Delete the widget
 void frame::delete_window( window* window )
 {
@@ -86,7 +86,7 @@ void frame::delete_window( window* window )
 	m_windows.remove( window );
 	//queue_repaint( true, nullptr, true );
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Refresh frame manual requirement */
 int frame::queue_repaint( bool force, window* wnd, bool force_clr )
 {
@@ -99,13 +99,13 @@ int frame::queue_repaint( bool force, window* wnd, bool force_clr )
 	ei.paint = { force, force_clr };
 	return report_event( ei );
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Send gui event handler */
 int frame::report_event( const input::event_info &event )
 {
 	return m_events_queue.push_isr( event );
 }
-/* ------------------------------------------------------------------ */
+ 
 //Repaint first windows
 void frame::repaint( bool force, window *wnd, bool force_clr )
 {
@@ -117,7 +117,7 @@ void frame::repaint( bool force, window *wnd, bool force_clr )
 		wnd->repaint( force, force_clr );
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //Focus on the window
 int frame::set_focus( window* win, window* back_win )
 {
@@ -137,10 +137,10 @@ int frame::set_focus( window* win, window* back_win )
 		return error::wnd_not_found;
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 }	//ns gui
 }	//ns gfx
-/* ------------------------------------------------------------------ */
+ 
 
 
 

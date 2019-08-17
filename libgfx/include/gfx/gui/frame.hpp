@@ -4,9 +4,9 @@
  *  Created on: 30 wrz 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #pragma once
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/object.hpp>
 #include <gfx/input/event_info.hpp>
 #include <gfx/gui/detail/defines.hpp>
@@ -14,13 +14,13 @@
 #include <gfx/drivers/disp/disp_base.hpp>
 #include <stack>
 #include <isix.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
 
-/* ------------------------------------------------------------------ */
+ 
 class window;
-/* ------------------------------------------------------------------ */
+ 
 /* Gui Manager master class */
 class frame : public object {
 	static constexpr auto system_events_qsize = 64;
@@ -126,6 +126,6 @@ private:
 	std::stack<window*> m_win_stack;
 };
 
-/* ------------------------------------------------------------------ */
+ 
 }}
-/* ------------------------------------------------------------------ */
+ 

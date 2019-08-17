@@ -4,15 +4,15 @@
  *  Created on: 14-02-2012
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #ifndef BITOPS_HPP_
 #define BITOPS_HPP_
-/* ------------------------------------------------------------------ */
+ 
 #ifdef __cplusplus
 namespace fnd
 {
 #endif
-/* ------------------------------------------------------------------ */
+ 
 static inline unsigned ones32(register unsigned int x)
 {
         /* 32-bit recursive reduction using SWAR...
@@ -26,10 +26,10 @@ static inline unsigned ones32(register unsigned int x)
         x += (x >> 16);
         return(x & 0x0000003f);
 }
-/* ------------------------------------------------------------------ */
+ 
 #ifdef __cplusplus
 }
 #endif
-/* ------------------------------------------------------------------ */
+ 
 #endif /* BITOPS_HPP_ */
-/* ------------------------------------------------------------------ */
+ 

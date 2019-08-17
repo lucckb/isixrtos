@@ -1,4 +1,4 @@
-/* ------------------------------------------------------------------ */
+ 
 /*
  * editbox.cpp
  *
@@ -7,15 +7,15 @@
  *      TODO: Cursor change improvement
  *      TODO: Set min and max window limit
  */
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/editbox.hpp>
 #include <foundation/sys/dbglog.h>
-#include <foundation/utils.h>
+#include <foundation/algo/utils.h>
 #include <cstdlib>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 //! On repaint the widget return true when changed
 void editbox::repaint(  bool /* focus */  )
 {
@@ -57,7 +57,7 @@ void editbox::repaint(  bool /* focus */  )
 	gdi.draw_line( c.x()+1, c.y(), c.x()+c.cx()-1, c.y() );
 	gdi.draw_line( c.x(), c.y(), c.x(), c.y()+c.cy()-2 );
 }
-/* ------------------------------------------------------------------ */
+ 
 //* Report input event
 void editbox::report_event( const input::event_info& ev )
 {
@@ -82,7 +82,7 @@ void editbox::report_event( const input::event_info& ev )
 		modified();
 	}
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Move cursor forward
 void editbox::cursor_forward()
 {
@@ -99,7 +99,7 @@ void editbox::cursor_forward()
 		m_cursor_x = c.x() + text_margin;
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Goto cursor end
 void editbox::cursor_end() 
 {
@@ -110,7 +110,7 @@ void editbox::cursor_end()
 	if( new_cur_x  < c.x()+c.cx()-text_margin*2 )
 		m_cursor_x = new_cur_x;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Move cursor backward
 void editbox::cursor_backward() 
 {
@@ -131,7 +131,7 @@ void editbox::cursor_backward()
 
 	m_cursor_x = new_cur_x;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Handle joy KBD
 bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 {
@@ -191,7 +191,7 @@ bool editbox::handle_joy( const input::detail::keyboard_tag& evk )
 
 	return true;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Handle querty KBD
 bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 {
@@ -245,7 +245,7 @@ bool editbox::handle_qwerty( const input::detail::keyboard_tag& evk )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Clear the box
 void editbox::to_begin() 
 {
@@ -253,7 +253,7 @@ void editbox::to_begin()
 	m_cursor_x = c.x() + text_margin;
 	m_cursor_pos = 0;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Get insert char
 char editbox::insert_ch(char prev_char)
 {
@@ -272,7 +272,7 @@ char editbox::insert_ch(char prev_char)
 			return '0';
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //Validate is character contains the criteria
 char editbox::ch_inc( char ch ) const
 {
@@ -306,7 +306,7 @@ char editbox::ch_inc( char ch ) const
 	}
 	return ch;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Validate is character contains the criteria
 char editbox::ch_dec( char ch ) const
 {
@@ -340,7 +340,7 @@ char editbox::ch_dec( char ch ) const
 	}
 	return ch;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! If key matches the selected format
 bool editbox::key_match( int ch ) const
 {
@@ -358,13 +358,13 @@ bool editbox::key_match( int ch ) const
 	}
 	return false;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Get int value
 int editbox::value_int() const
 {
 	return std::atoi( m_value.c_str() );
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Set int value
 void editbox::value( int value ) 
 {
@@ -373,7 +373,7 @@ void editbox::value( int value )
 	m_value = buf;
 	to_begin();
 }
-/* ------------------------------------------------------------------ */
+ 
 } /* namespace gui */
 } /* namespace gfx */
-/* ------------------------------------------------------------------ */
+ 

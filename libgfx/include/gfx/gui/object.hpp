@@ -1,24 +1,24 @@
-/* ------------------------------------------------------------------ */
+ 
 /*
  * object.hpp
  *
  *  Created on: 8 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #pragma once
-/* ------------------------------------------------------------------ */
+ 
 #include <foundation/algo/noncopyable.hpp>
 #include <gfx/input/event_info.hpp>
 #include <functional>
 #include <memory>
 #include <gfx/gui/detail/defines.hpp>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 class object;
-/* ------------------------------------------------------------------ */
+ 
 //Event for user space
 struct event : public input::event_info
 {
@@ -41,12 +41,12 @@ struct event : public input::event_info
 	virtual ~event() {}
 	object * const sender;
 };
-/* ------------------------------------------------------------------ */
+ 
 //Basic event signal
 using event_signal = std::function<bool(const event&)>;
 using event_handle = std::weak_ptr<std::pair<event::evtype,event_signal>>;
 
-/* ------------------------------------------------------------------ */
+ 
 class object
 {
 public:
@@ -81,7 +81,7 @@ private:
 	//Signal event slot
 	detail::container<std::shared_ptr<std::pair<event::evtype,event_signal>>> m_events;
 };
-/* ------------------------------------------------------------------ */
+ 
 }
 }
-/* ------------------------------------------------------------------ */
+ 

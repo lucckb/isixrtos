@@ -4,13 +4,13 @@
  *  Created on: 11 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/choice_menu.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 //Constructor
 choice_menu::choice_menu( rectangle const& rect,
 	layout const& layout ,window &win, style style )
@@ -18,7 +18,7 @@ choice_menu::choice_menu( rectangle const& rect,
 	  m_max_box_items(calc_max_items())
 {
 }
-/* ------------------------------------------------------------------ */
+ 
 //Calculate max number of items using current font
 int choice_menu::calc_max_items() const
 {
@@ -26,7 +26,7 @@ int choice_menu::calc_max_items() const
 	const auto coo = get_coord();
 	return (coo.cy()-y_margin) / lay.font()->height;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Repaint virtual function
 void choice_menu::repaint( bool /* focus */ )
 {
@@ -131,7 +131,7 @@ void choice_menu::repaint( bool /* focus */ )
 	}
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //Set menu items
 void choice_menu::items( const item *items )
 {
@@ -141,7 +141,7 @@ void choice_menu::items( const item *items )
 		for( size_t i=0; m_items[i].first; ++i, ++m_num_items );
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //* Report input event
 void choice_menu::report_event( const input::event_info& ev )
 {
@@ -177,8 +177,8 @@ void choice_menu::report_event( const input::event_info& ev )
 		modified();
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 
 } /* namespace gui */
 } /* namespace gfx */
-/* ------------------------------------------------------------------ */
+ 

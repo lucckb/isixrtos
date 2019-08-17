@@ -4,14 +4,14 @@
  *  Created on: 10 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/selectable_widget.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
 
-/* ------------------------------------------------------------------ */
+ 
 //* Report input event
 void selectable_widget::report_event( const input::event_info& ev )
 {
@@ -32,7 +32,7 @@ void selectable_widget::report_event( const input::event_info& ev )
 		modified();
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 } /* namespace gui */
 } /* namespace gfx */
-/* ------------------------------------------------------------------ */
+ 

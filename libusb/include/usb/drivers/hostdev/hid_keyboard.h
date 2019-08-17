@@ -16,15 +16,15 @@
  * =====================================================================================
  */
 #pragma once
-/* ------------------------------------------------------------------ */
+ 
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* ------------------------------------------------------------------ */ 
+  
 #include <stdint.h>
 #include <stdbool.h>
 #include <usb/host/usbh_driver_desc_type.h>
-/* ------------------------------------------------------------------ */ 
+  
 struct usbh_driver;
 struct usbh_keyb_hid_context;
 typedef struct usbh_keyb_hid_context usbh_keyb_hid_context_t;
@@ -60,14 +60,14 @@ struct usbh_hid_kbd_ops {
 	void (*enum_desc)( const usbh_keyb_hid_context_t* id, enum usbh_driver_desc_type desc, const char *str );
 };
 typedef struct usbh_hid_kbd_ops usbh_hid_kbd_ops_t; 
-/* ------------------------------------------------------------------ */ 
+  
 //Initialize core hid driver
 const struct usbh_driver* 
 	usbh_hid_keyboard_init( const usbh_hid_kbd_ops_t* kbd_ops );
 
-/* ------------------------------------------------------------------ */
+ 
 #ifdef __cplusplus
 }
 #endif
-/* ------------------------------------------------------------------ */ 
+  
 

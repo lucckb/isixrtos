@@ -4,15 +4,15 @@
  *  Created on: 7 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/window.hpp>
 #include <gfx/gui/widget.hpp>
 #include <gfx/input/event_info.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 namespace {
 	//Draw the single line box
 	void draw_line_box( const rectangle &r, disp::gdi &gdi )
@@ -23,7 +23,7 @@ namespace {
 		gdi.draw_line(r.x()+r.cx(),r.y(),r.x()+r.cx(), r.y()+r.cy() );
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 // On repaint the widget return true when changed
 void window::repaint( bool force, bool force_clr )
 {
@@ -88,7 +88,7 @@ void window::repaint( bool force, bool force_clr )
 	}
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //Report event
 void window::report_event( const input::event_info& ev )
 {
@@ -111,7 +111,7 @@ void window::report_event( const input::event_info& ev )
 		}
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //Select next component
 void window::select_next()
 {
@@ -125,7 +125,7 @@ void window::select_next()
 		}
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //Select prev component
 void window::select_prev()
 {
@@ -141,7 +141,7 @@ void window::select_prev()
 		}
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Select wiget directly
 void window::select( widget * const w ) 
 {
@@ -156,7 +156,7 @@ void window::select( widget * const w )
 		m_current_widget = elem;
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 void window::add_widget( widget* const w )
 {
 	m_widgets.push_back( w );
@@ -164,15 +164,15 @@ void window::add_widget( widget* const w )
 		select( w );
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 void window::delete_widget( widget* const w )
 {
 	m_widgets.remove( w );
 	m_current_widget = m_widgets.empty()||!w->selectable()?m_widgets.end():m_widgets.begin();
 }
-/* ------------------------------------------------------------------ */
+ 
 }}
 
-/* ------------------------------------------------------------------ */
+ 
 
 

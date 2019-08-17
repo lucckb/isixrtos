@@ -1,22 +1,22 @@
-/* ------------------------------------------------------------------ */
+ 
 /*
  * adc_converter.cpp
  *
  *  Created on: 08-03-2011
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include "adc_converter.hpp"
 #include <isix.h>
 #include <stm32dma.h>
 #include <stm32lib.h>
 #include <stm32gpio.h>
 #include <stm32rcc.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace stm32 {
 namespace dev {
 
-/* ------------------------------------------------------------------ */
+ 
 namespace
 {
 	//GPIO port assignement
@@ -69,7 +69,7 @@ namespace
     //Global object for interrupt handling
     adc_converter * adc1_object;
 }
-/* ------------------------------------------------------------------ */
+ 
 adc_converter::adc_converter(ADC_TypeDef * const _m_ADC, unsigned _ch_mask,
 		sample_time sh_time, int irq_prio, int irq_sub)
 	: m_ADC(_m_ADC),lock_sem(1, 1), complete_sem(0,1), num_active_chns(0)
@@ -157,7 +157,7 @@ adc_converter::adc_converter(ADC_TypeDef * const _m_ADC, unsigned _ch_mask,
 #endif
 
 }
-/* ------------------------------------------------------------------ */
+ 
 //Destructor
 adc_converter::~adc_converter()
 {
@@ -174,12 +174,12 @@ adc_converter::~adc_converter()
 	//Shutdown the converter
     if(m_ADC==ADC1)   RCC->APB2ENR &= ~RCC_APB2Periph_ADC1;
 }
-/* ------------------------------------------------------------------ */
+ 
 void adc_converter::start_conv()
 {
     m_ADC->CR2 |= CR2_EXTTRIG_SWSTART_Set;
 }
-/* ------------------------------------------------------------------ */
+ 
 //ADC get values
 int adc_converter::get_adc_values(volatile unsigned short *regs)
 {
@@ -224,14 +224,14 @@ int adc_converter::get_adc_values(volatile unsigned short *regs)
     }
     return lock_sem.signal();
 }
-/* ------------------------------------------------------------------ */
+ 
 //Interrupt service routine
 void adc_converter::isr()
 {
    complete_sem.signal_isr();
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //External interrupt triggering
 extern "C"
 {
@@ -255,7 +255,7 @@ extern "C"
 #error unknown MCU type
 #endif
 }
-/* ------------------------------------------------------------------ */
+ 
 }}
 
-/* ------------------------------------------------------------------ */
+ 

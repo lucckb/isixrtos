@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* ------------------------------------------------------------------ */ 
+  
 //HID joystick specific constants
 enum { USAGE_PAGE_BUTTON       =  0x09 };
 /** HID Report Descriptor Usage Page value for a Generic Desktop Control. */
@@ -55,10 +55,10 @@ enum { USAGE_RZ						= 0x35 };
 enum { USAGE_SLIDER					= 0x36 };
 /** HID Report usage for Hat switch */
 enum { USAGE_HAT_SW					= 0x39 };
-/* ------------------------------------------------------------------ */ 
+  
 //!Joystick operation structure
 static const usbh_hid_joystick_ops_t* g_joy_ops;
-/* ------------------------------------------------------------------ */
+ 
 //! Joystick context
 typedef struct usbh_hid_joy_context {
 	HID_ReportInfo_t hid_info;	//! HID report info
@@ -67,7 +67,7 @@ typedef struct usbh_hid_joy_context {
 	bool disconnect;			//! It is disconnection event
 	usbh_joy_hid_event_t evt;	//! Event data processed
 } usbh_hid_joy_context_t;
-/* ------------------------------------------------------------------ */ 
+  
 //!Joystick inteface comparator
 static int dcomp_joystick_interface( const void* curr_desc )
 {
@@ -83,7 +83,7 @@ static int dcomp_joystick_interface( const void* curr_desc )
 	}
 	return DESCRIPTOR_SEARCH_NotFound;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //Search for hid interface
 static int dcomp_hid_desc( const void* curr_desc ) 
 {
@@ -96,7 +96,7 @@ static int dcomp_hid_desc( const void* curr_desc )
 	}
 	return DESCRIPTOR_SEARCH_NotFound;
 }
-/* ------------------------------------------------------------------ */
+ 
 static int dcomp_endp_desc( const void* curr_desc )
 {
 	const usb_descriptor_header_t* hdr = DESCRIPTOR_PCAST( curr_desc, usb_descriptor_header_t );
@@ -105,7 +105,7 @@ static int dcomp_endp_desc( const void* curr_desc )
 	}
 	return DESCRIPTOR_SEARCH_NotFound;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Joystick HID parser filter
 static bool dcomp_hid_joystick( HID_ReportItem_t* const CurrentItem ) 
 {
@@ -138,7 +138,7 @@ static bool dcomp_hid_joystick( HID_ReportItem_t* const CurrentItem )
 	return ((CurrentItem->Attributes.Usage.Page == USAGE_PAGE_BUTTON) ||
 	        (CurrentItem->Attributes.Usage.Page == USAGE_PAGE_GENERIC_DCTRL));
 }
-/* ------------------------------------------------------------------ */ 
+  
 /** HID machine state callback
  * @param[in] ctx HID context
  * @param[in] user_data Private user data
@@ -227,7 +227,7 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 		isix_sem_signal_isr( ctx->report_sem );
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Driver auto detect and attach
 static int hid_joystick_attached( const usbhost_device_t* hdev, void** data )
 {
@@ -328,7 +328,7 @@ static int hid_joystick_attached( const usbhost_device_t* hdev, void** data )
 	}
 	return usbh_driver_ret_configured;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //Enumerate descriptor
 static void hid_joystick_enum_desc( void *data, enum usbh_driver_desc_type desc, const char *str )
 {
@@ -336,7 +336,7 @@ static void hid_joystick_enum_desc( void *data, enum usbh_driver_desc_type desc,
 		g_joy_ops->enum_desc( data, desc, str );
 	}
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Driver keyboard process
 static int hid_joystick_process( void* data )
 {
@@ -360,14 +360,14 @@ static int hid_joystick_process( void* data )
 		}
 	}
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Driver OPS structure
 static const usbh_driver_t drv_ops = {
 	hid_joystick_attached,
 	hid_joystick_process,
 	hid_joystick_enum_desc
 };
-/* ------------------------------------------------------------------ */ 
+  
 //Joystick Driver init
 const struct usbh_driver*
 	usbh_hid_joystick_init( const usbh_hid_joystick_ops_t* joy_ops )
@@ -375,4 +375,4 @@ const struct usbh_driver*
 	g_joy_ops = joy_ops;
 	return &drv_ops;
 }
-/* ------------------------------------------------------------------ */ 
+  

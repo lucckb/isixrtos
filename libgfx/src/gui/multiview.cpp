@@ -18,10 +18,10 @@
 
 #include <gfx/gui/multiview.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */ 
+  
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 namespace {
 	// remove backspaces from a std::string
 	void remove_backspaces( std::string& s )
@@ -34,7 +34,7 @@ namespace {
 		s.erase (i - 1, 2); // erase character before backspace (and backspace)
 	} // end of removeBackspaces
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! On repaint the widget return true when changed
 void multiview::repaint( bool focus )
 {
@@ -52,7 +52,7 @@ void multiview::repaint( bool focus )
 	}
 	gui_draw_frame();
 }
-/* ------------------------------------------------------------------ */
+ 
 //! GUI dram frame
 void multiview::gui_draw_frame()
 {
@@ -75,7 +75,7 @@ void multiview::gui_draw_frame()
 	//Clear the data line
 	m_line.clear();
 }
-/* ------------------------------------------------------------------ */ 
+  
 // Add gui line of text
 void multiview::gui_add_line()
 {
@@ -114,7 +114,7 @@ void multiview::gui_add_line()
 		}
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 // Clear gui BOX
 void multiview::gui_clear_box()
 {
@@ -124,7 +124,7 @@ void multiview::gui_clear_box()
 	m_clear_req = false;
 	m_last_x = INVAL;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Called when whole window should be repaint
 void multiview::gui_all_lines()
 {
@@ -185,8 +185,8 @@ void multiview::gui_all_lines()
 	}
 	m_last_x = xc;
 }
-/* ------------------------------------------------------------------ */ 
+  
 } //ns gui
 } //ns gfx
-/* ------------------------------------------------------------------ */ 
+  
 

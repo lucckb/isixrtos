@@ -4,15 +4,15 @@
  *  Created on: 11 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #pragma once
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/widget.hpp>
 
 namespace gfx {
 namespace gui {
 
-/* ------------------------------------------------------------------ */
+ 
 /** Request choice class. This class implements
  *  two choice style types normal and select.
  *  Normal choice is menu like select item 
@@ -101,8 +101,8 @@ private:
 	static constexpr coord_t slider_space = 2;
 };
 
-/* ------------------------------------------------------------------ */
+ 
 } /* namespace gui */
 } /* namespace gfx */
 
-/* ------------------------------------------------------------------ */
+ 

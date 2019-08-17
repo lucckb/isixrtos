@@ -23,9 +23,9 @@
 #include <algorithm>
 #include <cstdlib>
 #include <algorithm>
-/* ------------------------------------------------------------------ */ 
+  
 namespace gsm_modem {
-/* ------------------------------------------------------------------ */
+ 
 //! Put line to the serial interface
 int at_parser::put_line( const char* line1, const char* line2, bool carriage_return )
 {
@@ -45,7 +45,7 @@ int at_parser::put_line( const char* line1, const char* line2, bool carriage_ret
 	}
 	return 0;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Match the response string
 bool at_parser::match_response( const char* answer, const char* response_to_match )
 {
@@ -62,7 +62,7 @@ bool at_parser::match_response( const char* answer, const char* response_to_matc
 	}
 	return false;
 }
-/* ------------------------------------------------------------------ */
+ 
 // Cut the response
 char* at_parser::cut_response( char* answer, const char* response_to_match )
 {
@@ -78,7 +78,7 @@ char* at_parser::cut_response( char* answer, const char* response_to_match )
 	}
 	return nullptr;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Remove whitespace at begginning and end of string
 char* at_parser::normalize( char* input )
 {
@@ -103,7 +103,7 @@ char* at_parser::normalize( char* input )
 	input[end] = '\0';
 	return &input[start];
 }
-/* ------------------------------------------------------------------ */
+ 
 // Report and decode error
 void at_parser::report_error( char* inp )
 {
@@ -121,7 +121,7 @@ void at_parser::report_error( char* inp )
 	else
 		m_error = error::at_cme_first - std::atoi( inp );
 }
-/* ------------------------------------------------------------------ */
+ 
 bool at_parser::handle_unsolicited( char* begin_ptr )
 {
 	//! Ignored events
@@ -149,7 +149,7 @@ bool at_parser::handle_unsolicited( char* begin_ptr )
 	}
 	return false;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Get one character from serial port
 int at_parser::getchar( char& ch, int timeout )
 {
@@ -160,7 +160,7 @@ int at_parser::getchar( char& ch, int timeout )
 		m_error = ret;
 	return m_error;
 }
-/* ------------------------------------------------------------------ */
+ 
 // Get line and handle events
 char* at_parser::getline( size_t pos_from, int timeout )
 {
@@ -179,7 +179,7 @@ char* at_parser::getline( size_t pos_from, int timeout )
 	dbg_debug("rx>[%s]->%i", begin_ptr, ret );
 	return begin_ptr;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Get second line just after the response
 char* at_parser::get_second_line( const char* first_ln, int timeout ) 
 {
@@ -193,7 +193,7 @@ char* at_parser::get_second_line( const char* first_ln, int timeout )
 	}
 	return normalize(begin_ptr);
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Chat with the modem
 char* at_parser::chat( const char at_cmd[], const char resp[],
 	bool ignore_errors, bool empty_response, char **pdu  )
@@ -299,7 +299,7 @@ char* at_parser::chat( const char at_cmd[], const char resp[],
 	m_error = error::unexpected_resp;
 	return nullptr;
 }
-/* ------------------------------------------------------------------ */ 
+  
 // Chat and get he vector of string
 int at_parser::chatv( resp_vec& ans_vec, const char at_cmd[], const char response[],
 		bool ignore_errors )
@@ -352,7 +352,7 @@ int at_parser::chatv( resp_vec& ans_vec, const char at_cmd[], const char respons
 	m_error = error::lib_bug;
 	return m_error;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Discard bytes and don't wait for line response
 int at_parser::discard_data( int timeout )
 {
@@ -386,7 +386,7 @@ int at_parser::discard_data( int timeout )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Send pdu or other command request for msg
 char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 		const char pdu[], bool accept_empty_response )
@@ -542,7 +542,7 @@ char* at_parser::send_pdu( const char at_cmd[], const char resp[],
 	m_error = error::unexpected_resp;
 	return nullptr;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Wait for an event
 int at_parser::wait( int timeout ) 
 {
@@ -561,7 +561,7 @@ int at_parser::wait( int timeout )
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Switch to command mode if DSR/DTR not set ignore
 int at_parser::hw_command_mode()
 {
@@ -576,6 +576,6 @@ int at_parser::hw_command_mode()
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */ 
+  
 }
 

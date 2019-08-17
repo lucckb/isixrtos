@@ -17,11 +17,11 @@
  */
 #pragma once
 
-/* ------------------------------------------------------------------ */ 
+  
 //! Descriptor of input request
 enum usbh_driver_desc_type {
 	usbh_driver_desc_product,
 	usbh_driver_desc_manufacturer,
 	usbh_driver_desc_serial
 };
-/* ------------------------------------------------------------------ */ 
+  

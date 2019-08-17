@@ -4,13 +4,13 @@
  *  Created on: 13-06-2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #pragma once
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace disp {
 
-/* ------------------------------------------------------------------ */
+ 
 /*
  * Proportional/fixed font structure.
  */
@@ -27,16 +27,16 @@ struct font_t {
         int             defaultchar;    /* default char (not glyph index)*/
         long            bits_size;      /* # words of bits*/
 };
-/* ------------------------------------------------------------------ */
+ 
 //Available font lists
 namespace fonts
 {
 	extern const font_t font_default;
 	extern const font_t font_small;
 }
-/* ------------------------------------------------------------------ */
+ 
 }} //Namespace end
-/* ------------------------------------------------------------------ */
+ 
 /* Howto generate ISO8859-2 font
  * convbdf -c -s 0x20 -l 0xF3 -x 0x80-0xA0 -x 0xA2-0xA2
  * -x 0xA4-0xA5 -x 0xA7-0xAB -x 0xAD-0xAE -x 0xB0-0xB0

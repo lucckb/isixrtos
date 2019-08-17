@@ -7,10 +7,10 @@
 
 #ifndef STATIC_BITMAP_HPP_
 #define STATIC_BITMAP_HPP_
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace disp {
-/* ------------------------------------------------------------------ */
+ 
 /* Flash memory bitmap */
 struct cmem_bitmap_t
 {
@@ -23,9 +23,9 @@ struct cmem_bitmap_t
 	const void *img_data;			/* Image data */
 	img_type type;
 };
-/* ------------------------------------------------------------------ */
+ 
 }
 }
 
-/* ------------------------------------------------------------------ */
+ 
 #endif /* STATIC_BITMAP_HPP_ */

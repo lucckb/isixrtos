@@ -29,30 +29,30 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-/* ------------------------------------------------------------------ */
+ 
 #ifndef _ARCH_SYS_ARCH_H_
 #define _ARCH_SYS_ARCH_H_
 
-/* ------------------------------------------------------------------ */
+ 
 /* Declare semaphore structure */
 struct isix_semaphore;
 typedef struct isix_semaphore  *sys_sem_t;
 
-/* ------------------------------------------------------------------ */
+ 
 /* Declare os specific fifo struct */
 struct isix_fifo;
 typedef struct isix_fifo *sys_mbox_t;
 
-/* ------------------------------------------------------------------ */
+ 
 /* Declare system thread structure */
 struct isix_task;
 typedef struct isix_task* sys_thread_t;
 
-/* ------------------------------------------------------------------ */
+ 
 /*Declare system protect structure */
 typedef long sys_prot_t;
 
-/* ------------------------------------------------------------------ */
+ 
 
 #endif /* __ARCH_SYS_ARCH_H__ */
 

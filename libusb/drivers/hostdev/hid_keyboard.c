@@ -28,7 +28,7 @@
 #include <isix.h>
 #include <stdlib.h>
 #include <string.h>
-/* ------------------------------------------------------------------ */ 
+  
 static  const  uint8_t  hid_keybrd_codes[] = {
   0,     0,    0,    0,   31,   50,   48,   33, 
   19,   34,   35,   36,   24,   37,   38,   39,       /* 0x00 - 0x0F */
@@ -60,7 +60,7 @@ static  const  uint8_t  hid_keybrd_codes[] = {
   0,    0,    0,    0,    0,    0,    0,    0,       /* 0xD0 - 0xDF */
   58,   44,   60,  127,   64,   57,   62,  128        /* 0xE0 - 0xE7 */
 };
-/* ------------------------------------------------------------------ */ 
+  
 static  const  uint8_t  hid_keybrd_key[] = {
   '\0',  '`',  '1',  '2',  '3',  '4',  '5',  '6',
   '7',  '8',  '9',  '0',  '-',  '=',  '\0', '\x08',
@@ -81,7 +81,7 @@ static  const  uint8_t  hid_keybrd_key[] = {
   '\0',  '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', 
   '\0', '\0', '\0', '\0'
 };
-/* ------------------------------------------------------------------ */ 
+  
 static  const  uint8_t  hid_keybrd_shiftkey[] = {
   '\0', '~',  '!',  '@',  '#',  '$',  '%',  '^',  '&',  '*',  '(',  ')',
   '_',  '+',  '\0', '\x08', '\0', 'Q',  'W',  'E',  'R',  'T',  'Y',  'U', 
@@ -95,7 +95,7 @@ static  const  uint8_t  hid_keybrd_shiftkey[] = {
   '\0', '\0', '\0', '\0', '\0', '\0', '\0',    '\0', '\0', '\0', '\0', '\0',
   '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'
 };
-/* ------------------------------------------------------------------ */ 
+  
 //Keyboard context
 typedef struct usbh_keyb_hid_context {
 	usbh_hid_context_t* hid;		//Hid machine state context
@@ -110,10 +110,10 @@ typedef struct usbh_keyb_hid_context {
 	uint8_t keys_last[ KEYBOARD_MAX_PRESSED_KEYS ];
 } usbh_keyb_hid_context_t;
 
-/* ------------------------------------------------------------------ */ 
+  
 //Keyboard operator struct
  static const usbh_hid_kbd_ops_t* g_kbd_ops;
-/* ------------------------------------------------------------------ */
+ 
 //Keyboard interface comparision for joystick
 static int dcomp_keyboard_interface( const void* curr_desc )
 {
@@ -129,7 +129,7 @@ static int dcomp_keyboard_interface( const void* curr_desc )
 	}
 	return DESCRIPTOR_SEARCH_NotFound;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Search for hid interface
 static int dcomp_hid_desc( const void* curr_desc ) 
 {
@@ -139,7 +139,7 @@ static int dcomp_hid_desc( const void* curr_desc )
 	}
 	return DESCRIPTOR_SEARCH_NotFound;
 }
-/* ------------------------------------------------------------------ */
+ 
 static int dcomp_endp_desc( const void* curr_desc )
 {
 	const usb_descriptor_header_t* hdr = DESCRIPTOR_PCAST( curr_desc, usb_descriptor_header_t );
@@ -148,7 +148,7 @@ static int dcomp_endp_desc( const void* curr_desc )
 	}
 	return DESCRIPTOR_SEARCH_NotFound;
 }
-/* ------------------------------------------------------------------ */
+ 
 /** HID machine state callback
  * @param[in] ctx HID context
  * @param[in] user_data Private user data
@@ -236,7 +236,7 @@ static void report_irq_callback( usbh_hid_context_t* hid,
 		isix_sem_signal_isr( ctx->report_sem );
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 /* Driver autodetection and attaching */
 static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data ) 
 {
@@ -315,7 +315,7 @@ static int hid_keyboard_attached( const struct usbhost_device* hdev, void** data
 	}
 	return usbh_driver_ret_configured;
 }
-/* ------------------------------------------------------------------ */ 
+  
 static int hid_keyboard_process( void* data ) 
 {
 	usbh_keyb_hid_context_t* ctx = (usbh_keyb_hid_context_t*)data;
@@ -340,7 +340,7 @@ static int hid_keyboard_process( void* data )
 	}
 }
 
-/* ------------------------------------------------------------------ */ 
+  
 //! Handle string descriptor
 static void hid_keyboard_enum_desc( void *data, enum usbh_driver_desc_type desc, const char *str )
 {
@@ -348,19 +348,19 @@ static void hid_keyboard_enum_desc( void *data, enum usbh_driver_desc_type desc,
 		g_kbd_ops->enum_desc( data, desc, str );
 	}
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Driver Ops structure
 static const usbh_driver_t drv_ops = {
 	attached:  hid_keyboard_attached,
 	process:   hid_keyboard_process,
 	enum_desc: hid_keyboard_enum_desc
 };
-/* ------------------------------------------------------------------ */ 
+  
 //Initialize core hid driver
 const struct usbh_driver* usbh_hid_keyboard_init( const usbh_hid_kbd_ops_t* kbd_ops  ) 
 {
 	g_kbd_ops = kbd_ops;
 	return &drv_ops;
 }
-/* ------------------------------------------------------------------ */ 
+  
 

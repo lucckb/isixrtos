@@ -20,12 +20,12 @@
  */
 
 #pragma once
-/* ------------------------------------------------------------------ */ 
+  
 #include <gfx/gui/widget.hpp>
-/* ------------------------------------------------------------------ */ 
+  
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */ 
+  
 //! Multi edit class text
 class multiview : public widget
 {
@@ -81,6 +81,6 @@ private:
 	int m_last_x { INVAL };	//! Last char position in line
 	bool m_alternate_color {};	//! Use alternate colorscheme
 };
-/* ------------------------------------------------------------------ */ 
+  
 }}
-/* ------------------------------------------------------------------ */ 
+  

@@ -22,18 +22,18 @@
 #include <gsm/sms_codec.hpp>
 #include <foundation/tiny_printf.h>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */ 
+  
 namespace gsm_modem {
-/* ------------------------------------------------------------------ */ 
+  
 //! Sms store names defs
 constexpr const char* const smsmem_id::smsstorenames[];
-/* ------------------------------------------------------------------ */ 
+  
 //Get at parser
 at_parser& sms_store::at() 
 {
 	return m_dev.get_at();
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Set sms store phonebook name
 	* @param[in] id SMS store name 
 	* @return error code
@@ -73,7 +73,7 @@ int sms_store::select_store( const smsmem_id& id )
 	m_total_entries = value;
 	return n_entries;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /** Get sms store indentifiers 
 	@param[in] id Store identifiers bitflag class
 	@return error code for storage
@@ -95,7 +95,7 @@ int sms_store::get_store_identifiers( smsmem_id& id )
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Read message from phonebook */
 sms_store_result_t sms_store::read_entry( int index ) 
 {
@@ -148,7 +148,7 @@ sms_store_result_t sms_store::read_entry( int index )
 	}
 	return sms_store_result_t(error::sms_type_unsupported,nullptr);
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Erase of the message from the store book return error code
 int sms_store::erase_entry( int index, del flags )
 {
@@ -164,6 +164,6 @@ int sms_store::erase_entry( int index, del flags )
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */
+ 
 }
 

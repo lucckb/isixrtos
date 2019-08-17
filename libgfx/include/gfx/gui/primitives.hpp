@@ -1,25 +1,25 @@
-/* ------------------------------------------------------------------ */
+ 
 /*
  * primitives.hpp
  *
  *  Created on: 3 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #pragma once
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/types.hpp>
 #include <gfx/disp/bitmap_fonts.hpp>
 #include <gfx/disp/static_bitmap.hpp>
 #include <algorithm>
 #include <utility>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 using font_t = disp::font_t;
 using bitmap_t = disp::cmem_bitmap_t;
-/* ------------------------------------------------------------------ */
+ 
 //Basic rectangle class
 class rectangle
 {
@@ -37,7 +37,7 @@ private:
 };
 
 
-/* ------------------------------------------------------------------ */
+ 
 //Basic layout class
 class layout {
 public:
@@ -59,7 +59,7 @@ private:
 	bool minherited { true };
 };
 
-/* ------------------------------------------------------------------ */
+ 
 //Operator - beetween two windows
 static inline rectangle operator+( const rectangle &r1, const rectangle &r2 )
 {
@@ -68,7 +68,7 @@ static inline rectangle operator+( const rectangle &r1, const rectangle &r2 )
 			std::min(r1.cx(),r2.cx()), std::min(r1.cy(),r2.cy()) ) 
 	);
 }
-/* ------------------------------------------------------------------ */
+ 
 //Operator - beetween two windows
 static inline rectangle operator+( const rectangle &r1, coord_t size )
 {
@@ -83,6 +83,6 @@ static inline rectangle operator+( const rectangle &r1, coord_t size )
 		r1.cx()+size, r1.cy()+size) 
 	);
 }
-/* ------------------------------------------------------------------ */
+ 
 }}
 

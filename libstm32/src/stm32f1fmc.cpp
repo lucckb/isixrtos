@@ -1,20 +1,20 @@
-/* ------------------------------------------------------------------ */
+ 
 /*
  * stm32fmc.cpp
  *
  *  Created on: 04-01-2011
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include "stm32fmc.hpp"
 #include <stdint.h>
 #include <stm32system.h>
-/* ------------------------------------------------------------------ */
+ 
 
 namespace stm32
 {
 
-/* ------------------------------------------------------------------ */
+ 
 namespace //private registers
 {
 /* Flash Access Control Register bits */
@@ -60,7 +60,7 @@ namespace //private registers
 	const uint16_t FLASH_PAGE_SIZE_2  =  0x800;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 namespace
 {
    void delay()
@@ -69,7 +69,7 @@ namespace
    }
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //! Get pagesize
 stm32fmc::poffs_t stm32fmc::page_size() const
 {
@@ -86,14 +86,14 @@ stm32fmc::poffs_t stm32fmc::page_size() const
 #endif
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //!Get numer of pages
 stm32fmc::paddr_t stm32fmc::num_pages() const
 {
 	uint32_t flash_mem_size = *Memory_Size_Register;
 	return (flash_mem_size * 1024)/page_size();
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Default constructor
 stm32fmc::stm32fmc()
 {
@@ -104,7 +104,7 @@ stm32fmc::stm32fmc()
 	//Clear flags
 	FLASH->SR = FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Virtual destructor
 stm32fmc::~stm32fmc()
 {
@@ -112,7 +112,7 @@ stm32fmc::~stm32fmc()
 	FLASH->CR |= CR_LOCK_Set;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //Erase the page
 int stm32fmc::page_erase(paddr_t pa)
 {
@@ -137,7 +137,7 @@ int stm32fmc::page_erase(paddr_t pa)
 	  /* Return the Erase Status */
 	  return status;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Internal wait for last operation
 stm32fmc::errno stm32fmc::wait_for_last_operation(unsigned timeout)
 {
@@ -159,7 +159,7 @@ stm32fmc::errno stm32fmc::wait_for_last_operation(unsigned timeout)
 	  return status;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //Get flash status
 stm32fmc::errno stm32fmc::get_status() const
 {
@@ -190,7 +190,7 @@ stm32fmc::errno stm32fmc::get_status() const
 	  /* Return the Flash Status */
 	  return flashstatus;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Write elements in the flash
 int stm32fmc::write_halfword(paddr_t pg, poffs_t pa, unsigned short val)
 {
@@ -218,7 +218,7 @@ int stm32fmc::write_halfword(paddr_t pg, poffs_t pa, unsigned short val)
 	  /* Return the Program Status */
 	  return status;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Read halfword
 int stm32fmc::read_halfword(paddr_t pg, poffs_t pa, unsigned short &val) const
 {
@@ -228,7 +228,7 @@ int stm32fmc::read_halfword(paddr_t pg, poffs_t pa, unsigned short &val) const
 	val = *address;
 	return ERRNO_COMPLETE;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Read one element from flash return bytes written or error
 int stm32fmc::read_word(paddr_t pg, poffs_t pa, unsigned &val) const
 {
@@ -238,7 +238,7 @@ int stm32fmc::read_word(paddr_t pg, poffs_t pa, unsigned &val) const
 	return ERRNO_COMPLETE;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //Write one lement to flash return bytes written or error
 int stm32fmc::write_word(paddr_t pg, poffs_t pa, unsigned val)
 {
@@ -292,6 +292,6 @@ int stm32fmc::write_word(paddr_t pg, poffs_t pa, unsigned val)
 	  /* Return the Program Status */
 	  return status;
 }
-/* ------------------------------------------------------------------ */
+ 
 
 }

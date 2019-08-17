@@ -4,14 +4,14 @@
  *  Created on: 2 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/button.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
 
-/* ------------------------------------------------------------------ */
+ 
 // On repaint the window return true when changed
 void button::repaint( bool /* focus */ )
 {
@@ -51,8 +51,8 @@ void button::repaint( bool /* focus */ )
 	}
 }
 
-/* ------------------------------------------------------------------ */
+ 
 
 } /* namespace gui */
 } /* namespace gfx */
-/* ------------------------------------------------------------------ */
+ 

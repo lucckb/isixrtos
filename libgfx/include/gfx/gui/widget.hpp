@@ -6,7 +6,7 @@
  */
 
 #pragma once
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/types.hpp>
 #include <memory>
 #include <gfx/gui/object.hpp>
@@ -14,10 +14,10 @@
 #include <gfx/disp/gdi.hpp>
 #include <gfx/gui/window.hpp>
 #include <gfx/gui/primitives.hpp>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 class widget  : public object
 {
 public:
@@ -115,6 +115,6 @@ private:
 	bool m_selectable;  							/* Widget is selectable */
 	bool m_modified {};								/* Widget is changed  */
 };
-/* ------------------------------------------------------------------ */
+ 
 }}
-/* ------------------------------------------------------------------ */
+ 

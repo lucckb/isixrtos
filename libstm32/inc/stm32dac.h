@@ -16,16 +16,16 @@
  * =====================================================================================
  */
 
-/* ------------------------------------------------------------------ */ 
+  
 #ifndef  stm32dac_H_
 #define  stm32dac_H_
-/* ------------------------------------------------------------------ */ 
+  
 #include <stdbool.h>
 #include <stdint.h>
 #include "stm32fxxx_dac.h"
 #include "stm32lib.h"
 #include "stm32rcc.h"
-/* ------------------------------------------------------------------ */ 
+  
 //Local defs
 /* CR register Mask */
 #define CR_CLEAR_MASK              ((uint32_t)0x00000FFE)
@@ -41,11 +41,11 @@
 
 /* DOR register offset */
 #define DOR_OFFSET                 ((uint32_t)0x0000002C)
-/* ------------------------------------------------------------------ */ 
+  
 #ifdef __cplusplus
 namespace stm32 {
 #endif
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Initializes the DAC peripheral according to the specified parameters
   *         in the DAC_InitStruct.
@@ -76,7 +76,7 @@ static inline void dac_init(uint32_t dac_channel, uint32_t trigger, uint32_t wav
   /* Write to DAC CR */
   DAC->CR = tmpreg1;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Enables or disables the specified DAC channel.
   * @param  DAC_Channel: The selected DAC channel. 
@@ -102,7 +102,7 @@ static inline void dac_cmd(uint32_t dac_channel, bool enabled)
     DAC->CR &= (~(DAC_CR_EN1 << dac_channel));
   }
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Enables or disables the selected DAC channel software trigger.
   * @param  DAC_Channel: The selected DAC channel. 
@@ -126,7 +126,7 @@ static inline void dac_software_trigger_cmd(uint32_t dac_channel, bool enable)
     DAC->SWTRIGR &= ~((uint32_t)DAC_SWTRIGR_SWTRIG1 << (dac_channel >> 4));
   }
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Enables or disables simultaneously the two DAC channels software triggers.
   * @param  NewState: new state of the DAC channels software triggers.
@@ -146,7 +146,7 @@ static inline void dac_dual_software_trigger_cmd( bool enable )
     DAC->SWTRIGR &= DUAL_SWTRIG_RESET;
   }
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Enables or disables the selected DAC channel wave generation.
   * @param  DAC_Channel: The selected DAC channel. 
@@ -174,7 +174,7 @@ static inline void dac_wave_generation_cmd(uint32_t dac_channel, uint32_t dac_wa
     DAC->CR &= ~(dac_wave << dac_channel);
   }
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Set the specified data holding register value for DAC channel1.
   * @param  DAC_Align: Specifies the data alignment for DAC channel1.
@@ -192,7 +192,7 @@ static inline void dac_set_channel1_data(uint32_t dac_align, uint16_t data)
   /* Set the DAC channel1 selected data holding register */
   *(__IO uint32_t *) tmp = data;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Set the specified data holding register value for DAC channel2.
   * @param  DAC_Align: Specifies the data alignment for DAC channel2.
@@ -211,7 +211,7 @@ static inline void dac_set_channel2_data(uint32_t dac_align, uint16_t data)
   /* Set the DAC channel2 selected data holding register */
   *(__IO uint32_t *)tmp = data;
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Get adres of data dac register according to align */
 static inline volatile void* dac_get_channel1_dreg( uint32_t dac_align ) 
 { 
@@ -219,7 +219,7 @@ static inline volatile void* dac_get_channel1_dreg( uint32_t dac_align )
   tmp += DHR12R1_OFFSET + dac_align;
   return (volatile void*)(tmp);
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Get adres of data dac register according to align */
 static inline volatile void* dac_get_channel2_dreg( uint32_t dac_align )
 { 
@@ -227,7 +227,7 @@ static inline volatile void* dac_get_channel2_dreg( uint32_t dac_align )
   tmp += DHR12R2_OFFSET + dac_align;
   return (volatile void*)(tmp);
 }
-/* ------------------------------------------------------------------ */
+ 
 /**
   * @brief  Set the specified data holding register value for dual channel DAC.
   * @param  DAC_Align: Specifies the data alignment for dual channel DAC.
@@ -260,7 +260,7 @@ static inline void dac_set_dual_channel_data(uint32_t dac_align, uint16_t data2,
   /* Set the dual DAC selected data holding register */
   *(__IO uint32_t *)tmp = data;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Returns the last data output value of the selected DAC channel.
   * @param  DAC_Channel: The selected DAC channel. 
@@ -278,7 +278,7 @@ static inline uint16_t dac_get_data_output_value(uint32_t dac_channel)
   /* Returns the DAC channel data output register value */
   return (uint16_t) (*(__IO uint32_t*) tmp);
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Enables or disables the specified DAC channel DMA request.
   * @note   When enabled DMA1 is generated when an external trigger (EXTI Line9,
@@ -308,7 +308,7 @@ static inline void dac_dma_cmd(uint32_t dac_channel, bool enable )
     DAC->CR &= (~(DAC_CR_DMAEN1 << dac_channel));
   }
 }
-/* ------------------------------------------------------------------ */
+ 
 #if defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL) \
 	|| defined(STM32MCU_MAJOR_TYPE_F2) || defined(STM32MCU_MAJOR_TYPE_F4)
 /**
@@ -339,7 +339,7 @@ static inline void dac_it_config(uint32_t dac_channel, uint32_t dac_it, bool ena
     DAC->CR &= (~(uint32_t)(dac_it << dac_channel));
   }
 }
-/* ------------------------------------------------------------------ */
+ 
 /**
   * @brief  Checks whether the specified DAC flag is set or not.
   * @param  DAC_Channel: thee selected DAC channel. 
@@ -356,7 +356,7 @@ static inline bool dac_get_flag_status(uint32_t dac_channel, uint32_t dac_flag)
   /* Check the status of the specified DAC flag */
   return ((DAC->SR & (dac_flag << dac_channel)) != 0 )?(true):(false);
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Clears the DAC channel's pending flags.
   * @param  DAC_Channel: The selected DAC channel. 
@@ -375,7 +375,7 @@ static inline void dac_clear_flag(uint32_t dac_channel, uint32_t dac_flag)
   /* Clear the selected DAC flags */
   DAC->SR = (dac_flag << dac_channel);
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Checks whether the specified DAC interrupt has occurred or not.
   * @param  DAC_Channel: The selected DAC channel. 
@@ -396,7 +396,7 @@ static inline bool dac_get_it_status(uint32_t dac_channel, uint32_t dac_it)
   /* Check the status of the specified DAC interrupt */
   return (((DAC->SR & (dac_it << dac_channel)) != 0) && enablestatus)?(true):(false);
 }
-/* ------------------------------------------------------------------ */ 
+  
 /**
   * @brief  Clears the DAC channel's interrupt pending bits.
   * @param  DAC_Channel: The selected DAC channel. 
@@ -415,15 +415,15 @@ static inline void dac_clear_it_pending_bit(uint32_t dac_channel, uint32_t dac_i
   /* Clear the selected DAC interrupt pending bits */
   DAC->SR = (dac_it << dac_channel);
 }
-/* ------------------------------------------------------------------ */ 
+  
 #endif /* CPU type  */
-/* ------------------------------------------------------------------ */ 
+  
 
-/* ------------------------------------------------------------------ */ 
+  
 #ifdef __cplusplus
 }
 #endif
-/* ------------------------------------------------------------------ */ 
+  
 //Undefine local defs
 #undef CR_CLEAR_MASK              
 #undef DUAL_SWTRIG_SET
@@ -432,5 +432,5 @@ static inline void dac_clear_it_pending_bit(uint32_t dac_channel, uint32_t dac_i
 #undef DHR12R2_OFFSET
 #undef DHR12RD_OFFSET
 #undef DOR_OFFSET
-/* ------------------------------------------------------------------ */ 
+  
 #endif   /* ----- #ifndef stm32dac_INC  ----- */

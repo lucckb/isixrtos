@@ -7,16 +7,16 @@
 
 #ifndef ISIX_GFX_ILI9341_HPP_
 #define ISIX_GFX_ILI9341_HPP_
-/* ------------------------------------------------------------------ */
+ 
 #include "disp_base.hpp"
 #include "disp_bus.hpp"
 #include <gfx/types.hpp>
 #include <cstdint>
 #include <initializer_list>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace drv {
-/* ------------------------------------------------------------------ */
+ 
 /* ILI 9341 hw driver */
 class ili9341 : public disp_base
 {
@@ -165,7 +165,7 @@ private:
 	uint8_t m_backlight { 50 };
 };
 
-/* ------------------------------------------------------------------ */
+ 
 }}
-/* ------------------------------------------------------------------ */
+ 
 #endif /* ILI9341_HPP_ */

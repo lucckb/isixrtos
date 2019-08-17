@@ -5,22 +5,22 @@
  *      Author: lucck
  */
 
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/drivers/disp/ili9341.hpp>
 #include <cstdlib>
-/* ------------------------------------------------------------------ */
+ 
 //TODO: Setup better configuration for init Refresh/RADIO gamma correction etc
 
 namespace gfx {
 namespace drv {
 
-/* ------------------------------------------------------------------ */
+ 
 //Constructor
 ili9341::ili9341( disp_bus &bus ) :
 	disp_base( SCREEN_WIDTH, SCREEN_HEIGHT ), m_bus( bus )
 {
 }
-/* ------------------------------------------------------------------ */
+ 
 /* Get PIXEL */
 color_t ili9341::get_pixel( coord_t x, coord_t y )
 {
@@ -31,7 +31,7 @@ color_t ili9341::get_pixel( coord_t x, coord_t y )
 	m_bus.read( color, sizeof color );
 	return rgb( color[3], color[2], color[1] );
 }
-/* ------------------------------------------------------------------ */
+ 
 /* Set PIXEL */
 void ili9341::clear( color_t color )
 {
@@ -44,7 +44,7 @@ void ili9341::clear( color_t color )
 	command( dcmd::MEMORYWRITE );
 	m_bus.fill( color, SCREEN_WIDTH*SCREEN_HEIGHT );
 }
-/* ------------------------------------------------------------------ */
+ 
 /* Fill area */
 void ili9341::set_pixel( coord_t x, coord_t y, color_t color )
 {
@@ -53,7 +53,7 @@ void ili9341::set_pixel( coord_t x, coord_t y, color_t color )
 	command( dcmd::MEMORYWRITE );
 	m_bus.write( &color, sizeof color );
 }
-/* ------------------------------------------------------------------ */
+ 
 /* Blit area */
 void ili9341::blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 			        coord_t src_y, const color_t *buf )
@@ -64,7 +64,7 @@ void ili9341::blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
 	command( dcmd::MEMORYWRITE );
 	m_bus.write( buf, sizeof(color_t)*cx*cy );
 }
-/* ------------------------------------------------------------------ */
+ 
 /* Vertical scroll */
 /** Rotate screen
  * @param[in]  x,y 		Source region
@@ -100,7 +100,7 @@ void ili9341::vert_scroll( coord_t x, coord_t y, coord_t cx, coord_t cy, int lin
 	else
 		ili9341::fill( x, y, cx, -lines, bgcolor );
 }
-/* ------------------------------------------------------------------ */
+ 
 //Move line
 void ili9341::move_line( coord_t x, coord_t cx, coord_t row_from, coord_t row_to )
 {
@@ -113,7 +113,7 @@ void ili9341::move_line( coord_t x, coord_t cx, coord_t row_from, coord_t row_to
 	m_bus.write( m_scr_buf+1, cx*3 );
 }
 
-/* ------------------------------------------------------------------ */
+ 
 bool ili9341::power_ctl( power_ctl_t  mode )
 {
 	switch( mode )
@@ -172,7 +172,7 @@ bool ili9341::power_ctl( power_ctl_t  mode )
 	}
 	return !(m_pwrstate==mode);
 }
-/* ------------------------------------------------------------------ */
+ 
 /* Rotate screen */
 void ili9341::rotate( rotation_t rot )
 {
@@ -206,7 +206,7 @@ void ili9341::rotate( rotation_t rot )
 		m_orient = rot;
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 void ili9341::reset()
 {
 	m_bus.set_ctlbits( RST_BIT_CMD, false );
@@ -214,7 +214,7 @@ void ili9341::reset()
 	m_bus.set_ctlbits( RST_BIT_CMD, true );
 	m_bus.delay( 150 );
 }
-/* ------------------------------------------------------------------ */
+ 
 //Initialize display
 bool ili9341::init_display()
 {
@@ -264,7 +264,7 @@ bool ili9341::init_display()
 	return false;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //Set viewport
 void ili9341::set_viewport( coord_t x, coord_t y, coord_t cx, coord_t cy )
 {
@@ -273,7 +273,7 @@ void ili9341::set_viewport( coord_t x, coord_t y, coord_t cx, coord_t cy )
 	command( dcmd::COLADDRSET,  x>>8, x, x2>>8, x2);
 	command( dcmd::PAGEADDRSET, y>>8, y, y2>>8, y2);
 }
-/* ------------------------------------------------------------------ */
+ 
 /* Fill area */
 void ili9341::fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color )
 {
@@ -283,7 +283,7 @@ void ili9341::fill( coord_t x, coord_t y, coord_t cx, coord_t cy, color_t color 
 	m_bus.fill( color, cx * cy );
 }
 
-/* ------------------------------------------------------------------ */
+ 
 /* Set blit area (viewport) */
 void ili9341::ll_blit( coord_t x, coord_t y, coord_t cx, coord_t cy )
 {
@@ -295,7 +295,7 @@ void ili9341::ll_blit( coord_t x, coord_t y, coord_t cx, coord_t cy )
 	command( dcmd::MEMORYWRITE );
 }
 
-/* ------------------------------------------------------------------ */
+ 
 /* Push into the memory */
 void ili9341::ll_blit( const color_t *buf, size_t len )
 {
@@ -303,6 +303,6 @@ void ili9341::ll_blit( const color_t *buf, size_t len )
 	m_bus.write( buf, sizeof(color_t)*len );
 }
 
-/* ------------------------------------------------------------------ */
+ 
 }}
-/* ------------------------------------------------------------------ */
+ 

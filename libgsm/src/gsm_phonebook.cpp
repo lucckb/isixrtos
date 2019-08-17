@@ -22,22 +22,22 @@
 #include <foundation/sys/dbglog.h>
 #include <foundation/tiny_printf.h>
 #include <cstring>
-/* ------------------------------------------------------------------ */ 
+  
 //TODO: Add other alphabet encoding
 // detect curent alphabet and convert it to phone alphabet
 // TODO: Long timeout for searching in address book (need at parser suport )
 
-/* ------------------------------------------------------------------ */ 
+  
 namespace gsm_modem {
-/* ------------------------------------------------------------------ */ 
+  
 // Constexr static def
 constexpr const char* const phbook_id::bookids[];
-/* ------------------------------------------------------------------ */
+ 
 //! Get AT parser helper function
 at_parser& phonebook::at() {
 	return m_dev.get_at();
 }
-/* ------------------------------------------------------------------ */ 
+  
 /** Select phonebook return error code or
 	*  phonebook identifer
 	*  @param[in] Phonebook id
@@ -61,7 +61,7 @@ int phonebook::select_book( const phbook_id& id )
 	m_curr_book =  id.bits();
 	return error::success;
 }
-/* ------------------------------------------------------------------ */ 
+  
 /** Get phonebook indentifiers and return its representation
 	* @param[out] ids Output identifer
 	*/
@@ -85,7 +85,7 @@ int phonebook::get_phonebooks_identifiers( phbook_id& ids )
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */ 
+  
 	/** Read entry from the phone book
 	* @param[in] input index
 	* @param[out] filled structure
@@ -108,7 +108,7 @@ int phonebook::read_entry( int index, phbook_entry& entry )
 	}
 	return parse_phonebook_entry( resp, entry );
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Parse phonebook entry
 int phonebook::parse_phonebook_entry( char* buf, phbook_entry& entry )
 {
@@ -127,7 +127,7 @@ int phonebook::parse_phonebook_entry( char* buf, phbook_entry& entry )
 	std::strncpy( entry.name, text, sizeof entry.name - 1 );
 	return index;
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Find phonebook entry by name return number 
 	* @param[in,out] Entry for find
 	* @return index or error code
@@ -157,7 +157,7 @@ int phonebook::find_entry( phbook_entry& entry )
 	}
 	return error::lib_bug;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Internal version write or delete entry
 int phonebook::write_or_delete_entry( int index, const phbook_entry* phb )
 {
@@ -181,7 +181,7 @@ int phonebook::write_or_delete_entry( int index, const phbook_entry* phb )
 	}
 	return error::success;
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Find first phonebook empty entry 
 	@return error or index found
 */
@@ -214,7 +214,7 @@ int phonebook::find_empty_entry()
 	}
 	return error::phonebook_full;
 }
-/* ------------------------------------------------------------------ */ 
+  
 }
-/* ------------------------------------------------------------------ */ 
+  
 

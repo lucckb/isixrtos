@@ -4,14 +4,13 @@
  *  Created on: 28-06-2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+
 #include <gfx/input/input.hpp>
 #include <isix.h>
-/* ------------------------------------------------------------------ */
+
 namespace gfx {
 namespace input {
 
-/* ------------------------------------------------------------------ */
 int input_class::input_report_key(  detail::keyboard_tag::status status ,
 				detail::keyboard_tag::key_type key,
 				detail::keyboard_tag::control_key_type ctl  )
@@ -32,6 +31,6 @@ int input_class::input_report_key(  detail::keyboard_tag::status status ,
 	m_evt_report( ev );
 	return 0;
 }
-/* ------------------------------------------------------------------ */
+
 }}
-/* ------------------------------------------------------------------ */
+

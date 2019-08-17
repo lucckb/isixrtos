@@ -18,9 +18,9 @@
 #include <gsm/sms_message.hpp>
 #include <gsm/param_parser.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */ 
+  
 namespace gsm_modem {
-/* ------------------------------------------------------------------ */ 
+  
 //! Construct SMS deliver message from  txtdata
 sms_deliver::sms_deliver( param_parser& p, const char* msg )
 {
@@ -70,7 +70,7 @@ sms_deliver::sms_deliver( param_parser& p, const char* msg )
 		message( msg );
 	}
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Construct sumit message from deliver data
 sms_submit::sms_submit( param_parser &p, const char* msg )
 {
@@ -116,7 +116,7 @@ sms_submit::sms_submit( param_parser &p, const char* msg )
 	}
 	message( msg );
 }
-/* ------------------------------------------------------------------ */ 
+  
 /** Constructor for SMS status report message in txt
 	* @param[in] buf Input buffer data or pdu data
 	* @param[in] msg Only in text mode message for PDU should be null
@@ -153,6 +153,6 @@ sms_status_report::sms_status_report( param_parser &p )
 	if( p.parse_int(val)<0 ) return;
 	m_status = val;
 }
-/* ------------------------------------------------------------------ */ 
+  
 }
 

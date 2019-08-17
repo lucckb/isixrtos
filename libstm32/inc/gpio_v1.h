@@ -391,7 +391,7 @@ static inline void gpio_pin_remap_config( uint32_t GPIO_Remap, bool enable )
   }
 }
 
-/* ------------------------------------------------------------------ */
+ 
 /**
   * @brief  Selects the Ethernet media interface.
   * @note   This function applies only to STM32 Connectivity line devices.

@@ -4,17 +4,17 @@
  *  Created on: 04-01-2011
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include "foundation/drv/storage/virtual_eeprom.hpp"
 #include "foundation/drv/storage/iflash_mem.hpp"
 #include <stdint.h>
 #include <cstddef>
 
-/* ------------------------------------------------------------------ */
+ 
 namespace fnd
 {
 
-/* ------------------------------------------------------------------ */
+ 
 //Unnamed namespace
 namespace
 {
@@ -32,7 +32,7 @@ namespace
 	const unsigned EEHDR_ADDRESS = 0;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 virtual_eeprom::virtual_eeprom(iflash_mem &_flash, unsigned flash_sector)
 	: flash(_flash), active_page(0), inactive_page(0), va_max(flash.page_size()/8)
 {
@@ -71,7 +71,7 @@ virtual_eeprom::virtual_eeprom(iflash_mem &_flash, unsigned flash_sector)
 	}
 	unlock();
 }
-/* ------------------------------------------------------------------ */
+ 
 int virtual_eeprom::find_free_slot() const
 {
 	const uint32_t eaddr = (flash.page_size() / sizeof(eeitem) ) * sizeof(eeitem)
@@ -85,7 +85,7 @@ int virtual_eeprom::find_free_slot() const
 	}
 	return ERRNO_NO_SPACE;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Try sort the flash and switch bank
 int virtual_eeprom::sort_flash()
 {
@@ -121,7 +121,7 @@ int virtual_eeprom::sort_flash()
 	return res;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 int virtual_eeprom::read(unsigned addr, unsigned &value ) const
 {
 	if( active_page<=0 || inactive_page<=0 )
@@ -146,7 +146,7 @@ int virtual_eeprom::read(unsigned addr, unsigned &value ) const
 	return ERRNO_NOT_FOUND;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 int virtual_eeprom::write(unsigned address, unsigned value)
 {
 	if(active_page<=0 || inactive_page<=0)
@@ -168,6 +168,6 @@ int virtual_eeprom::write(unsigned address, unsigned value)
 	return res;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 }
-/* ------------------------------------------------------------------ */
+ 

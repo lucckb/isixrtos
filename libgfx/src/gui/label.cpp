@@ -4,13 +4,13 @@
  *  Created on: 10 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/label.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 //Constructor
 label::label( rectangle const& rect,layout const& layout ,
 		window &win, unsigned flags )
@@ -18,7 +18,7 @@ label::label( rectangle const& rect,layout const& layout ,
 	  m_flags(flags)
 {
 }
-/* ------------------------------------------------------------------ */
+ 
 //Repaint the lable
 void label::repaint( bool /* focus */ )
 {
@@ -48,7 +48,7 @@ void label::repaint( bool /* focus */ )
 	// save last text length
 	text_px_old = text_px;
 }
-/* ------------------------------------------------------------------ */
+ 
 } /* namespace gui */
 } /* namespace gfx */
-/* ------------------------------------------------------------------ */
+ 

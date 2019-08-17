@@ -24,10 +24,10 @@
 #include <stdlib.h>
 #include <usb/host/usb_device_struct.h>
 
-/* ------------------------------------------------------------------ */ 
+  
 enum { OS_STACK_SIZE = 2048 };
 enum { DEFAULT_CONFIGURATION = 1 };
-/* ------------------------------------------------------------------ */ 
+  
 
 //! USB controller context
 struct usbhost_controller_context {
@@ -46,11 +46,11 @@ struct usbhost_driver_item {
 	list_t inode;						//Driver add
 };
 
-/* ------------------------------------------------------------------ */ 
+  
 //Only one controller is suppored now
 static struct usbhost_controller_context ctx;
 
-/* ------------------------------------------------------------------ */ 
+  
 //! Find the device driver by ptr
 static struct usbhost_driver_item* find_driver( const struct usbh_driver* drv )
 {
@@ -65,7 +65,7 @@ static struct usbhost_driver_item* find_driver( const struct usbh_driver* drv )
 	}
 	return NULL;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //Operating system usb task
 static void usbhost_os_task( void* unused_os_arg )
 {
@@ -189,7 +189,7 @@ static void usbhost_os_task( void* unused_os_arg )
 	}
 }
 
-/* ------------------------------------------------------------------ */ 
+  
 //! Initialize the USB host controller
 int usbh_controller_init( int controller_id , int os_priority )
 {
@@ -223,13 +223,13 @@ int usbh_controller_init( int controller_id , int os_priority )
 	dbprintf( "Controller init with code: %i", ctx.err );
 	return ctx.err;
 }
-/* ------------------------------------------------------------------ */ 
+  
 // Get last library error
 int usbh_controller_get_errno( void ) 
 {
 	return ctx.err;
 }
-/* ------------------------------------------------------------------ */ 
+  
 //! Register USBHost driver
 int usbh_controller_attach_driver( const struct usbh_driver *drv )
 {
@@ -258,7 +258,7 @@ int usbh_controller_attach_driver( const struct usbh_driver *drv )
 	return USBHLIB_SUCCESS;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //!Detach driver from host
 int usbh_controller_detach_driver( const struct usbh_driver *drv )
 {
@@ -281,19 +281,19 @@ int usbh_controller_detach_driver( const struct usbh_driver *drv )
 	return USBHLIB_SUCCESS;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //!Get Vendor ID
 uint16_t usbh_get_id_vendor( void )
 {
 	return ctx.dev.dev_desc.idVendor;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //!Get Product ID
 uint16_t usbh_get_id_product( void )
 {
 	return ctx.dev.dev_desc.idProduct;
 }
 
-/* ------------------------------------------------------------------ */ 
+  
 

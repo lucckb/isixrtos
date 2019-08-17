@@ -16,22 +16,22 @@
  * =====================================================================================
  */
 #pragma once
-/* ------------------------------------------------------------------ */ 
+  
 #include <stdint.h>
 #include <stdbool.h>
 #include <usb/host/usbh_driver_desc_type.h>
-/* ------------------------------------------------------------------ */ 
+  
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* ------------------------------------------------------------------ */ 
+  
 struct usbhost_device;
-/* ------------------------------------------------------------------ */ 
+  
 enum usbh_driver_ret {
 	usbh_driver_ret_configured,		//Device configured
 	usbh_driver_ret_not_found,		//Device not found
 };
-/* ------------------------------------------------------------------ */ 
+  
 //!Private usbhdriver struct
 struct usbh_driver {
 	int (*attached)( const struct usbhost_device* hdev, void** data );
@@ -41,8 +41,8 @@ struct usbh_driver {
 
 typedef struct usbh_driver usbh_driver_t;
 
-/* ------------------------------------------------------------------ */ 
+  
 #ifdef __cplusplus
 }
 #endif
-/* ------------------------------------------------------------------ */
+ 

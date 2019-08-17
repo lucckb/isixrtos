@@ -19,9 +19,9 @@
 #pragma once
 #include <foundation/iflash_mem.hpp>
 #include <fstream>
-/* ------------------------------------------------------------------ */ 
+  
 namespace fnd {
-/* ------------------------------------------------------------------ */ 
+  
 //! I2C serial eeprom interface
 class fs_eeprom : public iflash_mem {
 public:
@@ -72,6 +72,6 @@ private:
 	mutable std::fstream m_file; 
 	const bool m_emulate_flash;
 };
-/* ------------------------------------------------------------------ */ 
+  
 }
 

@@ -1,25 +1,25 @@
-/* ------------------------------------------------------------------ */
+ 
 /*
  * types.hpp
  *
  *  Created on: 10-06-2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #ifndef ISIX_GFX_TYPES_HPP_
 #define ISIX_GFX_TYPES_HPP_
-/* ------------------------------------------------------------------ */
+ 
 #include <cstdint>
-/* ------------------------------------------------------------------ */
+ 
 #define CONFIG_GFX_PIXEL_FORMAT_RGB565 1
 #define CONFIG_GFX_PIXEL_FORMAT_BGR565 2
 #define CONFIG_GFX_PIXEL_FORMAT_RGB8   3
 #ifndef CONFIG_GFX_PIXEL_FORMAT
 #define CONFIG_GFX_PIXEL_FORMAT CONFIG_GFX_PIXEL_FORMAT_RGB565
 
-/* ------------------------------------------------------------------ */
+ 
 #endif
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx
 {
 #if CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_RGB
@@ -289,5 +289,5 @@ namespace gfx
 		};
 	};
 }
-/* ------------------------------------------------------------------ */
+ 
 #endif /* TYPES_HPP_ */

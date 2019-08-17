@@ -20,10 +20,10 @@
 #include <gfx/input/input.hpp>
 #include <isix.h>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 /** Constructor for timer
 	*/
 timer::timer( gfx::gui::frame& frm, unsigned elapse, window* win, 
@@ -33,14 +33,14 @@ timer::timer( gfx::gui::frame& frm, unsigned elapse, window* win,
 	   m_cyclic( cyclic ), m_elapse( elapse )
 {
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Destructor
 timer::~timer() {
 	if( m_sys_timer ) {
 		isix_vtimer_destroy( m_sys_timer );
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Raw timer callback
 void timer::raw_timer_callback( void* data ) {
 	using evinfo = gfx::input::event_info;
@@ -59,7 +59,7 @@ void timer::raw_timer_callback( void* data ) {
 	ev.timer.owner = &tp;
 	tp.m_frm.report_event( ev );
 }
-/* ------------------------------------------------------------------ */ 
+  
 int timer::start()
 {
 	int ret { einval };
@@ -75,7 +75,7 @@ int timer::start()
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */
+ 
 //! Stop timer
 int timer::stop()
 {
@@ -86,6 +86,6 @@ int timer::stop()
 	}
 	return ret;
 }
-/* ------------------------------------------------------------------ */ 
+  
 }}
 

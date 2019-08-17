@@ -4,13 +4,13 @@
  *  Created on: 15 paź 2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
+ 
 #include <gfx/gui/seekbar.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 //Repaint virtual function
 void seekbar::repaint( bool /* focus */ )
 {
@@ -124,7 +124,7 @@ void seekbar::repaint( bool /* focus */ )
 	}
 }
 
-/* ------------------------------------------------------------------ */
+ 
 //* Report input event
 void seekbar::report_event( const input::event_info& ev )
 {
@@ -172,8 +172,8 @@ void seekbar::report_event( const input::event_info& ev )
 	}
 }
 
-/* ------------------------------------------------------------------ */
+ 
 } /* namespace gui */
 } /* namespace gfx */
 
-/* ------------------------------------------------------------------ */
+ 

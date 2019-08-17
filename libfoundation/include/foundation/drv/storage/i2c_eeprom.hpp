@@ -19,9 +19,9 @@
 #pragma once
 #include <foundation/drv/storage/iflash_mem.hpp>
 #include <foundation/drv/bus/ibus.hpp>
-/* ------------------------------------------------------------------ */ 
+  
 namespace fnd {
-/* ------------------------------------------------------------------ */ 
+  
 //! I2C serial eeprom interface
 class i2c_eeprom : public iflash_mem {
 public:
@@ -89,6 +89,6 @@ private:
 		return _page_count_table[int(m_type)];
 	}
 };
-/* ------------------------------------------------------------------ */ 
+  
 }
 

@@ -16,10 +16,10 @@
  * =====================================================================================
  */
 #pragma once
-/* ------------------------------------------------------------------ */
+ 
 #include <foundation/algo/noncopyable.hpp>
 #include <isix.h>
-/* ------------------------------------------------------------------ */
+ 
 namespace isix {
 	struct vtimer_struct;
 }
@@ -27,7 +27,7 @@ namespace gfx {
 namespace gui {
 class window;
 class frame;
-/* ------------------------------------------------------------------ */
+ 
 //! Timer class API for gui based on isix events
 class timer : private fnd::noncopyable {
 public:
@@ -39,7 +39,7 @@ public:
 		   bool cyclic = true, int id = id_any );
 	//! Destructor
 	~timer();
-	//! Start timer Periodic 
+	//! Start timer Periodic
 	int start();
 	//! Stop timer
 	int stop();
@@ -59,7 +59,7 @@ private:
 	//! Raw timer callback
 	static void raw_timer_callback( void* data );
 private:
-	osvtimer_t m_sys_timer; 	 //! Isix systimer ID
+	osvtimer_t m_sys_timer;	 		//! Isix systimer ID
 	gfx::gui::frame& m_frm;			//! Frame owner
 	window* const m_win;			//! Target window
 	const int m_id;						//! Identifier
@@ -67,6 +67,6 @@ private:
 	bool m_started {};				//! Started
 	unsigned m_elapse;				//! Elapse time
 };
-/* ------------------------------------------------------------------ */ 
+  
 }}
-/* ------------------------------------------------------------------ */
+ 

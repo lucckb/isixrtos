@@ -8,10 +8,10 @@
 #include <foundation/sys/dbglog.h>
 #include <cstring>
 
-/* ------------------------------------------------------------------ */
+ 
 namespace gfx {
 namespace disp {
-/* ------------------------------------------------------------------ */
+ 
 namespace {
 	class bit
 	{
@@ -28,10 +28,10 @@ namespace {
 		const unsigned short *m_bits;
 	};
 }
-/* ------------------------------------------------------------------ */
+ 
 namespace
 {
-	/* ----------------------------------------------------------------------- */
+	 
 	inline int _lz_read_var_size( unsigned int * x, const unsigned char * buf )
 	{
 		unsigned int y, b, num_bytes;
@@ -53,7 +53,7 @@ namespace
 		/* Return number of bytes read */
 		return num_bytes;
 	}
-	/* ----------------------------------------------------------------------- */
+	 
 	int lz_uncompress( const void *in_, void *out_,unsigned int insize, unsigned int outsize )
 	{
 		unsigned char marker, symbol;
@@ -113,18 +113,18 @@ namespace
 		return outpos;
 	}
 
-	/* ----------------------------------------------------------------------- */
+	 
 	inline unsigned char get_bmpdata( const cmem_bitmap_t &bmp , size_t offset )
 	{
 		return *(reinterpret_cast<const unsigned char*>(bmp.img_data) + offset );
 	}
-	/* ----------------------------------------------------------------------- */
+	 
 	inline const void* get_bmpaddr( const cmem_bitmap_t &bmp , size_t offset )
 	{
 		return (reinterpret_cast<const unsigned char*>(bmp.img_data) + offset );
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //Draw char
 coord_t gdi::draw_text(coord_t x, coord_t y, int ch )
 {
@@ -155,7 +155,7 @@ coord_t gdi::draw_text(coord_t x, coord_t y, int ch )
 	}
 	return x+width;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Draw text
 coord_t gdi::draw_text( coord_t x, coord_t y, const char* str )
 {
@@ -172,7 +172,7 @@ coord_t gdi::draw_text( coord_t x, coord_t y, const char* str )
 	return px;
 }
 
-/* ------------------------------------------------------------------ */
+ 
 /** Get text width */
 coord_t gdi::get_text_width( const char *str ) const
 {
@@ -189,7 +189,7 @@ coord_t gdi::get_text_width( const char *str ) const
 		return width;
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 /** Get text width second version char only */
 coord_t gdi::get_text_width( const char ch ) const
 {
@@ -201,13 +201,13 @@ coord_t gdi::get_text_width( const char ch ) const
 		return m_font->width[c];
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 /* Get text height */
 coord_t gdi::get_text_height() const
 {
 	return m_font->height;
 }
-/* ------------------------------------------------------------------ */
+ 
 //Draw line
 void gdi::draw_line( coord_t x0, coord_t y0, coord_t x1, coord_t y1 )
 {
@@ -298,7 +298,7 @@ void gdi::draw_line( coord_t x0, coord_t y0, coord_t x1, coord_t y1 )
 	}
 }
 
-/* ------------------------------------------------------------------ */
+ 
 /** Draw circle */
 void gdi::draw_circle( coord_t x, coord_t y, coord_t radius )
 {
@@ -334,7 +334,7 @@ void gdi::draw_circle( coord_t x, coord_t y, coord_t radius )
 	while(a <= b);
 }
 
-/* ------------------------------------------------------------------ */
+ 
 /** Draw ellipse */
 void gdi::draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b )
 {
@@ -373,7 +373,7 @@ void gdi::draw_ellipse( coord_t x, coord_t y, coord_t a, coord_t b )
 		set_pixel(x-dx, y);
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 namespace {
 	//Internal function convert to native format
 	inline size_t convert_buf_to_native( const void *ibuf, size_t size, color_t *obuf, cmem_bitmap_t::img_type type )
@@ -431,7 +431,7 @@ namespace {
 		}
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //GDI draw image
 int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 {
@@ -484,8 +484,8 @@ int gdi::draw_image( coord_t x, coord_t y, const cmem_bitmap_t &bitmap )
 	}
 	return error_ok;
 }
-/* ------------------------------------------------------------------ */
+ 
 }}
 
 
-/* ------------------------------------------------------------------ */
+ 

@@ -2,9 +2,9 @@
 #include <cstring>
 #include <stdexcept>
 #include <unistd.h>
-/* ------------------------------------------------------------------ */ 
+  
 namespace fnd {
-/* ------------------------------------------------------------------ */ 
+  
 
 /** @param[in] bus Input bus owner
 	*  @param[in] bus_addr Bus memory address
@@ -32,7 +32,7 @@ fs_eeprom::fs_eeprom( int n_pages, int page_size, bool emulate_flash, const char
 		m_file.write( buf, sizeof buf );
 	}
 }
-/* ------------------------------------------------------------------ */ 
+  
 void fs_eeprom::check_range( paddr_t pg, poffs_t pa, size_t len ) const
 {
 	if( pg > m_num_pages ) {
@@ -45,7 +45,7 @@ void fs_eeprom::check_range( paddr_t pg, poffs_t pa, size_t len ) const
 		throw std::logic_error("Page len error");
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 //Erase page return status
 int fs_eeprom::page_erase( paddr_t pa ) 
 {
@@ -57,7 +57,7 @@ int fs_eeprom::page_erase( paddr_t pa )
 	sleep(2);
 	return 0;
 }
-/* ------------------------------------------------------------------ */ 
+  
 
 int fs_eeprom::write( paddr_t pg, poffs_t pa ,const void* ptr , size_t len )
 {
@@ -80,7 +80,7 @@ int fs_eeprom::write( paddr_t pg, poffs_t pa ,const void* ptr , size_t len )
 	}
 	return 0;
 }
-/* ------------------------------------------------------------------ */ 
+  
 int fs_eeprom::read( paddr_t pg, poffs_t pa, void* ptr, size_t len ) const
 {
 	check_range( pg, pa, len );
@@ -89,6 +89,6 @@ int fs_eeprom::read( paddr_t pg, poffs_t pa, void* ptr, size_t len ) const
 	usleep( 5*len );
 	return 0;
 }
-/* ------------------------------------------------------------------ */ 
+  
 }
 

@@ -17,16 +17,16 @@
  */
 #include <gfx/gui/battery_icon.hpp>
 #include <foundation/sys/dbglog.h>
-/* ------------------------------------------------------------------ */ 
+  
 namespace gfx {
 namespace gui {
-/* ------------------------------------------------------------------ */
+ 
 //! Constructor
 battery_icon::battery_icon( rectangle const& rect,layout const& layout ,window &win )
 	: widget( rect, layout, win )
 {
 }
-/* ------------------------------------------------------------------ */
+ 
 //! On repaint widget event
 void battery_icon::repaint( bool /* focus */ ) 
 {
@@ -117,7 +117,7 @@ void battery_icon::repaint( bool /* focus */ )
 		}
 	}
 }
-/* ------------------------------------------------------------------ */
+ 
 }
 }
-/* ------------------------------------------------------------------ */ 
+  
