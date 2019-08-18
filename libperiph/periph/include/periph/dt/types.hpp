@@ -45,7 +45,8 @@ namespace periph::dt {
 		fmc_a5, fmc_sdnras, fmc_a6, fmc_a7, fmc_a8, fmc_a9, fmc_a10, fmc_a11, fmc_a14,
 		fmc_a15, fmc_sdclk, fmc_sdncas, fmc_sdcke0, fmc_sdne0, fmc_d16, fmc_d17, fmc_d18,
 		fmc_d19, fmc_d20, fmc_d21, fmc_d22, fmc_d23, fmc_d24, fmc_d25, fmc_d26, fmc_d27, 
-		fmc_nbl2, fmc_nbl3, fmc_d28, fmc_d29, fmc_d30, fmc_d31
+		fmc_nbl2, fmc_nbl3, fmc_d28, fmc_d29, fmc_d30, fmc_d31,
+		dsi_te, dsi_reset
 	};
 
 	//++ operator
