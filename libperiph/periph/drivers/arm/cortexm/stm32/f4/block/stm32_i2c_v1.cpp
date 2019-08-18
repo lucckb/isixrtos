@@ -352,7 +352,7 @@ int i2c_master::do_set_option(const option::device_option& opt)
 }
 
 //! Common interrupt handler for i2c device
-void i2c_master::interrupt_handler(i2c::_handlers::htype type) noexcept
+void i2c_master::interrupt_handler(i2c::_handlers::htype type)
 {
 	if(type==i2c::_handlers::htype::ev)
 	{
@@ -408,7 +408,7 @@ void i2c_master::interrupt_handler(i2c::_handlers::htype type) noexcept
 }
 
 //! Interrupt DMA handler when DMA controller is used
-void i2c_master::interrupt_dma_handler(i2c::_handlers::htype type) noexcept
+void i2c_master::interrupt_dma_handler(i2c::_handlers::htype type)
 {
 	if(type==i2c::_handlers::htype::ev) {
 		const auto event = i2c_get_last_event(io<I2C_TypeDef>());
@@ -451,7 +451,7 @@ void i2c_master::interrupt_dma_handler(i2c::_handlers::htype type) noexcept
 }
 
 //! Handler used by interrupt controller
-void i2c_master::interrupt_dma_rx_controller_handler(bool err) noexcept
+void i2c_master::interrupt_dma_rx_controller_handler(bool err)
 {
 	LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());
 	LL_I2C_DisableIT_BUF(io<I2C_TypeDef>());
@@ -464,7 +464,7 @@ void i2c_master::interrupt_dma_rx_controller_handler(bool err) noexcept
 	m_wait.signal_isr();
 }
 
-void i2c_master::interrupt_dma_tx_controller_handler(bool err) noexcept
+void i2c_master::interrupt_dma_tx_controller_handler(bool err)
 {
 	if(err) {
 		LL_I2C_GenerateStopCondition(io<I2C_TypeDef>());

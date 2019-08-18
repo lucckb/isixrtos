@@ -64,13 +64,13 @@ namespace periph::drivers {
 		int do_set_option(const option::device_option& opt) override;
 	private:
 		//! Interrupt handler called from interrupt context
-		void interrupt_handler(i2c::_handlers::htype) noexcept;
+		void interrupt_handler(i2c::_handlers::htype);
 		//! Interrupt handler when DMA is used
-		void interrupt_dma_handler(i2c::_handlers::htype) noexcept;
+		void interrupt_dma_handler(i2c::_handlers::htype);
 		//! Handler used by interrupt controller
-		void interrupt_dma_rx_controller_handler(bool err) noexcept;
+		void interrupt_dma_rx_controller_handler(bool err);
 		//! Handler used by transmit end controller handler
-		void interrupt_dma_tx_controller_handler(bool err) noexcept;
+		void interrupt_dma_tx_controller_handler(bool err);
 		//! Internal peripheral settings
 		int periph_conf(bool en) noexcept;
 		//! Get hardware error from i2c bus

@@ -370,7 +370,7 @@ int spi_master::clk_to_presc(unsigned hz)
 }
 
 //! SPI Interrupt handler
-void spi_master::interrupt_handler() noexcept
+void spi_master::interrupt_handler()
 {
 	enum tstat {srxfin=1,stxfin=2,sfin=0x03 };
 	char stat { char((m_rxptr.p8?0:srxfin)|(m_txptr.p8?0:stxfin)) };
@@ -421,7 +421,7 @@ void spi_master::interrupt_handler() noexcept
 }
 
 //! DMA interrupt handler
-void spi_master::dma_interrupt_handler(bool err, bool tx) noexcept
+void spi_master::dma_interrupt_handler(bool err, bool tx)
 {
 	if(err) {
 		finalize_transfer(error::overrun);
@@ -437,7 +437,7 @@ void spi_master::dma_interrupt_handler(bool err, bool tx) noexcept
 }
 
 //! SPI master chip select
-inline void spi_master::cs(bool state,int no) noexcept
+inline void spi_master::cs(bool state,int no)
 {
 	__sync_synchronize();
 	gpio::set(m_cs[no], state);

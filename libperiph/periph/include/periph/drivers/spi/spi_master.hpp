@@ -51,13 +51,13 @@ namespace periph::drivers {
 		int do_set_option(const option::device_option& opt) override;
 		int gpio_conf(bool en);
 		int clk_to_presc(unsigned hz);
-		void interrupt_handler() noexcept;
+		void interrupt_handler();
 		void cs(bool state,int no) noexcept;
 		int start_transfer(const blk::transfer& tran,int& ret) noexcept;
 		void finalize_transfer(int err) noexcept;
 		int periphint_config() noexcept;
 		void periph_deconfig() noexcept;
-		void dma_interrupt_handler(bool err, bool tx) noexcept;
+		void dma_interrupt_handler(bool err, bool tx);
 	private:
 		int m_cs[4] {invcs,invcs,invcs,invcs};
 		std::atomic<size_type> m_rxsiz{}, m_txsiz{}, m_rxi {}, m_txi{};
