@@ -3,8 +3,8 @@
 def options(opt):
     pass
 
-def configure(conf):
-    pass
+def configure(cfg):
+    cfg.define( 'CONFIG_ISIX_USE_TIMERS' , 1 )
 
 def build(bld):
     src = bld.path.ant_glob( '**/*.c', excl='host-tools' )

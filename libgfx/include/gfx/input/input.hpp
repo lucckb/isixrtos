@@ -4,22 +4,18 @@
  *  Created on: 25-06-2013
  *      Author: lucck
  */
-/* ------------------------------------------------------------------ */
-#ifndef ISIX_DEV_INPUT_HPP_
-#define ISIX_DEV_INPUT_HPP_
-/* ------------------------------------------------------------------ */
-#include <isix/dev/device.hpp>
+ 
+#pragma once
+
 #include <cstring>
 #include <memory>
 #include <array>
 #include <functional>
 #include "event_info.hpp"
-/* ------------------------------------------------------------------ */
-namespace gfx {
-namespace input {
 
-/* ------------------------------------------------------------------ */
-class input_class : public isix::dev::device
+namespace gfx::input {
+
+class input_class 
 {
 public:
 	typedef std::function<void( const event_info& )> input_evt_t;
@@ -67,19 +63,19 @@ public:
 		int flat;
 		int resolution;
 	};
-	input_class( device::class_id cl )
-		: device( cl )
+	input_class()
 	{}
 	virtual ~input_class() {}
 
 	/** get repeat code 
         @param[in] delay Delay value
-        @param[in] period Period value 
+        @param[in] period Period value
         @return Error codes
     */
 	virtual int get_repeat_settings( int& /*delay */, int& /*period*/ ) const
 	{
-		return ISIX_ENOTSUP;
+		//FIXME: Todo
+		return -1;
 	}
 	/** get repeat code 
         @param[in] delay Delay value
@@ -87,7 +83,8 @@ public:
     */
 	virtual int set_repeat_settings( int /*delay */, int /*period*/ )
 	{
-		return ISIX_ENOTSUP;
+		//FIXME: Todo
+		return -1;
 	}
 	/** Get device name 
         @return Return device descriptor
@@ -101,17 +98,20 @@ public:
         @return Error code */
 	virtual int hardware_led_enable(bool /*yes*/)
 	{
-		return ISIX_ENOTSUP;
+		//FIXME: Todo
+		return -1;
 	}
 	/* Get led status */
 	virtual int get_led( led_ctl /*led_id */, bool& /*value*/ ) const
 	{
-		return ISIX_ENOTSUP;
+		//FIXME: Todo
+		return -1;
 	}
 	/* set led status */
 	virtual int set_led( led_ctl /*led_id */, bool /*value*/ )
 	{
-		return ISIX_ENOTSUP;
+		//FIXME: Todo
+		return -1;
 	}
 	/* Set input queue */
 	void connect( input_evt_t evt )
@@ -128,8 +128,4 @@ private:
 };
 
 
-/* ------------------------------------------------------------------ */
-}}
-/* ------------------------------------------------------------------ */
-#endif /* INPUT_HPP_ */
-/* ------------------------------------------------------------------ */
+}
