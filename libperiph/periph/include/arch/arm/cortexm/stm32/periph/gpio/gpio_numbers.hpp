@@ -21,6 +21,8 @@ namespace periph::gpio::num {
 		PG0, PG1, PG2, PG3, PG4, PG5, PG6, PG7, PG8, PG9, PG10, PG11, PG12, PG13, PG14, PG15,
 		PH0, PH1, PH2, PH3, PH4, PH5, PH6, PH7, PH8, PH9, PH10, PH11, PH12, PH13, PH14, PH15,
 		PI0, PI1, PI2, PI3, PI4, PI5, PI6, PI7, PI8, PI9, PI10, PI11, PI12, PI13, PI14, PI15,
+		PJ0, PJ1, PJ2, PJ3, PJ4, PJ5, PJ6, PJ7, PJ8, PJ9, PJ10, PJ11, PJ12, PJ13, PJ14, PJ15,
+		PK0, PK1, PK2, PK3, PK4, PK5, PK6, PK7, PK8, PK9, PK10, PK11, PK12, PK13, PK14, PK15,
 	};
 	//Single port enumerate
 	enum _port : unsigned char {
@@ -31,7 +33,9 @@ namespace periph::gpio::num {
 		PE = PE0,
 		PF = PF0,
 		PG = PG0,
-		PI = PI0
+		PI = PI0,
+		PJ = PJ0,
+		PK = PK0,
 	};
 	//All pins
 	namespace {
@@ -53,6 +57,10 @@ namespace periph::gpio::num {
 		   = {PH0,PH1,PH2,PH3,PH4,PH5,PH6,PH7,PH8,PH9,PH10,PH11,PH12,PH13,PH14,PH15};
 		constexpr auto PI_ALL [[maybe_unused]]
 		   = {PI0,PI1,PI2,PI3,PI4,PI5,PI6,PI7,PI8,PI9,PI10,PI11,PI12,PI13,PI14,PI15};
+		constexpr auto PJ_ALL [[maybe_unused]]
+		   = {PJ0,PJ1,PJ2,PJ3,PJ4,PJ5,PJ6,PJ7,PJ8,PJ9,PJ10,PJ11,PJ12,PJ13,PJ14,PJ15};
+		constexpr auto PK_ALL [[maybe_unused]]
+		   = {PK0,PK1,PK2,PK3,PK4,PK5,PK6,PK7,PK8,PK9,PK10,PK11,PK12,PK13,PK14,PK15};
 	}
 }
 
