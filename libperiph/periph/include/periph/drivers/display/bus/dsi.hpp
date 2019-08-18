@@ -23,6 +23,16 @@ namespace periph::display::bus {
         using data_t = uint8_t;
         using datal_t = uint32_t;
         using param_t = uint8_t;
+        //! Command defs
+        enum cmds : data_t {
+            DCS_SHORT_PKT_WRITE_P0 =	0x05, /* DCS short write, no parameters */
+            DCS_SHORT_PKT_WRITE_P1 =    0x15, /* DCS short write, one parameter */
+            GEN_SHORT_PKT_WRITE_P0 =	0x03, /* Generic short write, no parameters */
+            GEN_SHORT_PKT_WRITE_P1 =    0x13, /* Generic short write, one parameter */
+	        GEN_SHORT_PKT_WRITE_P2 =	0x23, /* Generic short write, two parameters */
+            DCS_LONG_PKT_WRITE =		0x39, /* DCS long write */
+            GEN_LONG_PKT_WRITE =	    0x29, /* Generic long write */
+        };
         //Default constructor for dsi
         dsi(const char dsi_name[]);
         // Default destructor for dsi

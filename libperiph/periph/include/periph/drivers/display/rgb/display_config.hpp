@@ -34,6 +34,6 @@ namespace periph::display {
     struct fb_info : public periph::dt::device_conf_base {
         const layer_info* layers;
         size_t n_layers;
-    };
+    }; 
 };
 
