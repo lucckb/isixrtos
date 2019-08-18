@@ -24,11 +24,6 @@
 #ifdef DSI
 namespace periph::display::bus {
 
-namespace {
-    inline auto io(uintptr_t addr) {
-        return reinterpret_cast<DSI_TypeDef*>(addr);
-    }
-}
 
 //! Default constructor
 dsi::dsi(const char dsi_name[])
@@ -54,7 +49,7 @@ int dsi::open()
     do {    
         //Get periph clock config
         dt::clk_periph pclk;
-        ret = dt::get_periph_clock(io(m_base), pclk); 
+        ret = dt::get_periph_clock(io(), pclk); 
         if(ret) break;
         //Enable device clock
         ret = clock::device_enable(pclk); 
@@ -75,7 +70,7 @@ int dsi::close()
     do {    
         //Get periph clock config
         dt::clk_periph pclk;
-        ret = dt::get_periph_clock(io(m_base), pclk); 
+        ret = dt::get_periph_clock(io(), pclk); 
         if(ret) break;
         //Reset device
         ret = clock::device_reset(pclk); 
@@ -86,7 +81,6 @@ int dsi::close()
         // Configure GPIOS
         ret = gpio_conf(false); 
         if(ret) break;
-        //Configure controller
     } while(0);
     return ret;
 }
@@ -144,15 +138,15 @@ int dsi::operator()(vch_t vchid, datal_t data_type,
 //! GPIO configuration
 int dsi::gpio_conf(bool en) noexcept
 {   
-    const auto mux = dt::get_periph_pin_mux(io(m_base));
+    const auto mux = dt::get_periph_pin_mux(io());
     if(mux<0) return mux;
-    auto pin = dt::get_periph_pin(io(m_base),dt::pinfunc::dsi_te);
+    auto pin = dt::get_periph_pin(io(),dt::pinfunc::dsi_te);
     if(pin<0) return pin;
     if(en)
         gpio::setup(pin, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::high});
     else
         gpio::setup(pin, gpio::mode::in{gpio::pulltype::floating});
-    pin = dt::get_periph_pin(io(m_base),dt::pinfunc::dsi_reset);
+    pin = dt::get_periph_pin(io(),dt::pinfunc::dsi_reset);
     if(pin<0) return pin;
     if(en) {
         gpio::setup(pin, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
@@ -167,12 +161,12 @@ int dsi::gpio_conf(bool en) noexcept
 }
 
 //! Hw acccess
-inline void dsi::iow(uint32_t reg, uint32_t val)
+inline void dsi::iow(uint32_t reg, uint32_t val) const noexcept
 {
      *reinterpret_cast<volatile uint32_t*>(m_base+reg) = val;
 }
 //! HW access
-inline uint32_t dsi::ior(uint32_t reg)
+inline uint32_t dsi::ior(uint32_t reg) const noexcept
 {
     return *reinterpret_cast<volatile uint32_t*>(m_base+reg);
 }
@@ -362,4 +356,4 @@ void dsi::hardware_setup() noexcept
 }
 
 }
-#endif
+#endif /* ifdef DSI */

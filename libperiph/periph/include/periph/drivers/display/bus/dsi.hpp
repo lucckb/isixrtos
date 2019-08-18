@@ -52,8 +52,11 @@ namespace periph::display::bus {
         int gpio_conf(bool en) noexcept;
         //! Hardware setup
         void hardware_setup() noexcept;
-        void iow(uint32_t reg, uint32_t val);
-        uint32_t ior(uint32_t reg);
+        void iow(uint32_t reg, uint32_t val) const noexcept;
+        uint32_t ior(uint32_t reg) const noexcept ;
+        auto io() const noexcept {
+            return reinterpret_cast<void*>(m_base);
+        }
     private:
         uintptr_t m_base; //!DSI base address
         const layer_info* m_fbinfo {};
