@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <array>
 #include <utility>
+#include "idisplay.hpp"
 
 namespace periph::display::bus {
     class dsi;
@@ -24,36 +25,23 @@ namespace periph::display::bus {
 namespace periph::display {
 
     // Simple driver
-    class otm8009a
+    class otm8009a final : public idisplay
     {
     public:
-        enum class orientation: bool {
-            portrait,
-            landscape
-        };
-        enum class format: bool {
-            rgb888,
-            rgb565
-        };
         //! Constructors and destructors
-        explicit otm8009a(bus::dsi& dsi, int dsi_chn);
-        ~otm8009a() {}
-        otm8009a(otm8009a&) = delete;
-        otm8009a& operator=(otm8009a&) = delete;
+        otm8009a(bus::ibus& dsi, int dsi_chn);
+        virtual ~otm8009a() {}
         //! Open device
-        int open(orientation org, format fmt) noexcept;
+        int open(orientation org, format fmt) noexcept override;
         //! Close device
-        int close() noexcept;
+        int close() noexcept override;
     private:
-        //! Write command to the DSI interface
-        int write_cmd(const uint8_t* args, size_t len) noexcept;
         //! Write sequence
         template <typename ...T> int write_seq(T&&... args) noexcept
         {
             uint8_t aargs[sizeof...(args)] = { uint8_t(args)... };
-            return write_cmd(aargs,sizeof aargs);
+            return write(aargs,sizeof aargs);
         }
-        //! Write command
         template <typename ...T> int write_cmd(uint16_t cmd, T&&... args) noexcept
         {
             int ret {};
@@ -63,11 +51,9 @@ namespace periph::display {
                 if(ret) break;
                 ret = write_seq(cmd>>8, args...);
             } while(0);
+            return ret;
         }
     private:
-        //! Private DSI bus for display
-        bus::dsi& m_dsi;
-        int m_dsichn;
     };
 }
 

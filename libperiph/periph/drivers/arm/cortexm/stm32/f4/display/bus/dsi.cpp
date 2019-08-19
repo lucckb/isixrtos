@@ -27,7 +27,8 @@ namespace periph::display::bus {
 
 //! Default constructor
 dsi::dsi(const char dsi_name[])
-    : m_base(dt::get_periph_base_address(dsi_name))
+    : ibus(ibus::type::dsi)
+	, m_base(dt::get_periph_base_address(dsi_name))
 {
     if(!m_base) {
         error::expose<error::bus_exception>(error::invstate);
@@ -86,7 +87,7 @@ int dsi::close()
 }
 
 /** DSI short command operator */
-int dsi::operator()(vch_t vchid, data_t data_type, 
+int dsi::raw_write(vch_t vchid, data_t data_type, 
             param_t data0, param_t data1)
 {
     using namespace detail;
@@ -103,7 +104,7 @@ int dsi::operator()(vch_t vchid, data_t data_type,
 }
         
 /** DSI long command operator */
-int dsi::operator()(vch_t vchid, datal_t data_type, 
+int dsi::raw_write(vch_t vchid, datal_t data_type, 
         const data_t* params, size_t nparams)
 {
     using namespace detail;
@@ -353,6 +354,15 @@ void dsi::hardware_setup() noexcept
 	reg |= WCR_LTDCEN;
 	iow(DSI_WCR, reg);
 
+}
+
+//! Write operation
+int dsi::write(int addr, const uint8_t* buf, size_t siz) noexcept
+{
+    if (siz < 2)
+		return raw_write(addr, DCS_SHORT_PKT_WRITE_P1,buf[0], buf[1]); 
+	else
+		return raw_write(addr, DCS_LONG_PKT_WRITE, buf, siz); 
 }
 
 }

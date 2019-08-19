@@ -17,20 +17,11 @@
 namespace periph::display {
 
 //! Constructor
-otm8009a::otm8009a(bus::dsi& dsi, int dsi_chn=0)
-    : m_dsi(dsi), m_dsichn(dsi_chn)
+otm8009a::otm8009a(bus::ibus& dsi, int dsi_chn=0)
+    : idisplay(dsi,dsi_chn)
 {
 }
 
-//! Write command to the DSI interface
-int otm8009a::write_cmd(const uint8_t* args, size_t len) noexcept
-{
-    using bus::dsi;
-    if (len < 2)
-		return m_dsi(m_dsichn, dsi::DCS_SHORT_PKT_WRITE_P1,args[0], args[1]); 
-	else
-		return m_dsi(m_dsichn, dsi::DCS_LONG_PKT_WRITE, args, len); 
-}
 
 //! Open device
 int otm8009a::open(orientation org, format fmt) noexcept

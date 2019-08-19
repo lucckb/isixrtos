@@ -1,0 +1,103 @@
+/**
+ * =====================================================================================
+ * 	File: dsi_fb.cpp
+ *  Description: DSI framebuffer driver
+ * 	Created Date: Monday, August 19th 2019, 7:38:10 pm
+ * 	Author: Lucjan Bryndza
+ * 	Copyright (c) 2019 BoFF
+ * 
+ * 	GPL v2/3
+ * =====================================================================================
+ */
+#include <gfx/drivers/disp/dsi_fb.hpp>
+#include <periph/drivers/display/rgb/fbdev.hpp>
+#include <periph/drivers/display/bus/ibus.hpp>
+#include <periph/drivers/display/rgb/idisplay.hpp>
+
+
+namespace gfx::drv {
+
+/** Constructor
+*/
+dsi_fb::dsi_fb( periph::display::bus::ibus& bus,
+        periph::display::fbdev& fb,
+        periph::display::idisplay& disp )
+        : disp_base(SCREEN_WIDTH,SCREEN_HEIGHT)
+        , m_bus(bus), m_fb(fb),m_ddsp(disp)
+{
+
+}
+//! Destructor
+dsi_fb::~dsi_fb()
+{
+
+}
+/* Get PIXEL */
+color_t dsi_fb::get_pixel(coord_t x, coord_t y)
+{
+
+}
+/* Set PIXEL */
+void dsi_fb::set_pixel(coord_t x, coord_t y, color_t color)
+{
+
+}
+/* Clear the screen */
+void dsi_fb::clear(color_t color)
+{
+
+}
+/* Blit area */
+void dsi_fb::blit(coord_t x, coord_t y, coord_t cx, coord_t cy,
+        coord_t src_y, const color_t *buf)
+{
+
+}
+/* Set blit area (viewport) */
+void dsi_fb::ll_blit(coord_t x, coord_t y, coord_t cx, coord_t cy) 
+{
+
+}
+/* Push into the memory */
+void dsi_fb::ll_blit(const color_t *buf, size_t len)
+{
+
+}
+/* Fill area */
+void dsi_fb::fill(coord_t x, coord_t y, coord_t cx, 
+            coord_t cy, color_t color)
+{
+
+}
+/* Vertical scroll */
+void dsi_fb::vert_scroll(coord_t x, coord_t y, coord_t cx, 
+                    coord_t cy, int lines, color_t bgcolor)
+{
+
+}
+/* Power ctl */
+bool dsi_fb::power_ctl(power_ctl_t mode)
+{
+
+}
+/* Rotate screen */
+void dsi_fb::rotate(rotation_t rot)
+{
+
+}
+/* Set backlight percent */
+void dsi_fb::backlight(int percent)
+{
+
+}
+//! Get backlight
+int dsi_fb::backlight()
+{
+
+}
+//! Get render buffer
+std::pair<color_t*,size_t> dsi_fb::get_rbuf()
+{
+}
+
+}

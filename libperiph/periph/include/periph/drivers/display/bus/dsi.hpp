@@ -11,13 +11,14 @@
 #pragma once
 #include <cstdint>
 #include <cstddef>
+#include "ibus.hpp"
 
 namespace periph::display {
     struct layer_info;
 }
 namespace periph::display::bus {
     // Class representing DSI device
-    class dsi {
+    class dsi final : public ibus {
     public:
         using vch_t = uint8_t;
         using data_t = uint8_t;
@@ -36,7 +37,7 @@ namespace periph::display::bus {
         //Default constructor for dsi
         dsi(const char dsi_name[]);
         // Default destructor for dsi
-        ~dsi() {}
+        virtual ~dsi() {}
         // Noncopyable constructor
         dsi(dsi&) = delete;
         // Noncopyable copy operator
@@ -46,17 +47,17 @@ namespace periph::display::bus {
          * @param[in] disp_name Display name
          * @return error code
          */
-        int open();
+        int open() noexcept override;
         /** Close already opened DSI device */
-        int close();
-
+        int close() noexcept override;
+        //! Write operation
+        int write(int addr, const uint8_t* buf, size_t siz) noexcept override;
         /** DSI short command operator */
-        int operator()(vch_t vchid, data_t data_type, 
-                    param_t data0, param_t data1);
-        
+        int raw_write(vch_t vchid, data_t data_type, 
+                    param_t data0, param_t data1) noexcept;
         /** DSI long command operator */
-        int operator()(vch_t vchid, datal_t data_type, 
-                const data_t* param, size_t nparams); 
+        int raw_write(vch_t vchid, datal_t data_type, 
+                const data_t* param, size_t nparams) noexcept;
     private:
         //! GPIO configuration
         int gpio_conf(bool en) noexcept;

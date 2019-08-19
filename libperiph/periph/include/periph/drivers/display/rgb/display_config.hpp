@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <periph/dt/dts.hpp>
+#include <periph/dt/types.hpp>
 #include <cstdint>
 #include <cstddef>
 
@@ -30,10 +30,12 @@ namespace periph::display {
         uint32_t bpp;
         uint32_t base;
     };
-    //Configuration for global config
-    struct fb_info : public periph::dt::device_conf_base {
+    //Configuration for framebuffer device controller
+    struct fb_info : public dt::device_conf_base {
         const layer_info* layers;
         size_t n_layers;
     }; 
+    
+
 };
 
