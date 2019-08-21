@@ -28,6 +28,7 @@ int otm8009a::open(orientation org, format fmt) noexcept
 {
 	int ret {};
 	do {
+		using namespace detail;
 		/* Enter CMD2 */
 		ret = write_cmd( MCS_CMD2_ENA1, 0x80, 0x09, 0x01);
 		if(ret) break;
@@ -197,6 +198,12 @@ int otm8009a::open(orientation org, format fmt) noexcept
 		if(ret) break;
 	} while(0);
 	return ret;
+}
+
+//! Close device
+int otm8009a::close() noexcept
+{
+	return write_cmd(detail::OTM_CMD_SWRESET, 0);
 }
 
 }
