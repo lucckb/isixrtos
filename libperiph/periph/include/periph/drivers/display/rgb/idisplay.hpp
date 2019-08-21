@@ -12,6 +12,7 @@
 
 #pragma once
 #include <periph/drivers/display/bus/ibus.hpp>
+#include <periph/dt/dts.hpp>
 
 namespace periph::display {
 
@@ -28,9 +29,10 @@ public:
         rgb565
     };
     //! Construtors
-    idisplay(bus::ibus& bus, int addr) 
-        : m_bus(bus), m_addr(addr)
-    {}
+    idisplay(bus::ibus& bus, const char name[]) 
+        : m_bus(bus), m_addr(dt::get_periph_base_address(name))
+    {
+    }
     idisplay(idisplay&) = delete;
     //! Destructor
     virtual ~idisplay() {};
@@ -46,9 +48,12 @@ protected:
         return m_bus.write(m_addr,args,len);
     }
     //! Read command from the selected addr
-    int read(const uint8_t* args, size_t len) noexcept
-    {
+    int read(const uint8_t* args, size_t len) noexcept {
         return m_bus.read(m_addr,args,len);
+    }
+    //! Get bus
+    auto& bus() const {
+        return m_bus;
     }
 private:
     bus::ibus& m_bus;

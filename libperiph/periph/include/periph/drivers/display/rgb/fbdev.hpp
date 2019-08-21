@@ -24,7 +24,7 @@ namespace periph::display {
         //! Default constructor
         fbdev(const char dev_name[]);
         //! Default destructor
-        ~fbdev();
+        ~fbdev() {}
         //! noncopyable stuff
         fbdev(fbdev&) = delete;
         fbdev& operator=(fbdev&) = delete;

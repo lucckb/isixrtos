@@ -20,6 +20,17 @@
 
 #ifdef LTDC
 namespace periph::display {
+//! Hw acccess
+inline void fbdev::iow(uint32_t reg, uint32_t val) const noexcept
+{
+     *reinterpret_cast<volatile uint32_t*>(m_base+reg) = val;
+}
+//! HW access
+inline uint32_t fbdev::ior(uint32_t reg) const noexcept
+{
+    return *reinterpret_cast<volatile uint32_t*>(m_base+reg);
+}
+
 
 //! Default constructor
 fbdev::fbdev(const char dev_name[])

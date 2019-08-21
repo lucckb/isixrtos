@@ -19,11 +19,10 @@ namespace gfx::drv {
 
 /** Constructor
 */
-dsi_fb::dsi_fb( periph::display::bus::ibus& bus,
-        periph::display::fbdev& fb,
+dsi_fb::dsi_fb( periph::display::fbdev& fb,
         periph::display::idisplay& disp )
         : disp_base(SCREEN_WIDTH,SCREEN_HEIGHT)
-        , m_bus(bus), m_fb(fb),m_ddsp(disp)
+        ,  m_fb(fb),m_ddsp(disp)
 {
 
 }
@@ -45,6 +44,12 @@ void dsi_fb::set_pixel(coord_t x, coord_t y, color_t color)
 /* Clear the screen */
 void dsi_fb::clear(color_t color)
 {
+    auto b = reinterpret_cast<uint8_t*>(m_fb.fbmem());
+    for(auto p=0U; p<SCREEN_HEIGHT*SCREEN_WIDTH;p+=3) {
+        *(p+b) = color_t_R(color);
+        *(p+b+1) = color_t_G(color);
+        *(p+b+2) = color_t_B(color);
+    }
 
 }
 /* Blit area */
@@ -56,7 +61,6 @@ void dsi_fb::blit(coord_t x, coord_t y, coord_t cx, coord_t cy,
 /* Set blit area (viewport) */
 void dsi_fb::ll_blit(coord_t x, coord_t y, coord_t cx, coord_t cy) 
 {
-
 }
 /* Push into the memory */
 void dsi_fb::ll_blit(const color_t *buf, size_t len)
@@ -78,7 +82,19 @@ void dsi_fb::vert_scroll(coord_t x, coord_t y, coord_t cx,
 /* Power ctl */
 bool dsi_fb::power_ctl(power_ctl_t mode)
 {
-
+    int ret {};
+    using cfg = periph::display::idisplay;
+    do {
+        if(mode==power_ctl_t::on) {
+            // Open ltdc controller
+            ret = m_fb.open();
+            if(ret) break;
+            //! Fixme this rename as a separate function
+            ret = m_ddsp.open(cfg::orientation::portrait,cfg::format::rgb888);
+            if(ret) break;
+        }
+    } while(0);
+    return ret;
 }
 /* Rotate screen */
 void dsi_fb::rotate(rotation_t rot)

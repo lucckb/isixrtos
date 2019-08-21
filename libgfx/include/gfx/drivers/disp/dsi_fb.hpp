@@ -28,8 +28,7 @@ namespace gfx::drv {
     public:
         /** Constructor
         */
-        dsi_fb( periph::display::bus::ibus& bus,
-                periph::display::fbdev& fb,
+        dsi_fb( periph::display::fbdev& fb,
                 periph::display::idisplay& disp );
         //! Destructor
         virtual ~dsi_fb();	
@@ -63,8 +62,6 @@ namespace gfx::drv {
         //! Get render buffer
         std::pair<color_t*,size_t> get_rbuf() override;
     private:
-        //! DSI class 
-        periph::display::bus::ibus& m_bus;
         //! FBdev class 
         periph::display::fbdev& m_fb;
         //! Framebuffer display class

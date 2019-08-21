@@ -29,7 +29,7 @@ namespace periph::display {
     {
     public:
         //! Constructors and destructors
-        otm8009a(bus::ibus& dsi, int dsi_chn);
+        otm8009a(bus::ibus& dsi, const char name[]);
         virtual ~otm8009a() {}
         //! Open device
         int open(orientation org, format fmt) noexcept override;

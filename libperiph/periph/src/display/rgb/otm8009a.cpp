@@ -17,8 +17,8 @@
 namespace periph::display {
 
 //! Constructor
-otm8009a::otm8009a(bus::ibus& dsi, int dsi_chn=0)
-    : idisplay(dsi,dsi_chn)
+otm8009a::otm8009a(bus::ibus& dsi, const char name[])
+    : idisplay(dsi,name)
 {
 }
 
@@ -29,6 +29,9 @@ int otm8009a::open(orientation org, format fmt) noexcept
 	int ret {};
 	do {
 		using namespace detail;
+		// Open bus driver
+		ret = bus().open();
+		if(ret) break;
 		/* Enter CMD2 */
 		ret = write_cmd( MCS_CMD2_ENA1, 0x80, 0x09, 0x01);
 		if(ret) break;
@@ -203,7 +206,9 @@ int otm8009a::open(orientation org, format fmt) noexcept
 //! Close device
 int otm8009a::close() noexcept
 {
-	return write_cmd(detail::OTM_CMD_SWRESET, 0);
+	const auto r1 = write_cmd(detail::OTM_CMD_SWRESET, 0);
+	const auto r2 = bus().close();
+	return r1?r1:r2;
 }
 
 }
