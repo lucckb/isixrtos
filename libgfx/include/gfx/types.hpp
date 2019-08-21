@@ -5,19 +5,18 @@
  *  Created on: 10-06-2013
  *      Author: lucck
  */
- 
-#ifndef ISIX_GFX_TYPES_HPP_
-#define ISIX_GFX_TYPES_HPP_
+
+#pragma once 
  
 #include <cstdint>
+#include <config/conf.h>
  
 #define CONFIG_GFX_PIXEL_FORMAT_RGB565 1
 #define CONFIG_GFX_PIXEL_FORMAT_BGR565 2
 #define CONFIG_GFX_PIXEL_FORMAT_RGB8   3
+
 #ifndef CONFIG_GFX_PIXEL_FORMAT
 #define CONFIG_GFX_PIXEL_FORMAT CONFIG_GFX_PIXEL_FORMAT_RGB565
-
- 
 #endif
  
 namespace gfx
@@ -68,7 +67,7 @@ namespace gfx
 #elif  CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_RGB8
 	static inline constexpr color_t rgb( unsigned char R, unsigned char G, unsigned char B )
 	{
-		return (B<<16) | (G<<8) | R );
+		return (B<<16) | (G<<8) | R;
 	}
 	static inline constexpr uint8_t color_t_R(color_t color)
 	{
@@ -290,4 +289,3 @@ namespace gfx
 	};
 }
  
-#endif /* TYPES_HPP_ */
