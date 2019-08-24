@@ -14,15 +14,18 @@
 #define CONFIG_GFX_PIXEL_FORMAT_RGB565 1
 #define CONFIG_GFX_PIXEL_FORMAT_BGR565 2
 #define CONFIG_GFX_PIXEL_FORMAT_RGB8   3
+#define CONFIG_GFX_PIXEL_FORMAT_BGR8   4
 
 #ifndef CONFIG_GFX_PIXEL_FORMAT
-#define CONFIG_GFX_PIXEL_FORMAT CONFIG_GFX_PIXEL_FORMAT_RGB565
+#error Pixel format not defined
 #endif
  
 namespace gfx
 {
-#if CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_RGB
+#if CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_RGB8
 	/* Basic color type */
+	typedef unsigned int color_t;
+#elif CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_BGR8
 	typedef unsigned int color_t;
 #else
 	typedef unsigned short color_t;
@@ -81,6 +84,24 @@ namespace gfx
 	{
 		return (color>>16)&0xFF;
 	}
+#elif  CONFIG_GFX_PIXEL_FORMAT == CONFIG_GFX_PIXEL_FORMAT_BGR8
+	static inline constexpr color_t rgb( unsigned char R, unsigned char G, unsigned char B )
+	{
+		return (B<<0) | (G<<8) | (R<<16);
+	}
+	static inline constexpr uint8_t color_t_R(color_t color)
+	{
+		return (color>>16)&0xFF;
+	}
+	static inline constexpr uint8_t color_t_G(color_t color)
+	{
+		return (color>>8)&0xFF;
+	}
+	static inline constexpr uint8_t color_t_B(color_t color)
+	{
+		return (color>>0)&0xFF;
+	}
+
 #else
 #error "Unknown CONFIG_GFX_PIXEL_FORMAT"
 #endif
@@ -89,7 +110,8 @@ namespace gfx
 	{
 		error_ok,					/* Error OK */
 		error_lz_compress,			/* LZMA compress failed */
-		error_img_not_supported		/* Image type is not supported */
+		error_img_not_supported,	/* Image type is not supported */
+		error_not_supported         /* Syscall not supported */
 	};
 	//Color space utilities
 	namespace colorspace
