@@ -42,6 +42,8 @@ public:
     virtual int open(orientation org, format fmt) noexcept = 0;
     //! Close device
     virtual int close() noexcept = 0;
+    //! Setup backlight mode
+    virtual void backlight( int percent ) noexcept = 0;
 protected:
     //! Write command to the selected addr
     int write(const uint8_t* args, size_t len) noexcept {

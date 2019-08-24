@@ -165,6 +165,12 @@ void fbdev::layer(const layer_info& info, int i) noexcept
 	iow( LTDC_LCR(i), reg);
 }
 
+//! Get FB memory buffer
+void* fbdev::fbmem(size_t idx) const noexcept
+{
+	return reinterpret_cast<void*>(m_fbinfo->layers[idx].base);
+}
+
 }
 #endif /* ifdef LTDC */
 

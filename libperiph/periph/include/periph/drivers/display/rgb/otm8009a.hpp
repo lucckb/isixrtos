@@ -35,6 +35,8 @@ namespace periph::display {
         int open(orientation org, format fmt) noexcept override;
         //! Close device
         int close() noexcept override;
+        //! Setup backlight mode
+        virtual void backlight( int percent ) noexcept override;
     private:
         //! Write sequence
         template <typename ...T> int write_seq(T&&... args) noexcept
@@ -53,7 +55,11 @@ namespace periph::display {
             } while(0);
             return ret;
         }
+        // Configure GPIO
+        int gpio_conf(bool en) noexcept;
     private:
+        const char* const m_dev_name;
+        int m_blpin {-1};
     };
 }
 

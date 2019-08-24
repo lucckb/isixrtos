@@ -19,6 +19,7 @@ namespace gfx::drv {
 
 /** Constructor
 */
+//TODO: hardcoded size
 dsi_fb::dsi_fb( periph::display::fbdev& fb,
         periph::display::idisplay& disp )
         : disp_base(SCREEN_WIDTH,SCREEN_HEIGHT)
@@ -44,13 +45,12 @@ void dsi_fb::set_pixel(coord_t x, coord_t y, color_t color)
 /* Clear the screen */
 void dsi_fb::clear(color_t color)
 {
-    auto b = reinterpret_cast<uint8_t*>(m_fb.fbmem());
-    for(auto p=0U; p<SCREEN_HEIGHT*SCREEN_WIDTH;p+=3) {
-        *(p+b) = color_t_R(color);
+    auto b = reinterpret_cast<volatile uint8_t*>(m_fb.fbmem());
+    for(auto p=0U; p<SCREEN_HEIGHT*SCREEN_WIDTH*3;p+=3) {
+        *(p+b) = color_t_B(color);
         *(p+b+1) = color_t_G(color);
-        *(p+b+2) = color_t_B(color);
+        *(p+b+2) = color_t_R(color);
     }
-
 }
 /* Blit area */
 void dsi_fb::blit(coord_t x, coord_t y, coord_t cx, coord_t cy,

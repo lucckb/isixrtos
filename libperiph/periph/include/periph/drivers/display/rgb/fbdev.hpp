@@ -39,9 +39,7 @@ namespace periph::display {
         /** Get framebuffer base memory
          * @return framebuffer address
          */
-        auto fbmem() const noexcept {
-            return reinterpret_cast<void*>(m_base);
-        }
+        void* fbmem(size_t idx=0) const noexcept;
     private:
         //! Hardware setup
         void hardware_setup(const layer_info& info, int i) noexcept;

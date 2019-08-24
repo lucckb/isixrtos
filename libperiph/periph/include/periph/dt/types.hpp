@@ -46,7 +46,7 @@ namespace periph::dt {
 		fmc_a15, fmc_sdclk, fmc_sdncas, fmc_sdcke0, fmc_sdne0, fmc_d16, fmc_d17, fmc_d18,
 		fmc_d19, fmc_d20, fmc_d21, fmc_d22, fmc_d23, fmc_d24, fmc_d25, fmc_d26, fmc_d27, 
 		fmc_nbl2, fmc_nbl3, fmc_d28, fmc_d29, fmc_d30, fmc_d31,
-		dsi_te, dsi_reset
+		dsi_te, lcd_reset, lcd_backlight
 	};
 
 	//++ operator

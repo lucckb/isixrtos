@@ -94,11 +94,11 @@ int dsi::raw_write(vch_t vchid, data_t data_type,
     if(!m_base) return error::noinit;
 	uint32_t reg;
 	/* Wait FIFO empty flag */
-	while ((ior(DSI_GPSR) & GPSR_CMDFE) != 1) {}
-	reg = (data_type << GHCR_DT_S);
-	reg |= (vchid << GHCR_VCID_S);
-	reg |= (data0 << GHCR_WCLSB_S);
-	reg |= (data1 << GHCR_WCMSB_S);
+	while ((ior(DSI_GPSR) & GPSR_CMDFE) != 1);
+	reg = (uint32_t(data_type) << GHCR_DT_S);
+	reg |= (uint32_t(vchid) << GHCR_VCID_S);
+	reg |= (uint32_t(data0) << GHCR_WCLSB_S);
+	reg |= (uint32_t(data1) << GHCR_WCMSB_S);
 	iow(DSI_GHCR, reg);
     return error::success;
 }
@@ -114,15 +114,15 @@ int dsi::raw_write(vch_t vchid, datal_t data_type,
 	uint32_t reg;
 	unsigned i;
 	/* Wait FIFO empty flag */
-	while ((ior(DSI_GPSR) & GPSR_CMDFE) != 1) {}
+	while ((ior(DSI_GPSR) & GPSR_CMDFE) != 1);
 	for (i = 0; i < nparams; i += 4) {
 		reg = params[i];
 		if ((i + 1) < nparams)
-			reg |= (params[i + 1] << 8);
+			reg |= (uint32_t(params[i + 1]) << 8);
 		if ((i + 2) < nparams)
-			reg |= (params[i + 2] << 16);
+			reg |= (uint32_t(params[i + 2]) << 16);
 		if ((i + 3) < nparams)
-			reg |= (params[i + 3] << 24);
+			reg |= (uint32_t(params[i + 3]) << 24);
 		iow(DSI_GPDR, reg);
 	}
 	data0 = nparams & 0xff;
@@ -147,17 +147,6 @@ int dsi::gpio_conf(bool en) noexcept
         gpio::setup(pin, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::high});
     else
         gpio::setup(pin, gpio::mode::in{gpio::pulltype::floating});
-    pin = dt::get_periph_pin(io(),dt::pinfunc::dsi_reset);
-    if(pin<0) return pin;
-    if(en) {
-        gpio::setup(pin, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
-        gpio::set(pin, false);
-        isix::wait_ms(10);
-        gpio::set(pin, true);
-        
-    } else {
-        gpio::setup(pin, gpio::mode::in{gpio::pulltype::floating});
-    }
     return error::success;
 }
 
@@ -182,9 +171,9 @@ void dsi::hardware_setup() noexcept
 	uint32_t lane_byte_clk_khz;
 	uint32_t lcd_clock;
 	uint32_t val;
-	int reg;
+	int	reg;
 
-	dbg_info("DSI version: %x\n", ior(DSI_VR));
+	dbg_info("DSI version: %x", ior(DSI_VR));
  
 	/* Enable the regulator */
 	reg = ior(DSI_WRPCR);
@@ -283,7 +272,7 @@ void dsi::hardware_setup() noexcept
 		reg = (LCOLCR_COLC_16_1 << LCOLCR_COLC_S);
 		break;
 	default:
-		dbg_err("Error: can't configure LCOLCR\n");
+		dbg_err("Error: can't configure LCOLCR");
 	}
 	iow(DSI_LCOLCR, reg);
 
@@ -297,7 +286,7 @@ void dsi::hardware_setup() noexcept
 		reg |= (COLMUX_16_1 << WCFGR_COLMUX_S);
 		break;
 	default:
-		dbg_err("Error: can't configure COLMUX\n");
+		dbg_err("Error: can't configure COLMUX");
 	}
 	iow(DSI_WCFGR, reg);
 
@@ -317,7 +306,7 @@ void dsi::hardware_setup() noexcept
 	iow(DSI_VVSACR, m_fbinfo->vsync);	/* Vertical sync active */
 	iow(DSI_VVBPCR, m_fbinfo->vbp);		/* Vertical back porch */
 	iow(DSI_VVFPCR, m_fbinfo->vfp);		/* Vertical Front Porch */
-	iow( DSI_VVACR, m_fbinfo->height);	/* Vertical Active */
+	iow(DSI_VVACR, m_fbinfo->height);	/* Vertical Active */
 
 	/* Low power configuration */
 	reg = ior(DSI_VMCR);
@@ -348,7 +337,7 @@ void dsi::hardware_setup() noexcept
 	/* reg |= (1 << 0); */ /* 8 color mode */
 	iow(DSI_WCR, reg);
 
-	dbg_info("DSI configuration done\n");
+	dbg_info("DSI configuration done");
 
 	reg = ior(DSI_WCR);
 	reg |= WCR_LTDCEN;

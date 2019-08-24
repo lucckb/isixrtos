@@ -11,14 +11,17 @@
 
 #include <periph/drivers/display/rgb/otm8009a.hpp>
 #include <periph/drivers/display/bus/dsi.hpp>
+#include <periph/gpio/gpio.hpp>
 #include <isix/ostime.h>
+#include <periph/dt/dts.hpp>
+#include <foundation/sys/dbglog.h>
 #include "otm8009a_regs.hpp"
 
 namespace periph::display {
 
 //! Constructor
 otm8009a::otm8009a(bus::ibus& dsi, const char name[])
-    : idisplay(dsi,name)
+    : idisplay(dsi,name), m_dev_name(name)
 {
 }
 
@@ -28,7 +31,11 @@ int otm8009a::open(orientation org, format fmt) noexcept
 {
 	int ret {};
 	do {
+		
 		using namespace detail;
+		// Configure gpio
+		ret = gpio_conf(true);
+		if(ret) break;
 		// Open bus driver
 		ret = bus().open();
 		if(ret) break;
@@ -208,7 +215,48 @@ int otm8009a::close() noexcept
 {
 	const auto r1 = write_cmd(detail::OTM_CMD_SWRESET, 0);
 	const auto r2 = bus().close();
+	gpio_conf(false);
 	return r1?r1:r2;
+}
+
+
+
+// Configure GPIO
+int otm8009a::gpio_conf(bool en) noexcept
+{
+	//Configure and reset display first
+	int pin = dt::get_periph_pin(m_dev_name,dt::pinfunc::lcd_reset);
+	if(pin<0) return pin;
+	dbg_info("otm reset pin %i",pin);
+	if(en) {
+		gpio::setup(pin, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
+		gpio::set(pin, false);
+		isix::wait_ms(10);
+		gpio::set(pin, true);
+	} else {
+		gpio::setup(pin, gpio::mode::in{gpio::pulltype::floating});
+	}
+	pin = dt::get_periph_pin(m_dev_name,dt::pinfunc::lcd_backlight);
+	if(pin<0) return pin;
+	dbg_info("otm backligh pin %i",pin);
+	if(en) {
+		gpio::setup(pin, gpio::mode::out{gpio::outtype::pushpull,gpio::speed::medium} );
+		m_blpin = pin;
+	} else {
+		gpio::setup(pin, gpio::mode::in{gpio::pulltype::floating});
+		m_blpin = -1;
+	}
+	return error::success;
+}
+
+//! Setup backlight mode
+void otm8009a::backlight( int percent ) noexcept
+{
+	if(m_blpin>=0) {
+		gpio::set(m_blpin,percent);
+	} else {
+		dbg_warn("Backlight gpio not configured");
+	}
 }
 
 }
