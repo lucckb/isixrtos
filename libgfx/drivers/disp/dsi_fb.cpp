@@ -22,7 +22,7 @@ namespace gfx::drv {
 //TODO: hardcoded size
 dsi_fb::dsi_fb( periph::display::fbdev& fb,
         periph::display::idisplay& disp )
-        : disp_base(SCREEN_WIDTH,SCREEN_HEIGHT)
+        : disp_base(disp.width(),disp.height())
         ,  m_fb(fb),m_ddsp(disp)
 {
 
@@ -46,7 +46,7 @@ void dsi_fb::set_pixel(coord_t x, coord_t y, color_t color)
 void dsi_fb::clear(color_t color)
 {
     auto b = reinterpret_cast<volatile uint8_t*>(m_fb.fbmem());
-    for(auto p=0U; p<SCREEN_HEIGHT*SCREEN_WIDTH*3;p+=3) {
+    for(auto p=0U; p<get_height()*get_width()*m_ddsp.bpp()/8;p+=m_ddsp.bpp()/8) {
         *(p+b) = color_t_B(color);
         *(p+b+1) = color_t_G(color);
         *(p+b+2) = color_t_R(color);
@@ -90,7 +90,7 @@ bool dsi_fb::power_ctl(power_ctl_t mode)
             ret = m_fb.open();
             if(ret) break;
             //! Fixme this rename as a separate function
-            ret = m_ddsp.open(cfg::orientation::portrait,cfg::format::rgb888);
+            ret = m_ddsp.open(cfg::orientation::portrait);
             if(ret) break;
         }
     } while(0);

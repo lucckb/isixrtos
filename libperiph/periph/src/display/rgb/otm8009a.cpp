@@ -27,7 +27,7 @@ otm8009a::otm8009a(bus::ibus& dsi, const char name[])
 
 
 //! Open device
-int otm8009a::open(orientation org, format fmt) noexcept
+int otm8009a::open(orientation org) noexcept
 {
 	int ret {};
 	do {
@@ -166,11 +166,12 @@ int otm8009a::open(orientation org, format fmt) noexcept
 	
 		/* Wait for sleep out */
 		isix::wait_ms(120);
-		switch (fmt) {
-		case format::rgb888:
+		switch (bpp()) {
+		case 24:
+		case 32:
 			ret = write_seq(OTM_CMD_COLMOD, (COLMOD_VIPF_24_1 | COLMOD_IFPF_24));
 			break;
-		case format::rgb565:
+		case 16:
 			ret = write_seq(OTM_CMD_COLMOD, (COLMOD_VIPF_16 | COLMOD_IFPF_16));
 		default:
 			break;

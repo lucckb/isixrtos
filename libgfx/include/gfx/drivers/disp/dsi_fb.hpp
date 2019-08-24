@@ -23,8 +23,6 @@ namespace periph::display {
 
 namespace gfx::drv {
     class dsi_fb final : public disp_base {
-        static constexpr auto SCREEN_WIDTH = 480;
-        static constexpr auto SCREEN_HEIGHT = 800;
     public:
         /** Constructor
         */

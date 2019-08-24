@@ -12,7 +12,7 @@
 
 #pragma once
 #include <periph/drivers/display/bus/ibus.hpp>
-#include <periph/dt/dts.hpp>
+
 
 namespace periph::display {
 
@@ -24,26 +24,27 @@ public:
         portrait,
         landscape
     };
-    enum class format: bool {
-        rgb888,
-        rgb565
-    };
-    //! Construtors
-    idisplay(bus::ibus& bus, const char name[]) 
-        : m_bus(bus), m_addr(dt::get_periph_base_address(name))
-    {
-    }
+    idisplay(bus::ibus& bus, const char name[]);
     idisplay(idisplay&) = delete;
     //! Destructor
     virtual ~idisplay() {};
     //! Non assignable
     idisplay& operator=(idisplay&) = delete;
     //! Open device
-    virtual int open(orientation org, format fmt) noexcept = 0;
+    virtual int open(orientation org) noexcept = 0;
     //! Close device
     virtual int close() noexcept = 0;
     //! Setup backlight mode
     virtual void backlight( int percent ) noexcept = 0;
+    auto width() const noexcept {
+        return m_width;
+    }
+    auto height() const noexcept {
+        return m_height;
+    }
+    auto bpp() const noexcept {
+        return m_bpp;
+    }
 protected:
     //! Write command to the selected addr
     int write(const uint8_t* args, size_t len) noexcept {
@@ -59,7 +60,11 @@ protected:
     }
 private:
     bus::ibus& m_bus;
-    int m_addr;
+    int m_addr {};
+    const char* const m_name;
+    short m_width {};
+    short m_height {};
+    short m_bpp {};
 };
 
 }

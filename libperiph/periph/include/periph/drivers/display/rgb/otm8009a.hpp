@@ -32,7 +32,7 @@ namespace periph::display {
         otm8009a(bus::ibus& dsi, const char name[]);
         virtual ~otm8009a() {}
         //! Open device
-        int open(orientation org, format fmt) noexcept override;
+        int open(orientation org ) noexcept override;
         //! Close device
         int close() noexcept override;
         //! Setup backlight mode
