@@ -20,7 +20,7 @@ namespace periph::display {
 //! Generic display interface class
 class idisplay {
 public:
-    enum class orientation: bool {
+    enum class orientation_t: bool {
         portrait,
         landscape
     };
@@ -31,17 +31,22 @@ public:
     //! Non assignable
     idisplay& operator=(idisplay&) = delete;
     //! Open device
-    virtual int open(orientation org) noexcept = 0;
+    virtual int open() noexcept = 0;
     //! Close device
     virtual int close() noexcept = 0;
-    //! Setup backlight mode
-    virtual void backlight( int percent ) noexcept = 0;
+    //! Set orientation
+    virtual int orientation(orientation_t orient) noexcept = 0;
+    //! Set backlight mode
+    virtual void backlight(int percent) noexcept = 0;
+    //! Get display width
     auto width() const noexcept {
         return m_width;
     }
+    //! Get display height
     auto height() const noexcept {
         return m_height;
     }
+    //! Get BPP disp
     auto bpp() const noexcept {
         return m_bpp;
     }

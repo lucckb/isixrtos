@@ -32,11 +32,13 @@ namespace periph::display {
         otm8009a(bus::ibus& dsi, const char name[]);
         virtual ~otm8009a() {}
         //! Open device
-        int open(orientation org ) noexcept override;
+        int open() noexcept override;
         //! Close device
         int close() noexcept override;
         //! Setup backlight mode
-        virtual void backlight( int percent ) noexcept override;
+        void backlight( int percent ) noexcept override;
+        //! Set orientation
+        int orientation(orientation_t orient) noexcept override;
     private:
         //! Write sequence
         template <typename ...T> int write_seq(T&&... args) noexcept
