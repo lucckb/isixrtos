@@ -27,11 +27,10 @@ otm8009a::otm8009a(bus::ibus& dsi, const char name[])
 
 
 //! Open device
-int otm8009a::open(orientation org) noexcept
+int otm8009a::open() noexcept
 {
 	int ret {};
 	do {
-		
 		using namespace detail;
 		// Configure gpio
 		ret = gpio_conf(true);
@@ -177,20 +176,7 @@ int otm8009a::open(orientation org) noexcept
 			break;
 		}
 		if(ret) break;
-
-		/*
-		* Default orientation is portrait,
-		* so configure landspace if required
-		*/
-		if (org == orientation::landscape) {
-			ret = write_seq(OTM_CMD_MADCTL, (MADCTL_MV | MADCTL_MX));
-			if(ret) break;
-			ret = write_seq(OTM_CMD_CASET, 0x00, 0x00, 0x03, 0x1F);
-			if(ret) break;
-			ret = write_seq(OTM_CMD_PASET, 0x00, 0x00, 0x01, 0xDF);
-			if(ret) break;
-		}
-
+		
 		/* Content Adaptive Backlight Control */
 		ret = write_seq(OTM_CMD_WRDISBV, 0x7F);
 		if(ret) break;
@@ -209,6 +195,29 @@ int otm8009a::open(orientation org) noexcept
 		if(ret) break;
 	} while(0);
 	return ret;
+}
+
+
+//! Change display orientation
+int otm8009a::orientation(orientation_t orient) noexcept
+{
+	using namespace detail;
+	if(orient==orientation_t::landscape) {
+		auto ret = write_seq(OTM_CMD_MADCTL, (MADCTL_MV | MADCTL_MX));
+		if(ret) return ret;
+		ret = write_seq(OTM_CMD_CASET, 0x00, 0x00, 0x03, 0x1F);
+		if(ret) return ret;
+		ret = write_seq(OTM_CMD_PASET, 0x00, 0x00, 0x01, 0xDF);
+		if(ret) return ret;
+	} else if(orient==orientation_t::portrait) {
+		auto ret = write_seq(OTM_CMD_MADCTL, 0);
+		if(ret) return ret;
+		ret = write_seq(OTM_CMD_CASET, 0x00, 0x00, 0x01, 0xDF);
+		if(ret) return ret;
+		ret = write_seq(OTM_CMD_PASET, 0x00, 0x00, 0x03, 0x1F);
+		if(ret) return ret;
+	}
+	return error::success;
 }
 
 //! Close device

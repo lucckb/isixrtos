@@ -29,40 +29,49 @@ namespace gfx::drv {
         dsi_fb( periph::display::fbdev& fb,
                 periph::display::idisplay& disp );
         //! Destructor
-        virtual ~dsi_fb();	
+        virtual ~dsi_fb() {}
         /* Get PIXEL */
-        color_t get_pixel( coord_t x, coord_t y ) override;
+        color_t get_pixel(coord_t x, coord_t y) override;
         /* Set PIXEL */
-        void set_pixel( coord_t x, coord_t y, color_t color ) override;
+        void set_pixel(coord_t x, coord_t y, color_t color) override;
         /* Clear the screen */
         void clear( color_t color ) override;
         /* Blit area */
-        void blit( coord_t x, coord_t y, coord_t cx, coord_t cy,
-                coord_t src_y, const color_t *buf ) override;
+        void blit(coord_t x, coord_t y, coord_t cx, coord_t cy,
+                coord_t src_y, const color_t* buf) override;
         /* Set blit area (viewport) */
-        void ll_blit( coord_t x, coord_t y, coord_t cx, coord_t cy ) override;
+        void ll_blit(coord_t x, coord_t y, coord_t cx, coord_t cy) override;
         /* Push into the memory */
-        void ll_blit( const color_t *buf, size_t len ) override;
+        void ll_blit(const color_t *buf, size_t) override {
+            blit(m_saved_x,m_saved_y,m_saved_cx,m_saved_cy,0,buf);
+        }
         /* Fill area */
-        void fill( coord_t x, coord_t y, coord_t cx, 
-                    coord_t cy, color_t color ) override;
+        void fill(coord_t x, coord_t y, coord_t cx, 
+                    coord_t cy, color_t color) override;
         /* Vertical scroll */
-        void vert_scroll( coord_t x, coord_t y, coord_t cx, 
-                          coord_t cy, int lines, color_t bgcolor ) override;
+        void vert_scroll(coord_t x, coord_t y, coord_t cx, 
+                          coord_t cy, int lines, color_t bgcolor) override;
         /* Power ctl */
-        bool power_ctl( power_ctl_t mode ) override;
+        bool power_ctl(power_ctl_t mode) override;
         /* Rotate screen */
-        virtual void rotate( rotation_t rot ) override;
+        virtual void rotate(rotation_t rot) override;
         /* Set backlight percent */
-        void backlight( int percent ) override;
+        void backlight(int percent) override;
         //! Get backlight
         int backlight() override;
-        //! Get render buffer
-        std::pair<color_t*,size_t> get_rbuf() override;
+        std::pair<color_t*,size_t> get_rbuf() override {
+            return std::make_pair<color_t*,size_t>( reinterpret_cast<color_t*>(m_line_buf), 3*get_width() );
+        }
+    private:
+        //! Move single line
+        void move_line(coord_t x, coord_t cx, coord_t row_from, coord_t row_to);
     private:
         //! FBdev class 
         periph::display::fbdev& m_fb;
         //! Framebuffer display class
         periph::display::idisplay& m_ddsp;
+        // Store params for partial blit
+        coord_t m_saved_x, m_saved_y, m_saved_cx, m_saved_cy {};
+        uint8_t* m_line_buf {};
     };
 }
