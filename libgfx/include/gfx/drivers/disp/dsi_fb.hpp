@@ -60,7 +60,7 @@ namespace gfx::drv {
         //! Get backlight
         int backlight() override;
         std::pair<color_t*,size_t> get_rbuf() override {
-            return std::make_pair<color_t*,size_t>( reinterpret_cast<color_t*>(m_line_buf), 3*get_width() );
+            return std::make_pair<color_t*,size_t>( reinterpret_cast<color_t*>(0xC0800000), 8*1024*1024 );
         }
     private:
         //! Move single line
