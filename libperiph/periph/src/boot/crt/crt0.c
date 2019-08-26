@@ -112,10 +112,10 @@ void _mcu_reset_handler_(void)
 		*(pul_dest++) = 0;
 	}
    
-    //Call constructors
-    __libc_init_array();
     //Machine specific code called just before constructor
     _external_startup();
+    //Call constructors
+    __libc_init_array();
     // Call the application's entry point.
     //
     main();
