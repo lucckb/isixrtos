@@ -63,12 +63,12 @@ void dsi_fb::blit(coord_t x, coord_t y, coord_t cx, coord_t cy,
 {
     auto p = reinterpret_cast<volatile uint8_t*>(m_fb.fbmem());
     buf +=  src_y * cx;
-    for(auto i=0U;i<cx;++i)
     for(auto j=0U;j<cy;++j)
+    for(auto i=0U;i<cx;++i)
     {
-        auto k = p + get_width() * (y+j)*3 + (x+i)*3;
-        *(k+0) = color_t_B(*buf++);
-        *(k+1) = color_t_G(*buf++);
+        auto k = p + get_width()*(y+j)*3 + (x+i)*3;
+        *(k+0) = color_t_B(*buf);
+        *(k+1) = color_t_G(*buf);
         *(k+2) = color_t_R(*buf++);
     }   
 }
