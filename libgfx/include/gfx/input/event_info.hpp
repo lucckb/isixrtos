@@ -71,6 +71,31 @@ struct mousecodes {
 		any_button, left_button, middle_button, right_button
 	};
 };
+
+/* Touch screen gestures */
+struct touchgestures {
+	enum touchgests : char {
+		undefined,		//! Unknown
+		move_up,		//! Gesture move up
+		move_right,		//! Gesture move right
+		move_down,		//! Gesture Move down
+		move_left,		//! Gesture Move left
+		zoom_in,		//! Gesture zoom in
+		out,			//! Gesture zom out
+		_end
+	};
+}; 
+
+/* Touch screen events */
+struct touchevents {
+	enum touchevt : char {
+		undefined,	//! Event unknown
+		press_down,	//! Touch event press down
+		lift_up,	//! Touch event lift up
+		contact,	//! Touch event contact
+		_end
+	};
+};
  
 namespace detail {
 
@@ -107,6 +132,17 @@ namespace detail {
 		int value;
 		int diff;
 		int maxval;
+	};
+	/** Touch screen tag  */
+	struct touch_tag {
+		static constexpr auto max_touch = 2;
+		unsigned char num_touches;				//! Number of touches
+		unsigned short x[max_touch];			//! Position x
+		unsigned short y[max_touch];			//! Position y
+		unsigned char weight[max_touch];		//! Touch weight
+		touchevents eventid[max_touch];			//! Touch event id
+		unsigned char touch_area[max_touch];	//! Touch area
+		touchgestures gestureid;				//! Gesture id
 	};
 	//! User message arguments
 	union argument {
@@ -155,6 +191,7 @@ struct event_info {
 		EV_KEY,		/** Keyboard event  */
 		EV_MOUSE,	/** Relative event  */
 		EV_KNOB,	/** Knob UI event */
+		EV_TOUCH,	/** Touch screen callback */
 		EV_HOTPLUG, /** Hotplug event for ex Insert remove kbd/mouse etc */
 		/** Events raised by the component callbacks
 		 * on emit widget level*/
@@ -170,6 +207,7 @@ struct event_info {
 	union {
 		detail::keyboard_tag keyb;      //! Keyboard tag
 		detail::knob_tag knob;			//! Knob change value tag
+		detail::touch_tag touch;		//! Touch screen event
 		struct {						//! For EV_WINDOW , EV_WIDGET
 			detail::argument param1;			//! User message 1
 			detail::argument param2;			//! User message 2
