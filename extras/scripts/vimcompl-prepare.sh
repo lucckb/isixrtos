@@ -19,5 +19,5 @@ CC_ARGS="$DIR/cc_args.py"
 CROSS_COMPILE="arm-none-eabi-"
 export CC="$PYCC $CC_ARGS ${CROSS_COMPILE}gcc"
 export CXX="$PYCC $CC_ARGS ${CROSS_COMPILE}g++"
-waf "$@"
+python3 waf "$@"
 
