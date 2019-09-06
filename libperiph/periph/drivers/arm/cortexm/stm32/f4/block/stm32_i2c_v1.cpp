@@ -396,6 +396,9 @@ void i2c_master::interrupt_handler(i2c::_handlers::htype type)
 					ev_finalize(false);
 				}
 			break;
+			case 0x00030084:	//NOTE: Handle extra states due to bugs in some i2c hw
+			case 0x00030000:
+			break;
 			default:
 				ev_finalize(true);
 			break;
