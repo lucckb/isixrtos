@@ -173,6 +173,232 @@ int ft6x06_touch::uninitialize() noexcept
     return ret;
 }
 
+
+
+// Get identified gesture
+int ft6x06_touch::get_gesture_code() noexcept
+{
+	using namespace detail::regs::ft6x06;
+    using namespace gfx::input;
+    uint8_t gesture_id {};
+    int ret {};
+    ret = read_reg(m_addr,FT6206_GEST_ID_REG, gesture_id);
+    if(ret) return ret;
+    /* Remap gesture Id to a TS_GestureIdTypeDef value */
+    switch (gesture_id)
+    {
+    case FT6206_GEST_ID_NO_GESTURE:
+        ret = touchgestures::undefined;
+        break;
+    case FT6206_GEST_ID_MOVE_UP:
+        ret = touchgestures::move_up;
+        break;
+    case FT6206_GEST_ID_MOVE_RIGHT:
+        ret = touchgestures::move_right;
+        break;
+    case FT6206_GEST_ID_MOVE_DOWN:
+        ret = touchgestures::move_down;
+        break;
+    case FT6206_GEST_ID_MOVE_LEFT:
+        ret = touchgestures::move_left;
+        break;
+    case FT6206_GEST_ID_ZOOM_IN:
+        ret = touchgestures::zoom_in;
+        break;
+    case FT6206_GEST_ID_ZOOM_OUT:
+        ret = touchgestures::zoom_out;
+        break;
+    default:
+        ret = gfx::error::error_not_supported;
+        break;
+    } /* of switch(gestureId) */
+    return ret;
+}
+
+//Return number of active touches 0,1,2
+int ft6x06_touch::detect_touch() noexcept
+{
+    using namespace detail::regs::ft6x06;
+    uint8_t nb_touch {};
+    /* Read register FT6206_TD_STAT_REG to check number of touches detection */
+    const auto ret = read_reg(m_addr, FT6206_TD_STAT_REG, nb_touch);
+    nb_touch &= FT6206_TD_STAT_MASK;
+    if (nb_touch > c_max_nb_touch) {
+        nb_touch = 0;
+    }
+    m_curr_act_touch_nb = nb_touch;
+    m_curr_act_touch_id = 0;
+    return ret?ret:nb_touch;
+}
+
+//Get XY position 
+int ft6x06_touch::get_xy(uint16_t& x, uint16_t& y)
+{
+    using namespace detail::regs::ft6x06;
+	uint8_t regAddress = 0;
+	uint8_t  dataxy[4];
+	if(m_curr_act_touch_id < m_curr_act_touch_nb)
+	{
+		switch(m_curr_act_touch_id)
+		{
+			case 0 :    
+				regAddress = FT6206_P1_XH_REG; 
+				break;
+			case 1 :
+				regAddress = FT6206_P2_XH_REG; 
+				break;
+			default :
+				break;
+		}
+
+		/* Read X and Y positions */
+		auto ret = read_reg(m_addr, regAddress, dataxy, sizeof(dataxy)); 
+        if(ret) {
+            return ret;
+        }
+
+		/* Send back ready X position to caller */
+		x = ((dataxy[0] & FT6206_MSB_MASK) << 8) | (dataxy[1] & FT6206_LSB_MASK);
+
+		/* Send back ready Y position to caller */
+		y = ((dataxy[2] & FT6206_MSB_MASK) << 8) | (dataxy[3] & FT6206_LSB_MASK);
+		m_curr_act_touch_id++;
+	}
+    return error::error_ok;
+}
+
+// Get gesture state
+int ft6x06_touch::get_state(touch_stat& stat) noexcept
+{
+    static uint32_t _x[c_max_nb_touch] = {0, 0};
+    static uint32_t _y[c_max_nb_touch] = {0, 0};
+    int ts_status {};
+    uint16_t tmp;
+    uint16_t Raw_x[c_max_nb_touch];
+    uint16_t Raw_y[c_max_nb_touch];
+    uint16_t xDiff;
+    uint16_t yDiff;
+    uint32_t weight = 0;
+    uint32_t area = 0;
+    uint32_t event = 0;
+    using namespace detail::regs::ft6x06;
+    using namespace gfx::input;
+    do {
+        /* Check and update the number of touches active detected */
+        ts_status = detect_touch();
+        if (ts_status) break;
+        if (ts_status)
+        {
+            for (int index = 0; index < ts_status; index++)
+            {
+                /* Get each touch coordinates */
+                ts_status = get_xy( (Raw_x[index]), (Raw_y[index]));
+                if(ts_status) break;
+                if (m_orientation & TS_SWAP_XY)
+                {
+                    tmp = Raw_x[index];
+                    Raw_x[index] = Raw_y[index];
+                    Raw_y[index] = tmp;
+                }
+
+                if (m_orientation & TS_SWAP_X)
+                {
+                    Raw_x[index] = FT_6206_MAX_WIDTH - 1 - Raw_x[index];
+                }
+
+                if (m_orientation & TS_SWAP_Y)
+                {
+                    Raw_y[index] = FT_6206_MAX_HEIGHT - 1 - Raw_y[index];
+                }
+
+                xDiff = Raw_x[index] > _x[index] ? (Raw_x[index] - _x[index]) : (_x[index] - Raw_x[index]);
+                yDiff = Raw_y[index] > _y[index] ? (Raw_y[index] - _y[index]) : (_y[index] - Raw_y[index]);
+
+                if ((xDiff + yDiff) > 5)
+                {
+                    _x[index] = Raw_x[index];
+                    _y[index] = Raw_y[index];
+                }
+
+                stat.x[index] = _x[index];
+                stat.y[index] = _y[index];
+
+                /* Get touch info related to the current touch */
+                ts_status = get_info(index, weight, area, event);
+                if(ts_status) break;
+
+                /* Update TS_State structure */
+                stat.weight[index] = weight;
+                stat.area[index] = area;
+
+                /* Remap touch event */
+                switch (event)
+                {
+                case FT6206_TOUCH_EVT_FLAG_PRESS_DOWN:
+                    stat.eventid[index] = touchevents::press_down;
+                    break;
+                case FT6206_TOUCH_EVT_FLAG_LIFT_UP:
+                    stat.eventid[index] = touchevents::lift_up;
+                    break;
+                case FT6206_TOUCH_EVT_FLAG_CONTACT:
+                    stat.eventid[index] = touchevents::contact;
+                    break;
+                case FT6206_TOUCH_EVT_FLAG_NO_EVENT:
+                    stat.eventid[index] = touchevents::undefined;
+                    break;
+                default:
+                    ts_status = error::error_not_supported;
+                    break;
+                } /* of switch(event) */
+
+            } /* of for(index=0; index < TS_State->touchDetected; index++) */
+
+            /* Get gesture Id */
+            ts_status = get_gesture_code();
+            if(ts_status<0) break;
+        } /* end of if(TS_State->touchDetected != 0) */
+    } while (0) ;
+    return (ts_status);
+}
+
+//Get touch info
+int ft6x06_touch::get_info(uint32_t touch_idx, uint32_t& weight, uint32_t& area, uint32_t& event) noexcept
+{
+    uint8_t regAddress = 0;
+    uint8_t dataxy[3];
+    using namespace detail::regs::ft6x06;
+    if (touch_idx < m_curr_act_touch_nb)
+    {
+        switch (touch_idx)
+        {
+        case 0:
+            regAddress = FT6206_P1_WEIGHT_REG;
+            break;
+
+        case 1:
+            regAddress = FT6206_P2_WEIGHT_REG;
+            break;
+
+        default:
+            break;
+
+        } /* end switch(touchIdx) */
+
+        /* Read weight, area and Event Id of touch index */
+        auto ret = read_reg(m_addr, regAddress, dataxy, sizeof(dataxy));
+        if(ret) return ret;
+
+        /* Return weight of touch index */
+        weight = (dataxy[0] & FT6206_TOUCH_WEIGHT_MASK) >> FT6206_TOUCH_WEIGHT_SHIFT;
+        /* Return area of touch index */
+        area = (dataxy[1] & FT6206_TOUCH_AREA_MASK) >> FT6206_TOUCH_AREA_SHIFT;
+        /* Return Event Id  of touch index */
+        event = (dataxy[2] & FT6206_TOUCH_EVT_FLAG_MASK) >> FT6206_TOUCH_EVT_FLAG_SHIFT;
+
+    } /* of if(touchIdx < ft6x06_handle.currActiveTouchNb) */
+    return error::error_ok;
+}
+
 // Main thread for read input events
 void ft6x06_touch::thread() {
     isix::wait_ms(500);
@@ -193,6 +419,13 @@ int ft6x06_touch::read_reg(int addr, int reg, unsigned char& value)
 {
     unsigned char baddr = reg&0xff;
     periph::blk::trx_transfer tran(&baddr,&value, sizeof baddr, sizeof value);
+    return m_i2c.transaction(addr, tran);
+}
+
+int ft6x06_touch::read_reg(int addr, int reg, unsigned char* regs, unsigned short regs_siz) noexcept
+{
+    unsigned char baddr = reg&0xff;
+    periph::blk::trx_transfer tran(&baddr,regs, sizeof baddr, regs_siz);
     return m_i2c.transaction(addr, tran);
 }
 

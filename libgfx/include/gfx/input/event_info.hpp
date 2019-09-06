@@ -81,7 +81,7 @@ struct touchgestures {
 		move_down,		//! Gesture Move down
 		move_left,		//! Gesture Move left
 		zoom_in,		//! Gesture zoom in
-		out,			//! Gesture zom out
+		zoom_out,		//! Gesture zom out
 		_end
 	};
 }; 
@@ -140,9 +140,9 @@ namespace detail {
 		unsigned short x[max_touch];			//! Position x
 		unsigned short y[max_touch];			//! Position y
 		unsigned char weight[max_touch];		//! Touch weight
-		touchevents eventid[max_touch];			//! Touch event id
-		unsigned char touch_area[max_touch];	//! Touch area
-		touchgestures gestureid;				//! Gesture id
+		touchevents::touchevt eventid[max_touch];			//! Touch event id
+		unsigned char area[max_touch];			//! Touch area
+		touchgestures::touchgests gestureid;				//! Gesture id
 	};
 	//! User message arguments
 	union argument {

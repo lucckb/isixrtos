@@ -197,4 +197,59 @@ static constexpr auto FT6206_G_MODE_INTERRUPT_POLLING = 0x00;
 static constexpr auto FT6206_G_MODE_INTERRUPT_TRIGGER = 0x01;
 
 
+/* Gesture ID register */
+static constexpr auto FT6206_GEST_ID_REG             = 0x01;
+
+  /* Possible values of FT6206_GEST_ID_REG */
+static constexpr auto FT6206_GEST_ID_NO_GESTURE = 0x00; 
+static constexpr auto FT6206_GEST_ID_MOVE_UP = 0x10; 
+static constexpr auto FT6206_GEST_ID_MOVE_RIGHT = 0x14; 
+static constexpr auto FT6206_GEST_ID_MOVE_DOWN = 0x18; 
+static constexpr auto FT6206_GEST_ID_MOVE_LEFT = 0x1C; 
+static constexpr auto FT6206_GEST_ID_ZOOM_IN = 0x48; 
+static constexpr auto FT6206_GEST_ID_ZOOM_OUT = 0x49;
+
+
+ /* Values related to FT6206_TD_STAT_REG */
+static constexpr auto FT6206_TD_STAT_MASK = 0x0F; 
+static constexpr auto FT6206_TD_STAT_SHIFT = 0x00; 
+
+  /* Values Pn_XL and Pn_YL related */
+static constexpr auto FT6206_LSB_MASK = 0xFF; 
+static constexpr auto FT6206_LSB_SHIFT = 0; 
+
+static constexpr auto FT6206_P1_XH_REG = 0x03; 
+static constexpr auto FT6206_P1_XL_REG = 0x04; 
+static constexpr auto FT6206_P1_YH_REG = 0x05; 
+static constexpr auto FT6206_P1_YL_REG = 0x06; 
+
+  /* Values related to FT6206_Pn_MISC_REG */
+static constexpr auto FT6206_TOUCH_AREA_MASK = (0x04 << 4); 
+static constexpr auto FT6206_TOUCH_AREA_SHIFT = 0x04; 
+
+static constexpr auto FT6206_P2_XH_REG = 0x09; 
+static constexpr auto FT6206_P2_XL_REG = 0x0A; 
+static constexpr auto FT6206_P2_YH_REG = 0x0B; 
+static constexpr auto FT6206_P2_YL_REG = 0x0C; 
+static constexpr auto FT6206_P2_WEIGHT_REG = 0x0D; 
+static constexpr auto FT6206_P2_MISC_REG = 0x0E; 
+static constexpr auto FT6206_MSB_MASK = 0x0F; 
+static constexpr auto FT6206_MSB_SHIFT = 0; 
+  /* Maximum border values of the touchscreen pad */
+static constexpr uint16_t FT_6206_MAX_WIDTH = 800; /* Touchscreen pad max width   */
+static constexpr uint16_t FT_6206_MAX_HEIGHT = 480; /* Touchscreen pad max height  */
+  /* Values Pn_XH and Pn_YH related */
+static constexpr auto FT6206_TOUCH_EVT_FLAG_PRESS_DOWN = 0x00; 
+static constexpr auto FT6206_TOUCH_EVT_FLAG_LIFT_UP = 0x01; 
+static constexpr auto FT6206_TOUCH_EVT_FLAG_CONTACT = 0x02; 
+static constexpr auto FT6206_TOUCH_EVT_FLAG_NO_EVENT = 0x03; 
+/* Touch Pressure register value (R) */
+static constexpr auto FT6206_P1_WEIGHT_REG = 0x07; 
+  /* Values Pn_WEIGHT related  */
+static constexpr auto FT6206_TOUCH_WEIGHT_MASK = 0xFF; 
+static constexpr auto FT6206_TOUCH_WEIGHT_SHIFT = 0; 
+ /* Values Pn_XH and Pn_YH related */
+
+static constexpr auto FT6206_TOUCH_EVT_FLAG_SHIFT = 6; 
+static constexpr auto FT6206_TOUCH_EVT_FLAG_MASK = (3 << FT6206_TOUCH_EVT_FLAG_SHIFT); 
 }
