@@ -494,8 +494,8 @@ int i2c_master::periph_conf(bool en) noexcept
 		const int sda = dt::get_periph_pin(io<void>(),dt::pinfunc::sda);
 		if(sda<0) { ret=sda; break; }
 		if(en) {
-			gpio::setup(scl, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::medium});
-			gpio::setup(sda, gpio::mode::alt{gpio::outtype::pushpull, mux, gpio::speed::medium});
+			gpio::setup(scl, gpio::mode::alt{gpio::outtype::opendrain_pu, mux, gpio::speed::medium});
+			gpio::setup(sda, gpio::mode::alt{gpio::outtype::opendrain_pu, mux, gpio::speed::medium});
 		} else {
 			gpio::setup(scl, gpio::mode::in{gpio::pulltype::floating});
 			gpio::setup(sda, gpio::mode::in{gpio::pulltype::floating});
