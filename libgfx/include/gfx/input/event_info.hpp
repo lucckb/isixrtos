@@ -141,7 +141,7 @@ namespace detail {
 		unsigned short y[max_touch];			//! Position y
 		unsigned char weight[max_touch];		//! Touch weight
 		touchevents::touchevt eventid[max_touch];			//! Touch event id
-		unsigned char area[max_touch];			//! Touch area
+		unsigned char area[max_touch];						//! Touch area
 		touchgestures::touchgests gestureid;				//! Gesture id
 	};
 	//! User message arguments

@@ -19,6 +19,17 @@
 
 namespace gfx::drv {
 
+namespace {
+    // Print touch tag for debug purposes
+    void print_touch(const gfx::input::detail::touch_tag& tag) {
+        dbg_info("Num touches %i getid %i",tag.num_touches,tag.gestureid);
+        for(int i=0;i<tag.num_touches;++i) {
+            dbg_info("xy: %i,%i weight: %i area %i",tag.x[i],tag.y[i],tag.weight[i],tag.area[i]);
+            dbg_info("event_id: %i", tag.eventid[i]);
+        }
+    }
+}
+
 //! Swap status
 enum ts_swap : uint8_t {
     TS_SWAP_NONE = 1,
@@ -163,17 +174,6 @@ int ft6x06_touch::initialize() noexcept
     return ret;
 }
 
-// Configure the touchpad
-int ft6x06_touch::uninitialize() noexcept
-{
-    int ret {};
-    do {
-        
-    } while (0);
-    return ret;
-}
-
-
 
 // Get identified gesture
 int ft6x06_touch::get_gesture_code() noexcept
@@ -270,33 +270,27 @@ int ft6x06_touch::get_xy(uint16_t& x, uint16_t& y)
 // Get gesture state
 int ft6x06_touch::get_state(touch_stat& stat) noexcept
 {
-    static uint32_t _x[c_max_nb_touch] = {0, 0};
-    static uint32_t _y[c_max_nb_touch] = {0, 0};
-    int ts_status {};
-    uint16_t tmp;
-    uint16_t Raw_x[c_max_nb_touch];
-    uint16_t Raw_y[c_max_nb_touch];
-    uint16_t xDiff;
-    uint16_t yDiff;
-    uint32_t weight = 0;
-    uint32_t area = 0;
-    uint32_t event = 0;
     using namespace detail::regs::ft6x06;
     using namespace gfx::input;
+    int ts_status;
     do {
         /* Check and update the number of touches active detected */
         ts_status = detect_touch();
-        if (ts_status) break;
-        if (ts_status)
+        if (ts_status<0) break;
+        stat.num_touches = ts_status;
+        ts_status = 0;
+        if (stat.num_touches>0)
         {
-            for (int index = 0; index < ts_status; index++)
+            uint16_t Raw_x[c_max_nb_touch];
+            uint16_t Raw_y[c_max_nb_touch];
+            for (int index = 0; index < stat.num_touches; index++)
             {
                 /* Get each touch coordinates */
                 ts_status = get_xy( (Raw_x[index]), (Raw_y[index]));
                 if(ts_status) break;
                 if (m_orientation & TS_SWAP_XY)
                 {
-                    tmp = Raw_x[index];
+                    auto tmp = Raw_x[index];
                     Raw_x[index] = Raw_y[index];
                     Raw_y[index] = tmp;
                 }
@@ -311,18 +305,20 @@ int ft6x06_touch::get_state(touch_stat& stat) noexcept
                     Raw_y[index] = FT_6206_MAX_HEIGHT - 1 - Raw_y[index];
                 }
 
-                xDiff = Raw_x[index] > _x[index] ? (Raw_x[index] - _x[index]) : (_x[index] - Raw_x[index]);
-                yDiff = Raw_y[index] > _y[index] ? (Raw_y[index] - _y[index]) : (_y[index] - Raw_y[index]);
+                auto xDiff = Raw_x[index] > m_x[index] ? (Raw_x[index] - m_x[index]) : (m_x[index] - Raw_x[index]);
+                auto yDiff = Raw_y[index] > m_y[index] ? (Raw_y[index] - m_y[index]) : (m_y[index] - Raw_y[index]);
 
                 if ((xDiff + yDiff) > 5)
                 {
-                    _x[index] = Raw_x[index];
-                    _y[index] = Raw_y[index];
+                    m_x[index] = Raw_x[index];
+                    m_y[index] = Raw_y[index];
                 }
 
-                stat.x[index] = _x[index];
-                stat.y[index] = _y[index];
-
+                stat.x[index] = m_x[index];
+                stat.y[index] = m_y[index];
+                uint32_t weight {};
+                uint32_t area {};
+                uint32_t event {};
                 /* Get touch info related to the current touch */
                 ts_status = get_info(index, weight, area, event);
                 if(ts_status) break;
@@ -358,7 +354,7 @@ int ft6x06_touch::get_state(touch_stat& stat) noexcept
             if(ts_status<0) break;
         } /* end of if(TS_State->touchDetected != 0) */
     } while (0) ;
-    return (ts_status);
+    return ts_status?ts_status:stat.num_touches;
 }
 
 //Get touch info
@@ -401,17 +397,27 @@ int ft6x06_touch::get_info(uint32_t touch_idx, uint32_t& weight, uint32_t& area,
 
 // Main thread for read input events
 void ft6x06_touch::thread() {
-    isix::wait_ms(500);
     int ret;
+    isix::wait_ms(500);
+    //! Initialize touchpad hardware into the poll mode
     if((ret=initialize())) {
-        dbg_err("Unable to configure touchpad");
-        isix::wait_ms(500);
+        dbg_err("Unable to configure touchpad errno: %i",ret);
+        return;
+    } else {
+        dbg_info("Touchpad initialized");
     }
-    dbg_info("Initialize status ret %i", ret);
-    for(;;) {
-       isix::wait_ms(1000);
+    for(touch_stat ts={};;ts={}) {
+       isix::wait_ms(50);
+       ret = get_state(ts);
+       if(ret>0) {  //! If number of touches is greater than one
+           //Print touch info
+           print_touch(ts); 
+           //Report touch to the gui library
+           report_touch(std::move(ts));
+       } else if(ret<0) {
+           dbg_err("Touch screen failed");
+       }
     }
-    uninitialize();
 }
 
 //Read reg helper functi

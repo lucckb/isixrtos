@@ -55,8 +55,6 @@ namespace gfx::drv {
         int get_info(uint32_t touch_idx,uint32_t& weight, uint32_t& area, uint32_t& event) noexcept;
         // Configure the touchpad
         int initialize() noexcept;
-        // Configure the touchpad
-        int uninitialize() noexcept;
         //Main i2c thread
         void thread();
         //Read reg helper function
@@ -72,9 +70,11 @@ namespace gfx::drv {
         isix::thread m_thr;                     //Thread handler
         unsigned char m_addr {};                //Used hardware address
         unsigned char m_orientation {};         //Touch screen orientation
-        unsigned char m_curr_act_touch_nb {};  //Current active touch numbers
-        unsigned char m_curr_act_touch_id {};  //Current active touch identifier
+        unsigned char m_curr_act_touch_nb {};   //Current active touch numbers
+        unsigned char m_curr_act_touch_id {};   //Current active touch identifier
         const char * m_name;                    //Driver device name
+        uint32_t m_x[c_max_nb_touch] {};         //Temporary touch buffer
+        uint32_t m_y[c_max_nb_touch] {};         //Temporary touch buffer
     };
 }
 
