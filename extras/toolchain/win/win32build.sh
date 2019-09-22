@@ -34,22 +34,16 @@ export MAKEFLAGS="-j8"
 
 
 #Library versions
-GMP_VER="6.1.2"
-MPFR_VER="4.0.1"
-MPC_VER="1.1.0"
-BINUTILS_VER="2.31.1"
-GCC_VER="8.2.0"
-NEWLIB_VER="3.0.0.20180831"
-GDB_VER="8.2.1"
-EXPAT_VER="2.2.6"
+BINUTILS_VER="2.32"
+GCC_VER="9.2.0"
+NEWLIB_VER="3.1.0"
+GDB_VER="8.3.1"
+EXPAT_VER="2.2.8"
 
 
 #Downloads URL
 declare -A dl_urls
 dl_urls=(
-          [gmp]="https://gmplib.org/download/gmp/gmp-$GMP_VER.tar.lz" \
-	      [mpfr]="http://www.mpfr.org/mpfr-current/mpfr-$MPFR_VER.tar.xz" \
-		  [mpc]="ftp://ftp.gnu.org/gnu/mpc/mpc-$MPC_VER.tar.gz" \
 		  [binutils]="http://ftp.gnu.org/gnu/binutils/binutils-$BINUTILS_VER.tar.gz" \
 		  [gcc]="ftp://ftp.gwdg.de/pub/misc/gcc/releases/gcc-$GCC_VER/gcc-$GCC_VER.tar.gz" \
 		  [newlib]="ftp://sourceware.org/pub/newlib/newlib-$NEWLIB_VER.tar.gz" \
@@ -130,24 +124,6 @@ compile() {
 
 build() {
 	mkdir -p $PREFIX
-	#GMP
-	echo "Compile GMP..."
-	compile gmp \
-		"--build=$BUILD --host=$HOST --prefix=$BPREFIX --enable-cxx --enable-fat --enable-static --disable-shared" \
-		"" \
-		install
-	#MPFR
-	echo "Compile MPFR ..."
-	compile mpfr \
-		"--build=$BUILD --host=$HOST --prefix=$BPREFIX --with-gmp=$BPREFIX --enable-static --disable-shared" \
-		"" \
-		install
-	#MPC
-	echo "Compile MPC..."
-	compile mpc \
-	" --build=$BUILD --host=$HOST  --prefix=$BPREFIX --with-gmp=$BPREFIX  --with-mpfr=$BPREFIX --enable-static --disable-shared" \
-		"" \
-		install
 	#EXPAT
 	echo "Compile Expat ..."
 	compile expat \
@@ -189,7 +165,7 @@ build() {
 	
 	#GCC patch it
 	if [ ! -f "$BASEDIR/${pkg_dirs[gcc]}/.patched" ]; then
-		patch -p0 -d "$BASEDIR/${pkg_dirs[gcc]}" < patch-gcc-config-arm-t-arm-elf.diff
+		patch -p2 -d "$BASEDIR/${pkg_dirs[gcc]}" < patch-gcc-config-arm-t-arm-elf.diff
 		touch "$BASEDIR/${pkg_dirs[gcc]}/.patched"
 	fi
 
@@ -200,8 +176,7 @@ build() {
 		mkdir build-gcc && cd build-gcc
 		../${pkg_dirs[gcc]}/configure \
 		--build=$BUILD --target=$TARGET \
-		--host=$HOST --prefix=$PREFIX --with-gmp=$BPREFIX \
-		--with-mpfr=$BPREFIX --with-mpc=$BPREFIX \
+		--host=$HOST --prefix=$PREFIX \
 		--enable-interwork \
 		--enable-multilib \
 		--enable-languages="c,c++,lto" \
@@ -260,7 +235,18 @@ build() {
 package() {
 	local FINALNAME="boff-mingw$NBITS-arm-gcc"
 	find $PREFIX -iname '*.exe' -exec "$HOST-strip" {} \;
+	cp "/usr/$HOST/bin/libgmp-10.dll" $PREFIX/bin
+	cp "/usr/$HOST/bin/libmpfr-6.dll" $PREFIX/bin
+	cp "/usr/$HOST/bin/libmpc-3.dll" $PREFIX/bin
 	cp "/usr/$HOST/bin/libwinpthread-1.dll" $PREFIX/bin
+	cp "/usr/$HOST/bin/libstdc++-6.dll" $PREFIX/bin
+	if [ -f "/usr/$HOST/bin/libgcc_s_seh-1.dll" ]; then
+		cp "/usr/$HOST/bin/libgcc_s_seh-1.dll" $PREFIX/bin
+	fi
+	if [ -f "/usr/$HOST/bin/libgcc_s_sjlj-1.dll" ]; then
+		cp "/usr/$HOST/bin/libgcc_s_sjlj-1.dll" $PREFIX/bin
+	fi
+
 	mkdir -p $PREFIX/lib/bfd-plugins
 	cp $PREFIX/libexec/gcc/$TARGET/$GCC_VER/liblto_plugin-0.dll $PREFIX/lib/bfd-plugins/
 	7z a "$BASENAME.zip" $PREFIX
