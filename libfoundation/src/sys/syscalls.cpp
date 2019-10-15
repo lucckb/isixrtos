@@ -8,7 +8,7 @@
  * ------------------------------------------------------------ */
 
 #if CONFIG_ISIX_WITHOUT_KERNEL
-#	include "foundation/tiny_alloc.h"
+#	include "foundation/sys/tiny_alloc.h"
 #else /* CONFIG_ISIX_WITHOUT_KERNEL */
 #	include <isix.h>
 #	include <isix/prv/semaphore.h>
@@ -26,11 +26,11 @@
 //It can be redefined
 #		define foundation_alloc fnd::tiny_alloc
 #		define foundation_free fnd::tiny_free
-#		define foudation_realloc(ptr,len) ((ptr)?NULL:NULL)
+#		define foundation_realloc(ptr,len) (ptr&&len)?nullptr:nullptr
 #	else /*CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION */
 #		define foundation_alloc(x) ((x)?NULL:NULL)
 #		define foundation_free(x) do { (void)(x); } while(0)
-#		define foudation_realloc(ptr,len) ((ptr)?NULL:NULL)
+#		define foudation_realloc(ptr,len) (ptr&&len)?nullptr:nullptr
 #	endif /*CONFIG_FOUNDATION_NO_DYNAMIC_ALLOCATION */
 #	define terminate_process() while(1)
 
