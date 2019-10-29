@@ -24,9 +24,9 @@
 #include <isix/arch/io.h>
 
 namespace periph::memory {
-
+#ifdef FMC_R_BASE
 namespace {
-    
+
 constexpr auto	FMC_BCR1	= 0x00; /*   */
 constexpr auto	FMC_BCR2	= 0x08; /*   */
 constexpr auto	FMC_BCR3	= 0x10; /*   */
@@ -127,7 +127,7 @@ namespace {
     //! SDRAM ID
     static constexpr auto sdram_id = "sdram";
     //GPIO configuration
-    int gpio_conf(bool en) 
+    int gpio_conf(bool en)
     {
         const auto mux = dt::get_periph_pin_mux(sdram_id);
         if(mux<0) return mux;
@@ -140,7 +140,7 @@ namespace {
             } else {
                 gpio::setup(pin, gpio::mode::in{gpio::pulltype::floating});
             }
-        } 
+        }
         return error::success;
     }
     // Write register
@@ -235,7 +235,7 @@ namespace {
     }
 
 }
-    
+
 // Configure SDRAM
 int sdram_setup()
 {
@@ -243,13 +243,13 @@ int sdram_setup()
     do {
         //Get periph clock config
         dt::clk_periph pclk;
-        ret = dt::get_periph_clock(sdram_id, pclk); 
+        ret = dt::get_periph_clock(sdram_id, pclk);
         if(ret) break;
         //Enable device clock
-        ret = clock::device_enable(pclk); 
+        ret = clock::device_enable(pclk);
         if(ret) break;
         // Configure GPIOS
-        ret = gpio_conf(true); 
+        ret = gpio_conf(true);
         if(ret) break;
         //Configure controller
         const dt::device_conf_base* base;
@@ -263,5 +263,10 @@ int sdram_setup()
     } while(0);
     return ret;
 }
-
+#else
+int sdram_setup()
+{
+	return error::inval;
+}
+#endif
 }
