@@ -1,74 +1,80 @@
+/*
+ * =====================================================================================
+ * 	File: tasks.json
+ * 	Created Date: Wednesday, August 21st 2019, 8:48:39 pm
+ * 	Author: Lucjan Bryndza
+ * 	Copyright (c) 2019 BoFF
+ * 
+ * 	GPL v2/3
+ * =====================================================================================
+ */
+
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "waf build",
             "type": "shell",
-            "command": "python",
+            "command": "python3",
             "args": [
-                "${workspaceFolder}/waf",
+                "${workspaceFolder}/waf"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": {
-                "owner": "cpp",
+                "base": "$gcc",
                 "fileLocation": [
                     "relative",
-                    "${workspaceFolder}/build"
-                ],
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                }
+                    "${workspaceRoot}/build"
+                ]
             }
         },
         {
-            "label": "clean",
+            "label": "waf clean",
             "type": "shell",
-            "command": "python",
+            "command": "python3",
             "args": [
                 "${workspaceFolder}/waf",
                 "clean"
             ],
+            "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "distclean",
+            "label": "waf distclean",
             "type": "shell",
-            "command": "python",
+            "command": "python3",
             "args": [
                 " ${workspaceFolder}/waf",
                 "distclean"
-            ]
+            ],
+            "group": "build"
         },
         {
-            "label": "configure",
+            "label": "waf configure",
             "type": "shell",
-            "command": "python",
+            "command": "python3",
             "args": [
                 "${workspaceFolder}/waf",
                 "configure",
                 "--debug",
                 "--crystal-hz=8000000"
             ],
-            "problemMatcher": []
+            "group": "build"
         },
         {
-            "label": "program",
+            "label": "waf program",
             "type": "shell",
-            "command": "python",
+            "command": "python3",
             "args": [
                 "${workspaceFolder}/waf",
                 "program"
             ],
+            "group": "build",
             "problemMatcher": []
         }
     ]
