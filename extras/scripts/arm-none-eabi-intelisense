@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+import sys
+import subprocess
+filtered_args=['arm-none-eabi-g++']
+for arg in sys.argv:
+    if arg.strip() != '-m32' and arg.strip() != '-m64':
+        filtered_args += [arg];
+del filtered_args[1]
+run_stat = subprocess.run(filtered_args)
+exit( run_stat.returncode)
