@@ -55,7 +55,7 @@ namespace isix {
             /** Check if the fifo object is in valid state
             * @return true if object is ok else return false
             */
-            bool is_valid() { return hwnd!=0; }
+            bool is_valid() const { return hwnd!=0; }
             /* Push data in the queue
             * @param[in] c Reference to the object
             * @param[in] timeout Wait time when queue is not empty
@@ -77,7 +77,7 @@ namespace isix {
             /** Get available elements in the fifo
             * @return available elements in the fifo
             */
-            int size() const
+            auto size() const
             {
                     return isix_fifo_count( hwnd );
             }
