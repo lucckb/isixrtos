@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>8</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>56</x>
+      <y>416</y>
+      <w>464</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>periph::dma::controller
+--
+--
++ alloc_channel(chnid_t dev_id, flags_t flags,irq_t irqh=1, irq_t irql): channel_ptr_t
++ release_channel(channel_ptr_t&amp; chn): int
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>104</x>
+      <y>568</y>
+      <w>168</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>periph::dma::stm32_dma_v2
+-
+-</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>336</x>
+      <y>568</y>
+      <w>168</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>periph::dma::stm32_dma_v2
+-
+-</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>184</x>
+      <y>480</y>
+      <w>24</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;110.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>408</x>
+      <y>480</y>
+      <w>24</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;110.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>512</x>
+      <y>448</y>
+      <w>168</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;190.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>664</x>
+      <y>440</y>
+      <w>376</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>periph::dma::channel
+-
+-
++ callback(async_callback cb): void
++ single(mem_ptr dest, cmem_ptr src, size len): int
++ continuous_start(mem_ptr mem0, mem_ptr mem1,mem_ptr periph, size len, dblbuf_dir dir): int
++ single_start(): int
++ continous_stop(): int
++ abort(): int
++ busy(): bool</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
