@@ -19,16 +19,6 @@
 
 namespace gfx::drv {
 
-namespace {
-    // Print touch tag for debug purposes
-    void print_touch(const gfx::input::detail::touch_tag& tag) {
-        dbg_info("Num touches %i getid %i",tag.num_touches,tag.gestureid);
-        for(int i=0;i<tag.num_touches;++i) {
-            dbg_info("xy: %i,%i weight: %i area %i",tag.x[i],tag.y[i],tag.weight[i],tag.area[i]);
-            dbg_info("event_id: %i", tag.eventid[i]);
-        }
-    }
-}
 
 //! Swap status
 enum ts_swap : uint8_t {
@@ -184,34 +174,7 @@ int ft6x06_touch::get_gesture_code() noexcept
     int ret {};
     ret = read_reg(m_addr,FT6206_GEST_ID_REG, gesture_id);
     if(ret) return ret;
-    /* Remap gesture Id to a TS_GestureIdTypeDef value */
-    switch (gesture_id)
-    {
-    case FT6206_GEST_ID_NO_GESTURE:
-        ret = touchgestures::undefined;
-        break;
-    case FT6206_GEST_ID_MOVE_UP:
-        ret = touchgestures::move_up;
-        break;
-    case FT6206_GEST_ID_MOVE_RIGHT:
-        ret = touchgestures::move_right;
-        break;
-    case FT6206_GEST_ID_MOVE_DOWN:
-        ret = touchgestures::move_down;
-        break;
-    case FT6206_GEST_ID_MOVE_LEFT:
-        ret = touchgestures::move_left;
-        break;
-    case FT6206_GEST_ID_ZOOM_IN:
-        ret = touchgestures::zoom_in;
-        break;
-    case FT6206_GEST_ID_ZOOM_OUT:
-        ret = touchgestures::zoom_out;
-        break;
-    default:
-        ret = gfx::error::error_not_supported;
-        break;
-    } /* of switch(gestureId) */
+    else ret = gesture_id;
     return ret;
 }
 
@@ -326,33 +289,14 @@ int ft6x06_touch::get_state(touch_stat& stat) noexcept
                 /* Update TS_State structure */
                 stat.weight[index] = weight;
                 stat.area[index] = area;
-
-                /* Remap touch event */
-                switch (event)
-                {
-                case FT6206_TOUCH_EVT_FLAG_PRESS_DOWN:
-                    stat.eventid[index] = touchevents::press_down;
-                    break;
-                case FT6206_TOUCH_EVT_FLAG_LIFT_UP:
-                    stat.eventid[index] = touchevents::lift_up;
-                    break;
-                case FT6206_TOUCH_EVT_FLAG_CONTACT:
-                    stat.eventid[index] = touchevents::contact;
-                    break;
-                case FT6206_TOUCH_EVT_FLAG_NO_EVENT:
-                    stat.eventid[index] = touchevents::undefined;
-                    break;
-                default:
-                    ts_status = error::error_not_supported;
-                    break;
-                } /* of switch(event) */
+                stat.eventid[index] = event;
 
             } /* of for(index=0; index < TS_State->touchDetected; index++) */
-
             /* Get gesture Id */
             ts_status = get_gesture_code();
             if(ts_status<0) break;
-        } /* end of if(TS_State->touchDetected != 0) */
+        } /* end of if(TS_State->touchDetected != 0) */     
+       stat.gestid = ts_status;
     } while (0) ;
     return ts_status?ts_status:stat.num_touches;
 }
@@ -409,17 +353,40 @@ void ft6x06_touch::thread() {
     for(touch_stat ts={};;ts={}) {
        isix::wait_ms(50);
        ret = get_state(ts);
-       if(ret>0) {  //! If number of touches is greater than one
+       if(ret>=0) {  //! If number of touches is greater than one
            //Print touch info
-           print_touch(ts); 
+           //print_touch(ts); 
            //Report touch to the gui library
-           report_touch(std::move(ts));
-       } else if(ret<0) {
+           convert_touch(ts);
+       } else {
            dbg_err("Touch screen failed");
+           return;
        }
     }
 }
 
+//! Convert touchpad
+void ft6x06_touch::convert_touch(const ft6x06_touch::touch_stat& ts)
+{
+    gfx::input::detail::touch_tag ret;
+    ret.x = ts.x[0];
+    ret.y = ts.y[0];
+    if( m_pntouch==0 && ts.num_touches==1 ) {
+        ret.eventid = gfx::input::touchevents::press_down;
+        report_touch(ret);
+    }
+    else if( m_pntouch==1 && ts.num_touches==0) {
+        ret.eventid = gfx::input::touchevents::press_up;
+        report_touch(ret);
+    } else if( ts.num_touches==1 && m_pntouch==1 && ts.x[0] != m_px && ts.y[0] != m_py )
+    {
+        ret.eventid = gfx::input::touchevents::move;
+        report_touch(ret);
+    }
+    m_pntouch = ts.num_touches;
+    m_px = ts.x[0];
+    m_py = ts.y[0];
+}
 //Read reg helper functi
 int ft6x06_touch::read_reg(int addr, int reg, unsigned char& value)
 {

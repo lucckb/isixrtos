@@ -72,27 +72,15 @@ struct mousecodes {
 	};
 };
 
-/* Touch screen gestures */
-struct touchgestures {
-	enum touchgests : char {
-		undefined,		//! Unknown
-		move_up,		//! Gesture move up
-		move_right,		//! Gesture move right
-		move_down,		//! Gesture Move down
-		move_left,		//! Gesture Move left
-		zoom_in,		//! Gesture zoom in
-		zoom_out,		//! Gesture zom out
-		_end
-	};
-}; 
-
 /* Touch screen events */
 struct touchevents {
 	enum touchevt : char {
 		undefined,	//! Event unknown
 		press_down,	//! Touch event press down
-		lift_up,	//! Touch event lift up
-		contact,	//! Touch event contact
+		press_up,	//! Touch event press up
+		move,		//! Gesture move
+		zoom_in,		//! Gesture zoom in
+		zoom_out,		//! Gesture zom out
 		_end
 	};
 };
@@ -135,14 +123,9 @@ namespace detail {
 	};
 	/** Touch screen tag  */
 	struct touch_tag {
-		static constexpr auto max_touch = 2;
-		unsigned char num_touches;				//! Number of touches
-		unsigned short x[max_touch];			//! Position x
-		unsigned short y[max_touch];			//! Position y
-		unsigned char weight[max_touch];		//! Touch weight
-		touchevents::touchevt eventid[max_touch];			//! Touch event id
-		unsigned char area[max_touch];						//! Touch area
-		touchgestures::touchgests gestureid;				//! Gesture id
+		unsigned short x;						//! Position x
+		unsigned short y;						//! Position y
+		touchevents::touchevt eventid;			//! Touch event id
 	};
 	//! User message arguments
 	union argument {

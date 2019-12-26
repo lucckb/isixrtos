@@ -26,14 +26,14 @@ namespace gfx::drv {
         {}
     protected:
         //Internal function report touch screen
-        int report_touch(input::detail::touch_tag&& touch) {
+        int report_touch(const input::detail::touch_tag& touch) {
             input::event_info ev {
                 isix::get_jiffies(),
                 input::event_info::EV_TOUCH,
                 nullptr,
                 {}
             };
-            ev.touch = std::move(touch);
+            ev.touch = touch;
             return report_event(ev);
         }
     };

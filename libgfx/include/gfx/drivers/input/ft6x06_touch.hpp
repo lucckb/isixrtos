@@ -30,12 +30,23 @@ namespace gfx::drv {
         static constexpr auto c_max_nb_touch = 2;
     public:
         // Alias
-        using touch_stat = gfx::input::detail::touch_tag;
+        struct touch_stat {
+            static constexpr auto max_touches = 2;
+            char num_touches;
+            unsigned short x[max_touches];						//! Position x
+            unsigned short y[max_touches];						//! Position y
+            unsigned char weight[max_touches];					//! Touch weight
+            char eventid[max_touches];			                //! Touch event id
+            char gestid;                                        //! gestureID
+            unsigned char area[max_touches];			           //! Touch area
+        };
         //Constructor
         ft6x06_touch(const char disp_name[], periph::drivers::i2c_master& i2c,gui::frame& frame);
         // Start the main thread
         void start() noexcept;
     private:
+        //! Convert touchpad
+        void convert_touch(const touch_stat& ts);
         //! Calibrate device
         int calibrate() noexcept;
         // Disable it
@@ -75,6 +86,9 @@ namespace gfx::drv {
         const char * m_name;                    //Driver device name
         uint32_t m_x[c_max_nb_touch] {};         //Temporary touch buffer
         uint32_t m_y[c_max_nb_touch] {};         //Temporary touch buffer
+        signed char m_pntouch  { 0 };           // Previous number of touch
+        signed short m_px {};                   //Previous position x
+        signed short m_py {};                   //Previous position y
     };
 }
 
