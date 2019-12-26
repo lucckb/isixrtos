@@ -109,9 +109,9 @@ namespace gfx
 	enum error : int
 	{
 		error_ok,					/* Error OK */
-		error_lz_compress,			/* LZMA compress failed */
-		error_img_not_supported,	/* Image type is not supported */
-		error_not_supported         /* Syscall not supported */
+		error_lz_compress = -256,			/* LZMA compress failed */
+		error_img_not_supported = -257,	/* Image type is not supported */
+		error_not_supported = -258         /* Syscall not supported */
 	};
 	//Color space utilities
 	namespace colorspace
