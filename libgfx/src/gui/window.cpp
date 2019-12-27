@@ -156,7 +156,27 @@ void window::select( widget * const w )
 		m_current_widget = elem;
 	}
 }
+
  
+//! Select widget by coord
+void window::select( point p )
+{
+	auto elem = std::find_if( std::begin(m_widgets), std::end(m_widgets),
+		[&](const widget* wdg ) {
+			const auto c = wdg->get_coord() + get_coord();
+			return c.inside(p);
+		}
+	);
+	if(elem!=m_widgets.end() && (*elem)->selectable()) {
+		if (m_current_widget != elem)
+			m_redraw_widget = m_current_widget;
+		else
+			m_redraw_widget = m_widgets.end();
+
+		m_current_widget = elem;
+	}
+}
+
 void window::add_widget( widget* const w )
 {
 	m_widgets.push_back( w );

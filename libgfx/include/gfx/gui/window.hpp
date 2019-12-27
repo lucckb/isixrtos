@@ -84,6 +84,9 @@ public:
 	//! Select wiget directly
 	void select( widget * const w );
 
+	//! Select widget by coord
+	void select( point p );
+
 	void border_style(unsigned border)
 	{
 		m_border_style = border;

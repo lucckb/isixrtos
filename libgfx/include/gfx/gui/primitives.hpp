@@ -19,7 +19,23 @@ namespace gui {
  
 using font_t = disp::font_t;
 using bitmap_t = disp::cmem_bitmap_t;
- 
+
+// Basic point class
+class point
+{
+	static constexpr auto undefined = std::numeric_limits<coord_t>::max();
+public:
+	point(coord_t x, coord_t y)
+		: mx(x), my(y)
+	{}
+	auto x() const { return mx; }
+	auto y() const { return my; }
+	auto empty() const { return mx==undefined||my==undefined; }
+private:
+	coord_t mx { undefined };
+	coord_t my { undefined };
+};
+
 //Basic rectangle class
 class rectangle
 {
@@ -32,10 +48,12 @@ public:
 	coord_t cx() const { return mcx; }
 	coord_t cy() const { return mcy; }
 	bool empty() const { return mcx==0||mcy==0; }
+	auto inside(const point& pt) const {
+		return pt.x()>=mx && pt.x()<=mx+mcx && pt.y()>=my && pt.y()<=my+mcy;
+	}
 private:
 	const coord_t mx{},my{}, mcx {}, mcy{};
 };
-
 
  
 //Basic layout class

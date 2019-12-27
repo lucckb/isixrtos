@@ -15,7 +15,6 @@ namespace gui {
 }
 namespace input {
 
- 
 /** Keybd codes */
 struct kbdcodes {
 	enum keyboard : unsigned char {
