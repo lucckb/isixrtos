@@ -16,6 +16,7 @@ namespace gui {
 void selectable_widget::report_event( const input::event_info& ev )
 {
 	using evinfo = gfx::input::event_info;
+	using tevent = gfx::input::touchevents;
 	bool ret {};
 	if( ev.type == evinfo::EV_KEY ) {
 		if( m_push_key > 0 && m_push_key == ev.keyb.key ) {
@@ -26,6 +27,16 @@ void selectable_widget::report_event( const input::event_info& ev )
 			}
 			ret |= cpush != m_pushed;
 			m_pushed = cpush;
+		}
+	} else if( ev.type == evinfo::EV_TOUCH ) {
+		if( ev.touch.eventid == tevent::press_down ) {
+			event btn_event( this, event::evtype::EV_CLICK );
+			emit( btn_event );
+			m_pushed = true;
+			ret = true;
+		} else if( ev.touch.eventid == tevent::press_up ) {
+			ret = true;
+			m_pushed = false;
 		}
 	}
 	if( ret ) {
