@@ -171,6 +171,30 @@ void choice_menu::report_event( const input::event_info& ev )
 			} 
 		} 
 	}
+	else if( ev.type == event_info::EV_TOUCH ) {
+		//TODO: Simulate only up and down on bottom and upper half
+		const auto c = get_coord() + get_owner().get_coord();
+		if(c.inside({ev.touch.x, ev.touch.y})) {
+			if(ev.touch.eventid==touchevents::press_down 
+				&& ev.touch.x<c.x()+c.cx()/2) {
+				if( m_style == style::select ) {
+					m_sel_item = m_curr_item;
+				}
+				event btn_event( this, event::evtype::EV_CLICK );
+				ret |= emit( btn_event );
+			} else if(ev.touch.eventid==touchevents::move 
+					  && ev.touch.x>c.x()+c.cx()/2) {
+				static constexpr auto sense = 10;
+				if(ev.touch.dy<-sense) {
+					if( --m_curr_item < 0 ) m_curr_item = 0;
+					else ret = true;
+				} else if(ev.touch.dy>sense){
+					if(++m_curr_item == m_num_items) --m_curr_item;
+					else ret = true;
+				}
+			}
+		} 
+	}
 	if( ret ) {
 		event btn_event( this, event::evtype::EV_CHANGE );
 		emit( btn_event );
