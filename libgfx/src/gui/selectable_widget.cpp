@@ -30,10 +30,13 @@ void selectable_widget::report_event( const input::event_info& ev )
 		}
 	} else if( ev.type == evinfo::EV_TOUCH ) {
 		if( ev.touch.eventid == tevent::press_down ) {
-			event btn_event( this, event::evtype::EV_CLICK );
-			emit( btn_event );
-			m_pushed = true;
-			ret = true;
+			const auto c = get_coord() + get_owner().get_coord();
+			if(c.inside({ev.touch.x, ev.touch.y})) {
+				event btn_event( this, event::evtype::EV_CLICK );
+				emit( btn_event );
+				m_pushed = true;
+				ret = true;
+			}
 		} else if( ev.touch.eventid == tevent::press_up ) {
 			ret = true;
 			m_pushed = false;

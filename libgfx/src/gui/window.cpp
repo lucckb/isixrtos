@@ -156,10 +156,9 @@ void window::select( widget * const w )
 		m_current_widget = elem;
 	}
 }
-
  
 //! Select widget by coord
-void window::select( point p )
+void window::select( const point& p )
 {
 	auto elem = std::find_if( std::begin(m_widgets), std::end(m_widgets),
 		[&](const widget* wdg ) {

@@ -164,6 +164,16 @@ void seekbar::report_event( const input::event_info& ev )
 			if( m_value < m_min ) m_value = m_min;
 			else ret = true;
 		}
+	} else if ( ev.type == event_info::EV_TOUCH ) {
+		if(ev.touch.eventid==touchevents::move) {
+			const auto c = get_coord() + get_owner().get_coord();
+			constexpr auto scale = 1U<<14U;
+			if(c.inside({ev.touch.x, ev.touch.y})) {
+				const int pos = (ev.touch.x-c.x())*scale/c.cx();
+				m_value = ((m_max-m_min)*pos+1)/scale + m_min;
+				ret = true;
+			}
+		}
 	}
 	if( ret ) {
 		event btn_event( this, event::evtype::EV_CHANGE );
