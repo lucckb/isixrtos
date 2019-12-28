@@ -124,6 +124,8 @@ namespace detail {
 	struct touch_tag {
 		unsigned short x;						//! Position x
 		unsigned short y;						//! Position y
+		short dx;						//! Delta x
+		short dy;						//! Delta y
 		touchevents::touchevt eventid;			//! Touch event id
 	};
 	//! User message arguments

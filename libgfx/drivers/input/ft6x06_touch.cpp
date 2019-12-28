@@ -371,6 +371,8 @@ void ft6x06_touch::convert_touch(const ft6x06_touch::touch_stat& ts)
     gfx::input::detail::touch_tag ret;
     ret.x = ts.x[0];
     ret.y = ts.y[0];
+    ret.dx = ts.x[0] - m_px;
+    ret.dy = ts.y[0] - m_py;
     if( m_pntouch==0 && ts.num_touches==1 ) {
         ret.eventid = gfx::input::touchevents::press_down;
         report_touch(ret);
