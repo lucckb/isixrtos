@@ -96,9 +96,9 @@ namespace {
 	* @param[in] clk_speed CLK speed in HZ
 	*/
 i2c_bus::i2c_bus( busid _i2c, unsigned clk_speed, unsigned pclk1 )
-  :  ibus(fnd::drv::bus::ibus::type::spi),
+  :  ibus(fnd::drv::bus::ibus::type::spi)
 #if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C
-	m_i2c(to_i2c(_i2c))
+	,m_i2c(to_i2c(_i2c))
 #endif
 {
 #if CONFIG_ISIXDRV_I2C_USE_FIXED_I2C

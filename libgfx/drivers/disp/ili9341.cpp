@@ -6,6 +6,7 @@
  */
 
  
+#include <gfx/types.hpp>
 #include <gfx/drivers/disp/ili9341.hpp>
 #include <cstdlib>
  

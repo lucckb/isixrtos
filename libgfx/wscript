@@ -7,9 +7,12 @@ def configure(cfg):
     cfg.define( 'CONFIG_ISIX_USE_TIMERS' , 1 )
 
 def build(bld):
-    src = bld.path.ant_glob( '**/*.c', excl='host-tools' )
-    src += bld.path.ant_glob( '**/*.cpp', excl='host-tools' )
-    inc = ['include' ]
+    src = bld.path.ant_glob( 'src/**/*.cpp')
+    if bld.is_defined('CONFIG_ISIX_USE_OLDPERIPHLIB'):
+        src += [ 'drivers/disp/ili9341.cpp' ]
+    else:
+        src += bld.path.ant_glob( 'drivers/**/*.cpp')
+    inc = [ 'include' ]
     bld.stlib( source=src,
             includes = inc, export_includes=inc,
             target='graphics', use=['isix', 'foundation', 'periph' ]

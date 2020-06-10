@@ -169,6 +169,14 @@ public:
 	int write( unsigned addr, const void* wbuf1, size_t wsize1,
 			const void* wbuf2, size_t wsize2 ) override;
 
+	int read( unsigned , void* , size_t ) override {
+		return -1;
+	}
+
+	int write( unsigned , const void* , size_t ) override {
+		return -1;
+	}
+
 	/** Mdelay bus tout impl */
 	void mdelay( unsigned timeout ) noexcept override;
 private:

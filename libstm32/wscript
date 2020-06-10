@@ -22,10 +22,7 @@ def configure(conf):
 
 #Build script
 def build(bld):
-    if not bld.is_defined('STM32MCU_MAJOR_TYPE_F1'):
-        exclude = 'src/stm32f1fmc.cpp'
-    else:
-        exclude =''
+    exclude = 'src/stm32f1fmc.cpp'
     src = bld.path.ant_glob( 'src/*.c' )
     src += bld.path.ant_glob( 'src/*.cpp', excl=exclude )
     inc = ['./inc' ]

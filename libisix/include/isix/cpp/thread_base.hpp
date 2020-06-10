@@ -77,10 +77,12 @@ namespace detail {
 			int get_inherited_prio() const noexcept {
 				return m_task?::isix_get_task_inherited_priority( m_task ):int(ISIX_EINVARG);
 			}
+#if			CONFIG_ISIX_TASK_STACK_CHECK
 			//! Free stack space
 			ssize_t free_stack_space() const noexcept {
 				return m_task?::isix_free_stack_space( m_task ):int(ISIX_EINVARG);
 			}
+#endif
 			//! Suspend
 			int suspend() noexcept {
 				if( m_task ) {

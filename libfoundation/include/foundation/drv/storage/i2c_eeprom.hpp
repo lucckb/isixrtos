@@ -47,7 +47,7 @@ public:
 	 * @param[in] ptr Pointer to write
 	 * @param[in] len Size of buffer
 	 * @return error code or 0 if success */
-	virtual int write( paddr_t pg, poffs_t pa ,const void* ptr , size_t len );
+	int write( paddr_t pg, poffs_t pa ,const void* ptr , size_t len ) override;
 	/** Read data from selected address 
 	 * @param[in] pg Page address
 	 * @param[in] pa Page offset
@@ -55,7 +55,7 @@ public:
 	 * @param[in] len Size of buffer
 	 * @return error code or 0 if success
 	 * */
-	virtual int read( paddr_t pg, poffs_t pa, void* ptr, size_t len ) const;
+	int read( paddr_t pg, poffs_t pa, void* ptr, size_t len ) const override;
 	//! Destructor
 	virtual ~i2c_eeprom() {
 	}

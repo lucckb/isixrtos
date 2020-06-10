@@ -9,6 +9,13 @@ bld_isixlibs = [
     #'libstm32',
 ]
 
+bld_old_isixlibs = [
+    'libisix',
+    'libfoundation',
+    'libstm32',
+]
+
+
 
 bld_isixlibs_nos = [
     'libfoundation',
@@ -24,10 +31,10 @@ def options(opt):
 def configure(conf):
     conf.load('isix_toolchain')
     conf.load( 'isix_jtagprg' )
-    if not conf.options.disable_isix:
-        conf.recurse( bld_isixlibs )
-    else:
+    if conf.options.disable_isix:
         conf.recurse( bld_isixlibs_nos )
+    else:
+        conf.recurse( bld_isixlibs )
 
 
 
@@ -35,10 +42,12 @@ def build(bld):
     bld.set_build_summary()
     _inc = 'config/include'
     bld( includes = _inc, export_includes=_inc, name='common_conf' )
-    if not bld.is_defined('CONFIG_ISIX_WITHOUT_KERNEL'):
-        bld.recurse( bld_isixlibs )
+    if bld.is_defined('CONFIG_ISIX_WITHOUT_KERNEL'):
+        bld.recurse(bld_isixlibs_nos)
+    if bld.is_defined('CONFIG_ISIX_USE_OLDPERIPHLIB'):
+        bld.recurse( bld_old_isixlibs )
     else:
-        bld.recurse( bld_isixlibs_nos )
+        bld.recurse(bld_isixlibs)
 
 
 #Special target program waflib
