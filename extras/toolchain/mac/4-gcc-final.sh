@@ -43,8 +43,8 @@ if [ ! -f "$compname/.compile-full" ]; then
 		--disable-vtable-verify \
 		--enable-cxx-flags='-fomit-frame-pointer -ffunction-sections -fdata-sections' \
 		--with-mpfr=/usr/local/Cellar/mpfr/4.0.2 \
-		--with-mpc=/usr/local/Cellar/libmpc/1.1.0 \
-		--with-gmp=/usr/local/Cellar/gmp/6.1.2_2
+		--with-mpc=/usr/local/Cellar/libmpc/1.2.1 \
+		--with-gmp=/usr/local/Cellar/gmp/6.2.0
 	make all 	
 	popd
 	touch "$compname/.compile-full" 
