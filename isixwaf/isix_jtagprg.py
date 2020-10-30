@@ -20,28 +20,27 @@ def program( ctx ):
             '-c program %s verify reset'%tgt,'-c shutdown' ]
     ctx.exec_command( cmd )
 
-
 #launch openocd debuger
 def ocddebug( ctx ):
     print('Openocd started in background check for pid and results')
     (ini_cmd,tgt) = _read_openocd_initial_string( ctx )
     cmd = ctx.env.OPENOCD[0]+' -c "'+ini_cmd+'" -f '+ctx.env.OPENOCD_SCRIPT_FILE
-    from multiprocessing import Process
+    import threading
     import platform
-    is_windows = any(platform.win32_ver())
-    p = Process( target=_openocd_proc, args=( cmd, ),daemon=not is_windows )
-    p.start()
+    thr = threading.Thread( args=( _openocd_proc(cmd) ) )
+    thr.start()
+    thr.join()
 
 
 # OCD spawned process
 def _openocd_proc( args ):
     import subprocess
     DEVNULL = open(os.devnull, 'w')
-    ret = subprocess.call( args, shell=True,
+    ret = subprocess.Popen( args, shell=True,
             stdout=DEVNULL,
-            stderr=subprocess.STDOUT
+            stderr=DEVNULL
     )
-
+    return ret
 
 #Ask for item choice on program
 def _ask_for_item_choice(in0):
