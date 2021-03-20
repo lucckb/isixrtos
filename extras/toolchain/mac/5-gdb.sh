@@ -2,7 +2,7 @@
 source macbuild-common.env
 
 build() {
-	local CHOST=x86_64-apple-darwin19
+	local CHOST=x86_64-apple-darwin20
 	#Binutils
 	compname="$BASEDIR/${pkg_dirs[gdb]}"
 	if [ ! -f "$compname/.compiled" ]; then
@@ -26,7 +26,7 @@ build() {
 			--enable-lto \
 			--without-auto-load-safe-path \
 			--with-guile=no \
-			--with-readline=/usr/local/Cellar/readline/8.0.4 \
+			--with-readline=/usr/local/Cellar/readline/8.1 \
 			--with-libelf=/usr/local/Cellar/libelf/0.8.13_1
 		make
 		popd

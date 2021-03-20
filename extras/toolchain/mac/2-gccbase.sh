@@ -36,9 +36,9 @@ if [ ! -f "$compname/.compile-base" ]; then
 	--disable-libssp \
 	--disable-nls \
 	--enable-lto \
-	--with-mpfr=/usr/local/Cellar/mpfr/4.0.2 \
+	--with-mpfr=/usr/local/Cellar/mpfr/4.1.0 \
 	--with-mpc=/usr/local/Cellar/libmpc/1.2.1 \
-	--with-gmp=/usr/local/Cellar/gmp/6.2.0
+	--with-gmp=/usr/local/Cellar/gmp/6.2.1
 	make all-gcc 
 	popd
 	touch "$compname/.compile-base" 
