@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <cstdint>
 #include <periph/drivers/i2c/i2c_master.hpp>
 #include <periph/clock/clocks.hpp>
 #include <periph/i2c/i2c_interrupt_handlers.hpp>
