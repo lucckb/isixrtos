@@ -18,10 +18,11 @@
 
 #include <config/conf.h>
 #include <isix.h>
-#include <usart_simple.h>
 #include <foundation/sys/dbglog.h>
 #include <foundation/algo/noncopyable.hpp>
-#include <stm32crashinfo.h>
+#include <periph/drivers/serial/uart_early.hpp>
+#include <boot/arch/arm/cortexm/crashinfo.h>
+#include <periph/drivers/serial/uart_early.hpp>
 #include <string>
 #include <sys/stat.h>
 #include <lest/lest.hpp>
@@ -70,10 +71,22 @@ static void unittests_thread(void*)
 // Main core function
 int main()
 {
-	//static constexpr auto baud_hi = 3000000;
-	static constexpr auto baud_lo = 115200;
-    stm32::usartsimple_init( USART1, baud_lo ,false, CONFIG_PCLK1_HZ, CONFIG_PCLK2_HZ );
-	dblog_init_putc( stm32::usartsimple_putc, nullptr );
+	static isix::semaphore m_ulock_sem { 1, 1 };
+    isix::wait_ms( 500 );
+	dblog_init_locked(
+		[](int ch, void*) {
+			return periph::drivers::uart_early::putc(ch);
+		},
+		nullptr,
+		[]() {
+			m_ulock_sem.wait(ISIX_TIME_INFINITE);
+		},
+		[]() {
+			m_ulock_sem.signal();
+		},
+		periph::drivers::uart_early::open,
+		"serial0", 115200
+	);
 	dbprintf("ISIX VERSION %s", isix::get_version() );
 	const auto hwnd =
 		isix::task_create( unittests_thread, nullptr, 8192, 0, isix_task_flag_newlib);
@@ -86,13 +99,25 @@ int main()
 	return 0;
 }
 
+//! Application crash called from hard fault
+void application_crash( crash_mode type, unsigned long* sp )
+{
+#ifdef PDEBUG
+	cortex_cm3_print_core_regs( type, sp );
+#else
+	static_cast<void>(type);
+	static_cast<void>(sp);
+#endif
+	for(;;) asm volatile("wfi\n");
+}
+
 
 //! Handle crash handlers
 extern "C" {
 	//Crash info interrupt handler
 	void __attribute__((__interrupt__,naked)) hard_fault_exception_vector(void)
 	{
-		cm3_hard_hault_regs_dump();
+		_cm3_hard_hault_entry_fn( application_crash );
 	}
 	//Isix panic callback
 	void isix_kernel_panic_callback( const char* file, int line, const char *msg )

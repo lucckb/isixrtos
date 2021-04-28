@@ -17,9 +17,12 @@
  */
 
 #include "timer_interrupt.hpp"
-#include <stm32rcc.h>
-#include <stm32system.h>
-#include <stm32tim.h>
+#include <stm32_ll_rcc.h>
+#include <stm32_ll_system.h>
+#include <stm32_ll_tim.h>
+#include <stm32_ll_bus.h>
+#include <isix/arch/irq_platform.h>
+#include <isix/arch/irq.h>
 #include <atomic>
 #include <stdexcept>
 
@@ -36,21 +39,21 @@ namespace {
 //Handle function for periodic interrupt
 void periodic_timer_setup( timer_handler_t normal, uint16_t timeval )
 {
-	using namespace stm32;
 	if( initialized ) {
 		throw std::logic_error("Timer already initialized");
 	}
-	rcc_apb1_periph_clock_cmd( RCC_APB1Periph_TIM3, true );
-	rcc_apb1_periph_reset_cmd( RCC_APB1Periph_TIM3, true );
+	LL_APB1_GRP1_EnableClock( LL_APB1_GRP1_PERIPH_TIM3 );
 	__sync_synchronize();
-	rcc_apb1_periph_reset_cmd( RCC_APB1Periph_TIM3, false );
+	LL_APB1_GRP1_ForceReset( LL_APB1_GRP1_PERIPH_TIM3 );
 	__sync_synchronize();
-	nvic_set_priority( TIM3_IRQn , 1, 1 );
-	tim_timebase_init( TIM3, 0, TIM_CounterMode_Up, timeval, 0, 0 );
-	tim_it_config( TIM3, TIM_IT_Update, true );
+	isix::set_irq_priority(TIM3_IRQn, {1, 7});
+	LL_TIM_InitTypeDef tim_init { .Prescaler {0},
+		.CounterMode {LL_TIM_COUNTERMODE_UP}, .Autoreload {timeval}, .ClockDivision {0} , .RepetitionCounter {0}};
+	LL_TIM_Init(TIM3, &tim_init);
+	LL_TIM_EnableIT_UPDATE(TIM3);
 	normal_handler = normal;
-	nvic_irq_enable( TIM3_IRQn, true );
-	tim_cmd( TIM3, true );
+	isix::request_irq(TIM3_IRQn);
+	LL_TIM_EnableCounter(TIM3);
 	initialized = true;
 }
 //Stop the priodic timer
@@ -59,17 +62,16 @@ void periodic_timer_stop() noexcept {
 	if( !initialized ) {
 		return;
 	}
-	using namespace stm32;
-	tim_it_config( TIM3, TIM_IT_Update, false );
-	tim_cmd( TIM3, false );
-	nvic_irq_enable( TIM3_IRQn, false );
+	LL_TIM_DisableIT_UPDATE(TIM3);
+	LL_TIM_DisableCounter(TIM3);
+	isix::free_irq(TIM3_IRQn);
 	initialized = false;
 }
 
 extern "C" {
 	void __attribute__((interrupt)) tim3_isr_vector() noexcept
 	{
-		stm32::tim_clear_it_pending_bit( TIM3, TIM_IT_Update );
+		LL_TIM_ClearFlag_UPDATE(TIM3);
 		normal_handler();
 	}
 }	//ExternC

@@ -17,7 +17,7 @@ out = 'build'
 _libs = [
         os.path.join( top,'libisix'),
         os.path.join( top,'libfoundation'),
-        os.path.join( top, 'libstm32'),
+        os.path.join( top, 'libperiph'),
         os.path.join( top, 'tests/lest' )
 ]
 
@@ -34,6 +34,7 @@ def options(opt):
 # On configuration
 def configure(cfg):
     cfg.recurse(_isix)
+    cfg.load('clang_compilation_database')
     stdinc = os.path.join(cfg.path.abspath(),'include')
     cfg.env.append_value('INCLUDES', stdinc )
     cfg.check_cxx( header_name='isix_config.h', features='cxx',
@@ -55,7 +56,7 @@ def build(bld):
             source=src,
             install_path=False,
             includes=[ '.', 'include', 'utils' ],
-            use=[ 'foundation', 'isix', 'stm32', 'lest_utest' ]
+            use=[ 'foundation', 'isix', 'periph', 'lest_utest' ]
             )
 
 

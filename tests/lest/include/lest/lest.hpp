@@ -65,7 +65,7 @@
 #endif
 
 #ifndef lest_puts
-#include <foundation/tiny_printf.h>
+#include <foundation/sys/tiny_printf.h>
 #define lest_puts fnd::tiny_puts
 #endif
 

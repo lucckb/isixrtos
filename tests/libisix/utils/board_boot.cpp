@@ -7,32 +7,77 @@
 
 #include <isix.h>
 #include <isix/arch/irq.h>
-#include <stm32rcc.h>
 #include <isix/arch/irq.h>
-#include <irq_vectors_symbol.h>
+#include <boot/arch/arm/cortexm/irq_vectors_table.h>
+#include <stm32_ll_rcc.h>
+#include <stm32_ll_bus.h>
+#include <stm32_ll_system.h>
 
 namespace {
 	/** Cortex stm32 System setup
 	 * Clock and flash configuration for selected rate
 	 */
-	void uc_periph_setup()
+	bool uc_periph_setup()
 	{
-		stm32::rcc_flash_latency( CONFIG_HCLK_HZ );
-		stm32::rcc_pll1_sysclk_setup( stm32::e_sysclk_hse_pll, CONFIG_XTAL_HZ , CONFIG_HCLK_HZ );
-		stm32::rcc_pclk2_config( RCC_HCLK_Div2 );
-		stm32::rcc_pclk1_config( RCC_HCLK_Div4 );
-		//Setup NVIC vector at begin of flash
+#	if defined(STM32F411xE)
+		constexpr auto retries=100000;
 		isix_set_irq_vectors_base( &_exceptions_vectors );
+		//! Deinitialize RCC
+		LL_RCC_DeInit();
+		LL_FLASH_SetLatency(LL_FLASH_LATENCY_2);
+		LL_FLASH_EnablePrefetch();
+		//! Set MCU Prescallers
+		LL_RCC_SetAHBPrescaler( LL_RCC_SYSCLK_DIV_1 );
+		LL_RCC_SetAPB2Prescaler( LL_RCC_APB2_DIV_1 );
+		LL_RCC_SetAPB1Prescaler( LL_RCC_APB1_DIV_2 );
+		//! Enable HSE generator
+		LL_RCC_HSE_Enable();
+		for( int i=0; i<retries; ++i ) {
+			if(LL_RCC_HSE_IsReady()) {
+				break;
+			}
+		}
+		if( !LL_RCC_HSE_IsReady() ) {
+			return false;
+		}
+		//Enable clocks for GPIOS
+		LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA|LL_AHB1_GRP1_PERIPH_GPIOB|
+				LL_AHB1_GRP1_PERIPH_GPIOC|LL_AHB1_GRP1_PERIPH_GPIOD|LL_AHB1_GRP1_PERIPH_GPIOE );
+
+		//Configure PLL
+		LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 400, LL_RCC_PLLP_DIV_4);
+		LL_RCC_PLL_Enable();
+		for( auto r=0; r<retries; ++r ) {
+			if( LL_RCC_PLL_IsReady() ) {
+				break;
+			}
+		}
+		if( !LL_RCC_PLL_IsReady() ) {
+			return false;
+		}
+		LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
+		for( auto r=0; r<retries; ++r ) {
+			if( LL_RCC_GetSysClkSource() == LL_RCC_SYS_CLKSOURCE_STATUS_PLL ) {
+				break;
+			}
+		}
+		return  LL_RCC_GetSysClkSource() == LL_RCC_SYS_CLKSOURCE_STATUS_PLL;
+#	else
+#		error	Platform setup not defined
+#	endif
 	}
 extern "C" {
 	void _external_startup(void)
 	{
 		//Initialize system perhipheral
-		uc_periph_setup();
-		//1 bit for preemtion priority
-		isix_set_irq_priority_group( isix_cortexm_group_pri7 );
-		//Initialize isix
-		isix_init(CONFIG_HCLK_HZ);
+		if( uc_periph_setup() ) {
+			//1 bit voidfor preemtion priority
+			isix_set_irq_priority_group( isix_cortexm_group_pri7 );
+			//Initialize isix
+			isix_init(CONFIG_HCLK_HZ);
+		} else {
+			for(;;);
+		}
 	}
 }
 

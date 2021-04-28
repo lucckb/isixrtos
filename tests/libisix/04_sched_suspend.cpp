@@ -18,7 +18,7 @@
 
 #include <lest/lest.hpp>
 #include <isix.h>
-#include <stm32system.h>
+#include <stm32_ll_system.h>
 
 //Internal API MOCK
 extern "C" {
@@ -58,12 +58,12 @@ namespace
 		{
 			for(;;) {
 				m_act_id = m_act_pattern;
-				stm32::nop();
+				asm volatile("nop\n");
 				//isix::isix_wait_ms( 1 );
-				stm32::nop();
-				stm32::nop();
-				stm32::nop();
-				stm32::nop();
+				asm volatile("nop\n");
+				asm volatile("nop\n");
+				asm volatile("nop\n");
+				asm volatile("nop\n");
 			}
 		}
 	private:
@@ -86,7 +86,7 @@ const lest::test module[] =
 		_isixp_unlock_scheduler();
 		_isixp_lock_scheduler();
 		for(int i=0;i<10000000;++i )
-			stm32::nop();
+			asm volatile("nop\n");
 		_isixp_unlock_scheduler();
 		for( int i=0; i<100; ++i ) {
 			isix_yield();
@@ -124,7 +124,7 @@ const lest::test module[] =
 		t2->start();
 		t3->start();
 		t4->start();
-		for(int i=0;i<1000000;++i) stm32::nop();
+		for(int i=0;i<1000000;++i) asm volatile("nop\n");
 		EXPECT( t1->get_id()== ' ' );
 		EXPECT( t2->get_id()== ' ' );
 		EXPECT( t3->get_id()== ' ' );

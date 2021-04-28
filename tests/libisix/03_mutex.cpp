@@ -18,7 +18,6 @@
 
 #include <lest/lest.hpp>
 #include <isix.h>
-#include <stm32system.h>
 #include <isix/prv/list.h>
 #include <isix/prv/mutex.h>
 
