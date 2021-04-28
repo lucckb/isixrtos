@@ -437,7 +437,7 @@ void spi_master::dma_interrupt_handler(bool err, bool tx)
 }
 
 //! SPI master chip select
-inline void spi_master::cs(bool state,int no)
+inline void spi_master::cs(bool state,int no) noexcept
 {
 	__sync_synchronize();
 	gpio::set(m_cs[no], state);
