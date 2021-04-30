@@ -17,9 +17,9 @@ namespace {
 	/** Cortex stm32 System setup
 	 * Clock and flash configuration for selected rate
 	 */
+#	if defined(STM32F411xE)
 	bool uc_periph_setup()
 	{
-#	if defined(STM32F411xE)
 		constexpr auto retries=100000;
 		isix_set_irq_vectors_base( &_exceptions_vectors );
 		//! Deinitialize RCC
@@ -62,10 +62,10 @@ namespace {
 			}
 		}
 		return  LL_RCC_GetSysClkSource() == LL_RCC_SYS_CLKSOURCE_STATUS_PLL;
+	}
 #	else
 #		error	Platform setup not defined
 #	endif
-	}
 extern "C" {
 	void _external_startup(void)
 	{
