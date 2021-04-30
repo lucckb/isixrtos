@@ -136,7 +136,7 @@
         } \
         catch(...) \
         { \
-            lest::inform( lest_LOCATION, #expr ); \
+            lest::inform( std::current_exception(), lest_LOCATION, #expr ); \
         } \
     } while ( lest::is_false() )
 
@@ -154,7 +154,7 @@
         } \
         catch(...) \
         { \
-            lest::inform( lest_LOCATION, lest::not_expr( #expr ) ); \
+            lest::inform( std::current_exception(),lest_LOCATION, lest::not_expr( #expr ) ); \
         } \
     } while ( lest::is_false() )
 
@@ -167,7 +167,7 @@
         } \
         catch (...) \
         { \
-            lest::inform( lest_LOCATION, #expr ); \
+            lest::inform( std::current_exception(), lest_LOCATION, #expr ); \
         } \
         if ( lest_env.pass ) \
             lest::report( lest::got_none( lest_LOCATION, #expr ), lest_env.testing ); \
@@ -435,15 +435,15 @@ inline text of_type( text type )
     return "of type " + type;
 }
 
-inline void inform( location where, text expr )
+inline void inform( std::exception_ptr eptr, location where, text expr )
 {
     try
     {
-        throw;
+		std::rethrow_exception(eptr);
     }
     catch( message const & )
     {
-        throw;
+		std::rethrow_exception(eptr);
     }
     catch( std::exception const & e )
     {
