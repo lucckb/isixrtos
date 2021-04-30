@@ -22,7 +22,6 @@
 #include "task_test_helper.h"
 #include "utils/fpu_test_and_set.h"
 #include "utils/timer_interrupt.hpp"
-#include <foundation/sys/dbglog.h>
 
 namespace
 {
@@ -427,7 +426,8 @@ const lest::test module[] =
 		);
 		EXPECT( th1 == true );
 		EXPECT( th1.wait_for() == ISIX_EOK );
-		EXPECT( val == 50001 );
+		const auto newval { int(val) };
+		EXPECT( newval==50001 );
 	}
 #if ( __ARM_FP > 0 )
 	,
@@ -446,7 +446,8 @@ const lest::test module[] =
 		);
 		EXPECT( th1 == true );
 		EXPECT( th1.wait_for() == ISIX_EOK );
-		EXPECT( val == 50001 );
+		const auto newval { int(val) };
+		EXPECT( newval == 50001 );
 	},
 	CASE("06_task_10 FPU single precision two tasks and interrupt")
 	{

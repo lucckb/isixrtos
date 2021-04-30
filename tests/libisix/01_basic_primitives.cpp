@@ -18,6 +18,7 @@
 #include <lest/lest.hpp>
 #include <isix.h>
 #include <isix/arch/sem_atomic.h>
+#include <foundation/sys/dbglog.h>
 
 static const lest::test module[] =
 {

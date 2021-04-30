@@ -46,6 +46,8 @@ void periodic_timer_setup( timer_handler_t normal, uint16_t timeval )
 	__sync_synchronize();
 	LL_APB1_GRP1_ForceReset( LL_APB1_GRP1_PERIPH_TIM3 );
 	__sync_synchronize();
+	LL_APB1_GRP1_ReleaseReset( LL_APB1_GRP1_PERIPH_TIM3 );
+	__sync_synchronize();
 	isix::set_irq_priority(TIM3_IRQn, {1, 7});
 	LL_TIM_InitTypeDef tim_init { .Prescaler {0},
 		.CounterMode {LL_TIM_COUNTERMODE_UP}, .Autoreload {timeval}, .ClockDivision {0} , .RepetitionCounter {0}};
