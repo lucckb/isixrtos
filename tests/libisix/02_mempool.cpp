@@ -19,7 +19,7 @@
 #include <lest/lest.hpp>
 #include <isix.h>
 #include <cstring>
-
+#include <foundation/sys/dbglog.h>
 //Unnamed namespace pool class
 namespace
 {
@@ -43,6 +43,7 @@ namespace
 		char val[17];
 		char m_pattern {};
 	};
+
 	class task_test
 	{
 	static constexpr auto STACK_SIZE = 1024;
@@ -51,7 +52,7 @@ namespace
 		//Constructor
 		task_test( isix::mempool<pool>& pool )
 			: m_pool( pool )
-			, m_thr( isix::thread_create( std::bind(&task_test::thread,std::ref(*this))))
+			, m_thr( isix::thread_create(std::bind(&task_test::thread,std::ref(*this))))
 		{}
 		//Destructor
 		~task_test()
@@ -60,7 +61,7 @@ namespace
 		}
 		//Start the task
 		void start() {
-			m_thr.start_thread(STACK_SIZE, TASK_PRIO );
+			m_thr.start_thread(STACK_SIZE, TASK_PRIO);
 		}
 		//Check valid
 		pool* get() const {
@@ -81,13 +82,16 @@ namespace
 	};
 }	//Unnamed namespace end
 
+
+
+
 const lest::test module[] =
 {
 	CASE( "02_mempool_01 Mempool basic check" )
 	{
 		static constexpr size_t N_POOL = 14;
 		isix::mempool<pool> memp( N_POOL );
-		pool* pptr[N_POOL]; 
+		pool* pptr[N_POOL];
 		for(size_t n=0; n<N_POOL; ++n) {
 			auto p = memp.alloc(n+'A');
 			EXPECT( p != nullptr );
@@ -96,7 +100,7 @@ const lest::test module[] =
 			pptr[n] = p;
 		}
 		//Should return unable alloc
-		EXPECT( memp.alloc('X') == nullptr );
+		EXPECT_THROWS_AS( memp.alloc('X'), std::bad_alloc);
 		//Free memory blocks
 		for(auto p : pptr ) {
 			EXPECT( memp.free(p) == ISIX_EOK );

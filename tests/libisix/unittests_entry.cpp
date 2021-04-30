@@ -89,7 +89,7 @@ int main()
 	);
 	dbprintf("ISIX VERSION %s", isix::get_version() );
 	const auto hwnd =
-		isix::task_create( unittests_thread, nullptr, 8192, 0, isix_task_flag_newlib);
+		isix::task_create( unittests_thread, nullptr, 8U*1024U, 0, isix_task_flag_newlib);
 	if( !hwnd ) {
 		dbprintf("Unable to create task");
 		return -1;

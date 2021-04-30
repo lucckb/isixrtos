@@ -66,7 +66,7 @@ namespace isix {
 			}
 #if __cplusplus > 199711L
 			template <typename... ARGS>
-				T* alloc(ARGS&&... args) noexcept
+				T* alloc(ARGS&&... args)
 				{
 					void* mem = isix_mempool_alloc(m_mp);
 					throw_or_abort(mem);
