@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "/usr/local/arm-none-eabi-gcc/arm-none-eabi/include"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "compileCommands": "./build/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

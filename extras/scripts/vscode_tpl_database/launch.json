@@ -1,0 +1,69 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/stm32f411e_disco/e0_led_blink/411disco_blink",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "windows": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "arm-none-eabi-gdb.exe",
+                "miDebuggerArgs": "-x ${workspaceFolder}/libstm32/scripts/gdbinit",
+                "miDebuggerServerAddress": "localhost:3333",
+                "debugServerPath": "openocd.exe",
+                "debugServerArgs": "-c \"set ISIX_INTERFACE stlink-v2; set ISIX_INTERFACE_TARGET stm32f4x; set ISIX_INTERFACE_SWD 1; set ISIX_INTERFACE_SPEED_KHZ 2000; \" -s C:\\tools\\openocd\\share\\openocd\\scripts -f ${workspaceFolder}\\isixrtos\\libperiph\\scripts\\openocd\\jtag.cfg",
+                "serverLaunchTimeout": 20000,
+                "serverStarted": "Listening on port 3333 for gdb connections",
+                "filterStderr": true,
+                "filterStdout": false,
+            },
+            "linux": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "arm-none-eabi-gdb",
+                "miDebuggerServerAddress": "localhost:3333",
+                "debugServerPath": "openocd",
+                "debugServerArgs": "-c \"set ISIX_INTERFACE stlink-v2; set ISIX_INTERFACE_TARGET stm32f4x; set ISIX_INTERFACE_SWD 1; set ISIX_INTERFACE_SPEED_KHZ 2000; \" -f ${workspaceFolder}/isixrtos/libperiph/scripts/openocd/jtag.cfg -c \"init; sleep 100; reset halt;\"",
+                "serverLaunchTimeout": 20000,
+                "serverStarted": "stm32f4x.cpu: hardware has 6 breakpoints, 4 watchpoints",
+                "filterStderr": true,
+                "filterStdout": false,
+            },
+            "osx": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "arm-none-eabi-gdb",
+                "miDebuggerServerAddress": "localhost:3333",
+                "debugServerPath": "openocd",
+                "debugServerArgs": "-c \"set ISIX_INTERFACE stlink-v2; set ISIX_INTERFACE_TARGET stm32f4x; set ISIX_INTERFACE_SWD 1; set ISIX_INTERFACE_SPEED_KHZ 2000; \" -f ${workspaceFolder}/isixrtos/libperiph/scripts/openocd/jtag.cfg -c \"init; sleep 100; reset halt;\"",
+                "serverLaunchTimeout": 20000,
+                "serverStarted": "stm32f4x.cpu: hardware has 6 breakpoints, 4 watchpoints",
+                "filterStderr": true,
+                "filterStdout": false,
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "launchCompleteCommand": "exec-continue",
+            "logging": {
+                "moduleLoad": true,
+                "trace": false,
+                "engineLogging": false,
+                "programOutput": false,
+                "exceptions": false
+            },
+            "targetArchitecture": "arm"
+        }
+    ]
+}

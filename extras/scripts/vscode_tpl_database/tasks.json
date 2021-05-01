@@ -1,0 +1,82 @@
+/*
+ * =====================================================================================
+ * 	File: tasks.json
+ * 	Created Date: Wednesday, August 21st 2019, 8:48:39 pm
+ * 	Author: Lucjan Bryndza
+ * 	Copyright (c) 2019 BoFF
+ * 
+ * 	GPL v2/3
+ * =====================================================================================
+ */
+
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/waf"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}/build"
+                ]
+            }
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/waf",
+                "clean"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "istclean",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                " ${workspaceFolder}/waf",
+                "distclean"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "configure",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/waf",
+                "configure",
+                "--debug",
+                "--board=stm32f411e_disco",
+                "--crystal-hz=8000000"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "program",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/waf",
+                "program"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}
