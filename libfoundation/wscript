@@ -17,6 +17,3 @@ def build(bld):
             includes = inc, export_includes=inc,
             target='foundation', use= ['isix', 'common_conf']
     )
-
-
-
