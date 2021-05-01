@@ -11,11 +11,30 @@ struct __lock __lock___sinit_recursive_mutex;
 struct __lock __lock___sfp_recursive_mutex;
 struct __lock __lock___atexit_recursive_mutex;
 struct __lock __lock___at_quick_exit_mutex;
-struct __lock __lock___malloc_recursive_mutex;
+//struct __lock __lock___malloc_recursive_mutex;
 struct __lock __lock___env_recursive_mutex;
 struct __lock __lock___tz_mutex;
 struct __lock __lock___dd_hash_mutex;
 struct __lock __lock___arc4random_mutex;
+
+
+__attribute__((constructor))
+static void init_retarget_locks(void)
+{
+    __lock___sinit_recursive_mutex.mutex  = isix_mutex_create(NULL);
+    __lock___sfp_recursive_mutex.mutex    = isix_mutex_create(NULL);
+    __lock___atexit_recursive_mutex.mutex = isix_mutex_create(NULL);
+    __lock___at_quick_exit_mutex.mutex      = isix_mutex_create(NULL);
+    //__lock___malloc_recursive_mutex.mutex = isix_mutex_create(NULL);  // We are not using malloc
+    __lock___env_recursive_mutex.mutex    = isix_mutex_create(NULL);
+    __lock___tz_mutex.mutex               = isix_mutex_create(NULL); 
+    __lock___dd_hash_mutex.mutex          = isix_mutex_create(NULL);
+    __lock___arc4random_mutex.mutex       = isix_mutex_create(NULL);
+}
+
+
+__attribute__(( section(".preinit_array"), used ))
+    static void (* const preinit_array[])(void) = { &init_retarget_locks };
 
 void __retarget_lock_init(_LOCK_T *lock)
 {
