@@ -19,6 +19,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include "error.hpp"
 #include "device_option.hpp"
