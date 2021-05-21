@@ -1,1 +1,0 @@
-../../libstm32/scripts/gdbinit
