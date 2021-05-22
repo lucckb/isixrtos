@@ -19,6 +19,7 @@
 #include <isix/config.h>
 #include <isix/arch/cpu.h>
 #include <isix/cortexm/scb_regs.h>
+#include <isix/assert.h>
 #include <isix/prv/scheduler.h>
 
 

@@ -19,6 +19,7 @@
 #include <isix/scheduler.h>
 #include <isix/prv/scheduler.h>
 #include <isix/arch/cpu.h>
+#include <isix/assert.h>
 
 /** Busy waiting for selecred amount of time
  * @param[in] timeout Number of microseconds for busy wait
@@ -26,6 +27,7 @@
  */
 void isix_wait_us( unsigned timeout )
 {
+    isix_assert_isr();
 	osutick_t t1 = isix_get_ujiffies();
 	for(;;) 
 	{
@@ -46,6 +48,7 @@ ostick_t isix_ms2tick(unsigned long ms)
 //! Isix wait selected amount of time
 int isix_wait(ostick_t timeout)
 {
+    isix_assert_isr();
 	if(schrun)
 	{
 		//If scheduler is running delay on semaphore

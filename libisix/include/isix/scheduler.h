@@ -23,11 +23,7 @@ static inline void isix_yield()
 		_isix_port_yield();
 }
 
-//! Halt system when critical error is found
-void isix_kernel_panic( const char *file, int line, const char *msg );
 
-//ISIX BUG macro
-#define isix_bug( msg ) isix_kernel_panic(__FILE__,__LINE__, (msg) )
 
 /** Get current sytem ticks
  * @return Number of system tick from system startup

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <isix/arch/sem_atomic.h>
 #include <isix/prv/scheduler.h>
+#include <isix/assert.h>
 
 
 //Note data abort should mark clrex in CM3
@@ -19,6 +20,7 @@
 //Create semaphore
 ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
 {
+    isix_assert_isr();
 	const bool static_mem = (sem!=NULL);
 	if( limit_val < 0 )
 	{
@@ -44,6 +46,7 @@ ossem_t isix_sem_create_limited( ossem_t sem, int val, int limit_val )
 //Wait for semaphore P()
 int isix_sem_wait(ossem_t sem, ostick_t timeout)
 {
+    isix_assert_isr();
 	pr_info("sem: Wait task %p on %p tout %i", currp, sem, timeout );
 	//TODO: Wait in separate function
     if( !sem ) {
@@ -72,6 +75,7 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 //Sem signal V()
 int _isixp_sem_signal( ossem_t sem, bool isr )
 { 
+    isix_assert_isr(isr);
 	pr_info("sem: Signal on %p isr %i", sem, isr );
 	if(!sem) {
         pr_err("No sem");
@@ -130,6 +134,7 @@ static void sem_wakeup_all( ossem_t sem, osmsg_t msg, bool isr )
 //Sem value of semaphore
 int _isixp_sem_reset( ossem_t sem, int val, bool isr )
 {
+    isix_assert_isr(isr);
     if( !sem ) { 
 		pr_err("No sem");
 		return ISIX_EINVARG; 
@@ -154,6 +159,7 @@ int isix_sem_getval(ossem_t sem)
 //Sem destroy
 int isix_sem_destroy(ossem_t sem)
 {
+    isix_assert_isr();
 	if( !sem ) {
 		pr_err("No sem");
 		return ISIX_EINVARG;

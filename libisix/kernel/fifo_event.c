@@ -17,6 +17,7 @@
  */
 #include <isix/fifo_event.h>
 #include <isix/prv/fifo_lock.h>
+#include <isix/assert.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_FIFO
 #undef CONFIG_ISIX_LOGLEVEL
@@ -34,6 +35,7 @@
  */
 int isix_fifo_event_connect( osfifo_t fifo, osevent_t evt, int inbit )
 {
+    isix_assert_isr();
 	if( !fifo || !evt ) {
 		return ISIX_EINVARG;
 	}
@@ -56,6 +58,7 @@ int isix_fifo_event_connect( osfifo_t fifo, osevent_t evt, int inbit )
  */
 int isix_fifo_event_disconnect( osfifo_t fifo, osevent_t evt )
 {
+    isix_assert_isr();
 	if( !fifo || !evt ) {
 		return ISIX_EINVARG;
 	}

@@ -25,3 +25,4 @@
 #include <isix/cpp/thread11.hpp>
 #include <isix/cpp/mutex.hpp>
 #include <isix/cpp/condvar.hpp>
+#include <isix/assert.h>

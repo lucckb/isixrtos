@@ -7,6 +7,8 @@
 #include <string.h>
 #include <isix/prv/fifo_lock.h>
 #include <isix/prv/scheduler.h>
+#include <isix/assert.h>
+
 #ifndef ISIX_DEBUG_FIFO
 #define ISIX_DEBUG_FIFO ISIX_DBG_OFF
 #endif
@@ -25,6 +27,7 @@
  */
 osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
 {
+    isix_assert_isr();
    //Create fifo struct
    osfifo_t fifo = (osfifo_t)isix_alloc(sizeof(struct isix_fifo));
    if(!fifo)
@@ -60,6 +63,7 @@ osfifo_t isix_fifo_create_ex( int n_elem, int elem_size, unsigned flags )
 //Fifo send to other task
 int isix_fifo_write(osfifo_t fifo,const void *item, ostick_t timeout)
 {
+    isix_assert_isr();
     if(!fifo) return ISIX_EINVARG;
     if(isix_sem_wait(&fifo->tx_sem,timeout)<0)
     {
@@ -103,6 +107,7 @@ int isix_fifo_write_isr(osfifo_t fifo,const void *item)
 //Fifo receive from other task
 int isix_fifo_read(osfifo_t fifo,void *item, ostick_t timeout)
 {
+    isix_assert_isr();
     if(!fifo) return ISIX_EINVARG;
     if(isix_sem_wait(&fifo->rx_sem,timeout)<0)
     {
@@ -145,7 +150,8 @@ int isix_fifo_read_isr(osfifo_t fifo,void *item)
 
 /* Delete created queue */
 int isix_fifo_destroy(osfifo_t fifo)
-{
+{    
+    isix_assert_isr();
     _fifo_lock(fifo);
     //Destroy RXSEM and TXSEM
     isix_sem_destroy(&fifo->rx_sem);

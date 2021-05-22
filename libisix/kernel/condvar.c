@@ -6,6 +6,7 @@
 #include <isix/scheduler.h>
 #include <isix/prv/scheduler.h>
 #include <isix/prv/mutex.h>
+#include <isix/assert.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_CONDVAR
 #define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_CONDVAR
@@ -15,6 +16,7 @@
 // Condvar create
 oscondvar_t isix_condvar_create(void)
 {
+    isix_assert_isr();
 	oscondvar_t cv = (oscondvar_t)isix_alloc(sizeof(struct isix_condvar));
 	if( cv ) {
 		list_init( &cv->wait_list );
@@ -25,6 +27,7 @@ oscondvar_t isix_condvar_create(void)
 // Condvar signal single thread
 int _isixp_condvar_signal( oscondvar_t cv, bool isr )
 {
+    isix_assert_isr(isr);
 	if( !cv ) {
 		pr_err( "Invalid condvar " );
 		return ISIX_EINVARG;
@@ -74,6 +77,7 @@ static inline void condvar_broadcast_msg( oscondvar_t cv, osmsg_t msg, bool isr 
 
 int _isixp_condvar_broadcast( oscondvar_t cv, bool isr )
 {
+    isix_assert_isr(isr);
 	if( !cv ) {
 		pr_err( "Invalid condvar " );
 		return ISIX_EINVARG;
@@ -85,6 +89,7 @@ int _isixp_condvar_broadcast( oscondvar_t cv, bool isr )
 //! Condition variable wait
 int isix_condvar_wait( oscondvar_t cv, ostick_t timeout )
 {
+    isix_assert_isr();
 	if( !cv ) {
 		pr_err( "Invalid condvar " );
 		return ISIX_EINVARG;
@@ -118,6 +123,7 @@ int isix_condvar_wait( oscondvar_t cv, ostick_t timeout )
 //! Destroy the condvar
 int isix_condvar_destroy( oscondvar_t cv )
 {
+    isix_assert_isr();
 	if( !cv ) {
 		pr_err( "Invalid condvar " );
 		return ISIX_EINVARG;

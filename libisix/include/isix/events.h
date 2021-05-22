@@ -64,11 +64,15 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
  * @param[in]	bits_to_clear
  * @return Changed bits
  */
-osbitset_ret_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear );
+osbitset_ret_t _isixp_event_clear( osevent_t evth, osbitset_t bits_to_clear, bool isr );
+static inline osbitset_ret_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear )
+{
+	return _isixp_event_clear( evth, bits_to_clear, false);
+}
 
 static inline osbitset_t isix_event_clear_isr( osevent_t evth, osbitset_t bits_to_clear ) 
 {
-	return isix_event_clear( evth, bits_to_clear );
+	return _isixp_event_clear( evth, bits_to_clear, true);
 }
 
 /** Isix set bits

@@ -14,6 +14,7 @@
 #include <isix/arch/cpu.h>
 #include <isix/arch/core.h>
 #include <isix/arch/ostimer.h>
+#include <isix/assert.h>
 #include <stdatomic.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_SCHEDULER
@@ -108,6 +109,7 @@ void _isixp_unlock_scheduler()
 void isix_shutdown_scheduler(void)
 {
 	//Dropout the task prot region
+    isix_assert_isr();
 	schrun = false;
 	_isix_port_memory_protection_reset_efence();
 	_isix_port_yield();
@@ -152,6 +154,7 @@ void isix_exit_critical(void)
 void isix_init(unsigned long core_freq)
 {
 	//Schedule lock count
+    isix_assert_isr();
 	_isix_port_memory_protection_set_default_map();
 	_isix_port_atomic_sem_init( &csys.sched_lock, 0, 1 );
 	atomic_init( &csys.critical_count, 0 );
@@ -568,6 +571,7 @@ void isix_start_scheduler(void) __attribute__((noreturn));
 #endif
 void isix_start_scheduler(void)
 {
+    isix_assert_isr();
 	atomic_store(&csys.jiffies, 0 );			//Zero jiffies if it was previously run
 	schrun = true;
 	atomic_init( &csys.critical_count, 0 );

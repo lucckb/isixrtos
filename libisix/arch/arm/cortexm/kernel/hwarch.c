@@ -19,8 +19,7 @@
 #include <isix/cortexm/systick_regs.h>
 #include <isix/cortexm/systick.h>
 #include <isix/arch/irq.h>
-#include <isix/scheduler.h>
-#include <isix/arch/scheduler.h>
+#include <isix/assert.h>
 #include <isix/arch/cache.h>
 
 

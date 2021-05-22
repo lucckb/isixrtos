@@ -12,6 +12,7 @@
 #include <string.h>
 #include <isix/prv/scheduler.h>
 #include <isix/arch/core.h>
+#include <isix/assert.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_VTIMERS
 #undef CONFIG_ISIX_LOGLEVEL 
@@ -250,6 +251,7 @@ void _isixp_vtimers_finalize()
 //! Lazy initializatize worker thread only if feature is used
 int isix_vtimer_initialize( void )
 {
+    isix_assert_isr();
 	if( !tctx.worker_thread_id ) 
 	{
 		list_init( &tctx._vtimer_list_[0] );
@@ -273,6 +275,7 @@ int isix_vtimer_initialize( void )
  */
 osvtimer_t isix_vtimer_create( void ) 
 {
+    isix_assert_isr();
 	//Lazy initialize worker thread (if it was not created)
 	if( isix_vtimer_initialize() ) {
 		pr_err("Cannot initialize worker thread");
@@ -299,6 +302,7 @@ osvtimer_t isix_vtimer_create( void )
 int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func, 
 		void* arg, ostick_t timeout, bool cyclic, bool isr )
 {
+    isix_assert_isr(isr);
 	pr_info("isix_vtimer_start(tmr: %p time: %u cy: %i)", timer, timeout, cyclic );
 	if( !timer ) return ISIX_EINVARG;
 	//! Call @ jiffies
@@ -332,6 +336,7 @@ int _isixp_vtimer_start( osvtimer_t timer, osvtimer_callback func,
 int _isixp_vtimer_cancel( osvtimer_t timer, bool isr )
 {
 	int ret = ISIX_EOK;
+    isix_assert_isr(isr);
 	do {
 		if( !timer ) {
 			ret = ISIX_EINVARG;
@@ -372,6 +377,7 @@ int isix_vtimer_is_active( osvtimer_t timer )
 int isix_vtimer_destroy( osvtimer_t timer )
 {
 	int ret = ISIX_EOK;
+    isix_assert_isr();
 	do {
 		if( schrun ) {
 			command_t cmd = { .cmd=cmd_delete, .generic_args=timer };

@@ -17,7 +17,7 @@
  */
 
 #include <isix/memory.h>
-#include <isix/prv/scheduler.h>
+#include <isix/assert.h>
 #include "tlsf.h"
 
 #ifdef CONFIG_ISIX_LOGLEVEL_MEMORY

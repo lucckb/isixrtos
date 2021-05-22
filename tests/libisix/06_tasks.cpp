@@ -234,13 +234,17 @@ const lest::test module[] =
 			}
 		};
 		isix::wait_ms( 5000 );
+        static constexpr auto epsilon = 50;
 		for( iload=10; iload<=99; iload+=10 ) {
 			auto thr = isix::thread_create_and_run(c_stack_size,1,0,cpuload_task, iload );
 			EXPECT( thr == true );
 			isix::wait_ms( 4000 );
 		 	const auto cpul = isix::cpuload();
-			EXPECT( cpul >= iload*10-25 );
-			EXPECT( cpul <= iload*10+25 );
+            const auto low_e = iload*10-epsilon;
+            const auto hi_e = iload*10+epsilon;
+            isix::wait_ms( 10 );
+			EXPECT( cpul >=  low_e );
+			EXPECT( cpul <= hi_e );
 			EXPECT( isix::free_stack_space(thr.tid()) >= c_stack_margin );
 		}
 		EXPECT( isix::free_stack_space(nullptr) >= c_stack_margin );

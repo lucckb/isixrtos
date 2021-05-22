@@ -5,14 +5,13 @@
 #include <string.h>
 #include <isix/prv/mutex.h>
 #include <isix/prv/scheduler.h>
+#include <isix/assert.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_MUTEX
 #undef CONFIG_ISIX_LOGLEVEL
 #define CONFIG_ISIX_LOGLEVEL CONFIG_ISIX_LOGLEVEL_MUTEX
 #endif
 #include <isix/prv/printk.h>
-
-
 
 
 //! Helper function for transfer mutex ownership
@@ -41,6 +40,7 @@ static inline void set_ownership_to_current( osmtx_t mutex )
 // Create mutex
 osmtx_t isix_mutex_create( osmtx_t mutex )
 {
+    isix_assert_isr();
 	const bool static_mem = (mutex!=NULL);
 	if( !mutex ) {
 		mutex = (osmtx_t)isix_alloc(sizeof(struct isix_mutex));
@@ -56,10 +56,10 @@ osmtx_t isix_mutex_create( osmtx_t mutex )
 }
 
 
-
 // Mutex lock
 int isix_mutex_lock( osmtx_t mutex )
 {
+    isix_assert_isr();
 	if( !mutex ) {
 		pr_err("No mutex");
 		return ISIX_EINVARG;
@@ -99,12 +99,11 @@ int isix_mutex_lock( osmtx_t mutex )
 	return ISIX_EOK;
 }
 
-
-
 // Mutex try lock
 int isix_mutex_trylock( osmtx_t mutex )
 {
 	int ret;
+    isix_assert_isr();
 	if( !mutex ) {
 		pr_err("No mutex");
 		return ISIX_EINVARG;
@@ -132,11 +131,10 @@ int isix_mutex_trylock( osmtx_t mutex )
 }
 
 
-
-
 //Mutex unlock
 int isix_mutex_unlock( osmtx_t mutex )
 {
+    isix_assert_isr();
 	if( !mutex ) {
 		pr_err("No mutex");
 		return ISIX_EINVARG;
@@ -228,7 +226,8 @@ void _isixp_mutex_unlock_all_in_task( ostask_t utask )
 
 //! Unlock all waiting threads
 void isix_mutex_unlock_all(void) {
-	_isixp_mutex_unlock_all_in_task( currp  );
+    isix_assert_isr();
+	_isixp_mutex_unlock_all_in_task( currp );
 }
 
 /** Destroy the recursive mutex
@@ -237,6 +236,7 @@ void isix_mutex_unlock_all(void) {
  */
 int isix_mutex_destroy( osmtx_t mutex )
 {
+    isix_assert_isr();
 	if( !mutex ) {
 		pr_err( "Invalid mutex identifier");
 		return ISIX_EINVARG;

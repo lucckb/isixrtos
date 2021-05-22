@@ -22,6 +22,7 @@
 #include <isix/memory.h>
 #include <isix/task.h>
 #include <string.h>
+#include <isix/assert.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_EVENTS
 #undef CONFIG_ISIX_LOGLEVEL 
@@ -49,6 +50,7 @@ static inline bool check_cond2( osbitset_t curr, osbitset_t wait_for )
 //!Create event
 osevent_t isix_event_create( void )
 {
+    isix_assert_isr();
 	osevent_t ev = isix_alloc( sizeof( struct isix_event ) );
 	if( !ev ) {
 		pr_err("Unable to create events");
@@ -63,6 +65,7 @@ osevent_t isix_event_create( void )
 //! Wakekup all and next delete it
 int isix_event_destroy( osevent_t evh )
 {
+    isix_assert_isr();
 	if( !evh ) {
 		return ISIX_EINVARG;
 	}
@@ -83,6 +86,7 @@ int isix_event_destroy( osevent_t evh )
 osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait, 
 		bool clear_on_exit, bool wait_for_all, ostick_t timeout )
 {
+    isix_assert_isr();
 	osbitset_t retval;
 	//! Check input parameters
 	if( !evth ) {
@@ -134,8 +138,9 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 }
 
 //! Event clear bits
-osbitset_ret_t isix_event_clear( osevent_t evth, osbitset_t bits_to_clear )
+osbitset_ret_t _isixp_event_clear( osevent_t evth, osbitset_t bits_to_clear, bool isr )
 {
+    isix_assert_isr(isr);
 	osbitset_t retval;
 	//! Check input parameters
 	if( !evth ) {
@@ -179,13 +184,14 @@ static ostask_t event_set( osevent_t evth, osbitset_t bits_to_set )
 //! Events to set bits
 osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool isr )
 {
+    isix_assert_isr(isr);
 	//! Check input parameters
 	if( !evth ) {
 		return ISIX_EINVARG;
 	}
 	if( bits_to_set&ISIX_EVENT_CTRL_BITS ) {
 		return ISIX_EINVARG;
-	}
+	} 
 	isix_enter_critical();
 	ostask_t wkup_task =  event_set( evth, bits_to_set );
 	if( !isr ) _isixp_do_reschedule( wkup_task );
@@ -209,6 +215,7 @@ osbitset_ret_t isix_event_get_isr( osevent_t evth )
 osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 	osbitset_t bits_to_wait, ostick_t timeout )
 {
+    isix_assert_isr();
 	osbitset_t retval;
 	if( !evth ) {
 		return ISIX_EINVARG;

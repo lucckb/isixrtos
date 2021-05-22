@@ -21,6 +21,7 @@
 #include <isix/prv/mutex.h>
 #include <isix/prv/scheduler.h>
 #include <isix/arch/irq_cpu.h>
+#include <isix/assert.h>
 
 
 static inline __attribute__((always_inline))

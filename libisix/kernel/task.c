@@ -9,6 +9,7 @@
 #include <string.h>
 #include <isix/prv/scheduler.h>
 #include <isix/arch/core.h>
+#include <isix/assert.h>
 
 
 #ifdef CONFIG_ISIX_LOGLEVEL_TASK
@@ -26,6 +27,7 @@ enum { MAGIC_FILL_VALUE = 0x55 };
 ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 		unsigned long  stack_depth, osprio_t priority, unsigned long flags )
 {
+    isix_assert_isr();
 	pr_info("tskcreate: Create task with prio %i",priority);
     if( (isix_get_min_priority()<priority) && !_isixp_is_idle_prio(priority) )
     {
@@ -109,6 +111,7 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
  */
 int isix_task_change_prio( ostask_t task, osprio_t new_prio )
 {
+    isix_assert_isr();
 	if( !schrun ) {
 		return ISIX_ESTATE;
 	}
@@ -139,6 +142,7 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
 //Delete task pointed by struct task
 void isix_task_kill( ostask_t task )
 {
+    isix_assert_isr();
 	//Release all waiting mutexes owned by task
     ostask_t taskd = task?task:currp;
 	isix_enter_critical();
@@ -161,6 +165,7 @@ void isix_task_kill( ostask_t task )
 //Get current thread handler
 ostask_t isix_task_self(void)
 {
+    isix_assert_isr();
     return currp;
 }
 
@@ -173,6 +178,7 @@ ostask_t isix_task_self(void)
 
 ssize_t isix_free_stack_space(ostask_t task)
 {
+    isix_assert_isr();
 	if( task == NULL ) task = currp;
 	isix_enter_critical();
 	if( !task->init_stack ) {
@@ -200,6 +206,7 @@ ssize_t isix_free_stack_space(ostask_t task)
  */
 osprio_t isix_get_task_priority( const ostask_t task )
 {
+    isix_assert_isr();
 	const ostask_t taskd = task?task:currp;
 	return taskd->real_prio;
 }
@@ -207,6 +214,7 @@ osprio_t isix_get_task_priority( const ostask_t task )
 //Get task origin priority
 osprio_t isix_get_task_inherited_priority( const ostask_t task )
 {
+    isix_assert_isr();
 	const ostask_t taskd = task?task:currp;
 	return taskd->prio;
 }
@@ -217,6 +225,7 @@ osprio_t isix_get_task_inherited_priority( const ostask_t task )
  */
 enum osthr_state isix_get_task_state( const ostask_t task )
 {
+    isix_assert_isr();
 	const ostask_t taskd = task?task:currp;
 	return taskd->state;
 }
@@ -224,6 +233,7 @@ enum osthr_state isix_get_task_state( const ostask_t task )
 //! Set task to suspend state
 void isix_task_suspend( ostask_t task )
 {
+    isix_assert_isr();
 	isix_enter_critical();
     ostask_t taskd = task?task:currp;
 	_isixp_add_kill_or_set_suspend( taskd, true );
@@ -239,6 +249,7 @@ void isix_task_suspend( ostask_t task )
 /** Resume the current task */
 int isix_task_resume( ostask_t task )
 {
+    isix_assert_isr();
 	if( task == currp || !task ) {
 		return ISIX_EINVARG;
 	}
@@ -258,6 +269,7 @@ int isix_task_resume( ostask_t task )
 int isix_task_ref( ostask_t task )
 {
     ostask_t taskd = task?task:currp;
+    isix_assert_isr();
 	isix_enter_critical();
 	int ret = ISIX_EOK;
 	//! Unable to reference already released task
@@ -275,6 +287,7 @@ int isix_task_ref( ostask_t task )
 int isix_task_unref( ostask_t task )
 {
     ostask_t taskd = task?task:currp;
+    isix_assert_isr();
 	isix_enter_critical();
 	if( taskd->refcnt < 1  ) {
 		isix_exit_critical();
@@ -292,6 +305,7 @@ int isix_task_unref( ostask_t task )
 // Wait for selected task to finish
 int isix_task_wait_for( ostask_t task )
 {
+    isix_assert_isr();
 	if( task == currp || !task ) {
 		pr_err("Wait for self");
 		return ISIX_EINVARG;

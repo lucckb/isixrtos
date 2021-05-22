@@ -14,6 +14,7 @@
 #include <isix/prv/common.h>
 #include <isix/memory.h>
 #include <isix/prv/scheduler.h>
+#include <isix/assert.h>
 
 //! Internal inode representation
 struct mempool_node
@@ -31,6 +32,7 @@ static inline bool addr_in_mempool( osmempool_t mp, const void* p )
 /* Create the mempool */
 osmempool_t isix_mempool_create( size_t elems, size_t elem_size )
 {
+    isix_assert_isr();
     elem_size = _isixp_align_size( elem_size );
     if( elem_size < sizeof(struct mempool_node))
     {
@@ -59,6 +61,7 @@ osmempool_t isix_mempool_create( size_t elems, size_t elem_size )
 /* Destroy the mempool */
 void isix_mempool_destroy( osmempool_t mp )
 {
+    isix_assert_isr();
     if( !mp )
       return;
     isix_free( mp->mem );
