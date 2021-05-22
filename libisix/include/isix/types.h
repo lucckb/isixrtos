@@ -40,7 +40,7 @@ static constexpr auto OSREF_T_MAX = UINT16_MAX;
 //! Define tick type
 typedef unsigned int ostick_t;
 //! Define a micro tick
-typedef unsigned long osutick_t;
+typedef uint64_t osutick_t;
 //! Priority type
 typedef uint16_t osref_t;
 //! Natural bitset type
