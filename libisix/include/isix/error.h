@@ -1,6 +1,10 @@
 #pragma once
 
 
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
 /** Returned error codes definitions */
 enum isix_error
 {
@@ -21,4 +25,27 @@ enum isix_error
 	ISIX_EFIFOEMPTY		= -16,		/** Fifo queue is empty */
 	ISIX_EINVADDR		= -17,		/** Invalid address */
 	ISIX_EBADF			= -18,		/** Invalid data state */
+    _ISIX_ERROR_EOF     = -19,      /** Isix last error */
 };
+
+
+/** Convert isix error to the string
+ * @param[in] error ISIX error code
+ * @return String error
+ */
+const char* isix_strerror(int error);
+
+#ifdef __cplusplus 
+}
+#endif
+
+#ifdef __cplusplus
+namespace isix {
+   namespace {
+       inline auto strerror(int error)
+       {
+            return ::isix_strerror(error);
+       }
+   } 
+}
+#endif
