@@ -44,7 +44,7 @@ lest::tests& specification()
 */
 
 //! Unit tests main thread
-static void unittests_thread(void*)
+static void unittests_thread(void*) 
 {
 	try {
 		lest::run( specification(), { "-c" } );
@@ -113,17 +113,16 @@ void application_crash( crash_mode type, unsigned long* sp )
 
 
 //! Handle crash handlers
-extern "C" {
 	//Crash info interrupt handler
-	void __attribute__((__interrupt__,naked)) hard_fault_exception_vector(void)
-	{
-		_cm3_hard_hault_entry_fn( application_crash );
-	}
-	//Isix panic callback
-	void isix_kernel_panic_callback( const char* file, int line, const char *msg )
-	{
-		fnd::tiny_printf("ISIX_PANIC %s:%i %s\r\n", file, line, msg );
-	}
+ISIX_ISR_NACKED_VECTOR(hard_fault_exception_vector)
+{
+    _cm3_hard_hault_entry_fn( application_crash );
+}
+
+//Isix panic callback
+extern "C" void isix_kernel_panic_callback( const char* file, int line, const char *msg )
+{
+    fnd::tiny_printf("ISIX_PANIC %s:%i %s\r\n", file, line, msg );
 }
 
 //! Extra functions for stdlib support
@@ -135,4 +134,3 @@ extern "C" {
 		return 0;
 	}
 }
-

@@ -2,6 +2,7 @@
 #include <isix/types.h>
 #include <isix/task.h>
 #include <isix/prv/scheduler.h>
+#include <isix/arch/isr_vectors.h>
 
 
 /** Restore the context to the place when scheduler was started to run
@@ -61,7 +62,7 @@
 
 
 //Pend SV interrupt (context switch)
-void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
+ISIX_ISR_NACKED_VECTOR(pend_svc_isr_vector)
 {
 #if CONFIG_ISIX_SHUTDOWN_API
 	if( schrun ) {
@@ -80,7 +81,7 @@ void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 
 
 //SVC handler call for start the first task
-void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
+ISIX_ISR_NACKED_VECTOR(svc_isr_vector)
 {
      asm volatile(
      "ldr r3, 0f\t\n"				/* Restore the context. */

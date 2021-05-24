@@ -18,6 +18,15 @@
 
 extern unsigned long _estack;	   /* init value for the stack pointer. defined in linker script */
 
+#ifdef __GNUC__
+#include <sys/features.h>
+#   if __GNUC_PREREQ(11,1)
+#       define interrupt optimize("align-functions=8") 
+#  endif
+#else
+#   error Isix supports only GCC compiler
+#endif
+
 #define ISR_VECTOR( handler_name ) void handler_name(void) \
 	__attribute__ ((interrupt, weak, alias("unused_vector")))
 #define ISR_VECTOR_FORCED( handler_name )  \

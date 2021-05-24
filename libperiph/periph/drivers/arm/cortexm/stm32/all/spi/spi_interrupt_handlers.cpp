@@ -19,6 +19,7 @@
 #include <periph/core/error.hpp>
 #include <cstdlib>
 #include <functional>
+#include <isix/arch/isr_vectors.h>
 #include "spi_interrupt_handlers.hpp"
 
 namespace periph::drivers::spi::_handlers {
@@ -68,23 +69,21 @@ int register_handler(const SPI_TypeDef * const spi, std::function<void()> callba
 	}
 
 //Interrupts handlers
-extern "C" {
 
 #ifdef SPI1
-	__attribute__((interrupt)) void spi1_isr_vector() {
+	ISIX_ISR_VECTOR(spi1_isr_vector) {
 		spi_vector[0]();
 	}
 #endif
 #ifdef SPI2
-	__attribute__((interrupt)) void spi2_isr_vector() {
+	ISIX_ISR_VECTOR(spi2_isr_vector) {
 		spi_vector[1]();
 	}
 #endif
 #ifdef SPI3
-	__attribute__((interrupt)) void spi3_isr_vector() {
+	ISIX_ISR_VECTOR(spi3_isr_vector) {
 		spi_vector[2]();
 	}
 #endif
-}
 
 }

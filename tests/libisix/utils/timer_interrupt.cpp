@@ -23,6 +23,7 @@
 #include <stm32_ll_bus.h>
 #include <isix/arch/irq_platform.h>
 #include <isix/arch/irq.h>
+#include <isix/arch/isr_vectors.h>
 #include <atomic>
 #include <stdexcept>
 
@@ -70,12 +71,10 @@ void periodic_timer_stop() noexcept {
 	initialized = false;
 }
 
-extern "C" {
-	void __attribute__((interrupt)) tim3_isr_vector() noexcept
-	{
-		LL_TIM_ClearFlag_UPDATE(TIM3);
-		normal_handler();
-	}
-}	//ExternC
+ISIX_ISR_VECTOR(tim3_isr_vector)
+{
+    LL_TIM_ClearFlag_UPDATE(TIM3);
+    normal_handler();
+}
 
 }}	//Detail

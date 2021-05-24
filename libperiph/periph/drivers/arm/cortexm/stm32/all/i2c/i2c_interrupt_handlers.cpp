@@ -18,6 +18,7 @@
 
 #include <periph/core/error.hpp>
 #include <periph/i2c/i2c_interrupt_handlers.hpp>
+#include <isix/arch/isr_vectors.h>
 #include <cstdlib>
 
 
@@ -69,40 +70,38 @@ int register_handler(const I2C_TypeDef * const i2c, std::function<void(htype)> c
 
 
 //Interrupts handlers
-extern "C" {
 
 #ifdef I2C1
-	__attribute__((interrupt)) void i2c1_ev_isr_vector() {
+	ISIX_ISR_VECTOR(i2c1_ev_isr_vector) {
 		i2c_vector[0](htype::ev);
 	}
-	__attribute__((interrupt)) void i2c1_er_isr_vector() {
+	ISIX_ISR_VECTOR(i2c1_er_isr_vector) {
 		i2c_vector[0](htype::err);
 	}
 #endif
 #ifdef I2C2
-	__attribute__((interrupt)) void i2c2_ev_isr_vector() {
+	ISIX_ISR_VECTOR(i2c2_ev_isr_vector) {
 		i2c_vector[1](htype::ev);
 	}
-	__attribute__((interrupt)) void i2c2_er_isr_vector() {
+	ISIX_ISR_VECTOR(i2c2_er_isr_vector) {
 		i2c_vector[1](htype::err);
 	}
 #endif
 #ifdef I2C3
-	__attribute__((interrupt)) void i2c3_ev_isr_vector() {
+	ISIX_ISR_VECTOR(i2c3_ev_isr_vector) {
 		i2c_vector[2](htype::ev);
 	}
-	__attribute__((interrupt)) void i2c3_er_isr_vector() {
+	ISIX_ISR_VECTOR(i2c3_er_isr_vector) {
 		i2c_vector[2](htype::err);
 	}
 #endif
 #ifdef I2C4
-	__attribute__((interrupt)) void i2c4_ev_isr_vector() {
+	ISIX_ISR_VECTOR(i2c4_ev_isr_vector) {
 		i2c_vector[3](htype::ev);
 	}
-	__attribute__((interrupt)) void i2c4_er_isr_vector() {
+	ISIX_ISR_VECTOR(i2c4_er_isr_vector) {
 		i2c_vector[3](htype::err);
 	}
 #endif
-}
 
 }

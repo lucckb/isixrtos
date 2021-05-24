@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+
 static inline __attribute__((always_inline))
 bool _isix_port_is_in_isr(void)
 {
@@ -15,8 +16,6 @@ bool _isix_port_is_in_isr(void)
     return result;
 }
 
-
 #ifdef __cplusplus
 }
 #endif
-

@@ -20,6 +20,7 @@
 #include <functional>
 #include <periph/core/error.hpp>
 #include <periph/dma/dma_interrupt_handlers.hpp>
+#include <isix/arch/isr_vectors.h>
 
 namespace periph::drivers::dma::_handlers {
 
@@ -38,56 +39,55 @@ int register_handler(int channel, std::function<void()> callback)
 	return error::success;
 }
 
-
 extern "C" {
 	//DMA1
-	__attribute__((interrupt)) void dma1_stream0_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_stream0_isr_vector) {
 		vectors[0]();
 	}
-	__attribute__((interrupt)) void dma1_stream1_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_stream1_isr_vector) {
 		vectors[1]();
 	}
-	__attribute__((interrupt)) void dma1_stream2_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_stream2_isr_vector) {
 		vectors[2]();
 	}
-	__attribute__((interrupt)) void dma1_stream3_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_stream3_isr_vector) {
 		vectors[3]();
 	}
-	__attribute__((interrupt)) void dma1_stream4_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_stream4_isr_vector) {
 		vectors[4]();
 	}
-	__attribute__((interrupt)) void dma1_stream5_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_stream5_isr_vector) {
 		vectors[5]();
 	}
-	__attribute__((interrupt)) void dma1_stream6_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_stream6_isr_vector) {
 		vectors[6]();
 	}
-	__attribute__((interrupt)) void dma1_stream7_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_stream7_isr_vector) {
 		vectors[7]();
 	}
 	//DMA2
-	__attribute__((interrupt)) void dma2_stream0_isr_vector() {
+	ISIX_ISR_VECTOR(dma2_stream0_isr_vector) {
 		vectors[8]();
 	}
-	__attribute__((interrupt)) void dma2_stream1_isr_vector() {
+	ISIX_ISR_VECTOR(dma2_stream1_isr_vector) {
 		vectors[9]();
 	}
-	__attribute__((interrupt)) void dma2_stream2_isr_vector() {
+	ISIX_ISR_VECTOR(dma2_stream2_isr_vector) {
 		vectors[10]();
 	}
-	__attribute__((interrupt)) void dma2_stream3_isr_vector() {
+	ISIX_ISR_VECTOR(dma2_stream3_isr_vector) {
 		vectors[11]();
 	}
-	__attribute__((interrupt)) void dma2_stream4_isr_vector() {
+	ISIX_ISR_VECTOR(dma2_stream4_isr_vector) {
 		vectors[12]();
 	}
-	__attribute__((interrupt)) void dma2_stream5_isr_vector() {
+	ISIX_ISR_VECTOR(dma2_stream5_isr_vector) {
 		vectors[13]();
 	}
-	__attribute__((interrupt)) void dma2_stream6_isr_vector() {
+	ISIX_ISR_VECTOR(dma2_stream6_isr_vector) {
 		vectors[14]();
 	}
-	__attribute__((interrupt)) void dma2_stream7_isr_vector() {
+	ISIX_ISR_VECTOR(dma2_stream7_isr_vector) {
 		vectors[15]();
 	}
 

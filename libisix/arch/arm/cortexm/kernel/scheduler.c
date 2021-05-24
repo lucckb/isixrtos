@@ -21,13 +21,14 @@
 #include <isix/cortexm/scb_regs.h>
 #include <isix/assert.h>
 #include <isix/prv/scheduler.h>
+#include <isix/arch/isr_vectors.h>
 
 
 #define CPUID_CORTEX_M7_r0p1  0x410FC271UL
 #define CPUID_CORTEX_M7_r0p0  0x410FC270UL
 
 //Cyclic schedule time interrupt
-void __attribute__((__interrupt__)) systick_isr_vector(void)
+ISIX_ISR_VECTOR(systick_isr_vector)
 {
 	_isixp_schedule_time();
 
