@@ -12,18 +12,20 @@ build() {
 			--prefix=$PREFIX \
 			--build=$CHOST \
 			--host=$CHOST \
-			--enable-interwork \
-			--enable-multilib \
 			--disable-nls \
 			--disable-werror \
-			--enable-lto
+			--disable-sim \
+			--disable-gdb \
+			--enable-interwork \
+			--enable-plugins 
+
 		make
 		popd
 		touch "$compname/.compiled" 
 	fi
 	if [ ! -f "$compname/.installed" ]; then
 		pushd $compname
-		sudo make install
+		make install
 		popd
 		touch "$compname/.installed" 
 	fi

@@ -4,10 +4,10 @@ source macbuild-common.env
 arm-none-eabi-ld -v
 compname="$BASEDIR/${pkg_dirs[gcc]}"
 
-if [ ! -f "$compname/.patched" ]; then
-		patch -p2 -d "$BASEDIR/${pkg_dirs[gcc]}" < patch-gcc-config-arm-t-arm-elf.diff
-		touch "$compname/.patched"
-fi
+#if [ ! -f "$compname/.patched" ]; then
+#		patch -p2 -d "$BASEDIR/${pkg_dirs[gcc]}" < patch-gcc-config-arm-t-arm-elf.diff
+#		touch "$compname/.patched"
+#fi
 
 #Compile
 if [ ! -f "$compname/.compile-full" ]; then
@@ -22,30 +22,31 @@ if [ ! -f "$compname/.compile-full" ]; then
 		--host=$CHOST \
 		--with-as=${PREFIX}/bin/${TARGET}-as \
 		--with-ld=${PREFIX}/bin/${TARGET}-ld \
-		--enable-multilib \
-		--enable-languages="c,c++" \
-		--disable-shared \
-		--disable-threads \
-		--disable-clocale \
-		--disable-libstdcxx-time \
-		--disable-libstdcxx-threads \
-		--with-gnu-as \
-		--with-gnu-ld \
-		--with-newlib \
-		--disable-libgomp \
-		--disable-libmudflap \
-		--disable-libssp \
-		--disable-nls \
-		--enable-lto \
-		--disable-libstdcxx-verbose \
-		--disable-libstdcxx-dual-abi \
-		--disable-wchar_t  \
-		--disable-vtable-verify \
-		--enable-cxx-flags='-fomit-frame-pointer -ffunction-sections -fdata-sections' \
 		--with-mpfr=/usr/local/Cellar/mpfr/4.1.0 \
 		--with-mpc=/usr/local/Cellar/libmpc/1.2.1 \
-		--with-gmp=/usr/local/Cellar/gmp/6.2.1
-	make all 	
+		--with-gmp=/usr/local/Cellar/gmp/6.2.1 \
+		--with-isl=/usr/local/Cellar/isl/0.24 \
+		--with-libelf=/usr/local/Cellar/libelf/0.8.13_1 \
+		--enable-languages=c,c++ \
+        --enable-plugins \
+        --disable-decimal-float \
+        --disable-libffi \
+        --disable-libgomp \
+        --disable-libmudflap \
+        --disable-libquadmath \
+        --disable-libssp \
+        --disable-libstdcxx-pch \
+        --disable-nls \
+        --disable-shared \
+        --disable-threads \
+        --disable-tls \
+        --with-gnu-as \
+        --with-gnu-ld \
+        --with-newlib \
+        --with-headers=yes \
+		--with-multilib-list=rmprofile  
+
+	make -j $(nproc) INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
 	popd
 	touch "$compname/.compile-full" 
 fi
@@ -54,7 +55,7 @@ fi
 if [ ! -f "$compname/.installed-full" ]; then
 	pushd "$BASEDIR"
 	cd build-gcc
-	sudo make install
+	make install
 	popd
 	touch "$compname/.installed-full" 
 fi

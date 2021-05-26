@@ -12,34 +12,26 @@ build() {
 			--prefix=$PREFIX \
 			--build=$CHOST \
 			--host=$CHOST \
-			--enable-interwork \
-			--with-gnu-ld \
-			--with-gnu-as \
-			--disable-shared \
-			--disable-newlib-supplied-syscalls \
-			--enable-newlib-reent-small \
-			--disable-newlib-fvwrite-in-streamio \
-			--disable-newlib-fseek-optimization \
-			--disable-newlib-wide-orient \
-			--enable-newlib-nano-malloc \
-			--disable-newlib-unbuf-stream-opt \
-			--enable-target-optspace \
-			--enable-newlib-io-float \
-			--disable-newlib-fvwrite-in-streamio \
-			--disable-newlib-wide-orient \
-			--enable-newlib-nano-malloc \
-			--disable-newlib-unbuf-stream-opt \
-			--enable-newlib-nano-formatted-io \
-			--enable-lto \
-			--disable-werror \
-			--disable-libgloss
+			--disable-newlib-supplied-syscalls    \
+			--enable-newlib-reent-check-verify    \
+			--enable-newlib-reent-small           \
+			--enable-newlib-retargetable-locking  \
+			--disable-newlib-fvwrite-in-streamio  \
+			--disable-newlib-fseek-optimization   \
+			--disable-newlib-wide-orient          \
+			--enable-newlib-nano-malloc           \
+			--disable-newlib-unbuf-stream-opt     \
+			--enable-lite-exit                    \
+			--enable-newlib-global-atexit         \
+			--enable-newlib-nano-formatted-io     \
+			--disable-nls
 		make
 		popd
 		touch "$compname/.compiled" 
 	fi
 	if [ ! -f "$compname/.installed" ]; then
 		pushd $compname
-		sudo make install
+		make install
 		popd
 		touch "$compname/.installed" 
 	fi
