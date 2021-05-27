@@ -82,6 +82,9 @@ def options(opt):
             choices=['0','1','2','3','s','g'],
             help='Compiler optimization flag. [default: s]'
             )
+    opt.add_option('--enable-newlib-nano',
+            help='Enable nano version of the newlib library',
+            action='store_true', default=False)
 
 
 
@@ -98,19 +101,23 @@ def configure(cfg):
     else:
         cflags += _cflags_ndebug
         cfg.env.LDFLAGS = _ldflags_ndebug
+    # We cant use newlib-nano with exceptions
+    if cfg.options.enable_newlib_nano:
+        if cfg.options.disable_exceptions:
+            cfg.env.LDFLAGS += [ '--specs=nano.specs' ]
+        else:
+            raise WafError('Unable to use nano version of newlib with exceptions enabled')
     optflag = [ '-O%s' % cfg.options.optimize ]
-    cfg.env.CFLAGS += cflags + \
-        ['-std=gnu11', '-Werror=implicit-function-declaration' ] + optflag
+    cfg.env.CFLAGS += cflags + ['-std=gnu11', '-Werror=implicit-function-declaration' ] + optflag
     cfg.env.CXXFLAGS += cflags + [ '-std=gnu++17' ] + optflag
     cfg.env.ASFLAGS += cflags + [ '-Wa,-mapcs-32' ] + optflag
     cfg.env.DEFINES += _get_flag(cfg.options.cpu,'defs')
     cfg.env.LDFLAGS += [ '-nostdlib', '-nostartfiles' ] + cflags + optflag
+    cfg.env.LDFLAGS += [ '--specs=nosys.specs' ]
     if cfg.options.disable_isix == True:
         cfg.env.DEFINES += [ 'CONFIG_ISIX_WITHOUT_KERNEL=1' ]
     if cfg.options.disable_exceptions == True:
         cfg.env.CXXFLAGS += [ '-fno-exceptions', '-fno-rtti' ]
-    # Optionaly force DSO handle
-    #cfg.env.prepend_value('LINKFLAGS', '-Wl,--undefined=__dso_handle')
 
 
 # Return linker memory map

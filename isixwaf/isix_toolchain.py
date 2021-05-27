@@ -6,9 +6,6 @@ from waflib import Logs,Context
 import os
 import json
 
-
-
-
 # Configure toolchain
 def configure(conf):
     _set_default_options(conf)
