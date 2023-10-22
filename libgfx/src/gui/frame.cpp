@@ -122,14 +122,12 @@ void frame::repaint( bool force, window *wnd, bool force_clr )
 int frame::set_focus( window* win, window* back_win )
 {
 	isix::sem_lock _lck( m_lock );
-	auto elem = std::find_if( std::begin(m_windows), std::end(m_windows),
-			[&]( const window* w ) { return w == win; } );
+	auto elem = std::find( m_windows.begin(), m_windows.end(), win );
 	if( elem != m_windows.end() ) {
-		m_windows.erase( elem );
+		m_windows.splice( m_windows.end(), m_windows, elem );
 		if( back_win ) {
 			m_win_stack.push( back_win );
 		}
-		m_windows.push_back( *elem );
 		queue_repaint( true, win, true );
 		return error::success;
 	} else {

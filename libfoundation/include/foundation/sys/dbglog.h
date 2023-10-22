@@ -43,6 +43,7 @@ static inline const char* _isix_dbglog_extract_basename(const char *file) {
 
 #pragma GCC system_header
 #ifdef __cplusplus
+#define dbonly(code) code
 #define dblog_init(function,arg, usart_init,...)	\
   do { fnd::register_printf_putc_handler(function,arg); \
   	   usart_init(__VA_ARGS__); } while(0)
@@ -71,7 +72,7 @@ static inline const char* _isix_dbglog_extract_basename(const char *file) {
 		 usart_init(__VA_ARGS__); } while(0)
 
 #else /* PDEBUG */
-
+#define dbonly(code)
 #define dblog_init(function,arg, usart_init,...) do {} while(0)
 #define dblog_init_putc(function,arg) do {} while(0)
 #define dbprintf(...) do {} while(0)

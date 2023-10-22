@@ -7,8 +7,6 @@ extern unsigned long _sdata;
 extern unsigned long _edata;
 extern unsigned long _sbss;
 extern unsigned long _ebss;
-extern unsigned char __heap_start;
-extern unsigned char __heap_end;
 
 
 void  __attribute__((weak,alias("empty_func")))_isixp_finalize();
@@ -88,8 +86,9 @@ static void early_cpu_setup(void)
 __attribute__((noreturn))
 void _mcu_reset_handler_(void)
 {
-	unsigned long *pul_src, *pul_dest;
-	early_cpu_setup();
+        extern unsigned long *const _heap_start, *const _heap_end;
+        unsigned long *pul_src, *pul_dest;
+        early_cpu_setup();
     ///
     // Copy the data segment initializers from flash to SRAM.
     //
@@ -107,7 +106,7 @@ void _mcu_reset_handler_(void)
         *(pul_dest++) = 0;
     }
 	// Clear the heap
-	for(pul_dest = (unsigned long*)&__heap_start; pul_dest < (unsigned long*)&__heap_end; )
+	for(pul_dest = _heap_start; pul_dest < _heap_end; )
 	{
 		*(pul_dest++) = 0;
 	}

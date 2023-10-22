@@ -301,7 +301,7 @@ int i2c_bus::transfer_impl(unsigned addr, const void* wbuffer,
 int i2c_bus::write( unsigned addr, const void* wbuf1, size_t wsize1, const void* wbuf2, size_t wsize2 )
 {
 	m_tx2_len = (wbuf2!=nullptr)?(wsize2):(0);
-	m_tx2_buf = const_cast<const uint8_t * volatile>(reinterpret_cast<const uint8_t*>(wbuf2));
+	m_tx2_buf = reinterpret_cast<const uint8_t*>(wbuf2);
 #if CONFIG_ISIXDRV_I2C_NODMA
 	m_tx2_cnt = 0;
 #endif
@@ -490,24 +490,24 @@ void i2c_bus::mdelay( unsigned timeout )
 extern "C" {
 #if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	/* Irq ev handler */
-	void __attribute__ ((interrupt)) i2c1_ev_isr_vector()
+	void i2c1_ev_isr_vector()
 	{
 		if( obj_i2c1 ) obj_i2c1->ev_irq();
 	}
 	/* Irq err handler */
-	void __attribute__ ((interrupt)) i2c1_er_isr_vector()
+	void i2c1_er_isr_vector()
 	{
 		if( obj_i2c1 ) obj_i2c1->err_irq();
 	}
 #endif
 #if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	/* Irq ev handler */
-	void __attribute__ ((interrupt)) i2c2_ev_isr_vector()
+	void i2c2_ev_isr_vector()
 	{
 		if( obj_i2c2 ) obj_i2c2->ev_irq();
 	}
 	/* Irq err handler */
-	void __attribute__ ((interrupt)) i2c2_er_isr_vector()
+	void i2c2_er_isr_vector()
 	{
 		if( obj_i2c2 ) obj_i2c2->err_irq();
 	}
@@ -516,7 +516,7 @@ extern "C" {
 #ifndef STM32MCU_MAJOR_TYPE_F1
 	//I2C1 RX
 #	if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
-	__attribute__((interrupt)) void dma1_stream0_isr_vector()
+	void dma1_stream0_isr_vector()
 	{
 		dma_clear_flag( DMA1_Stream0, DMA_FLAG_TCIF0|DMA_FLAG_TEIF0 );
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
@@ -524,7 +524,7 @@ extern "C" {
 #	endif
 #	if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2DMARX
-	__attribute__((interrupt)) void dma1_stream2_isr_vector()
+	void dma1_stream2_isr_vector()
 	{
 		dma_clear_flag( DMA1_Stream2, DMA_FLAG_TCIF2|DMA_FLAG_TEIF2 );
 		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();
@@ -533,7 +533,7 @@ extern "C" {
 #else
 #	if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_1)
 	//I2C1 RX
-	__attribute__((interrupt)) void dma1_channel7_isr_vector()
+	void dma1_channel7_isr_vector()
 	{
 		stm32::dma_clear_flag( DMA1_FLAG_TC7 );
 		if( obj_i2c1 ) obj_i2c1->ev_dma_tc();
@@ -541,7 +541,7 @@ extern "C" {
 #	endif
 #	if !CONFIG_ISIXDRV_I2C_USE_FIXED_I2C || (CONFIG_ISIXDRV_I2C_USE_FIXED_I2C==CONFIG_ISIXDRV_I2C_2)
 	//I2C2 RX
-	__attribute__((interrupt)) void dma1_channel5_isr_vector()
+	void dma1_channel5_isr_vector()
 	{
 		stm32::dma_clear_flag( DMA1_FLAG_TC5 );
 		if( obj_i2c2 ) obj_i2c2->ev_dma_tc();

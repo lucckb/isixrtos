@@ -18,8 +18,8 @@ namespace dev {
  
 extern "C"
 {
-    void dma1_channel1_isr_vector() __attribute__((interrupt));
-    void dma2_stream0_isr_vector() __attribute__((interrupt));
+    void dma1_channel1_isr_vector();
+    void dma2_stream0_isr_vector();
 }
  
 class adc_converter {

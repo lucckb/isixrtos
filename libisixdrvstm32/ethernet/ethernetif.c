@@ -697,7 +697,6 @@ static err_t  ethernetif_input(struct netif *netif);
   * @param  None
   * @retval None
   */
-void eth_isr_vector(void) __attribute__((__interrupt__));
 void eth_isr_vector(void)
 {
 	if( eth_get_dma_it_status(ETH_DMA_IT_R ) )
@@ -724,7 +723,7 @@ void eth_isr_vector(void)
  *  Interrupt handler for MAC dervice
  */
 #if PHY_INT_USE_INTERRUPT
-#define DO_EXTI_HANLDLER(x) void  __attribute__((__interrupt__)) exti ## x ## _isr_vector(void)
+#define DO_EXTI_HANLDLER(x) void exti ## x ## _isr_vector(void)
 #define EXTI_HANDLER(x) DO_EXTI_HANLDLER( x )
 
 EXTI_HANDLER(PHY_INT_EXTI_NUM)

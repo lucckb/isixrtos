@@ -13,6 +13,7 @@
 #include <gfx/disp/static_bitmap.hpp>
 #include <algorithm>
 #include <utility>
+#include <limits>
  
 namespace gfx {
 namespace gui {

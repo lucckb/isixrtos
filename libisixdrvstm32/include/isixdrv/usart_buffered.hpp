@@ -18,16 +18,16 @@ namespace dev {
 
 extern "C"
 {
-	void usart1_isr_vector(void) __attribute__ ((interrupt));
-	void usart2_isr_vector(void) __attribute__ ((interrupt));
+	void usart1_isr_vector(void);
+	void usart2_isr_vector(void);
 #ifdef USART3
-	void usart3_isr_vector(void) __attribute__ ((interrupt));
+	void usart3_isr_vector(void);
 #endif
 #ifdef USART4
-	void usart4_isr_vector(void) __attribute__ ((interrupt));
+	void usart4_isr_vector(void);
 #endif
 #ifdef USART5
-	void usart5_isr_vector(void) __attribute__ ((interrupt));
+	void usart5_isr_vector(void);
 #endif
 }
 

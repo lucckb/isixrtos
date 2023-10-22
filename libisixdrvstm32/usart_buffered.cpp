@@ -606,34 +606,29 @@ void usart_buffered::map_control_lines( const usart_cfgctl_lines& cfg )
 extern "C"
 {
 	//Usart 1
-	void usart1_isr_vector(void) __attribute__ ((interrupt));
 	void usart1_isr_vector(void)
 	{
 		if(usart1_obj) usart1_obj->isr();
 	}
 	//Usart 2
-	void usart2_isr_vector(void) __attribute__ ((interrupt));
 	void usart2_isr_vector(void)
 	{
 		if(usart2_obj) usart2_obj->isr();
 	}
 #ifdef USART3
 	//Usart 2
-	void usart3_isr_vector(void) __attribute__ ((interrupt));
 	void usart3_isr_vector(void)
 	{
 		if(usart3_obj) usart3_obj->isr();
 	}
 #endif
 #ifdef USART4
-	void usart4_isr_vector(void) __attribute__ ((interrupt));
 	void usart4_isr_vector(void)
 	{
 		if(usart4_obj) usart4_obj->isr();
 	}
 #endif
 #ifdef USART5
-	void usart5_isr_vector(void) __attribute__ ((interrupt));
 	void usart5_isr_vector(void)
 	{
 		if(usart5_obj) usart5_obj->isr();

@@ -244,7 +244,6 @@ extern "C"
     	stm32::dma_clear_flag( DMA1_FLAG_TC1 );
     }
 #elif defined(STM32MCU_MAJOR_TYPE_F4) || defined(STM32MCU_MAJOR_TYPE_F2)
-    void dma2_stream0_isr_vector(void) __attribute__((interrupt));
     void dma2_stream0_isr_vector(void)
     {
     	if(adc1_object)

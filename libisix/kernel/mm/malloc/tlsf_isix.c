@@ -30,11 +30,10 @@
 //! Initialize global heap
 void _isixp_alloc_init(void)
 {
-	extern unsigned char __heap_start;
-	extern unsigned char __heap_end;
+	extern void *const _heap_start, *const _heap_end;
 	size_t ret = init_memory_pool(
-			&__heap_end - &__heap_start,
-			&__heap_start
+			_heap_end - _heap_start,
+			_heap_start
 	);
 	if( ret == (size_t)-1 ) {
 		isix_bug("Unable to create TSLF memory pool");

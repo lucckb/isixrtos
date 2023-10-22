@@ -27,12 +27,12 @@ namespace drv {
 
 #if(ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 extern "C" {
-	void __attribute__((__interrupt__)) sdio_isr_vector( void );
+	void sdio_isr_vector( void );
 }
 #endif
 #if ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ
 extern "C" {
-void __attribute__((__interrupt__)) exti8_isr_vector(void);
+void exti8_isr_vector(void);
 }
 #endif
 
