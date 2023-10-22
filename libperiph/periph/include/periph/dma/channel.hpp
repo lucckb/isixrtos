@@ -45,40 +45,29 @@ namespace detail {
 		static constexpr auto transfer_prio = 0x3000U;
 	}
 }
-	enum src_increment_mode {
+	enum transfer_mode : flags_t {
 		mode_src_ninc = 0 << 0,
-		mode_src_inc =  1 << 0
-	};
-	enum dst_increment_mode {
+		mode_src_inc =  1 << 0,
+
 		mode_dst_ninc = 0 << 1,
-		mode_dst_inc =  1 << 1
-	};
-	enum src_transfer_size : flags_t {
+		mode_dst_inc =  1 << 1,
+
 		mode_src_size_byte = 0 << 3,
 		mode_src_size_halfword = 1 << 3,
 		mode_src_size_word = 2 << 3,
-	};
 
-
-	enum dest_transfer_size : flags_t {
 		mode_dst_size_byte = 0 << 6,
 		mode_dst_size_halfword = 1 << 6,
 		mode_dst_size_word = 2 << 6,
-	};
 
-	enum transfer_mode : flags_t {
 		mode_single = 0 << 9,
 		mode_circural = 1 << 9,
-	};
 
-	enum transfer_prio : flags_t {
 		priority_low = 0 << 12,
 		priority_med = 1 << 12,
 		priority_hi  = 2 << 12,
-		priority_vhi = 3 << 12
-	};
+		priority_vhi = 3 << 12,
 
-	enum start_mode : flags_t {
 		mode_start_now		   = 0 << 13,
 		mode_start_delayed	   = 1 << 13,
 	};

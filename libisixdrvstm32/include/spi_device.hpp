@@ -36,28 +36,20 @@ public:
 		CS0, CS1, CS2, CS3,
 		CS_, //! Don't apply chip select
 	};
-	enum data_with
+	enum spi_mode
 	{
 		data_8b  = 0x00,//!< data_8b
-		data_16b = 0x01 //!< data_16b
-	};
-	enum polar
-	{
+		data_16b = 0x01, //!< data_16b
+
 		polar_cpol_low = 0x00,
-		polar_cpol_hi  = 0x02
-	};
-	enum phase
-	{
+		polar_cpol_hi  = 0x02,
+
 		phase_1edge = 0x00,
-		phase_2edge = 0x04
-	};
-	enum byte_order
-	{
+		phase_2edge = 0x04,
+
 		msb_first = 0x00,
-		lsb_first = 0x08
-	};
-	enum cs_conf
-	{
+		lsb_first = 0x08,
+
 		cs_software = 0x00,
 		cs_hardware = 0x10
 	};
