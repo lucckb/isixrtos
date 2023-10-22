@@ -107,8 +107,8 @@ def configure(cfg):
         else:
             raise WafError('Unable to use nano version of newlib with exceptions enabled')
     optflag = [ '-O%s' % cfg.options.optimize ]
-    cfg.env.CFLAGS += cflags + ['-std=gnu11', '-Werror=implicit-function-declaration' ] + optflag
-    cfg.env.CXXFLAGS += cflags + [ '-std=gnu++17' ] + optflag
+    cfg.env.CFLAGS += cflags + ['-std=gnu17', '-Werror=implicit-function-declaration' ] + optflag
+    cfg.env.CXXFLAGS += cflags + [ '-std=gnu++23', '-Wno-volatile' ] + optflag
     cfg.env.ASFLAGS += cflags + [ '-Wa,-mapcs-32' ] + optflag
     cfg.env.DEFINES += _get_flag(cfg.options.cpu,'defs')
     cfg.env.LDFLAGS += [ '-nostdlib', '-nostartfiles' ] + cflags + optflag
