@@ -6,27 +6,25 @@ from waflib.Tools import ccroot
 from waflib import Tools,Errors, Task
 from waflib.TaskGen import after, feature, after_method, before, extension
 
-_stdlib_lflags = [ '-Wl,--start-group', '-lstdc++', '-lc', '-lm', '-lg', '-lgcc', '-Wl,--end-group' ]
+_stdlib_lflags = [ '-Wl,--start-group', '-lstdc++', '-lc', '-lm', '-lg', '-lgcc', '-Wl,--end-group', '-flto=auto' ]
 
 _tmplink_file = 'ldscript.ld'
-
 
 @extension('.ld')
 def ld_hook(self, node):
     pass
 
 
-
 @after('apply_link')
 @feature('cprogram', 'cxxprogram' )
 def process_ldscript(self):
-        node = self.path.find_resource(_tmplink_file)
-        if not node:
-            raise Errors.WafError('could not find %r' % node)
-        if node:
-            self.link_task.env.append_value('LDFLAGS', ['-Wl,-T%s'% node.abspath()] )
-            self.link_task.dep_nodes.append(node)
-        self.link_task.env.append_value('LDFLAGS', _stdlib_lflags )
+    node = self.path.find_resource(_tmplink_file)
+    if not node:
+        raise Errors.WafError('could not find %r' % node)
+    if node:
+        self.link_task.env.append_value('LDFLAGS', ['-Wl,-T%s'% node.abspath()] )
+        self.link_task.dep_nodes.append(node)
+    self.link_task.env.append_value('LDFLAGS', _stdlib_lflags)
 
 
 #Only static libraries toolchain

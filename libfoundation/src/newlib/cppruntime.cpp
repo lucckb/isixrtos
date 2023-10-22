@@ -158,7 +158,7 @@ int __snprintf_lite(char *__buf, size_t __bufsize, const char *__fmt, va_list __
 
 
 //Bad function call handler if no exception
-#if (__cplusplus > 199711L) && !defined(__EXCEPTIONS) 
+#if (__cplusplus > 199711L) && !defined(__EXCEPTIONS) && defined(TODO_FIX_LINK_ORDER)
 namespace std
 {
 	  void
@@ -238,4 +238,3 @@ namespace std
 	  { terminate_process(); for(;;); }
 }
 #endif
-

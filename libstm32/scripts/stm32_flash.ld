@@ -128,9 +128,6 @@ SECTIONS
         . = ORIGIN(RAM) + LENGTH(RAM);
         _heap_end = .;
     } > RAM
-    
-    PROVIDE( __heap_start = _heap_start );
-    PROVIDE( __heap_end = _heap_end );
    
 	/* <WAFINSERT> Additional extra sections **/
     

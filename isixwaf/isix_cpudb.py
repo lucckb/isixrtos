@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 #Common project cflags
-_cflags = ['-Wno-variadic-macros', '-Wno-long-long', '-pipe', '-Wextra', '-Wall' ]
+_cflags = ['-Wno-variadic-macros', '-Wno-long-long', '-pipe', '-Wextra', '-Wall', '-Werror' ]
 _cflags_ndebug = [ '-fomit-frame-pointer', '-ffunction-sections', '-fdata-sections', '-flto' ]
 _ldflags_ndebug = [ '-Wl,--gc-sections', '-flto' ]
 _cflags_debug = [ '-g' ]
@@ -95,7 +95,6 @@ def configure(cfg):
     cfg.env.ISIX_CPU_TYPE = cfg.options.cpu
     cflags = _get_flag(cfg.options.cpu, 'cflags') + _cflags
     if cfg.options.debug == True:
-        cfg.env.ASFLAGS += [ '-gstabs' ]
         cflags += _cflags_debug
         cfg.env.DEFINES += [ 'PDEBUG' ]
     else:

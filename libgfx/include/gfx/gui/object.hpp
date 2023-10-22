@@ -70,7 +70,7 @@ protected:
 	bool emit( const event& ev )
 	{
 		bool ret {};
-		for( const auto handler : m_events )
+		for( const auto& handler : m_events )
 		{
 			if( handler->first == ev.type )
 				ret |= (handler->second)( ev );

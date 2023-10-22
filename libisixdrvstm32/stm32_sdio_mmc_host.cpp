@@ -229,7 +229,7 @@ void mmc_host_sdio::process_irq_exti()
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_TRANSFER_USE_IRQ)
 extern "C"
 {
-	void __attribute__((__interrupt__)) sdio_isr_vector( void )
+	void sdio_isr_vector( void )
 	{
 		if(p_sdio) p_sdio->process_irq_sdio();
 	}
@@ -239,7 +239,7 @@ extern "C"
 /*----------------------------------------------------------*/
 #if (ISIX_SDDRV_TRANSFER_MODE & ISIX_SDDRV_WAIT_USE_IRQ)
 extern "C" {
-    void __attribute__((__interrupt__)) exti8_isr_vector(void)
+    void exti8_isr_vector(void)
     {
         stm32::exti_clear_it_pending_bit( EXTI_Line8 );
         exti_init( EXTI_Line8, EXTI_Mode_Interrupt, EXTI_Trigger_Rising, false );
