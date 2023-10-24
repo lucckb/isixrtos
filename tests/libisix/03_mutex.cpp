@@ -406,13 +406,16 @@ static const lest::test module[] =
 		{
 			ret = isix::mutex_lock( mloc );
 			for(;;) {
-				isix_wait_ms(100);
+				isix_wait_ms(10);
 			}
 		};
 		int retp[4] { -9999, -9999, -9999, -9999 };
 		auto thr1 = isix::thread_create_and_run( STK_SIZ,4,0,thr,std::ref(retp[0]) );
+		isix::wait_ms(2);
 		auto thr2 = isix::thread_create_and_run( STK_SIZ,4,0,thr,std::ref(retp[1]) );
+		isix::wait_ms(2);
 		auto thr3 = isix::thread_create_and_run( STK_SIZ,4,0,thr,std::ref(retp[2]) );
+		isix::wait_ms(2);
 		auto thr4 = isix::thread_create_and_run( STK_SIZ,4,0,thr,std::ref(retp[3]) );
 		EXPECT( thr1 == true );
 		EXPECT( thr2 == true );
@@ -421,8 +424,8 @@ static const lest::test module[] =
 		isix::wait_ms(20);
 		EXPECT( isix::mutex_destroy( mloc )==ISIX_EOK );
 		isix::wait_ms(10);
-		EXPECT( retp[0]==ISIX_EOK );
-		EXPECT( retp[1]==ISIX_EDESTROY );
+		EXPECT( retp[0]==ISIX_EOK );	// First obtained
+		EXPECT( retp[1]==ISIX_EDESTROY );	// Others wating and destroyed
 		EXPECT( retp[2]==ISIX_EDESTROY );
 		EXPECT( retp[3]==ISIX_EDESTROY );
 		isix::wait_ms(10);
