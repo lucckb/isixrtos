@@ -201,7 +201,7 @@
 			"vendor": "stm32",
 			"family": "f4",
 			"cflags":  [ ],
-			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1"],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1", "STM32F407xx"],
 			"memmap" : {
 				"ram" : {
 					"origin": "0x20000000", 
@@ -225,6 +225,36 @@
 				}
 			}
 		},
+        "stm32f405rg_qemu" : {
+			"cpu": "arm_cortex_m4",
+			"vendor": "stm32",
+			"family": "f4",
+			"cflags":  [ ],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1", "STM32F405xx", "QEMU_NO_RCC_PERIPH"],
+			"memmap" : {
+				"ram" : {
+					"origin": "0x20000000", 
+					"length": "128K", 
+					"attrib": "xrw"
+				},
+				"flash" : {
+					"origin": "0x08000000", 
+					"length": "1024K", 
+					"attrib": "xr"
+				},
+				"ccmram" : {
+					"origin": "0x10000000", 
+					"length": "16K", 
+					"attrib": "xrw"
+				},
+				"bkpram" : {
+					"origin": "0x40024000", 
+					"length": "4K", 
+					"attrib": "xrw"
+				}
+			}
+		},
+
 		"stm32f411vet6" : {
 			"cpu": "arm_cortex_m4",
 			"vendor": "stm32",
