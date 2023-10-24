@@ -765,7 +765,7 @@ uint32_t LL_RCC_GetSDIOClockFreq(uint32_t SDIOxSource)
   * @retval RNG clock frequency (in Hz)
   *         - @ref  LL_RCC_PERIPH_FREQUENCY_NO indicates that oscillator is not ready
   */
-uint32_t LL_RCC_GetRNGClockFreq(uint32_t RNGxSource)
+uint32_t LL_RCC_GetRNGClockFreq(uint32_t __attribute__((unused)) RNGxSource)
 {
   uint32_t rng_frequency = LL_RCC_PERIPH_FREQUENCY_NO;
 
