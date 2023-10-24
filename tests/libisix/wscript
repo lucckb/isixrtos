@@ -52,6 +52,7 @@ def build(bld):
     src += bld.path.ant_glob( 'utils/*.S' )
     bld.program(
             features='objcopy',
+            objcopy_bfdname='binary',
             target='isixunittests',
             source=src,
             install_path=False,
