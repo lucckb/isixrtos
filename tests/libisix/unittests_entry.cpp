@@ -26,9 +26,66 @@
 #include <string>
 #include <sys/stat.h>
 #include <lest/lest.hpp>
-
+#include <stdio.h>
+#include <stdio_ext.h>
+#include <sys/lock.h>
 //! Global symbol for enable printf floating point support
 //asm (".global _printf_float");
+
+
+/** 
+ * Lest unit test framework uses exceptions extensively to 
+ * report errors, so the correctness of their operation is crucial. 
+ * These initial tests validate the correctness of exceptions at 
+ * the toolchain level. If they do not pass correctly further 
+ * tests are not run.
+*/
+namespace pretest {
+	auto run() -> int
+	{
+        auto basic_exc = []() {
+			int ec {};
+            try {
+                throw std::bad_alloc();
+            } catch (const std::exception& e) {
+				ec = 1;
+            } catch (...) {
+				ec = 2;
+            }
+			return ec;
+        };
+		if( basic_exc() != 1) {
+			dbprintf("Exceptions test failed. Unable to continue with least");
+			return EXIT_FAILURE;
+		}
+        auto rethrow_exc = []() {
+            try {
+                throw std::bad_alloc();
+            } catch (...) {
+                throw;
+            }
+        };
+		auto retrow_catch = [&rethrow_exc]() {
+			int ec {};
+			try {
+				rethrow_exc();
+			} catch( std::exception& ex) {
+				ec = 1;
+			} catch(...) {
+				ec = 2;
+			}
+			return ec;
+		};
+		if(retrow_catch() != 1) {
+			dbprintf("Exceptions rethow tests failed. Unable to continue with least");
+			return EXIT_FAILURE;
+		}
+		dbprintf("Exceptions pretest. OK");
+        return EXIT_SUCCESS;
+    }
+}
+
+
 
 // Global object for test specification register
 lest::tests& specification()
@@ -37,16 +94,15 @@ lest::tests& specification()
 	return tests;
 }
 
-/*
-	//vStartEventGroupTasks();
-	//isix::wait_ms(500);
-	//tests::detail::periodic_timer_setup( vPeriodicEventGroupsProcessing );
-*/
 
 //! Unit tests main thread
 static void unittests_thread(void*) 
 {
 	try {
+        if(pretest::run()) {
+			isix::wait_ms( 100 );
+			isix::shutdown_scheduler();
+		}
 		lest::run( specification(), { "-c" } );
 		//int code = lest::run( specification(), {"--", "06_task_10" } );
 		const int code = lest::run( specification(), {} );
@@ -95,7 +151,6 @@ int main()
 		return -1;
 	}
 	isix_start_scheduler();
-	dbprintf("Main exit\n");
 	return 0;
 }
 
@@ -127,10 +182,31 @@ extern "C" void isix_kernel_panic_callback( const char* file, int line, const ch
 
 //! Extra functions for stdlib support
 extern "C" {
-	int _gettimeofday (struct timeval *tp, void *) {
-		const auto j = isix::get_ujiffies();
-		tp->tv_sec = j / 1000'000;
-		tp->tv_usec = j % 1000'000;
-		return 0;
-	}
+int _gettimeofday(struct timeval* tp, void*) {
+    const auto j = isix::get_ujiffies();
+    tp->tv_sec = j / 1000'000;
+    tp->tv_usec = j % 1000'000;
+    return 0;
+}
+int _close_r() { return 0; }
+int _write(int file, const void* ptr, size_t len) {
+    (void)file;
+    (void)ptr;
+    (void)len;
+    return -1;
+}
+
+int _read(int file, void* ptr, size_t len) {
+    (void)file;
+    (void)ptr;
+    (void)len;
+    return -1;
+}
+
+off_t _lseek(int file, off_t ptr, int dir) {
+    (void)file;
+    (void)ptr;
+    (void)dir;
+    return -1;
+}
 }
