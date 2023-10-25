@@ -178,7 +178,7 @@ static const lest::test module[] =
 		EXPECT( m_t1.stop_isr()==ISIX_EOK );
 		EXPECT( m_t2.stop_isr()==ISIX_EOK );
 		EXPECT( m_t3.stop_isr()==ISIX_EOK );
-		isix_wait_ms(t3+2);	//Give some time to command exec
+		isix_wait_ms(t3+2);	//Give some time to exec command
 		EXPECT( m_t1.counter()==wait_t/t1 );
 		EXPECT( m_t2.counter() >= wait_t/t2 );
 		EXPECT( m_t2.counter() < wait_t/t2+2 );
