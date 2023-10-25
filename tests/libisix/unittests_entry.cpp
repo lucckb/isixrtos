@@ -55,7 +55,7 @@ namespace pretest {
 			return ec;
         };
 		if( basic_exc() != 1) {
-			dbprintf("Exceptions test failed. Unable to continue with least");
+			dbprintf("Exceptions test failed. Unable to continue with lest");
 			return EXIT_FAILURE;
 		}
         auto rethrow_exc = []() {
