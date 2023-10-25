@@ -19,9 +19,23 @@
 #include <isix.h>
 #include <isix/arch/sem_atomic.h>
 #include <foundation/sys/dbglog.h>
+#include "timer_interrupt.hpp"
 
 static const lest::test module[] =
 {
+
+	CASE("01_base_00 TimeBase timer vs systick")
+	{
+		static constexpr auto tim_hz = 1000U;
+		unsigned cnt {};
+		tests::detail::periodic_timer_setup([&cnt]() {
+			++cnt;
+		}, CONFIG_PCLK1_HZ/tim_hz );
+		isix::wait_ms(1000);
+		tests::detail::periodic_timer_stop();
+		EXPECT(cnt >= 995U);
+		EXPECT(cnt <= 1005U);
+	},
 	CASE( "01_base_01 Basic heap allocator" )
 	{
 		EXPECT( reinterpret_cast<long>(isix::task_self())%4 == 0 );
