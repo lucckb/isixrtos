@@ -77,7 +77,7 @@ namespace pretest {
 			return ec;
 		};
 		if(retrow_catch() != 1) {
-			dbprintf("Exceptions rethow tests failed. Unable to continue with least");
+			dbprintf("Exceptions rethow tests failed. Unable to continue with lest");
 			return EXIT_FAILURE;
 		}
 		dbprintf("Exceptions pretest. OK");
