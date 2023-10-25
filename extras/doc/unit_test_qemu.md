@@ -25,10 +25,8 @@ The current version of QEMU allows emulation of the *olimex-stm32-h405* board. U
 To compile QEMU first download the patch from the following location: http://bryndza.boff.pl/downloads/prv/0001-STM32-fix-raise-interrupt-time.patch and then clone the QEMU sources and apply the patch and compile the application.
 
 ```bash
-git clone https://gitlab.com/qemu-project/qemu.git
+git clone --recurse-submodules https://gitlab.com/qemu-project/qemu.git
 cd qemu
-git submodule init
-git submodule update --recursive
 patch -p1 -d < 0001-STM32-fix-raise-interrupt-time.patch
 ./configure --enable-debug --disable-xen --disable-werror --target-list="arm-softmmu"
 make
