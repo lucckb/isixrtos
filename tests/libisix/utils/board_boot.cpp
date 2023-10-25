@@ -125,7 +125,7 @@ namespace {
 				break;
 			}
 		}
-        // Ignore quemu
+        // Ignore qemu
 #ifdef QEMU_NO_RCC_PERIPH
         return true;
 #endif
