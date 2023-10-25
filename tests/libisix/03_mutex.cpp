@@ -425,7 +425,7 @@ static const lest::test module[] =
 		EXPECT( isix::mutex_destroy( mloc )==ISIX_EOK );
 		isix::wait_ms(10);
 		EXPECT( retp[0]==ISIX_EOK );	// First obtained
-		EXPECT( retp[1]==ISIX_EDESTROY );	// Others wating and destroyed
+		EXPECT( retp[1]==ISIX_EDESTROY );	// Others waiting and destroyed
 		EXPECT( retp[2]==ISIX_EDESTROY );
 		EXPECT( retp[3]==ISIX_EDESTROY );
 		isix::wait_ms(10);
