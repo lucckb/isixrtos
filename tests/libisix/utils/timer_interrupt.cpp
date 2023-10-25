@@ -38,7 +38,7 @@ namespace {
 
 
 //Handle function for periodic interrupt
-void periodic_timer_setup( timer_handler_t normal, uint16_t timeval )
+void periodic_timer_setup( timer_handler_t normal, uint32_t maxval )
 {
 	if( initialized ) {
 		throw std::logic_error("Timer already initialized");
@@ -51,7 +51,9 @@ void periodic_timer_setup( timer_handler_t normal, uint16_t timeval )
 	__sync_synchronize();
 	isix::set_irq_priority(TIM3_IRQn, {1, 7});
 	LL_TIM_InitTypeDef tim_init { .Prescaler {0},
-		.CounterMode {LL_TIM_COUNTERMODE_UP}, .Autoreload {timeval}, .ClockDivision {0} , .RepetitionCounter {0}};
+		.CounterMode {LL_TIM_COUNTERMODE_UP}, .Autoreload {maxval&0xffff}, 
+		.ClockDivision {maxval>>16U} , .RepetitionCounter {0}
+	};
 	LL_TIM_Init(TIM3, &tim_init);
 	LL_TIM_EnableIT_UPDATE(TIM3);
 	normal_handler = normal;

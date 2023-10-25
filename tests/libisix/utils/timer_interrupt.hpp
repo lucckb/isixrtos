@@ -29,7 +29,7 @@ namespace detail {
 	//Default handler function
 	using timer_handler_t = std::function<void()>;
 	//Periodic timer setup
-	void periodic_timer_setup( timer_handler_t normal, uint16_t timeval );
+	void periodic_timer_setup( timer_handler_t normal, uint32_t maxval );
 	//Stop the periodic timer
 	void periodic_timer_stop() noexcept;
 }}
