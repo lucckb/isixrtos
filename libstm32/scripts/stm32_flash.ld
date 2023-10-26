@@ -124,11 +124,11 @@ SECTIONS
     .heap (NOLOAD):
     {
         . = ALIGN(8);
-        _heap_start = .;
+        PROVIDE(__heap_start = .);
         . = ORIGIN(RAM) + LENGTH(RAM);
-        _heap_end = .;
+        PROVIDE(__heap_end = .);
     } > RAM
-   
+
 	/* <WAFINSERT> Additional extra sections **/
     
     /* after that it's only debugging information. */

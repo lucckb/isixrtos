@@ -49,12 +49,12 @@ void seqfit_alloc_init(void)
 {
   struct header *hp;
 
-  extern void *const _heap_start, *const _heap_end;
-  if( (uintptr_t)_heap_start % ISIX_BYTE_ALIGNMENT_SIZE ) {
+  extern unsigned char __heap_start[], __heap_end[];
+  if( (uintptr_t)__heap_start % ISIX_BYTE_ALIGNMENT_SIZE ) {
 	  abort();
   }
-  hp = _heap_start;
-  hp->h_size = _heap_end - _heap_start - sizeof(struct header);
+  hp = (void *)__heap_start;
+  hp->h_size = __heap_end - __heap_start - sizeof(struct header);
 
   hp->h.h_next = NULL;
   heap.free.h.h_next = hp;
