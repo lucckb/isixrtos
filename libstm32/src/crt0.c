@@ -1,6 +1,3 @@
-
-
-
 extern unsigned long _etext;
 extern unsigned long _sidata;
 extern unsigned long _sdata;
@@ -86,9 +83,8 @@ static void early_cpu_setup(void)
 __attribute__((noreturn))
 void _mcu_reset_handler_(void)
 {
-        extern unsigned long *const _heap_start, *const _heap_end;
-        unsigned long *pul_src, *pul_dest;
-        early_cpu_setup();
+	unsigned long *pul_src, *pul_dest;
+	early_cpu_setup();
     ///
     // Copy the data segment initializers from flash to SRAM.
     //
@@ -106,7 +102,8 @@ void _mcu_reset_handler_(void)
         *(pul_dest++) = 0;
     }
 	// Clear the heap
-	for(pul_dest = _heap_start; pul_dest < _heap_end; )
+	extern unsigned long __heap_start[], __heap_end[];
+	for(pul_dest = __heap_start; pul_dest < __heap_end; )
 	{
 		*(pul_dest++) = 0;
 	}

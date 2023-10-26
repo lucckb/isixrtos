@@ -50,17 +50,15 @@ static void tiny_alloc_init(void)
 {
   struct header *hp;
 
-  extern void *const _heap_start, *const _heap_end;
-
   mem_lock_init();
 
-  hp = _heap_start;
-  hp->h_size = _heap_end - _heap_start - sizeof(struct header);
+  extern unsigned char __heap_start[], __heap_end[];
+  hp = (void *)__heap_start;
+  hp->h_size = __heap_end - __heap_start - sizeof(struct header);
 
   hp->h.h_next = NULL;
   heap.free.h.h_next = hp;
   heap.free.h_size = 0;
-
 }
 #endif
 
