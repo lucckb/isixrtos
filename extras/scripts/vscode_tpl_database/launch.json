@@ -17,7 +17,7 @@
             "windows": {
                 "MIMode": "gdb",
                 "miDebuggerPath": "arm-none-eabi-gdb.exe",
-                "miDebuggerArgs": "-x ${workspaceFolder}/libstm32/scripts/gdbinit",
+                "miDebuggerArgs": "-x ${workspaceFolder}/extras/scripts/gdbinit",
                 "miDebuggerServerAddress": "localhost:3333",
                 "debugServerPath": "openocd.exe",
                 "debugServerArgs": "-c \"set ISIX_INTERFACE stlink-v2; set ISIX_INTERFACE_TARGET stm32f4x; set ISIX_INTERFACE_SWD 1; set ISIX_INTERFACE_SPEED_KHZ 2000; \" -s C:\\tools\\openocd\\share\\openocd\\scripts -f ${workspaceFolder}\\isixrtos\\libperiph\\scripts\\openocd\\jtag.cfg",

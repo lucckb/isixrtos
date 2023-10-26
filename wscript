@@ -6,20 +6,15 @@ bld_isixlibs = [
     'libisix',
     'libfoundation',
     'libperiph',
-    #'libstm32',
 ]
 
 bld_old_isixlibs = [
     'libisix',
     'libfoundation',
-    'libstm32',
 ]
-
-
 
 bld_isixlibs_nos = [
     'libfoundation',
-    'libstm32',
 ]
 
 def options(opt):
