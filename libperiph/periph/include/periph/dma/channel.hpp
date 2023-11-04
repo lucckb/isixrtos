@@ -20,7 +20,6 @@
 #include <atomic>
 #include <variant>
 #include <functional>
-#include <foundation/algo/fixed_size_function.hpp>
 #include "types.hpp"
 #include "controller.hpp"
 
