@@ -277,7 +277,7 @@
 		"stm32f417vgt6" : {
 			"cpu": "arm_cortex_m4",
 			"cflags":  [ ],
-			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1"],
+			"defs":    ["STM32MCU_MAJOR_TYPE_F4=1", "STM32F417xx" ],
 			"vendor": "stm32",
 			"family": "f4",
 			"memmap" : {

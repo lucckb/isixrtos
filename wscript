@@ -7,11 +7,6 @@ bld_isixlibs = [
     'libperiph',
 ]
 
-bld_old_isixlibs = [
-    'libisix',
-    'libfoundation',
-]
-
 bld_isixlibs_nos = [
     'libfoundation',
 ]
@@ -38,8 +33,6 @@ def build(bld):
     bld( includes = _inc, export_includes=_inc, name='common_conf' )
     if bld.is_defined('CONFIG_ISIX_WITHOUT_KERNEL'):
         bld.recurse(bld_isixlibs_nos)
-    if bld.is_defined('CONFIG_ISIX_USE_OLDPERIPHLIB'):
-        bld.recurse( bld_old_isixlibs )
     else:
         bld.recurse(bld_isixlibs)
 
