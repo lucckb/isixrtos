@@ -134,12 +134,13 @@ int virtual_eeprom::read(unsigned addr, unsigned &value ) const
 	for(int a=eaddr; a>=static_cast<int>(sizeof(uint16_t)); a-=sizeof(eeitem) )
 	{
 		uint16_t vaddr;
-		flash.read_halfword( active_page, a, vaddr );
+		if (flash.read_halfword( active_page, a, vaddr ) < 0)
+			return unlock(), ERRNO_NOT_FOUND;
 		if( vaddr == addr)
 		{
-			flash.read_word( active_page, a+sizeof(vaddr), value );
+			int bytes = flash.read_word( active_page, a+sizeof(vaddr), value );
 			unlock();
-			return ERRNO_OK;
+			return bytes >= 0 ? ERRNO_OK : ERRNO_NOT_FOUND;
 		}
 	}
 	unlock();
