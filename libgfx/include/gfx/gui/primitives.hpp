@@ -82,9 +82,8 @@ private:
 //Operator - beetween two windows
 static inline rectangle operator+( const rectangle &r1, const rectangle &r2 )
 {
-	return std::move(  
-		rectangle( r1.x()+r2.x(), r1.y()+r2.y(), 
-			std::min(r1.cx(),r2.cx()), std::min(r1.cy(),r2.cy()) ) 
+	return rectangle( r1.x()+r2.x(), r1.y()+r2.y(), 
+			std::min(r1.cx(),r2.cx()), std::min(r1.cy(),r2.cy())
 	);
 }
  
@@ -97,10 +96,8 @@ static inline rectangle operator+( const rectangle &r1, coord_t size )
 	if( r1.y() < size ) {
 		size = r1.y();
 	}
-	return std::move( 
-		rectangle(r1.x()-size, r1.y()-size, 
-		r1.cx()+size, r1.cy()+size) 
-	);
+	return rectangle(r1.x()-size, r1.y()-size, r1.cx()+size, r1.cy()+size); 
+	
 }
  
 }}
