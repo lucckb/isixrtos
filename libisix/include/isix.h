@@ -26,5 +26,4 @@
 #include <isix/cpp/mutex.hpp>
 #include <isix/cpp/condvar.hpp>
 #include <isix/assert.h>
-#include <isix/error.h>
 #include <isix/arch/isr_vectors.h>
