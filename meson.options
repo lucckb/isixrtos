@@ -1,0 +1,12 @@
+option('disable_isix', type : 'boolean', value : false,
+	description : 'Configure standalone application without isix')
+option('enable_newlib_nano', type : 'boolean', value : false,
+	description : 'Enable nano version of the newlib library')
+option('disable_tlsf', type : 'boolean', value : false,
+	description : 'Disable default TLSF memory allocator')
+option( 'stack_size', type : 'integer', value : 512,
+	description : 'Define system stack size')
+option('bootloader_remap', type : 'integer', value : 0,
+	description : 'Bootloader flash remap shift in kB')
+option('crystal_hz', type : 'integer', value : -1,
+	description : 'HSE oscillator speed')
