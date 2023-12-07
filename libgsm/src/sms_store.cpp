@@ -20,7 +20,7 @@
 #include <gsm/param_parser.hpp>
 #include <gsm/device.hpp>
 #include <gsm/sms_codec.hpp>
-#include <foundation/tiny_printf.h>
+#include <foundation/sys/tiny_printf.h>
 #include <foundation/sys/dbglog.h>
   
 namespace gsm_modem {
