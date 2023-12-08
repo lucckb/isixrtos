@@ -7,6 +7,10 @@ _flags = [
 	# '-DISIX_TCPIPLIB_ETHERNET=1',
 	'-DLWIP_IPV6',
 	'-Wno-implicit-fallthrough',
+	'-Wno-nonnull',
+	'-Wno-array-bounds',
+	'-Wno-restrict',
+	'-Wno-stringop-overflow',
 ]
 libtcpip = library('tcpip',
 	include_directories : [ libtcpip_inc, config_inc, libisix_inc, libfoundation_inc ],

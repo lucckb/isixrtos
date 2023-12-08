@@ -27,7 +27,8 @@ namespace periph {
 			ditem(const char* _name,factory_fn _driver_factory)
 				: driver_factory(_driver_factory)
 			{
-				std::strncpy(name,_name,sizeof name);
+				std::strncpy(name,_name,sizeof(name) - 1);
+				name[sizeof(name) - 1] = '\0';
 			}
 			std::weak_ptr<device> dev;
 			factory_fn driver_factory;

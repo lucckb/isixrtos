@@ -24,7 +24,7 @@ add_project_arguments(
 	'-Wa,-mapcs-32',
 	get_option('debug')
 		? '-DPDEBUG'
-		: ['-fomit-frame-pointer', '-ffunction-sections', '-fdata-sections', '-flto'],
+		: ['-fomit-frame-pointer', '-ffunction-sections', '-fdata-sections'],
 	get_option('disable_isix') ? '-DCONFIG_ISIX_WITHOUT_KERNEL=1' : [],
 	language : ['c', 'cpp']
 )
@@ -35,7 +35,7 @@ if get_option('enable_newlib_nano') and get_option('cpp_eh') != 'none'
 endif
 add_project_link_arguments(
 	'-nostdlib', '-nostartfiles', '--specs=nosys.specs',
-	not get_option('debug') ? ['-Wl,--gc-sections', '-flto'] : [],
+	not get_option('debug') ? ['-Wl,--gc-sections'] : [],
 	get_option('enable_newlib_nano') and get_option('cpp_eh') == 'none' ? '--specs=nano.specs' : [],
 	language : ['c', 'cpp']
 )
