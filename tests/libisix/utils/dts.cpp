@@ -41,23 +41,42 @@ namespace {
 		{}
 	};
 
-	//Serial debug interface
+    // Serial debug interface
+#	if defined(STM32F411xE)
 	constexpr pin ser0_pins[] {
-		{ pinfunc::txd, gpio::num::PA9 },
+		{ pinfunc::txd, gpio::num::PA2 },
 		{}
 	};
 
 	constexpr device devices[]
 	{
 		{
-			"serial0", reinterpret_cast<uintptr_t>(USART1),
-			bus::apb2, LL_GPIO_AF_7,
-			unsigned(std::log2(LL_APB2_GRP1_PERIPH_USART1)),
+			"serial0", reinterpret_cast<uintptr_t>(USART2),
+                bus::apb1, LL_GPIO_AF_7,
+                unsigned(std::log2(LL_APB1_GRP1_PERIPH_USART2)),
 			ser0_pins,
 			nullptr
 		},
 		{}
 	};
+#   else    /* STM32F411xE */
+	constexpr pin ser0_pins[] {
+        { pinfunc::txd, gpio::num::PA9 },
+		{}
+	};
+
+	constexpr device devices[]
+	{
+		{
+            "serial0", reinterpret_cast<uintptr_t>(USART1),
+                       bus::apb2, LL_GPIO_AF_7,
+                       unsigned(std::log2(LL_APB2_GRP1_PERIPH_USART1)),
+			ser0_pins,
+			nullptr
+		},
+		{}
+	};
+#   endif   /* STM32F411xE */
 }
 
 //! The machine config
