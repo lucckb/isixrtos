@@ -1,5 +1,6 @@
 _include = include_directories('include')
 _deps = get_option('disable_isix') ? _config : libisix
+_flag = get_option('disable_isix') ? '-DCONFIG_ISIX_WITHOUT_KERNEL=1' : []
 
 libfoundation = declare_dependency(
 	link_with : library('foundation',
@@ -21,7 +22,10 @@ libfoundation = declare_dependency(
 		],
 		include_directories : _include,
 		dependencies : _deps,
+		c_args : _flag,
+		cpp_args : _flag,
 	),
 	include_directories : _include,
 	dependencies : _deps,
+	compile_args : _flag,
 )

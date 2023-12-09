@@ -24,7 +24,6 @@ add_project_arguments(
 	get_option('debug')
 		? '-DPDEBUG'
 		: ['-fomit-frame-pointer', '-ffunction-sections', '-fdata-sections'],
-	get_option('disable_isix') ? '-DCONFIG_ISIX_WITHOUT_KERNEL=1' : [],
 	language : ['c', 'cpp']
 )
 add_project_arguments('-Wno-volatile', language : 'cpp')
