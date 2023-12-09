@@ -1,8 +1,7 @@
-libgsm_inc = include_directories('include')
+_deps = [libfoundation, libisix]
 
-libgsm = library('gsm',
-	include_directories : [ libgsm_inc, config_inc, libisix_inc, libfoundation_inc ],
-	sources : [
+libgsm =  declare_dependency(
+	link_with : library('gsm',
 		'src/at_parser.cpp',
 		'src/gsm_device.cpp',
 		'src/gsm_event.cpp',
@@ -10,5 +9,9 @@ libgsm = library('gsm',
 		'src/param_parser.cpp',
 		'src/sms_message.cpp',
 		'src/sms_store.cpp',
-	],
+		include_directories : 'include',
+		dependencies : _deps,
+	),
+	include_directories : 'include',
+	dependencies : _deps,
 )

@@ -1,11 +1,12 @@
-libenergymeter_inc = include_directories('include')
-
-libenergymeter = library('energymeter',
-	include_directories : [ libenergymeter_inc, libfoundation_inc ],
-	sources : [
+libenergymeter = declare_dependency(
+	link_with : library('energymeter',
 		'src/energy_meter.cpp',
 		'src/energy_phase_bufs.cpp',
 		'src/energy_phase_n.cpp',
-	],
-	cpp_args : '-Wno-psabi'
+		cpp_args : '-Wno-psabi',
+		include_directories : 'include',
+		dependencies : libfoundation,
+	),
+	include_directories : 'include',
+	dependencies : libfoundation,
 )

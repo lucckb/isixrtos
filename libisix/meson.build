@@ -2,7 +2,7 @@ _cpuarch = 'arch' / host_machine.cpu_family()
 _subarch = _cpuarch / meson.get_external_property('subarch')
 _mach = _subarch / meson.get_external_property('mach_type')
 
-libisix_inc = include_directories(
+_include = include_directories(
 	'include', 'arch/include', _cpuarch/'include', _subarch/'include', _mach/'include')
 
 _sources = {
@@ -19,9 +19,8 @@ _sources = {
 	],
 }
 
-libisix = library('isix',
-	include_directories : [ libisix_inc, config_inc ],
-	sources : [
+libisix = declare_dependency(
+	link_with : library('isix',
 		'kernel/condvar.c',
 		'kernel/error.c',
 		'kernel/events.c',
@@ -41,10 +40,16 @@ libisix = library('isix',
 				'kernel/mm/malloc/tlsf_isix.c' ],
 		_sources[host_machine.cpu_family()],
 		_sources[meson.get_external_property('subarch')],
-		_mach/'scheduler.c'
-	],
-	c_args : [
-		'-D_ISIX_KERNEL_CORE_=1',
-		meson.get_external_property('cache') ? '-D_ISIX_CACHE_PRESENT_=1' : [],
-	]
+		_mach/'scheduler.c',
+		c_args : [
+			'-D_ISIX_KERNEL_CORE_=1',
+			meson.get_external_property('cache') ? '-D_ISIX_CACHE_PRESENT_=1' : [],
+		],
+		include_directories : _include,
+		dependencies : _config,
+	),
+	include_directories : _include,
+	dependencies : _config,
+	version : meson.project_version(),
+	compile_args : '-DISIX_VERSION="'+meson.project_version()+'"',
 )

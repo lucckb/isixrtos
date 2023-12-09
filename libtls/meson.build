@@ -1,10 +1,9 @@
 _mbedtls = 'mbedtls-2.1.1'
-libtls_inc = include_directories(_mbedtls/'include')
+_include = include_directories(_mbedtls/'include')
 
 _mbedtls_lib = _mbedtls/'library'
-libtcpip = library('tls',
-	include_directories : [ libtls_inc, libtcpip_inc, config_inc, libisix_inc, libfoundation_inc ],
-	sources : [
+libtls = declare_dependency(
+	link_with : library('tls',
 		_mbedtls_lib/'aes.c',
 		_mbedtls_lib/'aesni.c',
 		_mbedtls_lib/'arc4.c',
@@ -74,6 +73,10 @@ libtcpip = library('tls',
 		_mbedtls_lib/'x509write_crt.c',
 		_mbedtls_lib/'x509write_csr.c',
 		_mbedtls_lib/'xtea.c',
-	],
-	c_args : '-Wno-array-parameter'
+		c_args : '-Wno-array-parameter',
+		include_directories : _include,
+		dependencies : libtcpip,
+	),
+	include_directories : _include,
+	dependencies : libtcpip,
 )

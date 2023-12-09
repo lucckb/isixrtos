@@ -4,17 +4,23 @@ _arch_sub = host_machine.cpu_family() / meson.get_external_property('subarch')
 _vendor = meson.get_external_property('vendor')
 _series = meson.get_external_property('series')
 
-_cmsis = 'vendor/arm/cortexm/cmsis'
-libperiph_inc = include_directories(
+_include = include_directories(
 	'periph/include',
-	'vendor'/_arch_sub/_vendor/_series/'include',
 	'periph/include/arch'/_arch_sub/_vendor,
 	'periph/include/arch'/_arch_sub/_vendor/_series,
-	_arch_sub == 'arm/cortexm' ? [ _cmsis/'include', _cmsis/'device'/_vendor/_series/'include'] : []
+	'vendor'/_arch_sub/_vendor/_series/'include',
+	_arch_sub == 'arm/cortexm' ? [
+		'vendor'/_arch_sub/'cmsis/include',
+		'vendor'/_arch_sub/'cmsis/device'/_vendor/_series/'include'
+	] : [],
 )
 
 _sources = {
+	'arm/cortexm' : [
+		'periph/src/boot/arch/arm/cortexm/crashinfo.c',
+	],
 	'stm32' : [
+		'periph/src/boot/arch/arm/cortexm/stm32/isr_bootvect.c',
 		'periph/drivers/arm/cortexm/stm32/all/i2c/i2c_interrupt_handlers.cpp',
 		'periph/drivers/arm/cortexm/stm32/all/spi/spi_master.cpp',
 		'periph/drivers/arm/cortexm/stm32/all/spi/spi_interrupt_handlers.cpp',
@@ -72,17 +78,17 @@ _sources = {
 	],
 }
 
+_deps = [libisix, libfoundation]
+
 _defines = [
 	'-DUSE_FULL_LL_DRIVER=1',
 	'-DHSE_VALUE=' + get_option('crystal_hz').to_string(),
 ]
-libperiph = library('periph',
-	include_directories : [ libperiph_inc, config_inc, libisix_inc, libfoundation_inc ],
-	sources : [
+
+libperiph = declare_dependency(
+	link_with : library('periph',
 		'periph/src/core/peripheral_manager.cpp',
 		'periph/src/boot/newlib/syscalls.c',
-		'periph/src/boot/arch/arm/cortexm/stm32/isr_bootvect.c',
-		'periph/src/boot/arch/arm/cortexm/crashinfo.c',
 		'periph/src/boot/crt/crt0.c',
 		'periph/src/dt/dts_database.cpp',
 		'periph/src/dma/controller.cpp',
@@ -91,9 +97,14 @@ libperiph = library('periph',
 		'periph/src/display/mono/ssd1306.cpp',
 		'periph/src/display/mono/uc1601_display.cpp',
 		'periph/src/display/mono/hd44xx_display.cpp',
+		_sources[_arch_sub],
 		_sources[_vendor],
 		_sources[_series],
-	],
-	c_args : _defines,
-	cpp_args : _defines,
+		c_args : _defines,
+		cpp_args : _defines,
+		include_directories : _include,
+		dependencies : _deps,
+	),
+	include_directories : _include,
+	dependencies : _deps,
 )

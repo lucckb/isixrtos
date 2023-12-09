@@ -19,7 +19,6 @@ project('isix', 'c', 'cpp',
 )
 
 add_project_arguments(
-	'-DISIX_VERSION="'+meson.version()+'"',
 	'-Wno-variadic-macros', '-Wno-long-long',
 	'-Wa,-mapcs-32',
 	get_option('debug')
@@ -40,7 +39,8 @@ add_project_link_arguments(
 	language : ['c', 'cpp']
 )
 
-config_inc = include_directories('config/include')
+_config = declare_dependency(include_directories : 'config/include')
+
 if get_option('disable_isix')
 	subdir('libfoundation')
 else
@@ -48,8 +48,8 @@ else
 	subdir('libfoundation')
 	subdir('libperiph')
 	subdir('libgfx')
+	subdir('libgsm')
+	subdir('libtcpip')
+	subdir('libtls')
 endif
 subdir('libenergymeter')
-subdir('libgsm')
-subdir('libtcpip')
-subdir('libtls')

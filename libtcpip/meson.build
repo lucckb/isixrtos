@@ -1,5 +1,6 @@
 _lwip = 'lwip-1.4.1/src'
-libtcpip_inc = include_directories( _lwip/'include', _lwip/'include/ipv4', 'port/include')
+_includes = include_directories( _lwip/'include', _lwip/'include/ipv4', 'port/include')
+_deps = [libfoundation, libisix]
 
 _flags = [
 	'-DCONFIG_ISIX_USE_TIMERS=1',
@@ -12,9 +13,9 @@ _flags = [
 	'-Wno-restrict',
 	'-Wno-stringop-overflow',
 ]
-libtcpip = library('tcpip',
-	include_directories : [ libtcpip_inc, config_inc, libisix_inc, libfoundation_inc ],
-	sources : [
+
+libtcpip = declare_dependency(
+	link_with : library('tcpip',
 		'port/sio_ppp.cpp',
 		'port/sys_arch.c',
 		_lwip/'core/memp.c',
@@ -71,7 +72,11 @@ libtcpip = library('tcpip',
 		_lwip/'api/api_lib.c',
 		_lwip/'api/api_msg.c',
 		_lwip/'api/netbuf.c',
-	],
-	c_args : _flags,
-	cpp_args : _flags,
+		c_args : _flags,
+		cpp_args : _flags,
+		include_directories : _includes,
+		dependencies : _deps,
+	),
+	include_directories : _includes,
+	dependencies : _deps,
 )

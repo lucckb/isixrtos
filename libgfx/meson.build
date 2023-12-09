@@ -1,8 +1,5 @@
-libgfx_inc = include_directories('include')
-
-libgfx = library('gfx',
-	include_directories : [ libgfx_inc, config_inc, libisix_inc, libfoundation_inc, libperiph_inc ],
-	sources : [
+libgfx = declare_dependency(
+	link_with : library('gfx',
 		'drivers/input/ft6x06_touch.cpp',
 		'drivers/disp/dsi_fb.cpp',
 		'src/gdi.cpp',
@@ -22,6 +19,10 @@ libgfx = library('gfx',
 		'src/gui/icon.cpp',
 		'src/fonts/small.cpp',
 		'src/fonts/default.cpp',
-	],
-	cpp_args : '-DCONFIG_ISIX_USE_TIMERS=1'
+		cpp_args : '-DCONFIG_ISIX_USE_TIMERS=1',
+		include_directories : 'include',
+		dependencies : libperiph,
+	),
+	include_directories : 'include',
+	dependencies : libperiph,
 )
