@@ -195,7 +195,7 @@ int ft6x06_touch::detect_touch() noexcept
 }
 
 //Get XY position 
-int ft6x06_touch::get_xy(uint16_t& x, uint16_t& y)
+int ft6x06_touch::get_xy(uint16_t& x, uint16_t& y) noexcept
 {
     using namespace detail::regs::ft6x06;
 	uint8_t regAddress = 0;
@@ -390,7 +390,7 @@ void ft6x06_touch::convert_touch(const ft6x06_touch::touch_stat& ts)
     m_py = ts.y[0];
 }
 //Read reg helper functi
-int ft6x06_touch::read_reg(int addr, int reg, unsigned char& value)
+int ft6x06_touch::read_reg(int addr, int reg, unsigned char& value) noexcept
 {
     unsigned char baddr = reg&0xff;
     periph::blk::trx_transfer tran(&baddr,&value, sizeof baddr, sizeof value);
@@ -405,13 +405,12 @@ int ft6x06_touch::read_reg(int addr, int reg, unsigned char* regs, unsigned shor
 }
 
 //Write register
-int ft6x06_touch::write_reg(int addr, int reg, unsigned char value)
+int ft6x06_touch::write_reg(int addr, int reg, unsigned char value) noexcept
 {
     const unsigned char buf[] = { static_cast<unsigned char>(reg), value };
     periph::blk::tx_transfer tran(buf, sizeof buf);
     return m_i2c.transaction(addr, tran);
 }
-
 
 }
 
