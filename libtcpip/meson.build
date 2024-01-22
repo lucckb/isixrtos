@@ -3,7 +3,6 @@ _includes = include_directories( _lwip/'include', _lwip/'include/ipv4', 'port/in
 _deps = [libfoundation, libisix]
 
 _flags = [
-	'-DCONFIG_ISIX_USE_TIMERS=1',
 	# '-DISIX_TCPIPLIB_CHECKSUM_BY_HARDWARE=1',
 	# '-DISIX_TCPIPLIB_ETHERNET=1',
 	'-DLWIP_IPV6',

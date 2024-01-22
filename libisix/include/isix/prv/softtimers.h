@@ -17,8 +17,6 @@
 #include <isix/fifo.h>
 #include <stdatomic.h>
 
-#if CONFIG_ISIX_USE_TIMERS
-
 //! Default queue size
 #ifndef CONFIG_ISIX_TIMERS_CMD_QUEUE_SIZE 
 #define CONFIG_ISIX_TIMERS_CMD_QUEUE_SIZE 16
@@ -47,13 +45,3 @@ struct vtimer_context {
 
 //Finalize function
 void _isixp_vtimers_finalize();
-
-#else /*  CONFIG_ISIX_USE_TIMERS */
-
-static inline void __attribute__((always_inline))
-	_isixp_vtimers_finalize()
-{
-
-}
-
-#endif /* CONFIG_ISIX_USE_TIMERS */

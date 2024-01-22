@@ -19,7 +19,6 @@ libgfx = declare_dependency(
 		'src/gui/icon.cpp',
 		'src/fonts/small.cpp',
 		'src/fonts/default.cpp',
-		cpp_args : '-DCONFIG_ISIX_USE_TIMERS=1',
 		include_directories : 'include',
 		dependencies : libperiph,
 	),
