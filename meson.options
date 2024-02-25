@@ -10,3 +10,53 @@ option('bootloader_remap', type : 'integer', value : 0,
 	description : 'Bootloader flash remap shift in kB')
 option('crystal_hz', type : 'integer', value : -1,
 	description : 'HSE oscillator speed')
+
+option('shutdown_api', type : 'boolean', value : false,
+	description : 'Enable shutdown API')
+option('task_stack_check', type : 'boolean', value : false,
+	description : 'Enable task stack checking')
+option('stack_ascending', type : 'boolean', value : false,
+	description : 'Enable ascending (growing up) task stack')
+option('fifo_event_notify', type : 'boolean', value : false,
+	description : 'Enable FIFO event notification')
+option('cpu_usage_api', type : 'boolean', value : false,
+	description : 'Enable CPU usage API')
+option('mem_protect', type : 'combo', choices : ['none', 'lite', 'full'],
+	description : 'Memory protection model')
+option('tick_hz', type : 'integer', value : 1000,
+	description : 'System ticks per second')
+option('prio_count', type : 'integer', value : 16,
+	description : 'Number of scheduler priorities')
+option('nvic_prio_bits', type : 'integer', value : 4,
+	description : 'Number of bits for NVIC priority in IRQ')
+option('max_syscall_interrupt_prio', type : 'integer', value : 16,
+	description : 'Maximum interrupt priority used with the ISIX context')
+option('max_cxa_atexit_objects', type : 'integer', value : 16,
+	description : 'Maximum number of CXA objects at exit')
+option('timers_cmd_queue_size', type : 'integer', value : 16,
+	description : 'Timers command queue size')
+option('test', type : 'boolean', value : false,
+	description : 'Build isix unittests. Note: requires also cpp_eh and cpp_rtti as the testing framework needs exceptions')
+
+option('log_level', type : 'combo', choices : ['off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'General logging level')
+option('log_level_scheduler', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'Task scheduler logging level')
+option('log_level_fifo', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'FIFO queue logging level')
+option('log_level_task', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'Task logging level')
+option('log_level_vtimers', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'Software timers logging level')
+option('log_level_memory', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'Memory allocator logging level')
+option('log_level_semaphore', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'Semaphore logging level')
+option('log_level_events', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'Event notification logging level')
+option('log_level_condvar', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'Condition variable logging level')
+option('log_level_mutex', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'Mutex logging level')
+option('log_level_osstats', type : 'combo', choices : ['inherit', 'off', 'crit', 'err', 'warn', 'info', 'debug'],
+	description : 'OS statistics logging level')

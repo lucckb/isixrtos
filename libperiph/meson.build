@@ -105,6 +105,7 @@ libperiph = declare_dependency(
 		include_directories : _include,
 		dependencies : _deps,
 	),
+	compile_args : _defines,
 	include_directories : _include,
 	dependencies : _deps,
 )

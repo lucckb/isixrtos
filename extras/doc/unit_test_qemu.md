@@ -2,18 +2,18 @@
 
 ## Preface
 
-Unit tests can be run on a startup board such as STM32F411E-DISCO or on a QEMU. Due to more convenient development, it is recommended to use QEMU.
+Unit tests can be run on a startup board such as STM32F411E-DISCO or on QEMU (emulated uC but more convenient development).
 
 
 ## Unit tests on STM32F411E-DISCO dev board
 
-In the first step, go to the directory 'libisix/tests/libisix and compile the application. 
+First, compile the test application with the `-Dtest=true`flag. 
 ```bash
-cd tests/libisix/
-waf configure --cpu=stm32f411vet6 --debug --crystal-hz=8000000
-waf
+meson setup --cross-file arm.ini --cross-file m4.ini --cross-file stm32f411vet6.ini \
+	--buildtype=debug -Db_lto=true -Dcrystal_hz=8000000 -Dtest=true builddisco
+meson compile -C builddisco
 ```
-In the ***build/test/libisix/*** directory ***isixunittests*** file will be created. The elf file can be used to program target board.
+In the ***builddisco/test/libisix/*** directory ***isixunittests*** file will be created. The ELF file can be used to program target board.
 The serial console is configured using USART1_TX pin (PA9), with serial baudrate 115200.
 
 ## Unit tests on the QEMU
@@ -34,12 +34,12 @@ make
 After compilation, which may take a while, we will find qemu-system-arm in the build directory, which we can use in this directory or copy to another location such as /usr/local/bin.
 
 ### Compile tests
-The compilation of tests is similar to the previous case. Only we have to choose a different microcontroller. A separate microcontroller type for the QEMU was intentionally created, because the simulated microcontroller does not contain an RCC block and is configured to default to 168MHz.
+Compilation of tests on QEMU is similar to the [STM32F411E-DISCO board](#unit-tests-on-stm32f411e-disco-dev-board) but with a different microcontroller cross-file. A separate microcontroller type for the QEMU was intentionally created because the simulated microcontroller does not contain an RCC block and is configured by default to 168MHz.
 
 ```bash
-cd tests/libisix/
-waf configure --cpu=stm32f405rg_qemu --debug --crystal-hz=8000000
-waf
+meson setup --cross-file arm.ini --cross-file m4.ini --cross-file stm32f405rg_qemu.ini \
+	--buildtype=debug -Db_lto=true -Dcrystal_hz=8000000 -Dtest=true buildqemu
+meson compile -C buildqemu
 ```
 Once compiled, a binary file ***isixunittests.binary*** will be created, which we can use to run the tests on QEMU.
 

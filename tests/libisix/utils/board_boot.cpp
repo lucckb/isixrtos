@@ -14,6 +14,7 @@
 #include <stm32_ll_system.h>
 #include <stm32_ll_pwr.h>
 #include <cstdlib>
+#include "isix_config.h"
 #include "stm32f4xx_ll_rcc.h"
 
 namespace {
