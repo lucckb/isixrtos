@@ -78,18 +78,23 @@ _sources = {
 	],
 }
 
-_deps = [libisix, libfoundation]
-
 _defines = [
 	'-DUSE_FULL_LL_DRIVER=1',
 	'-DHSE_VALUE=' + get_option('crystal_hz').to_string(),
 ]
 
+_deps = [libisix, libfoundation]
+
+_syscalls = declare_dependency(
+	link_whole : library('periph_syscalls',
+		'periph/src/boot/newlib/syscalls.c',
+		'periph/src/boot/crt/crt0.c',
+	)
+)
+
 libperiph = declare_dependency(
 	link_with : library('periph',
 		'periph/src/core/peripheral_manager.cpp',
-		'periph/src/boot/newlib/syscalls.c',
-		'periph/src/boot/crt/crt0.c',
 		'periph/src/dt/dts_database.cpp',
 		'periph/src/dma/controller.cpp',
 		'periph/src/display/rgb/idisplay.cpp',
@@ -103,7 +108,7 @@ libperiph = declare_dependency(
 		c_args : _defines,
 		cpp_args : _defines,
 		include_directories : _include,
-		dependencies : _deps,
+		dependencies : [_deps, _syscalls],
 	),
 	compile_args : _defines,
 	include_directories : _include,

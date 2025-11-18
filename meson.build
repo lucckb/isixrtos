@@ -15,11 +15,13 @@ project('isix', 'c', 'cpp',
 		'werror=true',
 		'warning_level=2',
 		'b_lundef=false',
+		'b_asneeded=false',
+		'b_lto=true',
 	]
 )
 
 add_project_arguments(
-	'-Wno-variadic-macros', '-Wno-long-long',
+	'-Wno-variadic-macros', '-Wno-long-long', '-pipe',
 	'-Wa,-mapcs-32',
 	get_option('debug')
 		? '-DPDEBUG'
@@ -78,10 +80,14 @@ add_project_arguments('-Wno-volatile', language : 'cpp')
 if get_option('enable_newlib_nano') and get_option('cpp_eh') != 'none'
 	error('Unable to use nano version of newlib with exceptions enabled')
 endif
+
 add_project_link_arguments(
 	'-nostdlib', '-nostartfiles', '--specs=nosys.specs',
 	not get_option('debug') ? ['-Wl,--gc-sections'] : [],
 	get_option('enable_newlib_nano') and get_option('cpp_eh') == 'none' ? '--specs=nano.specs' : [],
+	'-Wl,--defsym=_sys_stack_size='+get_option('stack_size').to_string(),
+	'-T' + meson.project_source_root() / 'libperiph/scripts' / host_machine.cpu_family() / meson.get_external_property('subarch') / 'flash.ld',
+	'-lstdc++', '-lc', '-lm', '-lg', '-lgcc', '-flto=auto',
 	language : ['c', 'cpp']
 )
 

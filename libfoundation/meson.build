@@ -28,4 +28,5 @@ libfoundation = declare_dependency(
 	include_directories : _include,
 	dependencies : _deps,
 	compile_args : _flag,
+	link_args: '-Wl,--undefined=malloc',
 )

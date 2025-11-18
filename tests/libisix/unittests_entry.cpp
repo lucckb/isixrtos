@@ -180,33 +180,11 @@ extern "C" void isix_kernel_panic_callback( const char* file, int line, const ch
     fnd::tiny_printf("ISIX_PANIC %s:%i %s\r\n", file, line, msg );
 }
 
-//! Extra functions for stdlib support
-extern "C" {
-int _gettimeofday(struct timeval* tp, void*) {
+//! Extra function for stdlib support
+extern "C" int _gettimeofday(struct timeval* tp, void*)
+{
     const auto j = isix::get_ujiffies();
     tp->tv_sec = j / 1000'000;
     tp->tv_usec = j % 1000'000;
     return 0;
-}
-int _close_r() { return 0; }
-int _write(int file, const void* ptr, size_t len) {
-    (void)file;
-    (void)ptr;
-    (void)len;
-    return -1;
-}
-
-int _read(int file, void* ptr, size_t len) {
-    (void)file;
-    (void)ptr;
-    (void)len;
-    return -1;
-}
-
-off_t _lseek(int file, off_t ptr, int dir) {
-    (void)file;
-    (void)ptr;
-    (void)dir;
-    return -1;
-}
 }
