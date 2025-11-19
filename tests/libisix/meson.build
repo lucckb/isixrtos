@@ -1,4 +1,4 @@
-executable('isixtests',
+isix_tests_src = files(
 	'01_basic_primitives.cpp',
 	'02_mempool.cpp',
 	'03_mutex.cpp',
@@ -12,9 +12,21 @@ executable('isixtests',
 	'utils/board_boot.cpp',
 	'utils/dts.cpp',
 	'utils/event_groups_demo.c',
-	'utils/sp_fpu_test_and_set.S',
 	'utils/task_test_helper.c',
 	'utils/timer_interrupt.cpp',
+)
+
+
+fpu_asm_lib = static_library(
+  'sp_fpu_test_and_set',
+  'utils/sp_fpu_test_and_set.S',
+  include_directories : ['include', 'utils'],
+	c_args: ['-fno-lto'],
+	cpp_args: ['-fno-lto'],
+)
+
+executable('isixtests',
+	sources: isix_tests_src,
 	override_options : _test_option_overrides,
 	include_directories : ['include', 'utils'],
 	dependencies : [
@@ -22,4 +34,5 @@ executable('isixtests',
 		_lest,
 		libisix,
 	],
+	link_with : [ fpu_asm_lib ],
 )

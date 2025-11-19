@@ -108,9 +108,9 @@ libperiph = declare_dependency(
 		c_args : _defines,
 		cpp_args : _defines,
 		include_directories : _include,
-		dependencies : [_deps, _syscalls],
+		dependencies : [_syscalls,_deps,],
 	),
 	compile_args : _defines,
 	include_directories : _include,
-	dependencies : _deps,
+	dependencies : [_syscalls,_deps],
 )
