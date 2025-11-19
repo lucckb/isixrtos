@@ -10,7 +10,7 @@ Unit tests can be run on a startup board such as STM32F411E-DISCO or on QEMU (em
 First, compile the test application with the `-Dtest=true`flag. 
 ```bash
 meson setup --cross-file arm.ini --cross-file m4.ini --cross-file stm32f411vet6.ini \
-	--buildtype=debug -Db_lto=true -Dcrystal_hz=8000000 -Dtest=true builddisco
+	--buildtype=debug -Doptimization=g -Db_lto=true -Dcrystal_hz=8000000 -Dtest=true builddisco
 meson compile -C builddisco
 ```
 In the ***builddisco/test/libisix/*** directory ***isixunittests*** file will be created. The ELF file can be used to program target board.
