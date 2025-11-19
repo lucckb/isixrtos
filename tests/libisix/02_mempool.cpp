@@ -96,7 +96,7 @@ const lest::test module[] =
 			auto p = memp.alloc(n+'A');
 			EXPECT( p != nullptr );
 			EXPECT( reinterpret_cast<long>(p)%ISIX_BYTE_ALIGNMENT_SIZE == 0U );
-			EXPECT( *p );
+			EXPECT( static_cast<bool>(*p) );
 			pptr[n] = p;
 		}
 		//Should return unable alloc
