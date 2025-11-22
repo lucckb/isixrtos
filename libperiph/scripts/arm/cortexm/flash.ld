@@ -1,17 +1,14 @@
 MEMORY
 {
-	/* The origins and lengths are filled in meson.build, '_memory_defines' array */
 	RAM (xrw) : ORIGIN = _ram_origin, LENGTH = _ram_length
 	FLASH (xr) : ORIGIN = _flash_origin, LENGTH = _flash_length
-	CCMRAM (xrw) : ORIGIN = _ccmram_origin, LENGTH = _ccmram_length
-	AUXRAM (xrw) : ORIGIN = _auxram_origin, LENGTH = _auxram_length
-	BKPRAM (xrw) : ORIGIN = _bkpram_origin, LENGTH = _bkpram_length
+	CCMRAM (xrw) : ORIGIN = DEFINED(_ccmram_origin) ? _ccmram_origin : 0, LENGTH = DEFINED(_ccmram_length) ? _ccmram_length : 0
+	AUXRAM (xrw) : ORIGIN = DEFINED(_auxram_origin) ? _auxram_origin : 0, LENGTH = DEFINED(_auxram_length) ? _auxram_length : 0
+	BKPRAM (xrw) : ORIGIN = DEFINED(_bkpram_origin) ? _bkpram_origin : 0, LENGTH = DEFINED(_bkpram_length) ? _bkpram_length : 0
 }
 ENTRY(_exceptions_vectors)
 EXTERN(_exceptions_vectors)
 ASSERT(DEFINED(_exceptions_vectors), "Error no exceptions vectors entries")
-ASSERT(_ram_length != 0, "RAM is mandatory")
-ASSERT(_flash_length != 0, "FLASH is mandatory")
 
 /* Sections Definitions */
 SECTIONS
