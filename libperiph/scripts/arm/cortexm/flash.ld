@@ -1,13 +1,17 @@
 MEMORY
 {
-	RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K
-	FLASH (xr) : ORIGIN = 0x08000000, LENGTH = 1024K
-	CCMRAM (xrw) : ORIGIN = 0x10000000, LENGTH = 16K
-	BKPRAM (xrw) : ORIGIN = 0x40024000, LENGTH = 4K
+	/* The origins and lengths are filled in meson.build, '_memory_defines' array */
+	RAM (xrw) : ORIGIN = _ram_origin, LENGTH = _ram_length
+	FLASH (xr) : ORIGIN = _flash_origin, LENGTH = _flash_length
+	CCMRAM (xrw) : ORIGIN = _ccmram_origin, LENGTH = _ccmram_length
+	AUXRAM (xrw) : ORIGIN = _auxram_origin, LENGTH = _auxram_length
+	BKPRAM (xrw) : ORIGIN = _bkpram_origin, LENGTH = _bkpram_length
 }
 ENTRY(_exceptions_vectors)
 EXTERN(_exceptions_vectors)
 ASSERT(DEFINED(_exceptions_vectors), "Error no exceptions vectors entries")
+ASSERT(_ram_length != 0, "RAM is mandatory")
+ASSERT(_flash_length != 0, "FLASH is mandatory")
 
 /* Sections Definitions */
 SECTIONS
@@ -136,12 +140,17 @@ SECTIONS
 		PROVIDE(__heap_end = .);
 	} > RAM
    
-	/* <WAFINSERT> Additional extra sections **/
+	/* Additional extra sections **/
 	.ccmram (NOLOAD):
 	{
 		*(.ccmram*)
 		. = ALIGN(4);
 	} > CCMRAM
+	.auxram (NOLOAD):
+	{
+		*(.auxram*)
+		. = ALIGN(4);
+	} > AUXRAM
 	.bkpram (NOLOAD):
 	{
 		*(.bkpram*)

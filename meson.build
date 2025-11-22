@@ -81,11 +81,22 @@ if get_option('enable_newlib_nano') and get_option('cpp_eh') != 'none'
 	error('Unable to use nano version of newlib with exceptions enabled')
 endif
 
+meson.get_external_property('ram') # .ini crossfile must have ram
+meson.get_external_property('flash') # .ini crossfile must have flash
+_memory_defines = []  # MEMORY variables in linker script
+foreach mem : ['ram', 'flash', 'ccmram', 'auxram', 'bkpram']
+	bounds = meson.get_external_property(mem, ['0', '0K'])
+	assert(bounds.length() == 2)
+	_memory_defines += '-Wl,--defsym=_'+mem+'_origin='+bounds[0]
+	_memory_defines += '-Wl,--defsym=_'+mem+'_length='+bounds[1]
+endforeach
+
 add_project_link_arguments(
 	'-nostdlib', '-nostartfiles', '--specs=nosys.specs',
 	not get_option('debug') ? ['-Wl,--gc-sections'] : [],
 	get_option('enable_newlib_nano') and get_option('cpp_eh') == 'none' ? '--specs=nano.specs' : [],
 	'-Wl,--defsym=_sys_stack_size='+get_option('stack_size').to_string(),
+	_memory_defines,
 	'-T' + meson.project_source_root() / 'libperiph/scripts' / host_machine.cpu_family() / meson.get_external_property('subarch') / 'flash.ld',
 	'-lstdc++', '-lc', '-lm', '-lg', '-lgcc', '-flto=auto',
 	language : ['c', 'cpp']
