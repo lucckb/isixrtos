@@ -25,7 +25,7 @@ fpu_asm_lib = static_library(
 	cpp_args: ['-fno-lto'],
 )
 
-executable('isixtests',
+isix_tests_elf = executable('isixtests',
 	sources: isix_tests_src,
 	override_options : _test_option_overrides,
 	include_directories : ['include', 'utils'],
@@ -36,3 +36,14 @@ executable('isixtests',
 	],
 	link_with : [ fpu_asm_lib ],
 )
+
+_objcopy = find_program(meson.get_external_property('objcopy'))
+custom_target('isixtests.binary',
+	input: isix_tests_elf,
+	output: 'isixtests.binary',
+	command: [_objcopy, '-O', 'binary', '@INPUT@', '@OUTPUT@'],
+	build_by_default: true
+)
+
+_size = find_program(meson.get_external_property('size'))
+run_target('Print size', command: [_size, isix_tests_elf])
