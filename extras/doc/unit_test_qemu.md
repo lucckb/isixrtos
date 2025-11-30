@@ -22,12 +22,12 @@ The current version of QEMU allows emulation of the *olimex-stm32-h405* board. U
 
 ### Compile QEMU
 
-To compile QEMU first download the patch from the following location: http://bryndza.boff.pl/downloads/prv/0001-STM32-fix-raise-interrupt-time.patch and then clone the QEMU sources and apply the patch and compile the application.
+To compile QEMU first download the patch from the following location: http://bryndza.boff.pl/downloads/prv/qemu-v10.1.2-STM32-fix-raise-interrupt-time.patch and then clone the QEMU sources and apply the patch and compile the application.
 
 ```bash
-git clone --recurse-submodules https://gitlab.com/qemu-project/qemu.git
+git clone -b v10.1.2 --recurse-submodules https://gitlab.com/qemu-project/qemu.git
 cd qemu
-patch -p1 -d < 0001-STM32-fix-raise-interrupt-time.patch
+patch -p1 -d . < qemu-v10.1.2-STM32-fix-raise-interrupt-time.patch
 ./configure --enable-debug --disable-xen --disable-werror --target-list="arm-softmmu"
 make
 ```
