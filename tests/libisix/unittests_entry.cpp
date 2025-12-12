@@ -23,6 +23,7 @@
 #include <periph/drivers/serial/uart_early.hpp>
 #include <boot/arch/arm/cortexm/crashinfo.h>
 #include <periph/drivers/serial/uart_early.hpp>
+#include <isix/arch/irq_global.h>
 #include <string>
 #include <sys/stat.h>
 #include <lest/lest.hpp>
@@ -34,10 +35,10 @@
 
 
 /** 
- * Lest unit test framework uses exceptions extensively to 
- * report errors, so the correctness of their operation is crucial. 
- * These initial tests validate the correctness of exceptions at 
- * the toolchain level. If they do not pass correctly further 
+ * Lest unit test framework uses exceptions extensively to
+ * report errors, so the correctness of their operation is crucial.
+ * These initial tests validate the correctness of exceptions at
+ * the toolchain level. If they do not pass correctly further
  * tests are not run.
 */
 namespace pretest {
@@ -96,7 +97,7 @@ lest::tests& specification()
 
 
 //! Unit tests main thread
-static void unittests_thread(void*) 
+static void unittests_thread(void*)
 {
 	try {
         if(pretest::run()) {
@@ -135,17 +136,21 @@ int main()
 		},
 		nullptr,
 		[]() {
-			m_ulock_sem.wait(ISIX_TIME_INFINITE);
+            if (isix_irq_in_isr()) {
+                m_ulock_sem.wait(ISIX_TIME_INFINITE);
+            }
 		},
 		[]() {
-			m_ulock_sem.signal();
+            if (isix_irq_in_isr()) {
+                m_ulock_sem.signal();
+            }
 		},
 		periph::drivers::uart_early::open,
 		"serial0", 115200
 	);
 	dbprintf("ISIX VERSION %s", isix::get_version() );
 	const auto hwnd =
-		isix::task_create( unittests_thread, nullptr, 8U*1024U, 0, isix_task_flag_newlib);
+		isix::task_create( unittests_thread, nullptr, 16U*1024U, 0, isix_task_flag_newlib);
 	if( !hwnd ) {
 		dbprintf("Unable to create task");
 		return -1;

@@ -392,7 +392,7 @@ static const lest::test module[] =
 		EXPECT( ((mtx_hacker*)&mtx1)->mtx->owner==nullptr );
 		EXPECT( ((mtx_hacker*)&mtx1)->mtx->count==0 );
 		EXPECT( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list)==true);
-		isix::wait_ms(10);
+		isix::wait_ms(50);
 	},
 	/* Mutex create and destroy test
 	* When tasks wait for mutexes which is
