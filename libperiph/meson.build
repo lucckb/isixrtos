@@ -3,17 +3,19 @@ assert(get_option('crystal_hz') > 0, 'Missing -Dcrystal_hz=... in meson setup fo
 _arch_sub = host_machine.cpu_family() / meson.get_external_property('subarch')
 _vendor = meson.get_external_property('vendor')
 _series = meson.get_external_property('series')
+_has_series_dir = _series == 'f3' or _series == 'f4'
 
 _include = include_directories(
 	'periph/include',
 	'periph/include/arch'/_arch_sub/_vendor,
-	'periph/include/arch'/_arch_sub/_vendor/_series,
-	'vendor'/_arch_sub/_vendor/_series/'include',
-	_arch_sub == 'arm/cortexm' ? [
-		'vendor'/_arch_sub/'cmsis/include',
-		'vendor'/_arch_sub/'cmsis/device'/_vendor/_series/'include'
-	] : [],
+	_has_series_dir ? 'periph/include/arch'/_arch_sub/_vendor/_series : [],
+	_has_series_dir ? 'vendor'/_arch_sub/_vendor/_series/'include' : [],
+	_arch_sub == 'arm/cortexm' ? 'vendor'/_arch_sub/'cmsis/include' : [],
+
+	_has_series_dir and _arch_sub == 'arm/cortexm'
+		? 'vendor'/_arch_sub/'cmsis/device'/_vendor/_series/'include' : [],
 )
+
 
 _sources = {
 	'arm/cortexm' : [
@@ -27,6 +29,9 @@ _sources = {
 		'periph/drivers/arm/cortexm/stm32/all/dma/dma_common.cpp',
 		'periph/drivers/arm/cortexm/stm32/all/serial/uart_early.cpp',
 	],
+	'f1' : [],
+	'f2' : [],
+	'f7' : [],
 	'f3' : [
 		'periph/drivers/arm/cortexm/stm32/f3/dma/dma_interrupt_handlers.cpp',
 		'periph/drivers/arm/cortexm/stm32/f3/dma/stm32_dma_v1.cpp',
