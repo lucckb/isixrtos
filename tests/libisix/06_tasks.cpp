@@ -490,7 +490,7 @@ const lest::test module[] =
 				irq_failed = true;
 			}
 		};
-		tests::detail::periodic_timer_setup( irq_fun, 200 );
+		tests::detail::periodic_timer_setup( irq_fun, 10 );
 		auto th1 = isix::thread_create_and_run( 2048, c_task_prio,
 				isix_task_flag_newlib, thr, 4, std::ref(res1) );
 		auto th2 = isix::thread_create_and_run( 2048, c_task_prio,

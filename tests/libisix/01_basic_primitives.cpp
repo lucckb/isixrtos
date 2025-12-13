@@ -20,17 +20,16 @@
 #include <isix/arch/sem_atomic.h>
 #include <foundation/sys/dbglog.h>
 #include "timer_interrupt.hpp"
-#include <isix_config.h>
 
 static const lest::test module[] =
 {
 	CASE("01_base_00 TimeBase timer vs systick")
 	{
-		static constexpr auto tim_hz = 1000U;
+		static constexpr auto period_us = 1000U;
 		unsigned cnt {};
 		tests::detail::periodic_timer_setup([&cnt]() {
 			++cnt;
-		}, CONFIG_PCLK1_HZ/tim_hz );
+		}, period_us );
 		isix::wait_ms(1000);
 		tests::detail::periodic_timer_stop();
 		EXPECT(cnt >= 995U);
