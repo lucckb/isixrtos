@@ -88,6 +88,7 @@ add_project_link_arguments(
 	'-Wl,--defsym=_sys_stack_size='+get_option('stack_size').to_string(),
 	'-T' + meson.project_source_root() / 'libperiph/scripts' / host_machine.cpu_family() / meson.get_external_property('subarch') / 'flash.ld',
 	'-lstdc++', '-lc', '-lm', '-lg', '-lgcc', '-flto=auto',
+	'-Wl,--print-memory-usage',
 	language : ['c', 'cpp']
 )
 
