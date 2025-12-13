@@ -9,7 +9,7 @@ Unit tests can be run on a startup board such as STM32F411E-DISCO or on QEMU (em
 
 First, compile the test application with the `-Dtest=true`flag. 
 ```bash
-meson setup --cross-file arm.ini --cross-file m4.ini --cross-file stm32f411vet6.ini \
+meson setup --cross-file arm.ini --cross-file cortex/m4.ini --cross-file stm32/f411vet6.ini \
 	--buildtype=debug -Doptimization=s -Db_lto=true -Dcrystal_hz=8000000 -Dtest=true builddisco
 meson compile -C builddisco
 ```
@@ -37,7 +37,7 @@ After compilation, which may take a while, we will find qemu-system-arm in the b
 Compilation of tests on QEMU is similar to the [STM32F411E-DISCO board](#unit-tests-on-stm32f411e-disco-dev-board) but with a different microcontroller cross-file. A separate microcontroller type for the QEMU was intentionally created because the simulated microcontroller does not contain an RCC block and is configured by default to 168MHz.
 
 ```bash
-meson setup --cross-file arm.ini --cross-file m4.ini --cross-file stm32f405rg_qemu.ini \
+meson setup --cross-file arm.ini --cross-file cortex/m4.ini --cross-file stm32/f405rg_qemu.ini \
 	--buildtype=debug -Doptimization=g -Db_lto=true -Dcrystal_hz=8000000 -Dtest=true buildqemu
 meson compile -C buildqemu
 ```
