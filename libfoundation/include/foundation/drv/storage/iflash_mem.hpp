@@ -42,7 +42,7 @@ public:
 	{
 		return err_not_supported;
 	}
-	//Write one lement to flash, return bytes read or error
+	//Write one element to flash, return bytes written or error
 	virtual int write_halfword(paddr_t /*pg*/, poffs_t /*pa*/, unsigned short /*val*/)
 	{
 		return err_not_supported;
