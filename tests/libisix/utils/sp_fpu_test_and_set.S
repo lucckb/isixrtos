@@ -5,56 +5,72 @@
  *      Author: lucck
  */
 
-
+.section .rodata
 .align 4
-.thumb
+fone:
+    .float 1.0
+
+/* ======================================================================== */
+
+.section .text
 .syntax unified
-.section .text 
+.eabi_attribute 27, 1      @ Tag_ABI_HardFP_use
+.eabi_attribute 28, 1      @ Tag_ABI_VFP_args
 
-fone: .float 1.0
+/* ======================================================================== */
+/*  tests::fpu_sp::fill_and_add(int)                                        */
+/* ======================================================================== */
 
-.global _ZN5tests6fpu_sp12fill_and_addEi
-.func _ZN5tests6fpu_sp12fill_and_addEi
+    .thumb
+    .global _ZN5tests6fpu_sp12fill_and_addEi
+    .type   _ZN5tests6fpu_sp12fill_and_addEi, %function
+    .thumb_func
 _ZN5tests6fpu_sp12fill_and_addEi:
-	vldr s0, fone
-	vmov s1, r0
-	vcvt.f32.s32 s1, s1
-	vadd.f32  s1,s1,s0
-	vadd.f32  s2,s1,s0
-	vadd.f32  s3,s2,s0
-	vadd.f32  s4,s3,s0
-	vadd.f32  s5,s4,s0
-	vadd.f32  s6,s5,s0
-	vadd.f32  s7,s6,s0
-	vadd.f32  s8,s7,s0
-	vadd.f32  s9,s8,s0
-	vadd.f32  s10,s9,s0
-	vadd.f32  s11,s10,s0
-	vadd.f32  s12,s11,s0
-	vadd.f32  s13,s12,s0
-	vadd.f32  s14,s13,s0
-	vadd.f32  s15,s14,s0
-	vadd.f32  s16,s15,s0
-	vadd.f32  s17,s16,s0
-	vadd.f32  s18,s17,s0
-	vadd.f32  s19,s18,s0
-	vadd.f32  s20,s19,s0
-	vadd.f32  s17,s16,s0
-	vadd.f32  s18,s17,s0
-	vadd.f32  s19,s18,s0
-	vadd.f32  s20,s19,s0
-	vadd.f32  s21,s20,s0
-	vadd.f32  s22,s21,s0
-	vadd.f32  s23,s22,s0
-	vadd.f32  s24,s23,s0
-	vadd.f32  s25,s24,s0
-	vadd.f32  s26,s25,s0
-	vadd.f32  s27,s26,s0
-	vadd.f32  s28,s27,s0
-	vadd.f32  s29,s28,s0
-	vadd.f32  s30,s29,s0
-	vadd.f32  s31,s30,s0
-	vadd.f32  s0,s31,s0
+
+    movw r2, #:lower16:fone
+    movt r2, #:upper16:fone
+    vldr s0, [r2]
+
+    vmov s1, r0
+    vcvt.f32.s32 s1, s1
+
+    vadd.f32  s1,s1,s0
+    vadd.f32  s2,s1,s0
+    vadd.f32  s3,s2,s0
+    vadd.f32  s4,s3,s0
+    vadd.f32  s5,s4,s0
+    vadd.f32  s6,s5,s0
+    vadd.f32  s7,s6,s0
+    vadd.f32  s8,s7,s0
+    vadd.f32  s9,s8,s0
+    vadd.f32  s10,s9,s0
+    vadd.f32  s11,s10,s0
+    vadd.f32  s12,s11,s0
+    vadd.f32  s13,s12,s0
+    vadd.f32  s14,s13,s0
+    vadd.f32  s15,s14,s0
+    vadd.f32  s16,s15,s0
+    vadd.f32  s17,s16,s0
+    vadd.f32  s18,s17,s0
+    vadd.f32  s19,s18,s0
+    vadd.f32  s20,s19,s0
+    vadd.f32  s17,s16,s0
+    vadd.f32  s18,s17,s0
+    vadd.f32  s19,s18,s0
+    vadd.f32  s20,s19,s0
+    vadd.f32  s21,s20,s0
+    vadd.f32  s22,s21,s0
+    vadd.f32  s23,s22,s0
+    vadd.f32  s24,s23,s0
+    vadd.f32  s25,s24,s0
+    vadd.f32  s26,s25,s0
+    vadd.f32  s27,s26,s0
+    vadd.f32  s28,s27,s0
+    vadd.f32  s29,s28,s0
+    vadd.f32  s30,s29,s0
+    vadd.f32  s31,s30,s0
+    vadd.f32  s0,s31,s0
+
     vcvt.s32.f32 s0, s0
     vcvt.s32.f32 s1, s1
     vcvt.s32.f32 s2, s2
@@ -87,8 +103,15 @@ _ZN5tests6fpu_sp12fill_and_addEi:
     vcvt.s32.f32 s29, s29
     vcvt.s32.f32 s30, s30
     vcvt.s32.f32 s31, s31
-	bx lr
-.endfunc
+
+    bx lr
+
+    .size _ZN5tests6fpu_sp12fill_and_addEi, .-_ZN5tests6fpu_sp12fill_and_addEi
+
+
+/* ======================================================================== */
+/*  MACROS                                                                  */
+/* ======================================================================== */
 
 .macro ccmp sreg
     vmov r1, s\sreg
@@ -107,8 +130,15 @@ _ZN5tests6fpu_sp12fill_and_addEi:
     b fail_2
 .endm
 
-.global _ZN5tests6fpu_sp18fill_and_add_checkEi
-.func _ZN5tests6fpu_sp18fill_and_add_checkEi
+
+/* ======================================================================== */
+/* tests::fpu_sp::fill_and_add_check(int)                                  */
+/* ======================================================================== */
+
+    .thumb
+    .global _ZN5tests6fpu_sp18fill_and_add_checkEi
+    .type   _ZN5tests6fpu_sp18fill_and_add_checkEi, %function
+    .thumb_func
 _ZN5tests6fpu_sp18fill_and_add_checkEi:
     vcmp 1
     vcmp 2
@@ -146,24 +176,38 @@ ok_1:
     bx lr
 fail_1:
     bx lr
-.endfunc
+    .size _ZN5tests6fpu_sp18fill_and_add_checkEi, .-_ZN5tests6fpu_sp18fill_and_add_checkEi
 
-.global _ZN5tests6fpu_sp14base_regs_fillEi
-.func _ZN5tests6fpu_sp14base_regs_fillEi
+
+/* ======================================================================== */
+/* tests::fpu_sp::base_regs_fill(int)                                      */
+/* ======================================================================== */
+
+    .thumb
+    .global _ZN5tests6fpu_sp14base_regs_fillEi
+    .type   _ZN5tests6fpu_sp14base_regs_fillEi, %function
+    .thumb_func
 _ZN5tests6fpu_sp14base_regs_fillEi:
     vmov d0, r0, r0
-	vmov d1, r0, r0
-	vmov d2, r0, r0
-	vmov d3, r0, r0
-	vmov d4, r0, r0
-	vmov d5, r0, r0
-	vmov d6, r0, r0
-	vmov d7, r0, r0
-	bx lr
-.endfunc
+    vmov d1, r0, r0
+    vmov d2, r0, r0
+    vmov d3, r0, r0
+    vmov d4, r0, r0
+    vmov d5, r0, r0
+    vmov d6, r0, r0
+    vmov d7, r0, r0
+    bx lr
+    .size _ZN5tests6fpu_sp14base_regs_fillEi, .-_ZN5tests6fpu_sp14base_regs_fillEi
 
-.global _ZN5tests6fpu_sp15base_regs_checkEi
-.func   _ZN5tests6fpu_sp15base_regs_checkEi
+
+/* ======================================================================== */
+/* tests::fpu_sp::base_regs_check(int)                                     */
+/* ======================================================================== */
+
+    .thumb
+    .global _ZN5tests6fpu_sp15base_regs_checkEi
+    .type   _ZN5tests6fpu_sp15base_regs_checkEi, %function
+    .thumb_func
 _ZN5tests6fpu_sp15base_regs_checkEi:
     ccmp 0
     ccmp 1
@@ -185,9 +229,9 @@ ok_2:
     mov r0, #0
     bx lr
 fail_2:
-    bx lr  
-.endfunc
+    bx lr
+    .size _ZN5tests6fpu_sp15base_regs_checkEi, .-_ZN5tests6fpu_sp15base_regs_checkEi
 
-
-.end
-
+/* ======================================================================== */
+/* END OF FILE                                                             */
+/* ======================================================================== */

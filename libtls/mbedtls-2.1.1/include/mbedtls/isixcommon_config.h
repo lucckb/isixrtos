@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <foundation/tiny_printf.h>
+#include <foundation/sys/tiny_printf.h>
 
 /**
  * \def MBEDTLS_NO_PLATFORM_ENTROPY

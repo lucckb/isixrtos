@@ -7,7 +7,6 @@
 
 #pragma once
 #include <isix/config.h>
-#if CONFIG_ISIX_USE_TIMERS
 #include <isix/types.h>
 #include <isix/ostime.h>
 #ifdef __cplusplus
@@ -148,5 +147,3 @@ namespace {
 	}
 }}
 #endif /* __cplusplus */
-
-#endif /*CONFIG_ISIX_USE_TIMERS */

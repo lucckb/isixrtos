@@ -20,7 +20,7 @@
 #include <gsm/at_parser.hpp>
 #include <gsm/event.hpp>
 #include <gsm/hw_control.hpp>
-#include <foundation/serial_port.hpp>
+#include <foundation/drv/bus/serial_port.hpp>
 #include <gsm/datadefs.hpp>
 #include <gsm/phonebook.hpp>
 #include <gsm/containers.hpp>

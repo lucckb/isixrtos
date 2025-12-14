@@ -20,7 +20,7 @@
 #include <gsm/at_parser.hpp>
 #include <gsm/param_parser.hpp>
 #include <foundation/sys/dbglog.h>
-#include <foundation/tiny_printf.h>
+#include <foundation/sys/tiny_printf.h>
 #include <cstring>
   
 //TODO: Add other alphabet encoding

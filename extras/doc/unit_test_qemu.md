@@ -2,18 +2,18 @@
 
 ## Preface
 
-Unit tests can be run on a startup board such as STM32F411E-DISCO or on a QEMU. Due to more convenient development, it is recommended to use QEMU.
+Unit tests can be run on a startup board such as STM32F411E-DISCO or on QEMU (emulated uC but more convenient development).
 
 
 ## Unit tests on STM32F411E-DISCO dev board
 
-In the first step, go to the directory 'libisix/tests/libisix and compile the application. 
+First, compile the test application with the `-Dtest=true`flag. 
 ```bash
-cd tests/libisix/
-waf configure --cpu=stm32f411vet6 --debug --crystal-hz=8000000
-waf
+meson setup --cross-file arm.ini --cross-file cortex/m4.ini --cross-file stm32/f411vet6.ini \
+	--buildtype=debug -Doptimization=s -Db_lto=true -Dcrystal_hz=8000000 -Dtest=true builddisco
+meson compile -C builddisco
 ```
-In the ***build/test/libisix/*** directory ***isixunittests*** file will be created. The elf file can be used to program target board.
+In the ***builddisco/test/libisix/*** directory ***isixunittests*** file will be created. The ELF file can be used to program target board.
 The serial console is configured using USART1_TX pin (PA9), with serial baudrate 115200.
 
 ## Unit tests on the QEMU
@@ -22,24 +22,24 @@ The current version of QEMU allows emulation of the *olimex-stm32-h405* board. U
 
 ### Compile QEMU
 
-To compile QEMU first download the patch from the following location: http://bryndza.boff.pl/downloads/prv/0001-STM32-fix-raise-interrupt-time.patch and then clone the QEMU sources and apply the patch and compile the application.
+To compile QEMU first download the patch from the following location: http://bryndza.boff.pl/downloads/prv/qemu-v10.1.2-STM32-fix-raise-interrupt-time.patch and then clone the QEMU sources and apply the patch and compile the application.
 
 ```bash
-git clone --recurse-submodules https://gitlab.com/qemu-project/qemu.git
+git clone -b v10.1.2 --recurse-submodules https://gitlab.com/qemu-project/qemu.git
 cd qemu
-patch -p1 -d < 0001-STM32-fix-raise-interrupt-time.patch
+patch -p1 -d . < qemu-v10.1.2-STM32-fix-raise-interrupt-time.patch
 ./configure --enable-debug --disable-xen --disable-werror --target-list="arm-softmmu"
 make
 ```
 After compilation, which may take a while, we will find qemu-system-arm in the build directory, which we can use in this directory or copy to another location such as /usr/local/bin.
 
 ### Compile tests
-The compilation of tests is similar to the previous case. Only we have to choose a different microcontroller. A separate microcontroller type for the QEMU was intentionally created, because the simulated microcontroller does not contain an RCC block and is configured to default to 168MHz.
+Compilation of tests on QEMU is similar to the [STM32F411E-DISCO board](#unit-tests-on-stm32f411e-disco-dev-board) but with a different microcontroller cross-file. A separate microcontroller type for the QEMU was intentionally created because the simulated microcontroller does not contain an RCC block and is configured by default to 168MHz.
 
 ```bash
-cd tests/libisix/
-waf configure --cpu=stm32f405rg_qemu --debug --crystal-hz=8000000
-waf
+meson setup --cross-file arm.ini --cross-file cortex/m4.ini --cross-file stm32/f405rg_qemu.ini \
+	--buildtype=debug -Doptimization=g -Db_lto=true -Dcrystal_hz=8000000 -Dtest=true buildqemu
+meson compile -C buildqemu
 ```
 Once compiled, a binary file ***isixunittests.binary*** will be created, which we can use to run the tests on QEMU.
 

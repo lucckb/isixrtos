@@ -150,9 +150,10 @@ namespace {
 		std::unique_ptr<overflow_task> task;
 		if( time_irq != NOT_FROM_IRQ ) {
 			m_irq_cnt = 0;
-			tests::detail::periodic_timer_setup(
+			auto ec = tests::detail::periodic_timer_setup(
 				std::bind(interrupt_handler,std::ref(m_fifo_n)), time_irq
 			);
+            EXPECT( ec == true );
 		} else {
 			task.reset( new overflow_task( isix_get_task_priority(nullptr), fifoin) );
 			task->start();

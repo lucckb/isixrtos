@@ -142,3 +142,16 @@ void isix_irq_restore( unsigned flags )
 		: "memory", "cc");
 }
 
+/** Check in irq status
+ * @return true if isix is inside IRQ context
+ */
+bool isix_irq_in_isr(void)
+{
+    unsigned ipsr;
+	asm volatile(
+		"	mrs	%0, ipsr	@ isix_irq_in_isr"
+		: "=r" (ipsr)
+		:
+		: "memory");
+	return ipsr != 0U;
+}

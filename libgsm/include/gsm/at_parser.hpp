@@ -17,8 +17,8 @@
  */
 #pragma once
 #include <array>
-#include <foundation/fixed_vector.hpp>
-#include <foundation/serial_port.hpp>
+#include <foundation/algo/fixed_vector.hpp>
+#include <foundation/drv/bus/serial_port.hpp>
 #include "errors.hpp"
   
 namespace gsm_modem {

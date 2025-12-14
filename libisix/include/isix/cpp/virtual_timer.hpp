@@ -17,8 +17,6 @@
  */
 
 #pragma once
-
-#if CONFIG_ISIX_USE_TIMERS
 #ifdef __cplusplus
 
 
@@ -126,4 +124,3 @@ namespace isix {
 }
 
 #endif /*  __cplusplus */
-#endif /* CONFIG_ISIX_USE_TIMERS */

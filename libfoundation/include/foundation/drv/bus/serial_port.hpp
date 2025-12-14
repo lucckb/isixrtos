@@ -21,6 +21,8 @@
 
 #if !CONFIG_ISIX_WITHOUT_KERNEL
 #include <isix.h>
+#else
+#include <sys/errno.h>
 #endif
 
 namespace fnd {
@@ -98,7 +100,11 @@ public:
 	virtual void sleep( unsigned ms ) = 0;
 	//Inject data into rx buffer
 	virtual int push_rx_char( value_type )  {
+	#if !CONFIG_ISIX_WITHOUT_KERNEL
 		return ISIX_ENOTSUP;
+	#else
+		return ENOTSUP;
+	#endif
 	}
 protected:
 	static constexpr parity parity_mask( unsigned arg ) {

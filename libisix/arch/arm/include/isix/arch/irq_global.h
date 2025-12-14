@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,6 +42,13 @@ unsigned isix_irq_save(void);
  * @param[in] mask Saved interrupt mask
  */
 void isix_irq_restore( unsigned mask );
+
+
+/** Check in irq status
+ * @return true if isix is inside IRQ context
+ */
+bool isix_irq_in_isr(void);
+
 
 #ifdef __cplusplus
 }

@@ -363,6 +363,7 @@ void stm32_dma_v1::dma_addr_configure(mem_ptr dest, cmem_ptr src,
 /** Remap alternative channel when needed */
 void stm32_dma_v1::remap_alt_channel(chnid_t chn,int num)
 {
+#ifdef DMA2
 	++num;	//! Base channel number is n+1
 	if(chn==devid::mem) return;
 	if( __builtin_popcount(devid::detail::dev_chn_map[chn])<=1) {
@@ -380,6 +381,9 @@ void stm32_dma_v1::remap_alt_channel(chnid_t chn,int num)
 			return;
 		}
 	}
+#else
+	(void)chn, (void)num;
+#endif
 }
 
 

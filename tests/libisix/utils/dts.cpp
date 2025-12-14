@@ -41,15 +41,32 @@ namespace {
 		{}
 	};
 
-    // Serial debug interface
-#	if defined(STM32F411xE)
+// TODO fix this
+#if defined(STM32F411xE)
+    constexpr pin ser0_pins[] {
+		{ pinfunc::txd, gpio::num::PA2 },
+		{}
+	};
+#elif defined(STM32F405xx)
+	//Serial debug interface
 	constexpr pin ser0_pins[] {
 		{ pinfunc::txd, gpio::num::PA2 },
 		{}
 	};
+#endif
 
 	constexpr device devices[]
 	{
+
+#if defined(STM32F411xE)
+		{
+			"serial0", reinterpret_cast<uintptr_t>(USART2),
+			bus::apb1, LL_GPIO_AF_7,
+			unsigned(std::log2(LL_APB1_GRP1_PERIPH_USART2)),
+			ser0_pins,
+			nullptr
+		},
+#elif defined(STM32F405xx)
 		{
 			"serial0", reinterpret_cast<uintptr_t>(USART2),
                 bus::apb1, LL_GPIO_AF_7,
@@ -57,6 +74,9 @@ namespace {
 			ser0_pins,
 			nullptr
 		},
+#else
+#error unknown board
+#endif
 		{}
 	};
 #   else    /* STM32F411xE */

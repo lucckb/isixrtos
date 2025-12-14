@@ -37,22 +37,22 @@ public:
 	typedef unsigned int pglen_t;
 	// Sector size
 	typedef unsigned int sectoffs_t;
-	//Read one element from flash return bytes written or error
+	//Read one element from flash, return bytes read or error
 	virtual int read_halfword(paddr_t /*pg*/, poffs_t /*pa*/, unsigned short &/*val*/) const
 	{
 		return err_not_supported;
 	}
-	//Write one lement to flash return bytes written or error
+	//Write one element to flash, return bytes written or error
 	virtual int write_halfword(paddr_t /*pg*/, poffs_t /*pa*/, unsigned short /*val*/)
 	{
 		return err_not_supported;
 	}
-	//Read one element from flash return bytes written or error
+	//Read one element from flash, return bytes read or error
 	virtual int read_word(paddr_t /*pg*/, poffs_t /*pa*/, unsigned &/*val*/) const
 	{
 		return err_not_supported;
 	}
-	//Write one lement to flash return bytes written or error
+	//Write one element to flash, return bytes written or error
 	virtual int write_word(paddr_t /*pg*/, poffs_t /*pa*/, unsigned /*val*/)
 	{
 		return err_not_supported;

@@ -42,7 +42,7 @@ struct reg_desc {
 };
 
 //! Program status register bits
-static const struct reg_desc psr_bits[] = 
+static const struct reg_desc psr_bits[] =
 {
 	{ "EXCNO", 0xff , 0 },
 	{ "ICI10", 0xfc00, 10 },
@@ -55,48 +55,48 @@ static const struct reg_desc psr_bits[] =
 	{ "N", 1<<31, 31},
 	{ NULL, 0, 0 }
 };
-	
+
 //HARD fault status register bits
 static const struct reg_desc hsfr_bits[] =
 {
- 	{ "DEBUGEVT", 1U<<31, 31 },
- 	{ "FORCED",   1U<<30, 30 },
- 	{ "VECTBL",   1U<<1, 1 },
+	{ "DEBUGEVT", 1U<<31, 31 },
+	{ "FORCED",   1U<<30, 30 },
+	{ "VECTBL",   1U<<1, 1 },
 	{ NULL, 0, 0 }
 };
 
 //BUS fault status register bits
-static const struct reg_desc bfsr_bits[] = 
+static const struct reg_desc bfsr_bits[] =
 {
-	{ "BFARVALID", 		1U<<7, 7 },
-	{ "STKERR", 		1U<<4, 4 },
-	{ "UNSTKERR", 		1U<<3, 3 },
-	{ "IMPREISERR", 	1U<<2, 2 },
-	{ "PRECISERR", 		1U<<1, 1 },
-	{ "IBUSERR", 		1U<<0, 0 },
+	{ "BFARVALID",		1U<<7, 7 },
+	{ "STKERR",		    1U<<4, 4 },
+	{ "UNSTKERR",		1U<<3, 3 },
+	{ "IMPREISERR",	    1U<<2, 2 },
+	{ "PRECISERR",		1U<<1, 1 },
+	{ "IBUSERR",		1U<<0, 0 },
 	{ NULL, 0, 0 }
 };
 
 //! Memory management fault register bits
-static const struct reg_desc mmsr_bits[] = 
+static const struct reg_desc mmsr_bits[] =
 {
-	{ "MMARVALID", 		1U<<7, 7 },
-	{ "STKERR", 		1U<<4, 4 },
-	{ "UNSTKERR", 		1U<<3, 3 },
-	{ "DACCVIOL", 		1U<<1, 1 },
-	{ "IACCVIOL", 		1U<<0, 0 },
+	{ "MMARVALID",		1U<<7, 7 },
+	{ "STKERR",		    1U<<4, 4 },
+	{ "UNSTKERR",		1U<<3, 3 },
+	{ "DACCVIOL",		1U<<1, 1 },
+	{ "IACCVIOL",		1U<<0, 0 },
 	{ NULL, 0, 0 }
 };
 
 //! Usage fault register trap
-static const struct reg_desc ufsr_bits[] = 
+static const struct reg_desc ufsr_bits[] =
 {
-	{ "DIVBYZERO", 		1U<<9, 9 },
-	{ "UNALIGNED", 		1U<<8, 8 },
-	{ "NOCP", 			1U<<3, 3 },
-	{ "INVPC", 			1U<<2, 2 },
-	{ "INVSTATE", 		1U<<1, 1 },
-	{ "UNDEFINSTR", 	1U<<0, 0 },
+	{ "DIVBYZERO",		1U<<9, 9 },
+	{ "UNALIGNED",		1U<<8, 8 },
+	{ "NOCP",			1U<<3, 3 },
+	{ "INVPC",			1U<<2, 2 },
+	{ "INVSTATE",		1U<<1, 1 },
+	{ "UNDEFINSTR",	    1U<<0, 0 },
 	{ NULL, 0, 0 }
 };
 
@@ -105,7 +105,7 @@ static void print_bits( const struct reg_desc *table, unsigned long bits )
 {
 	short pos = 0;
 	tiny_printf("\t");
-	for( const struct reg_desc* r = table; r->mask; ++r ) 
+	for( const struct reg_desc* r = table; r->mask; ++r )
 	{
 		pos +=  tiny_printf( "%s:%lu ", r->desc, (bits&r->mask)>>r->shift );
 		if( pos > 75 ) {
@@ -119,7 +119,9 @@ static void print_bits( const struct reg_desc *table, unsigned long bits )
 }
 
 #if !CONFIG_ISIX_WITHOUT_KERNEL
-void* isix_task_self(void);
+// Hack for direct access TCB because we are
+// in the ISR context so we can't use it directly
+extern struct isix_task *volatile _isix_current_task;
 #endif
 
 
@@ -136,7 +138,7 @@ void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP)
 	tiny_printf("\r\n\r\nISIX panic! Exception in [%s] mode.\r\n",
 			crash_type==CRASH_TYPE_USER?"USER":"SYSTEM" );
 #if !CONFIG_ISIX_WITHOUT_KERNEL
-	tiny_printf("Last executed task TCB is %p\r\n", isix_task_self() );
+	tiny_printf("Last executed task TCB is %p\r\n", _isix_current_task );
 #endif
 	tiny_printf("CPU core regs: \r\n");
 	tiny_printf("\t[R0=%08lx]\t[R1=%08lx]\t[R2=%08lx]\t[R3=%08lx]\r\n",

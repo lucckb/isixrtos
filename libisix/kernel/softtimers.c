@@ -20,8 +20,6 @@
 #endif
 #include <isix/prv/printk.h>
 
-#if CONFIG_ISIX_USE_TIMERS 
-
 //! Global timer CTX structure
 static struct vtimer_context tctx;
 
@@ -421,6 +419,3 @@ int isix_vtimer_mod( osvtimer_t timer, ostick_t new_timeout )
 	}
 	return ISIX_EOK;
 }
-
-#endif /* CONFIG_ISIX_USE_TIMERS */
-

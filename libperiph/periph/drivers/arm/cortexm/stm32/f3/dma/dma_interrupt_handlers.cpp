@@ -20,6 +20,7 @@
 #include <functional>
 #include <periph/core/error.hpp>
 #include <periph/dma/dma_interrupt_handlers.hpp>
+#include <isix/arch/isr_vectors.h>
 
 namespace periph::drivers::dma::_handlers {
 
@@ -38,32 +39,28 @@ int register_handler(int channel, std::function<void()> callback)
 	return error::success;
 }
 
-
 extern "C" {
-
-	__attribute__((interrupt)) void dma1_channel1_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_channel1_isr_vector) {
 		vectors[0]();
 	}
-	__attribute__((interrupt)) void dma1_channel2_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_channel2_isr_vector) {
 		vectors[1]();
 	}
-	__attribute__((interrupt)) void dma1_channel3_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_channel3_isr_vector) {
 		vectors[2]();
 	}
-	__attribute__((interrupt)) void dma1_channel4_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_channel4_isr_vector) {
 		vectors[3]();
 	}
-	__attribute__((interrupt)) void dma1_channel5_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_channel5_isr_vector) {
 		vectors[4]();
 	}
-	__attribute__((interrupt)) void dma1_channel6_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_channel6_isr_vector) {
 		vectors[5]();
 	}
-	__attribute__((interrupt)) void dma1_channel7_isr_vector() {
+	ISIX_ISR_VECTOR(dma1_channel7_isr_vector) {
 		vectors[6]();
 	}
 }
-
-
 }
 

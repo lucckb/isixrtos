@@ -23,6 +23,7 @@
 #include <periph/drivers/serial/uart_early.hpp>
 #include <boot/arch/arm/cortexm/crashinfo.h>
 #include <periph/drivers/serial/uart_early.hpp>
+#include <isix/arch/irq_global.h>
 #include <string>
 #include <sys/stat.h>
 #include <lest/lest.hpp>
@@ -33,14 +34,22 @@
 //asm (".global _printf_float");
 
 
-/** 
- * Lest unit test framework uses exceptions extensively to 
- * report errors, so the correctness of their operation is crucial. 
- * These initial tests validate the correctness of exceptions at 
- * the toolchain level. If they do not pass correctly further 
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+#define ENTRY_EXCEPTIONS 1
+#else
+#define ENTRY_EXCEPTIONS 0
+#endif
+
+/**
+ * Lest unit test framework uses exceptions extensively to
+ * report errors, so the correctness of their operation is crucial.
+ * These initial tests validate the correctness of exceptions at
+ * the toolchain level. If they do not pass correctly further
  * tests are not run.
 */
 namespace pretest {
+
+#if ENTRY_EXCEPTIONS
 	auto run() -> int
 	{
         auto basic_exc = []() {
@@ -83,6 +92,11 @@ namespace pretest {
 		dbprintf("Exceptions pretest. OK");
         return EXIT_SUCCESS;
     }
+#else
+    auto run() -> int {
+        return EXIT_SUCCESS;
+    }
+#endif
 }
 
 
@@ -96,9 +110,11 @@ lest::tests& specification()
 
 
 //! Unit tests main thread
-static void unittests_thread(void*) 
+static void unittests_thread(void*)
 {
+#if ENTRY_EXCEPTIONS
 	try {
+#endif
         if(pretest::run()) {
 			isix::wait_ms( 100 );
 			isix::shutdown_scheduler();
@@ -115,6 +131,7 @@ static void unittests_thread(void*)
 			isix::wait_ms( 100 );
 			isix::shutdown_scheduler();
 		}
+#if ENTRY_EXCEPTIONS
 	} catch( const std::exception& e ) {
 		dbprintf("Unhandled std::exception %s", e.what() );
 		return;
@@ -122,6 +139,7 @@ static void unittests_thread(void*)
 		dbprintf("Unhandled unknown exception");
 		return;
 	}
+#endif
 }
 
 // Main core function
@@ -135,17 +153,21 @@ int main()
 		},
 		nullptr,
 		[]() {
-			m_ulock_sem.wait(ISIX_TIME_INFINITE);
+            if (!isix_irq_in_isr()) {
+                m_ulock_sem.wait(ISIX_TIME_INFINITE);
+            }
 		},
 		[]() {
-			m_ulock_sem.signal();
+            if (!isix_irq_in_isr()) {
+                m_ulock_sem.signal();
+            }
 		},
 		periph::drivers::uart_early::open,
 		"serial0", 115200
 	);
 	dbprintf("ISIX VERSION %s", isix::get_version() );
 	const auto hwnd =
-		isix::task_create( unittests_thread, nullptr, 8U*1024U, 0, isix_task_flag_newlib);
+		isix::task_create( unittests_thread, nullptr, 16U*1024U, 0, isix_task_flag_newlib);
 	if( !hwnd ) {
 		dbprintf("Unable to create task");
 		return -1;
@@ -180,33 +202,11 @@ extern "C" void isix_kernel_panic_callback( const char* file, int line, const ch
     fnd::tiny_printf("ISIX_PANIC %s:%i %s\r\n", file, line, msg );
 }
 
-//! Extra functions for stdlib support
-extern "C" {
-int _gettimeofday(struct timeval* tp, void*) {
+//! Extra function for stdlib support
+extern "C" int _gettimeofday(struct timeval* tp, void*)
+{
     const auto j = isix::get_ujiffies();
     tp->tv_sec = j / 1000'000;
     tp->tv_usec = j % 1000'000;
     return 0;
-}
-int _close_r() { return 0; }
-int _write(int file, const void* ptr, size_t len) {
-    (void)file;
-    (void)ptr;
-    (void)len;
-    return -1;
-}
-
-int _read(int file, void* ptr, size_t len) {
-    (void)file;
-    (void)ptr;
-    (void)len;
-    return -1;
-}
-
-off_t _lseek(int file, off_t ptr, int dir) {
-    (void)file;
-    (void)ptr;
-    (void)dir;
-    return -1;
-}
 }

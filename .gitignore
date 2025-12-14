@@ -24,6 +24,5 @@ tags
 .project
 .cproject
 .settings
-libisix/include/isix/version.h
 tests/libisix/build
 compile_commands.json

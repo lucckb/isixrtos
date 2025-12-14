@@ -369,6 +369,7 @@ static const lest::test module[] =
 		auto thr3 = isix::thread_create_and_run( STK_SIZ,5,0,thread,std::ref(fin[2]) );
 		auto thr4 = isix::thread_create_and_run( STK_SIZ,5,0,thread,std::ref(fin[3]) );
 		auto thr5 = isix::thread_create_and_run( STK_SIZ,5,0,thread,std::ref(fin[4]) );
+		isix::wait_ms(10);
 		EXPECT( thr2 == true );
 		EXPECT( thr3 == true );
 		EXPECT( thr4 == true );
@@ -392,7 +393,7 @@ static const lest::test module[] =
 		EXPECT( ((mtx_hacker*)&mtx1)->mtx->owner==nullptr );
 		EXPECT( ((mtx_hacker*)&mtx1)->mtx->count==0 );
 		EXPECT( list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list)==true);
-		isix::wait_ms(10);
+		isix::wait_ms(20);
 	},
 	/* Mutex create and destroy test
 	* When tasks wait for mutexes which is

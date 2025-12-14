@@ -17,7 +17,9 @@
 #define CONFIG_GFX_PIXEL_FORMAT_BGR8   4
 
 #ifndef CONFIG_GFX_PIXEL_FORMAT
-#error Pixel format not defined
+	#ifndef HAVE_ISIX_CONFIG_H
+		#define CONFIG_GFX_PIXEL_FORMAT CONFIG_GFX_PIXEL_FORMAT_RGB565
+	#endif
 #endif
  
 namespace gfx
