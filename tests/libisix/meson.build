@@ -27,7 +27,6 @@ fpu_asm_lib = static_library(
 
 isix_tests_elf = executable('isixtests',
 	sources: isix_tests_src,
-	override_options : _test_option_overrides,
 	include_directories : ['include', 'utils'],
 	dependencies : [
 		libperiph,

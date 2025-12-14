@@ -34,7 +34,13 @@
 //asm (".global _printf_float");
 
 
-/** 
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+#define ENTRY_EXCEPTIONS 1
+#else
+#define ENTRY_EXCEPTIONS 0
+#endif
+
+/**
  * Lest unit test framework uses exceptions extensively to
  * report errors, so the correctness of their operation is crucial.
  * These initial tests validate the correctness of exceptions at
@@ -42,6 +48,8 @@
  * tests are not run.
 */
 namespace pretest {
+
+#if ENTRY_EXCEPTIONS
 	auto run() -> int
 	{
         auto basic_exc = []() {
@@ -84,6 +92,11 @@ namespace pretest {
 		dbprintf("Exceptions pretest. OK");
         return EXIT_SUCCESS;
     }
+#else
+    auto run() -> int {
+        return EXIT_SUCCESS;
+    }
+#endif
 }
 
 
@@ -99,7 +112,9 @@ lest::tests& specification()
 //! Unit tests main thread
 static void unittests_thread(void*)
 {
+#if ENTRY_EXCEPTIONS
 	try {
+#endif
         if(pretest::run()) {
 			isix::wait_ms( 100 );
 			isix::shutdown_scheduler();
@@ -116,6 +131,7 @@ static void unittests_thread(void*)
 			isix::wait_ms( 100 );
 			isix::shutdown_scheduler();
 		}
+#if ENTRY_EXCEPTIONS
 	} catch( const std::exception& e ) {
 		dbprintf("Unhandled std::exception %s", e.what() );
 		return;
@@ -123,6 +139,7 @@ static void unittests_thread(void*)
 		dbprintf("Unhandled unknown exception");
 		return;
 	}
+#endif
 }
 
 // Main core function
@@ -136,12 +153,12 @@ int main()
 		},
 		nullptr,
 		[]() {
-            if (isix_irq_in_isr()) {
+            if (!isix_irq_in_isr()) {
                 m_ulock_sem.wait(ISIX_TIME_INFINITE);
             }
 		},
 		[]() {
-            if (isix_irq_in_isr()) {
+            if (!isix_irq_in_isr()) {
                 m_ulock_sem.signal();
             }
 		},

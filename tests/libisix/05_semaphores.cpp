@@ -226,7 +226,8 @@ const lest::test module[] =
 		for( int i = 0; i < N_TEST_POSTS; ++i ) {
 			m_sem_irq_get.signal();
 		}
-		tests::detail::periodic_timer_setup(isr_test_handler, 1300);
+		auto ec = tests::detail::periodic_timer_setup(isr_test_handler, 1300);
+        EXPECT( ec == true );
 		//Do loop waits for irq
 		int n_signals;
 		for(n_signals=0; (ret=m_sem_irq.wait(1000))==ISIX_EOK; ++n_signals) {

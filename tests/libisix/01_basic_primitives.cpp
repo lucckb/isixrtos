@@ -27,9 +27,10 @@ static const lest::test module[] =
 	{
 		static constexpr auto period_us = 1000U;
 		unsigned cnt {};
-		tests::detail::periodic_timer_setup([&cnt]() {
+		auto ec = tests::detail::periodic_timer_setup([&cnt]() {
 			++cnt;
 		}, period_us );
+        EXPECT( ec == true );
 		isix::wait_ms(1000);
 		tests::detail::periodic_timer_stop();
 		EXPECT(cnt >= 995U);

@@ -45,7 +45,6 @@ libisix = declare_dependency(
 			'-D_ISIX_KERNEL_CORE_=1',
 			meson.get_external_property('cache') ? '-D_ISIX_CACHE_PRESENT_=1' : [],
 		],
-		override_options : _test_option_overrides,
 		include_directories : _include,
 		dependencies : _config,
 	),

@@ -10,8 +10,8 @@ project('isix', 'c', 'cpp',
 		'b_pie=false',
 		'c_std=gnu17',
 		'cpp_std=gnu++23',
-		'cpp_rtti=' + (meson.is_cross_build() ? 'false' : 'true'),
-		'cpp_eh=' + (meson.is_cross_build() ? 'none' : 'default'),
+		'cpp_rtti=false',
+		'cpp_eh=none',
 		'werror=true',
 		'warning_level=2',
 		'b_lundef=false',
@@ -97,9 +97,6 @@ _config = declare_dependency(include_directories : 'config/include')
 if get_option('disable_isix')
 	subdir('libfoundation')
 else
-	_test_option_overrides = get_option('test') ? [
-		'cpp_eh=default', 'cpp_rtti=true',  # lest needs exceptions
-	] : []
 	subdir('libisix')
 	subdir('libfoundation')
 	subdir('libperiph')

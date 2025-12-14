@@ -100,7 +100,9 @@ const lest::test module[] =
 			pptr[n] = p;
 		}
 		//Should return unable alloc
+#if defined(__EXCEPTIONS)
 		EXPECT_THROWS_AS( memp.alloc('X'), std::bad_alloc);
+#endif
 		//Free memory blocks
 		for(auto p : pptr ) {
 			EXPECT( memp.free(p) == ISIX_EOK );

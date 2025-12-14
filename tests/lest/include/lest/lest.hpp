@@ -14,6 +14,7 @@
 #include <functional>
 #include <iterator>
 #include <limits>
+#include <optional>
 #include <random>
 #include <stdexcept>
 #include <string>
@@ -58,6 +59,26 @@
 
 #ifndef lest_FEATURE_WSTRING
 #define lest_FEATURE_WSTRING  1
+#endif
+
+
+// Test only
+//
+
+#ifndef lest_FEATURE_EXCEPTIONS
+# if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+#  define lest_FEATURE_EXCEPTIONS 1
+# else
+#  define lest_FEATURE_EXCEPTIONS 0
+# endif
+#endif
+
+#ifndef lest_FEATURE_LIGHTWEIGHT_RANDOM
+# define lest_FEATURE_LIGHTWEIGHT_RANDOM 1  // Default: use lightweight LCG (embedded-friendly)
+#endif
+
+#ifndef lest_FEATURE_PTAGS
+# define lest_FEATURE_PTAGS 1  // Default: enable ptags (backward compatible)
 #endif
 
 #if lest_FEATURE_REGEX_SEARCH
@@ -125,6 +146,7 @@
     if ( lest::guard( lest_UNIQUE( id ), lest__section, lest__count ) ) \
         for ( int lest__section = 0, lest__count = 1; lest__section < lest__count; lest__count -= 0==lest__section++ )
 
+#if lest_FEATURE_EXCEPTIONS
 #define lest_EXPECT( expr ) \
     do { \
         try \
@@ -139,7 +161,21 @@
             lest::inform( std::current_exception(), lest_LOCATION, #expr ); \
         } \
     } while ( lest::is_false() )
+#else
+#define lest_EXPECT( expr ) \
+    do { \
+        if ( lest::result score = lest_DECOMPOSE( expr ) ) { \
+            lest::set_failure( lest_env, lest_LOCATION, #expr, score.decomposition ); \
+            if ( lest_env.pass ) lest::report_failure( lest_env, lest_env.testing ); \
+            return; \
+        } else if ( lest_env.pass ) { \
+            lest::report_passing( lest_LOCATION, #expr, score.decomposition, lest_env.testing ); \
+        } \
+    } while ( lest::is_false() )
+#endif
 
+
+#if lest_FEATURE_EXCEPTIONS
 #define lest_EXPECT_NOT( expr ) \
     do { \
         try \
@@ -157,57 +193,64 @@
             lest::inform( std::current_exception(),lest_LOCATION, lest::not_expr( #expr ) ); \
         } \
     } while ( lest::is_false() )
+#else
+#define lest_EXPECT_NOT( expr ) \
+    do { \
+        if ( lest::result score = lest_DECOMPOSE( expr ) ) { \
+            if ( lest_env.pass ) \
+                lest::report_passing( lest_LOCATION, lest::not_expr( #expr ), lest::not_expr( score.decomposition ), lest_env.testing ); \
+        } else { \
+            lest::set_failure( lest_env, lest_LOCATION, lest::not_expr( #expr ), lest::not_expr( score.decomposition ) ); \
+            if ( lest_env.pass ) lest::report_failure( lest_env, lest_env.testing ); \
+            return; \
+        } \
+    } while ( lest::is_false() )
+#endif
 
-#define lest_EXPECT_NO_THROW( expr ) \
-    do \
-    { \
-        try \
-        { \
-            expr; \
+
+#if defined(__cpp_exceptions) && !defined(lest_NO_EXCEPTIONS)
+# define lest_EXPECT_NO_THROW( expr ) \
+    do { \
+        try { expr; } \
+        catch (...) { \
+            lest::set_failure( lest_env, lest_LOCATION, #expr, "threw an exception" ); \
+            if ( lest_env.pass ) lest::report_failure( lest_env, lest_env.testing ); \
+            break; \
         } \
-        catch (...) \
-        { \
-            lest::inform( std::current_exception(), lest_LOCATION, #expr ); \
-        } \
-        if ( lest_env.pass ) \
-            lest::report( lest::got_none( lest_LOCATION, #expr ), lest_env.testing ); \
+        if ( lest_env.pass ) lest::report_passing_simple( lest_LOCATION, "passed: got no exception", #expr, lest_env.testing ); \
     } while ( lest::is_false() )
 
-#define lest_EXPECT_THROWS( expr ) \
-    do \
-    { \
-        try \
-        { \
-            expr; \
+# define lest_EXPECT_THROWS( expr ) \
+    do { \
+        bool threw = false; \
+        try { expr; } catch (...) { threw = true; } \
+        if ( !threw ) { \
+            lest::set_failure( lest_env, lest_LOCATION, #expr, "didn't get exception" ); \
+            if ( lest_env.pass ) lest::report_failure( lest_env, lest_env.testing ); \
+        } else if ( lest_env.pass ) { \
+            lest::report_passing_simple( lest_LOCATION, "passed: got exception", #expr, lest_env.testing ); \
         } \
-        catch (...) \
-        { \
-            if ( lest_env.pass ) \
-                lest::report( lest::got{ lest_LOCATION, #expr }, lest_env.testing ); \
-            break; \
-        } \
-        throw lest::expected{ lest_LOCATION, #expr }; \
-    } \
-    while ( lest::is_false() )
+    } while ( lest::is_false() )
 
-#define lest_EXPECT_THROWS_AS( expr, excpt ) \
-    do \
-    { \
-        try \
-        { \
-            expr; \
-        }  \
-        catch ( excpt & ) \
-        { \
-            if ( lest_env.pass ) \
-                lest::report(  lest::got{ lest_LOCATION, #expr, lest::of_type( #excpt ) }, lest_env.testing ); \
-            break; \
+# define lest_EXPECT_THROWS_AS( expr, excpt ) \
+    do { \
+        bool threw = false; \
+        try { expr; } catch ( excpt & ) { threw = true; } catch (...) { } \
+        if ( !threw ) { \
+            lest::set_failure( lest_env, lest_LOCATION, #expr, "didn't get exception " + lest::of_type( #excpt ) ); \
+            if ( lest_env.pass ) lest::report_failure( lest_env, lest_env.testing ); \
+        } else if ( lest_env.pass ) { \
+            lest::report_passing_simple( lest_LOCATION, "passed: got exception " + lest::of_type( #excpt ), #expr, lest_env.testing ); \
         } \
-        catch (...) {} \
-        throw lest::expected{ lest_LOCATION, #expr, lest::of_type( #excpt ) }; \
-    } \
-    while ( lest::is_false() )
-
+    } while ( lest::is_false() )
+#else
+# define lest_EXPECT_NO_THROW( expr ) \
+    do { (void)(expr); if ( lest_env.pass ) lest::report_passing_simple( lest_LOCATION, "skipped: exceptions disabled", #expr, lest_env.testing ); } while ( lest::is_false() )
+# define lest_EXPECT_THROWS( expr ) \
+    do { (void)(expr); lest::set_failure( lest_env, lest_LOCATION, #expr, "cannot test throws: exceptions disabled" ); if ( lest_env.pass ) lest::report_failure( lest_env, lest_env.testing ); } while ( lest::is_false() )
+# define lest_EXPECT_THROWS_AS( expr, excpt ) \
+    do { (void)(expr); lest::set_failure( lest_env, lest_LOCATION, #expr, "cannot test throws_as: exceptions disabled" ); if ( lest_env.pass ) lest::report_failure( lest_env, lest_env.testing ); } while ( lest::is_false() )
+#endif
 #define lest_UNIQUE(  name       ) lest_UNIQUE2( name, __LINE__ )
 #define lest_UNIQUE2( name, line ) lest_UNIQUE3( name, line )
 #define lest_UNIQUE3( name, line ) name ## line
@@ -271,8 +314,8 @@ struct result
 };
 struct location
 {
-    const text file;
-    const int line;
+    text file;
+    int line;
 
     location( text file, int line )
     : file( file.substr(file.find_last_of("/\\")+1) ), line( line ) {}
@@ -435,6 +478,8 @@ inline text of_type( text type )
     return "of type " + type;
 }
 
+
+#if lest_FEATURE_EXCEPTIONS
 inline void inform( std::exception_ptr eptr, location where, text expr )
 {
     try
@@ -454,6 +499,7 @@ inline void inform( std::exception_ptr eptr, location where, text expr )
         throw unexpected{ where, expr, "of unknown type" }; \
     }
 }
+#endif
 
 // Expression decomposition:
 
@@ -539,6 +585,8 @@ using ForContainer = typename std::enable_if< is_container<T>::value, R>::type;
 template <typename T, typename R>
 using ForNonContainer = typename std::enable_if< ! is_container<T>::value, R>::type;
 
+
+#if defined(__GXX_RTTI)
 template<typename T>
 auto make_enum_string( T const & ) -> ForNonEnum<T, std::string>
 {
@@ -550,6 +598,22 @@ auto make_enum_string( T const & item ) -> ForEnum<T, std::string>
 {
     return to_string( static_cast<typename std::underlying_type<T>::type>( item ) );
 }
+
+#else
+template<typename T>
+auto make_enum_string(T const&) -> ForNonEnum<T, std::string>
+{
+    return "[type]";
+}
+
+template<typename T>
+auto make_enum_string(T const& item) -> ForEnum<T, std::string>
+{
+    return to_string(
+        static_cast<std::underlying_type_t<T>>(item)
+    );
+}
+#endif
 
 template<typename T>
 auto make_string( T const & item ) -> ForNonStreamable<T, std::string>
@@ -868,19 +932,92 @@ struct options
     seed_t seed  = 0;
 };
 
+
+struct failure_state
+{
+    bool failed = false;
+    text kind;
+    text file;
+    int  line = 0;
+    text expr;
+    text decomposition;
+    text note;
+};
+
 struct env
 {
     bool pass;
     text testing;
+    failure_state failure;
 
-    env(  bool pass )
-    :  pass( pass ), testing() {}
+    env( bool pass )
+    : pass( pass ), testing(), failure() {}
 
     env & operator()( text test )
     {
         testing = test; return *this;
     }
+
+    void reset_failure()
+    {
+        failure = failure_state{};
+    }
 };
+
+inline void set_failure( env & e, location where, text expr, text decomposition, text note = "" )
+{
+    if ( e.failure.failed )
+        return;
+
+    e.failure.failed = true;
+    e.failure.kind = "failed";
+    e.failure.file = where.file;
+    e.failure.line = where.line;
+    e.failure.expr = expr;
+    e.failure.decomposition = decomposition;
+    e.failure.note = note;
+}
+
+inline void report_failure( env & e, text test )
+{
+    if ( !e.failure.failed )
+        return;
+
+    std::string os =
+        e.failure.file + ":" + std::to_string( e.failure.line ) + ": " +
+        colourise( e.failure.kind ) + " " +
+        ( e.failure.note.empty() ? std::string() : ( e.failure.note + std::string( ": " ) ) ) +
+        test + ": " + colourise( e.failure.expr + " for " + e.failure.decomposition );
+
+    lest_puts( os.c_str() );
+}
+
+inline void report_passing( location where, text expr, text decomposition, text test )
+{
+    std::string os =
+        where.file + ":" + std::to_string( where.line ) + ": " +
+        colourise( "passed" ) + ": " + test + ": " +
+        colourise( expr + " for " + decomposition );
+
+    lest_puts( os.c_str() );
+}
+
+
+inline void report_passing_simple(
+    location where,
+    text note,
+    text expr,
+    text test
+) {
+    std::string msg =
+        where.file + ":" +
+        std::to_string(where.line) + ": " +
+        colourise("passed") + ": " +
+        test + ": " +
+        note + " for " + expr;
+
+    lest_puts(msg.c_str());
+}
 
 struct action
 {
@@ -919,6 +1056,7 @@ inline texts tags( text name, texts result = {} )
     return tags( name.substr( rb + 1 ), result );
 }
 
+#if lest_FEATURE_PTAGS
 struct ptags : action
 {
     std::set<text> result;
@@ -939,6 +1077,7 @@ struct ptags : action
 			[]( const text& txt ) { lest_puts((txt+"\n").c_str()); } );
     }
 };
+#endif
 
 struct count : action
 {
@@ -990,14 +1129,12 @@ struct times : action
     {
         timer t;
 
-        try
-        {
-            testing.behaviour( output( testing.name ) );
-        }
-        catch( message const & )
-        {
-            ++failures;
-        }
+output.reset_failure();
+testing.behaviour( output( testing.name ) );
+if ( output.failure.failed )
+{
+    ++failures;
+}
 
 		std::string os = std::to_string(t.elapsed_mseconds()) + " ms" + testing.name ;
 		lest_puts( os.c_str() );
@@ -1034,14 +1171,35 @@ struct confirm : action
 			lest_puts(os.c_str());
 		}
         timer t;
-        try
-        {
-            ++selected; testing.behaviour( output( testing.name ) );
-        }
-        catch( message const & e )
-        {
-            ++failures; report( e, testing.name );
-        }
+++selected;
+output.reset_failure();
+#if lest_FEATURE_EXCEPTIONS
+try {
+    testing.behaviour( output( testing.name ) );
+} catch ( lest::message const & e ) {
+    // Copy exception data immediately before it's destroyed
+    // e.what() returns const char* - copy to std::string immediately
+    text expr_str( e.what() );
+    set_failure( output, e.where, expr_str, e.note.info );
+} catch ( std::exception const & e ) {
+    if ( !output.failure.failed ) {
+        // Copy e.what() to std::string immediately
+        text what_str( e.what() );
+        set_failure( output, lest::location{__FILE__, __LINE__}, "unexpected exception", lest::with_message( what_str ) );
+    }
+} catch (...) {
+    if ( !output.failure.failed ) {
+        set_failure( output, lest::location{__FILE__, __LINE__}, "unexpected exception", "of unknown type" );
+    }
+}
+#else
+testing.behaviour( output( testing.name ) );
+#endif
+if ( output.failure.failed )
+{
+    ++failures;
+    report_failure( output, testing.name );
+}
 		{
 			std::string os = colourise_test(std::to_string(t.elapsed_mseconds())+"ms", "..." );
 			lest_puts(os.c_str());
@@ -1099,9 +1257,37 @@ inline void sort( tests & specification )
     std::sort( specification.begin(), specification.end(), test_less );
 }
 
+#if lest_FEATURE_LIGHTWEIGHT_RANDOM
+// Simple LCG: x = (a * x + c) mod m
+// Using constants from glibc: a=1103515245, c=12345
+// State: single unsigned long (~8 bytes) vs std::mt19937 (~2.5KB)
+class lightweight_rng {
+    unsigned long state;
+public:
+    using result_type = unsigned long;
+    
+    lightweight_rng(seed_t seed) : state(seed ? seed : 1) {}
+    
+    unsigned long operator()() {
+        state = state * 1103515245UL + 12345UL;
+        return state;
+    }
+    
+    static constexpr unsigned long min() { return 0UL; }
+    static constexpr unsigned long max() { return ~0UL; }
+};
+#endif
+
 inline void shuffle( tests & specification, options option )
 {
+#if lest_FEATURE_LIGHTWEIGHT_RANDOM
+    // Default: use lightweight LCG (embedded-friendly, ~8 bytes)
+    lightweight_rng rng( option.seed ? option.seed : 1 );
+    std::shuffle( specification.begin(), specification.end(), rng );
+#else
+    // Optional: use std::mt19937 for better randomness (requires ~2.5KB)
     std::shuffle( specification.begin(), specification.end(), std::mt19937( option.seed ) );
+#endif
 }
 
 // workaround MinGW bug, http://stackoverflow.com/a/16132279:
@@ -1116,7 +1302,7 @@ inline bool is_number( text arg )
     return std::all_of( arg.begin(), arg.end(), ::isdigit );
 }
 
-inline seed_t seed( text opt, text arg )
+inline std::optional<seed_t> seed( text opt, text arg )
 {
     if ( is_number( arg ) )
         return static_cast<seed_t>( lest::stoi( arg ) );
@@ -1124,17 +1310,19 @@ inline seed_t seed( text opt, text arg )
     if ( arg == "time" )
         return static_cast<seed_t>( std::chrono::high_resolution_clock::now().time_since_epoch().count() );
 
-    throw std::runtime_error( "expecting 'time' or positive number with option '" + opt + "', got '" + arg + "' (try option --help)" );
+    lest_puts( (std::string("Error: expecting 'time' or positive number with option '") + opt + "', got '" + arg + "' (try option --help)\n").c_str() );
+    return std::nullopt;
 }
 
-inline int repeat( text opt, text arg )
+inline std::optional<int> repeat( text opt, text arg )
 {
     const int num = lest::stoi( arg );
 
     if ( indefinite( num ) || num >= 0 )
         return num;
 
-    throw std::runtime_error( "expecting '-1' or positive number with option '" + opt + "', got '" + arg + "' (try option --help)" );
+    lest_puts( (std::string("Error: expecting '-1' or positive number with option '") + opt + "', got '" + arg + "' (try option --help)\n").c_str() );
+    return std::nullopt;
 }
 
 inline auto split_option( text arg ) -> std::tuple<text, text>
@@ -1146,7 +1334,7 @@ inline auto split_option( text arg ) -> std::tuple<text, text>
                 : std::make_tuple( arg.substr( 0, pos ), arg.substr( pos + 1 ) );
 }
 
-inline auto split_arguments( texts args ) -> std::tuple<options, texts>
+inline auto split_arguments( texts args ) -> std::optional<std::tuple<options, texts>>
 {
     options option; texts in;
 
@@ -1164,7 +1352,9 @@ inline auto split_arguments( texts args ) -> std::tuple<options, texts>
             else if ( opt == "-h"      || "--help"       == opt ) { option.help    =  true; continue; }
             else if ( opt == "-a"      || "--abort"      == opt ) { option.abort   =  true; continue; }
             else if ( opt == "-c"      || "--count"      == opt ) { option.count   =  true; continue; }
+#if lest_FEATURE_PTAGS
             else if ( opt == "-g"      || "--list-tags"  == opt ) { option.tags    =  true; continue; }
+#endif
             else if ( opt == "-l"      || "--list-tests" == opt ) { option.list    =  true; continue; }
             else if ( opt == "-t"      || "--time"       == opt ) { option.time    =  true; continue; }
             else if ( opt == "-p"      || "--pass"       == opt ) { option.pass    =  true; continue; }
@@ -1172,9 +1362,26 @@ inline auto split_arguments( texts args ) -> std::tuple<options, texts>
             else if ( opt == "--order" && "declared"     == val ) { /* by definition */   ; continue; }
             else if ( opt == "--order" && "lexical"      == val ) { option.lexical =  true; continue; }
             else if ( opt == "--order" && "random"       == val ) { option.random  =  true; continue; }
-            else if ( opt == "--random-seed" ) { option.seed   = seed  ( "--random-seed", val ); continue; }
-            else if ( opt == "--repeat"      ) { option.repeat = repeat( "--repeat"     , val ); continue; }
-            else throw std::runtime_error( "unrecognised option '" + arg + "' (try option --help)" );
+            else if ( opt == "--random-seed" ) {
+                auto seed_result = seed( "--random-seed", val );
+                if ( !seed_result ) {
+                    return std::nullopt;
+                }
+                option.seed = *seed_result;
+                continue;
+            }
+            else if ( opt == "--repeat" ) {
+                auto repeat_result = repeat( "--repeat", val );
+                if ( !repeat_result ) {
+                    return std::nullopt;
+                }
+                option.repeat = *repeat_result;
+                continue;
+            }
+            else {
+                lest_puts( (std::string("Error: unrecognised option '") + arg + "' (try option --help)\n").c_str() );
+                return std::nullopt;
+            }
         }
         in.push_back( arg );
     }
@@ -1190,7 +1397,9 @@ inline int usage()
         "  -h, --help         this help message\n"
         "  -a, --abort        abort at first failure\n"
         "  -c, --count        count selected tests\n"
+#if lest_FEATURE_PTAGS
         "  -g, --list-tags    list tags of selected tests\n"
+#endif
         "  -l, --list-tests   list selected tests\n"
         "  -p, --pass         also report passing tests\n"
         "  -t, --time         list duration of selected tests\n"
@@ -1236,11 +1445,18 @@ inline int version()
 
 inline int run( tests specification, texts arguments )
 {
+    auto args_result = split_arguments( arguments );
+    if ( !args_result ) {
+        return 1;
+    }
+
+    options option; texts in;
+    std::tie( option, in ) = *args_result;
+
+#if lest_FEATURE_EXCEPTIONS
     try
     {
-        options option; texts in;
-        std::tie( option, in ) = split_arguments( arguments );
-
+#endif
         if ( option.lexical ) {    sort( specification         ); }
         if ( option.random  ) { shuffle( specification, option ); }
 
@@ -1248,16 +1464,20 @@ inline int run( tests specification, texts arguments )
         if ( option.version ) { return version (  ); }
         if ( option.count   ) { return for_test( specification, in, count(  ) ); }
         if ( option.list    ) { return for_test( specification, in, print(  ) ); }
+#if lest_FEATURE_PTAGS
         if ( option.tags    ) { return for_test( specification, in, ptags(  ) ); }
+#endif
         if ( option.time    ) { return for_test( specification, in, times( option ) ); }
 
         return for_test( specification, in, confirm( option ), option.repeat );
+#if lest_FEATURE_EXCEPTIONS
     }
     catch ( std::exception const & e )
     {
 		lest_puts( (std::string("Error: ")+ std::string(e.what()) + "\n" ).c_str() );
         return 1;
     }
+#endif
 }
 
 inline int run( tests specification, int argc, char * argv[] )

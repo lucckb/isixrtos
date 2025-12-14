@@ -27,6 +27,7 @@
 #include <isix/arch/isr_vectors.h>
 #include <atomic>
 #include <stdexcept>
+#include <optional>
 
 namespace tests {
 namespace detail {
@@ -38,7 +39,7 @@ namespace {
 }
 
 
-static uint32_t tim_apb1_clk_hz()
+static std::optional<uint32_t> tim_apb1_clk_hz()
 {
 
     LL_RCC_ClocksTypeDef clk;
@@ -54,8 +55,7 @@ static uint32_t tim_apb1_clk_hz()
      } else if( LL_RCC_GetAPB1Prescaler() == LL_RCC_APB1_DIV_16) {
         return clk.PCLK1_Frequency * 16U;
      }
-     throw std::logic_error("unable to determine tim freq");
-     return 0;
+     return std::nullopt;
 }
 
 struct tim_div_t {
@@ -63,12 +63,13 @@ struct tim_div_t {
     uint16_t arr;
 };
 
-static tim_div_t compute_tim_div_us(uint64_t total_div)
+static std::optional<tim_div_t> compute_tim_div_us(uint64_t total_div)
 {
     tim_div_t r{};
 
-    if (total_div == 0)
-        throw std::logic_error("invalid timer period");
+    if (total_div == 0) {
+        return std::nullopt;
+    }
 
     if (total_div <= 0x10000ULL) {
         r.psc = 0;
@@ -77,8 +78,9 @@ static tim_div_t compute_tim_div_us(uint64_t total_div)
         uint64_t psc = (total_div + 0xFFFFULL) / 0x10000ULL; // ceil
         uint64_t arr = total_div / psc;
 
-        if (psc > 0x10000ULL)
-            throw std::logic_error("timer period too large");
+        if (psc > 0x10000ULL) {
+            return std::nullopt;
+        }
 
         r.psc = static_cast<uint16_t>(psc - 1);
         r.arr = static_cast<uint16_t>(arr - 1);
@@ -88,14 +90,22 @@ static tim_div_t compute_tim_div_us(uint64_t total_div)
 }
 
 
-void periodic_timer_setup(timer_handler_t cb, uint32_t period_us)
+bool periodic_timer_setup(timer_handler_t cb, uint32_t period_us)
 {
-    if (initialized) throw std::logic_error("Timer already initialized");
+    if (initialized)  {
+        return false;
+    }
 
-    uint32_t tim_clk = tim_apb1_clk_hz();
-    uint64_t total_div = (uint64_t)tim_clk * period_us / 1'000'000ULL;
+    auto tim_clk = tim_apb1_clk_hz();
+    if (!tim_clk) {
+        return false;
+    }
+    uint64_t total_div = (uint64_t)(*tim_clk) * period_us / 1'000'000ULL;
 
     auto div = compute_tim_div_us(total_div);
+    if (!div) {
+        return false;
+    }
 
     LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM3);
     __sync_synchronize();
@@ -107,9 +117,9 @@ void periodic_timer_setup(timer_handler_t cb, uint32_t period_us)
     normal_handler = cb;
 
     LL_TIM_InitTypeDef tim{};
-    tim.Prescaler = div.psc;
+    tim.Prescaler = div->psc;
     tim.CounterMode = LL_TIM_COUNTERMODE_UP;
-    tim.Autoreload = div.arr;
+    tim.Autoreload = div->arr;
     tim.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
     tim.RepetitionCounter = 0;
     LL_TIM_Init(TIM3, &tim);
@@ -125,6 +135,7 @@ void periodic_timer_setup(timer_handler_t cb, uint32_t period_us)
     LL_TIM_EnableCounter(TIM3);
 
     initialized = true;
+    return true;
 }
 
 
