@@ -3,7 +3,7 @@
 		"target": 	"tests/libisix/isixunittests",
 		"type": 	"stlink-v2-1",
 		"speed": 	6000,
-		"swd":     1
+		"swd":      1
 	},
 	"configure" : {
 		"disable_isix": false,

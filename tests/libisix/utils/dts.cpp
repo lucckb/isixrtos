@@ -50,7 +50,7 @@ namespace {
 #elif defined(STM32F405xx)
 	//Serial debug interface
 	constexpr pin ser0_pins[] {
-		{ pinfunc::txd, gpio::num::PA9 },
+		{ pinfunc::txd, gpio::num::PA2 },
 		{}
 	};
 #endif
@@ -68,9 +68,9 @@ namespace {
 		},
 #elif defined(STM32F405xx)
 		{
-			"serial0", reinterpret_cast<uintptr_t>(USART1),
-			bus::apb2, LL_GPIO_AF_7,
-			unsigned(std::log2(LL_APB2_GRP1_PERIPH_USART1)),
+			"serial0", reinterpret_cast<uintptr_t>(USART2),
+                bus::apb1, LL_GPIO_AF_7,
+                unsigned(std::log2(LL_APB1_GRP1_PERIPH_USART2)),
 			ser0_pins,
 			nullptr
 		},
@@ -79,6 +79,24 @@ namespace {
 #endif
 		{}
 	};
+#   else    /* STM32F411xE */
+	constexpr pin ser0_pins[] {
+        { pinfunc::txd, gpio::num::PA9 },
+		{}
+	};
+
+	constexpr device devices[]
+	{
+		{
+            "serial0", reinterpret_cast<uintptr_t>(USART1),
+                       bus::apb2, LL_GPIO_AF_7,
+                       unsigned(std::log2(LL_APB2_GRP1_PERIPH_USART1)),
+			ser0_pins,
+			nullptr
+		},
+		{}
+	};
+#   endif   /* STM32F411xE */
 }
 
 //! The machine config
