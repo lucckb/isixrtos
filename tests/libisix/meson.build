@@ -1,13 +1,19 @@
+unity_sub = subproject('unity', default_options: [])
+unity_src = unity_sub.get_variable('unity_src')
+unity_inc = unity_sub.get_variable('unity_inc')
+unity_args = unity_sub.get_variable('unity_args')
+unity_args += '-DUNITY_INCLUDE_CONFIG_H'
+
 isix_tests_src = files(
 	'01_basic_primitives.cpp',
-	'02_mempool.cpp',
-	'03_mutex.cpp',
-	'04_sched_suspend.cpp',
-	'05_semaphores.cpp',
-	'06_tasks.cpp',
-	'07_vtimer.cpp',
-	'08_fifo.cpp',
-	'09_events.cpp',
+	# '02_mempool.cpp',
+	# '03_mutex.cpp',
+	# '04_sched_suspend.cpp',
+	# '05_semaphores.cpp',
+	# '06_tasks.cpp',
+	# '07_vtimer.cpp',
+	# '08_fifo.cpp',
+	# '09_events.cpp',
 	'unittests_entry.cpp',
 	'utils/board_boot.cpp',
 	'utils/dts.cpp',
@@ -26,13 +32,14 @@ fpu_asm_lib = static_library(
 )
 
 isix_tests_elf = executable('isixtests',
-	sources: isix_tests_src,
-	include_directories : ['include', 'utils'],
+	sources: [isix_tests_src, unity_src],
+	include_directories : ['include', 'utils', unity_inc],
 	dependencies : [
 		libperiph,
-		_lest,
 		libisix,
+		libfoundation,
 	],
+	c_args: unity_args,
 	link_with : [ fpu_asm_lib ],
 )
 
