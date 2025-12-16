@@ -10,7 +10,7 @@ isix_tests_src = files(
 	'01_basic_primitives.cpp',
 	'02_mempool.cpp',
 	'03_mutex.cpp',
-	# '04_sched_suspend.cpp',
+	'04_sched_suspend.cpp',
 	# '05_semaphores.cpp',
 	# '06_tasks.cpp',
 	# '07_vtimer.cpp',

@@ -612,17 +612,17 @@ TEST(mutex, condvar_task_destroy_API)
 
 TEST_GROUP_RUNNER(mutex)
 {
-	RUN_TEST_CASE(mutex, delivery_order)
-	RUN_TEST_CASE(mutex, priority_inheritance_basic_conditions)
-	RUN_TEST_CASE(mutex, priority_inheritance_complex)
-	RUN_TEST_CASE(mutex, priority_inheritance_mutex_priority_values)
-	RUN_TEST_CASE(mutex, multiple_mutex_lock_from_same_thread)
-	RUN_TEST_CASE(mutex, high_priority_mutex_order)
-	RUN_TEST_CASE(mutex, abandoned_mutex_when_task_is_destroyed)
-	RUN_TEST_CASE(mutex, awake_tasks_when_mutex_is_destroyed)
-	RUN_TEST_CASE(mutex, condition_variable_order)
-	RUN_TEST_CASE(mutex, condvar_mutex_signaling)
-	RUN_TEST_CASE(mutex, condtion_wait_priority_boost)
-	RUN_TEST_CASE(mutex, condvar_wait_for_timeout_and_not_owning_mutex)
-	RUN_TEST_CASE(mutex, condvar_task_destroy_API)
+	RUN_TEST_CASE(mutex, delivery_order);
+	RUN_TEST_CASE(mutex, priority_inheritance_basic_conditions);
+	RUN_TEST_CASE(mutex, priority_inheritance_complex);
+	RUN_TEST_CASE(mutex, priority_inheritance_mutex_priority_values);
+	RUN_TEST_CASE(mutex, multiple_mutex_lock_from_same_thread);
+	RUN_TEST_CASE(mutex, high_priority_mutex_order);
+	RUN_TEST_CASE(mutex, abandoned_mutex_when_task_is_destroyed);
+	RUN_TEST_CASE(mutex, awake_tasks_when_mutex_is_destroyed);
+	RUN_TEST_CASE(mutex, condition_variable_order);
+	RUN_TEST_CASE(mutex, condvar_mutex_signaling);
+	RUN_TEST_CASE(mutex, condtion_wait_priority_boost);
+	RUN_TEST_CASE(mutex, condvar_wait_for_timeout_and_not_owning_mutex);
+	RUN_TEST_CASE(mutex, condvar_task_destroy_API);
 }
