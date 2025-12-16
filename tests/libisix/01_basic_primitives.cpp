@@ -45,7 +45,7 @@ TEST(basic_primitives, basic_heap_allocator)
 	TEST_ASSERT_GREATER_THAN_size_t(mstat_before_free.free, mstat.free);
 }
 
-TEST(basic_primitives, atomic_semaphore_primitives)
+TEST(basic_primitives, atomic_semaphore)
 {
 	_isix_port_atomic_sem_t sem;
 	_isix_port_atomic_sem_init(&sem, 1, sys_atomic_unlimited_value);
@@ -99,5 +99,5 @@ TEST_GROUP_RUNNER(basic_primitives)
 {
 	RUN_TEST_CASE(basic_primitives, time_base_timer_vs_systick)
 	RUN_TEST_CASE(basic_primitives, basic_heap_allocator)
-	RUN_TEST_CASE(basic_primitives, atomic_semaphore_primitives)
+	RUN_TEST_CASE(basic_primitives, atomic_semaphore)
 }
