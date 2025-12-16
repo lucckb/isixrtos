@@ -34,6 +34,7 @@ static void unittests_thread(void*)
 		RUN_TEST_GROUP(basic_primitives);
 		RUN_TEST_GROUP(mempool);
 		RUN_TEST_GROUP(mutex);
+		RUN_TEST_GROUP(sched_suspend);
 		int code = UNITY_END();
 
 		isix::memory_stat mstat;
