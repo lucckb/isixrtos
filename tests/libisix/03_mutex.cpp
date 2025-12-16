@@ -58,7 +58,7 @@ TEST(mutex, delivery_order)
 	TEST_ASSERT(test_buf.empty());
 	TEST_ASSERT_EQUAL(ISIX_EOK, mtx1.unlock());
 	isix::wait_ms(200);
-	TEST_ASSERT_EQUAL_CHAR_ARRAY("EDCBA", test_buf.c_str(), test_buf.size());
+	TEST_ASSERT_EQUAL_STRING("EDCBA", test_buf.c_str());
 	test_buf.clear();
 }
 
@@ -97,7 +97,7 @@ TEST(mutex, priority_inheritance_basic_conditions)
 	TEST_ASSERT(tsk2);
 	TEST_ASSERT(tsk3);
 	isix::wait_ms(350);
-	TEST_ASSERT_EQUAL_CHAR_ARRAY("ABC", test_buf.c_str(), test_buf.size());
+	TEST_ASSERT_EQUAL_STRING("ABC", test_buf.c_str());
 	ostick_t max {};
 	for(auto v: fin) {
 		max = std::max(max, v - t1);
@@ -177,7 +177,7 @@ TEST(mutex, priority_inheritance_complex)
 	TEST_ASSERT(tsk5);
 
 	isix::wait_ms(350);
-	TEST_ASSERT_EQUAL_CHAR_ARRAY("ABCDE", test_buf.c_str(), test_buf.size());
+	TEST_ASSERT_EQUAL_STRING("ABCDE", test_buf.c_str());
 	ostick_t max {};
 	for(auto v: fin) {
 		max = std::max(max, v - t1);
@@ -330,7 +330,7 @@ TEST(mutex, high_priority_mutex_order)
 	auto thr5 = isix::thread_create_and_run(STK_SIZ,1,0,thread,'A');
 	TEST_ASSERT(thr5);
 	isix::wait_ms(500);
-	TEST_ASSERT_EQUAL_CHAR_ARRAY("ABCDE", test_buf.c_str(), test_buf.size());
+	TEST_ASSERT_EQUAL_STRING("ABCDE", test_buf.c_str());
 }
 
 /* Five tasks take a mutex and wait for
@@ -444,7 +444,7 @@ TEST(mutex, condition_variable_order)
 	TEST_ASSERT(test_buf.empty());
 	TEST_ASSERT_EQUAL(ISIX_EOK, mcv.broadcast());
 	isix::wait_ms(500);
-	TEST_ASSERT_EQUAL_CHAR_ARRAY("ABCDE", test_buf.c_str(), test_buf.size());
+	TEST_ASSERT_EQUAL_STRING("ABCDE", test_buf.c_str());
 	// Owned mutexes should be in locked state
 	TEST_ASSERT_NULL(((mtx_hacker*)&mtx1)->mtx->owner);
 	TEST_ASSERT_EQUAL(0, ((mtx_hacker*)&mtx1)->mtx->count);
@@ -485,7 +485,7 @@ TEST(mutex, condvar_mutex_signaling)
 	TEST_ASSERT_EQUAL(ISIX_EOK, mcv.signal());
 	TEST_ASSERT_EQUAL(ISIX_EOK, mcv.signal());
 	isix::wait_ms(500);
-	TEST_ASSERT_EQUAL_CHAR_ARRAY("ABCDE", test_buf.c_str(), test_buf.size());
+	TEST_ASSERT_EQUAL_STRING("ABCDE", test_buf.c_str());
 }
 
 TEST(mutex, condtion_wait_priority_boost)
@@ -543,7 +543,7 @@ TEST(mutex, condtion_wait_priority_boost)
 	mcv.signal();
 	mcv.signal();
 	isix::wait_ms(200);
-	TEST_ASSERT_EQUAL_CHAR_ARRAY("BAC", test_buf.c_str(), test_buf.size());
+	TEST_ASSERT_EQUAL_STRING("BAC", test_buf.c_str());
 	//Restore org prio
 	TEST_ASSERT_EQUAL(isix::get_min_priority(), isix::task_change_prio(nullptr, old_prio));
 }
@@ -604,7 +604,7 @@ TEST(mutex, condvar_task_destroy_API)
 	TEST_ASSERT(test_buf.empty());
 	TEST_ASSERT_EQUAL(ISIX_EOK, isix::condvar_destroy(cv));
 	isix::wait_ms(500);
-	TEST_ASSERT_EQUAL_CHAR_ARRAY("ABCDE", test_buf.c_str(), test_buf.size());
+	TEST_ASSERT_EQUAL_STRING("ABCDE", test_buf.c_str());
 	TEST_ASSERT_NULL(((mtx_hacker*)&mtx1)->mtx->owner);
 	TEST_ASSERT_EQUAL(0, ((mtx_hacker*)&mtx1)->mtx->count);
 	TEST_ASSERT(list_isempty(&((mtx_hacker*)&mtx1)->mtx->wait_list));
