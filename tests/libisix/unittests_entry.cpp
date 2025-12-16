@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename:  unittests_entry.cpp
- *
- *    Description:  Unit test starting entry point
- *
- *        Version:  1.0
- *        Created:  22.06.2017 18:39:42
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  Lucjan Bryndza (LB), lbryndza.p@boff.pl
- *   Organization:  BoFF
- *
- * =====================================================================================
- */
-
 #include <config/conf.h>
 #include <isix.h>
 #include <foundation/sys/dbglog.h>
@@ -26,13 +8,13 @@
 #include <isix/arch/irq_global.h>
 #include <string>
 #include <sys/stat.h>
-#include <lest/lest.hpp>
+#include <unity.h>
 #include <stdio.h>
 #include <stdio_ext.h>
 #include <sys/lock.h>
+
 //! Global symbol for enable printf floating point support
 //asm (".global _printf_float");
-
 
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
 #define ENTRY_EXCEPTIONS 1
@@ -40,97 +22,35 @@
 #define ENTRY_EXCEPTIONS 0
 #endif
 
-/**
- * Lest unit test framework uses exceptions extensively to
- * report errors, so the correctness of their operation is crucial.
- * These initial tests validate the correctness of exceptions at
- * the toolchain level. If they do not pass correctly further
- * tests are not run.
-*/
-namespace pretest {
+extern void test_basic_primitives(void);
+extern void test_mempool(void);
+extern void test_mutex(void);
+extern void test_sched_suspend(void);
+extern void test_semaphores(void);
+extern void test_tasks(void);
+extern void test_vtimer(void);
+extern void test_fifo(void);
+extern void test_events(void);
 
-#if ENTRY_EXCEPTIONS
-	auto run() -> int
-	{
-        auto basic_exc = []() {
-			int ec {};
-            try {
-                throw std::bad_alloc();
-            } catch (const std::exception& e) {
-				ec = 1;
-            } catch (...) {
-				ec = 2;
-            }
-			return ec;
-        };
-		if( basic_exc() != 1) {
-			dbprintf("Exceptions test failed. Unable to continue with lest");
-			return EXIT_FAILURE;
-		}
-        auto rethrow_exc = []() {
-            try {
-                throw std::bad_alloc();
-            } catch (...) {
-                throw;
-            }
-        };
-		auto retrow_catch = [&rethrow_exc]() {
-			int ec {};
-			try {
-				rethrow_exc();
-			} catch( std::exception& ex) {
-				ec = 1;
-			} catch(...) {
-				ec = 2;
-			}
-			return ec;
-		};
-		if(retrow_catch() != 1) {
-			dbprintf("Exceptions rethow tests failed. Unable to continue with lest");
-			return EXIT_FAILURE;
-		}
-		dbprintf("Exceptions pretest. OK");
-        return EXIT_SUCCESS;
-    }
-#else
-    auto run() -> int {
-        return EXIT_SUCCESS;
-    }
-#endif
-}
-
-
-
-// Global object for test specification register
-lest::tests& specification()
-{
-	static lest::tests tests;
-	return tests;
-}
-
-
+void setUp(void) {}
+void tearDown(void) {}
 //! Unit tests main thread
 static void unittests_thread(void*)
 {
 #if ENTRY_EXCEPTIONS
 	try {
 #endif
-        if(pretest::run()) {
-			isix::wait_ms( 100 );
-			isix::shutdown_scheduler();
-		}
-		lest::run( specification(), { "-c" } );
-		//int code = lest::run( specification(), {"--", "06_task_10" } );
-		const int code = lest::run( specification(), {} );
-		{
-			isix::memory_stat mstat;
-			isix::heap_stats( mstat );
-			dbprintf("Free stack space %u\n", isix::free_stack_space() );
-			dbprintf("Heap free %u used %u\n", mstat.free, mstat.used );
-			dbprintf("Unit test finished with code %i\n", code );
-			isix::wait_ms( 100 );
-			isix::shutdown_scheduler();
-		}
+		UNITY_BEGIN();
+		RUN_TEST(test_basic_primitives);
+		int code = UNITY_END();
+
+		isix::memory_stat mstat;
+		isix::heap_stats( mstat );
+		dbprintf("Free stack space %u\n", isix::free_stack_space() );
+		dbprintf("Heap free %u used %u\n", mstat.free, mstat.used );
+		dbprintf("Unit test finished with code %i\n", code );
+		isix::wait_ms( 100 );
+		isix::shutdown_scheduler();
 #if ENTRY_EXCEPTIONS
 	} catch( const std::exception& e ) {
 		dbprintf("Unhandled std::exception %s", e.what() );
