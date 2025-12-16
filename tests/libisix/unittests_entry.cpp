@@ -8,7 +8,9 @@
 #include <isix/arch/irq_global.h>
 #include <string>
 #include <sys/stat.h>
+#define UNITY_FIXTURE_NO_EXTRAS
 #include <unity.h>
+#include <unity_fixture.h>
 #include <stdio.h>
 #include <stdio_ext.h>
 #include <sys/lock.h>
@@ -22,18 +24,6 @@
 #define ENTRY_EXCEPTIONS 0
 #endif
 
-extern void test_basic_primitives(void);
-extern void test_mempool(void);
-extern void test_mutex(void);
-extern void test_sched_suspend(void);
-extern void test_semaphores(void);
-extern void test_tasks(void);
-extern void test_vtimer(void);
-extern void test_fifo(void);
-extern void test_events(void);
-
-void setUp(void) {}
-void tearDown(void) {}
 //! Unit tests main thread
 static void unittests_thread(void*)
 {
@@ -41,7 +31,7 @@ static void unittests_thread(void*)
 	try {
 #endif
 		UNITY_BEGIN();
-		RUN_TEST(test_basic_primitives);
+		RUN_TEST_GROUP(basic_primitives);
 		int code = UNITY_END();
 
 		isix::memory_stat mstat;
