@@ -1,4 +1,6 @@
-unity_sub = subproject('unity', default_options: [])
+unity_sub = subproject('unity',
+	default_options: { 'extension_fixture' : true },
+)
 unity_src = unity_sub.get_variable('unity_src')
 unity_inc = unity_sub.get_variable('unity_inc')
 unity_args = unity_sub.get_variable('unity_args')
