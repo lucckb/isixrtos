@@ -33,6 +33,7 @@ static void unittests_thread(void*)
 		UNITY_BEGIN();
 		RUN_TEST_GROUP(basic_primitives);
 		RUN_TEST_GROUP(mempool);
+		RUN_TEST_GROUP(mutex);
 		int code = UNITY_END();
 
 		isix::memory_stat mstat;
