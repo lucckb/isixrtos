@@ -46,9 +46,8 @@ static void unittests_thread(void*)
 
 		isix::memory_stat mstat;
 		isix::heap_stats( mstat );
-		dbprintf("Free stack space %u\n", isix::free_stack_space() );
-		dbprintf("Heap free %u used %u\n", mstat.free, mstat.used );
-		dbprintf("Unit test finished with code %i\n", code );
+		dbprintf("Free stack space %u", isix::free_stack_space() );
+		dbprintf("Heap free %u used %u", mstat.free, mstat.used );
 		isix::wait_ms( 100 );
 		isix::shutdown_scheduler();
 #ifdef ENTRY_EXCEPTIONS
