@@ -8,7 +8,6 @@
 #include <isix/arch/irq_global.h>
 #include <string>
 #include <sys/stat.h>
-#define UNITY_FIXTURE_NO_EXTRAS
 #include <unity.h>
 #include <unity_fixture.h>
 #include <stdio.h>

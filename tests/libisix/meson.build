@@ -3,8 +3,13 @@ unity_sub = subproject('unity',
 )
 unity_src = unity_sub.get_variable('unity_src')
 unity_inc = unity_sub.get_variable('unity_inc')
-unity_args = unity_sub.get_variable('unity_args')
-unity_args += '-DUNITY_INCLUDE_CONFIG_H'
+unity_args = [
+	unity_sub.get_variable('unity_args'),
+	'-DUNITY_FIXTURE_NO_EXTRAS',
+	'-include', 'foundation/sys/tiny_printf.h',
+	'-DUNITY_OUTPUT_CHAR=tiny_putchar',
+	'-DUNITY_OUTPUT_COLOR',
+]
 
 isix_tests_src = files(
 	'00_exceptions.cpp',
@@ -42,7 +47,8 @@ isix_tests_elf = executable('isixtests',
 		libisix,
 		libfoundation,
 	],
-	c_args: unity_args,
+	c_args : unity_args,
+	cpp_args : unity_args,
 	link_with : [ fpu_asm_lib ],
 )
 
