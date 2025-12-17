@@ -10,14 +10,14 @@ namespace
 	class pool {
 	public:
 		pool(char pattern)
-			: m_pattern( pattern )
+			: m_pattern(pattern)
 		{
 			std::memset(val, pattern, sizeof(val)/sizeof(val[0]));
 		}
 		operator bool() const
 		{
-			for( auto v : val ) {
-				if( v != m_pattern ) {
+			for (auto v : val) {
+				if (v != m_pattern) {
 					return false;
 				}
 			}
@@ -34,9 +34,9 @@ namespace
 	static constexpr auto TASK_PRIO = 3;
 	public:
 		//Constructor
-		task_test( isix::mempool<pool>& pool )
-			: m_pool( pool )
-			, m_thr( isix::thread_create(std::bind(&task_test::thread,std::ref(*this))))
+		task_test(isix::mempool<pool>& pool)
+			: m_pool(pool)
+			, m_thr(isix::thread_create(std::bind(&task_test::thread,std::ref(*this))))
 		{}
 		//Destructor
 		~task_test()
@@ -51,11 +51,11 @@ namespace
 		pool* get() const {
 			return m_ptr;
 		}
-		task_test( task_test& ) = delete;
-		task_test& operator=( task_test& ) = delete;
+		task_test(task_test&) = delete;
+		task_test& operator=(task_test&) = delete;
 	protected:
 		//Main thread
-		void thread( ) noexcept
+		void thread() noexcept
 		{
 			m_ptr = m_pool.alloc('Z');
 		}
@@ -74,9 +74,9 @@ TEST_TEAR_DOWN(mempool) {}
 TEST(mempool, basic)
 {
 	static constexpr size_t N_POOL = 14;
-	isix::mempool<pool> memp( N_POOL );
+	isix::mempool<pool> memp(N_POOL);
 	pool* pptr[N_POOL];
-	for(size_t n=0; n<N_POOL; ++n) {
+	for (size_t n=0; n<N_POOL; ++n) {
 		auto p = memp.alloc(n+'A');
 		TEST_ASSERT_NOT_NULL(p);
 		TEST_ASSERT_EQUAL(0, reinterpret_cast<long>(p)%ISIX_BYTE_ALIGNMENT_SIZE);

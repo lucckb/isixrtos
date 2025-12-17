@@ -37,8 +37,8 @@ TEST(basic_primitives, basic_heap_allocator)
 	isix::heap_stats(mstat_before_free);
 	TEST_ASSERT_GREATER_THAN_size_t(0, mstat_before_free.free);
 
-	if(ptr1) isix_free(ptr1);
-	if(ptr2) isix_free(ptr2);
+	if (ptr1) isix_free(ptr1);
+	if (ptr2) isix_free(ptr2);
 
 	isix::memory_stat mstat;
 	isix::heap_stats(mstat);
