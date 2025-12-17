@@ -1,4 +1,3 @@
-#define UNITY_FIXTURE_NO_EXTRAS
 #include <unity.h>
 #include <unity_fixture.h>
 #include <isix.h>
