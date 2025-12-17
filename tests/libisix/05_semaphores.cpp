@@ -4,6 +4,7 @@
 #include <isix.h>
 #include "timer_interrupt.hpp"
 #include <string>
+#include <memory>
 
 namespace
 {
@@ -148,7 +149,7 @@ TEST(semaphores, priority)
 
 TEST(semaphores, reset_api)
 {
-	auto sigs = new isix::semaphore(0);
+	auto sigs = std::make_unique<isix::semaphore>(0);
 	std::string tstr;
 	TEST_ASSERT(sigs->is_valid());
 	semaphore_task_test t1('A', 3, *sigs, tstr);
@@ -178,12 +179,11 @@ TEST(semaphores, reset_api)
 	TEST_ASSERT_EQUAL(5, t3.val());
 	TEST_ASSERT_EQUAL(5, t4.val());
 	// Try to wait and next delete
-	delete sigs;
-	sigs = new isix::semaphore(0);
+	sigs = std::make_unique<isix::semaphore>(0);
 	semaphore_task_test t5('Z', 2, *sigs, tstr); t5.start();
 	semaphore_task_test t6('Y', 2, *sigs, tstr); t6.start();
 	isix::wait_ms(25);
-	delete sigs;
+	sigs.reset();
 	TEST_ASSERT_EQUAL(ISIX_EOK, t5.join());
 	TEST_ASSERT_EQUAL(ISIX_EOK, t6.join());
 	TEST_ASSERT_EQUAL(ISIX_EDESTROY, t5.error());
