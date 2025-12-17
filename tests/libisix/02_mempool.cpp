@@ -88,7 +88,7 @@ TEST(mempool, basic)
 	try {
 		memp.alloc('X');
 		TEST_ASSERT(false);
-	} catch (std::bad_alloc) {
+	} catch (std::bad_alloc&) {
 		TEST_ASSERT(true);
 	} catch (...) {
 		TEST_ASSERT(false);

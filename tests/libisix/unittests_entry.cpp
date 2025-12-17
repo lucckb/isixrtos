@@ -19,18 +19,17 @@
 //asm (".global _printf_float");
 
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
-#define ENTRY_EXCEPTIONS 1
-#else
-#define ENTRY_EXCEPTIONS 0
+	#define ENTRY_EXCEPTIONS
 #endif
 
 //! Unit tests main thread
 static void unittests_thread(void*)
 {
-#if ENTRY_EXCEPTIONS
+#ifdef ENTRY_EXCEPTIONS
 	try {
 #endif
 		UNITY_BEGIN();
+		RUN_TEST_GROUP(exceptions);
 		RUN_TEST_GROUP(basic_primitives);
 		RUN_TEST_GROUP(mempool);
 		RUN_TEST_GROUP(mutex);
@@ -49,13 +48,11 @@ static void unittests_thread(void*)
 		dbprintf("Unit test finished with code %i\n", code );
 		isix::wait_ms( 100 );
 		isix::shutdown_scheduler();
-#if ENTRY_EXCEPTIONS
+#ifdef ENTRY_EXCEPTIONS
 	} catch( const std::exception& e ) {
 		dbprintf("Unhandled std::exception %s", e.what() );
-		return;
 	} catch( ... ) {
 		dbprintf("Unhandled unknown exception");
-		return;
 	}
 #endif
 }
