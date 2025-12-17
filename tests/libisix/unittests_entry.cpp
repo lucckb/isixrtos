@@ -21,24 +21,28 @@
 	#define ENTRY_EXCEPTIONS
 #endif
 
+static void run_all_tests()
+{
+	RUN_TEST_GROUP(exceptions);
+	RUN_TEST_GROUP(basic_primitives);
+	RUN_TEST_GROUP(mempool);
+	RUN_TEST_GROUP(mutex);
+	RUN_TEST_GROUP(sched_suspend);
+	RUN_TEST_GROUP(semaphores);
+	RUN_TEST_GROUP(tasks);
+	RUN_TEST_GROUP(vtimer);
+	RUN_TEST_GROUP(fifo);
+	RUN_TEST_GROUP(events);
+}
+
 //! Unit tests main thread
 static void unittests_thread(void*)
 {
 #ifdef ENTRY_EXCEPTIONS
 	try {
 #endif
-		UNITY_BEGIN();
-		RUN_TEST_GROUP(exceptions);
-		RUN_TEST_GROUP(basic_primitives);
-		RUN_TEST_GROUP(mempool);
-		RUN_TEST_GROUP(mutex);
-		RUN_TEST_GROUP(sched_suspend);
-		RUN_TEST_GROUP(semaphores);
-		RUN_TEST_GROUP(tasks);
-		RUN_TEST_GROUP(vtimer);
-		RUN_TEST_GROUP(fifo);
-		RUN_TEST_GROUP(events);
-		int code = UNITY_END();
+		const char* argv[] = { "", "-v" };
+		int code = UnityMain(2, argv, run_all_tests);
 
 		isix::memory_stat mstat;
 		isix::heap_stats( mstat );
