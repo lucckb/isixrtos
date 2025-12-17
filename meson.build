@@ -105,13 +105,6 @@ else
 	subdir('libtcpip')
 	subdir('libtls')
 	if get_option('test')
-		_lest = declare_dependency(
-			include_directories : 'tests/lest/include',
-			compile_args : [
-				'-Dlest_FEATURE_COLOURISE=1',
-				'-Dlest_FEATURE_WSTRING=0',
-			]
-		)
 		subdir('tests/libisix')
 	endif
 endif
