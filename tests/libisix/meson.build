@@ -7,6 +7,7 @@ unity_args = unity_sub.get_variable('unity_args')
 unity_args += '-DUNITY_INCLUDE_CONFIG_H'
 
 isix_tests_src = files(
+	'00_exceptions.cpp',
 	'01_basic_primitives.cpp',
 	'02_mempool.cpp',
 	'03_mutex.cpp',
