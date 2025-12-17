@@ -42,7 +42,7 @@ static void unittests_thread(void*)
 	try {
 #endif
 		const char* argv[] = { "", "-v" };
-		int code = UnityMain(2, argv, run_all_tests);
+		UnityMain(2, argv, run_all_tests);
 
 		isix::memory_stat mstat;
 		isix::heap_stats( mstat );
