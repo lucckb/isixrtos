@@ -38,6 +38,7 @@ static void unittests_thread(void*)
 		RUN_TEST_GROUP(semaphores);
 		RUN_TEST_GROUP(tasks);
 		RUN_TEST_GROUP(vtimer);
+		RUN_TEST_GROUP(fifo);
 		int code = UNITY_END();
 
 		isix::memory_stat mstat;

@@ -14,7 +14,7 @@ isix_tests_src = files(
 	'05_semaphores.cpp',
 	'06_tasks.cpp',
 	'07_vtimer.cpp',
-	# '08_fifo.cpp',
+	'08_fifo.cpp',
 	# '09_events.cpp',
 	'unittests_entry.cpp',
 	'utils/board_boot.cpp',
