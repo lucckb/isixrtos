@@ -222,7 +222,7 @@ TEST(tasks, CPU_load_api)
 	for (iload=10; iload<=99; iload+=10) {
 		auto thr = isix::thread_create_and_run(c_stack_size,1,0,cpuload_task, iload);
 		TEST_ASSERT(thr);
-		isix::wait_ms(4000);
+		isix::wait_ms(2000);
 		const auto cpul = isix::cpuload();
 		isix::wait_ms(10);
 		TEST_ASSERT_INT_WITHIN(epsilon, iload*10, cpul);
