@@ -6,7 +6,7 @@ extern "C" {
 
 /* Port yield function for the RTOS */
 
-__attribute__((noinline)) void _isix_port_yield( void );
+__attribute__((noinline,used)) void _isix_port_yield( void );
 
 /* Port start first task */
 void _isix_port_start_first_task( void );
