@@ -116,7 +116,7 @@ ISIX_ISR_NACKED_VECTOR(hard_fault_exception_vector)
 //Isix panic callback
 extern "C" void isix_kernel_panic_callback( const char* file, int line, const char *msg )
 {
-    fnd::tiny_printf("ISIX_PANIC %s:%i %s\r\n", file, line, msg );
+    tiny_printf("ISIX_PANIC %s:%i %s\r\n", file, line, msg );
 }
 
 //! Extra function for stdlib support
