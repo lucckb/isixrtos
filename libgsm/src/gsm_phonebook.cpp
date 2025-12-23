@@ -52,7 +52,7 @@ int phonebook::select_book( const phbook_id& id )
 	}
 	//Set phonebook
 	char buf[32]; buf[sizeof(buf)-1] = '\0';
-	fnd::tiny_snprintf(buf, sizeof(buf)-1, "+CPBS=\"%s\"", pbname );
+	::tiny_snprintf(buf, sizeof(buf)-1, "+CPBS=\"%s\"", pbname );
 	auto resp = at().chat( buf );
 	if( !resp ) {
 		dbg_err( "Modem error response %i", at().error() );	
@@ -96,7 +96,7 @@ int phonebook::read_entry( int index, phbook_entry& entry )
 		return error::phonebook_not_selected;
 	}
 	char buf[32]; buf[sizeof(buf)-1] = '\0';
-	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CPBR=%i", index );
+	::tiny_snprintf( buf, sizeof(buf)-1, "+CPBR=%i", index );
 
 	auto resp = at().chat(buf, "+CPBR:", false, true );
 	if( !resp ) {
@@ -142,7 +142,7 @@ int phonebook::find_entry( phbook_entry& entry )
 	if( entry.name[0] == '\0' ) {
 		return error::invalid_argument;	
 	}
-	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CPBF=\"%s\"", entry.name );
+	::tiny_snprintf( buf, sizeof(buf)-1, "+CPBF=\"%s\"", entry.name );
 	//! Accept empty response but not ignore errors
 	auto resp = at().chat(buf, "+CPBF:", false, true );
 	if( !resp ) {
@@ -165,14 +165,14 @@ int phonebook::write_or_delete_entry( int index, const phbook_entry* phb )
 		return error::phonebook_not_selected;
 	}
 	char buf[ sizeof(phbook_entry) + 24 ]; buf[sizeof(buf)-1] = '\0';
-	auto tlen = fnd::tiny_snprintf(buf, sizeof(buf)-1, "+CPBW=%i", index );
+	auto tlen = ::tiny_snprintf(buf, sizeof(buf)-1, "+CPBW=%i", index );
 	if( phb )	//!Also entry to write
 	{
 		int type { number_format::unknown };
 		if( std::strchr(phb->phone, '+') ) {
 			type = number_format::international;
 		}
-		fnd::tiny_snprintf(buf+tlen, sizeof(buf)-tlen-1, ",\"%s\",%i,\"%s\"", 
+		::tiny_snprintf(buf+tlen, sizeof(buf)-tlen-1, ",\"%s\",%i,\"%s\"", 
 				phb->phone, type, phb->name );
 	}
 	if( !at().chat(buf) ) {

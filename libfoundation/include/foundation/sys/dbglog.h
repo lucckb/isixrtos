@@ -42,17 +42,6 @@ static inline const char* _isix_dbglog_extract_basename(const char *file) {
 }
 
 #pragma GCC system_header
-#ifdef __cplusplus
-#define dbonly(code) code
-#define dblog_init(function,arg, usart_init,...)	\
-  do { fnd::register_printf_putc_handler(function,arg); \
-  	   usart_init(__VA_ARGS__); } while(0)
-#define dblog_init_putc(function,arg) fnd::register_printf_putc_handler(function,arg)
-#define dblog_init_putc_locked(function,arg,lock,unlock) fnd::register_printf_putc_handler_syslock(function,arg,lock,unlock)
-#define dbprintf(fmt, ...) fnd::tiny_printf("%s:%d|" fmt "\r\n",_isix_dbglog_extract_basename(__FILE__),__LINE__,## __VA_ARGS__)
-#define dblog_init_simple(function, arg ) fnd::register_printf_putc_handler(function,arg)
-#else /*__cplusplus */
-
 #define dblog_init(function,arg, usart_init,...)	\
   do { register_printf_putc_handler(function,arg); \
   	   usart_init(__VA_ARGS__); } while(0)
@@ -65,14 +54,12 @@ static inline const char* _isix_dbglog_extract_basename(const char *file) {
 
 
 
-#endif /*__cplusplus */
 
 #define dblog_init_locked(function,arg,lock,unlock,usart_init,...) \
 	do { dblog_init_putc_locked(function,arg,lock,unlock) ; \
 		 usart_init(__VA_ARGS__); } while(0)
 
 #else /* PDEBUG */
-#define dbonly(code)
 #define dblog_init(function,arg, usart_init,...) do {} while(0)
 #define dblog_init_putc(function,arg) do {} while(0)
 #define dbprintf(...) do {} while(0)

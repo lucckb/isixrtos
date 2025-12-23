@@ -128,7 +128,7 @@ int device::do_enable () {
 int device::send_command_noresp( const char *cmd, const char* arg )
 {
 	char buf[32]; buf[sizeof(buf)-1] = '\0';
-	fnd::tiny_snprintf(buf, sizeof(buf)-1,"%s\"%s\"", cmd, arg );
+	::tiny_snprintf(buf, sizeof(buf)-1,"%s\"%s\"", cmd, arg );
 	auto resp = m_at.chat(buf);
 	if( !resp ) {
 		dbg_err( "Modem error response %i", m_at.error() );	
@@ -197,7 +197,7 @@ int device::register_to_network( const char *pin, reg_notify notify )
 	}
 	//! Disable notify messages to the device
 	char buf[16] {};
-	fnd::tiny_snprintf( buf,sizeof(buf)-1,"+CREG=%i", int(notify) );
+	::tiny_snprintf( buf,sizeof(buf)-1,"+CREG=%i", int(notify) );
 	auto resp = m_at.chat(buf);
 	if( !resp ) {
 		dbg_err( "Unable to net notifier %i", m_at.error() );	
@@ -377,7 +377,7 @@ int device::get_text_mode_param_config( sms_text_params& param )
 int device::set_text_mode_param_config( const sms_text_params& param )
 {
 	char buf[32]; buf[sizeof(buf)-1] = '\0';	
-	fnd::tiny_snprintf(buf, sizeof(buf)-1, "+CSMP=%i,%i,%i,%i", param.first_octet, 
+	::tiny_snprintf(buf, sizeof(buf)-1, "+CSMP=%i,%i,%i,%i", param.first_octet, 
 			param.validity_period, param.protocol_identifier, param.data_coding_scheme );
 	auto resp = m_at.chat( buf );
 	if( !resp ) {
@@ -421,7 +421,7 @@ int device::send_sms( const sms_submit& sms )
 	do {
 			
 		char buf[32]; buf[ sizeof(buf)-1 ] = '\0';
-		fnd::tiny_snprintf(buf, sizeof(buf)-1,"+CMGS=\"%s\"", sms.dest_address() );
+		::tiny_snprintf(buf, sizeof(buf)-1,"+CMGS=\"%s\"", sms.dest_address() );
 		//NOTE: Now it is not real pdu but text behaves like pdu
 		
 		auto result = m_at.send_pdu(buf,"+CMGS:", sms.message() );

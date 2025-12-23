@@ -46,7 +46,7 @@ int sms_store::select_store( const smsmem_id& id )
 	if(!id1 || !id2 ) {
 		return error::invalid_argument;
 	}
-	fnd::tiny_snprintf(buf, sizeof(buf)-1, "+CPMS=\"%s\",\"%s\",\"%s\"",
+	::tiny_snprintf(buf, sizeof(buf)-1, "+CPMS=\"%s\",\"%s\",\"%s\"",
 			id1, id2, id2 );
 	auto resp = at().chat( buf,"+CPMS:" );
 	if( !resp ) {
@@ -103,7 +103,7 @@ sms_store_result_t sms_store::read_entry( int index )
 		return sms_store_result_t(error::sms_store_not_selected, nullptr );
 	}
 	char buf[32]; buf[sizeof(buf)-1] = '\0';
-	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CMGR=%i", index );
+	::tiny_snprintf( buf, sizeof(buf)-1, "+CMGR=%i", index );
 	char* pdu {};
 	auto resp = at().chat( buf,"+CMGR:", false, true, &pdu );
 	if( !resp ) {
@@ -156,7 +156,7 @@ int sms_store::erase_entry( int index, del flags )
 		return error::sms_store_not_selected;
 	}
 	char buf[32]; buf[sizeof(buf)-1] = '\0';
-	fnd::tiny_snprintf( buf, sizeof(buf)-1, "+CMGD=%i,%i", index, int(flags) );
+	::tiny_snprintf( buf, sizeof(buf)-1, "+CMGD=%i,%i", index, int(flags) );
 	auto resp = at().chat( buf, "+CMGD:", false, true );
 	if( !resp ) {
 		dbg_err("Unable to execute command %i", at().error() );

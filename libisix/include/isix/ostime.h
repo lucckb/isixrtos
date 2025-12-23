@@ -67,6 +67,7 @@ ostick_t isix_ms2tick( unsigned long ms );
  * @param[in] timeout Wait time
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
+__attribute__((noinline, used))
 int isix_wait( ostick_t timeout );
 
 /** Wait thread for selected number of milliseconds

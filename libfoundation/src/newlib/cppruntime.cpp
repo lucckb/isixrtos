@@ -149,10 +149,12 @@ void __verbose_terminate_handler()
 {
 	terminate_process();
 }
+
 int __snprintf_lite(char *__buf, size_t __bufsize, const char *__fmt, va_list __ap)
 {
-	return fnd::tiny_vaprintf( &__buf, __bufsize, __fmt, __ap );
+	return ::tiny_vaprintf( &__buf, __bufsize, __fmt, __ap );
 }
+
 }//namespace __gnu_cxx
 
 

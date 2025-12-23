@@ -22,7 +22,6 @@
 #include <stddef.h>
 
 #ifdef __cplusplus
-namespace fnd {
 extern "C" {
 #endif
 
@@ -32,7 +31,6 @@ int tiny_vaprintf(char **out, size_t len, const char *format, va_list args );
 
 
 #ifdef __cplusplus
-}
 }
 
 #endif
