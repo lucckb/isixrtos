@@ -45,6 +45,7 @@ int isix_event_destroy( osevent_t event );
  * @param[in]	timeout Timeout to wait for sync
  * @return Changed bits or error if negative
  */
+ISIX_CTX_SWITCH_API
 osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 		osbitset_t bits_to_wait, ostick_t timeout );
 
@@ -56,6 +57,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
  * @param[in]   timeout		 Timeout to wait for sync
  * @return Bits which are set
  */
+ISIX_CTX_SWITCH_API
 osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait, 
 		bool clear_on_exit, bool wait_for_all, ostick_t timeout );
 

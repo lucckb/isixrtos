@@ -43,12 +43,14 @@ ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
  * @param[in] new_prio New task priority
  * @return old priority if the operation is completed successfully otherwise return an error code
  */
+ISIX_CTX_SWITCH_API
 int isix_task_change_prio( ostask_t task, osprio_t new_prio );
 
 
 /** Delete the task pointed by the task control object
  *	@param[in] task Task control object
  */
+ISIX_CTX_SWITCH_API
 void isix_task_kill( ostask_t task );
 
 
@@ -84,6 +86,7 @@ _ssize_t isix_free_stack_space( const ostask_t task );
  * @param[in] Task identifier
  * @return Error code
  */
+ISIX_CTX_SWITCH_API
 void isix_task_suspend( ostask_t task );
 
 /** Resume the current task
@@ -115,6 +118,7 @@ int isix_task_unref( ostask_t task );
  *  @param[in] task Input task to wait for
  *  @return Task waiting status
  */
+ISIX_CTX_SWITCH_API
 int isix_task_wait_for( ostask_t task );
 
 

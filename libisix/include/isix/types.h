@@ -7,6 +7,9 @@
 #include <isix/config.h>
 #include <sys/types.h>
 
+// Used when context switch
+#define ISIX_CTX_SWITCH_API __attribute__((noinline,used))
+
 #ifndef __cplusplus
 #define ISIX_TIME_INFINITE 0
 #define ISIX_SEM_ULIMITED 0

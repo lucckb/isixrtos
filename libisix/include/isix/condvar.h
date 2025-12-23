@@ -58,7 +58,7 @@ inline __attribute__((always_inline))
  *  The mutex ownership is lost.
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
-
+ISIX_CTX_SWITCH_API
 int isix_condvar_wait( oscondvar_t cv, ostick_t timeout );
 
 /** Destroy the conditional variable and wakeup all waiting threads

@@ -33,6 +33,7 @@ static inline ossem_t isix_sem_create( ossem_t sem, int val )
  * @param[in] timeout Max wait time
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
+ISIX_CTX_SWITCH_API
 int isix_sem_wait( ossem_t sem, ostick_t timeout );
 
 /** Get semaphore it also can be called from isr contest

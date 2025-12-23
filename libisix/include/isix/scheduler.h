@@ -34,7 +34,9 @@ ostick_t isix_get_jiffies(void);
 #if CONFIG_ISIX_SHUTDOWN_API
 void isix_start_scheduler(void);
 #else
-void isix_start_scheduler(void) __attribute__((noreturn));
+ISIX_CTX_SWITCH_API
+__attribute__((noreturn))
+void isix_start_scheduler(void) ;
 #endif
 
 #if CONFIG_ISIX_SHUTDOWN_API
@@ -43,6 +45,7 @@ void isix_start_scheduler(void) __attribute__((noreturn));
  * @note It can be called only a once just before
  * the system shutdown for battery power save
  */
+ISIX_CTX_SWITCH_API
 void isix_shutdown_scheduler(void);
 #endif
 

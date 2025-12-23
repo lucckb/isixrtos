@@ -108,8 +108,10 @@ void _isixp_schedule_time(void);
 //Process base stack initialization
 unsigned long* _isixp_task_init_stack( unsigned long *sp, task_func_ptr_t pfun, void *param );
 //Lock the scheduler
+ISIX_CTX_SWITCH_API
 void _isixp_lock_scheduler();
 //Unlock the scheduler
+ISIX_CTX_SWITCH_API
 void _isixp_unlock_scheduler();
 //! Wakeup task with selected message
 void _isixp_wakeup_task( ostask_t task, osmsg_t msg );
@@ -128,6 +130,7 @@ ostask_t _isixp_remove_from_prio_queue( list_entry_t* list );
 //! Reallocate according to priority change
 void _isixp_reallocate_priority( ostask_t task, int newprio );
 //! Reschedule tasks 
+ISIX_CTX_SWITCH_API
 void _isixp_do_reschedule( ostask_t task );
 //! Terminate the task
 void __attribute__((noreturn)) _isixp_task_terminator(void);

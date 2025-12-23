@@ -1,5 +1,7 @@
 #pragma once
 
+#include <isix/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,6 +21,7 @@ osmtx_t isix_mutex_create( osmtx_t mutex );
  * @param[in] mutex Mutex object
  * @return Error code
  */
+ISIX_CTX_SWITCH_API
 int isix_mutex_lock( osmtx_t mutex );
 
 /** Function unlock the recursive mutex
