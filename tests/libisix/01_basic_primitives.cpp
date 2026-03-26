@@ -9,6 +9,20 @@ TEST_GROUP(basic_primitives);
 TEST_SETUP(basic_primitives) {}
 TEST_TEAR_DOWN(basic_primitives) {}
 
+#if CONFIG_ISIX_TICKLESS
+namespace
+{
+	static volatile bool s_busy_run {};
+
+	static void busy_task(void*)
+	{
+		while( s_busy_run ) {
+			asm volatile("nop");
+		}
+	}
+}
+#endif
+
 TEST(basic_primitives, time_base_timer_vs_systick)
 {
 	static constexpr auto period_us = 1000U;
@@ -17,8 +31,23 @@ TEST(basic_primitives, time_base_timer_vs_systick)
 		++cnt;
 	}, period_us);
 	TEST_ASSERT(ec);
+
+#if CONFIG_ISIX_TICKLESS
+	/* In tickless mode, long idle windows can coalesce periodic IRQs,
+	 * which makes exact cnt vs. wall-time assertions unreliable.
+	 * Keep CPU active so tickless idle cannot trigger. */
+	s_busy_run = true;
+	auto t = isix::task_create(busy_task, nullptr, 2048, 2, 0);
+	TEST_ASSERT_NOT_NULL(t);
+#endif
+
 	isix::wait_ms(1000);
 	tests::detail::periodic_timer_stop();
+
+#if CONFIG_ISIX_TICKLESS
+	s_busy_run = false;
+	isix::task_kill(t);
+#endif
 	TEST_ASSERT_UINT_WITHIN(5, period_us, cnt);
 }
 

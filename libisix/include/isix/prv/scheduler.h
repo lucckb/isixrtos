@@ -105,6 +105,10 @@ bool _isixp_is_idle_prio( osprio_t p ) {
 void _isixp_schedule(void);
 //Sched timer cyclic call
 void _isixp_schedule_time(void);
+#if CONFIG_ISIX_TICKLESS
+bool _isixp_tickless_on_systick_isr(void);
+void _isixp_tickless_notify_irq_exit(void);
+#endif
 //Process base stack initialization
 unsigned long* _isixp_task_init_stack( unsigned long *sp, task_func_ptr_t pfun, void *param );
 //Lock the scheduler

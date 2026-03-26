@@ -16,6 +16,7 @@
 #include <isix/arch/ostimer.h>
 #include <isix/assert.h>
 #include <stdatomic.h>
+#include <stdint.h>
 
 #ifdef CONFIG_ISIX_LOGLEVEL_SCHEDULER
 #undef CONFIG_ISIX_LOGLEVEL
@@ -29,13 +30,29 @@ static ISIX_TASK_FUNC(idle_task,p);
 static void add_ready_list( ostask_t task );
 static void cleanup_tasks(void);
 static void internal_schedule_time(void);
+#if CONFIG_ISIX_TICKLESS
+static void enter_tickless_idle(void);
+static void catch_up_missed_ticks(ostick_t elapsed);
+static ostick_t calculate_elapsed_ticks_from_systick(void);
+static ostick_t calculate_next_timeout(void);
+static bool can_enter_tickless_sleep(void);
+static void _isixp_tickless_resume_after_wfi(void);
+static uint32_t tickless_ticks_per_jiffy(void);
+static ostick_t tickless_ticks_from_reload(void);
+#endif
 
 // Task reschedule lock for spinlock
 static struct isix_system csys;
 //Current task pointer
 volatile bool _isix_scheduler_running;
-//Current task pointer
-ostask_t volatile _isix_current_task;
+/* Referenced from asm in arch scheduler; keep when linking with LTO. */
+ostask_t volatile _isix_current_task __attribute__((used));
+
+#if CONFIG_ISIX_TICKLESS
+static volatile bool tickless_mode_active;
+static ostick_t tickless_expected_ticks;
+static uint32_t tickless_arm_cvr_start;
+#endif
 
 //! Ununsed systick handler
 static void unused_func(void ) {}
@@ -48,11 +65,41 @@ isix_kernel_panic_callback( const char* file, int line, const char *msg )
 	(void)file; (void)line; (void)msg;
 }
 
+#if CONFIG_ISIX_TICKLESS
+void __attribute__((weak, noinline, externally_visible))
+isix_pre_sleep_hook(ostick_t expected_sleep_ticks)
+{
+	(void)expected_sleep_ticks;
+}
+
+void __attribute__((weak, noinline, externally_visible))
+isix_post_sleep_hook(ostick_t actual_sleep_ticks)
+{
+	(void)actual_sleep_ticks;
+}
+#endif
+
 //Get currrent jiffies
 ostick_t isix_get_jiffies(void)
 {
     return atomic_load(&csys.jiffies);
 }
+
+#ifdef CONFIG_ISIX_TEST
+void _isixp_test_set_jiffies(ostick_t v)
+{
+	atomic_store(&csys.jiffies, v);
+}
+
+void _isixp_test_advance_jiffies(ostick_t dt)
+{
+	isix_enter_critical();
+	for( ostick_t i = 0; i < dt; ++i ) {
+		internal_schedule_time();
+	}
+	isix_exit_critical();
+}
+#endif
 
 //Get maxium available priority
 osprio_t isix_get_min_priority(void)
@@ -358,6 +405,194 @@ static void internal_schedule_time(void)
     }
 }
 
+#if CONFIG_ISIX_TICKLESS
+static uint32_t tickless_ticks_per_jiffy(void)
+{
+	unsigned long f = _isix_port_get_core_freq();
+	if( f == 0UL ) {
+		return 1U;
+	}
+	uint32_t t = (uint32_t)(f / (unsigned long)CONFIG_ISIX_HZ);
+	return t ? t : 1U;
+}
+
+static ostick_t tickless_ticks_from_reload(void)
+{
+	uint32_t r = _isix_port_tickless_get_oneshot_timer_reload_value();
+	uint32_t tpp = tickless_ticks_per_jiffy();
+	uint64_t cyc = (uint64_t)r + 1ULL;
+	ostick_t t = (ostick_t)(cyc / (uint64_t)tpp);
+	if( t == 0U ) {
+		t = 1U;
+	}
+	return t;
+}
+
+static ostick_t calculate_elapsed_ticks_from_systick(void)
+{
+	uint32_t r = _isix_port_tickless_get_oneshot_timer_reload_value();
+	uint32_t c = _isix_port_tickless_get_oneshot_timer_current_value();
+	uint32_t start = tickless_arm_cvr_start;
+	uint32_t tpp = tickless_ticks_per_jiffy();
+	uint32_t diff;
+	if( start >= c ) {
+		diff = start - c;
+	} else {
+		diff = start + (r + 1U) - c;
+	}
+	uint64_t ticks64 = (uint64_t)diff / (uint64_t)tpp;
+	if( ticks64 > (uint64_t)ISIX_TIME_MAX_TICK ) {
+		return ISIX_TIME_MAX_TICK;
+	}
+	ostick_t ticks = (ostick_t)ticks64;
+	if( ticks == 0U ) {
+		ticks = 1U;
+	}
+	return ticks;
+}
+
+static void catch_up_missed_ticks(ostick_t elapsed)
+{
+	if( elapsed == 0U || !schrun ) {
+		return;
+	}
+	if( _isix_port_atomic_sem_read_val(&csys.sched_lock) ) {
+		atomic_fetch_add(&csys.jiffies_skipped, (int)elapsed);
+		return;
+	}
+	for( ostick_t i = 0; i < elapsed; i++ ) {
+		internal_schedule_time();
+	}
+}
+
+static bool can_enter_tickless_sleep(void)
+{
+	if( _isix_port_atomic_sem_read_val(&csys.sched_lock) ) {
+		return false;
+	}
+	if( !list_isempty(&csys.ready_list) ) {
+		task_ready_t *prio = list_first_entry(&csys.ready_list, inode, task_ready_t);
+		if( prio->prio < CONFIG_ISIX_NUMBER_OF_PRIORITIES ) {
+			return false;
+		}
+	}
+	if( atomic_load(&csys.yield_pending) ) {
+		return false;
+	}
+	if( atomic_load(&csys.jiffies_skipped) > 0 ) {
+		return false;
+	}
+	return true;
+}
+
+static ostick_t calculate_next_timeout(void)
+{
+	ostick_t current_jiffies = atomic_load(&csys.jiffies);
+	uint64_t tw64 = (uint64_t)ISIX_TIME_MAX_TICK - (uint64_t)current_jiffies + 1ULL;
+	if( tw64 > (uint64_t)ISIX_TIME_MAX_TICK ) {
+		tw64 = (uint64_t)ISIX_TIME_MAX_TICK;
+	}
+	ostick_t ticks_to_wraparound = (ostick_t)tw64;
+	ostick_t ticks_until_timeout = ISIX_TIME_MAX_TICK;
+
+	if( !list_isempty(csys.p_wait_list) ) {
+		ostask_t first = list_first_entry(csys.p_wait_list, inode_time, struct isix_task);
+		if( first->jiffies >= current_jiffies ) {
+			ticks_until_timeout = first->jiffies - current_jiffies;
+		}
+	}
+	ostick_t vtd = _isixp_vtimers_next_timeout_delta(current_jiffies);
+	if( vtd < ticks_until_timeout ) {
+		ticks_until_timeout = vtd;
+	}
+	if( ticks_to_wraparound < ticks_until_timeout ) {
+		ticks_until_timeout = ticks_to_wraparound - 1U;
+	}
+	if( ticks_until_timeout == 0U ) {
+		ticks_until_timeout = 1U;
+	}
+	return ticks_until_timeout;
+}
+
+static void _isixp_tickless_resume_after_wfi(void)
+{
+	if( !tickless_mode_active ) {
+		return;
+	}
+	ostick_t elapsed = calculate_elapsed_ticks_from_systick();
+	if( elapsed > tickless_expected_ticks ) {
+		elapsed = tickless_expected_ticks;
+	}
+	_isix_port_restore_periodic_tick_timer(_isix_port_get_core_freq());
+	tickless_mode_active = false;
+	catch_up_missed_ticks(elapsed);
+}
+
+static void enter_tickless_idle(void)
+{
+	ostick_t jiffies_before = atomic_load(&csys.jiffies);
+	isix_enter_critical();
+	if( !can_enter_tickless_sleep() ) {
+		isix_exit_critical();
+		_isix_port_idle_cpu();
+		return;
+	}
+	ostick_t next = calculate_next_timeout();
+	if( next < (ostick_t)CONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS ) {
+		isix_exit_critical();
+		_isix_port_idle_cpu();
+		return;
+	}
+	isix_pre_sleep_hook(next);
+	tickless_expected_ticks = next;
+	_isix_port_configure_tickless_oneshot_timer(next, _isix_port_get_core_freq());
+	tickless_arm_cvr_start = _isix_port_tickless_get_oneshot_timer_current_value();
+	{
+		ostick_t eff = tickless_ticks_from_reload();
+		if( eff > next ) {
+			eff = next;
+		}
+		tickless_expected_ticks = eff;
+	}
+	tickless_mode_active = true;
+	isix_exit_critical();
+	_isix_port_idle_cpu();
+	isix_enter_critical();
+	_isixp_tickless_resume_after_wfi();
+	{
+		ostick_t actual = atomic_load(&csys.jiffies) - jiffies_before;
+		isix_post_sleep_hook(actual);
+	}
+	isix_exit_critical();
+}
+
+bool _isixp_tickless_on_systick_isr(void)
+{
+	if( !tickless_mode_active ) {
+		return false;
+	}
+	ostick_t elapsed = tickless_expected_ticks;
+	_isix_port_restore_periodic_tick_timer(_isix_port_get_core_freq());
+	tickless_mode_active = false;
+	catch_up_missed_ticks(elapsed);
+	return true;
+}
+
+void _isixp_tickless_notify_irq_exit(void)
+{
+	if( !tickless_mode_active ) {
+		return;
+	}
+	ostick_t elapsed = calculate_elapsed_ticks_from_systick();
+	if( elapsed > tickless_expected_ticks ) {
+		elapsed = tickless_expected_ticks;
+	}
+	_isix_port_restore_periodic_tick_timer(_isix_port_get_core_freq());
+	tickless_mode_active = false;
+	catch_up_missed_ticks(elapsed);
+}
+#endif /* CONFIG_ISIX_TICKLESS */
+
 
 //Schedule time handled from timer context
 void _isixp_schedule_time()
@@ -560,8 +795,12 @@ ISIX_TASK_FUNC(idle_task,p)
     {
         //Cleanup free tasks
         cleanup_tasks();
+#if CONFIG_ISIX_TICKLESS
+        enter_tickless_idle();
+#else
         //Call port specific idle
         _isix_port_idle_cpu();
+#endif
     }
 }
 
@@ -635,7 +874,15 @@ void _isixp_wakeup_task( ostask_t task, osmsg_t msg )
 void _isixp_wakeup_task_i( ostask_t task, osmsg_t msg )
 {
 	wakeup_task( task, msg );
+#if CONFIG_ISIX_TICKLESS
+	_isixp_tickless_notify_irq_exit();
+#endif
 	isix_exit_critical();
+#if CONFIG_ISIX_TICKLESS
+	if( schrun && currp && _isixp_prio_gt(task->prio, currp->prio) ) {
+		_isix_port_yield();
+	}
+#endif
 }
 
 //Wakeup but don't reschedule but not unlock

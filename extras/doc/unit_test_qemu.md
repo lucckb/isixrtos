@@ -49,8 +49,9 @@ The tests can be run continuously, or we can also run them with an additional gd
 ```bash 
 qemu-system-arm -M olimex-stm32-h405  -kernel build/tests/libisix/isixunittests.binary -nographic
 ```
+
 To run tests while waiting for a gdb session, use the following command:
 ```bash
-qemu-system-arm -M olimex-stm32-h405  -kernel build/tests/libisix/isixunittests.binary -nographic -S -s
+qemu-system-arm -M olimex-stm32-h405 -kernel buildqemu/tests/libisix/isixtests.binary -nographic -S -s
 ```
 In this mode, QEMU will wait for a gdb session to start on port 1234 before running the test.

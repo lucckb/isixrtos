@@ -25,6 +25,12 @@ option('mem_protect', type : 'combo', choices : ['none', 'lite', 'full'],
 	description : 'Memory protection model')
 option('tick_hz', type : 'integer', value : 1000,
 	description : 'System ticks per second')
+option('tickless', type : 'boolean', value : false,
+	description : 'Enable tickless idle (stop periodic SysTick in idle)')
+option('tickless_min_sleep_ticks', type : 'integer', value : 2,
+	description : 'Minimum expected idle ticks before entering tickless sleep')
+option('tickless_compensation_ticks', type : 'integer', value : 1,
+	description : 'SysTick reload compensation in whole ticks (wake slightly early)')
 option('prio_count', type : 'integer', value : 16,
 	description : 'Number of scheduler priorities')
 option('nvic_prio_bits', type : 'integer', value : 4,

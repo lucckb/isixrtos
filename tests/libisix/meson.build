@@ -22,6 +22,7 @@ isix_tests_src = files(
 	'07_vtimer.cpp',
 	'08_fifo.cpp',
 	'09_events.cpp',
+	'10_tickless.cpp',
 	'unittests_entry.cpp',
 	'utils/board_boot.cpp',
 	'utils/dts.cpp',
@@ -49,6 +50,10 @@ isix_tests_elf = executable('isixtests',
 	],
 	c_args : unity_args,
 	cpp_args : unity_args,
+	link_args : [
+		'-Wl,-u,isix_pre_sleep_hook',
+		'-Wl,-u,isix_post_sleep_hook',
+	],
 	link_with : [ fpu_asm_lib ],
 )
 

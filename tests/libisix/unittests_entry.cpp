@@ -26,6 +26,7 @@ static void run_all_tests()
 	RUN_TEST_GROUP(exceptions);
 	RUN_TEST_GROUP(basic_primitives);
 	RUN_TEST_GROUP(mempool);
+	RUN_TEST_GROUP(tickless_early);
 	RUN_TEST_GROUP(mutex);
 	RUN_TEST_GROUP(sched_suspend);
 	RUN_TEST_GROUP(semaphores);
@@ -33,6 +34,7 @@ static void run_all_tests()
 	RUN_TEST_GROUP(vtimer);
 	RUN_TEST_GROUP(fifo);
 	RUN_TEST_GROUP(events);
+	RUN_TEST_GROUP(tickless);
 }
 
 //! Unit tests main thread

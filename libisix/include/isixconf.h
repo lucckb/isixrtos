@@ -42,3 +42,12 @@
 
 //! CPU load API
 //#define CONFIG_ISIX_CPU_USAGE_API 1
+
+/** Tickless idle: disable periodic SysTick when idle (set via meson tickless or tests) */
+//#define CONFIG_ISIX_TICKLESS
+#ifndef CONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS
+#define CONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS 2
+#endif
+#ifndef CONFIG_ISIX_TICKLESS_TIMER_COMPENSATION_TICKS
+#define CONFIG_ISIX_TICKLESS_TIMER_COMPENSATION_TICKS 1
+#endif

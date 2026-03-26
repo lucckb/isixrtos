@@ -30,6 +30,14 @@
 //Cyclic schedule time interrupt
 ISIX_ISR_VECTOR(systick_isr_vector)
 {
+#if CONFIG_ISIX_TICKLESS
+	if( _isixp_tickless_on_systick_isr() ) {
+		if( schrun ) {
+			SCB_ICSR = SCB_ICSR_PENDSVSET;
+		}
+		return;
+	}
+#endif
 	_isixp_schedule_time();
 
     /* Set a PendSV to request a context switch. */

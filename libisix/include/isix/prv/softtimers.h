@@ -45,3 +45,8 @@ struct vtimer_context {
 
 //Finalize function
 void _isixp_vtimers_finalize();
+
+#if CONFIG_ISIX_TICKLESS
+/** Delta jiffies to next virtual timer on the normal list (not overflow list). */
+ostick_t _isixp_vtimers_next_timeout_delta(ostick_t now);
+#endif
