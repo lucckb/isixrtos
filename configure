@@ -1,0 +1,207 @@
+#!/usr/bin/env bash
+# Meson setup helper: cross-file triple (arm + cortex + stm32) and options from
+# extras/doc/unit_test_qemu.md without copying long command lines.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+
+usage() {
+	cat <<'EOF'
+Usage:
+  ./configure [options] disco [builddir]
+  ./configure [options] qemu [builddir]
+  ./configure [options] mcu <stm32/foo.ini> [builddir]
+
+Options (before mode; defaults match unit_test_qemu.md):
+  --crystal-hz N     -Dcrystal_hz=N (default 8000000)
+  --buildtype T      meson --buildtype (default debug)
+  --no-test          -Dtest=false (default: -Dtest=true)
+  --no-lto           -Db_lto=false (default: -Db_lto=true)
+  -v, --verbose      shell set -x before meson setup
+  -h, --help
+
+Defaults (if builddir omitted):
+  disco -> builddisco
+  qemu  -> buildqemu
+  mcu   -> build-<basename-of-ini>
+
+Examples:
+  ./configure disco
+  ./configure --crystal-hz 25000000 mcu stm32/f103r8t6.ini buildf103
+  ./configure --no-test --no-lto qemu
+
+Meson pass-through (after mode/builddir, last):
+  ./configure disco -- --reconfigure
+EOF
+}
+
+cortex_ini_for_mcu_file() {
+	local mcu_ini="$1"
+	local line n
+	line="$(grep -E '^[[:space:]]*[a-zA-Z0-9_]+[[:space:]]*=[[:space:]]*m[347]' "$mcu_ini" | head -1 || true)"
+	n="$(printf '%s' "$line" | sed -E 's/.*=[[:space:]]*m([347]).*/\1/')"
+	case "$n" in
+		3) printf '%s\n' "cortex/m3.ini" ;;
+		4) printf '%s\n' "cortex/m4.ini" ;;
+		7) printf '%s\n' "cortex/m7.ini" ;;
+		*)
+			echo "configure: cannot read Cortex (m3/m4/m7) from $mcu_ini (expected line like '… = m4')" >&2
+			exit 1
+			;;
+	esac
+}
+
+CRYSTAL_HZ=8000000
+BUILDTYPE=debug
+USE_LTO=1
+USE_TEST=1
+VERBOSE=0
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		-h|--help)
+			usage
+			exit 0
+			;;
+		--crystal-hz)
+			[[ $# -ge 2 ]] || { echo "configure: --crystal-hz requires a value" >&2; exit 1; }
+			CRYSTAL_HZ="$2"
+			shift 2
+			;;
+		--buildtype)
+			[[ $# -ge 2 ]] || { echo "configure: --buildtype requires a value" >&2; exit 1; }
+			BUILDTYPE="$2"
+			shift 2
+			;;
+		--no-test)
+			USE_TEST=0
+			shift
+			;;
+		--no-lto)
+			USE_LTO=0
+			shift
+			;;
+		-v|--verbose)
+			VERBOSE=1
+			shift
+			;;
+		disco|qemu|mcu)
+			break
+			;;
+		*)
+			echo "configure: unknown option: $1 (try --help)" >&2
+			exit 1
+			;;
+	esac
+done
+
+if [[ $# -lt 1 ]]; then
+	usage >&2
+	exit 1
+fi
+
+if [[ "$USE_LTO" == "1" ]]; then
+	LTOFLAG=(-Db_lto=true)
+else
+	LTOFLAG=(-Db_lto=false)
+fi
+
+if [[ "$USE_TEST" == "1" ]]; then
+	TESTOPT=(-Dtest=true)
+else
+	TESTOPT=(-Dtest=false)
+fi
+
+MODE="$1"
+shift
+
+POST_DD=()
+FOUND_DD=false
+REMAINING=()
+for arg in "$@"; do
+	if [[ "$FOUND_DD" == true ]]; then
+		POST_DD+=("$arg")
+	elif [[ "$arg" == "--" ]]; then
+		FOUND_DD=true
+	else
+		REMAINING+=("$arg")
+	fi
+done
+set -- "${REMAINING[@]}"
+
+MCU_REL=""
+BUILDDIR=""
+OPT_LEVEL=""
+
+case "$MODE" in
+	disco)
+		MCU_REL="stm32/f411vet6.ini"
+		OPT_LEVEL="s"
+		if [[ -n "${1:-}" ]]; then
+			BUILDDIR="$1"
+			shift
+		else
+			BUILDDIR="builddisco"
+		fi
+		;;
+	qemu)
+		MCU_REL="stm32/f405rg_qemu.ini"
+		OPT_LEVEL="g"
+		if [[ -n "${1:-}" ]]; then
+			BUILDDIR="$1"
+			shift
+		else
+			BUILDDIR="buildqemu"
+		fi
+		;;
+	mcu)
+		if [[ -z "${1:-}" ]]; then
+			echo "configure: mcu mode requires stm32/foo.ini" >&2
+			exit 1
+		fi
+		MCU_REL="$1"
+		shift
+		base="${MCU_REL##*/}"
+		base="${base%.ini}"
+		if [[ -n "${1:-}" ]]; then
+			BUILDDIR="$1"
+			shift
+		else
+			BUILDDIR="build-${base}"
+		fi
+		OPT_LEVEL="s"
+		;;
+	*)
+		echo "configure: unknown mode: $MODE (use disco, qemu, or mcu)" >&2
+		exit 1
+		;;
+esac
+
+if [[ $# -gt 0 ]]; then
+	echo "configure: unexpected arguments: $* (use -- before meson options)" >&2
+	exit 1
+fi
+
+mcu_abs="$ROOT/$MCU_REL"
+[[ -f "$mcu_abs" ]] || { echo "configure: missing $mcu_abs" >&2; exit 1; }
+cortex_rel="$(cortex_ini_for_mcu_file "$mcu_abs")"
+CROSS=(
+	"--cross-file=$ROOT/arm.ini"
+	"--cross-file=$ROOT/$cortex_rel"
+	"--cross-file=$mcu_abs"
+)
+
+if [[ "$VERBOSE" == "1" ]]; then
+	set -x
+fi
+
+meson setup "${CROSS[@]}" \
+	"--buildtype=$BUILDTYPE" \
+	"-Doptimization=$OPT_LEVEL" \
+	"${LTOFLAG[@]}" \
+	"-Dcrystal_hz=$CRYSTAL_HZ" \
+	"${TESTOPT[@]}" \
+	"$BUILDDIR" \
+	"${POST_DD[@]}"
