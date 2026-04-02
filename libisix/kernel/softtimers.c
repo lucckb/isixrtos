@@ -425,7 +425,7 @@ int isix_schedule_work_isr( osworkfunc_t func, void* arg )
  */
 int isix_vtimer_mod( osvtimer_t timer, ostick_t new_timeout ) 
 {
-	if( !timer && !timer->cyclic ) {
+	if( !timer || !timer->cyclic ) {
 		return ISIX_EINVARG;
 	}
 	if( new_timeout == OSVTIMER_CB_CANCEL ) {

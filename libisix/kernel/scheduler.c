@@ -318,6 +318,9 @@ void _isixp_schedule(void)
 	}
     //Remove executed task and add at end
 	if( currp->state == OSTHR_STATE_RUNNING ) {
+		if( !currp->inode.next || !currp->inode.prev ) {
+			isix_bug("RUNNING task inode is not linked");
+		}
 		list_delete(&currp->inode);
 		list_insert_end( &currp->prio_elem->task_list, &currp->inode );
 		currp->state = OSTHR_STATE_READY;
@@ -409,9 +412,6 @@ static void internal_schedule_time(void)
 static uint32_t tickless_ticks_per_jiffy(void)
 {
 	unsigned long f = _isix_port_get_core_freq();
-	if( f == 0UL ) {
-		return 1U;
-	}
 	uint32_t t = (uint32_t)(f / (unsigned long)CONFIG_ISIX_HZ);
 	return t ? t : 1U;
 }

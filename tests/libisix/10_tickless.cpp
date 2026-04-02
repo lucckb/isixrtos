@@ -141,8 +141,7 @@ TEST(tickless, wait_ms_advances_ujiffies_wall_time)
 	const osutick_t u1 = isix::get_ujiffies();
 	const osutick_t delta = u1 - u0;
 	/* Tickless + QEMU: allow wide slack; still proves monotonic wall-ish time. */
-	TEST_ASSERT_TRUE(delta >= 50ULL * 1000ULL);
-	TEST_ASSERT_TRUE(delta <= 250ULL * 1000ULL);
+	TEST_ASSERT_UINT_WITHIN(100ULL * 1000ULL, 150ULL * 1000ULL, delta);
 }
 
 TEST(tickless, timer_elapsed_after_wait_ms)
@@ -161,8 +160,7 @@ TEST(tickless, chained_short_waits_advance_jiffies)
 	const ostick_t j1 = isix::get_jiffies();
 	const ostick_t d = j1 - j0;
 	/* Expect ~100 ticks at 1 kHz; tickless may skip one edge. */
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(85U, static_cast<unsigned>(d));
-	TEST_ASSERT_LESS_OR_EQUAL_UINT(130U, static_cast<unsigned>(d));
+	TEST_ASSERT_UINT_WITHIN(23U, 107U, static_cast<unsigned>(d));
 }
 
 TEST(tickless, wait_tick_api_returns_ok)
