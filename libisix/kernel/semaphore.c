@@ -58,9 +58,10 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 	if( _isix_port_atomic_sem_dec(&sem->value) < 0 )
     {
 		pr_debug("Add to list %p", currp );
+		/* Set before wait-list insert so a tick never sees WTSEM with stale obj.sem. */
+		currp->obj.sem = sem;
 		_isixp_set_sleep_timeout( OSTHR_STATE_WTSEM, timeout );
 		_isixp_add_to_prio_queue( &sem->wait_list, currp );
-		currp->obj.sem = sem;
 		isix_exit_critical();
 		isix_yield();
 		return currp->obj.dmsg;

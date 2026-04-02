@@ -167,6 +167,9 @@ static void cyclic_reschedule_after_fire( osvtimer_t vtimer, ostick_t tnow )
 	ostick_t next = vtimer->jiffies + vtimer->timeout;
 	while( tnow >= next ) {
 		exec_timer_callback( vtimer );
+		if( !vtimer->cyclic ) {
+			return;
+		}
 		next += vtimer->timeout;
 	}
 	vtimer->jiffies = next - vtimer->timeout;
@@ -429,7 +432,9 @@ int isix_vtimer_mod( osvtimer_t timer, ostick_t new_timeout )
 		return ISIX_EINVARG;
 	}
 	if( new_timeout == OSVTIMER_CB_CANCEL ) {
-	 	timer->cyclic = false;
+		timer->cyclic = false;
+		/* Drop handler so cyclic catch-up cannot invoke it again (e.g. sem after destroy). */
+		timer->callback = NULL;
 	} else {
 		timer->timeout = new_timeout;
 	}
