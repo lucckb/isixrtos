@@ -166,8 +166,16 @@ static void cyclic_reschedule_after_fire( osvtimer_t vtimer, ostick_t tnow )
 	}
 	ostick_t next = vtimer->jiffies + vtimer->timeout;
 	while( tnow >= next ) {
+		ostick_t tout_before = vtimer->timeout;
 		exec_timer_callback( vtimer );
 		if( !vtimer->cyclic ) {
+			return;
+		}
+		/* Variable period (e.g. isix_vtimer_mod in callback): do not coalesce more
+		 * fires at this jiffy — interval tests use get jiffies between invocations. */
+		if( vtimer->timeout != tout_before ) {
+			vtimer->jiffies = tnow;
+			add_vtimer_to_list( tnow, vtimer );
 			return;
 		}
 		next += vtimer->timeout;
