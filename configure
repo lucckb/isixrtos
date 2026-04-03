@@ -10,11 +10,13 @@ cd "$ROOT"
 usage() {
 	cat <<'EOF'
 Usage:
-  ./configure [options] disco [builddir]
-  ./configure [options] qemu [builddir]
-  ./configure [options] mcu <stm32/foo.ini> [builddir]
+  ./configure [options] <builddir> disco
+  ./configure [options] <builddir> qemu
+  ./configure [options] <builddir> mcu <stm32/foo.ini>
 
-Options (before mode; defaults match unit_test_qemu.md):
+Meson setup uses <builddir> as the output directory (any path; commonly build).
+
+Options (before builddir; defaults match unit_test_qemu.md):
   --crystal-hz N     -Dcrystal_hz=N (default 8000000)
   --buildtype T      meson --buildtype (default debug)
   --no-test          -Dtest=false (default: -Dtest=true)
@@ -22,18 +24,14 @@ Options (before mode; defaults match unit_test_qemu.md):
   -v, --verbose      shell set -x before meson setup
   -h, --help
 
-Defaults (if builddir omitted):
-  disco -> builddisco
-  qemu  -> buildqemu
-  mcu   -> build-<basename-of-ini>
-
 Examples:
-  ./configure disco
-  ./configure --crystal-hz 25000000 mcu stm32/f103r8t6.ini buildf103
-  ./configure --no-test --no-lto qemu
+  ./configure build disco
+  ./configure build qemu
+  ./configure build mcu stm32/f407zet6.ini
+  ./configure --no-test --no-lto build disco
 
-Meson pass-through (after mode/builddir, last):
-  ./configure disco -- --reconfigure
+Meson pass-through (after mcu arguments if any, use --):
+  ./configure build disco -- --reconfigure
 EOF
 }
 
@@ -87,20 +85,26 @@ while [[ $# -gt 0 ]]; do
 			VERBOSE=1
 			shift
 			;;
-		disco|qemu|mcu)
-			break
-			;;
-		*)
+		-*)
 			echo "configure: unknown option: $1 (try --help)" >&2
 			exit 1
+			;;
+		*)
+			break
 			;;
 	esac
 done
 
-if [[ $# -lt 1 ]]; then
+if [[ $# -lt 2 ]]; then
+	echo "configure: need <builddir> and mode (disco, qemu, or mcu); try --help" >&2
 	usage >&2
 	exit 1
 fi
+
+BUILDDIR="$1"
+shift
+MODE="$1"
+shift
 
 if [[ "$USE_LTO" == "1" ]]; then
 	LTOFLAG=(-Db_lto=true)
@@ -113,9 +117,6 @@ if [[ "$USE_TEST" == "1" ]]; then
 else
 	TESTOPT=(-Dtest=false)
 fi
-
-MODE="$1"
-shift
 
 POST_DD=()
 FOUND_DD=false
@@ -132,29 +133,16 @@ done
 set -- "${REMAINING[@]}"
 
 MCU_REL=""
-BUILDDIR=""
 OPT_LEVEL=""
 
 case "$MODE" in
 	disco)
 		MCU_REL="stm32/f411vet6.ini"
 		OPT_LEVEL="s"
-		if [[ -n "${1:-}" ]]; then
-			BUILDDIR="$1"
-			shift
-		else
-			BUILDDIR="builddisco"
-		fi
 		;;
 	qemu)
 		MCU_REL="stm32/f405rg_qemu.ini"
 		OPT_LEVEL="g"
-		if [[ -n "${1:-}" ]]; then
-			BUILDDIR="$1"
-			shift
-		else
-			BUILDDIR="buildqemu"
-		fi
 		;;
 	mcu)
 		if [[ -z "${1:-}" ]]; then
@@ -163,14 +151,6 @@ case "$MODE" in
 		fi
 		MCU_REL="$1"
 		shift
-		base="${MCU_REL##*/}"
-		base="${base%.ini}"
-		if [[ -n "${1:-}" ]]; then
-			BUILDDIR="$1"
-			shift
-		else
-			BUILDDIR="build-${base}"
-		fi
 		OPT_LEVEL="s"
 		;;
 	*)
