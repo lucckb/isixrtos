@@ -9,6 +9,7 @@ int _read(int /*file*/, void * /*ptr*/, size_t /*len*/)  { return -1; }
 off_t _lseek(int /*file*/, off_t /*ptr*/, int /*dir*/)  { return -1; }
 int _close(int /*file*/)  { return -1; }
 int _fstat(int /*file*/, struct stat* /*buf*/) { return -1; }
+int _getentropy(void * /*buf*/, size_t /*buflen*/) { return -1; }
 int _isatty(int /*file*/) { return 0; }
 
 noreturn void _exit(int /*status*/) { for (;;); };

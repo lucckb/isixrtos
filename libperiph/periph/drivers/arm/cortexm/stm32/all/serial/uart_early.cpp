@@ -80,8 +80,8 @@ int open( const char *name, unsigned baudrate )
 int putc( int ch )
 {
 	if( !usart ) return error::noinit;
-	while( !LL_USART_IsActiveFlag_TXE(usart) );
-	LL_USART_TransmitData8(usart, ch);
+	while( !LL_USART_IsActiveFlag_TXE(usart) ) {}
+	LL_USART_TransmitData8(usart, static_cast<uint8_t>(ch));
 	return ch;
 }
 

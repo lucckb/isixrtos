@@ -72,14 +72,14 @@ int main()
 		},
 		nullptr,
 		[]() {
-            if (!isix_irq_in_isr()) {
-                m_ulock_sem.wait(ISIX_TIME_INFINITE);
-            }
+			if (isix::is_scheduler_active() && !isix_irq_in_isr()) {
+				m_ulock_sem.wait(ISIX_TIME_INFINITE);
+			}
 		},
 		[]() {
-            if (!isix_irq_in_isr()) {
-                m_ulock_sem.signal();
-            }
+			if (isix::is_scheduler_active() && !isix_irq_in_isr()) {
+				m_ulock_sem.signal();
+			}
 		},
 		periph::drivers::uart_early::open,
 		"serial0", 115200

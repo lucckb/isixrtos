@@ -2,6 +2,7 @@
 #include <unity_fixture.h>
 #include <isix.h>
 #include <stm32_ll_system.h>
+#include <functional>
 #include <memory>
 
 //Internal API MOCK

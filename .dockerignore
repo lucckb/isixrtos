@@ -1,0 +1,32 @@
+# Build context is the repository root (see .devcontainer/devcontainer.json).
+# Keep the context small: only what the Dockerfile COPY needs.
+
+.git
+.github
+.vscode
+**/.clangd
+**/compile_commands.json
+
+# Local build trees and binaries
+build/
+build-*/
+**/build/
+*.o
+*.a
+*.elf
+*.bin
+*.hex
+*.map
+
+# Docs and host tooling not used during image build
+extras/doc/
+extras/scripts/
+extras/toolchain/mac/
+extras/toolchain/win/
+todo_imp_m0.txt
+todo_*.txt
+
+# Subprojects / IDE noise
+subprojects/
+*.swp
+*~

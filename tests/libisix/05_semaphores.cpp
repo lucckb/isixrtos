@@ -2,8 +2,9 @@
 #include <unity_fixture.h>
 #include <isix.h>
 #include "timer_interrupt.hpp"
-#include <string>
+#include <functional>
 #include <memory>
+#include <string>
 
 namespace
 {

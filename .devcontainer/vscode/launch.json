@@ -1,0 +1,142 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "QEMU: debug isixtests (start QEMU)",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/build/tests/libisix/isixtests",
+			"cwd": "${workspaceFolder}",
+			"MIMode": "gdb",
+			"miDebuggerPath": "arm-none-eabi-gdb",
+			"miDebuggerArgs": "-nx",
+			"miDebuggerServerAddress": "localhost:1234",
+			"targetArchitecture": "arm",
+			"stopAtEntry": true,
+			"showDisplayString": true,
+			"logging": {
+				"engineLogging": false
+			},
+			"launchCompleteCommand": "None",
+			"setupCommands": [
+				{
+					"description": "ARM Cortex-M target",
+					"text": "set architecture arm",
+					"ignoreFailures": false
+				},
+				{
+					"description": "Allow access to all memory",
+					"text": "set mem inaccessible-by-default off",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Show disassembly while stepping",
+					"text": "-gdb-set disassemble-next-line on",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Demangle symbols in disassembly",
+					"text": "-gdb-set print asm-demangle on",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Stop in application main",
+					"text": "break main",
+					"ignoreFailures": false
+				},
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"preLaunchTask": "qemu: gdb server"
+		},
+		{
+			"name": "QEMU: attach isixtests",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/build/tests/libisix/isixtests",
+			"cwd": "${workspaceFolder}",
+			"MIMode": "gdb",
+			"miDebuggerPath": "arm-none-eabi-gdb",
+			"miDebuggerArgs": "-nx",
+			"miDebuggerServerAddress": "localhost:1234",
+			"targetArchitecture": "arm",
+			"stopAtEntry": true,
+			"showDisplayString": true,
+			"launchCompleteCommand": "None",
+			"setupCommands": [
+				{
+					"description": "ARM Cortex-M target",
+					"text": "set architecture arm",
+					"ignoreFailures": false
+				},
+				{
+					"description": "Allow access to all memory",
+					"text": "set mem inaccessible-by-default off",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Show disassembly while stepping",
+					"text": "-gdb-set disassemble-next-line on",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Demangle symbols in disassembly",
+					"text": "-gdb-set print asm-demangle on",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Stop in application main",
+					"text": "break main",
+					"ignoreFailures": false
+				},
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"preLaunchTask": "meson: compile tests"
+		},
+		{
+			"name": "QEMU: GDB start QEMU (Native Debug)",
+			"type": "gdb",
+			"request": "launch",
+			"target": "${workspaceFolder}/build/tests/libisix/isixtests",
+			"cwd": "${workspaceFolder}",
+			"gdbpath": "arm-none-eabi-gdb",
+			"remote": true,
+			"port": 1234,
+			"valuesFormatting": "parseText",
+			"autorun": [
+				"set architecture arm",
+				"set mem inaccessible-by-default off",
+				"set disassemble-next-line on",
+				"set print asm-demangle on",
+				"break main"
+			],
+			"preLaunchTask": "qemu: gdb server"
+		},
+		{
+			"name": "QEMU: GDB attach (Native Debug)",
+			"type": "gdb",
+			"request": "launch",
+			"target": "${workspaceFolder}/build/tests/libisix/isixtests",
+			"cwd": "${workspaceFolder}",
+			"gdbpath": "arm-none-eabi-gdb",
+			"remote": true,
+			"port": 1234,
+			"valuesFormatting": "parseText",
+			"autorun": [
+				"set architecture arm",
+				"set mem inaccessible-by-default off",
+				"set disassemble-next-line on",
+				"set print asm-demangle on",
+				"break main"
+			],
+			"preLaunchTask": "meson: compile tests"
+		}
+	]
+}

@@ -1,4 +1,7 @@
 .*
+!.devcontainer/
+!.devcontainer/**
+!.dockerignore
 *.dep
 *.o
 *.a

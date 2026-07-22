@@ -3,6 +3,8 @@
 #include <isix.h>
 #include <isix/prv/list.h>
 #include <isix/prv/mutex.h>
+#include <cstdlib>
+#include <functional>
 #include <string>
 
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"

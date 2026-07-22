@@ -1,0 +1,13 @@
+{
+	"clangd.path": "/usr/bin/clangd",
+	"clangd.arguments": [
+		"--compile-commands-dir=${workspaceFolder}/build"
+	],
+	"clangd.checkUpdates": false,
+	"editor.gotoLocation.multipleDefinitions": "goto",
+	"editor.gotoLocation.multipleReferences": "goto",
+	"debug.allowBreakpointsEverywhere": true,
+	"debug.inlineValues": true,
+	"debug.showBreakpointsInOverviewRuler": true,
+	"debug.disassemblyView.showSourceCode": true
+}

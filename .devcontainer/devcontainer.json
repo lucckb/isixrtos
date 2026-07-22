@@ -1,0 +1,51 @@
+{
+	"name": "ISIX-RTOS (QEMU)",
+
+	// Stable local tag shared with `.devcontainer/scripts/image.sh`.
+	// initializeCommand builds it on first open (GCC/QEMU take a long time) and
+	// prunes dangling layers so failed rebuilds do not fill Docker/Podman.
+	"image": "isixrtos-qemu-dev:dev",
+	"initializeCommand": "bash .devcontainer/scripts/image.sh ensure",
+
+	"workspaceFolder": "/workspaces/isixrtos",
+	"remoteUser": "vscode",
+	"containerEnv": {
+		"PATH": "/home/vscode/.local/bin:/opt/python-tools/bin:/opt/arm-none-eabi-gcc/bin:/opt/qemu/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+	},
+
+	// Wait until workspace configure finishes before the UI attaches.
+	"waitFor": "postCreateCommand",
+	"postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"llvm-vs-code-extensions.vscode-clangd",
+				"mesonbuild.mesonbuild",
+				"webfreak.debug",
+				"kylinideteam.cppdebug"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				// System clangd from the image (apt); do not point at ~/.local/bin.
+				"clangd.path": "/usr/bin/clangd",
+				"clangd.arguments": [
+					"--compile-commands-dir=${workspaceFolder}/build"
+				],
+				"clangd.checkUpdates": false,
+				"editor.gotoLocation.multipleDefinitions": "goto",
+				"editor.gotoLocation.multipleReferences": "goto",
+				"debug.allowBreakpointsEverywhere": true,
+				"debug.disassemblyView.showSourceCode": true
+			}
+		}
+	},
+
+	"forwardPorts": [1234],
+	"portsAttributes": {
+		"1234": {
+			"label": "QEMU GDB",
+			"onAutoForward": "silent"
+		}
+	}
+}

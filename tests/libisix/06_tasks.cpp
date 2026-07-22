@@ -4,6 +4,9 @@
 #include "task_test_helper.h"
 #include "utils/fpu_test_and_set.h"
 #include "utils/timer_interrupt.hpp"
+#include <cerrno>
+#include <cstdlib>
+#include <functional>
 #include <memory>
 
 namespace
@@ -78,7 +81,7 @@ namespace
 
 namespace
 {
-	constexpr auto c_stack_size = ISIX_MIN_STACK_SIZE*2;
+	constexpr auto c_stack_size = ISIX_MIN_STACK_SIZE * 2;
 	constexpr auto c_task_prio = 3;
 	constexpr auto c_stack_margin = 100;
 }
@@ -220,7 +223,8 @@ TEST(tasks, CPU_load_api)
 	isix::wait_ms(5000);
 	static constexpr auto epsilon = 50;
 	for (iload=10; iload<=99; iload+=10) {
-		auto thr = isix::thread_create_and_run(c_stack_size,1,0,cpuload_task, iload);
+		auto thr = isix::thread_create_and_run(
+			c_stack_size, 1, 0, cpuload_task, iload);
 		TEST_ASSERT(thr);
 		isix::wait_ms(2000);
 		const auto cpul = isix::cpuload();
@@ -440,7 +444,14 @@ TEST(tasks, simple_FPU_double_precision_test_without_interrupts)
 
 TEST(tasks, FPU_single_precision_two_tasks_and_interrupt)
 {
+#ifdef QEMU_NO_RCC_PERIPH
+	/* QEMU is far slower; keep coverage but avoid multi-minute IRQ+FPU stress. */
+	static constexpr auto n_loops = 100000U;
+	static constexpr auto irq_period_us = 1000U;
+#else
 	static constexpr auto n_loops = 10000000U;
+	static constexpr auto irq_period_us = 10U;
+#endif
 	using namespace tests::fpu_sp;
 	constexpr auto thr = [](int begin_val, bool& ok) -> void
 	{
@@ -475,7 +486,7 @@ TEST(tasks, FPU_single_precision_two_tasks_and_interrupt)
 			irq_failed = true;
 		}
 	};
-	auto ec = tests::detail::periodic_timer_setup(irq_fun, 10);
+	auto ec = tests::detail::periodic_timer_setup(irq_fun, irq_period_us);
 	TEST_ASSERT(ec);
 	auto th1 = isix::thread_create_and_run(2048, c_task_prio,
 			isix_task_flag_newlib, thr, 4, std::ref(res1));

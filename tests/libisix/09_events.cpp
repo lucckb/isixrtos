@@ -1,6 +1,8 @@
 #include <unity.h>
 #include <unity_fixture.h>
 #include <isix.h>
+#include <cstdlib>
+#include <functional>
 
 
 namespace {

@@ -1,6 +1,8 @@
 #!/bin/bash -e
 
-
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../versions.env
+source "${SCRIPT_DIR}/../versions.env"
 
 #Host architecture where it is build
 BUILD=x86_64-unknown-linux
@@ -32,23 +34,17 @@ BASENAME="arm-boff-mingw$NBITS-toolchain"
 #Parallel build
 export MAKEFLAGS="-j8"
 
-
-#Library versions
-BINUTILS_VER="2.32"
-GCC_VER="9.2.0"
-NEWLIB_VER="3.1.0"
-GDB_VER="8.3.1"
+# Mingw-only host dependency (not part of the shared arm-none-eabi pin)
 EXPAT_VER="2.2.8"
 
-
-#Downloads URL
+#Downloads URL (toolchain versions from extras/toolchain/versions.env)
 declare -A dl_urls
 dl_urls=(
-		  [binutils]="http://ftp.gnu.org/gnu/binutils/binutils-$BINUTILS_VER.tar.gz" \
-		  [gcc]="ftp://ftp.gwdg.de/pub/misc/gcc/releases/gcc-$GCC_VER/gcc-$GCC_VER.tar.gz" \
-		  [newlib]="ftp://sourceware.org/pub/newlib/newlib-$NEWLIB_VER.tar.gz" \
-		  [gdb]="http://ftp.gnu.org/gnu/gdb/gdb-$GDB_VER.tar.xz" \
-		  [expat]="http://downloads.sourceforge.net/project/expat/expat/$EXPAT_VER/expat-$EXPAT_VER.tar.bz2" \
+		  [binutils]="$BINUTILS_URL" \
+		  [gcc]="$GCC_URL" \
+		  [newlib]="$NEWLIB_URL" \
+		  [gdb]="$GDB_URL" \
+		  [expat]="https://downloads.sourceforge.net/project/expat/expat/$EXPAT_VER/expat-$EXPAT_VER.tar.bz2" \
 		)
 
 
@@ -163,11 +159,13 @@ build() {
 		'' \
 		install
 	
-	#GCC patch it
-	if [ ! -f "$BASEDIR/${pkg_dirs[gcc]}/.patched" ]; then
-		patch -p2 -d "$BASEDIR/${pkg_dirs[gcc]}" < patch-gcc-config-arm-t-arm-elf.diff
-		touch "$BASEDIR/${pkg_dirs[gcc]}/.patched"
-	fi
+	# Legacy t-arm-elf multilib patch targets GCC 8/9 only and does not apply
+	# to current shared GCC_VER (use upstream --with-multilib-list=rmprofile
+	# when this script is refreshed; see linux/build-from-source.sh).
+	#if [ ! -f "$BASEDIR/${pkg_dirs[gcc]}/.patched" ]; then
+	#	patch -p2 -d "$BASEDIR/${pkg_dirs[gcc]}" < patch-gcc-config-arm-t-arm-elf.diff
+	#	touch "$BASEDIR/${pkg_dirs[gcc]}/.patched"
+	#fi
 
 	if [ ! -f "$BASEDIR/${pkg_dirs[gcc]}/.installed" ]; then
 		#GCC compile

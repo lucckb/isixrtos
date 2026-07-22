@@ -1,0 +1,8 @@
+{
+	"recommendations": [
+		"kylinideteam.cppdebug",
+		"webfreak.debug",
+		"llvm-vs-code-extensions.vscode-clangd",
+		"mesonbuild.mesonbuild"
+	]
+}

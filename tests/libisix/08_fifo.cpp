@@ -2,6 +2,7 @@
 #include <unity_fixture.h>
 #include <isix.h>
 #include "timer_interrupt.hpp"
+#include <functional>
 #include <memory>
 
 
@@ -139,7 +140,8 @@ namespace {
 		}
 		int val; int ret;
 		std::vector<int> test_vec;
-		for (int n=0; (ret=fifoin.pop(val,1000))==ISIX_EOK; ++n) {
+		
+		for (; (ret=fifoin.pop(val,1000))==ISIX_EOK ;) {
 			test_vec.push_back(val);
 		}
 		TEST_ASSERT_EQUAL(ISIX_ETIMEOUT, ret);

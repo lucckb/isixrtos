@@ -36,3 +36,8 @@ qemu-system-arm -M olimex-stm32-h405 -semihosting \
 ```
 
 Further detail (patching QEMU for STM32 timers, DISCO build, and so on): [extras/doc/unit_test_qemu.md](extras/doc/unit_test_qemu.md).
+
+## Devcontainer (QEMU workflow)
+
+For isolated development inside Docker/Dev Containers, see:
+[extras/doc/devcontainer.md](extras/doc/devcontainer.md)

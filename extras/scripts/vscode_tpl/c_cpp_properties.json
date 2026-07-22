@@ -7,12 +7,12 @@
             "defines": [ <DEFINES_REPLACE>
              ],
 			"compilerPath": "arm-none-eabi-intelisense",
-			"compilerArgs": ["-mcpu=cortex-m4", "-mthumb", "-std=gnu++17",
+			"compilerArgs": ["-mcpu=cortex-m4", "-mthumb", "-std=gnu++23",
 							  "-mfloat-abi=hard", "-mfpu=fpv4-sp-d16", "-ffast-math", 
 							  "-fsingle-precision-constant", "-Wno-variadic-macros", 
 							  "-Wno-long-long", "-Wno-pragma-once-outside-header" ],
             "cStandard": "c11",
-            "cppStandard": "c++17",
+            "cppStandard": "c++23",
             "intelliSenseMode": "gcc-x86"
         }
     ],

@@ -2,6 +2,7 @@
 #include <unity_fixture.h>
 #include <isix.h>
 #include <cstring>
+#include <functional>
 #include <foundation/sys/dbglog.h>
 //Unnamed namespace pool class
 namespace
