@@ -10,7 +10,7 @@
 #define CONFIG_ISIX_HZ 1000
 #endif
 
-/* Maximum interrupt priority used with the ISIX context */
+/* Raw BASEPRI value used by the kernel critical sections, aligned to the upper priority bits */
 #ifndef ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY
 #define ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY 0x10
 #endif
