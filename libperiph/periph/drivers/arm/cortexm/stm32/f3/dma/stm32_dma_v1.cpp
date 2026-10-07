@@ -335,7 +335,6 @@ int stm32_dma_v1::dma_flags_configure(const detail::controller_config& cfg, deta
 			return error::inval;
 	}
 	//dbg_info("Set irq: %i prio: %i:%i", chn, cfg.irqh, cfg.irql);
-	isix::set_irq_priority(chn, {uint8_t(cfg.irqh), uint8_t(cfg.irql)});
 	const auto rp=isix::irq_priority_to_raw_priority({uint8_t(cfg.irqh), uint8_t(cfg.irql)});
 	if(isix::get_raw_irq_priority(chn2irqn(chn))!=rp) {
 		isix::set_raw_irq_priority(chn2irqn(chn), rp);
