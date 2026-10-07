@@ -822,8 +822,253 @@ TEST(tasks, cpp11_thread_move_keeps_single_owner)
 	TEST_ASSERT_EQUAL_size_t(before.free, after.free);
 }
 
+namespace {
+	// Pattern registers a task holds while another task preempts it
+	constexpr auto regs_rounds = 20U;
+	volatile unsigned regs_round;
+	volatile unsigned regs_mask;
+	volatile bool regs_done;
+
+	void regs_holder(void*)
+	{
+		unsigned mask = 0;
+		const auto round_ptr = &regs_round;
+		asm volatile(
+			"movw r0, #0xde00\n"
+			"movt r0, #0xc0\n"
+			"add r4, r0, #4\n"
+			"add r5, r0, #5\n"
+			"add r6, r0, #6\n"
+			"add r7, r0, #7\n"
+			"add r8, r0, #8\n"
+			"add r9, r0, #9\n"
+			"add r10, r0, #10\n"
+			"add r11, r0, #11\n"
+#if (__ARM_FP > 0)
+			"add r1, r0, #16\n"
+			"vmov s16, r1\n"
+			"add r1, r0, #17\n"
+			"vmov s17, r1\n"
+			"add r1, r0, #18\n"
+			"vmov s18, r1\n"
+			"add r1, r0, #19\n"
+			"vmov s19, r1\n"
+			"add r1, r0, #20\n"
+			"vmov s20, r1\n"
+			"add r1, r0, #21\n"
+			"vmov s21, r1\n"
+			"add r1, r0, #22\n"
+			"vmov s22, r1\n"
+			"add r1, r0, #23\n"
+			"vmov s23, r1\n"
+			"add r1, r0, #24\n"
+			"vmov s24, r1\n"
+			"add r1, r0, #25\n"
+			"vmov s25, r1\n"
+			"add r1, r0, #26\n"
+			"vmov s26, r1\n"
+			"add r1, r0, #27\n"
+			"vmov s27, r1\n"
+			"add r1, r0, #28\n"
+			"vmov s28, r1\n"
+			"add r1, r0, #29\n"
+			"vmov s29, r1\n"
+			"add r1, r0, #30\n"
+			"vmov s30, r1\n"
+			"add r1, r0, #31\n"
+			"vmov s31, r1\n"
+#endif
+			"mov %[mask], #0\n"
+			"1:\n"
+			"ldr r1, [%[round]]\n"
+			"cmp r1, %[rounds]\n"
+			"blo 1b\n"
+			"sub r1, r4, r0\n"
+			"cmp r1, #4\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #1\n"
+			"sub r1, r5, r0\n"
+			"cmp r1, #5\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #2\n"
+			"sub r1, r6, r0\n"
+			"cmp r1, #6\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #4\n"
+			"sub r1, r7, r0\n"
+			"cmp r1, #7\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #8\n"
+			"sub r1, r8, r0\n"
+			"cmp r1, #8\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #16\n"
+			"sub r1, r9, r0\n"
+			"cmp r1, #9\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #32\n"
+			"sub r1, r10, r0\n"
+			"cmp r1, #10\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #64\n"
+			"sub r1, r11, r0\n"
+			"cmp r1, #11\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #128\n"
+#if (__ARM_FP > 0)
+			"vmov r1, s16\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #16\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #256\n"
+			"vmov r1, s17\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #17\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #512\n"
+			"vmov r1, s18\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #18\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #1024\n"
+			"vmov r1, s19\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #19\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #2048\n"
+			"vmov r1, s20\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #20\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #4096\n"
+			"vmov r1, s21\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #21\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #8192\n"
+			"vmov r1, s22\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #22\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #16384\n"
+			"vmov r1, s23\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #23\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #32768\n"
+			"vmov r1, s24\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #24\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #65536\n"
+			"vmov r1, s25\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #25\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #131072\n"
+			"vmov r1, s26\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #26\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #262144\n"
+			"vmov r1, s27\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #27\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #524288\n"
+			"vmov r1, s28\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #28\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #1048576\n"
+			"vmov r1, s29\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #29\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #2097152\n"
+			"vmov r1, s30\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #30\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #4194304\n"
+			"vmov r1, s31\n"
+			"sub r1, r1, r0\n"
+			"cmp r1, #31\n"
+			"it ne\n"
+			"orrne %[mask], %[mask], #8388608\n"
+#endif
+			: [mask] "=&r"(mask)
+			: [round] "r"(round_ptr), [rounds] "r"(regs_rounds)
+			: "r0", "r1", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11",
+#if (__ARM_FP > 0)
+			  "s16", "s17", "s18", "s19", "s20", "s21", "s22", "s23", "s24", "s25", "s26", "s27", "s28", "s29", "s30", "s31",
+#endif
+			  "memory", "cc"
+		);
+		regs_mask = mask;
+		regs_done = true;
+	}
+
+	void regs_clobber(void*)
+	{
+		for (auto i = 0U; i < regs_rounds; ++i) {
+			isix_wait_ms(2);
+			asm volatile(
+				"mov r4, #0\n"
+				"mov r5, #0\n"
+				"mov r6, #0\n"
+				"mov r7, #0\n"
+				"mov r8, #0\n"
+				"mov r9, #0\n"
+				"mov r10, #0\n"
+				"mov r11, #0\n"
+#if (__ARM_FP > 0)
+				"vmov.f32 s16, #1.0\n"
+				"vmov.f32 s17, #1.0\n"
+				"vmov.f32 s18, #1.0\n"
+				"vmov.f32 s19, #1.0\n"
+				"vmov.f32 s20, #1.0\n"
+				"vmov.f32 s21, #1.0\n"
+				"vmov.f32 s22, #1.0\n"
+				"vmov.f32 s23, #1.0\n"
+				"vmov.f32 s24, #1.0\n"
+				"vmov.f32 s25, #1.0\n"
+				"vmov.f32 s26, #1.0\n"
+				"vmov.f32 s27, #1.0\n"
+				"vmov.f32 s28, #1.0\n"
+				"vmov.f32 s29, #1.0\n"
+				"vmov.f32 s30, #1.0\n"
+				"vmov.f32 s31, #1.0\n"
+#endif
+				:: : "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11",
+#if (__ARM_FP > 0)
+				  "s16", "s17", "s18", "s19", "s20", "s21", "s22", "s23", "s24", "s25", "s26", "s27", "s28", "s29", "s30", "s31",
+#endif
+				  "memory"
+			);
+			regs_round = i + 1;
+		}
+	}
+}
+
+TEST(tasks, preemption_preserves_callee_saved_regs)
+{
+	regs_round = 0;
+	regs_mask = 0xffffffffU;
+	regs_done = false;
+	TEST_ASSERT_NOT_NULL(tk_tasks.spawn(regs_clobber, nullptr, 4));
+	TEST_ASSERT_NOT_NULL(tk_tasks.spawn(regs_holder, nullptr, 6));
+	for (auto i = 0; i < 100 && !regs_done; ++i) {
+		isix::wait_ms(5);
+	}
+	TEST_ASSERT_TRUE(regs_done);
+	TEST_ASSERT_EQUAL_UINT(regs_rounds, regs_round);
+	TEST_ASSERT_EQUAL_HEX32(0, regs_mask);
+}
+
 TEST_GROUP_RUNNER(tasks)
 {
+	RUN_TEST_CASE(tasks, preemption_preserves_callee_saved_regs);
 	RUN_TEST_CASE(tasks, cpp11_thread_move_keeps_single_owner);
 	RUN_TEST_CASE(tasks, suspend_zombie_task_is_noop);
 	RUN_TEST_CASE(tasks, kill_wakes_exit_waiter_immediately);

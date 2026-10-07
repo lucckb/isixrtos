@@ -3,69 +3,56 @@
 #include <isix/task.h>
 #include <isix/prv/scheduler.h>
 
-/** Restore the context to the place when scheduler was started to run
- *  Use Main stack pointer negate bit 2 of LR
- */
-#define cpu_restore_main_context()								\
-	asm volatile (												\
-	"bic lr,lr,#0x04\t\n"										\
-	"bx lr\t\n"													\
-	)
-
-
-//Save context
-#define cpu_save_context()										\
-    asm volatile (												\
-	"clrex\t\n"													\
-    "mrs r0, psp\t\n"											\
-    "stmdb r0!, {r4-r11}\t\n"                                   \
-    "ldr r3,0f\t\n"												\
-    "ldr r2,[r3]\t\n"                                           \
-    "str r0, [r2]\t\n"                                          \
-    "stmdb sp!, {r3,r14}\t\n"                                   \
-    "mov r0,%0\t\n"                                             \
-    "msr basepri,r0\t\n"                                        \
-    ::"i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)                  \
-	)
-
-//Restore context
-#define cpu_restore_context()                                   \
-    asm volatile  (                                             \
-    "mov r0,#0\t\n"                                             \
-    "msr basepri,r0\t\n"                                        \
-	"ldmia sp!, {r3,r14}\t\n"                                   \
-    "ldr r1,[r3]\t\n"                                           \
-    "ldr r0, [r1]\t\n"                                          \
-    "ldmia r0!, {r4-r11}\t\n"                                   \
-    "msr psp, r0\t\n"                                           \
-    "bx r14\r\n"                                                \
-    ".align 2 \t\n"												\
-    "0: .word _isix_current_task\t\n"							\
-   )
-
-
-
 //System Mode enable IRQ and FIQ
 #define INITIAL_XPSR 0x01000000
 
 
 
-//Pend SV interrupt (context switch)
+/* PendSV context switch. The naked handler is a single asm statement:
+ * compiler generated code could clobber r4-r11 before they are saved. */
 void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 {
+	asm volatile(
 #if CONFIG_ISIX_SHUTDOWN_API
-	if( schrun ) {
-		  cpu_save_context();
-		  _isixp_schedule();
-		  cpu_restore_context();
-	} else {
-		cpu_restore_main_context();
-	}
-#else
-    cpu_save_context();
-    _isixp_schedule();
-    cpu_restore_context();
+	"ldr r3, 2f\n"
+	"ldrb r3, [r3]\n"
+	"cmp r3, #0\n"
+	"beq 1f\n"
 #endif
+	"clrex\n"
+	"mrs r0, psp\n"
+	"stmdb r0!, {r4-r11}\n"
+	"ldr r3, 0f\n"
+	"ldr r2, [r3]\n"
+	"str r0, [r2]\n"
+	"push {r3, lr}\n"
+	"mov r0, %[basepri]\n"
+	"msr basepri, r0\n"
+	"bl %c[sched]\n"
+	"mov r0, #0\n"
+	"msr basepri, r0\n"
+	"pop {r3, lr}\n"
+	"ldr r1, [r3]\n"
+	"ldr r0, [r1]\n"
+	"ldmia r0!, {r4-r11}\n"
+	"msr psp, r0\n"
+	"bx lr\n"
+#if CONFIG_ISIX_SHUTDOWN_API
+	/* Return to the main context saved by the scheduler start */
+	"1:\n"
+	"bic lr, lr, #0x04\n"
+	"bx lr\n"
+#endif
+	".align 2\n"
+	"0: .word %c[curr]\n"
+#if CONFIG_ISIX_SHUTDOWN_API
+	"2: .word %c[run]\n"
+#endif
+	:: [basepri] "i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY),
+	   [sched] "i"(_isixp_schedule),
+	   [curr] "i"(&_isix_current_task),
+	   [run] "i"(&_isix_scheduler_running)
+	);
 }
 
 
@@ -73,7 +60,10 @@ void __attribute__((__interrupt__,naked)) pend_svc_isr_vector(void)
 void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
 {
      asm volatile(
-     "ldr r3, 0f\t\n" /* Restore the context. */
+     "ldr r3, 2f\t\n"				/* Mark the scheduler as running. */
+     "movs r2, #1\t\n"
+     "strb r2, [r3]\t\n"
+     "ldr r3, 0f\t\n"				/* Restore the context. */
      "ldr r1, [r3]\t\n"			 /* Use _isix_current_task to get the current
 									task address address. */
      "ldr r0, [r1]\t\n"			 /* The first item in _isix_current_task is
@@ -87,6 +77,7 @@ void __attribute__((__interrupt__,naked)) svc_isr_vector(void)
      "bx r14\n"
      ".align 2 \t\n"
      "0: .word _isix_current_task\t\n"
+     "2: .word _isix_scheduler_running\t\n"
       );
 }
 

@@ -71,7 +71,7 @@ void _isix_port_yield(void)
  *  if not the MSP pointer is setup to statup value
  */
 
-void  __attribute__((naked)) _isix_port_start_first_task( void )
+static void check_cpu_revision(void)
 {
 	if( SCB_CPUID == CPUID_CORTEX_M7_r0p1 ) {
 		isix_bug( "Buggy CPU core M7 rev. r0p1 unsupported." );
@@ -79,6 +79,11 @@ void  __attribute__((naked)) _isix_port_start_first_task( void )
 	if( SCB_CPUID == CPUID_CORTEX_M7_r0p0 ) {
 		isix_bug( "Buggy CPU core M7 rev. r0p0 unsupported." );
 	}
+}
+
+/* Naked helper holds asm only, so it can't touch the caller's registers */
+static void __attribute__((naked,noinline)) start_first_task_svc( void )
+{
 #if CONFIG_ISIX_SHUTDOWN_API
 	__asm volatile(
 		"push {r4-r11}\t\n"
@@ -87,14 +92,19 @@ void  __attribute__((naked)) _isix_port_start_first_task( void )
 		"bx lr\t\n"
 	 );
 #else
-  __asm volatile(
-      "ldr r0, =0xE000ED08 \t\n" /* Use the NVIC offset register to locate the stack. */
-      "ldr r0, [r0]\t\n"
-      "ldr r0, [r0]\t\n"
-      "msr msp, r0\t\n"		/* Set the msp back to the start of the stack. */
-      "svc 0\t\n"
-	  "nop\r\n"
-      );
+	__asm volatile(
+		"ldr r0, =0xE000ED08 \t\n" /* Use the NVIC offset register to locate the stack. */
+		"ldr r0, [r0]\t\n"
+		"ldr r0, [r0]\t\n"
+		"msr msp, r0\t\n"		/* Set the msp back to the start of the stack. */
+		"svc 0\t\n"
+		"nop\r\n"
+	);
 #endif
 }
 
+void _isix_port_start_first_task( void )
+{
+	check_cpu_revision();
+	start_first_task_svc();
+}

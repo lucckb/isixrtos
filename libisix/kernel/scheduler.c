@@ -743,7 +743,7 @@ void isix_start_scheduler(void)
 {
     isix_assert_isr();
 	atomic_store(&csys.jiffies, 0 );			//Zero jiffies if it was previously run
-	schrun = true;
+	/* The port sets schrun when the first task is entered */
 	atomic_init( &csys.critical_count, 0 );
 	//Restore context and run OS
 	currp->state = OSTHR_STATE_RUNNING;
