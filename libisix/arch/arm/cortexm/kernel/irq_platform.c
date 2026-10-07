@@ -28,8 +28,15 @@
 #define CONFIG_ISIX_NVIC_PRIO_BITS 4
 #endif
 
+_Static_assert(CONFIG_ISIX_NVIC_PRIO_BITS >= 2 && CONFIG_ISIX_NVIC_PRIO_BITS <= 8,
+	"Unsupported number of implemented NVIC priority bits");
 
+_Static_assert(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY > 0 && ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY <= 0xFF,
+	"Kernel interrupt mask priority out of range");
+_Static_assert(((unsigned int)ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY & ((1U << (8U - CONFIG_ISIX_NVIC_PRIO_BITS)) - 1U)) == 0,
+	"Kernel interrupt mask priority uses not implemented NVIC priority bits");
 
+/* Returns the priority aligned to the upper bits, as stored in IPR/SHPR/BASEPRI */
 static uint32_t nvic_encode_prio( isix_irq_prio_t prio )
 {
 	uint32_t pgrp = ((SCB_AIRCR) & (uint32_t)0x700) >> 8;
@@ -44,10 +51,10 @@ static uint32_t nvic_encode_prio( isix_irq_prio_t prio )
 		? (uint32_t)0UL
 		: (uint32_t)((pgrp - 7UL) + (uint32_t)(CONFIG_ISIX_NVIC_PRIO_BITS));
 
-	return (
+	const uint32_t encoded =
 			((prio.prio & (uint32_t)((1UL << (prio_bits)) - 1UL)) << sub_bits) |
-			((prio.subp     & (uint32_t)((1UL << (sub_bits    )) - 1UL)))
-		   );
+			((prio.subp     & (uint32_t)((1UL << (sub_bits    )) - 1UL)));
+	return (encoded << (8U - (uint32_t)(CONFIG_ISIX_NVIC_PRIO_BITS))) & 0xFFU;
 }
 
 
@@ -138,8 +145,7 @@ void isix_clear_irq_pending( int irqno )
  */
 void isix_mask_irq_priority( isix_irq_prio_t priority )
 {
-	uint32_t prio = nvic_encode_prio( priority );
-	isix_mask_irq_restore_priority( prio );
+	isix_mask_irq_restore_priority( nvic_encode_prio( priority ) );
 }
 
 
@@ -155,11 +161,23 @@ isix_irq_raw_prio_t isix_mask_irq_save_priority( isix_irq_prio_t new_prio )
 			"mrs %[result], BASEPRI\n"
 			"msr BASEPRI,%[inprio]\n"
 			"isb\n"
-			: [result] "=r"	( ret )
+			: [result] "=&r" ( ret )
 			: [inprio] "r"  ( prio )
-			:  /* No clobbers */
+			: "memory"
 	);
 	return ret;
+}
+
+
+/** Check if the interrupt with the raw priority is masked by the kernel critical section
+ * @param[in] raw Raw interrupt priority
+ * @return true when the interrupt cannot preempt the kernel
+ */
+bool isix_irq_raw_priority_is_kernel_masked( isix_irq_raw_prio_t raw )
+{
+	const uint32_t pgrp = ((SCB_AIRCR) & (uint32_t)0x700) >> 8;
+	const uint32_t group_mask = ~((2UL << pgrp) - 1UL) & 0xFFU;
+	return ((uint32_t)raw & group_mask) >= ((uint32_t)ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY & group_mask);
 }
 
 
