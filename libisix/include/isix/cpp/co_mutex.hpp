@@ -28,7 +28,7 @@ public:
 	~mutex()
 	{
 		while (auto* l = m_waiters.front()) {
-			m_sched->wake(*detail::node_of(l), ISIX_EDESTROY);
+			m_sched->wake(*detail::from_wait_link(l), ISIX_EDESTROY);
 		}
 	}
 
@@ -41,26 +41,29 @@ public:
 			return false;
 		}
 		m_locked = true;
+		m_owner = m_sched->running();
 		return true;
 	}
 
-	//! Release the mutex or pass it to the first waiter
+	/**
+	 * Release the mutex or pass it to the first waiter. Only the owning coroutine
+	 * may unlock; a mutex taken outside of a coroutine is released the same way.
+	 */
 	int unlock() noexcept
 	{
 		if (!m_locked) {
 			return ISIX_ENOTLOCKED;
 		}
-		if (auto* l = m_waiters.front()) {
-			m_sched->wake(*detail::node_of(l), ISIX_EOK);
-		} else {
-			m_locked = false;
+		if (m_owner != m_sched->running()) {
+			return ISIX_EPERM;
 		}
+		release();
 		return ISIX_EOK;
 	}
 
 	class lock_awaiter {
 	public:
-		lock_awaiter(mutex* mtx, ostick_t timeout) noexcept : m_mtx(mtx), m_timeout(timeout) {}
+		lock_awaiter(mutex* mtx, ostick_t timeout) noexcept : m_mtx(mtx) { m_node.deadline = timeout; }
 
 		[[nodiscard]] bool await_ready() noexcept
 		{
@@ -71,7 +74,7 @@ public:
 			if (m_mtx->m_waiters.empty() && m_mtx->try_lock()) {
 				return true;
 			}
-			if (m_timeout == ISIX_TIME_DONTWAIT) {
+			if (m_node.deadline == ISIX_TIME_DONTWAIT) {
 				m_node.result = ISIX_ETIMEOUT;
 				return true;
 			}
@@ -81,13 +84,16 @@ public:
 		template<typename P>
 		bool await_suspend(std::coroutine_handle<P> h) noexcept
 		{
+			if (detail::abort_if_cancelled(h, m_node)) {
+				return false;
+			}
 			auto* const sched = h.promise().sched;
 			if (sched != m_mtx->m_sched) {
 				m_node.result = ISIX_EINVARG;
 				return false;
 			}
 			m_mtx->m_waiters.push_back(m_node.wait_link);
-			sched->suspend(m_node, h, m_timeout);
+			sched->suspend(m_node, h, m_node.deadline);
 			return true;
 		}
 
@@ -98,7 +104,6 @@ public:
 
 	private:
 		mutex* m_mtx {};
-		ostick_t m_timeout {};
 		detail::wait_node m_node {};
 	};
 
@@ -129,7 +134,7 @@ public:
 		void unlock() noexcept
 		{
 			if (auto* const m = std::exchange(m_mtx, nullptr)) {
-				m->unlock();
+				m->release();
 			}
 		}
 
@@ -159,7 +164,21 @@ public:
 	}
 
 private:
+	//! Pass the mutex to the first waiter or unlock it
+	void release() noexcept
+	{
+		if (auto* l = m_waiters.front()) {
+			auto& n = *detail::from_wait_link(l);
+			m_owner = n.rdy.h;
+			m_sched->wake(n, ISIX_EOK);
+		} else {
+			m_locked = false;
+			m_owner = {};
+		}
+	}
+
 	scheduler* m_sched {};
+	std::coroutine_handle<> m_owner {};
 	bool m_locked { false };
 	detail::dlist m_waiters {};
 };

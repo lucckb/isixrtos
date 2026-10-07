@@ -27,7 +27,7 @@ class channel final {
 	static_assert(N > 0);
 public:
 	explicit channel(scheduler& sched) noexcept
-		: m_sched(&sched), m_bit(sched.alloc_bit(&channel::dispatch_cb, this)) {}
+		: m_sched(&sched), m_signal(&channel::dispatch_cb, this) {}
 
 	channel(const channel&) = delete;
 	channel& operator=(const channel&) = delete;
@@ -35,46 +35,46 @@ public:
 	//! Waiters are woken with ISIX_EDESTROY
 	~channel()
 	{
+		m_sched->unsignal(m_signal);
 		while (auto* l = m_rx_waiters.front()) {
-			m_sched->wake(*detail::node_of(l), ISIX_EDESTROY);
+			m_sched->wake(*detail::from_wait_link(l), ISIX_EDESTROY);
 		}
 		while (auto* l = m_tx_waiters.front()) {
-			m_sched->wake(*detail::node_of(l), ISIX_EDESTROY);
+			m_sched->wake(*detail::from_wait_link(l), ISIX_EDESTROY);
 		}
-		m_sched->free_bit(m_bit);
 	}
 
-	[[nodiscard]] bool is_valid() const noexcept { return m_bit != 0U; }
+	[[nodiscard]] bool is_valid() const noexcept { return m_sched->is_valid(); }
 
 	//! Send without waiting (thread context)
 	bool try_send(T v) noexcept
 	{
-		if (!m_bit || !push(std::move(v))) {
+		if (!is_valid() || !push(std::move(v))) {
 			return false;
 		}
-		m_sched->signal(m_bit);
+		m_sched->signal(m_signal);
 		return true;
 	}
 
 	//! Send without waiting (ISR context)
 	bool try_send_isr(T v) noexcept requires std::is_trivially_copyable_v<T>
 	{
-		if (!m_bit || !push(std::move(v))) {
+		if (!is_valid() || !push(std::move(v))) {
 			return false;
 		}
-		m_sched->signal_isr(m_bit);
+		m_sched->signal_isr(m_signal);
 		return true;
 	}
 
 	//! Receive without waiting (thread context)
 	std::optional<T> try_recv() noexcept
 	{
-		if (!m_bit) {
+		if (!is_valid()) {
 			return std::nullopt;
 		}
 		auto v = pop();
 		if (v) {
-			m_sched->signal(m_bit);
+			m_sched->signal(m_signal);
 		}
 		return v;
 	}
@@ -82,12 +82,12 @@ public:
 	//! Receive without waiting (ISR context)
 	std::optional<T> try_recv_isr() noexcept requires std::is_trivially_copyable_v<T>
 	{
-		if (!m_bit) {
+		if (!is_valid()) {
 			return std::nullopt;
 		}
 		auto v = pop();
 		if (v) {
-			m_sched->signal_isr(m_bit);
+			m_sched->signal_isr(m_signal);
 		}
 		return v;
 	}
@@ -95,7 +95,11 @@ public:
 	class send_awaiter final {
 	public:
 		send_awaiter(channel* ch, T v, ostick_t timeout) noexcept
-			: m_ch(ch), m_timeout(timeout) { m_node.value.emplace(std::move(v)); }
+			: m_ch(ch)
+		{
+			m_node.deadline = timeout;
+			m_node.value.emplace(std::move(v));
+		}
 
 		[[nodiscard]] bool await_ready() noexcept
 		{
@@ -104,10 +108,10 @@ public:
 				return true;
 			}
 			if (m_ch->m_tx_waiters.empty() && m_ch->push(std::move(*m_node.value))) {
-				m_ch->m_sched->signal(m_ch->m_bit);
+				m_ch->m_sched->signal(m_ch->m_signal);
 				return true;
 			}
-			if (m_timeout == ISIX_TIME_DONTWAIT) {
+			if (m_node.deadline == ISIX_TIME_DONTWAIT) {
 				m_node.result = ISIX_ETIMEOUT;
 				return true;
 			}
@@ -117,13 +121,16 @@ public:
 		template<typename P>
 		bool await_suspend(std::coroutine_handle<P> h) noexcept
 		{
+			if (detail::abort_if_cancelled(h, m_node)) {
+				return false;
+			}
 			auto* const sched = h.promise().sched;
 			if (sched != m_ch->m_sched) {
 				m_node.result = ISIX_EINVARG;
 				return false;
 			}
 			m_ch->m_tx_waiters.push_back(m_node.wait_link);
-			sched->suspend(m_node, h, m_timeout);
+			sched->suspend(m_node, h, m_node.deadline);
 			return true;
 		}
 
@@ -136,13 +143,12 @@ public:
 		friend class channel;
 
 		channel* m_ch {};
-		ostick_t m_timeout {};
 		node m_node {};
 	};
 
 	class recv_awaiter final {
 	public:
-		recv_awaiter(channel* ch, ostick_t timeout) noexcept : m_ch(ch), m_timeout(timeout) {}
+		recv_awaiter(channel* ch, ostick_t timeout) noexcept : m_ch(ch) { m_node.deadline = timeout; }
 
 		[[nodiscard]] bool await_ready() noexcept
 		{
@@ -153,11 +159,11 @@ public:
 			if (m_ch->m_rx_waiters.empty()) {
 				m_node.out = m_ch->pop();
 				if (m_node.out) {
-					m_ch->m_sched->signal(m_ch->m_bit);
+					m_ch->m_sched->signal(m_ch->m_signal);
 					return true;
 				}
 			}
-			if (m_timeout == ISIX_TIME_DONTWAIT) {
+			if (m_node.deadline == ISIX_TIME_DONTWAIT) {
 				m_node.result = ISIX_ETIMEOUT;
 				return true;
 			}
@@ -167,22 +173,26 @@ public:
 		template<typename P>
 		bool await_suspend(std::coroutine_handle<P> h) noexcept
 		{
+			if (detail::abort_if_cancelled(h, m_node)) {
+				return false;
+			}
 			auto* const sched = h.promise().sched;
 			if (sched != m_ch->m_sched) {
 				m_node.result = ISIX_EINVARG;
 				return false;
 			}
 			m_ch->m_rx_waiters.push_back(m_node.wait_link);
-			sched->suspend(m_node, h, m_timeout);
+			sched->suspend(m_node, h, m_node.deadline);
 			return true;
 		}
 
-		std::optional<T> await_resume() noexcept
+		//! The value or ISIX_ETIMEOUT, ISIX_EDESTROY, ISIX_ECANCELED
+		isix::co::result<T> await_resume() noexcept
 		{
-			if (m_node.result != ISIX_EOK) {
-				return std::nullopt;
+			if (m_node.result != ISIX_EOK || !m_node.out) {
+				return std::unexpected(m_node.result != ISIX_EOK ? static_cast<int>(m_node.result) : ISIX_ESTATE);
 			}
-			return std::move(m_node.out);
+			return std::move(*m_node.out);
 		}
 
 	private:
@@ -192,7 +202,6 @@ public:
 		friend class channel;
 
 		channel* m_ch {};
-		ostick_t m_timeout {};
 		node m_node {};
 	};
 
@@ -208,7 +217,7 @@ public:
 	//! Receive, waiting for data
 	recv_awaiter recv() noexcept { return recv_awaiter{ this, ISIX_TIME_INFINITE }; }
 
-	//! Receive with a timeout, std::nullopt on timeout
+	//! Receive with a timeout
 	recv_awaiter recv(ostick_t timeout) noexcept { return recv_awaiter{ this, timeout }; }
 
 private:
@@ -249,13 +258,13 @@ private:
 				if (!v) {
 					break;
 				}
-				auto* const n = static_cast<typename recv_awaiter::node*>(detail::node_of(l));
+				auto* const n = static_cast<typename recv_awaiter::node*>(detail::from_wait_link(l));
 				n->out = std::move(v);
 				m_sched->wake(*n, ISIX_EOK);
 				progress = true;
 			}
 			while (auto* l = m_tx_waiters.front()) {
-				auto* const n = static_cast<typename send_awaiter::node*>(detail::node_of(l));
+				auto* const n = static_cast<typename send_awaiter::node*>(detail::from_wait_link(l));
 				if (!push(std::move(*n->value))) {
 					break;
 				}
@@ -266,7 +275,7 @@ private:
 	}
 
 	scheduler* m_sched {};
-	osbitset_t m_bit {};
+	detail::signal_link m_signal;
 	std::array<T, N> m_buf {};
 	std::size_t m_head {};
 	std::size_t m_tail {};

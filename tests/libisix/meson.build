@@ -26,6 +26,8 @@ isix_tests_src = files(
 	'11_coroutines.cpp',
 	'12_heap.cpp',
 	'13_irq_priority.cpp',
+	'14_coroutines_ext.cpp',
+	'15_coroutines_bench.cpp',
 	'unittests_entry.cpp',
 	'utils/board_boot.cpp',
 	'utils/dts.cpp',
@@ -70,3 +72,15 @@ custom_target('isixtests.binary',
 
 _size = find_program(meson.get_external_property('size'))
 run_target('Print size', command: [_size, isix_tests_elf])
+
+_check_pendsv = find_program('../../extras/scripts/check_pendsv.sh')
+custom_target('isixtests.pendsv_ok',
+	input: isix_tests_elf,
+	output: 'isixtests.pendsv_ok',
+	command: [_check_pendsv, '@INPUT@', '@OUTPUT@'],
+	env: {
+		'OBJDUMP': find_program('arm-none-eabi-objdump').full_path(),
+		'NM': find_program('arm-none-eabi-nm').full_path(),
+	},
+	build_by_default: true
+)

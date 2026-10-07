@@ -41,7 +41,7 @@ public:
 			isix_sem_event_disconnect(m_sem, m_sched->event_handle());
 		}
 		while (auto* l = m_waiters.front()) {
-			m_sched->wake(*detail::node_of(l), ISIX_EDESTROY);
+			m_sched->wake(*detail::from_wait_link(l), ISIX_EDESTROY);
 		}
 		m_sched->free_bit(m_bit);
 	}
@@ -56,7 +56,7 @@ public:
 
 	class take_awaiter final {
 	public:
-		take_awaiter(sem_adapter* sem, ostick_t timeout) noexcept : m_sem(sem), m_timeout(timeout) {}
+		take_awaiter(sem_adapter* sem, ostick_t timeout) noexcept : m_sem(sem) { m_node.deadline = timeout; }
 
 		[[nodiscard]] bool await_ready() noexcept
 		{
@@ -67,7 +67,7 @@ public:
 			if (m_sem->m_waiters.empty() && m_sem->try_take()) {
 				return true;
 			}
-			if (m_timeout == ISIX_TIME_DONTWAIT) {
+			if (m_node.deadline == ISIX_TIME_DONTWAIT) {
 				m_node.result = ISIX_ETIMEOUT;
 				return true;
 			}
@@ -77,13 +77,16 @@ public:
 		template<typename P>
 		bool await_suspend(std::coroutine_handle<P> h) noexcept
 		{
+			if (detail::abort_if_cancelled(h, m_node)) {
+				return false;
+			}
 			auto* const sched = h.promise().sched;
 			if (sched != m_sem->m_sched) {
 				m_node.result = ISIX_EINVARG;
 				return false;
 			}
 			m_sem->m_waiters.push_back(m_node.wait_link);
-			sched->suspend(m_node, h, m_timeout);
+			sched->suspend(m_node, h, m_node.deadline);
 			return true;
 		}
 
@@ -91,7 +94,6 @@ public:
 
 	private:
 		sem_adapter* m_sem {};
-		ostick_t m_timeout {};
 		detail::wait_node m_node {};
 	};
 
@@ -110,7 +112,7 @@ private:
 			if (!try_take()) {
 				break;
 			}
-			m_sched->wake(*detail::node_of(l), ISIX_EOK);
+			m_sched->wake(*detail::from_wait_link(l), ISIX_EOK);
 		}
 	}
 
