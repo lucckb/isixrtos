@@ -1,7 +1,8 @@
 /*
  * Coroutine adapter for isix::fifo. Items written by threads or ISRs with the
  * regular fifo API are awaited in a coroutine of the owning scheduler. The
- * adapter must be the only consumer of the fifo. Requires
+ * adapter should be the only consumer of the fifo; other consumers only make
+ * a read time out. Requires
  * CONFIG_ISIX_FIFO_EVENT_NOTIFY.
  *
  * Author: Lucjan Bryndza
@@ -50,7 +51,7 @@ public:
 			isix_fifo_event_disconnect(m_fifo, m_sched->event_handle());
 		}
 		while (auto* l = m_waiters.front()) {
-			m_sched->wake(*detail::node_of(l), ISIX_EDESTROY);
+			m_sched->wake(*detail::from_wait_link(l), ISIX_EDESTROY);
 		}
 		m_sched->free_bit(m_bit);
 	}
@@ -63,9 +64,9 @@ public:
 		if (!m_connected || isix_fifo_count(m_fifo) <= 0) {
 			return std::nullopt;
 		}
-		// Single consumer: the element is present, so the read does not block
+		// Another consumer may have taken the element, never block the scheduler
 		T v {};
-		if (isix_fifo_read(m_fifo, &v, ISIX_TIME_INFINITE) != ISIX_EOK) {
+		if (isix_fifo_read(m_fifo, &v, ISIX_TIME_DONTWAIT) != ISIX_EOK) {
 			return std::nullopt;
 		}
 		return v;
@@ -73,7 +74,7 @@ public:
 
 	class read_awaiter final {
 	public:
-		read_awaiter(fifo_reader* rd, ostick_t timeout) noexcept : m_rd(rd), m_timeout(timeout) {}
+		read_awaiter(fifo_reader* rd, ostick_t timeout) noexcept : m_rd(rd) { m_node.deadline = timeout; }
 
 		[[nodiscard]] bool await_ready() noexcept
 		{
@@ -87,7 +88,7 @@ public:
 					return true;
 				}
 			}
-			if (m_timeout == ISIX_TIME_DONTWAIT) {
+			if (m_node.deadline == ISIX_TIME_DONTWAIT) {
 				m_node.result = ISIX_ETIMEOUT;
 				return true;
 			}
@@ -97,22 +98,26 @@ public:
 		template<typename P>
 		bool await_suspend(std::coroutine_handle<P> h) noexcept
 		{
+			if (detail::abort_if_cancelled(h, m_node)) {
+				return false;
+			}
 			auto* const sched = h.promise().sched;
 			if (sched != m_rd->m_sched) {
 				m_node.result = ISIX_EINVARG;
 				return false;
 			}
 			m_rd->m_waiters.push_back(m_node.wait_link);
-			sched->suspend(m_node, h, m_timeout);
+			sched->suspend(m_node, h, m_node.deadline);
 			return true;
 		}
 
-		std::optional<T> await_resume() noexcept
+		//! The value or ISIX_ETIMEOUT, ISIX_EDESTROY, ISIX_ECANCELED
+		isix::co::result<T> await_resume() noexcept
 		{
-			if (m_node.result != ISIX_EOK) {
-				return std::nullopt;
+			if (m_node.result != ISIX_EOK || !m_node.out) {
+				return std::unexpected(m_node.result != ISIX_EOK ? static_cast<int>(m_node.result) : ISIX_ESTATE);
 			}
-			return std::move(m_node.out);
+			return std::move(*m_node.out);
 		}
 
 	private:
@@ -122,14 +127,13 @@ public:
 		friend class fifo_reader;
 
 		fifo_reader* m_rd {};
-		ostick_t m_timeout {};
 		node m_node {};
 	};
 
 	//! Read, waiting for data
 	read_awaiter read() noexcept { return read_awaiter{ this, ISIX_TIME_INFINITE }; }
 
-	//! Read with a timeout, std::nullopt on timeout (ISIX_TIME_DONTWAIT = try only)
+	//! Read with a timeout (ISIX_TIME_DONTWAIT = try only)
 	read_awaiter read(ostick_t timeout) noexcept { return read_awaiter{ this, timeout }; }
 
 private:
@@ -142,7 +146,7 @@ private:
 			if (!v) {
 				break;
 			}
-			auto* const n = static_cast<typename read_awaiter::node*>(detail::node_of(l));
+			auto* const n = static_cast<typename read_awaiter::node*>(detail::from_wait_link(l));
 			n->out = std::move(v);
 			m_sched->wake(*n, ISIX_EOK);
 		}
