@@ -17,7 +17,7 @@ static const char * error_string_table[] =
     "IPC object has been destroyed", //10
     "Invalid state", //11
     "Permission denied", //12
-    "Unknown error code", //13
+    "Operation canceled", //13
     "Object not locked", //14
     "Task is not referenced", //15
     "Fifo queue is empty",    //16

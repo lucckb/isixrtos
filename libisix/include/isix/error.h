@@ -20,6 +20,7 @@ enum isix_error
 	ISIX_EDESTROY		= -10,		/** Object has been destroyed */
 	ISIX_ESTATE			= -11,		/** Invalid state  */
 	ISIX_EPERM			= -12,		/** Not permited */
+	ISIX_ECANCELED		= -13,		/** Operation canceled */
 	ISIX_ENOTLOCKED		= -14,		/** Not locked */
 	ISIX_ENOREF			= -15,		/** Task is not referenced */
 	ISIX_EFIFOEMPTY		= -16,		/** Fifo queue is empty */
