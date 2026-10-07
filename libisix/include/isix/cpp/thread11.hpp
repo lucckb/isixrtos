@@ -40,7 +40,22 @@ namespace isix {
 			*/
 			virtual ~thread()
 			{
+				stop_thread();
 			}
+			/** @brief thread constructor which also starts the thread
+			 *  @param[in] size Stack size
+			 *  @param[in] priority Thread priority
+			 *  @param[in] flags Thread flags
+			 *  @param[in] function Function executed in separate thread
+			 *  @param[in] args Arguments passed to the function
+			 */
+			template <typename FN, typename ... ARGS>
+				thread( detail::thread_start_tag, const size_t size, const osprio_t priority,
+						unsigned flags, FN&& function, ARGS&&... args ) noexcept
+				: m_bound_fn( std::bind(std::forward<FN>(function), std::forward<ARGS>(args)... ) )
+				{
+					start_thread( size, priority, flags );
+				}
 			thread(thread&) = delete;
 			thread(thread&&) = default;
 			thread& operator=(thread&) = delete;
@@ -71,9 +86,8 @@ namespace isix {
 		thread thread_create_and_run( const size_t size, const osprio_t priority,
 				unsigned flags, FN&& fn, ARGS&&... args ) noexcept
 		{
-			auto thr = thread_create( std::forward<FN>(fn), std::forward<ARGS>(args)... );
-			thr.start_thread( size, priority, flags );
-			return thr;
+			return thread( detail::thread_start_tag{}, size, priority, flags,
+					std::forward<FN>(fn), std::forward<ARGS>(args)... );
 		}
 
 }

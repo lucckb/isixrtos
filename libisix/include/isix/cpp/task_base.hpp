@@ -19,6 +19,7 @@
 
 #ifdef __cplusplus
 #include <cstddef>
+#include <cstdlib>
 #include <isix/task.h>
 
 namespace isix {
@@ -65,7 +66,13 @@ namespace isix {
 			}
 		}
 		task_base(const task_base&) = delete;
-		task_base(task_base&&) = default;
+		//! Move is possible only for a task which is not running, it keeps the object address
+		task_base(task_base&& other) noexcept
+		{
+			if( other.task_id ) {
+				std::abort();
+			}
+		}
 		const task_base& operator=(const task_base&) = delete;
 		task_base& operator=(task_base&&) = delete;
 
