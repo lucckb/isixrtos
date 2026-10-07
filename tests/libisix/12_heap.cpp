@@ -26,6 +26,10 @@ namespace {
 	// Runs inside the allocator section, must neither allocate nor block
 	void heap_hook(isix_test_point point, void*)
 	{
+		// Hooks also fire from ISRs where the task API must not be called
+		if (point != isix_tp_heap_locked && point != isix_tp_heap_unlocking) {
+			return;
+		}
 		if (!(s_arm || s_in_heap) || isix_task_self() != s_victim) {
 			return;
 		}

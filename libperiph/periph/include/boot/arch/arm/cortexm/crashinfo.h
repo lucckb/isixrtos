@@ -35,20 +35,18 @@ enum stk_regs {
 void cortex_cm3_print_core_regs(enum crash_mode crash_type, unsigned long * SP);
 
 
-#define _cm3_hard_hault_entry_fn(hfault_fn) do {\
-	unsigned long *sp; \
-	enum crash_mode cmode; \
-	asm( \
-		"TST LR, #4\n" \
-		"ITTEE EQ\n" \
-	    "MRSEQ %[stackptr], MSP\n" \
-		"MOVEQ %[crashm],%[tsystem]\n" \
-		"MRSNE %[stackptr], PSP\n" \
-		"MOVNE %[crashm],%[tuser]\n" \
-			: [stackptr] "=r"(sp), [crashm] "=r"(cmode): \
-			  [tuser]"I"(CRASH_TYPE_USER),[tsystem]"I"(CRASH_TYPE_SYSTEM)); \
-			 hfault_fn( cmode, sp ); \
-   } while(0)
+//! Hard fault entry for a naked handler: asm only, selects the faulted stack and jumps to hfault_fn
+#define _cm3_hard_hault_entry_fn(hfault_fn) \
+	asm volatile( \
+		"tst lr, #4\n" \
+		"itete eq\n" \
+		"mrseq r1, msp\n" \
+		"mrsne r1, psp\n" \
+		"moveq r0, %[tsystem]\n" \
+		"movne r0, %[tuser]\n" \
+		"b %c[fn]\n" \
+		:: [fn] "i"(hfault_fn), \
+		   [tuser] "I"(CRASH_TYPE_USER), [tsystem] "I"(CRASH_TYPE_SYSTEM))
 
 #define cm3_hard_hault_regs_dump() _cm3_hard_hault_entry_fn(cortex_cm3_print_core_regs)
 
