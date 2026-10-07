@@ -36,3 +36,5 @@ qemu-system-arm -M olimex-stm32-h405 -semihosting \
 ```
 
 Further detail (patching QEMU for STM32 timers, DISCO build, and so on): [extras/doc/unit_test_qemu.md](extras/doc/unit_test_qemu.md).
+
+C++20 coroutines layer (`isix::co`): [extras/doc/cpp_coroutines.md](extras/doc/cpp_coroutines.md).
