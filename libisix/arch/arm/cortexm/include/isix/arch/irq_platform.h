@@ -25,13 +25,19 @@
 extern "C" {
 #endif
 
-//! Isix IRQ splited priority
+/** Isix IRQ split priority
+ * The value is encoded according to the current priority grouping, so it must
+ * be used after isix_set_irq_priority_group().
+ */
 typedef struct isix_irq_prio_s {
 	uint8_t prio;
 	uint8_t subp;
 } isix_irq_prio_t;
 
-//! Isix irq ram
+/** Isix IRQ raw priority
+ * The value written to the IPR/SHPR/BASEPRI register, aligned to the upper
+ * implemented priority bits. BASEPRI compares only the group priority.
+ */
 typedef uint8_t isix_irq_raw_prio_t;
 
 
@@ -51,6 +57,7 @@ enum isix_cortexm_irqnums {
 };
 
 /** Mask all interrupts below selected priority level
+ * Only the group priority is compared by the hardware.
  * @param[in] priority Input priority
  */
 void isix_mask_irq_priority( isix_irq_prio_t priority );
@@ -72,7 +79,7 @@ isix_mask_irq_restore_priority( isix_irq_raw_prio_t prio )
 {
 	asm volatile (
 		"msr BASEPRI,%0\n"
-		::"r"(prio)
+		::"r"(prio) : "memory"
 	);
 }
 
@@ -110,6 +117,14 @@ isix_irq_raw_prio_t isix_get_raw_irq_priority( int irqno );
  * @return Raw priority
  */
 isix_irq_raw_prio_t isix_irq_priority_to_raw_priority( isix_irq_prio_t prio );
+
+
+/** Check if the interrupt with the raw priority is masked by the kernel critical section
+ * Interrupt handlers that call the *_isr API must have a priority for which this returns true.
+ * @param[in] raw Raw interrupt priority
+ * @return true when the interrupt cannot preempt the kernel
+ */
+bool isix_irq_raw_priority_is_kernel_masked( isix_irq_raw_prio_t raw );
 
 
 #if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
@@ -221,6 +236,12 @@ namespace isix {
 	irq_priority_to_raw_priority( isix_irq_prio_t prio )
 	{
 		return ::isix_irq_priority_to_raw_priority(prio);
+	}
+
+	static inline bool __attribute__((always_inline))
+	irq_raw_priority_is_kernel_masked( irq_raw_prio_t raw )
+	{
+		return ::isix_irq_raw_priority_is_kernel_masked(raw);
 	}
 
 	static inline void __attribute__((always_inline))

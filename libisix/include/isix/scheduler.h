@@ -16,7 +16,7 @@ typedef void (*task_func_ptr_t)(void*);
 typedef void (*isix_panic_func_callback_t)(const char*, int, const char*);
 
 //! Yield the current process
-static inline void isix_yield()
+static inline void isix_yield(void)
 {
 	extern volatile bool _isix_scheduler_running;
 	if(_isix_scheduler_running)
@@ -29,6 +29,13 @@ static inline void isix_yield()
  * @return Number of system tick from system startup
  */
 ostick_t isix_get_jiffies(void);
+
+/** Optional application hook called from the system timer interrupt in the kernel critical section,
+ * the default does nothing. It is called once per timer interrupt: every tick with the periodic tick, but with tickless
+ * idle not for the ticks that are accounted in a batch when the sleep ends.
+ * Use isix_get_jiffies() when the number of elapsed ticks matters.
+ */
+void isix_systime_handler(void);
 
 //!Start the scheduler
 #if CONFIG_ISIX_SHUTDOWN_API

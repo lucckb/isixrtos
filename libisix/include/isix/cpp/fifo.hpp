@@ -28,6 +28,8 @@ namespace isix {
     {
     public:
             explicit fifo_base(osfifo_t hwnd_) : hwnd(hwnd_) {}
+            //! Native fifo handle
+            osfifo_t native_handle() const { return hwnd; }
     protected:
             osfifo_t hwnd;
     private:

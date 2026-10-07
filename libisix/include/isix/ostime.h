@@ -25,16 +25,11 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/** Get current sytem ticks
- * @return Number of system tick from system startup in usec resolution
+/** Get current system time
+ * @return Time from the system startup in microseconds, it includes the part of the tick
+ *         that has elapsed and does not go back
  */
-static inline osutick_t isix_get_ujiffies(void)
-{
-	osutick_t t = (osutick_t)isix_get_jiffies() * ((osutick_t)1000000/((osutick_t)ISIX_HZ));
-    t += (((osutick_t)_isix_port_get_hres_jiffies_timer_value()) * ((osutick_t)1000000/((osutick_t)ISIX_HZ)))
-    	/  (osutick_t)_isix_port_get_hres_jiffies_timer_max_value();
-    return t;
-}
+osutick_t isix_get_ujiffies(void);
 
 /** Busy waiting for selecred amount of time
  * @param[in] timeout Number of microseconds for busy wait
@@ -49,11 +44,9 @@ void isix_wait_us( unsigned timeout );
 */
 static inline bool isix_timer_elapsed( ostick_t t1, ostick_t timeout )
 {
-	ostick_t t2 = isix_get_jiffies();
-	if( t2 >= t1 )	//Not overflow
-		return t2 - t1 > timeout;
-	else       //Overflow
-		return t1 - t2 > timeout;
+	const ostick_t t2 = isix_get_jiffies();
+	// Unsigned difference is valid also when the counter has wrapped
+	return (ostick_t)(t2 - t1) > timeout;
 }
 
 /** Convert ms value to the system tick value
@@ -64,7 +57,8 @@ ostick_t isix_ms2tick( unsigned long ms );
 
 
 /** Wait thread for selected number of ticks
- * @param[in] timeout Wait time
+ * @param[in] timeout Wait time. Zero is ISIX_TIME_INFINITE so the task sleeps until it is
+ *            killed, use isix_yield() to give up the CPU without sleeping
  * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
  */
 ISIX_CTX_SWITCH_API

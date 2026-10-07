@@ -3,6 +3,11 @@
 #include <isix/prv/list.h>
 #include <isix/prv/types.h>
 #include <isix/arch/sem_atomic.h>
+#include <isix/config.h>
+#if CONFIG_ISIX_SEM_EVENT_NOTIFY
+#include <stdatomic.h>
+struct isix_event;
+#endif
 
 //Structure of semaphore
 struct isix_semaphore
@@ -13,6 +18,11 @@ struct isix_semaphore
     list_entry_t wait_list;
     //Resource type
     bool static_mem;
+#if CONFIG_ISIX_SEM_EVENT_NOTIFY
+	//Event notified when a token is stored with no waiting task
+	struct isix_event* evt;
+	atomic_uchar bitno;
+#endif
 };
 
 

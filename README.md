@@ -36,3 +36,13 @@ qemu-system-arm -M olimex-stm32-h405 -semihosting \
 ```
 
 Further detail (patching QEMU for STM32 timers, DISCO build, and so on): [extras/doc/unit_test_qemu.md](extras/doc/unit_test_qemu.md).
+
+## Coroutines
+
+ISIX is, to our knowledge, the first classic preemptive RTOS for Cortex-M that ships C++20 coroutines as a first-class, kernel-aware feature: coroutines wake from threads and interrupts without polling, allocate nothing on the hot path, run with no heap, cancel cooperatively and integrate with the scheduler's tickless idle. Many coroutines share one RTOS task, with timeouts, `when_any`/`when_all`, cancellation, interrupt and stream awaitables, and a bridge to blocking code.
+
+Documentation, cookbook and examples: [extras/doc/coroutines](extras/doc/coroutines/README.md).
+
+## License
+
+ISIX is released under the [MIT License](LICENSE). Third-party components bundled in this repository keep their own licenses, as stated in their directories and in the headers of their source files.

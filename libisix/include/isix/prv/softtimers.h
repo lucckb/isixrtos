@@ -44,7 +44,7 @@ struct vtimer_context {
 } ;
 
 //Finalize function
-void _isixp_vtimers_finalize();
+void _isixp_vtimers_finalize(void);
 
 #if CONFIG_ISIX_TICKLESS
 /** Delta jiffies to next virtual timer on the normal list (not overflow list). */

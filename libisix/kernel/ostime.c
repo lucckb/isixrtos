@@ -21,6 +21,18 @@
 #include <isix/arch/cpu.h>
 #include <isix/assert.h>
 
+//Get the system time in microseconds
+osutick_t isix_get_ujiffies(void)
+{
+	uint32_t cycles_per_tick;
+	isix_enter_critical();
+	const ostick_t jiffies = isix_get_jiffies();
+	const uint32_t cycles = _isix_port_systimer_subtick( &cycles_per_tick );
+	isix_exit_critical();
+	const osutick_t us_per_tick = (osutick_t)1000000 / (osutick_t)ISIX_HZ;
+	return (osutick_t)jiffies * us_per_tick + (osutick_t)cycles * us_per_tick / cycles_per_tick;
+}
+
 /** Busy waiting for selecred amount of time
  * @param[in] timeout Number of microseconds for busy wait
  * @return None

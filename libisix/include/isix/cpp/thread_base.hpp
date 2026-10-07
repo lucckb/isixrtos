@@ -18,10 +18,13 @@
 
 #pragma once
 #include <cstddef>
+#include <cstdlib>
 #include <isix/task.h>
 
 namespace isix {
 namespace detail {
+	//! Tag selecting the constructor which starts the thread
+	struct thread_start_tag {};
 	//! Thread class base
 	class thread_base
 	{
@@ -38,15 +41,19 @@ namespace detail {
 			//! Destructor
 			virtual ~thread_base()
 			{
-				if( m_task ) {
-					isix_task_kill(m_task);
-					isix_task_unref(m_task);
-					m_task = nullptr;
-				}
+				stop_thread();
 			}
 			//! Noncopyable
 			thread_base(const thread_base&) = delete;
-			thread_base(thread_base&&) = default;
+			/** Move is possible only for a thread which is not running yet
+			 *  the started thread keeps the address of the source object
+			 */
+			thread_base(thread_base&& other) noexcept
+			{
+				if( other.m_task ) {
+					std::abort();
+				}
+			}
 			const thread_base& operator=(const thread_base&) = delete;
 			thread_base& operator=(thread_base&&) = delete;
 			//! Bool valid operator
@@ -100,9 +107,22 @@ namespace detail {
 			int get_state() const noexcept {
 				return m_task?::isix_get_task_state( m_task ):int(ISIX_EINVARG);
 			}
-			//! Wait for task
+			//! Wait for task, see isix_task_wait_for, ISIX_EINVARG for empty object
 			int wait_for() const noexcept {
 				return m_task?::isix_task_wait_for( m_task ):int(ISIX_EINVARG);
+			}
+		protected:
+			/** Kill the task and release its reference
+			 *  Derived classes must call it in their destructor, before
+			 *  the members used by runner() are destroyed.
+			 */
+			void stop_thread() noexcept
+			{
+				if( m_task ) {
+					isix_task_kill(m_task);
+					isix_task_unref(m_task);
+					m_task = nullptr;
+				}
 			}
 		private:
 			//! Thread runner

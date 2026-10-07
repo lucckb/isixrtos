@@ -1,6 +1,9 @@
 #include <unity.h>
 #include <unity_fixture.h>
 #include <isix.h>
+#include <memory>
+#include <utils/test_prio.hpp>
+#include <utils/tickless_testhooks.h>
 
 
 namespace
@@ -11,6 +14,9 @@ namespace
 	}
 	class timer : public isix::virtual_timer {
 	public:
+		~timer() {
+			stop_sync();
+		}
 		unsigned counter() const {
 			return m_counter;
 		}
@@ -21,6 +27,10 @@ namespace
 	private:
 		unsigned m_counter {};
 	};
+	//! Expected number of timer expirations during one second for a period given in ms
+	unsigned exp_cnt(unsigned period_ms) {
+		return isix::ms2tick(1000U) / isix::ms2tick(period_ms);
+	}
 }
 
 namespace {
@@ -40,8 +50,8 @@ namespace {
 
 //Vtimer modapi test
 namespace {
-	constexpr auto mod_on = 2000U;
-	constexpr auto mod_off = 800U;
+	constexpr auto mod_on = test_utils::ms_ticks(2000U);
+	constexpr auto mod_off = test_utils::ms_ticks(800U);
 	constexpr auto mod_iter = 20;
 	struct mod_info 
 	{
@@ -51,12 +61,15 @@ namespace {
 		int tot_cnt {};
 		ostick_t last_call { isix_get_jiffies() };
 		bool on {};
-		osvtimer_t tmr;
-		ossem_t fin { isix_sem_create_limited(NULL,0,1) };
+		osvtimer_t tmr {};
+		ossem_t fin {};
 	};
+	//Kept in static storage so teardown can release it also after a failed assertion
+	mod_info s_mod_inf;
 
 	inline bool mod_inrange(ostick_t t, ostick_t rng) {
-		return t >= rng && t<=rng+mod_off/10;
+		//Host jitter between the worker tick and the jiffies read can shorten the interval
+		return t + test_utils::ms_ticks(10U) >= rng && t<=rng+mod_off/10;
 	}
 
 	void cyclic_modapi_func(void* ptr) 
@@ -88,7 +101,16 @@ namespace {
 
 TEST_GROUP(vtimer);
 TEST_SETUP(vtimer) {}
-TEST_TEAR_DOWN(vtimer) {}
+TEST_TEAR_DOWN(vtimer)
+{
+	if (s_mod_inf.tmr) {
+		isix_vtimer_destroy(s_mod_inf.tmr);
+	}
+	if (s_mod_inf.fin) {
+		isix_sem_destroy(s_mod_inf.fin);
+	}
+	s_mod_inf = mod_info{};
+}
 
 TEST(vtimer, basic)
 {
@@ -114,15 +136,15 @@ TEST(vtimer, basic)
 	TEST_ASSERT_EQUAL(ISIX_EOK, ss1);
 	TEST_ASSERT_EQUAL(ISIX_EOK, ss2);
 	TEST_ASSERT_EQUAL(ISIX_EOK, ss3);
-	TEST_ASSERT_EQUAL_UINT(wait_t/t1, m_t1.counter());
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(wait_t/t2, m_t2.counter());
-	TEST_ASSERT_LESS_THAN_UINT(wait_t/t2+2, m_t2.counter());
-	TEST_ASSERT_EQUAL_UINT(wait_t/t3, m_t3.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t1), m_t1.counter());
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(exp_cnt(t2), m_t2.counter());
+	TEST_ASSERT_LESS_THAN_UINT(exp_cnt(t2)+2, m_t2.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t3), m_t3.counter());
 	isix_wait_ms(wait_t);
-	TEST_ASSERT_EQUAL_UINT(wait_t/t1, m_t1.counter());
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(wait_t/t2, m_t2.counter());
-	TEST_ASSERT_LESS_THAN_UINT(wait_t/t2+2, m_t2.counter());
-	TEST_ASSERT_EQUAL_UINT(wait_t/t3, m_t3.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t1), m_t1.counter());
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(exp_cnt(t2), m_t2.counter());
+	TEST_ASSERT_LESS_THAN_UINT(exp_cnt(t2)+2, m_t2.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t3), m_t3.counter());
 	TEST_ASSERT_EQUAL(3, del_exe_cnt);
 }
 
@@ -143,15 +165,15 @@ TEST(vtimer, isr_api)
 	TEST_ASSERT_EQUAL(ISIX_EOK, m_t2.stop_isr());
 	TEST_ASSERT_EQUAL(ISIX_EOK, m_t3.stop_isr());
 	isix_wait_ms(t3+2);	//Give some time to exec command
-	TEST_ASSERT_EQUAL_UINT(wait_t/t1, m_t1.counter());
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(wait_t/t2, m_t2.counter());
-	TEST_ASSERT_LESS_THAN_UINT(wait_t/t2+2, m_t2.counter());
-	TEST_ASSERT_EQUAL_UINT(wait_t/t3, m_t3.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t1), m_t1.counter());
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(exp_cnt(t2), m_t2.counter());
+	TEST_ASSERT_LESS_THAN_UINT(exp_cnt(t2)+2, m_t2.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t3), m_t3.counter());
 	isix_wait_ms(wait_t);
-	TEST_ASSERT_EQUAL_UINT(wait_t/t1, m_t1.counter());
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(wait_t/t2, m_t2.counter());
-	TEST_ASSERT_LESS_THAN_UINT(wait_t/t2+2, m_t2.counter());
-	TEST_ASSERT_EQUAL_UINT(wait_t/t3, m_t3.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t1), m_t1.counter());
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(exp_cnt(t2), m_t2.counter());
+	TEST_ASSERT_LESS_THAN_UINT(exp_cnt(t2)+2, m_t2.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t3), m_t3.counter());
 }
 
 TEST(vtimer, one_shoot)
@@ -163,12 +185,14 @@ TEST(vtimer, one_shoot)
 	TEST_ASSERT_NOT_NULL(timerh);
 	//Run one shoot timer
 	call_info ci;
-	TEST_ASSERT_EQUAL(ISIX_EOK, isix::vtimer_start(timerh, one_call_timer_fun, &ci, 100, false));
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix::vtimer_start(timerh, one_call_timer_fun, &ci, isix::ms2tick(100), false));
 	isix_wait_ms(5);
 	TEST_ASSERT(isix_vtimer_is_active(timerh));
 	isix_wait_ms(1000);
 	TEST_ASSERT_EQUAL(1, ci.count);
-	TEST_ASSERT_EQUAL(100, ci.last_call - ci.start_call);
+	//Host jitter can delay the start timestamp read, so allow a few ticks of slack
+	TEST_ASSERT_GREATER_OR_EQUAL(isix::ms2tick(100), ci.last_call - ci.start_call);
+	TEST_ASSERT_LESS_OR_EQUAL(isix::ms2tick(100) + isix::ms2tick(5), ci.last_call - ci.start_call);
 	isix_wait_ms(200);
 	TEST_ASSERT_FALSE(isix_vtimer_is_active(timerh));
 	TEST_ASSERT_EQUAL(ISIX_EOK, isix_vtimer_destroy(timerh));
@@ -179,19 +203,22 @@ TEST(vtimer, one_shoot)
 
 TEST(vtimer, mod_api)
 {
-	auto* timerh = isix_vtimer_create();
-	TEST_ASSERT_NOT_NULL(timerh);
-	mod_info inf;
+	auto& inf = s_mod_inf;
+	inf = mod_info{};
+	inf.fin = isix_sem_create_limited(NULL,0,1);
 	TEST_ASSERT_NOT_NULL(inf.fin);
-	inf.tmr = timerh;
-	TEST_ASSERT_EQUAL(ISIX_EOK, isix_vtimer_start(timerh, cyclic_modapi_func, &inf, mod_on, true));
-	TEST_ASSERT_EQUAL(ISIX_EOK, isix::sem_wait(inf.fin, 60*1000));
+	inf.last_call = isix_get_jiffies();
+	inf.tmr = isix_vtimer_create();
+	TEST_ASSERT_NOT_NULL(inf.tmr);
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_vtimer_start(inf.tmr, cyclic_modapi_func, &inf, mod_on, true));
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix::sem_wait(inf.fin, isix::ms2tick(60*1000)));
 	TEST_ASSERT_EQUAL(0, inf.err_cnt);
 	TEST_ASSERT_EQUAL(mod_iter/2, inf.on_cnt);
 	TEST_ASSERT_EQUAL(mod_iter/2, inf.off_cnt);
 	TEST_ASSERT_EQUAL(ISIX_EOK, isix_sem_destroy(inf.fin));
-	TEST_ASSERT_EQUAL(ISIX_EOK, isix_vtimer_destroy(timerh));
 	inf.fin = nullptr;
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_vtimer_destroy(inf.tmr));
+	inf.tmr = nullptr;
 }
 
 TEST(vtimer, cpp11_api)
@@ -210,8 +237,70 @@ TEST(vtimer, cpp11_api)
 }
 
 
+
+namespace {
+	volatile unsigned wrap_fire_count;
+	volatile ostick_t wrap_fire_time;
+	void wrap_cb(void*) {
+		wrap_fire_time = isix_get_jiffies();
+		wrap_fire_count = wrap_fire_count + 1;
+	}
+	volatile unsigned cpp_due_count;
+}
+
+TEST(vtimer, start_across_jiffies_wrap_not_early)
+{
+	static constexpr auto timeout = test_utils::ms_ticks(50U);
+	wrap_fire_count = 0;
+	wrap_fire_time = 0;
+	const auto tmr = isix_vtimer_create();
+	TEST_ASSERT_NOT_NULL(tmr);
+	// Let the worker settle then start close to the jiffies wrap, worker cannot see the command yet
+	isix::wait_ms(5);
+	_isixp_test_set_jiffies(0xFFFFFFFFU - 3U);
+	const auto t_start = isix_get_jiffies();
+	const auto rc = isix_vtimer_start(tmr, wrap_cb, nullptr, timeout, false);
+	test_utils::cpu_busy(8);
+	isix::wait_ms(150);
+	const auto cnt = wrap_fire_count;
+	const auto elapsed = static_cast<ostick_t>(wrap_fire_time - t_start);
+	isix_vtimer_destroy(tmr);
+	isix::wait_ms(5);
+	TEST_ASSERT_EQUAL(ISIX_EOK, rc);
+	TEST_ASSERT_EQUAL_UINT(1U, cnt);
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(timeout, elapsed);
+	TEST_ASSERT_LESS_THAN_UINT(timeout + test_utils::ms_ticks(30U), elapsed);
+}
+
+TEST(vtimer, destroy_null_is_einvarg)
+{
+	// Creating a timer starts the worker, the queue must not be reached with a null timer
+	const auto tmr = isix_vtimer_create();
+	TEST_ASSERT_NOT_NULL(tmr);
+	TEST_ASSERT_EQUAL(ISIX_EINVARG, isix_vtimer_destroy(nullptr));
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_vtimer_destroy(tmr));
+}
+
+TEST(vtimer, cpp_destroy_while_due_does_not_call_back)
+{
+	cpp_due_count = 0;
+	auto tim = std::make_unique<isix::soft_timer>([]() { cpp_due_count = cpp_due_count + 1; });
+	TEST_ASSERT_TRUE(tim->is_valid());
+	TEST_ASSERT_EQUAL(ISIX_EOK, tim->start_ms(5, false));
+	// Worker arms the timer, then the test keeps the CPU while the timer becomes due
+	isix::wait_ms(2);
+	test_utils::cpu_busy(8);
+	tim.reset();
+	const auto after_destroy = cpp_due_count;
+	isix::wait_ms(30);
+	TEST_ASSERT_EQUAL_UINT(after_destroy, cpp_due_count);
+}
+
 TEST_GROUP_RUNNER(vtimer)
 {
+	RUN_TEST_CASE(vtimer, start_across_jiffies_wrap_not_early);
+	RUN_TEST_CASE(vtimer, destroy_null_is_einvarg);
+	RUN_TEST_CASE(vtimer, cpp_destroy_while_due_does_not_call_back);
 	RUN_TEST_CASE(vtimer, basic);
 	RUN_TEST_CASE(vtimer, isr_api);
 	RUN_TEST_CASE(vtimer, one_shoot);

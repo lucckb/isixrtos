@@ -25,11 +25,11 @@ extern "C" {
 #endif
 
 /** Global IRQ enable */
-void isix_irq_enable();
+void isix_irq_enable(void);
 
 
 /** Global IRQ disable */
-void isix_irq_disable();
+void isix_irq_disable(void);
 
 
 /** Disable global interrupt and save IRQ status

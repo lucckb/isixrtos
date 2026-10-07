@@ -20,6 +20,12 @@ project('isix', 'c', 'cpp',
 	]
 )
 
+# Coroutine diagnostics are on in test builds unless the image is optimized for size
+_co_auto = get_option('test') and get_option('optimization') != 's'
+_co_debug = get_option('co_debug') == 'enabled' or (get_option('co_debug') == 'auto' and _co_auto)
+_co_trace = get_option('co_trace') == 'enabled' or (get_option('co_trace') == 'auto' and _co_auto)
+_co_shuffle = get_option('co_shuffle') == 'enabled' or (get_option('co_shuffle') == 'auto' and _co_auto)
+
 add_project_arguments(
 	'-Wno-variadic-macros', '-Wno-long-long', '-pipe',
 	'-Wa,-mapcs-32',
@@ -30,10 +36,14 @@ add_project_arguments(
 	get_option('task_stack_check') ? '-DCONFIG_ISIX_TASK_STACK_CHECK' : [],
 	get_option('stack_ascending') ? '-DCONFIG_ISIX_STACK_ASCENDING' : [],
 	get_option('fifo_event_notify') ? '-DCONFIG_ISIX_FIFO_EVENT_NOTIFY' : [],
+	get_option('sem_event_notify') ? '-DCONFIG_ISIX_SEM_EVENT_NOTIFY' : [],
 	get_option('cpu_usage_api') ? '-DCONFIG_ISIX_CPU_USAGE_API' : [],
 	get_option('tickless') ? '-DCONFIG_ISIX_TICKLESS' : [],
 	get_option('tickless') ? '-DCONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS='+get_option('tickless_min_sleep_ticks').to_string() : [],
 	get_option('tickless') ? '-DCONFIG_ISIX_TICKLESS_TIMER_COMPENSATION_TICKS='+get_option('tickless_compensation_ticks').to_string() : [],
+	_co_debug ? '-DCONFIG_ISIX_CO_DEBUG' : [],
+	_co_trace ? '-DCONFIG_ISIX_CO_TRACE' : [],
+	_co_shuffle ? '-DCONFIG_ISIX_CO_TEST_SHUFFLE' : [],
 	get_option('mem_protect') != 'none'
 		? '-DCONFIG_ISIX_MEMORY_PROTECTION_MODEL=ISIX_MPROT_'+get_option('mem_protect').to_upper() : [],
 
@@ -70,15 +80,19 @@ add_project_arguments(
 	get_option('test') ? [  # option overrides for test build
 		'-DPDEBUG',
 		'-DCONFIG_ISIX_TEST',
+		'-DCONFIG_ISIX_TEST_HOOKS',
 		'-DCONFIG_ISIX_SHUTDOWN_API',
 		'-DCONFIG_ISIX_TASK_STACK_CHECK',
 		'-DCONFIG_ISIX_FIFO_EVENT_NOTIFY',
+		'-DCONFIG_ISIX_SEM_EVENT_NOTIFY',
 		'-DCONFIG_ISIX_CPU_USAGE_API',
 		'-DCONFIG_ISIX_MEMORY_PROTECTION_MODEL=ISIX_MPROT_LITE',
 		'-DCONFIG_ISIX_LOGLEVEL=ISIXLOG_CRIT',
+	] : [],
+	get_option('test') and get_option('test_tickless') ? [
 		'-DCONFIG_ISIX_TICKLESS',
 		'-DCONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS=2',
-		'-DCONFIG_ISIX_TICKLESS_TIMER_COMPENSATION_TICKS=1',
+		'-DCONFIG_ISIX_TICKLESS_TIMER_COMPENSATION_TICKS=0',
 	] : [],
 	language : ['c', 'cpp']
 )
@@ -113,6 +127,9 @@ else
 	subdir('libtls')
 	if get_option('test')
 		subdir('tests/libisix')
+	endif
+	if get_option('examples')
+		subdir('extras/examples/coroutines')
 	endif
 endif
 subdir('libenergymeter')

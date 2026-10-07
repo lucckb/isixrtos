@@ -43,6 +43,7 @@ struct isix_task
 	list_entry_t owned_mutexes;		//! Owned mutexes list
 	list_entry_t waiting_tasks;		//! Tasks waiting for termination
     thr_state_t state;				//! Thread state
+	bool wait_aborted;				//! Mutex or exit wait was cut by suspend
     ostick_t jiffies;				//! Ticks when task wake up
     task_ready_t *prio_elem;		//! Pointer to own prio list
 	union
@@ -103,24 +104,28 @@ bool _isixp_is_idle_prio( osprio_t p ) {
 
 //Scheduler function called on context switch in IRQ and Yield
 void _isixp_schedule(void);
-//Sched timer cyclic call
-void _isixp_schedule_time(void);
-#if CONFIG_ISIX_TICKLESS
-bool _isixp_tickless_on_systick_isr(void);
-void _isixp_tickless_notify_irq_exit(void);
-#endif
+//Core exception vectors implemented by the port
+void systick_isr_vector(void);
+void pend_svc_isr_vector(void);
+void svc_isr_vector(void);
 //Process base stack initialization
 unsigned long* _isixp_task_init_stack( unsigned long *sp, task_func_ptr_t pfun, void *param );
+#if CONFIG_ISIX_SHUTDOWN_API
+//Release the resources when the scheduler is stopped
+void _isixp_finalize(void);
+#endif
 //Lock the scheduler
 ISIX_CTX_SWITCH_API
-void _isixp_lock_scheduler();
+void _isixp_lock_scheduler(void);
 //Unlock the scheduler
 ISIX_CTX_SWITCH_API
-void _isixp_unlock_scheduler();
+void _isixp_unlock_scheduler(void);
 //! Wakeup task with selected message
 void _isixp_wakeup_task( ostask_t task, osmsg_t msg );
 void _isixp_wakeup_task_i( ostask_t task, osmsg_t msg );
 void _isixp_wakeup_task_l( ostask_t task, osmsg_t msg );
+//! Leave the critical section from ISR, yield when the woken task has higher priority
+void _isixp_exit_critical_isr( ostask_t woken );
 //Add task list to delete
 void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend );
 //! Set sleep state but not reschedule

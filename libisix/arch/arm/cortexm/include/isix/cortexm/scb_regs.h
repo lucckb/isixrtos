@@ -384,6 +384,8 @@
 #endif
 
 /* SVCALLPENDED: SVC call pending */
+/* SYSTICKACT: SysTick exception is active */
+#define SCB_SHCSR_SYSTICKACT			(1 << 11)
 #define SCB_SHCSR_SVCALLPENDED			(1 << 15)
 
 /* Those defined only on ARMv7 and above */

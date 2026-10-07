@@ -41,7 +41,7 @@
 #ifdef THUMB_V7M_V6M
 
 /** Global IRQ enable */
-void isix_irq_enable()
+void isix_irq_enable(void)
 {
 	asm volatile(
 		"	cpsie i			@ arch_local_irq_enable"
@@ -52,7 +52,7 @@ void isix_irq_enable()
 
 
 /** Global IRQ disable */
-void isix_irq_disable()
+void isix_irq_disable(void)
 {
 	asm volatile(
 		"	cpsid i			@ arch_local_irq_disable"
@@ -82,7 +82,7 @@ unsigned isix_irq_save(void)
 
 
 /** Global IRQ enable */
-void isix_irq_enable()
+void isix_irq_enable(void)
 {
 	unsigned long temp;
 	asm volatile(
@@ -96,7 +96,7 @@ void isix_irq_enable()
 
 
 /** Global IRQ disable */
-void isix_irq_disable()
+void isix_irq_disable(void)
 {
 	unsigned long temp;
 	asm volatile(

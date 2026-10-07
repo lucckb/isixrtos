@@ -139,6 +139,21 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio )
 
 
 
+// Wake all tasks waiting for the task exit, return the highest priority one
+static ostask_t wake_exit_waiters( ostask_t task, osmsg_t msg )
+{
+	ostask_t woken = NULL;
+	ostask_t tsk, tmp;
+	list_for_each_entry_safe( &task->waiting_tasks, tsk, tmp, inode ) {
+		list_delete( &tsk->inode );
+		_isixp_wakeup_task_l( tsk, msg );
+		if( !woken || _isixp_prio_gt( tsk->prio, woken->prio ) ) {
+			woken = tsk;
+		}
+	}
+	return woken;
+}
+
 //Delete task pointed by struct task
 void isix_task_kill( ostask_t task )
 {
@@ -152,10 +167,15 @@ void isix_task_kill( ostask_t task )
 		return;
 	}
 	_isixp_mutex_unlock_all_in_task( taskd );
+	const ostask_t woken = wake_exit_waiters( taskd,
+		taskd==currp?ISIX_EOK:ISIX_EDESTROY );
 	_isixp_add_kill_or_set_suspend( taskd, false );
 	if( taskd == currp ) {
 		isix_exit_critical();
 		isix_yield();
+	}
+	else if( woken ) {
+		_isixp_do_reschedule( woken );
 	}
 	else {
 		isix_exit_critical();
@@ -236,6 +256,12 @@ void isix_task_suspend( ostask_t task )
     isix_assert_isr();
 	isix_enter_critical();
     ostask_t taskd = task?task:currp;
+	// Finished or already suspended tasks cannot be suspended
+	if( taskd->state == OSTHR_STATE_ZOMBIE || taskd->state == OSTHR_STATE_EXITED ||
+		taskd->state == OSTHR_STATE_SUSPEND ) {
+		isix_exit_critical();
+		return;
+	}
 	_isixp_add_kill_or_set_suspend( taskd, true );
 	if( taskd==currp ) {
 		isix_exit_critical();
@@ -310,21 +336,28 @@ int isix_task_wait_for( ostask_t task )
 		pr_err("Wait for self");
 		return ISIX_EINVARG;
 	}
-	isix_enter_critical();
-	if( task->refcnt == 0 ) {
-		pr_err("No references");
-		isix_exit_critical();
-		return ISIX_ENOREF;
-	}
-	if( task->state==OSTHR_STATE_ZOMBIE || task->state==OSTHR_STATE_EXITED ) {
-		isix_exit_critical();
-		return ISIX_EOK;
-	} else {
+	for(;;)
+	{
+		isix_enter_critical();
+		if( task->refcnt == 0 ) {
+			pr_err("No references");
+			isix_exit_critical();
+			return ISIX_ENOREF;
+		}
+		if( task->state==OSTHR_STATE_ZOMBIE || task->state==OSTHR_STATE_EXITED ) {
+			isix_exit_critical();
+			return ISIX_EOK;
+		}
+		currp->wait_aborted = false;
 		_isixp_set_sleep( OSTHR_STATE_WTEXIT );
 		list_insert_end( &task->waiting_tasks, &currp->inode );
 		isix_exit_critical();
 		isix_yield();
-		return task->obj.dmsg;
+		// Resumed after suspend while the task is still alive, wait again
+		if( !currp->wait_aborted ) {
+			// The result is the wake-up message of the waiting task
+			return currp->obj.dmsg;
+		}
 	}
 }
 
@@ -332,13 +365,6 @@ int isix_task_wait_for( ostask_t task )
 //! Terminate the process when task exits
 void __attribute__((noreturn)) _isixp_task_terminator(void)
 {
-	ostask_t tsk, tmp;
-	isix_enter_critical();
-	list_for_each_entry_safe( &currp->waiting_tasks, tsk, tmp, inode ) {
-		list_delete( &tsk->inode );
-		_isixp_wakeup_task_l( tsk, ISIX_EOK );
-	}
-	isix_exit_critical();
 	isix_task_kill(NULL);
 	for(;;);
 }

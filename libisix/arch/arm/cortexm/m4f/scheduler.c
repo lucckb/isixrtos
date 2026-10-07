@@ -5,78 +5,63 @@
 #include <isix/arch/isr_vectors.h>
 
 
-/** Restore the context to the place when scheduler was started to run
- *  Use Main stack pointer clear bit 2 in the LR
- *  Drop flating point stack frame set bit 4 in the LR
- */
-#define cpu_restore_main_context()								\
-	asm volatile (												\
-	"bic lr,lr,#0x04\t\n"										\
-	"orr lr,lr,#0x10\t\n"										\
-	"bx lr\t\n"													\
-	)
-
-
-//Save context
-#define cpu_save_context()										\
-    asm volatile (												\
-	"clrex\t\n"													\
-    "mrs r0, psp\t\n"											\
-    "ldr r3,0f\t\n"												\
-    "ldr r2,[r3]\t\n"                                           \
-    "tst r14, #0x10\t\n"										\
-    "it eq\t\n"													\
-    "vstmdbeq r0!, {s16-s31}\t\n"								\
-    "stmdb r0!, {r4-r11,r14}\t\n"                               \
-    "str r0, [r2]\t\n"                                          \
-    "stmdb sp!, {r3,r14}\t\n"                                   \
-    "mov r0,%0\t\n"                                             \
-    "msr basepri,r0\t\n"                                        \
-    ::"i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY)                  \
-	)
-
-//Restore context
-#define cpu_restore_context()                                   \
-    asm volatile  (                                             \
-    "mov r0,#0\t\n"                                             \
-    "msr basepri,r0\t\n"                                        \
-	"ldmia sp!, {r3,r14}\t\n"                                   \
-    "ldr r1,[r3]\t\n"                                           \
-    "ldr r0, [r1]\t\n"                                          \
-    "ldmia r0!, {r4-r11, r14}\t\n"                              \
-    "tst r14, #0x10\r\n"										\
-    "it eq\t\n"													\
-    "vldmiaeq r0!, {s16-s31}\t\n"								\
-	"msr psp, r0\t\n"                                           \
-    "bx r14\r\n"                                                \
-    ".align 2 \t\n"												\
-    "0: .word _isix_current_task\t\n"							\
-   )
-
-
-
-
 //System Mode enable IRQ and FIQ
 #define INITIAL_XPSR 0x01000000
 #define INITIAL_EXEC_RETURN    0xfffffffd
 
 
-//Pend SV interrupt (context switch)
+/* PendSV context switch. The naked handler is a single asm statement:
+ * compiler generated code could clobber r4-r11 before they are saved. */
 ISIX_ISR_NACKED_VECTOR(pend_svc_isr_vector)
 {
+	asm volatile(
 #if CONFIG_ISIX_SHUTDOWN_API
-	if( schrun ) {
-		  cpu_save_context();
-		  _isixp_schedule();
-		  cpu_restore_context();
-	} else {
-		cpu_restore_main_context();
-	}
-#else
-	cpu_save_context();
-    _isixp_schedule();
-    cpu_restore_context();
+	"ldr r3, 2f\n"
+	"ldrb r3, [r3]\n"
+	"cmp r3, #0\n"
+	"beq 1f\n"
 #endif
+	"clrex\n"
+	"mrs r0, psp\n"
+	"tst lr, #0x10\n"
+	"it eq\n"
+	"vstmdbeq r0!, {s16-s31}\n"
+	"stmdb r0!, {r4-r11, lr}\n"
+	"ldr r3, 0f\n"
+	"ldr r2, [r3]\n"
+	"str r0, [r2]\n"
+	"push {r3, lr}\n"
+	"mov r0, %[basepri]\n"
+	"msr basepri, r0\n"
+	"bl %c[sched]\n"
+	"mov r0, #0\n"
+	"msr basepri, r0\n"
+	"pop {r3, lr}\n"
+	"ldr r1, [r3]\n"
+	"ldr r0, [r1]\n"
+	"ldmia r0!, {r4-r11, lr}\n"
+	"tst lr, #0x10\n"
+	"it eq\n"
+	"vldmiaeq r0!, {s16-s31}\n"
+	"msr psp, r0\n"
+	"bx lr\n"
+#if CONFIG_ISIX_SHUTDOWN_API
+	/* Return to the main context saved by the scheduler start */
+	"1:\n"
+	"bic lr, lr, #0x04\n"
+	"orr lr, lr, #0x10\n"
+	"bx lr\n"
+#endif
+	".align 2\n"
+	"0: .word %c[curr]\n"
+#if CONFIG_ISIX_SHUTDOWN_API
+	"2: .word %c[run]\n"
+#endif
+	:: [basepri] "i"(ISIX_MAX_SYSCALL_INTERRUPT_PRIORITY),
+	   [sched] "i"(_isixp_schedule),
+	   [curr] "i"(&_isix_current_task),
+	   [run] "i"(&_isix_scheduler_running)
+	);
 }
 
 
@@ -84,6 +69,9 @@ ISIX_ISR_NACKED_VECTOR(pend_svc_isr_vector)
 ISIX_ISR_NACKED_VECTOR(svc_isr_vector)
 {
      asm volatile(
+     "ldr r3, 2f\t\n"				/* Mark the scheduler as running. */
+     "movs r2, #1\t\n"
+     "strb r2, [r3]\t\n"
      "ldr r3, 0f\t\n"				/* Restore the context. */
      "ldr r1, [r3]\t\n"				/* Use _isix_current_task */
      "ldr r0, [r1]\t\n"			    /* The first item in the _isix_current_task
@@ -97,6 +85,7 @@ ISIX_ISR_NACKED_VECTOR(svc_isr_vector)
      "bx r14\t\n"
      ".align 2 \t\n"
      "0: .word _isix_current_task\t\n"
+     "2: .word _isix_scheduler_running\t\n"
       );
 }
 

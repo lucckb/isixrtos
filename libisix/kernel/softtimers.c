@@ -115,7 +115,7 @@ static void handle_add( ostick_t tnow, const struct start_param* param )
 	atomic_store( &tmr->is_active, true );
 	//Check for delayed task 
 	bool handled = false;
-	ostick_t tdiff = tnow>=tmr->jiffies?tnow-tmr->jiffies:tmr->jiffies-tnow;
+	const ostick_t tdiff = tnow - tmr->jiffies;
 	if( tdiff >= tmr->timeout ) 
 	{
 		exec_timer_callback( tmr );
@@ -149,9 +149,9 @@ static void switch_timer_list( ostick_t tnow )
 	}
 	//SWAP
 	{
-		list_entry_t *tmp = tctx.p_vtimer_list;
+		list_entry_t *swp = tctx.p_vtimer_list;
 		tctx.p_vtimer_list = tctx.pov_vtimer_list;
-		tctx.pov_vtimer_list = tmp;
+		tctx.pov_vtimer_list = swp;
 	}
 }
 
@@ -236,7 +236,11 @@ static void worker_thread( void* param )
 	{ 
 		int code = isix_fifo_read(tctx.worker_queue, &cmd, tout);
 		if( code == ISIX_EOK ) code = cmd.cmd;
-		ostick_t tnow = isix_get_jiffies();
+		const ostick_t tnow = isix_get_jiffies();
+		// Flush the timers of the previous epoch before the new ones are added
+		if( tnow < pjiff ) {
+			switch_timer_list( tnow );
+		}
 		switch ( code ) 
 		{
 		case cmd_add:
@@ -258,14 +262,14 @@ static void worker_thread( void* param )
 		default:
 			return;
 		}
-		tout = handle_time( tnow, tnow<pjiff );
+		tout = handle_time( tnow, false );
 		//Previous jiff for detect overflow
 		pjiff = tnow;
 	}
 }
 
 //! Called when function exits
-void _isixp_vtimers_finalize() 
+void _isixp_vtimers_finalize(void)
 {
 	if( tctx.worker_thread_id ) {
 		isix_task_kill( tctx.worker_thread_id );
@@ -287,7 +291,7 @@ int isix_vtimer_initialize( void )
 		//Create worker queue and task
 		tctx.worker_queue = 
 			isix_fifo_create( CONFIG_ISIX_TIMERS_CMD_QUEUE_SIZE, sizeof(command_t) );
-		if( !tctx.worker_queue ) return !tctx.worker_queue;
+		if( !tctx.worker_queue ) return ISIX_ENOMEM;
 		tctx.worker_thread_id = isix_task_create( worker_thread, NULL, 
 			ISIX_PORT_SCHED_MIN_STACK_DEPTH*4, isix_get_min_priority()/2, 0 );
 	}
@@ -403,6 +407,9 @@ int isix_vtimer_destroy( osvtimer_t timer )
 {
 	int ret = ISIX_EOK;
     isix_assert_isr();
+	if( !timer ) {
+		return ISIX_EINVARG;
+	}
 	do {
 		if( schrun ) {
 			command_t cmd = { .cmd=cmd_delete, .generic_args=timer };

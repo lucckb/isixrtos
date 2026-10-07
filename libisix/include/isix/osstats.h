@@ -28,7 +28,9 @@
 extern "C" {
 #endif
 
-/** Return the current CPU load of the system 
+/** Return the current CPU load of the system
+ * The value is in per mille and is refreshed at the first context switch
+ * after each window of about 1024 ticks, so it is up to date also in tickless mode.
  * @return CPUload in profiles for ex 1000
  */
 int isix_cpuload( void );
