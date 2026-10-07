@@ -130,8 +130,37 @@ TEST(mempool, race_condition)
 	TEST_ASSERT_NOT_NULL(t6.get());
 }
 
+TEST(mempool, free_rejects_misaligned)
+{
+	static constexpr size_t n_elems = 4;
+	auto mp = isix_mempool_create(n_elems, 32);
+	TEST_ASSERT_NOT_NULL(mp);
+	auto p = static_cast<char*>(isix_mempool_alloc(mp));
+	TEST_ASSERT_NOT_NULL(p);
+	TEST_ASSERT_EQUAL(ISIX_EINVADDR, isix_mempool_free(mp, p + 1));
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_mempool_free(mp, p));
+	void* all[n_elems];
+	for (auto& a : all) {
+		a = isix_mempool_alloc(mp);
+		TEST_ASSERT_NOT_NULL(a);
+	}
+	TEST_ASSERT_NULL(isix_mempool_alloc(mp));
+	for (auto a : all) {
+		TEST_ASSERT_EQUAL(ISIX_EOK, isix_mempool_free(mp, a));
+	}
+	isix_mempool_destroy(mp);
+}
+
+TEST(mempool, create_rejects_bad_sizes)
+{
+	TEST_ASSERT_NULL(isix_mempool_create(0, 32));
+	TEST_ASSERT_NULL(isix_mempool_create(0x40000000U, 32));
+}
+
 TEST_GROUP_RUNNER(mempool)
 {
+	RUN_TEST_CASE(mempool, free_rejects_misaligned);
+	RUN_TEST_CASE(mempool, create_rejects_bad_sizes);
 	RUN_TEST_CASE(mempool, basic);
 	RUN_TEST_CASE(mempool, race_condition);
 }

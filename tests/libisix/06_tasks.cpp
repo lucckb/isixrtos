@@ -1,10 +1,16 @@
 #include <unity.h>
 #include <unity_fixture.h>
 #include <isix.h>
+#define _ISIX_KERNEL_CORE_
+#include <isix/prv/scheduler.h>
+#undef _ISIX_KERNEL_CORE_
+#include <isix/prv/test_hooks.h>
 #include "task_test_helper.h"
 #include "utils/fpu_test_and_set.h"
 #include "utils/timer_interrupt.hpp"
 #include <memory>
+#include <cstring>
+#include <utils/test_prio.hpp>
 
 namespace
 {
@@ -86,7 +92,36 @@ namespace
 
 TEST_GROUP(tasks);
 TEST_SETUP(tasks) {}
-TEST_TEAR_DOWN(tasks) {}
+namespace {
+	// State of the kill-while-waiting test, kept here so teardown can clean up after a failure
+	ostask_t wf_tasks[2];
+	volatile bool wf_stop;
+	// State of the cleanup/unref race test
+	ossem_t s_hook_sem;
+	ostask_t s_victim;
+	void cleanup_hook(isix_test_point point, void* arg)
+	{
+		if (point == isix_tp_task_cleanup && arg == s_victim) { isix_sem_signal(s_hook_sem); }
+	}
+}
+
+namespace {
+	test_utils::task_pool tk_tasks;
+	ostask_t tk_target;
+	volatile bool tk_flag;
+}
+
+TEST_TEAR_DOWN(tasks)
+{
+	tests::detail::periodic_timer_stop();
+	test_utils::restore_test_prio();
+	tk_tasks.release();
+	_isixp_test_hook = nullptr;
+	wf_stop = true;
+	for (auto& t : wf_tasks) {
+		if (t) { isix_task_kill(t); t = nullptr; }
+	}
+}
 
 TEST(tasks, basic_api)
 {
@@ -220,15 +255,94 @@ TEST(tasks, CPU_load_api)
 	isix::wait_ms(5000);
 	static constexpr auto epsilon = 50;
 	for (iload=10; iload<=99; iload+=10) {
-		auto thr = isix::thread_create_and_run(c_stack_size,1,0,cpuload_task, iload);
-		TEST_ASSERT(thr);
-		isix::wait_ms(2000);
-		const auto cpul = isix::cpuload();
-		isix::wait_ms(10);
+		bool created = false;
+		int cpul = 0;
+		int stack_free = 0;
+		{
+			auto thr = isix::thread_create_and_run(c_stack_size,1,0,cpuload_task, iload);
+			created = static_cast<bool>(thr);
+			isix::wait_ms(2000);
+			cpul = isix::cpuload();
+			isix::wait_ms(10);
+			stack_free = isix::free_stack_space(thr.tid());
+		}
+		TEST_ASSERT(created);
 		TEST_ASSERT_INT_WITHIN(epsilon, iload*10, cpul);
-		TEST_ASSERT_GREATER_OR_EQUAL(c_stack_margin, isix::free_stack_space(thr.tid()));
+		TEST_ASSERT_GREATER_OR_EQUAL(c_stack_margin, stack_free);
 	}
 	TEST_ASSERT_GREATER_OR_EQUAL(c_stack_margin, isix::free_stack_space(nullptr));
+}
+
+TEST(tasks, cpu_load_refresh_after_idle)
+{
+	// Window published after a busy period must be refreshed after a long idle sleep
+	const auto end = isix::get_jiffies() + 1500;
+	while (isix::get_jiffies() < end) {
+		isix::wait_us(1000);
+	}
+	isix::wait_ms(3000);
+	const auto cpul = isix::cpuload();
+	TEST_ASSERT_LESS_THAN(300, cpul);
+}
+
+TEST(tasks, kill_task_waiting_for_exit)
+{
+	wf_stop = false;
+	auto target = isix::thread_create_and_run(c_stack_size,3,0,[]()
+	{
+		while (!wf_stop) { isix::wait_ms(1); }
+	});
+	wf_tasks[0] = target.tid();
+	TEST_ASSERT(target);
+	const auto target_tid = target.tid();
+	auto waiter = isix::thread_create_and_run(c_stack_size,3,0,[target_tid]()
+	{
+		isix_task_wait_for(target_tid);
+	});
+	wf_tasks[1] = waiter.tid();
+	TEST_ASSERT(waiter);
+	isix::wait_ms(10);
+	wf_tasks[1] = nullptr;
+	waiter.kill();
+	wf_stop = true;
+	isix::wait_ms(10);
+	wf_tasks[0] = nullptr;
+	TEST_ASSERT_EQUAL(OSTHR_STATE_EXITED, target.get_state());
+}
+
+TEST(tasks, suspend_resume_task_waiting_for_exit)
+{
+	static volatile int wait_res;
+	wait_res = -9999;
+	wf_stop = false;
+	auto target = isix::thread_create_and_run(c_stack_size,3,0,[]()
+	{
+		while (!wf_stop) { isix::wait_ms(1); }
+	});
+	wf_tasks[0] = target.tid();
+	TEST_ASSERT(target);
+	const auto target_tid = target.tid();
+	auto waiter = isix::thread_create_and_run(c_stack_size,3,0,[target_tid]()
+	{
+		wait_res = isix_task_wait_for(target_tid);
+	});
+	wf_tasks[1] = waiter.tid();
+	TEST_ASSERT(waiter);
+	isix::wait_ms(10);
+	TEST_ASSERT_EQUAL(OSTHR_STATE_WTEXIT, waiter.get_state());
+	waiter.suspend();
+	TEST_ASSERT_EQUAL(OSTHR_STATE_SUSPEND, waiter.get_state());
+	TEST_ASSERT_EQUAL(ISIX_EOK, waiter.resume());
+	isix::wait_ms(10);
+	const auto state = waiter.get_state();
+	const auto res = wait_res;
+	TEST_ASSERT_EQUAL(OSTHR_STATE_WTEXIT, state);
+	TEST_ASSERT_EQUAL(-9999, res);
+	wf_stop = true;
+	isix::wait_ms(10);
+	wf_tasks[0] = wf_tasks[1] = nullptr;
+	TEST_ASSERT_EQUAL(ISIX_EOK, wait_res);
+	TEST_ASSERT_EQUAL(OSTHR_STATE_EXITED, waiter.get_state());
 }
 
 TEST(tasks, cpp11_thread_api_creation)
@@ -268,8 +382,29 @@ TEST(tasks, cpp11_thread_api_creation)
 	}
 }
 
+TEST(tasks, cpp11_thread_destroy_before_first_run)
+{
+	for (int i=0; i<200; ++i) {
+		{
+			auto thr = isix::thread_create_and_run(c_stack_size, 0, 0, []() {
+				isix::wait_ms(1);
+			});
+			TEST_ASSERT(thr);
+		}
+		if ((i%8) == 0) {
+			//Let the idle task reclaim the dead tasks
+			isix::wait_ms(2);
+		} else if ((i%3) == 0) {
+			isix_yield();
+		}
+	}
+	isix::wait_ms(20);
+}
+
 TEST(tasks, wait_and_referenced_api)
 {
+	// Let idle finish the cleanup of the tasks killed by the previous tests
+	isix::wait_ms(100);
 	//! Create referenced
 	isix::memory_stat ms;
 	isix::heap_stats(ms);
@@ -500,16 +635,209 @@ TEST(tasks, FPU_single_precision_two_tasks_and_interrupt)
 #endif /* __ARM_FP > 0 */
 
 
+TEST(tasks, cleanup_unref_race)
+{
+	// The allocator keeps its free list pointers in the first bytes of a freed block
+	constexpr auto tcb_skip = sizeof(void*) * 2;
+	constexpr auto tcb_size = sizeof(struct isix_task);
+	static unsigned char snapshot[tcb_size];
+	// Let idle finish the cleanup of the tasks killed by the previous tests
+	isix_wait_ms(100);
+	isix::memory_stat ms_before;
+	isix::heap_stats(ms_before);
+	s_hook_sem = isix_sem_create_limited(nullptr, 0, 1);
+	TEST_ASSERT(s_hook_sem);
+	s_victim = isix_task_create([](void*) {}, nullptr, c_stack_size, c_task_prio,
+			isix_task_flag_ref);
+	TEST_ASSERT(s_victim);
+	_isixp_test_hook = cleanup_hook;
+	// Idle is now inside the cleanup window, the task is EXITED with one reference
+	const auto wret = isix_sem_wait(s_hook_sem, 1000);
+	_isixp_test_hook = nullptr;
+	TEST_ASSERT_EQUAL(ISIX_EOK, wret);
+	const auto tcb = reinterpret_cast<const unsigned char*>(s_victim);
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_task_unref(s_victim));
+	// The TCB is freed now, idle must not write to it any more
+	std::memcpy(snapshot, tcb, tcb_size);
+	isix_wait_ms(20);
+	const auto intact = std::memcmp(snapshot + tcb_skip, tcb + tcb_skip, tcb_size - tcb_skip) == 0;
+	isix_sem_destroy(s_hook_sem);
+	s_hook_sem = nullptr;
+	s_victim = nullptr;
+	TEST_ASSERT_TRUE(intact);
+	isix::memory_stat ms_after;
+	isix::heap_stats(ms_after);
+	TEST_ASSERT_EQUAL_UINT(ms_before.free, ms_after.free);
+}
+
+TEST(tasks, wait_for_returns_eok_after_target_timeout)
+{
+	auto sem = isix_sem_create_limited(nullptr, 0, 1);
+	TEST_ASSERT(sem);
+	{
+		auto target = isix::thread_create_and_run(c_stack_size,c_task_prio,0,[sem]()
+		{
+			isix_sem_wait(sem, isix::ms2tick(20));
+		});
+		TEST_ASSERT(target);
+		const auto res = target.wait_for();
+		TEST_ASSERT_EQUAL(ISIX_EOK, res);
+	}
+	isix_sem_destroy(sem);
+	auto ev = isix_event_create();
+	TEST_ASSERT(ev);
+	{
+		auto target = isix::thread_create_and_run(c_stack_size,c_task_prio,0,[ev]()
+		{
+			isix_event_wait(ev, 0x5, true, true, 1000);
+		});
+		TEST_ASSERT(target);
+		isix::wait_ms(5);
+		isix_event_set(ev, 0x5);
+		const auto res = target.wait_for();
+		TEST_ASSERT_EQUAL(ISIX_EOK, res);
+	}
+	isix_event_destroy(ev);
+}
+
+TEST(tasks, wait_for_target_killed_by_other)
+{
+	static volatile int wait_res;
+	wait_res = -9999;
+	wf_stop = false;
+	auto target = isix::thread_create_and_run(c_stack_size,c_task_prio,0,[]()
+	{
+		while (!wf_stop) { isix::wait_ms(1); }
+	});
+	wf_tasks[0] = target.tid();
+	TEST_ASSERT(target);
+	const auto target_tid = target.tid();
+	auto waiter = isix::thread_create_and_run(c_stack_size,c_task_prio,0,[target_tid]()
+	{
+		wait_res = isix_task_wait_for(target_tid);
+	});
+	wf_tasks[1] = waiter.tid();
+	TEST_ASSERT(waiter);
+	isix::wait_ms(10);
+	TEST_ASSERT_EQUAL(OSTHR_STATE_WTEXIT, waiter.get_state());
+	target.kill();
+	isix::wait_ms(10);
+	const auto res = wait_res;
+	const auto wstate = waiter.get_state();
+	wf_tasks[0] = wf_tasks[1] = nullptr;
+	TEST_ASSERT_EQUAL(ISIX_EDESTROY, res);
+	TEST_ASSERT_EQUAL(OSTHR_STATE_EXITED, wstate);
+}
+
+TEST(tasks, wait_for_target_killed_itself)
+{
+	static volatile int wait_res;
+	wait_res = -9999;
+	wf_stop = false;
+	auto target = isix::thread_create_and_run(c_stack_size,c_task_prio,0,[]()
+	{
+		isix::wait_ms(5);
+		isix_task_kill(nullptr);
+	});
+	wf_tasks[0] = target.tid();
+	TEST_ASSERT(target);
+	const auto target_tid = target.tid();
+	auto waiter = isix::thread_create_and_run(c_stack_size,c_task_prio,0,[target_tid]()
+	{
+		wait_res = isix_task_wait_for(target_tid);
+	});
+	wf_tasks[1] = waiter.tid();
+	TEST_ASSERT(waiter);
+	isix::wait_ms(20);
+	const auto res = wait_res;
+	const auto wstate = waiter.get_state();
+	wf_tasks[0] = wf_tasks[1] = nullptr;
+	TEST_ASSERT_EQUAL(ISIX_EOK, res);
+	TEST_ASSERT_EQUAL(OSTHR_STATE_EXITED, wstate);
+}
+
+
+TEST(tasks, suspend_zombie_task_is_noop)
+{
+	// A higher priority task finishes at once and stays a zombie because idle cannot run
+	test_utils::lower_test_prio(5);
+	static constexpr auto quick = [](void*) {};
+	const auto t = tk_tasks.spawn(quick, nullptr, 3);
+	TEST_ASSERT_NOT_NULL(t);
+	TEST_ASSERT_EQUAL(OSTHR_STATE_ZOMBIE, isix_get_task_state(t));
+	isix_task_suspend(t);
+	TEST_ASSERT_EQUAL(OSTHR_STATE_ZOMBIE, isix_get_task_state(t));
+	TEST_ASSERT_EQUAL(ISIX_ESTATE, isix_task_resume(t));
+	test_utils::restore_test_prio();
+	isix::wait_ms(20);
+	TEST_ASSERT_EQUAL(OSTHR_STATE_EXITED, isix_get_task_state(t));
+}
+
+TEST(tasks, kill_wakes_exit_waiter_immediately)
+{
+	test_utils::lower_test_prio(10);
+	static constexpr auto target = [](void*) { isix_wait_ms(5000); };
+	static constexpr auto waiter = [](void*) {
+		isix_task_wait_for(tk_target);
+		tk_flag = true;
+	};
+	tk_flag = false;
+	tk_target = tk_tasks.spawn(target, nullptr, 12);
+	TEST_ASSERT_NOT_NULL(tk_target);
+	const auto w = tk_tasks.spawn(waiter, nullptr, 5);
+	TEST_ASSERT_NOT_NULL(w);
+	isix::wait_ms(10);
+	TEST_ASSERT_FALSE(tk_flag);
+	isix_task_kill(tk_target);
+	TEST_ASSERT_TRUE(tk_flag);
+}
+
+TEST(tasks, cpp11_thread_move_keeps_single_owner)
+{
+	isix::memory_stat before;
+	isix::heap_stats(before);
+	{
+		volatile int ran = 0;
+		isix::thread src = isix::thread_create([&ran]() { ran = 1; });
+		// Moving a thread which was not started yet is allowed
+		isix::thread dst(std::move(src));
+		TEST_ASSERT_FALSE(src.tid() != nullptr);
+		dst.start_thread(1024, 3);
+		TEST_ASSERT_NOT_NULL(dst.tid());
+		isix::wait_ms(20);
+		TEST_ASSERT_EQUAL(1, ran);
+		// Started thread returned by value keeps running with the single owner
+		isix::thread run = isix::thread_create_and_run(1024, 3, 0, [&ran]() { ran = 2; });
+		isix::wait_ms(20);
+		TEST_ASSERT_EQUAL(2, ran);
+	}
+	isix::wait_ms(20);
+	isix::memory_stat after;
+	isix::heap_stats(after);
+	TEST_ASSERT_EQUAL_size_t(before.free, after.free);
+}
+
 TEST_GROUP_RUNNER(tasks)
 {
+	RUN_TEST_CASE(tasks, cpp11_thread_move_keeps_single_owner);
+	RUN_TEST_CASE(tasks, suspend_zombie_task_is_noop);
+	RUN_TEST_CASE(tasks, kill_wakes_exit_waiter_immediately);
 	RUN_TEST_CASE(tasks, basic_api);
 	RUN_TEST_CASE(tasks, tasks_suspended);
 	RUN_TEST_CASE(tasks, CPU_load_api);
+	RUN_TEST_CASE(tasks, cpu_load_refresh_after_idle);
+	RUN_TEST_CASE(tasks, kill_task_waiting_for_exit);
+	RUN_TEST_CASE(tasks, suspend_resume_task_waiting_for_exit);
 	RUN_TEST_CASE(tasks, cpp11_thread_api_creation);
+	RUN_TEST_CASE(tasks, cpp11_thread_destroy_before_first_run);
 	RUN_TEST_CASE(tasks, wait_and_referenced_api);
 	RUN_TEST_CASE(tasks, wait_reference_notice);
 	RUN_TEST_CASE(tasks, errno_threadsafe);
 	RUN_TEST_CASE(tasks, simple_FPU_single_precision_test_without_interrupts);
 	RUN_TEST_CASE(tasks, simple_FPU_double_precision_test_without_interrupts);
 	RUN_TEST_CASE(tasks, FPU_single_precision_two_tasks_and_interrupt);
+	RUN_TEST_CASE(tasks, cleanup_unref_race);
+	RUN_TEST_CASE(tasks, wait_for_returns_eok_after_target_timeout);
+	RUN_TEST_CASE(tasks, wait_for_target_killed_by_other);
+	RUN_TEST_CASE(tasks, wait_for_target_killed_itself);
 }

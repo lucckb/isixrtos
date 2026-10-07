@@ -28,8 +28,8 @@ namespace detail {
 
 	//Default handler function
 	using timer_handler_t = std::function<void()>;
-	//Periodic timer setup
-	[[nodiscard]] bool periodic_timer_setup( timer_handler_t normal, uint32_t period_us );
+	//Periodic timer setup, raw_prio 0 selects the default priority
+	[[nodiscard]] bool periodic_timer_setup( timer_handler_t normal, uint32_t period_us, uint8_t raw_prio = 0 );
 	//Stop the periodic timer
 	void periodic_timer_stop() noexcept;
 }}
