@@ -2,8 +2,11 @@
 #include <unity_fixture.h>
 #include <isix.h>
 #include "timer_interrupt.hpp"
+#include <stm32_ll_tim.h>
 #include <string>
 #include <memory>
+#include <utils/test_prio.hpp>
+#include <isix/prv/test_hooks.h>
 
 namespace
 {
@@ -99,7 +102,36 @@ namespace
 
 TEST_GROUP(semaphores);
 TEST_SETUP(semaphores) {}
-TEST_TEAR_DOWN(semaphores) {}
+
+namespace {
+	test_utils::task_pool sem_tasks;
+	ossem_t sem_obj;
+	osevent_t hook_event;
+	volatile int sem_order[4];
+	volatile int sem_order_n;
+	volatile int sem_res[4];
+	volatile bool sem_done;
+	struct sem_waiter { int id; };
+	sem_waiter sem_waiters[4] { {0}, {1}, {2}, {3} };
+
+	void sem_waiter_fn(void* arg)
+	{
+		const auto id = static_cast<sem_waiter*>(arg)->id;
+		const auto res = isix_sem_wait(sem_obj, 3000);
+		sem_res[id] = res;
+		sem_order[sem_order_n] = id;
+		sem_order_n = sem_order_n + 1;
+	}
+}
+TEST_TEAR_DOWN(semaphores)
+{
+	tests::detail::periodic_timer_stop();
+	test_utils::restore_test_prio();
+	_isixp_test_hook = nullptr;
+	sem_tasks.release();
+	if (sem_obj) { isix_sem_destroy(sem_obj); sem_obj = nullptr; }
+	sem_order_n = 0;
+}
 
 TEST(semaphores, timeout)
 {
@@ -229,8 +261,186 @@ TEST(semaphores, interrupt_api)
 }
 
 
+TEST(semaphores, change_prio_of_queued_waiter)
+{
+	sem_obj = isix_sem_create(nullptr, 0);
+	TEST_ASSERT_NOT_NULL(sem_obj);
+	sem_order_n = 0;
+	const auto t3 = sem_tasks.spawn(sem_waiter_fn, &sem_waiters[0], 3);
+	const auto t5 = sem_tasks.spawn(sem_waiter_fn, &sem_waiters[1], 5);
+	const auto t7 = sem_tasks.spawn(sem_waiter_fn, &sem_waiters[2], 7);
+	TEST_ASSERT(t3 && t5 && t7);
+	isix::wait_ms(20);
+	TEST_ASSERT_EQUAL(-3, isix_sem_getval(sem_obj));
+	isix_task_change_prio(t7, 4);
+	for (auto i = 0; i < 3; ++i) {
+		TEST_ASSERT_EQUAL(ISIX_EOK, isix_sem_signal(sem_obj));
+		isix::wait_ms(10);
+	}
+	TEST_ASSERT_EQUAL(3, sem_order_n);
+	// Waiters are released in priority order 3, 4 (was 7), 5
+	TEST_ASSERT_EQUAL(0, sem_order[0]);
+	TEST_ASSERT_EQUAL(2, sem_order[1]);
+	TEST_ASSERT_EQUAL(1, sem_order[2]);
+	for (auto i = 0; i < 3; ++i) {
+		TEST_ASSERT_EQUAL(ISIX_EOK, sem_res[i]);
+	}
+}
+
+TEST(semaphores, suspend_resume_waiter_does_not_get_token)
+{
+	sem_obj = isix_sem_create(nullptr, 0);
+	TEST_ASSERT_NOT_NULL(sem_obj);
+	sem_order_n = 0;
+	const auto t = sem_tasks.spawn(sem_waiter_fn, &sem_waiters[0], 3);
+	TEST_ASSERT_NOT_NULL(t);
+	isix::wait_ms(20);
+	TEST_ASSERT_EQUAL(-1, isix_sem_getval(sem_obj));
+	isix_task_suspend(t);
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_task_resume(t));
+	isix::wait_ms(20);
+	// The waiter must keep waiting after suspend and resume
+	TEST_ASSERT_EQUAL(0, sem_order_n);
+	TEST_ASSERT_EQUAL(-1, isix_sem_getval(sem_obj));
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_sem_signal(sem_obj));
+	isix::wait_ms(20);
+	TEST_ASSERT_EQUAL(1, sem_order_n);
+	TEST_ASSERT_EQUAL(ISIX_EOK, sem_res[0]);
+	TEST_ASSERT_EQUAL(0, isix_sem_getval(sem_obj));
+}
+
+TEST(semaphores, suspend_resume_waiter_keeps_timeout)
+{
+	sem_obj = isix_sem_create(nullptr, 0);
+	TEST_ASSERT_NOT_NULL(sem_obj);
+	sem_order_n = 0;
+	// The waiter uses 3000 ms, shorten with a dedicated task
+	static constexpr auto short_wait = [](void*) {
+		sem_res[0] = isix_sem_wait(sem_obj, 100);
+		sem_order_n = sem_order_n + 1;
+	};
+	const auto t = sem_tasks.spawn(short_wait, nullptr, 3);
+	TEST_ASSERT_NOT_NULL(t);
+	isix::wait_ms(30);
+	isix_task_suspend(t);
+	isix_task_resume(t);
+	isix::wait_ms(30);
+	TEST_ASSERT_EQUAL(0, sem_order_n);
+	isix::wait_ms(100);
+	TEST_ASSERT_EQUAL(1, sem_order_n);
+	TEST_ASSERT_EQUAL(ISIX_ETIMEOUT, sem_res[0]);
+	TEST_ASSERT_EQUAL(0, isix_sem_getval(sem_obj));
+}
+
+TEST(semaphores, wait_dontwait_returns_immediately)
+{
+	sem_obj = isix_sem_create(nullptr, 0);
+	TEST_ASSERT_NOT_NULL(sem_obj);
+	sem_done = false;
+	sem_res[0] = 12345;
+	static constexpr auto dontwait = [](void*) {
+		sem_res[0] = isix_sem_wait(sem_obj, ISIX_TIME_DONTWAIT);
+		sem_done = true;
+	};
+	const auto t = sem_tasks.spawn(dontwait, nullptr, 3);
+	TEST_ASSERT_NOT_NULL(t);
+	isix::wait_ms(20);
+	const auto done = sem_done;
+	const auto res = sem_res[0];
+	const auto val = isix_sem_getval(sem_obj);
+	TEST_ASSERT_TRUE(done);
+	TEST_ASSERT_EQUAL(ISIX_ETIMEOUT, res);
+	TEST_ASSERT_EQUAL(0, val);
+	// With a token available the call succeeds
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_sem_signal(sem_obj));
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_sem_wait(sem_obj, ISIX_TIME_DONTWAIT));
+	TEST_ASSERT_EQUAL(0, isix_sem_getval(sem_obj));
+}
+
+namespace {
+	constexpr auto isr_lat_samples = 10U;
+	constexpr auto isr_lat_slow_us = 500U;
+	volatile uint32_t isr_lat_t_irq;
+	volatile unsigned isr_lat_slow;
+	volatile unsigned isr_lat_done;
+	volatile bool isr_lat_armed;
+}
+
+TEST(semaphores, isr_signal_wakes_higher_prio_within_tick)
+{
+	sem_obj = isix_sem_create(nullptr, 0);
+	TEST_ASSERT_NOT_NULL(sem_obj);
+	isr_lat_slow = 0;
+	isr_lat_done = 0;
+	isr_lat_armed = false;
+	static constexpr auto waiter = [](void*) {
+		while (isix_sem_wait(sem_obj, 1000) == ISIX_EOK) {
+			const uint32_t lat = isix_get_ujiffies() - isr_lat_t_irq;
+			if (lat >= isr_lat_slow_us) isr_lat_slow = isr_lat_slow + 1;
+			isr_lat_done = isr_lat_done + 1;
+		}
+	};
+	TEST_ASSERT_NOT_NULL(sem_tasks.spawn(waiter, nullptr, 1));
+	isix::wait_ms(5);
+	// The timer only installs the interrupt handler, the interrupt is raised from the test
+	const auto ok = tests::detail::periodic_timer_setup([]() {
+		if (isr_lat_armed) {
+			isr_lat_armed = false;
+			isr_lat_t_irq = isix_get_ujiffies();
+			isix_sem_signal_isr(sem_obj);
+		}
+	}, 1000000);
+	TEST_ASSERT_TRUE(ok);
+	test_utils::lower_test_prio(5);
+	for (auto i = 0U; i < isr_lat_samples; ++i) {
+		// Raise the interrupt early in the system tick period
+		while (isix_get_ujiffies() % 1000U < 200U || isix_get_ujiffies() % 1000U > 300U) {
+			asm volatile("nop\n");
+		}
+		isr_lat_armed = true;
+		NVIC_SetPendingIRQ(TIM3_IRQn);
+		const auto t0 = isix_get_jiffies();
+		while (isr_lat_done <= i && !isix_timer_elapsed(t0, 5)) {
+			asm volatile("nop\n");
+		}
+	}
+	tests::detail::periodic_timer_stop();
+	const auto done = isr_lat_done;
+	const auto slow = isr_lat_slow;
+	TEST_ASSERT_EQUAL_UINT(isr_lat_samples, done);
+	// A woken higher priority task must not wait for the next system tick
+	TEST_ASSERT_LESS_THAN_UINT(3U, slow);
+}
+
+TEST(semaphores, notify_reads_event_inside_critical)
+{
+	sem_obj = isix_sem_create(nullptr, 0);
+	osevent_t ev = isix_event_create();
+	TEST_ASSERT_TRUE(sem_obj && ev);
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_sem_event_connect(sem_obj, ev, 4));
+	// Disconnect the event in the window after the signal has left the critical section
+	_isixp_test_hook = [](isix_test_point point, void* arg) {
+		if (point == isix_tp_sem_signal_notify && arg == sem_obj) {
+			isix_sem_event_disconnect(sem_obj, hook_event);
+		}
+	};
+	hook_event = ev;
+	isix_sem_signal(sem_obj);
+	_isixp_test_hook = nullptr;
+	const auto bits = isix_event_get(ev);
+	isix_event_destroy(ev);
+	// The connection valid at the signal time decides about the notification
+	TEST_ASSERT_EQUAL_UINT(1U << 4, bits);
+}
+
 TEST_GROUP_RUNNER(semaphores)
 {
+	RUN_TEST_CASE(semaphores, notify_reads_event_inside_critical);
+	RUN_TEST_CASE(semaphores, isr_signal_wakes_higher_prio_within_tick);
+	RUN_TEST_CASE(semaphores, change_prio_of_queued_waiter);
+	RUN_TEST_CASE(semaphores, suspend_resume_waiter_does_not_get_token);
+	RUN_TEST_CASE(semaphores, suspend_resume_waiter_keeps_timeout);
+	RUN_TEST_CASE(semaphores, wait_dontwait_returns_immediately);
 	RUN_TEST_CASE(semaphores, timeout);
 	RUN_TEST_CASE(semaphores, priority);
 	RUN_TEST_CASE(semaphores, reset_api);

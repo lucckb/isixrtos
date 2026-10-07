@@ -23,6 +23,8 @@ isix_tests_src = files(
 	'08_fifo.cpp',
 	'09_events.cpp',
 	'10_tickless.cpp',
+	'11_coroutines.cpp',
+	'12_heap.cpp',
 	'unittests_entry.cpp',
 	'utils/board_boot.cpp',
 	'utils/dts.cpp',

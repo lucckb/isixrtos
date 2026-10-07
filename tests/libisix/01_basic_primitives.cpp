@@ -4,10 +4,14 @@
 #include <isix/arch/sem_atomic.h>
 #include <foundation/sys/dbglog.h>
 #include "timer_interrupt.hpp"
+#include <utils/tickless_testhooks.h>
 
 TEST_GROUP(basic_primitives);
 TEST_SETUP(basic_primitives) {}
-TEST_TEAR_DOWN(basic_primitives) {}
+TEST_TEAR_DOWN(basic_primitives)
+{
+	tests::detail::periodic_timer_stop();
+}
 
 #if CONFIG_ISIX_TICKLESS
 namespace
@@ -123,8 +127,34 @@ TEST(basic_primitives, atomic_semaphore)
 	TEST_ASSERT_EQUAL(2, lsem.value);
 }
 
+TEST(basic_primitives, heap_getsize_reports_block_size)
+{
+	static char static_buf[16];
+	auto ptr = static_cast<char*>(isix_alloc(100));
+	TEST_ASSERT_NOT_NULL(ptr);
+	const auto sz = isix_heap_getsize(ptr);
+	TEST_ASSERT_GREATER_OR_EQUAL_size_t(100, sz);
+	TEST_ASSERT_LESS_THAN_size_t(100 + 64, sz);
+	TEST_ASSERT_EQUAL_size_t(0, isix_heap_getsize(static_buf));
+	isix_free(ptr);
+}
+
+TEST(basic_primitives, timer_elapsed_across_jiffies_wrap)
+{
+	_isixp_test_set_jiffies(0xFFFFFFFFU - 4U);
+	const auto t1 = isix_get_jiffies();
+	// Wait for the wrap using the raw counter
+	while (isix_get_jiffies() >= t1) {
+		asm volatile("nop\n");
+	}
+	TEST_ASSERT_FALSE(isix_timer_elapsed(t1, 20));
+	TEST_ASSERT_TRUE(isix_timer_elapsed(t1, 2));
+}
+
 TEST_GROUP_RUNNER(basic_primitives)
 {
+	RUN_TEST_CASE(basic_primitives, timer_elapsed_across_jiffies_wrap)
+	RUN_TEST_CASE(basic_primitives, heap_getsize_reports_block_size)
 	RUN_TEST_CASE(basic_primitives, time_base_timer_vs_systick)
 	RUN_TEST_CASE(basic_primitives, basic_heap_allocator)
 	RUN_TEST_CASE(basic_primitives, atomic_semaphore)

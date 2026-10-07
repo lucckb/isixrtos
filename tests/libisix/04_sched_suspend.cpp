@@ -3,6 +3,9 @@
 #include <isix.h>
 #include <stm32_ll_system.h>
 #include <memory>
+#include <isix/prv/test_hooks.h>
+#include "timer_interrupt.hpp"
+#include <utils/test_prio.hpp>
 
 //Internal API MOCK
 extern "C" {
@@ -60,9 +63,30 @@ namespace
 }
 
 
+namespace {
+	test_utils::task_pool sl_tasks;
+	volatile bool s_h_ran;
+	ossem_t s_nest_sem;
+
+	void nest_waiter(void*)
+	{
+		isix_sem_wait(s_nest_sem, 1000);
+		s_h_ran = true;
+	}
+}
+
 TEST_GROUP(sched_suspend);
 TEST_SETUP(sched_suspend) {}
-TEST_TEAR_DOWN(sched_suspend) {}
+TEST_TEAR_DOWN(sched_suspend)
+{
+	tests::detail::periodic_timer_stop();
+	sl_tasks.release();
+	if (s_nest_sem) {
+		isix_sem_destroy(s_nest_sem);
+		s_nest_sem = nullptr;
+	}
+	test_utils::restore_test_prio();
+}
 
 TEST(sched_suspend, basic_lock)
 {
@@ -79,6 +103,47 @@ TEST(sched_suspend, basic_lock)
 		isix_yield();
 	}
 	TEST_ASSERT(isix::is_scheduler_active());
+}
+
+TEST(sched_suspend, nested_lock)
+{
+	s_h_ran = false;
+	s_nest_sem = isix_sem_create_limited(nullptr, 0, 1);
+	TEST_ASSERT_NOT_NULL(s_nest_sem);
+	TEST_ASSERT_NOT_NULL(sl_tasks.spawn(nest_waiter, nullptr, 1));
+	test_utils::lower_test_prio(3);
+	// Let the waiter block on the semaphore
+	isix_wait_ms(5);
+	_isixp_lock_scheduler();
+	_isixp_lock_scheduler();
+	isix_sem_signal(s_nest_sem);
+	_isixp_unlock_scheduler();
+	const bool early = s_h_ran;
+	_isixp_unlock_scheduler();
+	isix_wait_ms(5);
+	TEST_ASSERT_FALSE(early);
+	TEST_ASSERT_TRUE(s_h_ran);
+}
+
+TEST(sched_suspend, alloc_inside_lock)
+{
+	s_h_ran = false;
+	s_nest_sem = isix_sem_create_limited(nullptr, 0, 1);
+	TEST_ASSERT_NOT_NULL(s_nest_sem);
+	TEST_ASSERT_NOT_NULL(sl_tasks.spawn(nest_waiter, nullptr, 1));
+	test_utils::lower_test_prio(3);
+	// Let the waiter block on the semaphore
+	isix_wait_ms(5);
+	_isixp_lock_scheduler();
+	isix_sem_signal(s_nest_sem);
+	void* const p = isix_alloc(16);
+	isix_free(p);
+	const bool early = s_h_ran;
+	_isixp_unlock_scheduler();
+	isix_wait_ms(5);
+	TEST_ASSERT_NOT_NULL(p);
+	TEST_ASSERT_FALSE(early);
+	TEST_ASSERT_TRUE(s_h_ran);
 }
 
 TEST(sched_suspend, basic_resched)
@@ -121,6 +186,25 @@ TEST(sched_suspend, tasks_reordering)
 	_isixp_unlock_scheduler();
 }
 
+TEST(sched_suspend, unlock_replays_skipped_ticks)
+{
+	//SysTick current value register, counts down and reloads
+	auto* const systick_val = reinterpret_cast<volatile uint32_t*>(0xE000E018UL);
+	constexpr auto wraps_needed = 3;
+	const auto j0 = isix_get_jiffies();
+	_isixp_lock_scheduler();
+	auto prev = *systick_val;
+	for (int wraps=0; wraps<wraps_needed;) {
+		const auto cur = *systick_val;
+		if (cur > prev) {
+			++wraps;
+		}
+		prev = cur;
+	}
+	_isixp_unlock_scheduler();
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(2U, isix_get_jiffies() - j0);
+}
+
 TEST(sched_suspend, ujiffies)
 {
 	//Test 1
@@ -138,10 +222,38 @@ TEST(sched_suspend, ujiffies)
 }
 
 
+TEST(sched_suspend, isr_never_sees_open_critical_section)
+{
+	static volatile unsigned violations;
+	static volatile unsigned irq_count;
+	violations = 0;
+	irq_count = 0;
+	const auto ok = tests::detail::periodic_timer_setup([]() {
+		if (_isixp_test_critical_count() != 0) {
+			violations = violations + 1;
+		}
+		irq_count = irq_count + 1;
+	}, 20);
+	TEST_ASSERT_TRUE(ok);
+	for (auto n = 0U; n < 200000U; ++n) {
+		isix_enter_critical();
+		isix_exit_critical();
+	}
+	tests::detail::periodic_timer_stop();
+	const auto viol = violations;
+	const auto irqs = irq_count;
+	TEST_ASSERT_GREATER_THAN_UINT(100U, irqs);
+	TEST_ASSERT_EQUAL_UINT(0U, viol);
+}
+
 TEST_GROUP_RUNNER(sched_suspend)
 {
+	RUN_TEST_CASE(sched_suspend, isr_never_sees_open_critical_section);
 	RUN_TEST_CASE(sched_suspend, basic_lock);
+	RUN_TEST_CASE(sched_suspend, nested_lock);
+	RUN_TEST_CASE(sched_suspend, alloc_inside_lock);
 	RUN_TEST_CASE(sched_suspend, basic_resched);
 	RUN_TEST_CASE(sched_suspend, tasks_reordering);
+	RUN_TEST_CASE(sched_suspend, unlock_replays_skipped_ticks);
 	RUN_TEST_CASE(sched_suspend, ujiffies);
 }

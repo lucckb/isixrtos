@@ -3,6 +3,7 @@
 #include <isix.h>
 #include "timer_interrupt.hpp"
 #include <memory>
+#include <utils/test_prio.hpp>
 
 
 namespace {
@@ -149,17 +150,32 @@ namespace {
 		TEST_ASSERT_EQUAL_UINT(IRQ_QTEST_SIZE, test_vec.size());
 		TEST_ASSERT(verify_values(test_vec, 1));
 		TEST_ASSERT_EQUAL(int(ISIX_EOK), m_last_irq_err);
-		tests::detail::periodic_timer_stop();
-		if (time_irq != NOT_FROM_IRQ) {
-			tests::detail::periodic_timer_stop();
-		}
 	}
 }
 
 
 TEST_GROUP(fifo);
 TEST_SETUP(fifo) {}
-TEST_TEAR_DOWN(fifo) {}
+
+namespace {
+	test_utils::task_pool ff_tasks;
+	osfifo_t ff_fifo;
+	osevent_t ff_ev;
+	volatile bool ff_flag;
+	volatile int ff_res[2];
+	volatile int ff_done;
+	constexpr auto ff_bit = 3U;
+}
+
+TEST_TEAR_DOWN(fifo)
+{
+	tests::detail::periodic_timer_stop();
+	test_utils::restore_test_prio();
+	ff_tasks.release();
+	if (ff_fifo && ff_ev) { isix_fifo_event_disconnect(ff_fifo, ff_ev); }
+	if (ff_fifo) { isix_fifo_destroy(ff_fifo); ff_fifo = nullptr; }
+	if (ff_ev) { isix_event_destroy(ff_ev); ff_ev = nullptr; }
+}
 
 TEST(fifo, basic_delivery)
 {
@@ -234,8 +250,100 @@ TEST(fifo, not_from_irq_exchanged)
 }
 
 
+
+TEST(fifo, write_raises_event_before_reader_runs)
+{
+	ff_fifo = isix_fifo_create(4, sizeof(int));
+	ff_ev = isix_event_create();
+	TEST_ASSERT(ff_fifo && ff_ev);
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_fifo_event_connect(ff_fifo, ff_ev, ff_bit));
+	ff_flag = false;
+	static constexpr auto reader = [](void*) {
+		int v;
+		isix_fifo_read(ff_fifo, &v, 3000);
+		ff_flag = (isix_event_get(ff_ev) & (1U << ff_bit)) != 0U;
+		ff_done = 1;
+	};
+	ff_done = 0;
+	const auto t = ff_tasks.spawn(reader, nullptr, 2);
+	TEST_ASSERT_NOT_NULL(t);
+	isix::wait_ms(10);
+	test_utils::lower_test_prio(5);
+	const int item = 1;
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_fifo_write(ff_fifo, &item, 100));
+	TEST_ASSERT_EQUAL(1, ff_done);
+	TEST_ASSERT_TRUE(ff_flag);
+}
+
+TEST(fifo, count_non_negative_with_blocked_readers)
+{
+	ff_fifo = isix_fifo_create(4, sizeof(int));
+	TEST_ASSERT_NOT_NULL(ff_fifo);
+	static constexpr auto reader = [](void*) {
+		int v;
+		isix_fifo_read(ff_fifo, &v, 3000);
+	};
+	TEST_ASSERT_NOT_NULL(ff_tasks.spawn(reader, nullptr, 3));
+	TEST_ASSERT_NOT_NULL(ff_tasks.spawn(reader, nullptr, 3));
+	isix::wait_ms(20);
+	TEST_ASSERT_EQUAL(0, isix_fifo_count(ff_fifo));
+}
+
+TEST(fifo, destroy_wakes_reader_with_edestroy)
+{
+	ff_fifo = isix_fifo_create(4, sizeof(int));
+	TEST_ASSERT_NOT_NULL(ff_fifo);
+	ff_res[0] = 12345;
+	ff_done = 0;
+	static constexpr auto reader = [](void*) {
+		int v;
+		ff_res[0] = isix_fifo_read(ff_fifo, &v, 3000);
+		ff_done = 1;
+	};
+	TEST_ASSERT_NOT_NULL(ff_tasks.spawn(reader, nullptr, 3));
+	isix::wait_ms(20);
+	const auto f = ff_fifo;
+	ff_fifo = nullptr;
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix_fifo_destroy(f));
+	isix::wait_ms(10);
+	TEST_ASSERT_EQUAL(1, ff_done);
+	TEST_ASSERT_EQUAL(ISIX_EDESTROY, ff_res[0]);
+}
+
+TEST(fifo, destroy_null_is_einvarg)
+{
+	TEST_ASSERT_EQUAL(ISIX_EINVARG, isix_fifo_destroy(nullptr));
+}
+
+TEST(fifo, read_dontwait_on_empty)
+{
+	ff_fifo = isix_fifo_create(2, sizeof(int));
+	TEST_ASSERT_NOT_NULL(ff_fifo);
+	ff_done = 0;
+	ff_res[0] = ff_res[1] = 12345;
+	static constexpr auto worker = [](void*) {
+		int v;
+		ff_res[0] = isix_fifo_read(ff_fifo, &v, ISIX_TIME_DONTWAIT);
+		const int item = 7;
+		isix_fifo_write(ff_fifo, &item, 100);
+		isix_fifo_write(ff_fifo, &item, 100);
+		ff_res[1] = isix_fifo_write(ff_fifo, &item, ISIX_TIME_DONTWAIT);
+		ff_done = 1;
+	};
+	TEST_ASSERT_NOT_NULL(ff_tasks.spawn(worker, nullptr, 3));
+	isix::wait_ms(20);
+	TEST_ASSERT_EQUAL(1, ff_done);
+	TEST_ASSERT_EQUAL(ISIX_ETIMEOUT, ff_res[0]);
+	TEST_ASSERT_EQUAL(ISIX_ETIMEOUT, ff_res[1]);
+}
+
 TEST_GROUP_RUNNER(fifo)
 {
+	RUN_TEST_CASE(fifo, write_raises_event_before_reader_runs);
+	RUN_TEST_CASE(fifo, count_non_negative_with_blocked_readers);
+	RUN_TEST_CASE(fifo, destroy_wakes_reader_with_edestroy);
+	RUN_TEST_CASE(fifo, destroy_null_is_einvarg);
+	RUN_TEST_CASE(fifo, read_dontwait_on_empty);
 	RUN_TEST_CASE(fifo, basic_delivery);
 	RUN_TEST_CASE(fifo, insert_overflow);
 	RUN_TEST_CASE(fifo, irq_slow_delivery);
