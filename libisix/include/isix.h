@@ -25,5 +25,8 @@
 #include <isix/cpp/thread11.hpp>
 #include <isix/cpp/mutex.hpp>
 #include <isix/cpp/condvar.hpp>
+#ifdef CONFIG_ISIX_CPP_COROUTINES
+#include <isix/cpp/coroutine.hpp>
+#endif
 #include <isix/assert.h>
 #include <isix/arch/isr_vectors.h>
