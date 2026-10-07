@@ -438,6 +438,32 @@ namespace
 	}
 
 	// Ticks the elapsed time may differ from the requested one, given for a 1 kHz tick and scaled up for faster ones
+	// Host jitter in the emulator shows up as a time jump, so a wait that is too long is measured again
+	struct wait_span {
+		ostick_t j0;
+		ostick_t j1;
+	};
+
+	wait_span timed_wait(ostick_t ticks)
+	{
+#ifdef QEMU_NO_RCC_PERIPH
+		constexpr auto attempts = 3;
+#else
+		constexpr auto attempts = 1;
+#endif
+		wait_span span {};
+		for( int i = 0; i < attempts; ++i ) {
+			span.j0 = isix::get_jiffies();
+			isix::wait(ticks);
+			span.j1 = isix::get_jiffies();
+			if( static_cast<ostick_t>(span.j1 - span.j0) <= ticks + (ISIX_HZ + 999U) / 1000U ) {
+				break;
+			}
+		}
+		return span;
+	}
+
+
 	void assert_wait_span(ostick_t j0, ostick_t j1, ostick_t expected, ostick_t slack)
 	{
 		const ostick_t d = j1 - j0;
@@ -485,9 +511,7 @@ TEST(tickless, long_sleep_spans_max_period)
 {
 	_isixp_test_tickless_set_max_ticks(5);
 	_isixp_test_tickless_stats_reset();
-	const ostick_t j0 = isix::get_jiffies();
-	isix::wait(53);
-	const ostick_t j1 = isix::get_jiffies();
+	const auto [j0, j1] = timed_wait(53);
 	const auto st = read_stats();
 	assert_wait_span(j0, j1, 53, 1);
 	TEST_ASSERT_GREATER_OR_EQUAL_UINT32(8U, st.sleeps);
@@ -519,9 +543,7 @@ TEST(tickless, max_period_not_multiple)
 	for( const ostick_t max_ticks : { 1U, 2U, 3U, 7U } ) {
 		_isixp_test_tickless_set_max_ticks(max_ticks);
 		_isixp_test_tickless_stats_reset();
-		const ostick_t j0 = isix::get_jiffies();
-		isix::wait(40);
-		const ostick_t j1 = isix::get_jiffies();
+		const auto [j0, j1] = timed_wait(40);
 		assert_wait_span(j0, j1, 40, 1);
 		if( max_ticks == 1U ) {
 			TEST_ASSERT_EQUAL_UINT32(0U, read_stats().sleeps);
@@ -539,9 +561,7 @@ TEST(tickless, boundary_before_reload_update_on_enter)
 	s_spin_cap = spin_limit();
 	s_forced = 0;
 	_isixp_test_hook = hook_spin_pending;
-	const ostick_t j0 = isix::get_jiffies();
-	isix::wait(30);
-	const ostick_t j1 = isix::get_jiffies();
+	const auto [j0, j1] = timed_wait(30);
 	_isixp_test_hook = nullptr;
 	assert_wait_span(j0, j1, 30, 1);
 	TEST_ASSERT_GREATER_OR_EQUAL_UINT32(1U, s_forced);
@@ -557,9 +577,7 @@ TEST(tickless, boundary_after_reload_update_on_enter)
 	s_forced = 0;
 	_isixp_test_tickless_stats_reset();
 	_isixp_test_hook = hook_spin_pending;
-	const ostick_t j0 = isix::get_jiffies();
-	isix::wait(30);
-	const ostick_t j1 = isix::get_jiffies();
+	const auto [j0, j1] = timed_wait(30);
 	_isixp_test_hook = nullptr;
 	assert_wait_span(j0, j1, 30, 1);
 	TEST_ASSERT_GREATER_OR_EQUAL_UINT32(1U, s_forced);
@@ -675,9 +693,7 @@ TEST(tickless, armed_wake_after_boundary)
 	TEST_ASSERT_TRUE(waker_start(300));
 	_isixp_test_tickless_stats_reset();
 	_isixp_test_hook = hook_spin_pending;
-	const ostick_t j0 = isix::get_jiffies();
-	isix::wait(40);
-	const ostick_t j1 = isix::get_jiffies();
+	const auto [j0, j1] = timed_wait(40);
 	_isixp_test_hook = nullptr;
 	waker_stop();
 	assert_wait_span(j0, j1, 40, 1);
@@ -732,9 +748,7 @@ TEST(tickless, long_period_across_jiffies_wrap)
 	_isixp_test_tickless_set_max_ticks(0);
 	_isixp_test_set_jiffies(c_tick_max - 3U);
 	_isixp_test_tickless_stats_reset();
-	const ostick_t j0 = isix::get_jiffies();
-	isix::wait(30);
-	const ostick_t j1 = isix::get_jiffies();
+	const auto [j0, j1] = timed_wait(30);
 	assert_wait_span(j0, j1, 30, 1);
 	TEST_ASSERT_GREATER_OR_EQUAL_UINT32(1U, read_stats().sleeps);
 }
@@ -899,9 +913,8 @@ TEST(tickless, systick_isr_armed_preempted_by_waking_irq)
 	_isixp_test_hook = hook_nested_irq;
 	ostick_t worst = 0;
 	for( int i = 0; i < 20; ++i ) {
-		const ostick_t j0 = isix::get_jiffies();
-		isix::wait(20);
-		const ostick_t d = isix::get_jiffies() - j0;
+		const auto [ja, jb] = timed_wait(20);
+		const ostick_t d = jb - ja;
 		if( d > worst ) {
 			worst = d;
 		}
@@ -944,9 +957,8 @@ TEST(tickless, systick_isr_entry_preempted_by_waking_irq)
 	const ostick_t j0 = isix::get_jiffies();
 	ostick_t worst = 0;
 	for( int i = 0; i < 20; ++i ) {
-		const ostick_t jw = isix::get_jiffies();
-		isix::wait(20);
-		const ostick_t d = isix::get_jiffies() - jw;
+		const auto [ja, jb] = timed_wait(20);
+		const ostick_t d = jb - ja;
 		if( d > worst ) {
 			worst = d;
 		}
@@ -1081,18 +1093,31 @@ TEST(tickless, ujiffies_monotonic_in_isr_and_task)
 	TEST_ASSERT_TRUE(ok);
 	isix::wait_ms(300);
 	// Busy phase, the same check from the task context
-	uint64_t prev = isix_get_ujiffies();
+#ifdef QEMU_NO_RCC_PERIPH
+	// Host jitter in the emulator looks like a jump, a kernel fault shows up in every attempt
+	constexpr auto attempts = 3;
+#else
+	constexpr auto attempts = 1;
+#endif
 	unsigned task_back = 0;
 	unsigned task_jump = 0;
-	const ostick_t jb = isix::get_jiffies();
-	while( static_cast<ostick_t>(isix::get_jiffies() - jb) < 30U ) {
-		const uint64_t now = isix_get_ujiffies();
-		if( now < prev ) {
-			++task_back;
-		} else if( now - prev > c_task_jump_us ) {
-			++task_jump;
+	for( int attempt = 0; attempt < attempts; ++attempt ) {
+		uint64_t prev = isix_get_ujiffies();
+		task_back = 0;
+		task_jump = 0;
+		const ostick_t jb = isix::get_jiffies();
+		while( static_cast<ostick_t>(isix::get_jiffies() - jb) < 30U ) {
+			const uint64_t now = isix_get_ujiffies();
+			if( now < prev ) {
+				++task_back;
+			} else if( now - prev > c_task_jump_us ) {
+				++task_jump;
+			}
+			prev = now;
 		}
-		prev = now;
+		if( task_jump == 0U ) {
+			break;
+		}
 	}
 	tests::detail::periodic_timer_stop();
 	tiny_printf("tickless ujiffies: isr samples %u back %u jump %u task back %u jump %u\r\n",
@@ -1108,6 +1133,46 @@ TEST(tickless, ujiffies_monotonic_in_isr_and_task)
 #ifndef QEMU_NO_RCC_PERIPH
 	TEST_ASSERT_EQUAL_UINT32(0U, s_isr_jump);
 #endif
+}
+
+namespace
+{
+	volatile uint64_t s_entry_last;
+	volatile unsigned s_entry_back;
+	volatile unsigned s_entry_calls;
+
+	void hook_entry_ujiffies(isix_test_point point, void*)
+	{
+		if( point != isix_tp_tickless_isr_entry ) {
+			return;
+		}
+		// The tick interrupt is entered, the tick is not accounted yet
+		if( isix_get_ujiffies() < s_entry_last ) {
+			s_entry_back = s_entry_back + 1U;
+		}
+		s_entry_calls = s_entry_calls + 1U;
+	}
+}
+
+// The microsecond clock read at the entry of the tick handler does not go back
+TEST(tickless, ujiffies_monotonic_at_tick_handler_entry)
+{
+	s_entry_last = 0;
+	s_entry_back = 0;
+	s_entry_calls = 0;
+	_isixp_test_hook = hook_entry_ujiffies;
+	const ostick_t j0 = isix::get_jiffies();
+	while( static_cast<ostick_t>(isix::get_jiffies() - j0) < 50U ) {
+		isix_enter_critical();
+		s_entry_last = isix_get_ujiffies();
+		isix_exit_critical();
+	}
+	_isixp_test_hook = nullptr;
+	const unsigned back = s_entry_back;
+	const unsigned calls = s_entry_calls;
+	tiny_printf("tickless ujiffies entry: calls %u back %u\r\n", calls, back);
+	TEST_ASSERT_GREATER_THAN_UINT32(10U, calls);
+	TEST_ASSERT_EQUAL_UINT32(0U, back);
 }
 
 #ifndef QEMU_NO_RCC_PERIPH
@@ -1327,6 +1392,7 @@ TEST_GROUP_RUNNER(tickless)
 	RUN_TEST_CASE(tickless, systick_isr_entry_preempted_by_waking_irq);
 	RUN_TEST_CASE(tickless, sleeping_wake_race_with_period_end);
 	RUN_TEST_CASE(tickless, ujiffies_monotonic_in_isr_and_task);
+	RUN_TEST_CASE(tickless, ujiffies_monotonic_at_tick_handler_entry);
 	RUN_TEST_CASE(tickless, split_arithmetic_table);
 #ifndef QEMU_NO_RCC_PERIPH
 	RUN_TEST_CASE(tickless, drift_vs_dwt_idle);

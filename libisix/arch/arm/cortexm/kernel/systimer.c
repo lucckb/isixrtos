@@ -21,9 +21,34 @@
 // Timer cycles in one tick, valid for both SysTick clock sources
 static uint32_t g_tick_cycles = 1U;
 
+// Counter wrap seen by a reader before the tick handler has accounted it
+static volatile bool g_wrap_latched;
+
 static inline bool tick_pending(void)
 {
 	return (SCB_ICSR & SCB_ICSR_PENDSTSET) != 0U;
+}
+
+// COUNTFLAG outlives the pending bit that the handler entry clears, reading it re-arms the flag
+static inline void wrap_latch(void)
+{
+	if( (STK_CSR & STK_CSR_COUNTFLAG) != 0U ) {
+		g_wrap_latched = true;
+	}
+}
+
+// The boundary was not accounted yet, call inside a critical section
+static inline bool wrap_unannounced(void)
+{
+	wrap_latch();
+	return g_wrap_latched || tick_pending();
+}
+
+// The wrap is accounted, call inside a critical section
+static inline void wrap_clear(void)
+{
+	wrap_latch();
+	g_wrap_latched = false;
 }
 
 #if CONFIG_ISIX_TICKLESS
@@ -31,6 +56,7 @@ static inline bool tick_pending(void)
 static inline void tick_clear_pending(void)
 {
 	SCB_ICSR = SCB_ICSR_PENDSTCLR;
+	wrap_clear();
 }
 
 // The tick interrupt handler was entered and not left
@@ -239,9 +265,9 @@ uint32_t _isix_port_systimer_subtick( uint32_t* cycles_per_tick )
 	uint32_t cvr;
 	// A boundary between the two reads changes the meaning of the counter
 	do {
-		pending = tick_pending();
+		pending = wrap_unannounced();
 		cvr = STK_CVR;
-	} while( pending != tick_pending() );
+	} while( pending != wrap_unannounced() );
 	// Cycles accounted before the period the counter runs now and the length of that period
 	uint32_t before = pending ? tpp : 0U;
 	uint32_t period = tpp;
@@ -266,6 +292,7 @@ void _isix_port_systimer_isr(void)
 #endif
 	// Interrupts that wake tasks must not run between the timer state change and the announce
 	isix_enter_critical();
+	wrap_clear();
 #if CONFIG_ISIX_TICKLESS
 	if( g_state == st_armed ) {
 		// First boundary, the long period has just been loaded
