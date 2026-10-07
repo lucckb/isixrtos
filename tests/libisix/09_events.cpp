@@ -428,7 +428,7 @@ TEST(events, timeout_does_not_consume_bits)
 	TEST_ASSERT_NOT_NULL(ev_obj);
 	ev_done = false;
 	static constexpr auto waiter = [](void*) {
-		ev_res = isix_event_wait(ev_obj, EVA, true, false, 5);
+		ev_res = isix_event_wait(ev_obj, EVA, true, false, isix::ms2tick(5));
 		ev_done = true;
 	};
 	const auto t = ev_tasks.spawn(waiter, nullptr, 10);

@@ -26,6 +26,8 @@ namespace {
 	constexpr auto STK_SIZ = 2048;
 
 	using test_utils::cpu_busy;
+	// Allowance for the tick quantization of the chained waits and busy loops
+	constexpr auto quant_slack = ISIX_HZ < 1000U ? 3U : 1U;
 }
 
 
@@ -158,8 +160,8 @@ TEST(mutex, priority_inheritance_basic_conditions)
 	for(auto v: fin) {
 		max = std::max(max, v - t1);
 	}
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(70U, max);
-	TEST_ASSERT_LESS_THAN_UINT(105U, max);
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(isix::ms2tick(70U), max);
+	TEST_ASSERT_LESS_THAN_UINT(isix::ms2tick(105U) + quant_slack, max);
 	test_buf.clear();
 	isix::wait_ms(5);
 }
@@ -238,8 +240,8 @@ TEST(mutex, priority_inheritance_complex)
 	for(auto v: fin) {
 		max = std::max(max, v - t1);
 	}
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(65U, max);
-	TEST_ASSERT_LESS_THAN_UINT(110U, max);
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(isix::ms2tick(65U), max);
+	TEST_ASSERT_LESS_THAN_UINT(isix::ms2tick(110U) + quant_slack, max);
 	test_buf.clear();
 }
 

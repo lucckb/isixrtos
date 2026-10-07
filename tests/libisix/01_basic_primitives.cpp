@@ -13,7 +13,12 @@ TEST_TEAR_DOWN(basic_primitives)
 	tests::detail::periodic_timer_stop();
 }
 
-#if CONFIG_ISIX_TICKLESS
+// The emulated TIM3 and SysTick run on unrelated clocks, only the 1 kHz tick matches
+#if !defined(QEMU_NO_RCC_PERIPH) || CONFIG_ISIX_HZ == 1000
+#define TIME_BASE_TEST 1
+#endif
+
+#if TIME_BASE_TEST && CONFIG_ISIX_TICKLESS
 namespace
 {
 	static volatile bool s_busy_run {};
@@ -27,6 +32,7 @@ namespace
 }
 #endif
 
+#if TIME_BASE_TEST
 TEST(basic_primitives, time_base_timer_vs_systick)
 {
 	static constexpr auto period_us = 1000U;
@@ -52,8 +58,15 @@ TEST(basic_primitives, time_base_timer_vs_systick)
 	s_busy_run = false;
 	isix::task_kill(t);
 #endif
-	TEST_ASSERT_UINT_WITHIN(5, period_us, cnt);
+#ifdef QEMU_NO_RCC_PERIPH
+	// The emulator can stall the tick for several milliseconds under host load
+	static constexpr auto tolerance = 30U;
+#else
+	static constexpr auto tolerance = 5U;
+#endif
+	TEST_ASSERT_UINT_WITHIN(tolerance, period_us, cnt);
 }
+#endif
 
 TEST(basic_primitives, basic_heap_allocator)
 {
@@ -155,7 +168,9 @@ TEST_GROUP_RUNNER(basic_primitives)
 {
 	RUN_TEST_CASE(basic_primitives, timer_elapsed_across_jiffies_wrap)
 	RUN_TEST_CASE(basic_primitives, heap_getsize_reports_block_size)
+#if TIME_BASE_TEST
 	RUN_TEST_CASE(basic_primitives, time_base_timer_vs_systick)
+#endif
 	RUN_TEST_CASE(basic_primitives, basic_heap_allocator)
 	RUN_TEST_CASE(basic_primitives, atomic_semaphore)
 }

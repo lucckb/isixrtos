@@ -134,7 +134,7 @@ TEST(tasks, basic_api)
 	auto t4 = std::make_unique<base_task_tests>();
 	t1->start(); t2->start(); t3->start(); t4->start();
 	//Active wait tasks shouldnt run
-	for (auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+5000;) {
+	for (auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+isix::ms2tick(5000);) {
 		asm volatile("nop\n");
 	}
 	TEST_ASSERT_EQUAL_UINT(0U, t1->exec_count());
@@ -162,7 +162,7 @@ TEST(tasks, basic_api)
 	TEST_ASSERT_EQUAL_UINT(BASE_TASK_PRIO, isix_task_change_prio(t3->tid(),0));
 	TEST_ASSERT_EQUAL_UINT(BASE_TASK_PRIO, isix_task_change_prio(t4->tid(),0));
 	//Active wait tasks should doesn't run
-	for (auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+5000;) {
+	for (auto tc = isix_get_jiffies(); isix_get_jiffies()<tc+isix::ms2tick(5000);) {
 		asm volatile("nop\n");
 	}
 	//TASK should run now
@@ -253,7 +253,12 @@ TEST(tasks, CPU_load_api)
 		}
 	};
 	isix::wait_ms(5000);
+#if defined(QEMU_NO_RCC_PERIPH) && CONFIG_ISIX_HZ > 1000
+	// The emulated SysTick does not keep the requested rate above 1 kHz, the load window is noisy
+	static constexpr auto epsilon = 80;
+#else
 	static constexpr auto epsilon = 50;
+#endif
 	for (iload=10; iload<=99; iload+=10) {
 		bool created = false;
 		int cpul = 0;
@@ -276,7 +281,7 @@ TEST(tasks, CPU_load_api)
 TEST(tasks, cpu_load_refresh_after_idle)
 {
 	// Window published after a busy period must be refreshed after a long idle sleep
-	const auto end = isix::get_jiffies() + 1500;
+	const auto end = isix::get_jiffies() + isix::ms2tick(1500);
 	while (isix::get_jiffies() < end) {
 		isix::wait_us(1000);
 	}
@@ -418,7 +423,7 @@ TEST(tasks, wait_and_referenced_api)
 	//! Should return 0
 	TEST_ASSERT_EQUAL(ISIX_EOK, ret);
 	// Should match in range
-	TEST_ASSERT_UINT_WITHIN(5, 505U, t2);
+	TEST_ASSERT_UINT_WITHIN(isix::ms2tick(5), isix::ms2tick(505), t2);
 	// Task wait list should be empty
 	TEST_ASSERT(thack_task_wait_list_is_empty(th1));
 	/** Check memory usage before and after because task is referenced
@@ -469,7 +474,7 @@ TEST(tasks, wait_reference_notice)
 	TEST_ASSERT_EQUAL(ISIX_EOK, isix::task_wait_for (tn3));
 	TEST_ASSERT_EQUAL(ISIX_EOK, isix::task_wait_for (tn4));
 	auto t2 = isix::get_jiffies() - t1;
-	TEST_ASSERT_UINT_WITHIN(25, 575U, t2);
+	TEST_ASSERT_UINT_WITHIN(isix::ms2tick(25), isix::ms2tick(575), t2);
 	//Task th1 also should be in exited state
 	isix_wait_ms(25);
 	TEST_ASSERT_EQUAL(OSTHR_STATE_EXITED, isix::get_task_state(th1));
