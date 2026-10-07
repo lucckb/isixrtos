@@ -26,3 +26,6 @@ void _isixp_mutex_unlock_all_in_task( struct isix_task* utask );
 
 //! Get first Mutex owner and release it
 struct isix_mutex*  _isixp_get_top_currt_mutex( void );
+
+//! Recalculate owner priority after a waiting task was removed from the mutex
+void _isixp_mutex_waiter_removed( struct isix_mutex* mutex );

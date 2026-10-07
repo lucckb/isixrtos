@@ -217,7 +217,7 @@ typedef struct TLSF_struct {
     /* the TLSF's structure signature */
     u32_t tlsf_signature;
 
-#if TLSF_USE_LOCKS
+#ifdef TLSF_MLOCK_T
     TLSF_MLOCK_T lock;
 #endif
 
@@ -621,11 +621,15 @@ void tlsf_free(void *ptr)
 
 }
 
+/* In-place part of realloc_ex, sets *need_move when the block has to be relocated */
+static void *realloc_inplace_ex(void *ptr, size_t new_size, void *mem_pool, int *need_move);
+
 /******************************************************************/
 void *tlsf_realloc(void *ptr, size_t size)
 {
 /******************************************************************/
     void *ret;
+    int need_move = 0;
 
 #if USE_MMAP || USE_SBRK
 	if (!mp) {
@@ -635,7 +639,22 @@ void *tlsf_realloc(void *ptr, size_t size)
 
     TLSF_ACQUIRE_LOCK(&((tlsf_t *)mp)->lock);
 
-    ret = realloc_ex(ptr, size, mp);
+    ret = realloc_inplace_ex(ptr, size, mp, &need_move);
+    if (need_move) {
+        /* Relocate: only the allocation and the release are done under the lock */
+        const bhdr_t *old = (bhdr_t *) ((char *) ptr - BHDR_OVERHEAD);
+        const size_t old_size = old->size & BLOCK_SIZE;
+        const size_t new_size = (size < MIN_BLOCK_SIZE) ? MIN_BLOCK_SIZE : ROUNDUP_SIZE(size);
+        ret = malloc_ex(new_size, mp);
+        TLSF_RELEASE_LOCK(&((tlsf_t *)mp)->lock);
+        if (ret) {
+            memcpy(ret, ptr, (old_size > new_size) ? new_size : old_size);
+            TLSF_ACQUIRE_LOCK(&((tlsf_t *)mp)->lock);
+            free_ex(ptr, mp);
+            TLSF_RELEASE_LOCK(&((tlsf_t *)mp)->lock);
+        }
+        return ret;
+    }
 
     TLSF_RELEASE_LOCK(&((tlsf_t *)mp)->lock);
 
@@ -648,11 +667,17 @@ void *tlsf_calloc(size_t nelem, size_t elem_size)
 /******************************************************************/
     void *ret;
 
+    if (nelem <= 0 || elem_size <= 0)
+        return NULL;
+
     TLSF_ACQUIRE_LOCK(&((tlsf_t *)mp)->lock);
 
-    ret = calloc_ex(nelem, elem_size, mp);
+    ret = malloc_ex(nelem * elem_size, mp);
 
     TLSF_RELEASE_LOCK(&((tlsf_t *)mp)->lock);
+
+    if (ret)
+        memset(ret, 0, nelem * elem_size);
 
     return ret;
 }
@@ -759,12 +784,10 @@ void free_ex(void *ptr, void *mem_pool)
 }
 
 /******************************************************************/
-void *realloc_ex(void *ptr, size_t new_size, void *mem_pool)
+static void *realloc_inplace_ex(void *ptr, size_t new_size, void *mem_pool, int *need_move)
 {
 /******************************************************************/
     tlsf_t *tlsf = (tlsf_t *) mem_pool;
-    void *ptr_aux;
-    unsigned int cpsize;
     bhdr_t *b, *tmp_b, *next_b;
     int fl, sl;
     size_t tmp_size;
@@ -832,11 +855,31 @@ void *realloc_ex(void *ptr, size_t new_size, void *mem_pool)
         }
     }
 
+    *need_move = 1;
+    return NULL;
+}
+
+/******************************************************************/
+void *realloc_ex(void *ptr, size_t new_size, void *mem_pool)
+{
+/******************************************************************/
+    void *ptr_aux;
+    unsigned int cpsize;
+    int need_move = 0;
+
+    ptr_aux = realloc_inplace_ex(ptr, new_size, mem_pool, &need_move);
+    if (!need_move)
+        return ptr_aux;
+
+    new_size = (new_size < MIN_BLOCK_SIZE) ? MIN_BLOCK_SIZE : ROUNDUP_SIZE(new_size);
     if (!(ptr_aux = malloc_ex(new_size, mem_pool))){
         return NULL;
     }
 
-    cpsize = ((b->size & BLOCK_SIZE) > new_size) ? new_size : (b->size & BLOCK_SIZE);
+    {
+        const bhdr_t *b = (bhdr_t *) ((char *) ptr - BHDR_OVERHEAD);
+        cpsize = ((b->size & BLOCK_SIZE) > new_size) ? new_size : (b->size & BLOCK_SIZE);
+    }
 
     memcpy(ptr_aux, ptr, cpsize);
 
@@ -996,5 +1039,90 @@ size_t get_block_size(void *ptr)
 {
     bhdr_t* b;
 	b = (bhdr_t *) ((char *) ptr - BHDR_OVERHEAD);
+	// Free block has no owner
+	if( (b->size & BLOCK_STATE) == FREE_BLOCK ) {
+		return 0;
+	}
 	return b->size & BLOCK_SIZE;
 }
+
+#if CONFIG_ISIX_TEST_HOOKS
+#include <isix/prv/test_hooks.h>
+
+/* Walk all the blocks and the free lists, 0 when consistent, negative rule number otherwise */
+static int heap_check_locked(tlsf_t *tlsf)
+{
+	extern unsigned char __heap_start[], __heap_end[];
+	size_t free_blocks = 0;
+	size_t free_sum = 0;
+	for (area_info_t *ai = tlsf->area_head; ai; ai = ai->next) {
+		const bhdr_t *ib = (bhdr_t *) ((char *) ai - BHDR_OVERHEAD);
+		bhdr_t *b = GET_NEXT_BLOCK(ib->ptr.buffer, ib->size & BLOCK_SIZE);
+		while (b != ai->end) {
+			const size_t size = b->size & BLOCK_SIZE;
+			if ((unsigned char *) b < __heap_start || (unsigned char *) b >= __heap_end ||
+			    b > ai->end)
+				return -1;
+			if (size == 0 || (size & MEM_ALIGN))
+				return -2;
+			bhdr_t *next = GET_NEXT_BLOCK(b->ptr.buffer, size);
+			if (next > ai->end)
+				return -1;
+			const int is_free = (b->size & BLOCK_STATE) == FREE_BLOCK;
+			if (is_free != ((next->size & PREV_STATE) == PREV_FREE))
+				return -3;
+			if (is_free) {
+				if (next->prev_hdr != b)
+					return -4;
+				if ((next->size & BLOCK_STATE) == FREE_BLOCK && next != ai->end)
+					return -5;
+				int fl, sl;
+				MAPPING_INSERT(size, &fl, &sl);
+				if (!(tlsf->fl_bitmap & (1U << fl)) || !(tlsf->sl_bitmap[fl] & (1U << sl)))
+					return -7;
+				const bhdr_t *p = tlsf->matrix[fl][sl];
+				size_t guard = 0;
+				while (p && p != b && guard++ < 100000)
+					p = p->ptr.free_ptr.next;
+				if (p != b)
+					return -7;
+				free_blocks++;
+				free_sum += size + BHDR_OVERHEAD;
+			}
+			b = next;
+		}
+	}
+#if TLSF_STATISTIC
+	if (tlsf->area_head && !tlsf->area_head->next && free_sum - BHDR_OVERHEAD != tlsf->free_size)
+		return -6;
+#endif
+	size_t listed = 0;
+	for (int fl = 0; fl < REAL_FLI; fl++) {
+		for (int sl = 0; sl < MAX_SLI; sl++) {
+			const int bit = (tlsf->sl_bitmap[fl] >> sl) & 1U;
+			const bhdr_t *p = tlsf->matrix[fl][sl];
+			if (!bit != !p)
+				return -8;
+			const bhdr_t *prev = NULL;
+			while (p) {
+				if ((p->size & BLOCK_STATE) != FREE_BLOCK || p->ptr.free_ptr.prev != prev)
+					return -9;
+				if (++listed > free_blocks)
+					return -10;
+				prev = p;
+				p = p->ptr.free_ptr.next;
+			}
+		}
+	}
+	return listed == free_blocks ? 0 : -10;
+}
+
+int _isixp_heap_check(void)
+{
+	tlsf_t *tlsf = (tlsf_t *) mp;
+	TLSF_ACQUIRE_LOCK(&tlsf->lock);
+	const int ret = heap_check_locked(tlsf);
+	TLSF_RELEASE_LOCK(&tlsf->lock);
+	return ret;
+}
+#endif

@@ -71,7 +71,7 @@ static inline void condvar_broadcast_msg( oscondvar_t cv, osmsg_t msg, bool isr 
 	if( wkup_task && !isr) {
 		_isixp_do_reschedule( wkup_task );
 	} else {
-		isix_exit_critical();
+		_isixp_exit_critical_isr( wkup_task );
 	}
 }
 
@@ -94,6 +94,10 @@ int isix_condvar_wait( oscondvar_t cv, ostick_t timeout )
 		pr_err( "Invalid condvar " );
 		return ISIX_EINVARG;
 	}
+	if( timeout == ISIX_TIME_DONTWAIT ) {
+		// Unlocking the mutex and not waiting makes no sense
+		return ISIX_EINVARG;
+	}
 	isix_enter_critical();
 	//Get the current mutex
 	osmtx_t mtx = _isixp_get_top_currt_mutex();
@@ -108,14 +112,11 @@ int isix_condvar_wait( oscondvar_t cv, ostick_t timeout )
 	currp->obj.cond = cv;
 	isix_exit_critical();
 	isix_yield();
-	isix_enter_critical();
-	ret =  currp->obj.dmsg;
-	if( ret == ISIX_EOK  ) {
-		//NOTE: Lock again only properly unlocked mutex
+	ret = currp->obj.dmsg;
+	if( ret == ISIX_EOK ) {
+		//NOTE: Lock again only properly unlocked mutex, may block
 		ret = isix_mutex_lock( mtx );
-		if( !ret ) ret = currp->obj.dmsg;
 	}
-	isix_exit_critical();
 	return ret;
 }
 

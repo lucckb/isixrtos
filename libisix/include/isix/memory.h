@@ -15,11 +15,15 @@ typedef struct  isix_memory_stat {
 /** Allocate the memory from the global heap
  * @param[in] size Allocated size
  * @return Pointer to the allocated area otherwise NULL
+ * @note Not callable from ISR. It runs with the scheduler locked (interrupts
+ *  enabled), so task preemption is delayed for one allocator operation.
  */
 void* isix_alloc(size_t size);
 
 /** Free alocated earlier memory area
  * param[in] mem Pointer to the allocated memory
+ * @note Not callable from ISR. It runs with the scheduler locked (interrupts
+ *  enabled), so task preemption is delayed for one allocator operation.
  */
 void isix_free(void *mem);
 
@@ -43,6 +47,8 @@ size_t isix_heap_getsize( void* ptr );
  * @param[in] ptr Memory region for change alloc size
  * @param[in] size New requested size
  * @return Pointer to newly alocated memory or NULL on error
+ * @note Not callable from ISR. The allocator runs with the scheduler locked
+ *  (interrupts enabled), the content is copied outside the lock.
  */
 void* isix_realloc(void *ptr, size_t size );
 

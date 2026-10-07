@@ -18,7 +18,9 @@
 
 #include <isix/memory.h>
 #include <isix/assert.h>
+#include <isix/prv/mmalloc.h>
 #include "tlsf.h"
+#include "memlock.h"
 
 #ifdef CONFIG_ISIX_LOGLEVEL_MEMORY
 #	undef CONFIG_ISIX_LOGLEVEL
@@ -44,9 +46,23 @@ void _isixp_alloc_init(void)
 //! Get memory statistics
 void isix_heap_stats( isix_memory_stat_t* meminfo )
 {
+	mm_lock_lock();
 	meminfo->used = get_used_size(NULL);
 	meminfo->free = get_free_size(NULL);
+	mm_lock_unlock();
 	meminfo->fragments = 1U;
 }
 
 
+
+//! Get size of the dynamic allocated block
+size_t isix_heap_getsize( void* ptr )
+{
+	extern unsigned char __heap_start[], __heap_end[];
+	const uintptr_t addr = (uintptr_t)ptr;
+	if( addr < (uintptr_t)__heap_start + sizeof(void*) || addr >= (uintptr_t)__heap_end ||
+		(addr & (sizeof(void*)-1U)) ) {
+		return 0;
+	}
+	return get_block_size( ptr );
+}

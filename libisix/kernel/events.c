@@ -95,46 +95,59 @@ osbitset_ret_t isix_event_wait( osevent_t evth, osbitset_t bits_to_wait,
 	if( !bits_to_wait || (bits_to_wait&ISIX_EVENT_CTRL_BITS) ) {
 		return ISIX_EINVARG;
 	}
-	isix_enter_critical();
-	if( check_cond(evth->bitset, bits_to_wait, wait_for_all) )
+	const ostick_t start = isix_get_jiffies();
+	for(;;)
 	{
-		retval = evth->bitset;
-		//! Condition was meet so not need to wait
-		if( clear_on_exit ) {
-			evth->bitset &= ~bits_to_wait;
+		isix_enter_critical();
+		if( check_cond(evth->bitset, bits_to_wait, wait_for_all) )
+		{
+			retval = evth->bitset;
+			//! Condition was meet so not need to wait
+			if( clear_on_exit ) {
+				evth->bitset &= ~bits_to_wait;
+			}
+			isix_exit_critical();
+			return retval;
 		}
-	}
-	else if( timeout == ISIX_TIME_DONTWAIT )
-	{
-		//! Don't wait only return current bitmask
-		retval = evth->bitset;
-	}
-	else
-	{
+		if( timeout == ISIX_TIME_DONTWAIT )
+		{
+			//! Don't wait only return current bitmask
+			retval = evth->bitset;
+			isix_exit_critical();
+			return retval;
+		}
+		ostick_t tout = timeout;
+		if( timeout != ISIX_TIME_INFINITE )
+		{
+			// Remaining time after the wait was interrupted by suspend
+			const ostick_t elapsed = isix_get_jiffies() - start;
+			if( elapsed >= timeout ) {
+				isix_exit_critical();
+				return ISIX_ETIMEOUT;
+			}
+			tout = timeout - elapsed;
+		}
 		//! Condition as not meet so need to wait for data
-		_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
+		currp->wait_aborted = false;
+		_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, tout );	//Goto sleep
 		list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
 		currp->obj.evbits = bits_to_wait |
 			( wait_for_all?ISIX_EVENT_CTRL_ALL_MATCH_FLAG:0U ) |
 			( clear_on_exit?ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG:0U ) ;
 		isix_exit_critical();
 		isix_yield();
-		isix_enter_critical();
+		// Resumed after suspend without the condition, wait again
+		if( currp->wait_aborted ) {
+			continue;
+		}
+		//The event object may be gone, only the wakeup message is used
 		if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS)==0 )
 		{	//! Wakeup all bits should be set
-			retval = currp->obj.evbits;
-		} else {
-			if( clear_on_exit ) {
-				if( check_cond(evth->bitset, bits_to_wait, wait_for_all) ) {
-					evth->bitset &= ~bits_to_wait;
-				}
-			}
-			//!31th bit set it is timeout
-			retval = currp->obj.dmsg;
+			return currp->obj.evbits;
 		}
+		//!Control bits set it is an error code
+		return currp->obj.dmsg;
 	}
-	isix_exit_critical();
-	return retval;
 }
 
 //! Event clear bits
@@ -194,9 +207,11 @@ osbitset_ret_t _isixp_event_set( osevent_t evth, osbitset_t bits_to_set, bool is
 	} 
 	isix_enter_critical();
 	ostask_t wkup_task =  event_set( evth, bits_to_set );
+	// The result is read inside the critical section, the event may be destroyed after it
+	const osbitset_t retval = evth->bitset;
 	if( !isr ) _isixp_do_reschedule( wkup_task );
-	else	   isix_exit_critical();
-	return evth->bitset;
+	else	   _isixp_exit_critical_isr( wkup_task );
+	return retval;
 }
 
 //! Get bits from the ISR
@@ -226,6 +241,7 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 	if( !bits_to_wait||(bits_to_wait&ISIX_EVENT_CTRL_BITS) ) {
 		return ISIX_EINVARG;
 	}
+	const ostick_t start = isix_get_jiffies();
 	isix_enter_critical();
 	osbitset_t orgbits = evth->bitset;
 	ostask_t wkup_task = event_set( evth, bits_to_set );
@@ -235,33 +251,38 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
 		retval = orgbits|bits_to_set;
 		evth->bitset &= ~ bits_to_wait;
 	}
+	else if( timeout == ISIX_TIME_DONTWAIT )
+	{
+		retval = evth->bitset;
+	}
 	else
 	{
 		//Bit condition not meet
-		if( timeout != ISIX_TIME_DONTWAIT )
+		currp->wait_aborted = false;
+		_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
+		list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
+		currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG
+							| ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG;
+		if( wkup_task!= currp ) _isixp_do_reschedule( wkup_task );
+		else { isix_exit_critical(); isix_yield(); }
+		if( currp->wait_aborted )
 		{
-			_isixp_set_sleep_timeout( OSTHR_STATE_WTEVT, timeout );	//Goto sleep
-			list_insert_end( &evth->wait_list, &currp->inode );	//Place on bitset list
-			currp->obj.evbits =  bits_to_wait| ISIX_EVENT_CTRL_ALL_MATCH_FLAG
-								| ISIX_EVENT_CTRL_CLEAR_EXIT_FLAG;
-			if( wkup_task!= currp ) _isixp_do_reschedule( wkup_task );
-			else { isix_exit_critical(); isix_yield(); }
-			wkup_task = currp;
-			isix_enter_critical();
-			if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS) == 0 ) {
-				retval = currp->obj.evbits;
-			} else {
-				if( (evth->bitset&bits_to_wait) == bits_to_wait ) {
-					evth->bitset &= ~bits_to_wait;
+			// Resumed after suspend, bits are already set so only wait for them
+			ostick_t tout = timeout;
+			if( timeout != ISIX_TIME_INFINITE ) {
+				const ostick_t elapsed = isix_get_jiffies() - start;
+				if( elapsed >= timeout ) {
+					return ISIX_ETIMEOUT;
 				}
-				//!31th bit set it is timeout
-				retval = currp->obj.dmsg;
+				tout = timeout - elapsed;
 			}
+			return isix_event_wait( evth, bits_to_wait, true, true, tout );
 		}
-		else
-		{
-			retval = evth->bitset;
+		//The event object may be gone, only the wakeup message is used
+		if( (currp->obj.evbits&ISIX_EVENT_CTRL_BITS) == 0 ) {
+			return currp->obj.evbits;
 		}
+		return currp->obj.dmsg;
 	}
 	_isixp_do_reschedule( wkup_task );
 	return retval;

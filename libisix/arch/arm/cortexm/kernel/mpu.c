@@ -44,7 +44,7 @@ static inline uint32_t mpu_subregion_ls(size_t offset, uint8_t l2size)
 	 */
 	if (l2size < 32)
 	{
-		mask  = ((1 << l2size)-1) >> 3; /* Shifted mask */
+		mask  = ((1U << l2size)-1U) >> 3; /* Shifted mask */
 	}
 	/* The 4Gb region size is a special case */
 	else
@@ -79,7 +79,7 @@ static inline uint32_t mpu_subregion_ms(size_t size, uint8_t l2size)
 
   if (l2size < 32)
     {
-      mask  = ((1 << l2size)-1) >> 3; /* Shifted mask */
+      mask  = ((1U << l2size)-1U) >> 3; /* Shifted mask */
     }
 
   /* The 4Gb region size is a special case */
@@ -117,7 +117,7 @@ uint32_t mpu_subregion(uintptr_t base, size_t size, uint8_t l2size)
 		return 0;
 	}
 	/* Calculate the offset of the base address into the aligned region. */
-	mask   = (1 << l2size) - 1;
+	mask   = (1U << l2size) - 1U;
 	offset = base & mask;
 	/* Calculate the mask need to handle disabled subregions at the end of the
 	 * region

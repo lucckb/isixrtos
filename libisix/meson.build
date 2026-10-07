@@ -16,6 +16,7 @@ _sources = {
 		'arch/arm/cortexm/kernel/mpu.h',
 		'arch/arm/cortexm/kernel/scheduler.c',
 		'arch/arm/cortexm/kernel/systick.c',
+		'arch/arm/cortexm/kernel/systimer.c',
 	],
 }
 
@@ -43,6 +44,7 @@ libisix = declare_dependency(
 		_mach/'scheduler.c',
 		c_args : [
 			'-D_ISIX_KERNEL_CORE_=1',
+			'-Wstrict-prototypes', '-Wmissing-prototypes', '-Wshadow', '-Wundef',
 			meson.get_external_property('cache') ? '-D_ISIX_CACHE_PRESENT_=1' : [],
 		],
 		include_directories : _include,

@@ -2,6 +2,9 @@
 
 #include <isix/config.h>
 #include <isix/types.h>
+#if CONFIG_ISIX_SEM_EVENT_NOTIFY
+#include <isix/events.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,8 +33,11 @@ static inline ossem_t isix_sem_create( ossem_t sem, int val )
 }
 /** Wait on the semaphore P()
  * @param[in] sem Semaphore object
- * @param[in] timeout Max wait time
- * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ * @param[in] timeout Max wait time, ISIX_TIME_INFINITE waits forever and
+ *            ISIX_TIME_DONTWAIT only tries to take the token without waiting
+ * @note A task suspended while it waits keeps waiting for the remaining time after resume
+ * @return ISIX_EOK if the token was taken, ISIX_ETIMEOUT when the time elapsed or
+ *         the token was not available for ISIX_TIME_DONTWAIT, otherwise an error code
  */
 ISIX_CTX_SWITCH_API
 int isix_sem_wait( ossem_t sem, ostick_t timeout );
@@ -98,6 +104,24 @@ int isix_sem_getval( ossem_t sem );
  */
 int isix_sem_destroy( ossem_t sem );
 
+#if CONFIG_ISIX_SEM_EVENT_NOTIFY
+/** Connect an event bit to the semaphore. The bit is set each time a signal
+ * stores a token because no task is waiting. Tokens taken directly by a
+ * waiting task do not raise the event.
+ * @param[in] sem Semaphore object
+ * @param[in] evt Event object notified about available tokens
+ * @param[in] bit Bit number (0-31) to set
+ * @return ISIX_EOK on success, ISIX_EBUSY if an event is already connected
+ */
+int isix_sem_event_connect( ossem_t sem, osevent_t evt, int bit );
+
+/** Disconnect the event from the semaphore
+ * @param[in] sem Semaphore object
+ * @param[in] evt Event object previously connected
+ * @return ISIX_EOK on success, ISIX_EBUSY if this event is not connected
+ */
+int isix_sem_event_disconnect( ossem_t sem, osevent_t evt );
+#endif /* CONFIG_ISIX_SEM_EVENT_NOTIFY */
 
 #ifdef __cplusplus
 }	//end extern-C
@@ -138,5 +162,13 @@ namespace {
 	inline int sem_destroy( ossem_t sem ) {
 		return ::isix_sem_destroy( sem );
 	}
+#if CONFIG_ISIX_SEM_EVENT_NOTIFY
+	inline int sem_event_connect( ossem_t sem, osevent_t evt, int bit ) {
+		return ::isix_sem_event_connect( sem, evt, bit );
+	}
+	inline int sem_event_disconnect( ossem_t sem, osevent_t evt ) {
+		return ::isix_sem_event_disconnect( sem, evt );
+	}
+#endif
 }}
 #endif /* __cplusplus */

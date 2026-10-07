@@ -47,12 +47,12 @@
 
 
 struct cpu_stats {
-	ostick_t idle_t;
-	ostick_t idle_sum;
-	ostick_t norm_t;
-	ostick_t norm_sum;
+	ostick_t state_t;		// Timestamp of the last update
+	ostick_t win_t;			// Timestamp of the last published window
+	ostick_t busy_sum;		// Ticks spent outside of idle in the window
+	ostick_t idle_sum;		// Ticks spent in idle in the window
 	atomic_int rload;		// Final cpuload
-	bool old_state;
+	bool old_idle;			// Idle was scheduled at the last update
 };
 
 //! Cpu global statistics data
@@ -74,28 +74,25 @@ int isix_cpuload( void )
  */
 void _isixp_schedule_update_statistics( ostick_t t, bool idle_scheduled )
 {
-	if( cstats.old_state != idle_scheduled )
-	{
-		if( idle_scheduled )
-		{
-			cstats.norm_t = t;
-			cstats.idle_sum += t>cstats.idle_t?t-cstats.idle_t:cstats.idle_t-t;
-		}
-		else
-		{
-			cstats.idle_t = t;
-			cstats.norm_sum += t>cstats.norm_t?t-cstats.norm_t:cstats.norm_t-t;
-		}
+	// Window is closed on the first switch after the boundary, tickless has no switch every tick
+	const ostick_t delta = t - cstats.state_t;
+	if( cstats.old_idle ) {
+		cstats.idle_sum += delta;
+	} else {
+		cstats.busy_sum += delta;
 	}
-	if( (t%CYCLES_RST_COUNT) == 0 )
+	cstats.state_t = t;
+	if( (ostick_t)(t - cstats.win_t) >= CYCLES_RST_COUNT )
 	{
-		ostick_t den = cstats.idle_sum + cstats.norm_sum;
+		const ostick_t den = cstats.busy_sum + cstats.idle_sum;
 		if( den ) {
-			atomic_store( &cstats.rload, (CPULOAD_MAX*cstats.idle_sum)/den );
+			atomic_store( &cstats.rload,
+				(int)(((uint64_t)CPULOAD_MAX * cstats.busy_sum) / den) );
 		}
-		cstats.idle_sum = cstats.norm_sum = 0;
+		cstats.busy_sum = cstats.idle_sum = 0;
+		cstats.win_t = t;
 	}
-	cstats.old_state = idle_scheduled;
+	cstats.old_idle = idle_scheduled;
 }
 
 #endif /* CONFIG_ISIX_CPU_USAGE_API */

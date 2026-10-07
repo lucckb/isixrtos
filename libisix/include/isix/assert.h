@@ -42,6 +42,10 @@ extern "C" {
 #endif /*__cplusplus*/
 
 //! Halt system when critical error is found
+//! Application hook called by the panic handler, weak empty default in the kernel
+void isix_kernel_panic_callback( const char* file, int line, const char *msg );
+
+__attribute__((noreturn))
 void isix_kernel_panic( const char *file, int line, const char *msg );
 
 

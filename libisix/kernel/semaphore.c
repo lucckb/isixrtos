@@ -7,6 +7,11 @@
 #include <isix/arch/sem_atomic.h>
 #include <isix/prv/scheduler.h>
 #include <isix/assert.h>
+#include <isix/prv/test_hooks.h>
+#if CONFIG_ISIX_SEM_EVENT_NOTIFY
+#include <isix/events.h>
+#define ISIX_SEM_EVENT_INVALID_BITS 0xff
+#endif
 
 
 //Note data abort should mark clrex in CM3
@@ -53,23 +58,43 @@ int isix_sem_wait(ossem_t sem, ostick_t timeout)
 		pr_err("No sem");
 		return ISIX_EINVARG;
 	}
-	isix_enter_critical();
-	//Consistency check
-	if( _isix_port_atomic_sem_dec(&sem->value) < 0 )
-    {
+	if( timeout == ISIX_TIME_DONTWAIT ) {
+		return _isix_port_atomic_sem_trydec(&sem->value)>0?ISIX_EOK:ISIX_ETIMEOUT;
+	}
+	const ostick_t start = isix_get_jiffies();
+	for(;;)
+	{
+		isix_enter_critical();
+		//Consistency check
+		if( _isix_port_atomic_sem_dec(&sem->value) >= 0 )
+		{
+			isix_exit_critical();
+			return ISIX_EOK;
+		}
+		ostick_t tout = timeout;
+		if( timeout != ISIX_TIME_INFINITE )
+		{
+			// Remaining time after the wait was interrupted by suspend
+			const ostick_t elapsed = isix_get_jiffies() - start;
+			if( elapsed >= timeout ) {
+				_isixp_sem_fast_signal( sem );
+				isix_exit_critical();
+				return ISIX_ETIMEOUT;
+			}
+			tout = timeout - elapsed;
+		}
 		pr_debug("Add to list %p", currp );
 		/* Set before wait-list insert so a tick never sees WTSEM with stale obj.sem. */
 		currp->obj.sem = sem;
-		_isixp_set_sleep_timeout( OSTHR_STATE_WTSEM, timeout );
+		currp->wait_aborted = false;
+		_isixp_set_sleep_timeout( OSTHR_STATE_WTSEM, tout );
 		_isixp_add_to_prio_queue( &sem->wait_list, currp );
 		isix_exit_critical();
 		isix_yield();
-		return currp->obj.dmsg;
-    }
-	else
-	{
-		isix_exit_critical();
-		return ISIX_EOK;
+		// Resumed after suspend without a token, wait again
+		if( !currp->wait_aborted ) {
+			return currp->obj.dmsg;
+		}
 	}
 }
 
@@ -102,7 +127,19 @@ int _isixp_sem_signal( ossem_t sem, bool isr )
 	else
 	{
 		pr_debug("Waiting list is empty incval to %i",(int)sem->value.value );
+#if CONFIG_ISIX_SEM_EVENT_NOTIFY
+		// The semaphore may be destroyed right after leaving the critical section
+		const osevent_t ev = (osevent_t)atomic_load( (atomic_uintptr_t*)&sem->evt );
+		const uint8_t bitno = atomic_load( &sem->bitno );
+#endif
 		isix_exit_critical();
+		ISIX_TEST_POINT( isix_tp_sem_signal_notify, sem );
+#if CONFIG_ISIX_SEM_EVENT_NOTIFY
+		if( ev && bitno <= 31 ) {
+			if( !isr ) isix_event_set( ev, 1U<<bitno );
+			else isix_event_set_isr( ev, 1U<<bitno );
+		}
+#endif
 		return ISIX_EOK;
 	}
 }
@@ -128,7 +165,7 @@ static void sem_wakeup_all( ossem_t sem, osmsg_t msg, bool isr )
 	if( wkup_task && !isr) {
 		_isixp_do_reschedule( wkup_task );
 	} else {
-		isix_exit_critical();
+		_isixp_exit_critical_isr( wkup_task );
 	}
 }
 
@@ -172,3 +209,37 @@ int isix_sem_destroy(ossem_t sem)
 	return ISIX_EOK;
 }
 
+
+#if CONFIG_ISIX_SEM_EVENT_NOTIFY
+
+int isix_sem_event_connect( ossem_t sem, osevent_t evt, int bit )
+{
+	isix_assert_isr();
+	if( !sem || !evt || bit < 0 || bit > 31 ) {
+		return ISIX_EINVARG;
+	}
+	uintptr_t expected = 0;
+	if( !atomic_compare_exchange_strong((atomic_uintptr_t*)&sem->evt,
+				&expected, (uintptr_t)evt) ) {
+		return ISIX_EBUSY;
+	}
+	atomic_store( &sem->bitno, bit );
+	return ISIX_EOK;
+}
+
+int isix_sem_event_disconnect( ossem_t sem, osevent_t evt )
+{
+	isix_assert_isr();
+	if( !sem || !evt ) {
+		return ISIX_EINVARG;
+	}
+	uintptr_t expected = (uintptr_t)evt;
+	if( !atomic_compare_exchange_strong((atomic_uintptr_t*)&sem->evt,
+				&expected, (uintptr_t)NULL) ) {
+		return ISIX_EBUSY;
+	}
+	atomic_store( &sem->bitno, ISIX_SEM_EVENT_INVALID_BITS );
+	return ISIX_EOK;
+}
+
+#endif /* CONFIG_ISIX_SEM_EVENT_NOTIFY */

@@ -112,7 +112,7 @@ bool isix_get_irq_enabled( int irqno )
  */
 bool isix_get_irq_pending( int irqno )
 {
-	return NVIC_ISPR(irqno / 32) & (1 << (irqno % 32U)) ? true : false;
+	return NVIC_ISPR(irqno / 32) & (1U << (irqno % 32U)) ? true : false;
 }
 
 
@@ -214,7 +214,7 @@ void isix_set_irq_priority( int irqno, isix_irq_prio_t priority )
  */
 bool isix_get_active_irq( int irqno )
 {
-	return NVIC_IABR(irqno / 32) & (1 << (irqno % 32)) ? true : false;
+	return NVIC_IABR(irqno / 32) & (1U << (irqno % 32U)) ? true : false;
 }
 
 /** Generate software interrupt
