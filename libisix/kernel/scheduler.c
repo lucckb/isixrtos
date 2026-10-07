@@ -10,6 +10,7 @@
 #include <isix/prv/condvar.h>
 #include <isix/prv/mmalloc.h>
 #include <isix/prv/scheduler.h>
+#include <isix/prv/test_hooks.h>
 #include <isix/arch/memprot.h>
 #include <isix/arch/cpu.h>
 #include <isix/arch/core.h>
@@ -29,29 +30,32 @@
 static ISIX_TASK_FUNC(idle_task,p);
 static void add_ready_list( ostask_t task );
 static void cleanup_tasks(void);
-static void internal_schedule_time(void);
+static void advance_jiffies(ostick_t ticks);
 #if CONFIG_ISIX_TICKLESS
 static void enter_tickless_idle(void);
 static void catch_up_missed_ticks(ostick_t elapsed);
-static ostick_t calculate_elapsed_ticks_from_systick(void);
 static ostick_t calculate_next_timeout(void);
 static bool can_enter_tickless_sleep(void);
-static void _isixp_tickless_resume_after_wfi(void);
-static uint32_t tickless_ticks_per_jiffy(void);
-static ostick_t tickless_ticks_from_reload(void);
 #endif
 
 // Task reschedule lock for spinlock
 static struct isix_system csys;
+
+#if CONFIG_ISIX_TEST_HOOKS
+void (*volatile _isixp_test_hook)( enum isix_test_point point, void* arg ) = NULL;
+
+int _isixp_test_critical_count(void)
+{
+	return atomic_load( &csys.critical_count );
+}
+#endif
 //Current task pointer
 volatile bool _isix_scheduler_running;
 /* Referenced from asm in arch scheduler; keep when linking with LTO. */
 ostask_t volatile _isix_current_task __attribute__((used));
 
-#if CONFIG_ISIX_TICKLESS
-static volatile bool tickless_mode_active;
-static ostick_t tickless_expected_ticks;
-static uint32_t tickless_arm_cvr_start;
+#if CONFIG_ISIX_TICKLESS && defined(CONFIG_ISIX_TEST)
+static volatile bool tickless_test_wfi;
 #endif
 
 //! Ununsed systick handler
@@ -94,9 +98,7 @@ void _isixp_test_set_jiffies(ostick_t v)
 void _isixp_test_advance_jiffies(ostick_t dt)
 {
 	isix_enter_critical();
-	for( ostick_t i = 0; i < dt; ++i ) {
-		internal_schedule_time();
-	}
+	advance_jiffies(dt);
 	isix_exit_critical();
 }
 #endif
@@ -108,36 +110,24 @@ osprio_t isix_get_min_priority(void)
 }
 
 /** Temporary lock task reschedule */
-void _isixp_lock_scheduler()
+void _isixp_lock_scheduler(void)
 {
 	_isix_port_atomic_sem_inc( &csys.sched_lock );
 }
 
 
-//! Decrement jiffies skipped counter return bool if it is still gt 0
-static bool dec_jiffies_skipped_counter(void)
-{
-	int newval, oldval;
-	do {
-		oldval = atomic_load(&csys.jiffies_skipped);
-		if( oldval > 0 ) {
-			newval = oldval - 1;
-		} else {
-			return false;
-		}
-	} while(!atomic_compare_exchange_weak(
-		&csys.jiffies_skipped, &oldval, newval));
-	return true;
-}
-
-
 /** Temporary unlock task reschedule */
-void _isixp_unlock_scheduler()
+void _isixp_unlock_scheduler(void)
 {
-	if( _isix_port_atomic_sem_dec( &csys.sched_lock ) == 1 ) {
+	const int lock_count = _isix_port_atomic_sem_dec( &csys.sched_lock );
+	if( lock_count < 0 ) {
+		isix_bug("Scheduler unlock without lock");
+	}
+	if( lock_count == 0 ) {
 		isix_enter_critical();
-		while( dec_jiffies_skipped_counter() ) {
-			internal_schedule_time();
+		const int skipped = atomic_exchange(&csys.jiffies_skipped, 0);
+		if( skipped > 0 ) {
+			advance_jiffies((ostick_t)skipped);
 		}
 		if( atomic_load(&csys.yield_pending) ) {
 			_isix_port_yield();
@@ -165,7 +155,7 @@ void isix_shutdown_scheduler(void)
 /** Function called at end of isix execution only
  * when shutdown API is enabled
  */
-void _isixp_finalize()
+void _isixp_finalize(void)
 {
 	_isixp_vtimers_finalize();
 	cleanup_tasks();
@@ -175,10 +165,10 @@ void _isixp_finalize()
 //Lock scheduler
 void isix_enter_critical(void)
 {
+	//Mask must be set before the count is visible, else PendSV can switch with count > 0
+	_isix_port_set_interrupt_mask();
 	int res = atomic_fetch_add( &csys.critical_count, 1 );
-	if( res == 0 ) {
-		_isix_port_set_interrupt_mask();
-	} else if( res < 0 ) {
+	if( res < 0 ) {
 		isix_bug("Invalid lock count");
 	}
 	_isix_port_flush_memory();
@@ -188,10 +178,11 @@ void isix_enter_critical(void)
 void isix_exit_critical(void)
 {
 	int res = atomic_fetch_sub( &csys.critical_count, 1 );
-	if( res <= 1 ) {
-		_isix_port_clear_interrupt_mask();
-    } else if( res <= 0 ) {
+	if( res <= 0 ) {
 		isix_bug("Invalid lock count");
+	}
+	if( res == 1 ) {
+		_isix_port_clear_interrupt_mask();
 	}
 	_isix_port_flush_memory();
 }
@@ -203,7 +194,8 @@ void isix_init(unsigned long core_freq)
 	//Schedule lock count
     isix_assert_isr();
 	_isix_port_memory_protection_set_default_map();
-	_isix_port_atomic_sem_init( &csys.sched_lock, 0, 1 );
+	//The lock is nestable because the heap allocator uses it
+	_isix_port_atomic_sem_init( &csys.sched_lock, 0, sys_atomic_unlimited_value );
 	atomic_init( &csys.critical_count, 0 );
 	//Copy priority
 	//Init heap
@@ -362,32 +354,17 @@ void _isixp_schedule(void)
     }
 }
 
-//Time call from isr
-static void internal_schedule_time(void)
+//Wake the tasks and timers with the deadline reached
+static void expire_waiting_tasks( ostick_t jiffies )
 {
-	//Increment sys tick
-	atomic_fetch_add(&csys.jiffies, 1);
-	if(!schrun)
-	{
-		return;
-	}
-	const ostick_t jiffies = atomic_load(&csys.jiffies);
-	if(jiffies == 0)
-	{
-	   list_entry_t *tmp = csys.p_wait_list;
-	   csys.p_wait_list = csys.pov_wait_list;
-	   csys.pov_wait_list = tmp;
-	}
-
-    ostask_t task_c;
-
-    while( !list_isempty(csys.p_wait_list) &&
+	ostask_t task_c;
+	while( !list_isempty(csys.p_wait_list) &&
 		jiffies >=
 		(task_c=list_first_entry(csys.p_wait_list,inode_time,struct isix_task))->jiffies
 	)
-    {
+	{
 		pr_debug("schedtime: task %p jiffies %i task_time %i", task_c,jiffies,task_c->jiffies);
-        list_delete(&task_c->inode_time);
+		list_delete(&task_c->inode_time);
 		if( task_c->state == OSTHR_STATE_WTSEM ) {
 			/*
 			if( _isixp_remove_from_prio_queue(&task_c->obj.sem->wait_list)!=task_c ) {
@@ -405,52 +382,46 @@ static void internal_schedule_time(void)
 			task_c->obj.dmsg = ISIX_ETIMEOUT;
 		}
 		add_ready_list( task_c );
-    }
+	}
+}
+
+//Advance the system time by the number of ticks, the critical section must be held
+static void advance_jiffies( ostick_t ticks )
+{
+	while( ticks > 0U )
+	{
+		const ostick_t now = atomic_load(&csys.jiffies);
+		// Number of ticks after which the counter becomes zero
+		const uint64_t to_wrap = (uint64_t)ISIX_TIME_MAX_TICK - now + 1ULL;
+		if( (uint64_t)ticks < to_wrap )
+		{
+			atomic_fetch_add(&csys.jiffies, ticks);
+			if( schrun ) {
+				expire_waiting_tasks( now + ticks );
+			}
+			return;
+		}
+		if( to_wrap > 1U )
+		{
+			atomic_fetch_add(&csys.jiffies, (ostick_t)(to_wrap - 1U));
+			if( schrun ) {
+				expire_waiting_tasks( ISIX_TIME_MAX_TICK );
+			}
+		}
+		atomic_fetch_add(&csys.jiffies, 1U);
+		if( schrun )
+		{
+			// The deadlines after the wrap are on the overflow list
+			list_entry_t *tmp = csys.p_wait_list;
+			csys.p_wait_list = csys.pov_wait_list;
+			csys.pov_wait_list = tmp;
+			expire_waiting_tasks( 0U );
+		}
+		ticks -= (ostick_t)to_wrap;
+	}
 }
 
 #if CONFIG_ISIX_TICKLESS
-static uint32_t tickless_ticks_per_jiffy(void)
-{
-	unsigned long f = _isix_port_get_core_freq();
-	uint32_t t = (uint32_t)(f / (unsigned long)CONFIG_ISIX_HZ);
-	return t ? t : 1U;
-}
-
-static ostick_t tickless_ticks_from_reload(void)
-{
-	uint32_t r = _isix_port_tickless_get_oneshot_timer_reload_value();
-	uint32_t tpp = tickless_ticks_per_jiffy();
-	uint64_t cyc = (uint64_t)r + 1ULL;
-	ostick_t t = (ostick_t)(cyc / (uint64_t)tpp);
-	if( t == 0U ) {
-		t = 1U;
-	}
-	return t;
-}
-
-static ostick_t calculate_elapsed_ticks_from_systick(void)
-{
-	uint32_t r = _isix_port_tickless_get_oneshot_timer_reload_value();
-	uint32_t c = _isix_port_tickless_get_oneshot_timer_current_value();
-	uint32_t start = tickless_arm_cvr_start;
-	uint32_t tpp = tickless_ticks_per_jiffy();
-	uint32_t diff;
-	if( start >= c ) {
-		diff = start - c;
-	} else {
-		diff = start + (r + 1U) - c;
-	}
-	uint64_t ticks64 = (uint64_t)diff / (uint64_t)tpp;
-	if( ticks64 > (uint64_t)ISIX_TIME_MAX_TICK ) {
-		return ISIX_TIME_MAX_TICK;
-	}
-	ostick_t ticks = (ostick_t)ticks64;
-	if( ticks == 0U ) {
-		ticks = 1U;
-	}
-	return ticks;
-}
-
 static void catch_up_missed_ticks(ostick_t elapsed)
 {
 	if( elapsed == 0U || !schrun ) {
@@ -460,9 +431,7 @@ static void catch_up_missed_ticks(ostick_t elapsed)
 		atomic_fetch_add(&csys.jiffies_skipped, (int)elapsed);
 		return;
 	}
-	for( ostick_t i = 0; i < elapsed; i++ ) {
-		internal_schedule_time();
-	}
+	advance_jiffies(elapsed);
 }
 
 static bool can_enter_tickless_sleep(void)
@@ -482,7 +451,8 @@ static bool can_enter_tickless_sleep(void)
 	if( atomic_load(&csys.jiffies_skipped) > 0 ) {
 		return false;
 	}
-	return true;
+	// The idle task has to reclaim the finished tasks
+	return csys.number_of_task_deleted == 0U;
 }
 
 static ostick_t calculate_next_timeout(void)
@@ -505,6 +475,7 @@ static ostick_t calculate_next_timeout(void)
 	if( vtd < ticks_until_timeout ) {
 		ticks_until_timeout = vtd;
 	}
+	// Deadlines after the wrap are not known here, wake up at the wrap
 	if( ticks_to_wraparound < ticks_until_timeout ) {
 		ticks_until_timeout = ticks_to_wraparound - 1U;
 	}
@@ -514,100 +485,60 @@ static ostick_t calculate_next_timeout(void)
 	return ticks_until_timeout;
 }
 
-static void _isixp_tickless_resume_after_wfi(void)
-{
-	if( !tickless_mode_active ) {
-		return;
-	}
-	ostick_t elapsed = calculate_elapsed_ticks_from_systick();
-	if( elapsed > tickless_expected_ticks ) {
-		elapsed = tickless_expected_ticks;
-	}
-	_isix_port_restore_periodic_tick_timer(_isix_port_get_core_freq());
-	tickless_mode_active = false;
-	catch_up_missed_ticks(elapsed);
-}
-
 static void enter_tickless_idle(void)
 {
-	ostick_t jiffies_before = atomic_load(&csys.jiffies);
+	const ostick_t jiffies_before = atomic_load(&csys.jiffies);
 	isix_enter_critical();
-	if( !can_enter_tickless_sleep() ) {
+	if( _isix_port_systimer_is_sleeping() || !can_enter_tickless_sleep() ) {
 		isix_exit_critical();
 		_isix_port_idle_cpu();
 		return;
 	}
-	ostick_t next = calculate_next_timeout();
-	if( next < (ostick_t)CONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS ) {
+	const ostick_t next = calculate_next_timeout();
+	const ostick_t timeout = (next < (ostick_t)CONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS) ?
+		1U : _isix_port_systimer_set_timeout(next);
+	if( timeout < 2U ) {
 		isix_exit_critical();
 		_isix_port_idle_cpu();
 		return;
 	}
-	isix_pre_sleep_hook(next);
-	tickless_expected_ticks = next;
-	_isix_port_configure_tickless_oneshot_timer(next, _isix_port_get_core_freq());
-	tickless_arm_cvr_start = _isix_port_tickless_get_oneshot_timer_current_value();
-	{
-		ostick_t eff = tickless_ticks_from_reload();
-		if( eff > next ) {
-			eff = next;
+	isix_pre_sleep_hook(timeout);
+	// Tick interrupts and interrupts that wake nothing do not end the sleep
+	do {
+		isix_exit_critical();
+#ifdef CONFIG_ISIX_TEST
+		if( tickless_test_wfi ) {
+			asm volatile("wfi\t\n");
+		} else
+#endif
+		{
+			_isix_port_idle_cpu();
 		}
-		tickless_expected_ticks = eff;
-	}
-	tickless_mode_active = true;
-	isix_exit_critical();
-	_isix_port_idle_cpu();
-	isix_enter_critical();
-	_isixp_tickless_resume_after_wfi();
-	{
-		ostick_t actual = atomic_load(&csys.jiffies) - jiffies_before;
-		isix_post_sleep_hook(actual);
-	}
+		isix_enter_critical();
+	} while( _isix_port_systimer_is_sleeping() && can_enter_tickless_sleep() );
+	catch_up_missed_ticks(_isix_port_systimer_resync());
+	isix_post_sleep_hook(atomic_load(&csys.jiffies) - jiffies_before);
 	isix_exit_critical();
 }
 
-bool _isixp_tickless_on_systick_isr(void)
+#ifdef CONFIG_ISIX_TEST
+void _isixp_test_tickless_force_wfi( bool enable )
 {
-	if( !tickless_mode_active ) {
-		return false;
-	}
-	ostick_t elapsed = tickless_expected_ticks;
-	_isix_port_restore_periodic_tick_timer(_isix_port_get_core_freq());
-	tickless_mode_active = false;
-	catch_up_missed_ticks(elapsed);
-	return true;
+	tickless_test_wfi = enable;
 }
-
-void _isixp_tickless_notify_irq_exit(void)
-{
-	if( !tickless_mode_active ) {
-		return;
-	}
-	ostick_t elapsed = calculate_elapsed_ticks_from_systick();
-	if( elapsed > tickless_expected_ticks ) {
-		elapsed = tickless_expected_ticks;
-	}
-	_isix_port_restore_periodic_tick_timer(_isix_port_get_core_freq());
-	tickless_mode_active = false;
-	catch_up_missed_ticks(elapsed);
-}
+#endif
 #endif /* CONFIG_ISIX_TICKLESS */
 
 
-//Schedule time handled from timer context
-void _isixp_schedule_time()
+//Account the ticks reported by the system timer
+void _isixp_systimer_announce( ostick_t ticks )
 {
 	//Call isix system time handler if used
-    isix_systime_handler();
-    if( _isix_port_atomic_sem_read_val( &csys.sched_lock ) ) {
-		atomic_fetch_add( &csys.jiffies_skipped, 1 );
+	isix_systime_handler();
+	if( _isix_port_atomic_sem_read_val( &csys.sched_lock ) ) {
+		atomic_fetch_add( &csys.jiffies_skipped, (int)ticks );
 	} else {
-		//Increment system ticks
-		isix_enter_critical();
-		//Internal schedule time
-		internal_schedule_time();
-		//Clear interrupt mask
-		isix_exit_critical();
+		advance_jiffies( ticks );
 	}
 }
 
@@ -757,8 +688,10 @@ static void cleanup_tasks(void)
 {
     if( csys.number_of_task_deleted > 0 )
     {
-		bool do_clean = false;
 		ostask_t task_del = NULL;
+		ostask_t to_free = NULL;
+		void* stack = NULL;
+		void* reent = NULL;
         isix_enter_critical();
         if(!list_isempty(&csys.zombie_list))
         {
@@ -766,23 +699,21 @@ static void cleanup_tasks(void)
             list_delete(&task_del->inode);
 			pr_info( "Task to delete: %p(SP %p) PRIO: %i",
 						task_del,task_del->init_stack,task_del->prio );
-            if( task_del->refcnt == 0 ) do_clean = true;
+			stack = task_del->init_stack;
+			task_del->init_stack = NULL;
+			reent = task_del->impure_data;
+			task_del->impure_data = NULL;
+			if( task_del->refcnt == 0 ) to_free = task_del;
 			task_del->state = OSTHR_STATE_EXITED;
 			csys.number_of_task_deleted--;
         }
         isix_exit_critical();
 		if( task_del ) {
-			void *ptr = task_del->init_stack;
-			task_del->init_stack = NULL;
-			__sync_synchronize();
-			isix_free( ptr );
-			if( task_del->impure_data ) {
-				ptr = task_del->impure_data;
-				task_del->impure_data = NULL;
-				__sync_synchronize();
-				isix_free( ptr );
-			}
-			if( do_clean ) isix_free(task_del);
+			// After leaving the critical section isix_task_unref may free the TCB
+			ISIX_TEST_POINT( isix_tp_task_cleanup, task_del );
+			isix_free( stack );
+			if( reent ) isix_free( reent );
+			if( to_free ) isix_free( to_free );
 		}
     }
 }
@@ -874,15 +805,21 @@ void _isixp_wakeup_task( ostask_t task, osmsg_t msg )
 void _isixp_wakeup_task_i( ostask_t task, osmsg_t msg )
 {
 	wakeup_task( task, msg );
+	_isixp_exit_critical_isr( task );
+}
+
+//Leave the critical section in the ISR path, yield when the woken task has the higher priority
+void _isixp_exit_critical_isr( ostask_t woken )
+{
 #if CONFIG_ISIX_TICKLESS
-	_isixp_tickless_notify_irq_exit();
-#endif
-	isix_exit_critical();
-#if CONFIG_ISIX_TICKLESS
-	if( schrun && currp && _isixp_prio_gt(task->prio, currp->prio) ) {
-		_isix_port_yield();
+	if( woken ) {
+		catch_up_missed_ticks( _isix_port_systimer_resync() );
 	}
 #endif
+	isix_exit_critical();
+	if( woken && schrun && currp && _isixp_prio_gt(woken->prio, currp->prio) ) {
+		_isix_port_yield();
+	}
 }
 
 //Wakeup but don't reschedule but not unlock
@@ -895,6 +832,12 @@ void _isixp_wakeup_task_l( ostask_t task, osmsg_t msg )
 void _isixp_set_sleep( thr_state_t newstate )
 {
 	pr_debug("gts: task %p new_state %i", currp, newstate );
+#if CONFIG_ISIX_TEST_HOOKS
+	if( schrun && (atomic_load(&csys.critical_count) != 1 ||
+		_isix_port_atomic_sem_read_val(&csys.sched_lock)) ) {
+		isix_bug( "Blocking call with critical section or scheduler lock held" );
+	}
+#endif
 	delete_from_ready_list( currp );
 	currp->state = newstate;
 }
@@ -919,15 +862,15 @@ void _isixp_reallocate_priority( ostask_t task, int newprio )
 		task->state = OSTHR_STATE_SCHEDULE;
 		add_ready_list( task );
 	} else if( task->state == OSTHR_STATE_WTSEM ) {
-		_isixp_remove_from_prio_queue( &task->obj.sem->wait_list );
+		list_delete( &task->inode );
 		task->prio = newprio;
 		_isixp_add_to_prio_queue( &task->obj.sem->wait_list, task );
 	} else if( task->state == OSTHR_STATE_WTMTX ) {
-		_isixp_remove_from_prio_queue( &task->obj.mtx->wait_list );
+		list_delete( &task->inode );
 		task->prio = newprio;
 		_isixp_add_to_prio_queue( &task->obj.mtx->wait_list, task );
 	} else if( task->state == OSTHR_STATE_WTCOND ) {
-		_isixp_remove_from_prio_queue( &task->obj.cond->wait_list );
+		list_delete( &task->inode );
 		task->prio = newprio;
 		_isixp_add_to_prio_queue( &task->obj.cond->wait_list, task );
 	}
@@ -954,15 +897,29 @@ void _isixp_add_kill_or_set_suspend( ostask_t task, bool suspend )
 	if( task->state == OSTHR_STATE_WTEVT )
 	{
 		list_delete( &task->inode );
+		task->wait_aborted = suspend;
 	}
 	else if( task->state == OSTHR_STATE_WTSEM )
 	{
 		_isixp_sem_fast_signal( task->obj.sem );
 		list_delete( &task->inode );
+		task->wait_aborted = suspend;
 	}
 	else if( task->state == OSTHR_STATE_WTCOND ) {
 		//NOTE: Locked mutex will be released
 		list_delete( &task->inode );
+	}
+	else if( task->state == OSTHR_STATE_WTMTX )
+	{
+		const osmtx_t mutex = task->obj.mtx;
+		list_delete( &task->inode );
+		_isixp_mutex_waiter_removed( mutex );
+		task->wait_aborted = suspend;
+	}
+	else if( task->state == OSTHR_STATE_WTEXIT )
+	{
+		list_delete( &task->inode );
+		task->wait_aborted = suspend;
 	}
 	if( suspend )
 	{

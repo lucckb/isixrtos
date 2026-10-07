@@ -2,6 +2,9 @@
 
 #include <config/conf.h>
 
+/* Optional: #define CONFIG_ISIX_CPP_COROUTINES 1 before including <isix.h> (or pass -D) to
+ * include C++20 coroutine helpers (isix/cpp/coroutine.hpp). */
+
 /** Ticks per seconds */
 #ifndef CONFIG_ISIX_HZ
 #define CONFIG_ISIX_HZ 1000
@@ -44,10 +47,16 @@
 //#define CONFIG_ISIX_CPU_USAGE_API 1
 
 /** Tickless idle: disable periodic SysTick when idle (set via meson tickless or tests) */
-//#define CONFIG_ISIX_TICKLESS
+#ifndef CONFIG_ISIX_TICKLESS
+#define CONFIG_ISIX_TICKLESS 0
+#endif
 #ifndef CONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS
 #define CONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS 2
 #endif
+#if CONFIG_ISIX_TICKLESS && CONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS < 2
+#error "CONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS must be at least 2"
+#endif
+//! The long timer period is shortened by this number of ticks, the end of the sleep is exact so 0 is enough
 #ifndef CONFIG_ISIX_TICKLESS_TIMER_COMPENSATION_TICKS
-#define CONFIG_ISIX_TICKLESS_TIMER_COMPENSATION_TICKS 1
+#define CONFIG_ISIX_TICKLESS_TIMER_COMPENSATION_TICKS 0
 #endif

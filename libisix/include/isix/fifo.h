@@ -35,8 +35,9 @@ static inline osfifo_t isix_fifo_create( int n_elem, int elem_size )
 /** Push element in the queue
  * @param[in] fifo  Pointer to queue
  * @param[in] item item The element push in the queue
- * @param[in] timeout Timeout for selected queue
- * @return 0 if success else return error     */
+ * @param[in] timeout Timeout for selected queue, ISIX_TIME_DONTWAIT does not wait for the free space
+ * @return ISIX_EOK if success, ISIX_ETIMEOUT when no space is available in time,
+ *         ISIX_EDESTROY when the fifo was destroyed during the wait, otherwise an error code */
 int isix_fifo_write(osfifo_t fifo, const void *item, ostick_t timeout);
 
 
@@ -48,13 +49,14 @@ int isix_fifo_write_isr(osfifo_t queue, const void *item);
 
 
 /** Delete queue
- * @param[in] fifo Pointer to the fifo object*/
+ * @param[in] fifo Pointer to the fifo object, blocked tasks are released with ISIX_EDESTROY
+ * @return ISIX_EOK if success, ISIX_EINVARG for the null fifo */
 int isix_fifo_destroy(osfifo_t fifo);
 
 
 /** Return number of the elements available in the fifo
  * @param[in] fifo Pointer to the fifo object
- * @return ISIX_EOK if success else return an error */
+ * @return Number of elements (zero when readers are waiting) or an error code */
 int isix_fifo_count(osfifo_t fifo);
 
 

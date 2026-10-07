@@ -28,7 +28,7 @@
 #endif
 
 #if CONFIG_ISIX_MEMORY_PROTECTION_MODEL == ISIX_MPROT_LITE
-static void setup_regions()
+static void setup_regions(void)
 {
 	mpu_set_region( 0, 0x20000000,
 			MPU_RGN_PERM_PRV_RW_USR_RW|
@@ -47,7 +47,7 @@ static void setup_regions()
 
 #elif CONFIG_ISIX_MEMORY_PROTECTION_MODEL == ISIX_MPROT_FULL
 #error ISIX_MPROT_FULL not supported yet
-static void setup_regions()
+static void setup_regions(void)
 {
 }
 #endif /* CONFIG_ISIX_MEMORY_PROTECTION_MODEL */

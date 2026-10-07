@@ -49,6 +49,10 @@ int isix_task_change_prio( ostask_t task, osprio_t new_prio );
 
 /** Delete the task pointed by the task control object
  *	@param[in] task Task control object
+ *	@note Wakes tasks waiting in isix_task_wait_for (ISIX_EOK on self kill,
+ *	ISIX_EDESTROY otherwise)
+ *	@note Killing a task releases its mutexes but the data protected by them
+ *	can be left inconsistent. The heap is safe.
  */
 ISIX_CTX_SWITCH_API
 void isix_task_kill( ostask_t task );
@@ -82,9 +86,10 @@ ostask_t isix_task_self(void);
 _ssize_t isix_free_stack_space( const ostask_t task );
 #endif
 
-/** Suspend the current task
+/** Suspend the task, finished (zombie, exited) and already suspended tasks are ignored
  * @param[in] Task identifier
- * @return Error code
+ * @note Wait on a semaphore, event, mutex or task exit continues with the remaining time
+ *  after resume.
  */
 ISIX_CTX_SWITCH_API
 void isix_task_suspend( ostask_t task );
@@ -115,8 +120,15 @@ int isix_task_ref( ostask_t task );
 int isix_task_unref( ostask_t task );
 
 /** @brief Wait for selected task to finish
- *  @param[in] task Input task to wait for
- *  @return Task waiting status
+ *  @param[in] task Input task to wait for, the caller must hold a reference to it
+ *  @return ISIX_EOK the task finished itself (function return or self kill),
+ *          or it was already finished
+ *  @return ISIX_EDESTROY the task was killed by another task while waiting
+ *  @return ISIX_EINVARG null task or waiting for itself
+ *  @return ISIX_ENOREF the task has no references
+ *  @note Suspend and resume of the waiting task do not interrupt the wait
+ *  @note A task killed by another task before the wait started gives ISIX_EOK
+ *  @note Take the reference with isix_task_flag_ref or isix_task_ref
  */
 ISIX_CTX_SWITCH_API
 int isix_task_wait_for( ostask_t task );
@@ -172,6 +184,7 @@ namespace {
 	inline int task_unref( ostask_t task ) {
 		return ::isix_task_unref( task );
 	}
+	//! Wait for the task to finish, see isix_task_wait_for
 	inline int task_wait_for( ostask_t task ) {
 		return ::isix_task_wait_for( task );
 	}

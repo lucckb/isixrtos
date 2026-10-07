@@ -65,10 +65,11 @@ int isix_fifo_write(osfifo_t fifo,const void *item, ostick_t timeout)
 {
     isix_assert_isr();
     if(!fifo) return ISIX_EINVARG;
-    if(isix_sem_wait(&fifo->tx_sem,timeout)<0)
+    const int wrc = isix_sem_wait(&fifo->tx_sem,timeout);
+    if(wrc<0)
     {
         pr_info("FifoWrite: Timeout on TX queue");
-        return ISIX_ETIMEOUT;
+        return wrc;
     }
     _fifo_lock(fifo);
     memcpy(fifo->tx_p,item,fifo->elem_size);
@@ -77,9 +78,13 @@ int isix_fifo_write(osfifo_t fifo,const void *item, ostick_t timeout)
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
     _fifo_unlock(fifo);
     pr_debug("FifoWrite: New TXp %p",fifo->tx_p);
-    //Signaling RX thread with new data
+    //Signaling RX thread with new data, notify the event only after the item is counted
+    //The scheduler is locked so a woken reader cannot destroy the fifo before the event is raised
+    _isixp_lock_scheduler();
+    const int rc = isix_sem_signal(&fifo->rx_sem);
 	_isixp_fifo_rxavail_event_raise( fifo, false );
-    return isix_sem_signal(&fifo->rx_sem);
+    _isixp_unlock_scheduler();
+    return rc;
 }
 
 //Fifo send to other task
@@ -99,9 +104,10 @@ int isix_fifo_write_isr(osfifo_t fifo,const void *item)
     if(fifo->tx_p >= fifo->mem_p+fifo->size) fifo->tx_p = fifo->mem_p;
     _fifo_unlock(fifo);
     pr_debug("FifoWriteISR: New TXp %p",fifo->tx_p);
-    //Signaling RX thread with new data
+    //Signaling RX thread with new data, notify the event only after the item is counted
+    const int rc = isix_sem_signal_isr(&fifo->rx_sem);
 	_isixp_fifo_rxavail_event_raise( fifo, true );
-    return isix_sem_signal_isr(&fifo->rx_sem);
+    return rc;
 }
 
 //Fifo receive from other task
@@ -109,10 +115,11 @@ int isix_fifo_read(osfifo_t fifo,void *item, ostick_t timeout)
 {
     isix_assert_isr();
     if(!fifo) return ISIX_EINVARG;
-    if(isix_sem_wait(&fifo->rx_sem,timeout)<0)
+    const int rrc = isix_sem_wait(&fifo->rx_sem,timeout);
+    if(rrc<0)
     {
        pr_err("FifoRead: Timeout on RX queue");
-       return ISIX_ETIMEOUT;
+       return rrc;
     }
     _fifo_lock(fifo);
     memcpy(item,fifo->rx_p,fifo->elem_size);
@@ -152,6 +159,7 @@ int isix_fifo_read_isr(osfifo_t fifo,void *item)
 int isix_fifo_destroy(osfifo_t fifo)
 {    
     isix_assert_isr();
+    if(!fifo) return ISIX_EINVARG;
     _fifo_lock(fifo);
     //Destroy RXSEM and TXSEM
     isix_sem_destroy(&fifo->rx_sem);
@@ -168,6 +176,8 @@ int isix_fifo_destroy(osfifo_t fifo)
 int isix_fifo_count(osfifo_t fifo)
 {
     if(!fifo) return ISIX_EINVARG;
-    return isix_sem_getval(&fifo->rx_sem);
+    // Negative semaphore value is the number of blocked readers
+    const int val = isix_sem_getval(&fifo->rx_sem);
+    return val>0?val:0;
 }
 

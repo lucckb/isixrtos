@@ -38,7 +38,7 @@ static struct
 {
 	struct header         free;   /* Guaranteed to be not adjacent to the heap */
 	size_t 				  used;	  /* Total used memory block */
-#if SEQFIT_LOCK
+#ifdef SEQFIT_MLOCK_T
 	SEQFIT_MLOCK_T		  lock;	  /* Global memory lock */
 #endif
 } heap;
@@ -110,6 +110,9 @@ void seqfit_free(void *p)
 {
   struct header *qp, *hp;
 
+  if (p == NULL) {
+    return;
+  }
   SEQFIT_ACQUIRE_LOCK( &heap.lock );
   hp = (struct header *)p - 1;
   qp = &heap.free;
@@ -152,12 +155,13 @@ void* seqfit_realloc(void *ptr, size_t size )
 		seqfit_free( ptr );
 		return NULL;
 	}
-	if( seqfit_heap_getsize(ptr) >= size ) {
+	const size_t old_size = seqfit_heap_getsize(ptr);
+	if( old_size >= size ) {
 		return ptr;
 	}
 	void* mem = seqfit_alloc( size );
 	if( mem != NULL ) {
-		memcpy( mem, ptr, size );
+		memcpy( mem, ptr, old_size );
 		seqfit_free( ptr );
 	}
 	return mem;
@@ -189,3 +193,36 @@ size_t seqfit_heap_getsize( void* ptr )
 	}
 }
 
+
+#if CONFIG_ISIX_TEST_HOOKS
+#include <isix/prv/test_hooks.h>
+
+int _isixp_heap_check(void)
+{
+	extern unsigned char __heap_start[], __heap_end[];
+	int ret = 0;
+	SEQFIT_ACQUIRE_LOCK( &heap.lock );
+	const struct header *prev = NULL;
+	for (const struct header *p = heap.free.h.h_next; p; p = p->h.h_next) {
+		const unsigned char *beg = (const unsigned char *)p;
+		const unsigned char *end = (const unsigned char *)LIMIT(p);
+		if (beg < __heap_start || end > __heap_end || end < beg) {
+			ret = -1;
+		} else if (p->h_size & ALIGN_MASK) {
+			ret = -2;
+		} else if (prev && (const unsigned char *)p <= (const unsigned char *)prev) {
+			ret = -3;
+		} else if (prev && (const unsigned char *)LIMIT(prev) > beg) {
+			ret = -4;
+		} else if (prev && LIMIT(prev) == p) {
+			ret = -5;
+		}
+		if (ret) {
+			break;
+		}
+		prev = p;
+	}
+	SEQFIT_RELEASE_LOCK( &heap.lock );
+	return ret;
+}
+#endif

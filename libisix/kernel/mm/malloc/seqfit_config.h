@@ -24,8 +24,7 @@
 /* USE SEQFIT locking */
 #define SEQFIT_LOCK (1)
 
-#define SEQFIT_MLOCK_T            struct isix_mutex
-#define SEQFIT_CREATE_LOCK(l)     mm_lock_init(l)
-#define SEQFIT_ACQUIRE_LOCK(l)    mm_lock_lock(l)
-#define SEQFIT_RELEASE_LOCK(l)    mm_lock_unlock(l)
+#define SEQFIT_CREATE_LOCK(l)     do {} while(0)
+#define SEQFIT_ACQUIRE_LOCK(l)    mm_lock_lock()
+#define SEQFIT_RELEASE_LOCK(l)    mm_lock_unlock()
 

@@ -55,6 +55,8 @@ osbitset_ret_t isix_event_sync( osevent_t evth, osbitset_t bits_to_set,
  * @param[in]	clear_on_exit Clear bits on exit
  * @param[in]	wait_for_all  Wait for all bits
  * @param[in]   timeout		 Timeout to wait for sync
+ * @note The bits are not touched when the wait ends with a timeout.
+ *  A task suspended while it waits keeps waiting for the remaining time after resume.
  * @return Bits which are set
  */
 ISIX_CTX_SWITCH_API

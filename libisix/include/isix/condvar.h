@@ -53,10 +53,13 @@ inline __attribute__((always_inline))
  *          variable, and finally acquires the mutex again. All the sequence
  *          is performed atomically.
  * @param[in] cv Conditional variable object
- * @param[in] timeout Max wait time
+ * @param[in] timeout Max wait time, ISIX_TIME_DONTWAIT is not allowed
+ * @note The mutex released by the wait is the oldest one owned by the caller.
+ *  A task suspended while it waits can wake up spuriously, the condition must be rechecked.
  * @post Exiting the function because a timeout does not aquire the mutex agin.
  *  The mutex ownership is lost.
- * @return ISIX_EOK if the operation is completed successfully otherwise return an error code
+ * @return ISIX_EOK if the operation is completed successfully, ISIX_EINVARG for
+ *  ISIX_TIME_DONTWAIT, otherwise an error code
  */
 ISIX_CTX_SWITCH_API
 int isix_condvar_wait( oscondvar_t cv, ostick_t timeout );

@@ -34,7 +34,7 @@ osmempool_t isix_mempool_create( size_t elems, size_t elem_size )
 {
     isix_assert_isr();
     elem_size = _isixp_align_size( elem_size );
-    if( elem_size < sizeof(struct mempool_node))
+    if( elems == 0 || elem_size < sizeof(struct mempool_node) || elems > SIZE_MAX / elem_size )
     {
 		return NULL;
     }
@@ -42,12 +42,13 @@ osmempool_t isix_mempool_create( size_t elems, size_t elem_size )
     if( !mempool )
 		return NULL;
     mempool->mem = isix_alloc( elems * elem_size );
-	mempool->mem_size = elems * elem_size;
     if( !mempool->mem )
     {
       isix_free( mempool );
       return NULL;
     }
+	mempool->mem_size = elems * elem_size;
+	mempool->elem_size = elem_size;
     list_init( &mempool->free_elems );
     for( size_t e=0; e<elems; e++ )
     {
@@ -90,6 +91,8 @@ int isix_mempool_free( osmempool_t mp, void* p )
     if( !mp ) return ISIX_EINVARG;
     if( !p ) return ISIX_EINVARG;
 	if( !addr_in_mempool(mp,p) ) return ISIX_EINVADDR;
+	// Pointer must point to the beginning of the pool element
+	if( ((uintptr_t)p - (uintptr_t)mp->mem) % mp->elem_size ) return ISIX_EINVADDR;
     isix_enter_critical();
     list_insert_end( &mp->free_elems, &((struct mempool_node*)p)->inode );
     isix_exit_critical();
