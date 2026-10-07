@@ -15,7 +15,14 @@ inline void cpu_busy(unsigned ms_duration)
 	const auto t1 = isix::get_jiffies();
 	do {
 		asm volatile("nop\n");
-	} while (!isix::timer_elapsed(t1, ms_duration));
+	} while (!isix::timer_elapsed(t1, isix::ms2tick(ms_duration)));
+}
+
+//! Convert ms to ticks at compile time, same rounding as isix::ms2tick
+constexpr ostick_t ms_ticks(unsigned long ms)
+{
+	const ostick_t ticks = ISIX_HZ * ms / 1000UL;
+	return ticks ? ticks : 1U;
 }
 
 //! Priority of the test thread saved by lower_test_prio

@@ -27,6 +27,10 @@ namespace
 	private:
 		unsigned m_counter {};
 	};
+	//! Expected number of timer expirations during one second for a period given in ms
+	unsigned exp_cnt(unsigned period_ms) {
+		return isix::ms2tick(1000U) / isix::ms2tick(period_ms);
+	}
 }
 
 namespace {
@@ -46,8 +50,8 @@ namespace {
 
 //Vtimer modapi test
 namespace {
-	constexpr auto mod_on = 2000U;
-	constexpr auto mod_off = 800U;
+	constexpr auto mod_on = test_utils::ms_ticks(2000U);
+	constexpr auto mod_off = test_utils::ms_ticks(800U);
 	constexpr auto mod_iter = 20;
 	struct mod_info 
 	{
@@ -65,7 +69,7 @@ namespace {
 
 	inline bool mod_inrange(ostick_t t, ostick_t rng) {
 		//Host jitter between the worker tick and the jiffies read can shorten the interval
-		return t + 10 >= rng && t<=rng+mod_off/10;
+		return t + test_utils::ms_ticks(10U) >= rng && t<=rng+mod_off/10;
 	}
 
 	void cyclic_modapi_func(void* ptr) 
@@ -132,15 +136,15 @@ TEST(vtimer, basic)
 	TEST_ASSERT_EQUAL(ISIX_EOK, ss1);
 	TEST_ASSERT_EQUAL(ISIX_EOK, ss2);
 	TEST_ASSERT_EQUAL(ISIX_EOK, ss3);
-	TEST_ASSERT_EQUAL_UINT(wait_t/t1, m_t1.counter());
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(wait_t/t2, m_t2.counter());
-	TEST_ASSERT_LESS_THAN_UINT(wait_t/t2+2, m_t2.counter());
-	TEST_ASSERT_EQUAL_UINT(wait_t/t3, m_t3.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t1), m_t1.counter());
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(exp_cnt(t2), m_t2.counter());
+	TEST_ASSERT_LESS_THAN_UINT(exp_cnt(t2)+2, m_t2.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t3), m_t3.counter());
 	isix_wait_ms(wait_t);
-	TEST_ASSERT_EQUAL_UINT(wait_t/t1, m_t1.counter());
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(wait_t/t2, m_t2.counter());
-	TEST_ASSERT_LESS_THAN_UINT(wait_t/t2+2, m_t2.counter());
-	TEST_ASSERT_EQUAL_UINT(wait_t/t3, m_t3.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t1), m_t1.counter());
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(exp_cnt(t2), m_t2.counter());
+	TEST_ASSERT_LESS_THAN_UINT(exp_cnt(t2)+2, m_t2.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t3), m_t3.counter());
 	TEST_ASSERT_EQUAL(3, del_exe_cnt);
 }
 
@@ -161,15 +165,15 @@ TEST(vtimer, isr_api)
 	TEST_ASSERT_EQUAL(ISIX_EOK, m_t2.stop_isr());
 	TEST_ASSERT_EQUAL(ISIX_EOK, m_t3.stop_isr());
 	isix_wait_ms(t3+2);	//Give some time to exec command
-	TEST_ASSERT_EQUAL_UINT(wait_t/t1, m_t1.counter());
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(wait_t/t2, m_t2.counter());
-	TEST_ASSERT_LESS_THAN_UINT(wait_t/t2+2, m_t2.counter());
-	TEST_ASSERT_EQUAL_UINT(wait_t/t3, m_t3.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t1), m_t1.counter());
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(exp_cnt(t2), m_t2.counter());
+	TEST_ASSERT_LESS_THAN_UINT(exp_cnt(t2)+2, m_t2.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t3), m_t3.counter());
 	isix_wait_ms(wait_t);
-	TEST_ASSERT_EQUAL_UINT(wait_t/t1, m_t1.counter());
-	TEST_ASSERT_GREATER_OR_EQUAL_UINT(wait_t/t2, m_t2.counter());
-	TEST_ASSERT_LESS_THAN_UINT(wait_t/t2+2, m_t2.counter());
-	TEST_ASSERT_EQUAL_UINT(wait_t/t3, m_t3.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t1), m_t1.counter());
+	TEST_ASSERT_GREATER_OR_EQUAL_UINT(exp_cnt(t2), m_t2.counter());
+	TEST_ASSERT_LESS_THAN_UINT(exp_cnt(t2)+2, m_t2.counter());
+	TEST_ASSERT_EQUAL_UINT(exp_cnt(t3), m_t3.counter());
 }
 
 TEST(vtimer, one_shoot)
@@ -181,14 +185,14 @@ TEST(vtimer, one_shoot)
 	TEST_ASSERT_NOT_NULL(timerh);
 	//Run one shoot timer
 	call_info ci;
-	TEST_ASSERT_EQUAL(ISIX_EOK, isix::vtimer_start(timerh, one_call_timer_fun, &ci, 100, false));
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix::vtimer_start(timerh, one_call_timer_fun, &ci, isix::ms2tick(100), false));
 	isix_wait_ms(5);
 	TEST_ASSERT(isix_vtimer_is_active(timerh));
 	isix_wait_ms(1000);
 	TEST_ASSERT_EQUAL(1, ci.count);
 	//Host jitter can delay the start timestamp read, so allow a few ticks of slack
-	TEST_ASSERT_GREATER_OR_EQUAL(100, ci.last_call - ci.start_call);
-	TEST_ASSERT_LESS_OR_EQUAL(105, ci.last_call - ci.start_call);
+	TEST_ASSERT_GREATER_OR_EQUAL(isix::ms2tick(100), ci.last_call - ci.start_call);
+	TEST_ASSERT_LESS_OR_EQUAL(isix::ms2tick(100) + isix::ms2tick(5), ci.last_call - ci.start_call);
 	isix_wait_ms(200);
 	TEST_ASSERT_FALSE(isix_vtimer_is_active(timerh));
 	TEST_ASSERT_EQUAL(ISIX_EOK, isix_vtimer_destroy(timerh));
@@ -207,7 +211,7 @@ TEST(vtimer, mod_api)
 	inf.tmr = isix_vtimer_create();
 	TEST_ASSERT_NOT_NULL(inf.tmr);
 	TEST_ASSERT_EQUAL(ISIX_EOK, isix_vtimer_start(inf.tmr, cyclic_modapi_func, &inf, mod_on, true));
-	TEST_ASSERT_EQUAL(ISIX_EOK, isix::sem_wait(inf.fin, 60*1000));
+	TEST_ASSERT_EQUAL(ISIX_EOK, isix::sem_wait(inf.fin, isix::ms2tick(60*1000)));
 	TEST_ASSERT_EQUAL(0, inf.err_cnt);
 	TEST_ASSERT_EQUAL(mod_iter/2, inf.on_cnt);
 	TEST_ASSERT_EQUAL(mod_iter/2, inf.off_cnt);
@@ -246,7 +250,7 @@ namespace {
 
 TEST(vtimer, start_across_jiffies_wrap_not_early)
 {
-	static constexpr auto timeout = 50U;
+	static constexpr auto timeout = test_utils::ms_ticks(50U);
 	wrap_fire_count = 0;
 	wrap_fire_time = 0;
 	const auto tmr = isix_vtimer_create();
@@ -265,7 +269,7 @@ TEST(vtimer, start_across_jiffies_wrap_not_early)
 	TEST_ASSERT_EQUAL(ISIX_EOK, rc);
 	TEST_ASSERT_EQUAL_UINT(1U, cnt);
 	TEST_ASSERT_GREATER_OR_EQUAL_UINT(timeout, elapsed);
-	TEST_ASSERT_LESS_THAN_UINT(timeout + 30U, elapsed);
+	TEST_ASSERT_LESS_THAN_UINT(timeout + test_utils::ms_ticks(30U), elapsed);
 }
 
 TEST(vtimer, destroy_null_is_einvarg)

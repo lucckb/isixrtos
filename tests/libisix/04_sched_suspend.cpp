@@ -207,16 +207,18 @@ TEST(sched_suspend, unlock_replays_skipped_ticks)
 
 TEST(sched_suspend, ujiffies)
 {
+	// One tick up to 1 kHz, about 2 ms of emulator jitter above it
+	static constexpr auto wait_slack = ISIX_HZ > 1000U ? ISIX_HZ * 2U / 1000U : 1U;
 	//Test 1
 	auto t1 = isix_get_jiffies();
 	isix_wait_us(5000);
 	auto t2 = isix_get_jiffies();
-	TEST_ASSERT_UINT_WITHIN(1, 5U, t2-t1);
+	TEST_ASSERT_UINT_WITHIN(wait_slack, ISIX_HZ * 5U / 1000U, t2-t1);
 	//Test2 long
 	t1 = isix_get_jiffies();
 	isix_wait_us(500000);
 	t2 = isix_get_jiffies();
-	TEST_ASSERT_UINT_WITHIN(1, 500U, t2-t1);
+	TEST_ASSERT_UINT_WITHIN(wait_slack, ISIX_HZ / 2U, t2-t1);
 	//Final give a chance to cleanup resources
 	isix::wait_ms(10);
 }

@@ -316,7 +316,7 @@ TEST(semaphores, suspend_resume_waiter_keeps_timeout)
 	sem_order_n = 0;
 	// The waiter uses 3000 ms, shorten with a dedicated task
 	static constexpr auto short_wait = [](void*) {
-		sem_res[0] = isix_sem_wait(sem_obj, 100);
+		sem_res[0] = isix_sem_wait(sem_obj, isix::ms2tick(100));
 		sem_order_n = sem_order_n + 1;
 	};
 	const auto t = sem_tasks.spawn(short_wait, nullptr, 3);
@@ -359,7 +359,8 @@ TEST(semaphores, wait_dontwait_returns_immediately)
 
 namespace {
 	constexpr auto isr_lat_samples = 10U;
-	constexpr auto isr_lat_slow_us = 500U;
+	constexpr auto isr_tick_us = 1000000U / ISIX_HZ;
+	constexpr auto isr_lat_slow_us = isr_tick_us / 2U;
 	volatile uint32_t isr_lat_t_irq;
 	volatile unsigned isr_lat_slow;
 	volatile unsigned isr_lat_done;
@@ -394,7 +395,8 @@ TEST(semaphores, isr_signal_wakes_higher_prio_within_tick)
 	test_utils::lower_test_prio(5);
 	for (auto i = 0U; i < isr_lat_samples; ++i) {
 		// Raise the interrupt early in the system tick period
-		while (isix_get_ujiffies() % 1000U < 200U || isix_get_ujiffies() % 1000U > 300U) {
+		while (isix_get_ujiffies() % isr_tick_us < isr_tick_us / 5U
+			|| isix_get_ujiffies() % isr_tick_us > isr_tick_us * 3U / 10U) {
 			asm volatile("nop\n");
 		}
 		isr_lat_armed = true;
