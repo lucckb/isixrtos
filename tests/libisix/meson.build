@@ -25,6 +25,7 @@ isix_tests_src = files(
 	'10_tickless.cpp',
 	'11_coroutines.cpp',
 	'12_heap.cpp',
+	'13_irq_priority.cpp',
 	'unittests_entry.cpp',
 	'utils/board_boot.cpp',
 	'utils/dts.cpp',

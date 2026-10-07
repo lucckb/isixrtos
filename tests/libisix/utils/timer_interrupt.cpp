@@ -128,7 +128,8 @@ bool periodic_timer_setup(timer_handler_t cb, uint32_t period_us, uint8_t raw_pr
     LL_TIM_GenerateEvent_UPDATE(TIM3);
     LL_TIM_ClearFlag_UPDATE(TIM3);
 
-    isix::set_irq_priority(TIM3_IRQn, {1, 7});
+    // Highest priority, so the interrupt preempts the tick and is masked only by the kernel BASEPRI
+    isix::set_irq_priority(TIM3_IRQn, {0, 0});
     if (raw_prio) {
         isix::set_raw_irq_priority(TIM3_IRQn, raw_prio);
     }
