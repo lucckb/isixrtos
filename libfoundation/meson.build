@@ -28,6 +28,7 @@ if not disable_isix
     'src/newlib/memory.cpp',
     'src/newlib/cppruntime.cpp',
     'src/newlib/locking.c',
+    'src/newlib/eh_globals.c',
   )
 endif
 

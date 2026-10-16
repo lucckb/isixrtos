@@ -23,6 +23,18 @@ enum { MAGIC_FILL_VALUE = 0x55 };
 
 
 
+#ifdef CONFIG_ISIX_TASK_EH_GLOBALS
+#include <isix/arch/irq_global.h>
+
+struct isix_eh_globals* _isixp_task_eh_slot(void)
+{
+	if( !schrun || currp==NULL || isix_irq_in_isr() ) {
+		return NULL;
+	}
+	return &currp->eh_globals;
+}
+#endif
+
 /* Create task function */
 ostask_t isix_task_create(task_func_ptr_t task_func, void *func_param,
 		unsigned long  stack_depth, osprio_t priority, unsigned long flags )

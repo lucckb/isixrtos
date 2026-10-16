@@ -41,6 +41,7 @@ add_project_arguments(
 	get_option('tickless') ? '-DCONFIG_ISIX_TICKLESS' : [],
 	get_option('tickless') ? '-DCONFIG_ISIX_TICKLESS_MIN_SLEEP_TICKS='+get_option('tickless_min_sleep_ticks').to_string() : [],
 	get_option('tickless') ? '-DCONFIG_ISIX_TICKLESS_TIMER_COMPENSATION_TICKS='+get_option('tickless_compensation_ticks').to_string() : [],
+	get_option('cpp_eh') != 'none' ? '-DCONFIG_ISIX_TASK_EH_GLOBALS' : [],
 	_co_debug ? '-DCONFIG_ISIX_CO_DEBUG' : [],
 	_co_trace ? '-DCONFIG_ISIX_CO_TRACE' : [],
 	_co_shuffle ? '-DCONFIG_ISIX_CO_TEST_SHUFFLE' : [],
