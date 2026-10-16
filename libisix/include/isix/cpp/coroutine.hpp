@@ -18,12 +18,10 @@
 #include <type_traits>
 #include <utility>
 
-#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
 #include <exception>
-#define ISIX_CO_HAS_EXCEPTIONS 1
-#endif
 
 #include <isix/assert.h>
+#include <isix/cpp/co_except.hpp>
 #include <isix/cpp/co_channel.hpp>
 #include <isix/cpp/co_event.hpp>
 #include <isix/cpp/co_executor.hpp>
@@ -153,13 +151,7 @@ struct task_promise final : detail::frame_alloc_base {
 		result_value.emplace(std::forward<U>(v));
 	}
 
-#ifdef ISIX_CO_HAS_EXCEPTIONS
-	std::exception_ptr exception {};
-
-	void unhandled_exception() noexcept { exception = std::current_exception(); }
-#else
-	void unhandled_exception() noexcept { std::terminate(); }
-#endif
+	void unhandled_exception() noexcept { exc.capture(); }
 };
 
 template<>
@@ -183,13 +175,7 @@ struct task_promise<void> final : detail::frame_alloc_base {
 
 	void return_void() noexcept {}
 
-#ifdef ISIX_CO_HAS_EXCEPTIONS
-	std::exception_ptr exception {};
-
-	void unhandled_exception() noexcept { exception = std::current_exception(); }
-#else
-	void unhandled_exception() noexcept { std::terminate(); }
-#endif
+	void unhandled_exception() noexcept { exc.capture(); }
 };
 
 template<typename T>
@@ -228,11 +214,18 @@ public:
 
 	bool done() const noexcept { return !coro_ || coro_.promise().completed; }
 
-	//! ISIX_EOK when finished normally, ISIX_ECANCELED when canceled, ISIX_ESTATE when not finished
+	//! True when the task finished by an exception, always false without exceptions
+	[[nodiscard]] bool has_exception() const noexcept { return coro_ && coro_.promise().exc.has(); }
+
+	//! ISIX_EOK when finished normally, ISIX_ECANCELED when canceled, ISIX_EBADF when it ended
+	//! by an exception, ISIX_ESTATE when not finished
 	[[nodiscard]] int error() const noexcept
 	{
 		if (!coro_ || !coro_.promise().completed) {
 			return ISIX_ESTATE;
+		}
+		if (coro_.promise().exc.has()) {
+			return ISIX_EBADF;
 		}
 		return coro_.promise().cancel_requested ? ISIX_ECANCELED : ISIX_EOK;
 	}
@@ -246,12 +239,13 @@ public:
 		return *coro_.promise().result_value;
 	}
 
-	//! Value of a finished task or the reason it has none
-	[[nodiscard]] isix::co::result<T> result()
+	//! Value of a finished task or the reason it has none, rethrows the exception of the task
+	[[nodiscard]] isix::co::result<T> result() noexcept(detail::c_co_nothrow)
 	{
 		if (!coro_ || !coro_.promise().completed) {
 			return std::unexpected(ISIX_ESTATE);
 		}
+		coro_.promise().exc.rethrow_if();
 		if constexpr (std::is_void_v<T>) {
 			if (coro_.promise().cancel_requested) {
 				return std::unexpected(ISIX_ECANCELED);
@@ -338,13 +332,9 @@ public:
 	auto get()
 	{
 		if (!coro_) {
-			std::terminate();
+			detail::fail_empty_task();
 		}
-#ifdef ISIX_CO_HAS_EXCEPTIONS
-		if (coro_.promise().exception) {
-			std::rethrow_exception(coro_.promise().exception);
-		}
-#endif
+		coro_.promise().exc.rethrow_if();
 		if constexpr (std::is_void_v<T>) {
 			return;
 		} else {
@@ -409,13 +399,11 @@ auto run(scheduler& sched, task<T>&& t)
 			isix_bug("co::run: coroutine waits on something outside of isix::co");
 		}
 	}
-#ifdef ISIX_CO_HAS_EXCEPTIONS
-	if (h.promise().exception) {
-		std::exception_ptr ex = std::move(h.promise().exception);
+	if (h.promise().exc.has()) {
+		auto ex = h.promise().exc.take();
 		h.destroy();
-		std::rethrow_exception(ex);
+		detail::rethrow(std::move(ex));
 	}
-#endif
 	if constexpr (std::is_void_v<T>) {
 		h.destroy();
 		return;

@@ -15,6 +15,7 @@
 #include <type_traits>
 #include <utility>
 
+#include <isix/cpp/co_except.hpp>
 #include <isix/cpp/co_frame.hpp>
 
 namespace isix::co {
@@ -25,6 +26,7 @@ public:
 	struct promise_type {
 		std::add_pointer_t<std::remove_reference_t<T>> current {};
 		bool completed { false };
+		[[no_unique_address]] detail::exception_slot exc {};
 
 		static void* operator new(std::size_t size) noexcept { return detail::frame_acquire(size); }
 		static void operator delete(void* frame, std::size_t size) noexcept
@@ -57,7 +59,7 @@ public:
 		}
 
 		void return_void() noexcept {}
-		void unhandled_exception() noexcept { std::terminate(); }
+		void unhandled_exception() noexcept { exc.capture(); }
 
 		//! co_await is not allowed in a generator
 		template<typename U>
@@ -74,12 +76,13 @@ public:
 		iterator() noexcept = default;
 		explicit iterator(std::coroutine_handle<promise_type> h) noexcept : m_h(h) {}
 
-		iterator& operator++() noexcept
+		iterator& operator++() noexcept(detail::c_co_nothrow)
 		{
 			m_h.resume();
+			m_h.promise().exc.take_and_rethrow();
 			return *this;
 		}
-		void operator++(int) noexcept { ++*this; }
+		void operator++(int) noexcept(detail::c_co_nothrow) { ++*this; }
 
 		[[nodiscard]] std::add_lvalue_reference_t<T> operator*() const noexcept { return *m_h.promise().current; }
 		[[nodiscard]] bool operator==(sentinel) const noexcept { return !m_h || m_h.promise().completed; }
@@ -106,10 +109,11 @@ public:
 	[[nodiscard]] bool valid() const noexcept { return static_cast<bool>(m_h); }
 
 	//! Runs the generator to its first value; an empty generator yields an empty range
-	[[nodiscard]] iterator begin() noexcept
+	[[nodiscard]] iterator begin() noexcept(detail::c_co_nothrow)
 	{
 		if (m_h) {
 			m_h.resume();
+			m_h.promise().exc.take_and_rethrow();
 		}
 		return iterator{ m_h };
 	}

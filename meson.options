@@ -44,7 +44,7 @@ option('max_cxa_atexit_objects', type : 'integer', value : 16,
 option('timers_cmd_queue_size', type : 'integer', value : 16,
 	description : 'Timers command queue size')
 option('test', type : 'boolean', value : false,
-	description : 'Build isix unittests. Note: requires also cpp_eh and cpp_rtti as the testing framework needs exceptions')
+	description : 'Build isix unittests (Unity, works with and without exceptions)')
 
 option('log_level', type : 'combo', choices : ['off', 'crit', 'err', 'warn', 'info', 'debug'],
 	description : 'General logging level')

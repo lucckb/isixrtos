@@ -38,6 +38,7 @@ static void run_all_tests()
 	RUN_TEST_GROUP(events);
 	RUN_TEST_GROUP(coroutines);
 	RUN_TEST_GROUP(coroutines_ext);
+	RUN_TEST_GROUP(coroutines_exceptions);
 	RUN_TEST_GROUP(coroutines_bench);
 	RUN_TEST_GROUP(tickless);
 }

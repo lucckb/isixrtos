@@ -22,6 +22,7 @@
 #include <utility>
 
 #include <isix/arch/irq_global.h>
+#include <isix/cpp/co_except.hpp>
 #include <isix/events.h>
 #include <isix/error.h>
 #include <isix/ostime.h>
@@ -314,6 +315,7 @@ struct promise_common : scope_entry, ready_item {
 	bool completed { false };
 	bool cancel_requested { false };
 	bool detached { false };
+	[[no_unique_address]] exception_slot exc {};
 	scheduler* sched {};
 	wait_node* continuation {};	//! Parent resumed when this coroutine finishes
 	promise_common* child {};	//! Child task awaited right now
@@ -356,6 +358,7 @@ struct scope_core : wait_node {
 	std::size_t count {};
 	wait_node* joiner {};
 	scheduler* sched {};
+	[[no_unique_address]] exception_sink sink {};
 
 	inline void adopt(promise_common& p) noexcept;
 	inline void cancel_all() noexcept;
@@ -1124,6 +1127,7 @@ inline void scope_core::finish_cb(promise_common& p) noexcept
 	auto& core = static_cast<scope_core&>(*p.continuation);
 	p.scope_link.unlink();
 	--core.count;
+	core.sink.deliver(p.exc);
 	core.sched->m_dead.push_back(p.sched_link);
 	if (core.count == 0U && core.joiner) {
 		auto* const j = core.joiner;

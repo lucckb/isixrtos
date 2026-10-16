@@ -18,12 +18,22 @@ Lazy, move-only owner of a coroutine frame. Destroying it destroys the coroutine
 |---|---|
 | `bool valid()` | false for an empty task (frame allocation failed or moved from) |
 | `bool done()` | finished or empty |
-| `int error()` | `ISIX_EOK` finished, `ISIX_ECANCELED` finished after a cancel request, `ISIX_ESTATE` not finished |
+| `int error()` | `ISIX_EOK` finished, `ISIX_ECANCELED` finished after a cancel request, `ISIX_EBADF` finished by an exception, `ISIX_ESTATE` not finished |
+| `bool has_exception()` | the task finished by an exception; always false without exceptions |
 | `T& value()` | value of a finished non-void task; stops the system when there is none |
-| `result<T> result()` | moves the value out, or the error code |
+| `result<T> result()` | moves the value out, or the error code; rethrows the exception of the task (not `noexcept` with exceptions enabled) |
 | `void cancel()` | cooperative cancel (scheduler thread) |
-| `co_await std::move(task)` | runs it as a child; result is the value of `T` |
+| `co_await std::move(task)` | runs it as a child; result is the value of `T`, an exception is rethrown; an empty task throws `std::bad_alloc` (terminates without exceptions) |
 | `handle()`, `release()`, `destroy()` | raw frame access |
+
+### Exceptions
+
+With `-Dcpp_eh=default`: `set_unhandled_exception_handler(void (*)(std::exception_ptr) noexcept)`
+sets the handler for exceptions of detached tasks nobody can receive (default `std::terminate`) and
+returns the previous one; `nullptr` restores the default. The awaiters that rethrow
+(`task::result`, `join_awaiter`, `timeout_awaiter`, `async_scope::join`, `worker_thread::run`,
+`generator::begin` and `operator++`) are `noexcept(false)` with exceptions and `noexcept` without.
+See the Exceptions section of the guide for the rules per construct.
 
 ### `template<class T> using result = std::expected<T, int>`
 
@@ -65,7 +75,7 @@ scheduler for creating primitives. The destructor stops and joins the thread.
 
 Scheduler thread only. `spawn(task&&, name = nullptr)` returns `ISIX_EOK` or `ISIX_ENOMEM`;
 `cancel_all()`; `size()`; `co_await join()` returns `ISIX_EOK` or `ISIX_ECANCELED` (`ISIX_EBUSY` when
-another coroutine already joins). The destructor destroys the coroutines still alive: destroy the
+another coroutine already joins) and rethrows the first exception of a task. The destructor destroys the coroutines still alive: destroy the
 scope outside of the coroutines it runs.
 
 ## Primitives
@@ -140,7 +150,9 @@ The bound task must outlive the binding or be unbound first.
 | `when_any(task&...)` | `std::size_t` index of the first finished task; the others are canceled and finish first |
 | `with_timeout(task&, ticks)` / `with_timeout(task&&, ticks)` | `result<T>`; `ISIX_ETIMEOUT` when time ran out (the task is canceled and finished first), `ISIX_ECANCELED` when the caller was canceled |
 
-Empty tasks are skipped. `when_all`/`when_any` start tasks that were not started.
+Empty tasks are skipped. `when_all`/`when_any` start tasks that were not started. With exceptions
+`when_all` cancels the others on the first exception and rethrows it, `when_any` rethrows the
+exception of the task that finished first, `with_timeout` rethrows the exception of its task.
 
 ## Frames
 
@@ -159,7 +171,8 @@ Size parameters include the 8 byte frame header.
 `worker_thread(scheduler&)`, `start(stack, priority)`. `co_await worker.run(callable)` runs
 `callable()` (returning `void` or `int`) on the worker thread and returns `ISIX_EOK` or its value;
 `ISIX_EBUSY` while another job is claimed, `ISIX_ESTATE` when not started. A job cannot be
-interrupted: after a cancel the wait ends with `ISIX_ECANCELED` once the job finished, and
+interrupted: after a cancel the wait ends with `ISIX_ECANCELED` once the job finished, an
+exception of the callable is caught on the worker thread and rethrown in the coroutine, and
 destroying the awaiting coroutine blocks until the job is done. The callable must outlive the
 `co_await`.
 
@@ -167,7 +180,8 @@ destroying the awaiting coroutine blocks until the job is done. The callable mus
 
 `generator<T>`: a coroutine with `co_yield`, consumed by a range-for loop; it needs no scheduler.
 `co_await` is not allowed inside it. `valid()` is false when the frame allocation failed (the range
-is then empty).
+is then empty). With exceptions an exception of the body is rethrown from `begin()` or
+`operator++`.
 
 ## Diagnostics
 

@@ -25,6 +25,8 @@ namespace isix::co {
 template<typename T, std::size_t N>
 class channel final {
 	static_assert(N > 0);
+	static_assert(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable_v<T>,
+		"channel element type must be nothrow movable");
 public:
 	explicit channel(scheduler& sched) noexcept
 		: m_sched(&sched), m_signal(&channel::dispatch_cb, this) {}

@@ -3,7 +3,7 @@
 ## Enabling
 
 The layer needs a toolchain with C++20 coroutines (the project builds with `gnu++23`, exceptions and
-RTTI off). Define `CONFIG_ISIX_CPP_COROUTINES` before including `isix.h`, or pass
+RTTI off by default). Define `CONFIG_ISIX_CPP_COROUTINES` before including `isix.h`, or pass
 `-DCONFIG_ISIX_CPP_COROUTINES=1`. A program that does not include the coroutine headers pays
 nothing for them.
 
@@ -124,6 +124,42 @@ the caller's locals safely.
 inside their own final suspension. `scheduler::post(task)` hands a detached task to a scheduler from
 any thread; the scheduler adopts it on its next round.
 
+## Exceptions
+
+The default build has exceptions off and reports errors as `ISIX_E*` codes; an exception escaping a
+coroutine then terminates. Exceptions are an option (`-Dcpp_eh=default`) and the layer works in
+both configurations; without them none of the code below exists and nothing is paid for it.
+
+Rule: **a stored exception always wins over an error code.** Cancellation is a request, not a
+failure, so a coroutine that throws in reaction to it delivers the exception, not `ISIX_ECANCELED`
+or `ISIX_ETIMEOUT`.
+
+| Construct | What happens to an exception from the body |
+|---|---|
+| `co_await task`, `task::get()`, `co::run` | rethrown in the awaiting coroutine or caller |
+| `task::result()` | rethrown; `error()` is `noexcept` and returns `ISIX_EBADF`, `has_exception()` tells why |
+| `with_timeout` | rethrown when the task threw, also after a timeout or cancel |
+| `when_all` | the first exception (in order of completion) cancels the other tasks; the caller resumes when all finished and gets that exception. Later ones stay in their tasks (`result()`, `has_exception()`) |
+| `when_any` | the first task to finish decides: if it threw, its exception is rethrown after the losers finished; exceptions of losers stay in their tasks |
+| `async_scope` | the first exception is rethrown by `co_await scope.join()`; later ones, and one nobody joined when the scope is destroyed, go to the handler |
+| `scheduler::post` | goes to the handler |
+| `generator` | rethrown from `begin()` or `operator++` in the consumer |
+| `worker_thread::run` | caught on the worker thread and rethrown in the awaiting coroutine |
+| missing frame | `co_await` or `get()` of an empty task throws `std::bad_alloc`; `spawn()` and `post()` still return `ISIX_ENOMEM` |
+
+The handler is set with `co::set_unhandled_exception_handler(void (*)(std::exception_ptr) noexcept)`
+and defaults to `std::terminate`. It runs on the scheduler thread, must not throw or destroy the
+scheduler or the scope, and passing `nullptr` restores the default.
+
+Rules that stay as they are: an exception never crosses an interrupt or a thread boundary except
+through `worker_thread`; primitives and `channel<T>` operations are `noexcept` (the element type
+of a channel must be nothrow movable); a destructor that throws terminates, also when the
+frame of a canceled coroutine is destroyed; `co_await` is not allowed inside a `catch` block.
+
+Exceptions are safe in many tasks: with exceptions enabled the kernel keeps the unwinder state
+(`__cxa_get_globals`) per task, 12 bytes in each task control block, instead of one global.
+Throwing outside of a task context, for example in an interrupt handler, is not supported.
+
 ## Coroutine frames
 
 A coroutine frame is allocated once, when the coroutine function is called. The default source
@@ -171,5 +207,5 @@ kernel can stop the periodic tick while all coroutines wait. No coroutine code i
   task. Use the `co::` primitives, `co::sem_adapter`, or `worker_thread`.
 - Priority inheritance applies to the RTOS task that runs the scheduler, not to a coroutine.
 - `stop_source::bind` stores a pointer to the task's promise: call `unbind()` before the task goes away.
-- With exceptions enabled, an exception escaping a coroutine is stored in its promise; with
-  `-fno-exceptions` it terminates.
+- With exceptions enabled, an exception escaping a coroutine is stored in its promise and delivered
+  as described in [Exceptions](#exceptions); with `-fno-exceptions` it terminates.
