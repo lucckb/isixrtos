@@ -29,6 +29,10 @@ typedef struct task_ready_struct
 
 typedef uint8_t thr_state_t;
 
+#ifdef CONFIG_ISIX_TASK_EH_GLOBALS
+#include <isix/prv/eh_globals.h>
+#endif
+
 //Definition of task operations
 struct isix_task
 {
@@ -55,6 +59,9 @@ struct isix_task
 		osmsg_t	dmsg;				//! Returning message
 	} obj;
 	struct _reent *impure_data;		//! Newlib per thread private data
+#ifdef CONFIG_ISIX_TASK_EH_GLOBALS
+	struct isix_eh_globals eh_globals;	//! C++ exception handling state of the task
+#endif
     list_t inode;					//! Inode task for operation
 	list_t inode_time;				//! Waiting inode
 };

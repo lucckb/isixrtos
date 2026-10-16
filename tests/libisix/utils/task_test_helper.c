@@ -20,8 +20,8 @@
 #include <isix/prv/list.h>
 
 size_t thack_struct_size(void) {
-	//8 is malloc list hdr + align
-	return sizeof( struct isix_task ) + 8 + 4;
+	//8 is malloc list hdr, blocks are aligned to 8
+	return ( sizeof( struct isix_task ) + 8 + 7 ) & ~(size_t)7;
 }
 
 int thack_getref_cnt( struct isix_task* t ) {
