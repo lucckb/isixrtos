@@ -28,6 +28,7 @@ isix_tests_src = files(
 	'13_irq_priority.cpp',
 	'14_coroutines_ext.cpp',
 	'15_coroutines_bench.cpp',
+	'16_coroutines_exceptions.cpp',
 	'unittests_entry.cpp',
 	'utils/board_boot.cpp',
 	'utils/dts.cpp',

@@ -23,7 +23,8 @@ namespace isix::co {
 /**
  * One job at a time. A job is not interruptible: cancelling the awaiting coroutine
  * lets the job finish and then completes the wait with ISIX_ECANCELED, and
- * destroying the coroutine blocks until the job is done.
+ * destroying the coroutine blocks until the job is done. An exception thrown by the
+ * callable is delivered to the awaiting coroutine.
  */
 class worker_thread final : public isix::detail::thread_base {
 public:
@@ -94,14 +95,21 @@ public:
 			sched->suspend(m_node, h, ISIX_TIME_INFINITE);
 			m_started = true;
 			m_w->m_fn = &thunk;
-			m_w->m_ctx = m_f;
+			m_w->m_ctx = this;
 			m_w->m_rc = ISIX_EOK;
 			m_w->m_job.signal();
 			return true;
 		}
 
-		//! Result of the callable (void callables give ISIX_EOK) or ISIX_ECANCELED
-		int await_resume() const noexcept { return m_node.result; }
+		//! Result of the callable (void callables give ISIX_EOK) or ISIX_ECANCELED,
+		//! an exception thrown by the callable is rethrown
+		int await_resume() const noexcept(detail::c_co_nothrow)
+		{
+			if (m_started) {
+				m_w->m_ex.take_and_rethrow();
+			}
+			return m_node.result;
+		}
 
 	private:
 		static void abort_cb(detail::wait_node& n, int) noexcept
@@ -111,12 +119,8 @@ public:
 
 		static int thunk(void* ctx) noexcept
 		{
-			if constexpr (std::is_void_v<std::invoke_result_t<F&>>) {
-				(*static_cast<F*>(ctx))();
-				return ISIX_EOK;
-			} else {
-				return static_cast<int>((*static_cast<F*>(ctx))());
-			}
+			auto* const self = static_cast<run_awaiter*>(ctx);
+			return detail::invoke_capturing(*self->m_f, self->m_w->m_ex);
 		}
 
 		worker_thread* m_w {};
@@ -167,6 +171,7 @@ private:
 		detail::critical_guard g;
 		m_busy = false;
 		m_waiter = nullptr;
+		m_ex.clear();
 	}
 
 	void runner() override
@@ -193,6 +198,7 @@ private:
 	int m_rc { ISIX_EOK };
 	bool m_busy { false };
 	bool m_done { false };
+	[[no_unique_address]] detail::exception_slot m_ex {};
 };
 
 } // namespace isix::co

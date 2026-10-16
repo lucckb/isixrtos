@@ -18,16 +18,26 @@ namespace isix::co {
 
 /**
  * Scheduler thread only. Destroy the scope outside of the coroutines it runs;
- * coroutines still alive are destroyed with it.
+ * coroutines still alive are destroyed with it. The first exception of a task is
+ * rethrown by join(); later ones, and one nobody joined, go to the unhandled
+ * exception handler.
  */
 class async_scope final {
 public:
-	explicit async_scope(scheduler& sched) noexcept { m_core.sched = &sched; }
+	explicit async_scope(scheduler& sched) noexcept
+	{
+		m_core.sched = &sched;
+		m_core.sink.collect();
+	}
 
 	async_scope(const async_scope&) = delete;
 	async_scope& operator=(const async_scope&) = delete;
 
-	~async_scope() { m_core.destroy_all(); }
+	~async_scope()
+	{
+		m_core.destroy_all();
+		m_core.sink.report_pending();
+	}
 
 	//! Start a task that nobody awaits. Returns ISIX_ENOMEM for a task without a frame.
 	template<typename Task>
@@ -81,8 +91,14 @@ public:
 			return true;
 		}
 
-		//! ISIX_EOK, ISIX_ECANCELED when the waiter was canceled
-		int await_resume() const noexcept { return m_node.result; }
+		//! ISIX_EOK, ISIX_ECANCELED when the waiter was canceled, rethrows the first exception
+		int await_resume() const noexcept(detail::c_co_nothrow)
+		{
+			if (m_node.result != ISIX_EBUSY) {
+				m_core->sink.rethrow_pending();
+			}
+			return m_node.result;
+		}
 
 	private:
 		detail::scope_core* m_core {};

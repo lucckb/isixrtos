@@ -29,6 +29,7 @@ struct join_node : wait_node {
 	std::uint8_t count {};
 	std::uint8_t pending {};
 	std::uint8_t winner { c_none };
+	[[no_unique_address]] eh_state<std::uint8_t, c_none> failed {};
 	bool any { false };
 	bool aborted { false };
 	std::int8_t abort_reason { ISIX_EOK };
@@ -74,6 +75,37 @@ struct join_node : wait_node {
 		return n;
 	}
 
+	[[nodiscard]] std::uint8_t index_of(const promise_common& p) const noexcept
+	{
+		std::uint8_t idx = c_none;
+		for (std::uint8_t n = 0; n < count; ++n) {
+			if (kids[n] == &p) {
+				idx = n;
+			}
+		}
+		return idx;
+	}
+
+	//! Rethrow the exception that decided the outcome of the group
+	void rethrow_failed() const noexcept(c_co_nothrow)
+	{
+		if constexpr (!c_co_nothrow) {
+			if (any) {
+				if (winner != c_none) {
+					kids[winner]->exc.rethrow_if();
+				}
+			} else if (failed.get() != c_none) {
+				kids[failed.get()]->exc.rethrow_if();
+			} else {
+				for (std::uint8_t n = 0; n < count; ++n) {
+					if (kids[n]) {
+						kids[n]->exc.rethrow_if();
+					}
+				}
+			}
+		}
+	}
+
 	void cancel_others(const promise_common* except) noexcept
 	{
 		for (std::uint8_t n = 0; n < count; ++n) {
@@ -96,14 +128,14 @@ private:
 	{
 		auto& j = static_cast<join_node&>(*p.continuation);
 		if (j.winner == c_none) {
-			for (std::uint8_t n = 0; n < j.count; ++n) {
-				if (j.kids[n] == &p) {
-					j.winner = n;
-				}
-			}
+			j.winner = j.index_of(p);
 			if (j.any) {
 				j.cancel_others(&p);
 			}
+		}
+		if (!j.any && j.failed.get() == c_none && p.exc.has()) {
+			j.failed.set(j.index_of(p));
+			j.cancel_others(&p);
 		}
 		if (--j.pending == 0U) {
 			p.sched->wake(j, ISIX_EOK);
@@ -151,8 +183,9 @@ public:
 		return true;
 	}
 
-	auto await_resume() const noexcept
+	auto await_resume() const noexcept(detail::c_co_nothrow)
 	{
+		m_node.rethrow_failed();
 		if constexpr (Any) {
 			return m_node.winner == join_node::c_none ? N : static_cast<std::size_t>(m_node.winner);
 		}
@@ -200,12 +233,14 @@ public:
 		return true;
 	}
 
-	//! ISIX_ETIMEOUT when time ran out, ISIX_ECANCELED when the caller was canceled
-	isix::co::result<T> await_resume() noexcept
+	//! ISIX_ETIMEOUT when time ran out, ISIX_ECANCELED when the caller was canceled,
+	//! an exception of the task is rethrown
+	isix::co::result<T> await_resume() noexcept(detail::c_co_nothrow)
 	{
 		if (!m_task->valid()) {
 			return std::unexpected(ISIX_ENOMEM);
 		}
+		m_task->handle().promise().exc.rethrow_if();
 		if (m_node.aborted) {
 			return std::unexpected(m_node.abort_reason == ISIX_ETIMEOUT ? ISIX_ETIMEOUT : ISIX_ECANCELED);
 		}

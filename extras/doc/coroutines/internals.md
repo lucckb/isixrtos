@@ -102,5 +102,11 @@ timer worker and waits for it, so no command that refers to the scheduler is pen
 - Symmetric transfer is not used.
 - GCC does not elide the frame allocation of these tasks and does not share frame slots between
   consecutive awaiters, so a frame grows with the number of `co_await`s in one function.
-- Exceptions and RTTI are off in the project. With exceptions enabled the promise stores the exception.
+- Exceptions and RTTI are off in the project. The only place that depends on them is
+  `co_except.hpp`: `detail::exception_slot` is a `std::exception_ptr` (4 bytes in
+  `promise_common`, the scope, the generator promise and the worker) or an empty class, and
+  `detail::c_co_nothrow` selects the `noexcept` of the awaiters that rethrow. Code outside that header
+  has no `#if` for exceptions. The kernel keeps `__cxa_eh_globals` per task
+  (`CONFIG_ISIX_TASK_EH_GLOBALS`, set by the build when `cpp_eh` is not `none`) by redirecting
+  `__cxa_get_globals` with a linker wrap.
 - A frame cannot be allocated in an interrupt: starting a coroutine function is an allocation.
